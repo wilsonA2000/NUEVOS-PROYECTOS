@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Contratos | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-elegant p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Sistema de Contratos Digitales</h1>
+                    <p class="text-gray-600 mt-1">Gestiona tus contratos de manera segura y digital</p>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Botón nuevo contrato -->
+                    <button class="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-200 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Nuevo Contrato
+                    </button>
+                    
+                    <!-- Estadísticas rápidas -->
+                    <div class="flex items-center space-x-6 text-sm">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">12</div>
+                            <div class="text-gray-500">Activos</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-600">3</div>
+                            <div class="text-gray-500">Pendientes</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">25</div>
+                            <div class="text-gray-500">Completados</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-2xl shadow-elegant p-6 mb-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div>
+                        <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="draft">Borrador</option>
+                            <option value="pending">Pendiente</option>
+                            <option value="signed">Firmado</option>
+                            <option value="active">Activo</option>
+                            <option value="completed">Completado</option>
+                            <option value="cancelled">Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="type-filter" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                        <select id="type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                            <option value="">Todos los tipos</option>
+                            <option value="rental">Arrendamiento</option>
+                            <option value="service">Servicios</option>
+                            <option value="sale">Compra-Venta</option>
+                            <option value="management">Administración</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="date-filter" class="block text-sm font-medium text-gray-700 mb-1">Período</label>
+                        <select id="date-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                            <option value="">Todo el tiempo</option>
+                            <option value="this-month">Este mes</option>
+                            <option value="last-month">Mes pasado</option>
+                            <option value="this-year">Este año</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <input type="text" 
+                               class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                               placeholder="Buscar contratos, propiedades, usuarios...">
+                        <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    
+                    <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Exportar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de contratos -->
+        <div class="space-y-6">
+            <!-- Contrato 1 - Activo -->
+            <div class="bg-white rounded-2xl shadow-elegant overflow-hidden hover:shadow-xl transition-all duration-300 border-l-4 border-green-500">
+                <div class="p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-xl font-semibold text-gray-900">Contrato de Arrendamiento - Apartamento Zona Rosa</h3>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    Activo
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    📋 Arrendamiento
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Arrendatario</p>
+                                    <p class="font-medium text-gray-900">Laura Rodríguez</p>
+                                    <p class="text-sm text-gray-600">laura.rodriguez@email.com</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Propiedad</p>
+                                    <p class="font-medium text-gray-900">Apto 302 - Torre Ejecutiva</p>
+                                    <p class="text-sm text-gray-600">Zona Rosa, Bogotá</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Valor Mensual</p>
+                                    <p class="font-medium text-gray-900 text-lg">$2,500,000</p>
+                                    <p class="text-sm text-gray-600">+ $300,000 administración</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-6 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v8a2 2 0 002 2h4a2 2 0 002-2v-8M9 7h6"></path>
+                                    </svg>
+                                    Inicio: 15 Ene 2024
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Vence: 15 Ene 2025
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Contrato #CT-2024-001
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Firmado digitalmente
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2 ml-6">
+                            <button class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
+                                Ver Contrato
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                                Descargar PDF
+                            </button>
+                            <div class="relative">
+                                <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors w-full">
+                                    Más Acciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de progreso del contrato -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                            <span>Progreso del contrato</span>
+                            <span>4 de 12 meses completados</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 33%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrato 2 - Pendiente de firma -->
+            <div class="bg-white rounded-2xl shadow-elegant overflow-hidden hover:shadow-xl transition-all duration-300 border-l-4 border-yellow-500">
+                <div class="p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-xl font-semibold text-gray-900">Contrato de Servicios - Mantenimiento General</h3>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                    <div class="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
+                                    Pendiente
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                    🔧 Servicios
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Prestador</p>
+                                    <p class="font-medium text-gray-900">Carlos Mendoza</p>
+                                    <p class="text-sm text-gray-600">carlos.mendoza@email.com</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Servicio</p>
+                                    <p class="font-medium text-gray-900">Mantenimiento Integral</p>
+                                    <p class="text-sm text-gray-600">Plomería, Electricidad, Pintura</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Valor Total</p>
+                                    <p class="font-medium text-gray-900 text-lg">$1,200,000</p>
+                                    <p class="text-sm text-gray-600">Pago contra entrega</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-6 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v8a2 2 0 002 2h4a2 2 0 002-2v-8M9 7h6"></path>
+                                    </svg>
+                                    Creado: 10 Jun 2024
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Duración: 3 semanas
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Contrato #CT-2024-015
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Esperando firma
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2 ml-6">
+                            <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">
+                                Firmar Ahora
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                                Ver Borrador
+                            </button>
+                            <button class="px-4 py-2 border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+                                Rechazar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Indicador de urgencia -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-orange-600">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="font-medium">Firma requerida en 2 días</span>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Recordatorio enviado hace 1 día
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrato 3 - Completado -->
+            <div class="bg-white rounded-2xl shadow-elegant overflow-hidden hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500">
+                <div class="p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-xl font-semibold text-gray-900">Contrato de Compra-Venta - Casa Chapinero</h3>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                    Completado
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                    🏠 Compra-Venta
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Comprador</p>
+                                    <p class="font-medium text-gray-900">Miguel Ángel Torres</p>
+                                    <p class="text-sm text-gray-600">miguel.torres@email.com</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Propiedad</p>
+                                    <p class="font-medium text-gray-900">Casa 3 pisos - Chapinero</p>
+                                    <p class="text-sm text-gray-600">Calle 63 #11-45</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Valor Final</p>
+                                    <p class="font-medium text-gray-900 text-lg">$450,000,000</p>
+                                    <p class="text-sm text-gray-600">Financiación bancaria</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-6 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v8a2 2 0 002 2h4a2 2 0 002-2v-8M9 7h6"></path>
+                                    </svg>
+                                    Firmado: 28 Mar 2024
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Completado: 15 May 2024
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Contrato #CT-2024-008
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Transferencia completada
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2 ml-6">
+                            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                                Ver Contrato
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                                Descargar PDF
+                            </button>
+                            <button class="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                                Ver Historial
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center text-green-600">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="font-medium">Proceso completado exitosamente</span>
+                            </div>
+                            <div class="text-gray-500">
+                                Calificación del proceso: ⭐⭐⭐⭐⭐ (5.0)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="flex justify-center mt-12">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Anterior</span>
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary-50 text-sm font-medium text-primary-600">1</a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">2</a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</a>
+                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Siguiente</span>
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros dinámicos
+    const statusFilter = document.getElementById('status-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const dateFilter = document.getElementById('date-filter');
+    const searchInput = document.querySelector('input[placeholder*="Buscar"]');
+    
+    function filterContracts() {
+        const contracts = document.querySelectorAll('.space-y-6 > div');
+        const statusValue = statusFilter.value.toLowerCase();
+        const typeValue = typeFilter.value.toLowerCase();
+        const searchValue = searchInput.value.toLowerCase();
+        
+        contracts.forEach(contract => {
+            const statusText = contract.querySelector('span[class*="bg-"]').textContent.toLowerCase();
+            const typeText = contract.querySelector('span[class*="text-"]').textContent.toLowerCase();
+            const contractText = contract.textContent.toLowerCase();
+            
+            const statusMatch = !statusValue || statusText.includes(statusValue);
+            const typeMatch = !typeValue || typeText.includes(typeValue);
+            const searchMatch = !searchValue || contractText.includes(searchValue);
+            
+            contract.style.display = (statusMatch && typeMatch && searchMatch) ? 'block' : 'none';
+        });
+    }
+    
+    statusFilter.addEventListener('change', filterContracts);
+    typeFilter.addEventListener('change', filterContracts);
+    searchInput.addEventListener('input', filterContracts);
+    
+    // Animaciones de entrada
+    const contractCards = document.querySelectorAll('.space-y-6 > div');
+    contractCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Notificaciones de vencimiento
+    function checkExpiringContracts() {
+        const expiringContracts = document.querySelectorAll('.border-yellow-500');
+        if (expiringContracts.length > 0) {
+            showNotification('⚠️ Tienes contratos pendientes de firma', 'warning');
+        }
+    }
+    
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+        
+        const bgColor = type === 'warning' ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-blue-100 border-blue-400 text-blue-800';
+        notification.className += ` ${bgColor} border`;
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <span class="font-medium">${message}</span>
+                <button class="ml-4 text-current opacity-50 hover:opacity-75" onclick="this.parentElement.parentElement.remove()">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+    
+    // Verificar contratos al cargar
+    setTimeout(checkExpiringContracts, 2000);
+});
+</script>
+{% endblock %}

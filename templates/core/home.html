@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+
+{% block title %}VeriHome - Plataforma Inmobiliaria Revolucionaria{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative overflow-hidden hero-gradient">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Contenido principal -->
+            <div class="text-white space-y-8 animate-fade-in">
+                <h1 class="text-4xl lg:text-6xl font-bold leading-tight">
+                    La Plataforma 
+                    <span class="text-accent-300">Inmobiliaria</span>
+                    del Futuro
+                </h1>
+                <p class="text-xl lg:text-2xl text-blue-100 leading-relaxed">
+                    Conectamos arrendadores, arrendatarios y prestadores de servicios en un ecosistema seguro, 
+                    confiable y transparente.
+                </p>
+                
+                <!-- Estadísticas -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                    <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4">
+                        <div class="text-2xl font-bold">{{ stats.total_properties }}+</div>
+                        <div class="text-sm text-blue-200">Propiedades</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4">
+                        <div class="text-2xl font-bold">{{ stats.total_landlords }}+</div>
+                        <div class="text-sm text-blue-200">Arrendadores</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4">
+                        <div class="text-2xl font-bold">{{ stats.total_service_providers }}+</div>
+                        <div class="text-sm text-blue-200">Prestadores</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4">
+                        <div class="text-2xl font-bold">{{ stats.total_contracts }}+</div>
+                        <div class="text-sm text-blue-200">Contratos</div>
+                    </div>
+                </div>
+
+                <!-- CTAs -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{% url 'properties:list' %}" 
+                       class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant hover:shadow-xl text-center">
+                        Explorar Propiedades
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'users:register_select' %}" 
+                           class="bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-accent-600 transition-all duration-200 shadow-elegant hover:shadow-xl text-center">
+                            Unirse Ahora
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Imagen/Video hero -->
+            <div class="relative animate-slide-up">
+                <div class="relative bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 shadow-elegant">
+                    <div class="aspect-w-16 aspect-h-12 bg-gradient-to-br from-white to-gray-100 rounded-xl overflow-hidden">
+                        <div class="flex items-center justify-center text-gray-400">
+                            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Elementos flotantes decorativos -->
+                    <div class="absolute -top-4 -right-4 bg-accent-400 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-bounce-gentle">
+                        100% Seguro
+                    </div>
+                    <div class="absolute -bottom-4 -left-4 bg-secondary-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-bounce-gentle" style="animation-delay: 0.5s">
+                        Verificado
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decorative elements -->
+    <div class="absolute top-10 left-10 w-20 h-20 bg-white bg-opacity-10 rounded-full animate-bounce-gentle"></div>
+    <div class="absolute bottom-20 right-10 w-16 h-16 bg-accent-300 bg-opacity-20 rounded-full animate-bounce-gentle" style="animation-delay: 1s"></div>
+</section>
+
+<!-- Búsqueda rápida -->
+<section class="relative -mt-16 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-elegant p-8">
+            <form action="{% url 'properties:search' %}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
+                    <input type="text" name="location" placeholder="Ciudad, estado..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Propiedad</label>
+                    <select name="property_type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+                        <option value="">Todos los tipos</option>
+                        <option value="apartment">Apartamento</option>
+                        <option value="house">Casa</option>
+                        <option value="studio">Estudio</option>
+                        <option value="commercial">Comercial</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Presupuesto</label>
+                    <select name="budget" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+                        <option value="">Cualquier precio</option>
+                        <option value="0-10000">Hasta $10,000</option>
+                        <option value="10000-20000">$10,000 - $20,000</option>
+                        <option value="20000-50000">$20,000 - $50,000</option>
+                        <option value="50000+">Más de $50,000</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-200 shadow-soft hover:shadow-md">
+                        Buscar Propiedades
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Características principales -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                ¿Por qué elegir <span class="text-gradient">VeriHome</span>?
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Ofrecemos una experiencia inmobiliaria revolucionaria con tecnología avanzada y la máxima seguridad.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Característica 1 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-primary-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">100% Seguro y Verificado</h3>
+                <p class="text-gray-600">Todos nuestros usuarios pasan por un proceso de verificación riguroso para garantizar la máxima seguridad.</p>
+            </div>
+
+            <!-- Característica 2 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-secondary-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-secondary-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Contratos Digitales</h3>
+                <p class="text-gray-600">Generamos y gestionamos contratos digitales con firma electrónica válida legalmente.</p>
+            </div>
+
+            <!-- Característica 3 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-accent-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Pagos Seguros</h3>
+                <p class="text-gray-600">Sistema de pagos con escrow integrado para transacciones 100% seguras y protegidas.</p>
+            </div>
+
+            <!-- Característica 4 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-purple-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Mensajería Integrada</h3>
+                <p class="text-gray-600">Sistema de mensajería tipo Gmail para comunicación directa entre usuarios relacionados.</p>
+            </div>
+
+            <!-- Característica 5 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-pink-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-pink-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Sistema de Calificaciones</h3>
+                <p class="text-gray-600">Calificaciones de 1-10 estrellas para construir confianza y transparencia en la comunidad.</p>
+            </div>
+
+            <!-- Característica 6 -->
+            <div class="bg-white rounded-xl p-8 shadow-soft hover:shadow-elegant transition-all duration-200 text-center group">
+                <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-indigo-200 transition-colors duration-200">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Soporte 24/7</h3>
+                <p class="text-gray-600">Equipo de soporte dedicado disponible las 24 horas para resolver cualquier duda o problema.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Propiedades destacadas -->
+{% if featured_properties %}
+<section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                Propiedades <span class="text-gradient">Destacadas</span>
+            </h2>
+            <p class="text-xl text-gray-600">
+                Descubre las mejores propiedades seleccionadas especialmente para ti.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for property in featured_properties %}
+                <div class="bg-white rounded-xl shadow-soft hover:shadow-elegant transition-all duration-200 overflow-hidden group">
+                    <!-- Imagen -->
+                    <div class="relative h-64 bg-gray-200 overflow-hidden">
+                        {% if property.get_main_image %}
+                            <img src="{{ property.get_main_image }}" alt="{{ property.title }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Badge de destacada -->
+                        <div class="absolute top-4 left-4 bg-accent-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            Destacada
+                        </div>
+                        
+                        <!-- Precio -->
+                        <div class="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm px-3 py-2 rounded-lg">
+                            <span class="text-lg font-bold text-gray-900">{{ property.get_formatted_price }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Contenido -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors duration-200">
+                            {{ property.title }}
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            {{ property.city }}, {{ property.state }}
+                        </p>
+
+                        <!-- Características -->
+                        <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                            {% if property.bedrooms %}
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
+                                    {{ property.bedrooms }} hab
+                                </span>
+                            {% endif %}
+                            {% if property.bathrooms %}
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                    {{ property.bathrooms }} baños
+                                </span>
+                            {% endif %}
+                            {% if property.total_area %}
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v4m0 0h-4m4 0l-5-5"></path>
+                                    </svg>
+                                    {{ property.total_area }} m²
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- CTA -->
+                        <a href="{% url 'properties:detail' property.pk %}" 
+                           class="block w-full bg-primary-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
+                            Ver Detalles
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'properties:list' %}" 
+               class="inline-flex items-center px-8 py-3 border border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-600 hover:text-white transition-all duration-200">
+                Ver Todas las Propiedades
+                <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Testimonios -->
+{% if recent_ratings %}
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                Lo que dicen nuestros <span class="text-gradient">usuarios</span>
+            </h2>
+            <p class="text-xl text-gray-600">
+                Testimonios reales de nuestra comunidad de usuarios verificados.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for rating in recent_ratings %}
+                <div class="bg-white rounded-xl p-8 shadow-soft">
+                    <!-- Estrellas -->
+                    <div class="flex items-center mb-4">
+                        {% for i in "0123456789" %}
+                            {% if forloop.counter0 < rating.overall_rating %}
+                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ml-2 text-sm text-gray-600">{{ rating.overall_rating }}/10</span>
+                    </div>
+
+                    <!-- Comentario -->
+                    <p class="text-gray-700 mb-6 italic">
+                        "{{ rating.review_text|truncatewords:20 }}"
+                    </p>
+
+                    <!-- Usuario -->
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
+                            <span class="text-white font-semibold">
+                                {{ rating.reviewer.first_name.0|upper }}{{ rating.reviewer.last_name.0|upper }}
+                            </span>
+                        </div>
+                        <div class="ml-4">
+                            <div class="font-semibold text-gray-900">{{ rating.reviewer.get_full_name }}</div>
+                            <div class="text-sm text-gray-600">{{ rating.reviewer.get_user_type_display }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Final -->
+<section class="py-20 hero-gradient">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="text-white space-y-8">
+            <h2 class="text-3xl lg:text-4xl font-bold">
+                ¿Listo para comenzar?
+            </h2>
+            <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                Únete a la plataforma inmobiliaria más innovadora y segura de México. 
+                Tu próximo hogar o cliente te está esperando.
+            </p>
+            
+            {% if not user.is_authenticated %}
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{% url 'users:register_landlord' %}" 
+                       class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant">
+                        Soy Arrendador
+                    </a>
+                    <a href="{% url 'users:register_tenant' %}" 
+                       class="bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-accent-600 transition-all duration-200 shadow-elegant">
+                        Busco Vivienda
+                    </a>
+                    <a href="{% url 'users:register_service_provider' %}" 
+                       class="bg-secondary-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-secondary-600 transition-all duration-200 shadow-elegant">
+                        Ofrezco Servicios
+                    </a>
+                </div>
+            {% else %}
+                <div class="flex justify-center">
+                    <a href="{% url 'core:dashboard' %}" 
+                       class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant">
+                        Ir a mi Dashboard
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funcionalidad adicional para la página de inicio
+document.addEventListener('DOMContentLoaded', function() {
+    // Animaciones de scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-in');
+            }
+        });
+    }, observerOptions);
+
+    // Observar elementos para animaciones
+    document.querySelectorAll('.grid > div, .space-y-8 > div').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Contador animado para estadísticas
+    function animateCounter(element, target) {
+        let current = 0;
+        const increment = target / 100;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current) + '+';
+        }, 20);
+    }
+
+    // Activar contadores cuando sean visibles
+    const counterObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.textContent.replace('+', ''));
+                animateCounter(entry.target, target);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.text-2xl.font-bold').forEach(counter => {
+        counterObserver.observe(counter);
+    });
+});
+</script>
+{% endblock %}

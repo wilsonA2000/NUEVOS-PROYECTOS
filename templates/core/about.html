@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Nosotros | VeriHome{% endblock %}
+
+{% block content %}
+<div class="bg-white">
+    <!-- Hero Section -->
+    <div class="relative hero-gradient">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+            <div class="text-center text-white">
+                <h1 class="text-4xl lg:text-6xl font-bold mb-4">
+                    Nosotros Somos <span class="text-accent-300">VeriHome</span>
+                </h1>
+                <p class="text-xl lg:text-2xl text-blue-100 max-w-3xl mx-auto">
+                    Revolucionando el mercado inmobiliario con tecnología, seguridad y confianza.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Misión y Visión -->
+    <div class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="bg-primary-50 rounded-2xl p-8">
+                    <div class="w-16 h-16 bg-primary-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nuestra Misión</h2>
+                    <p class="text-gray-700 text-lg leading-relaxed">
+                        Conectar de manera segura y eficiente a arrendadores, arrendatarios y prestadores de servicios 
+                        inmobiliarios, proporcionando una plataforma tecnológica revolucionaria que garantice transparencia, 
+                        confianza y excelencia en cada transacción.
+                    </p>
+                </div>
+                
+                <div class="bg-secondary-50 rounded-2xl p-8">
+                    <div class="w-16 h-16 bg-secondary-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Nuestra Visión</h2>
+                    <p class="text-gray-700 text-lg leading-relaxed">
+                        Ser la plataforma inmobiliaria líder en América Latina, reconocida por transformar la industria 
+                        mediante tecnología innovadora, procesos digitalizados y el más alto estándar de seguridad y 
+                        verificación de usuarios.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valores -->
+    <div class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                    Nuestros <span class="text-gradient">Valores</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Los principios que guían cada decisión y acción en VeriHome.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Seguridad</h3>
+                    <p class="text-gray-600">
+                        Implementamos los más altos estándares de seguridad en cada proceso, desde la verificación 
+                        de usuarios hasta la protección de datos personales.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Confianza</h3>
+                    <p class="text-gray-600">
+                        Construimos relaciones duraderas basadas en la transparencia, honestidad y cumplimiento 
+                        de nuestros compromisos con cada usuario.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Innovación</h3>
+                    <p class="text-gray-600">
+                        Utilizamos tecnología de vanguardia para simplificar y mejorar continuamente la experiencia 
+                        inmobiliaria de nuestros usuarios.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Transparencia</h3>
+                    <p class="text-gray-600">
+                        Proporcionamos información clara, completa y verificable en todas nuestras operaciones 
+                        y comunicaciones.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Excelencia</h3>
+                    <p class="text-gray-600">
+                        Nos comprometemos a superar las expectativas en cada interacción, servicio y resultado 
+                        que ofrecemos a nuestros usuarios.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-soft text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Comunidad</h3>
+                    <p class="text-gray-600">
+                        Fomentamos un ecosistema colaborativo donde todos los participantes se benefician y 
+                        crecen juntos en el sector inmobiliario.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="py-20 hero-gradient">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="text-white space-y-8">
+                <h2 class="text-3xl lg:text-4xl font-bold">
+                    ¿Listo para formar parte de la revolución inmobiliaria?
+                </h2>
+                <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                    Únete a miles de usuarios que ya confían en VeriHome para sus necesidades inmobiliarias.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'users:register_select' %}" 
+                           class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant">
+                            Comenzar Ahora
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'core:contact' %}" 
+                       class="bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-accent-600 transition-all duration-200 shadow-elegant">
+                        Contáctanos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

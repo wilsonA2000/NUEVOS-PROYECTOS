@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Verificación de Correo Electrónico" %} | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+  <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-2xl shadow-elegant p-8">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{% trans "Verifique su dirección de correo electrónico" %}</h1>
+      </div>
+
+      <div class="text-center space-y-6">
+        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
+          <p>{% trans "Le hemos enviado un correo electrónico para su verificación." %}</p>
+        </div>
+        
+        <p class="text-gray-600">
+          {% trans "Siga el enlace proporcionado para finalizar el proceso de registro." %}
+        </p>
+        
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
+          <p>{% trans "Si no ves el correo electrónico de verificación en tu bandeja de entrada principal, comprueba tu carpeta de correo no deseado." %}</p>
+        </div>
+        
+        <p class="text-gray-500 text-sm mb-4">
+          {% trans "¿No recibiste el correo? Puedes solicitar un nuevo correo de verificación." %}
+        </p>
+        
+        <!-- Botones de acción -->
+        <div class="pt-6 flex flex-col space-y-4">
+          <a href="{% url 'account_email_verification_resend' %}" class="w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200 text-center">
+            {% trans "Reenviar correo de verificación" %}
+          </a>
+          
+          <a href="{% url 'account_login' %}" class="inline-block text-center w-full bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-200">
+            {% trans "Volver a Iniciar Sesión" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

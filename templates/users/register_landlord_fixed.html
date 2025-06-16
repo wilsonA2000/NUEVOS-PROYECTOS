@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Arrendador | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-elegant p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Registro de Arrendador</h1>
+                <p class="text-gray-600">Únete como propietario y comienza a rentar tus inmuebles de forma segura</p>
+            </div>
+
+            <!-- Formulario de registro -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                    <p class="font-medium">Por favor corrige los siguientes errores:</p>
+                    <ul class="list-disc pl-5 mt-2">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Información básica -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Información Personal</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Nombre(s)</label>
+                            {{ form.first_name }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Apellidos</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
+                        {{ form.email }}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        {{ form.phone_number }}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
+                            {{ form.password1 }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Confirmar Contraseña</label>
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información profesional -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Información Profesional</h3>
+                    
+                    <div>
+                        <label for="{{ form.company_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Empresa (Opcional)</label>
+                        {{ form.company_name }}
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.total_properties.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Número de Propiedades</label>
+                            {{ form.total_properties }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.years_experience.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Años de Experiencia</label>
+                            {{ form.years_experience }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.property_types.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Tipos de Propiedades</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {% for choice in form.property_types %}
+                                <label class="flex items-center">
+                                    {{ choice.tag }}
+                                    <span class="ml-2 text-sm text-gray-700">{{ choice.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Términos y condiciones -->
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <input type="checkbox" id="terms" name="terms" required class="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <label for="terms" class="ml-3 text-sm text-gray-700">
+                            Acepto los <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Términos y Condiciones</a> 
+                            y la <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Política de Privacidad</a> de VeriHome.
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" id="marketing" name="marketing" class="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <label for="marketing" class="ml-3 text-sm text-gray-700">
+                            Deseo recibir comunicaciones promocionales y actualizaciones de VeriHome.
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button type="submit" 
+                            class="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
+                        Crear Cuenta de Arrendador
+                    </button>
+                    
+                    <a href="{% url 'users:register_select' %}" 
+                       class="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200 text-center">
+                        Volver Atrás
+                    </a>
+                </div>
+            </form>
+
+            <!-- Link para iniciar sesión -->
+            <div class="text-center mt-8 pt-6 border-t border-gray-200">
+                <p class="text-gray-600">
+                    ¿Ya tienes una cuenta? 
+                    <a href="{% url 'account_login' %}" class="text-primary-600 hover:text-primary-700 font-medium">
+                        Iniciar Sesión
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de contraseñas en tiempo real
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    function validatePasswords() {
+        if (password1.value && password2.value) {
+            if (password1.value !== password2.value) {
+                password2.setCustomValidity('Las contraseñas no coinciden');
+                password2.classList.add('border-red-500', 'focus:ring-red-500');
+                password2.classList.remove('border-gray-300', 'focus:ring-primary-500');
+            } else {
+                password2.setCustomValidity('');
+                password2.classList.remove('border-red-500', 'focus:ring-red-500');
+                password2.classList.add('border-gray-300', 'focus:ring-primary-500');
+            }
+        }
+    }
+    
+    password1.addEventListener('input', validatePasswords);
+    password2.addEventListener('input', validatePasswords);
+    
+    // Validación de email
+    const email = document.getElementById('{{ form.email.id_for_label }}');
+    email.addEventListener('blur', function() {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (this.value && !emailRegex.test(this.value)) {
+            this.setCustomValidity('Por favor ingresa un correo electrónico válido');
+            this.classList.add('border-red-500', 'focus:ring-red-500');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('border-red-500', 'focus:ring-red-500');
+        }
+    });
+    
+    // Animación de entrada
+    const form = document.querySelector('form');
+    form.style.opacity = '0';
+    form.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        form.style.transition = 'all 0.6s ease';
+        form.style.opacity = '1';
+        form.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

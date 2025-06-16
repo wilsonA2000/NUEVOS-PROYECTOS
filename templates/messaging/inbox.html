@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+
+{% block title %}Mensajes - Bandeja de Entrada | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header del sistema de mensajería -->
+        <div class="bg-white rounded-2xl shadow-elegant p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Sistema de Mensajería</h1>
+                    <p class="text-gray-600 mt-1">Comunicación segura entre usuarios verificados</p>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Botón nuevo mensaje -->
+                    <button class=\"bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-200 flex items-center\">
+                        <svg class=\"w-5 h-5 mr-2\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6v6m0 0v6m0-6h6m-6 0H6\"></path>
+                        </svg>
+                        Nuevo Mensaje
+                    </button>
+                    
+                    <!-- Indicador de tiempo real -->
+                    <div class=\"flex items-center text-sm text-gray-500\">
+                        <div class=\"w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse\"></div>
+                        En línea
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class=\"grid grid-cols-1 lg:grid-cols-4 gap-8\">
+            <!-- Sidebar de navegación tipo Gmail -->
+            <div class=\"lg:col-span-1\">
+                <div class=\"bg-white rounded-2xl shadow-elegant p-6\">
+                    <nav class=\"space-y-2\">
+                        <a href=\"{% url 'messaging:inbox' %}\" 
+                           class=\"flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-primary-50 text-primary-600 border-l-4 border-primary-600\">
+                            <svg class=\"w-5 h-5 mr-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13 0h-2M4 13l4-4m0 0l4 4m-4-4v12\"></path>
+                            </svg>
+                            Bandeja de Entrada
+                            <span class=\"ml-auto bg-primary-600 text-white text-xs px-2 py-1 rounded-full\">3</span>
+                        </a>
+                        
+                        <a href=\"{% url 'messaging:sent' %}\" 
+                           class=\"flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\">
+                            <svg class=\"w-5 h-5 mr-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 19l9 2-9-18-9 18 9-2zm0 0v-8\"></path>
+                            </svg>
+                            Enviados
+                        </a>
+                        
+                        <a href=\"{% url 'messaging:drafts' %}\" 
+                           class=\"flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\">
+                            <svg class=\"w-5 h-5 mr-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path>
+                            </svg>
+                            Borradores
+                            <span class=\"ml-auto text-xs text-gray-400\">2</span>
+                        </a>
+                        
+                        <a href=\"{% url 'messaging:archived' %}\" 
+                           class=\"flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\">
+                            <svg class=\"w-5 h-5 mr-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 8l6 6 6-6\"></path>
+                            </svg>
+                            Archivados
+                        </a>
+                        
+                        <a href=\"{% url 'messaging:blocked' %}\" 
+                           class=\"flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50 transition-colors\">
+                            <svg class=\"w-5 h-5 mr-3\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728\"></path>
+                            </svg>
+                            Bloqueados
+                        </a>
+                    </nav>
+                    
+                    <!-- Filtros rápidos -->
+                    <div class=\"mt-8 pt-6 border-t border-gray-200\">
+                        <h3 class=\"text-sm font-medium text-gray-900 mb-3\">Filtros Rápidos</h3>
+                        <div class=\"space-y-2\">
+                            <button class=\"w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors\">
+                                📋 Contratos
+                            </button>
+                            <button class=\"w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors\">
+                                🏠 Propiedades
+                            </button>
+                            <button class=\"w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors\">
+                                🔧 Servicios
+                            </button>
+                            <button class=\"w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors\">
+                                💰 Pagos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área principal de mensajes -->
+            <div class=\"lg:col-span-3\">
+                <div class=\"bg-white rounded-2xl shadow-elegant overflow-hidden\">
+                    <!-- Barra de herramientas tipo Gmail -->
+                    <div class=\"bg-gray-50 px-6 py-4 border-b border-gray-200\">
+                        <div class=\"flex items-center justify-between\">
+                            <div class=\"flex items-center space-x-4\">
+                                <!-- Seleccionar todos -->
+                                <label class=\"flex items-center\">
+                                    <input type=\"checkbox\" class=\"rounded border-gray-300 text-primary-600 focus:ring-primary-500\" id=\"select-all\">
+                                    <span class=\"sr-only\">Seleccionar todos</span>
+                                </label>
+                                
+                                <!-- Acciones de mensajes -->
+                                <div class=\"flex items-center space-x-2\">
+                                    <button class=\"p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all\" title=\"Archivar\">
+                                        <svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 8l6 6 6-6\"></path>
+                                        </svg>
+                                    </button>
+                                    <button class=\"p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all\" title=\"Eliminar\">
+                                        <svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16\"></path>
+                                        </svg>
+                                    </button>
+                                    <button class=\"p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all\" title=\"Marcar como spam\">
+                                        <svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.348 16.5c-.77.833.192 2.5 1.732 2.5z\"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class=\"flex items-center space-x-4\">
+                                <!-- Búsqueda -->
+                                <div class=\"relative\">
+                                    <input type=\"text\" 
+                                           class=\"w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm\"
+                                           placeholder=\"Buscar mensajes...\">
+                                    <svg class=\"absolute left-3 top-2.5 w-4 h-4 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                        <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Refresh -->
+                                <button class=\"p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all\" title=\"Actualizar\">
+                                    <svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                        <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de mensajes -->
+                    <div class=\"divide-y divide-gray-200\">
+                        <!-- Mensaje 1 (No leído) -->
+                        <div class=\"p-6 hover:bg-gray-50 transition-colors cursor-pointer group border-l-4 border-yellow-500\">\n                            <div class=\"flex items-center\">
+                                <input type=\"checkbox\" class=\"rounded border-gray-300 text-primary-600 focus:ring-primary-500 mr-4\">
+                                
+                                <!-- Avatar del remitente -->
+                                <div class=\"w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4\">
+                                    AS
+                                </div>
+                                
+                                <div class=\"flex-1 min-w-0\">
+                                    <div class=\"flex items-center justify-between\">
+                                        <div class=\"flex items-center space-x-3\">
+                                            <p class=\"text-sm font-semibold text-gray-900\">Ana Silva</p>
+                                            <span class=\"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800\">
+                                                Arrendadora
+                                            </span>
+                                            <!-- Indicador no leído (marrón) -->
+                                            <div class=\"w-3 h-3 bg-yellow-600 rounded-full\" title=\"No leído\"></div>
+                                        </div>
+                                        
+                                        <div class=\"flex items-center space-x-2 text-sm text-gray-500\">
+                                            <svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a2 2 0 00-2.828-2.828z\"></path>
+                                            </svg>
+                                            <span>2 archivos</span>
+                                            <span>•</span>
+                                            <span>10:30 AM</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class=\"text-sm font-medium text-gray-900 mt-1\">Documentos del Contrato de Arrendamiento - Apartamento Zona Rosa</p>
+                                    <p class=\"text-sm text-gray-600 mt-1 truncate\">
+                                        Hola, espero que te encuentres bien. Te envío los documentos actualizados del contrato de arrendamiento...
+                                    </p>
+                                    
+                                    <!-- Categoría del mensaje -->
+                                    <div class=\"flex items-center mt-2 space-x-2\">
+                                        <span class=\"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800\">
+                                            📋 Contrato
+                                        </span>
+                                        <span class=\"text-xs text-gray-500\">Relacionado con: Contrato #CT-2024-001</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mensaje 2 (Leído) -->
+                        <div class=\"p-6 hover:bg-gray-50 transition-colors cursor-pointer group border-l-4 border-green-500\">
+                            <div class=\"flex items-center\">
+                                <input type=\"checkbox\" class=\"rounded border-gray-300 text-primary-600 focus:ring-primary-500 mr-4\">
+                                
+                                <!-- Avatar del remitente -->
+                                <div class=\"w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4\">
+                                    CM
+                                </div>
+                                
+                                <div class=\"flex-1 min-w-0\">
+                                    <div class=\"flex items-center justify-between\">
+                                        <div class=\"flex items-center space-x-3\">
+                                            <p class=\"text-sm font-semibold text-gray-700\">Carlos Mendoza</p>
+                                            <span class=\"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800\">
+                                                Prestador
+                                            </span>
+                                            <!-- Indicador leído (verde) -->
+                                            <div class=\"w-3 h-3 bg-green-500 rounded-full\" title=\"Leído\"></div>
+                                        </div>
+                                        
+                                        <div class=\"flex items-center space-x-2 text-sm text-gray-500\">
+                                            <span>Ayer 3:45 PM</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class=\"text-sm font-medium text-gray-700 mt-1\">Cotización de Reparación de Plomería</p>
+                                    <p class=\"text-sm text-gray-500 mt-1 truncate\">
+                                        Buen día. He revisado el problema de plomería que me comentaste y tengo la cotización lista...
+                                    </p>
+                                    
+                                    <!-- Categoría del mensaje -->
+                                    <div class=\"flex items-center mt-2 space-x-2\">
+                                        <span class=\"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800\">
+                                            🔧 Servicio
+                                        </span>
+                                        <span class=\"text-xs text-gray-500\">Relacionado con: Propiedad #PR-2024-005</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mensaje 3 (Leído) -->
+                        <div class=\"p-6 hover:bg-gray-50 transition-colors cursor-pointer group border-l-4 border-green-500\">
+                            <div class=\"flex items-center\">
+                                <input type=\"checkbox\" class=\"rounded border-gray-300 text-primary-600 focus:ring-primary-500 mr-4\">
+                                
+                                <!-- Avatar del remitente -->
+                                <div class=\"w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4\">
+                                    LR
+                                </div>
+                                
+                                <div class=\"flex-1 min-w-0\">
+                                    <div class=\"flex items-center justify-between\">
+                                        <div class=\"flex items-center space-x-3\">
+                                            <p class=\"text-sm font-semibold text-gray-700\">Laura Rodríguez</p>
+                                            <span class=\"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800\">
+                                                Arrendataria
+                                            </span>
+                                            <!-- Indicador leído (verde) -->
+                                            <div class=\"w-3 h-3 bg-green-500 rounded-full\" title=\"Leído\"></div>
+                                        </div>
+                                        
+                                        <div class=\"flex items-center space-x-2 text-sm text-gray-500\">
+                                            <span>Hace 2 días</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class=\"text-sm font-medium text-gray-700 mt-1\">Confirmación de Pago de Renta - Mayo 2024</p>
+                                    <p class=\"text-sm text-gray-500 mt-1 truncate\">
+                                        Hola, espero que tengas un buen día. Te escribo para confirmar que ya realicé el pago de la renta...
+                                    </p>
+                                    
+                                    <!-- Categoría del mensaje -->
+                                    <div class=\"flex items-center mt-2 space-x-2\">
+                                        <span class=\"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800\">
+                                            💰 Pago
+                                        </span>
+                                        <span class=\"text-xs text-gray-500\">Relacionado con: Pago #PG-2024-089</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado vacío si no hay más mensajes -->
+                        <div class=\"p-12 text-center text-gray-500\">
+                            <svg class=\"w-16 h-16 mx-auto text-gray-300 mb-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13 0h-2M4 13l4-4m0 0l4 4m-4-4v12\"></path>
+                            </svg>
+                            <p class=\"text-lg font-medium text-gray-900 mb-1\">¡Has visto todos los mensajes!</p>
+                            <p class=\"text-gray-500\">No hay más mensajes en tu bandeja de entrada por el momento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo mensaje -->
+<div id=\"newMessageModal\" class=\"fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50\">
+    <div class=\"flex items-center justify-center min-h-screen p-4\">
+        <div class=\"bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto\">
+            <div class=\"p-6 border-b border-gray-200\">
+                <div class=\"flex items-center justify-between\">
+                    <h2 class=\"text-xl font-semibold text-gray-900\">Nuevo Mensaje</h2>
+                    <button id=\"closeModal\" class=\"text-gray-400 hover:text-gray-600 transition-colors\">
+                        <svg class=\"w-6 h-6\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <form class=\"p-6 space-y-6\">
+                <div>
+                    <label for=\"recipient\" class=\"block text-sm font-medium text-gray-700 mb-2\">Para:</label>
+                    <select id=\"recipient\" class=\"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500\">
+                        <option value=\"\">Seleccionar destinatario...</option>
+                        <option value=\"ana-silva\">Ana Silva (Arrendadora)</option>
+                        <option value=\"carlos-mendoza\">Carlos Mendoza (Prestador)</option>
+                        <option value=\"laura-rodriguez\">Laura Rodríguez (Arrendataria)</option>
+                    </select>
+                    <p class=\"text-xs text-gray-500 mt-1\">Solo puedes enviar mensajes a usuarios con relación contractual establecida</p>
+                </div>
+                
+                <div>
+                    <label for=\"subject\" class=\"block text-sm font-medium text-gray-700 mb-2\">Asunto:</label>
+                    <input type=\"text\" id=\"subject\" class=\"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500\" placeholder=\"Ingresa el asunto del mensaje\">
+                </div>
+                
+                <div>
+                    <label for=\"category\" class=\"block text-sm font-medium text-gray-700 mb-2\">Categoría:</label>
+                    <select id=\"category\" class=\"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500\">
+                        <option value=\"general\">General</option>
+                        <option value=\"contract\">📋 Contrato</option>
+                        <option value=\"property\">🏠 Propiedad</option>
+                        <option value=\"service\">🔧 Servicio</option>
+                        <option value=\"payment\">💰 Pago</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for=\"message\" class=\"block text-sm font-medium text-gray-700 mb-2\">Mensaje:</label>
+                    <textarea id=\"message\" rows=\"8\" class=\"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500\" placeholder=\"Escribe tu mensaje aquí...\"></textarea>
+                </div>
+                
+                <div>
+                    <label for=\"attachments\" class=\"block text-sm font-medium text-gray-700 mb-2\">Archivos Adjuntos:</label>
+                    <div class=\"mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary-400 transition-colors cursor-pointer\">
+                        <div class=\"space-y-1 text-center\">
+                            <svg class=\"mx-auto h-12 w-12 text-gray-400\" stroke=\"currentColor\" fill=\"none\" viewBox=\"0 0 48 48\">
+                                <path d=\"M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />
+                            </svg>
+                            <div class=\"flex text-sm text-gray-600\">
+                                <label for=\"file-upload\" class=\"relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500\">
+                                    <span>Sube archivos</span>
+                                    <input id=\"file-upload\" name=\"file-upload\" type=\"file\" class=\"sr-only\" multiple>
+                                </label>
+                                <p class=\"pl-1\">o arrastra y suelta</p>
+                            </div>
+                            <p class=\"text-xs text-gray-500\">PDF, DOC, JPG hasta 10MB cada uno</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class=\"flex items-center justify-end space-x-4 pt-6 border-t border-gray-200\">
+                    <button type=\"button\" id=\"saveDraft\" class=\"px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors\">
+                        Guardar Borrador
+                    </button>
+                    <button type=\"submit\" class=\"bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors\">
+                        Enviar Mensaje
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidad del modal de nuevo mensaje
+    const newMessageBtn = document.querySelector('button[class*=\"bg-primary-600\"]');
+    const modal = document.getElementById('newMessageModal');
+    const closeModal = document.getElementById('closeModal');
+    
+    newMessageBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+    });
+    
+    closeModal.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+    
+    // Cerrar modal al hacer clic fuera
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+    
+    // Funcionalidad de seleccionar todos
+    const selectAll = document.getElementById('select-all');
+    const messageCheckboxes = document.querySelectorAll('input[type=\"checkbox\"]:not(#select-all)');
+    
+    selectAll.addEventListener('change', function() {
+        messageCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+    
+    // Actualizar select-all basado en checkboxes individuales
+    messageCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(messageCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(messageCheckboxes).some(cb => cb.checked);
+            
+            selectAll.checked = allChecked;
+            selectAll.indeterminate = someChecked && !allChecked;
+        });
+    });
+    
+    // Funcionalidad de búsqueda en tiempo real
+    const searchInput = document.querySelector('input[placeholder=\"Buscar mensajes...\"]');
+    const messages = document.querySelectorAll('.divide-y > div:not(:last-child)');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        messages.forEach(message => {
+            const senderName = message.querySelector('p.font-semibold').textContent.toLowerCase();
+            const subject = message.querySelector('p.font-medium').textContent.toLowerCase();
+            const preview = message.querySelector('p.text-gray-600, p.text-gray-500').textContent.toLowerCase();
+            
+            const matches = senderName.includes(searchTerm) || 
+                          subject.includes(searchTerm) || 
+                          preview.includes(searchTerm);
+            
+            message.style.display = matches ? 'block' : 'none';
+        });
+    });
+    
+    // Simulación de notificaciones en tiempo real
+    function simulateRealTimeNotifications() {
+        const notifications = [
+            \"✉️ Nuevo mensaje de Ana Silva\",
+            \"📋 Carlos Mendoza respondió a tu mensaje\",
+            \"💰 Confirmación de pago recibida\"
+        ];
+        
+        let index = 0;
+        setInterval(() => {
+            if (Math.random() > 0.8) { // 20% de probabilidad cada 10 segundos
+                // Mostrar notificación toast
+                showToast(notifications[index % notifications.length]);
+                index++;
+                
+                // Actualizar contador de mensajes no leídos
+                const badge = document.querySelector('.bg-primary-600.text-white.text-xs');
+                if (badge) {
+                    const currentCount = parseInt(badge.textContent) || 0;
+                    badge.textContent = currentCount + 1;
+                }
+            }
+        }, 10000);
+    }
+    
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 transform transition-all duration-300 translate-x-full z-50';
+        toast.innerHTML = `
+            <div class=\"flex items-center\">
+                <div class=\"w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse\"></div>
+                <span class=\"text-sm font-medium text-gray-900\">${message}</span>
+                <button class=\"ml-4 text-gray-400 hover:text-gray-600\" onclick=\"this.parentElement.parentElement.remove()\">
+                    <svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                        <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Auto-remove después de 5 segundos
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 5000);
+    }
+    
+    // Iniciar simulación de notificaciones
+    simulateRealTimeNotifications();
+    
+    // Drag and drop para archivos
+    const dropZone = document.querySelector('.border-dashed');
+    const fileInput = document.getElementById('file-upload');
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-primary-400', 'bg-primary-50');
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-primary-400', 'bg-primary-50');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-primary-400', 'bg-primary-50');
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+    
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            console.log('Archivo seleccionado:', file.name);
+            // Aquí implementarías la lógica de upload
+        });
+    }
+});
+</script>
+{% endblock %}

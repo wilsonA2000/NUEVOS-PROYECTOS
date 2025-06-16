@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load account %}
+
+{% block title %}{% trans "Confirmar Correo Electrónico" %} | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+  <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-2xl shadow-elegant p-8">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{% trans "Confirmar Correo Electrónico" %}</h1>
+      </div>
+
+      <div class="text-center space-y-6">
+        {% if confirmation %}
+          {% user_display confirmation.email_address.user as user_display %}
+          
+          <p class="text-gray-600">
+            {% blocktrans with confirmation.email_address.email as email %}Por favor confirme que <span class="font-medium">{{ email }}</span> es la dirección de correo electrónico para el usuario {{ user_display }}.{% endblocktrans %}
+          </p>
+          
+          <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+            {% csrf_token %}
+            <button type="submit" class="w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
+              {% trans "Confirmar" %}
+            </button>
+          </form>
+          
+        {% else %}
+          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {% url 'account_email' as email_url %}
+            <p>{% blocktrans %}Este enlace de confirmación ha expirado o no es válido. Por favor <a href="{{ email_url }}" class="text-red-600 hover:text-red-700 font-medium">solicite un nuevo enlace de confirmación</a>.{% endblocktrans %}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
