@@ -8,10 +8,10 @@ from . import api_views
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'threads', api_views.MessageThreadViewSet)
-router.register(r'messages', api_views.MessageViewSet)
-router.register(r'folders', api_views.MessageFolderViewSet)
-router.register(r'templates', api_views.MessageTemplateViewSet)
+router.register(r'threads', api_views.MessageThreadViewSet, basename='message-thread')
+router.register(r'messages', api_views.MessageViewSet, basename='message')
+router.register(r'folders', api_views.MessageFolderViewSet, basename='message-folder')
+router.register(r'templates', api_views.MessageTemplateViewSet, basename='message-template')
 
 urlpatterns = [
     # Incluir rutas del router

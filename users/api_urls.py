@@ -9,10 +9,10 @@ from . import api_views
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r'users', api_views.UserViewSet)
-router.register(r'landlord-profiles', api_views.LandlordProfileViewSet)
-router.register(r'tenant-profiles', api_views.TenantProfileViewSet)
-router.register(r'service-provider-profiles', api_views.ServiceProviderProfileViewSet)
-router.register(r'portfolio-items', api_views.PortfolioItemViewSet)
+router.register(r'landlord-profiles', api_views.LandlordProfileViewSet, basename='landlord-profile')
+router.register(r'tenant-profiles', api_views.TenantProfileViewSet, basename='tenant-profile')
+router.register(r'service-provider-profiles', api_views.ServiceProviderProfileViewSet, basename='service-provider-profile')
+router.register(r'portfolio-items', api_views.PortfolioItemViewSet, basename='portfolio-item')
 
 urlpatterns = [
     # Incluir rutas del router

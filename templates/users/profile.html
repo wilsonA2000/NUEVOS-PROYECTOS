@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Encabezado del perfil -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4 md:mb-0">
+                    {{ profile_user.first_name.0|upper }}{{ profile_user.last_name.0|upper }}
+                </div>
+                <div class="md:ml-6">
+                    <h1 class="text-2xl font-bold text-gray-800">{{ profile_user.get_full_name }}</h1>
+                    <p class="text-gray-600">{{ profile_user.get_user_type_display }}</p>
+                    <p class="text-gray-600">{{ profile_user.email }}</p>
+                    
+                    {% if profile_user.is_verified %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                        <svg class="mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                            <circle cx="4" cy="4" r="3" />
+                        </svg>
+                        Verificado
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if user == profile_user %}
+                <div class="mt-4 md:mt-0 md:ml-auto">
+                    <a href="{% url 'users:settings' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Editar Perfil
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Información del perfil -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2">
+                <!-- Información personal -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Información Personal</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Nombre</p>
+                            <p class="font-medium">{{ profile_user.get_full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Correo electrónico</p>
+                            <p class="font-medium">{{ profile_user.email }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Teléfono</p>
+                            <p class="font-medium">{{ profile_user.phone_number|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Tipo de usuario</p>
+                            <p class="font-medium">{{ profile_user.get_user_type_display }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Fecha de registro</p>
+                            <p class="font-medium">{{ profile_user.created_at|date:"d/m/Y" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Estado de verificación</p>
+                            <p class="font-medium">
+                                {% if profile_user.is_verified %}
+                                <span class="text-green-600">Verificado</span>
+                                {% else %}
+                                <span class="text-amber-600">Pendiente de verificación</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Información específica según tipo de usuario -->
+                {% if profile_user.user_type == 'landlord' %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Información de Arrendador</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Empresa</p>
+                            <p class="font-medium">{{ profile_user.landlord_profile.company_name|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Años de experiencia</p>
+                            <p class="font-medium">{{ profile_user.landlord_profile.years_experience|default:"0" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total de propiedades</p>
+                            <p class="font-medium">{{ profile_user.landlord_profile.total_properties|default:"0" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% elif profile_user.user_type == 'tenant' %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Información de Arrendatario</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Estado laboral</p>
+                            <p class="font-medium">{{ profile_user.tenant_profile.get_employment_status_display|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% elif profile_user.user_type == 'service_provider' %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Información de Prestador de Servicios</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Categoría de servicio</p>
+                            <p class="font-medium">{{ profile_user.service_provider_profile.get_service_category_display|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Años de experiencia</p>
+                            <p class="font-medium">{{ profile_user.service_provider_profile.years_experience|default:"0" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Negocio</p>
+                            <p class="font-medium">{{ profile_user.service_provider_profile.business_name|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Tarifa por hora</p>
+                            <p class="font-medium">${{ profile_user.service_provider_profile.hourly_rate|default:"0.00" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Sección de calificaciones -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Calificaciones</h2>
+                    <p class="text-gray-500">Calificaciones y reseñas del usuario.</p>
+                </div>
+            </div>
+            
+            <div>
+                <!-- Información de contacto -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Información de Contacto</h2>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-sm text-gray-500">Dirección</p>
+                            <p class="font-medium">{{ profile.address|default:"No especificada" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Ciudad</p>
+                            <p class="font-medium">{{ profile.city|default:"No especificada" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Estado/Provincia</p>
+                            <p class="font-medium">{{ profile.state|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">País</p>
+                            <p class="font-medium">{{ profile.country|default:"México" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Código postal</p>
+                            <p class="font-medium">{{ profile.postal_code|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Estadísticas</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Miembro desde</span>
+                            <span class="font-medium">{{ profile_user.created_at|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Última actividad</span>
+                            <span class="font-medium">{{ profile_user.last_login|date:"d/m/Y" }}</span>
+                        </div>
+                        {% if profile_user.user_type == 'landlord' %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Propiedades</span>
+                            <span class="font-medium">{{ profile_user.properties.count }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Contratos</span>
+                            <span class="font-medium">{{ contracts_count|default:"0" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

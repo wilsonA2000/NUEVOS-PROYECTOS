@@ -8,12 +8,12 @@ from . import api_views
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'transactions', api_views.TransactionViewSet)
-router.register(r'payment-methods', api_views.PaymentMethodViewSet)
-router.register(r'invoices', api_views.InvoiceViewSet)
-router.register(r'escrow-accounts', api_views.EscrowAccountViewSet)
-router.register(r'payment-plans', api_views.PaymentPlanViewSet)
-router.register(r'installments', api_views.PaymentInstallmentViewSet)
+router.register(r'transactions', api_views.TransactionViewSet, basename='transaction')
+router.register(r'payment-methods', api_views.PaymentMethodViewSet, basename='payment-method')
+router.register(r'invoices', api_views.InvoiceViewSet, basename='invoice')
+router.register(r'escrow-accounts', api_views.EscrowAccountViewSet, basename='escrow-account')
+router.register(r'payment-plans', api_views.PaymentPlanViewSet, basename='payment-plan')
+router.register(r'installments', api_views.PaymentInstallmentViewSet, basename='payment-installment')
 
 urlpatterns = [
     # Incluir rutas del router

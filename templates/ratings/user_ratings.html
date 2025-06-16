@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Calificaciones de {{ rated_user.get_full_name }} | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Calificaciones de {{ rated_user.get_full_name }}</h1>
+                <p class="text-gray-600">{{ rated_user.get_user_type_display }}</p>
+            </div>
+            
+            {% if can_rate %}
+            <div class="mt-4 md:mt-0">
+                <div class="dropdown">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center">
+                        <span>Calificar</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10">
+                        <div class="py-1">
+                            {% for contract in contracts %}
+                            <a href="{% url 'ratings:create_rating' contract_id=contract.id %}" 
+                               class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Contrato: {{ contract.contract_number }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Resumen de calificaciones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-800">Calificación Promedio</h3>
+                <div class="flex items-center mt-2">
+                    <span class="text-3xl font-bold text-blue-600">
+                        {{ average_rating|default:"N/A"|floatformat:1 }}
+                    </span>
+                    <span class="ml-2 text-yellow-500 text-2xl">★</span>
+                    <span class="ml-2 text-gray-600">/10</span>
+                </div>
+            </div>
+            
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h3 class="text-lg font-semibold text-green-800">Total de Calificaciones</h3>
+                <div class="flex items-center mt-2">
+                    <span class="text-3xl font-bold text-green-600">
+                        {{ rating_profile.total_ratings_received }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h3 class="text-lg font-semibold text-purple-800">Badges Obtenidos</h3>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    {% for badge in rating_profile.get_badge_display %}
+                    <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        {{ badge }}
+                    </span>
+                    {% empty %}
+                    <span class="text-gray-500">Sin badges</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Distribución de calificaciones -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribución de Calificaciones</h3>
+            <div class="grid grid-cols-10 gap-1">
+                {% for i in "12345678910"|make_list %}
+                {% with count=rating_profile.ratings_distribution|get_item:i|default:0 %}
+                <div class="flex flex-col items-center">
+                    <div class="h-24 w-full bg-gray-200 rounded-t-sm relative">
+                        {% if rating_profile.total_ratings_received > 0 %}
+                        {% with percentage=count|percentage:rating_profile.total_ratings_received %}
+                        <div class="absolute bottom-0 left-0 right-0 bg-blue-500 rounded-t-sm"
+                             style="height: {{ percentage }}%;">
+                        </div>
+                        {% endwith %}
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">{{ i }}</div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Calificaciones por categoría -->
+        {% if rating_profile.category_averages %}
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Calificaciones por Categoría</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for category, score in rating_profile.category_averages.items %}
+                <div class="bg-gray-50 p-3 rounded-md">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-gray-700">
+                            {% if category == 'communication' %}Comunicación
+                            {% elif category == 'reliability' %}Confiabilidad
+                            {% elif category == 'cleanliness' %}Limpieza
+                            {% elif category == 'punctuality' %}Puntualidad
+                            {% elif category == 'professionalism' %}Profesionalismo
+                            {% elif category == 'property_condition' %}Estado de la Propiedad
+                            {% elif category == 'payment_timeliness' %}Puntualidad de Pagos
+                            {% elif category == 'responsiveness' %}Capacidad de Respuesta
+                            {% else %}{{ category|title }}{% endif %}
+                        </span>
+                        <span class="text-blue-600 font-semibold">{{ score|floatformat:1 }}/10</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ score|multiply:10 }}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Lista de calificaciones -->
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Reseñas</h3>
+        {% if ratings %}
+        <div class="space-y-6">
+            {% for rating in ratings %}
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center">
+                            <span class="font-bold text-lg">{{ rating.overall_rating }}</span>
+                            <span class="ml-1 text-yellow-500">★</span>
+                            <span class="ml-2 text-gray-600">/10</span>
+                        </div>
+                        <h4 class="text-lg font-semibold mt-1">{{ rating.title }}</h4>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        {{ rating.created_at|date:"d/m/Y" }}
+                    </div>
+                </div>
+                
+                <div class="mt-2">
+                    <p class="text-gray-700">{{ rating.review_text }}</p>
+                </div>
+                
+                <div class="mt-3 flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if rating.reviewer.profile_image %}
+                        <img class="h-8 w-8 rounded-full" src="{{ rating.reviewer.profile_image.url }}" alt="">
+                        {% else %}
+                        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span class="text-gray-600 text-sm">{{ rating.reviewer.get_initials }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">
+                            {% if rating.is_anonymous and rating.reviewer != request.user %}
+                            Anónimo
+                            {% else %}
+                            {{ rating.reviewer.get_full_name }}
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            {{ rating.reviewer.get_user_type_display }}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if rating.response %}
+                <div class="mt-4 pl-4 border-l-2 border-gray-300">
+                    <p class="text-sm text-gray-700">{{ rating.response.response_text }}</p>
+                    <div class="mt-2 flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if rating.reviewee.profile_image %}
+                            <img class="h-6 w-6 rounded-full" src="{{ rating.reviewee.profile_image.url }}" alt="">
+                            {% else %}
+                            <div class="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span class="text-gray-600 text-xs">{{ rating.reviewee.get_initials }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-xs font-medium text-gray-700">
+                                Respuesta de {{ rating.reviewee.get_full_name }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ rating.response.created_at|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4 flex justify-end">
+                    <a href="{% url 'ratings:rating_detail' rating_id=rating.id %}" 
+                       class="text-blue-600 hover:underline text-sm">Ver detalles</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if ratings.has_other_pages %}
+        <div class="flex justify-center mt-6">
+            <nav class="inline-flex rounded-md shadow">
+                {% if ratings.has_previous %}
+                <a href="?page={{ ratings.previous_page_number }}" 
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-l-md hover:bg-gray-100">
+                    Anterior
+                </a>
+                {% endif %}
+                
+                {% for i in ratings.paginator.page_range %}
+                {% if ratings.number == i %}
+                <span class="px-3 py-2 bg-blue-50 border border-blue-300 text-blue-600">
+                    {{ i }}
+                </span>
+                {% else %}
+                <a href="?page={{ i }}" 
+                   class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-100">
+                    {{ i }}
+                </a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if ratings.has_next %}
+                <a href="?page={{ ratings.next_page_number }}" 
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100">
+                    Siguiente
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-8">
+            <p class="text-gray-500">Este usuario aún no tiene calificaciones públicas.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Funcionalidad del dropdown para calificar
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdownButton = document.querySelector('.dropdown button');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        
+        if (dropdownButton) {
+            dropdownButton.addEventListener('click', function() {
+                dropdownMenu.classList.toggle('hidden');
+            });
+            
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.dropdown')) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

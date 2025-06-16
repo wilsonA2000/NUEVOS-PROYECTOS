@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Calificación | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Calificar a {{ reviewee.get_full_name }}</h1>
+        
+        <!-- Información del contrato -->
+        <div class="bg-blue-50 rounded-lg p-4 border border-blue-200 mb-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-2">Información del Contrato</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Número de Contrato</p>
+                    <p class="font-medium">{{ contract.contract_number }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Tipo de Contrato</p>
+                    <p class="font-medium">{{ contract.get_contract_type_display }}</p>
+                </div>
+                {% if contract.property %}
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">Propiedad</p>
+                    <p class="font-medium">{{ contract.property.title }}</p>
+                    <p class="text-sm text-gray-600">{{ contract.property.address }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Errores del formulario -->
+            {% if form.errors %}
+            <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium">Por favor corrige los siguientes errores:</h3>
+                        <div class="mt-2 text-sm">
+                            {{ form.non_field_errors }}
+                            {% for field in form %}
+                                {% if field.errors %}
+                                <p>{{ field.label }}: {{ field.errors|striptags }}</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Calificación general -->
+            <div>
+                <label for="{{ form.overall_rating.id_for_label }}" class="block text-lg font-medium text-gray-700 mb-2">
+                    {{ form.overall_rating.label }}
+                </label>
+                <div class="flex items-center">
+                    <div class="rating-stars flex items-center">
+                        {% for i in "12345678910"|make_list %}
+                        <button type="button" class="star-btn text-2xl text-gray-300 hover:text-yellow-500" data-value="{{ i }}">★</button>
+                        {% endfor %}
+                    </div>
+                    <span class="ml-3 text-gray-500 rating-value">0/10</span>
+                    {{ form.overall_rating }}
+                </div>
+                {% if form.overall_rating.help_text %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.overall_rating.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Título y comentarios -->
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.title.label }}
+                </label>
+                {{ form.title }}
+            </div>
+            
+            <div>
+                <label for="{{ form.review_text.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.review_text.label }}
+                </label>
+                {{ form.review_text }}
+            </div>
+            
+            <!-- Calificaciones por categoría -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-700 mb-3">Calificaciones por Categoría</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for field in form %}
+                        {% if field.name|slice:":9" == "category_" %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ field.label }}
+                            </label>
+                            <div class="flex items-center">
+                                <div class="category-stars flex items-center" data-field="{{ field.name }}">
+                                    {% for i in "12345678910"|make_list %}
+                                    <button type="button" class="star-btn text-xl text-gray-300 hover:text-yellow-500" data-value="{{ i }}">★</button>
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-sm text-gray-500 category-value">0/10</span>
+                                {{ field }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Opciones de privacidad -->
+            <div class="space-y-3">
+                <div class="flex items-center">
+                    {{ form.is_anonymous }}
+                    <label for="{{ form.is_anonymous.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                        {{ form.is_anonymous.label }}
+                    </label>
+                </div>
+                {% if form.is_anonymous.help_text %}
+                <p class="text-xs text-gray-500 ml-6">{{ form.is_anonymous.help_text }}</p>
+                {% endif %}
+                
+                <div class="flex items-center">
+                    {{ form.is_public }}
+                    <label for="{{ form.is_public.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                        {{ form.is_public.label }}
+                    </label>
+                </div>
+                {% if form.is_public.help_text %}
+                <p class="text-xs text-gray-500 ml-6">{{ form.is_public.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'ratings:dashboard' %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Enviar Calificación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ocultar los campos de entrada numérica
+        document.querySelectorAll('.rating-input').forEach(input => {
+            input.style.display = 'none';
+        });
+        
+        // Funcionalidad para calificación general
+        const overallStars = document.querySelectorAll('.rating-stars .star-btn');
+        const overallInput = document.getElementById('{{ form.overall_rating.id_for_label }}');
+        const overallValue = document.querySelector('.rating-value');
+        
+        overallStars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = this.dataset.value;
+                overallInput.value = value;
+                overallValue.textContent = value + '/10';
+                
+                // Actualizar estrellas
+                overallStars.forEach(s => {
+                    if (parseInt(s.dataset.value) <= parseInt(value)) {
+                        s.classList.remove('text-gray-300');
+                        s.classList.add('text-yellow-500');
+                    } else {
+                        s.classList.remove('text-yellow-500');
+                        s.classList.add('text-gray-300');
+                    }
+                });
+            });
+        });
+        
+        // Funcionalidad para calificaciones por categoría
+        document.querySelectorAll('.category-stars').forEach(starsContainer => {
+            const fieldName = starsContainer.dataset.field;
+            const input = document.querySelector(`input[name="${fieldName}"]`);
+            const valueDisplay = starsContainer.parentNode.querySelector('.category-value');
+            const stars = starsContainer.querySelectorAll('.star-btn');
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    input.value = value;
+                    valueDisplay.textContent = value + '/10';
+                    
+                    // Actualizar estrellas
+                    stars.forEach(s => {
+                        if (parseInt(s.dataset.value) <= parseInt(value)) {
+                            s.classList.remove('text-gray-300');
+                            s.classList.add('text-yellow-500');
+                        } else {
+                            s.classList.remove('text-yellow-500');
+                            s.classList.add('text-gray-300');
+                        }
+                    });
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -9,39 +9,49 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Property
 
 
-class PropertyListView(ListView):
-    """Vista de lista de propiedades."""
+class PropertyListView(LoginRequiredMixin, ListView):
+    """Vista de lista de propiedades. Requiere autenticación."""
     model = Property
     template_name = 'properties/list.html'
     context_object_name = 'properties'
     paginate_by = 12
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
     
     def get_queryset(self):
         return Property.objects.filter(is_active=True, status='available')
 
 
-class PropertyDetailView(DetailView):
-    """Vista de detalle de propiedad."""
+class PropertyDetailView(LoginRequiredMixin, DetailView):
+    """Vista de detalle de propiedad. Requiere autenticación."""
     model = Property
     template_name = 'properties/detail.html'
     context_object_name = 'property'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class PropertySearchView(TemplateView):
-    """Vista de búsqueda de propiedades."""
+class PropertySearchView(LoginRequiredMixin, TemplateView):
+    """Vista de búsqueda de propiedades. Requiere autenticación."""
     template_name = 'properties/search.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class PropertyMapView(TemplateView):
-    """Vista de mapa de propiedades."""
+class PropertyMapView(LoginRequiredMixin, TemplateView):
+    """Vista de mapa de propiedades. Requiere autenticación."""
     template_name = 'properties/map.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class FeaturedPropertiesView(ListView):
-    """Vista de propiedades destacadas."""
+class FeaturedPropertiesView(LoginRequiredMixin, ListView):
+    """Vista de propiedades destacadas. Requiere autenticación."""
     model = Property
     template_name = 'properties/featured.html'
     context_object_name = 'properties'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
     
     def get_queryset(self):
         return Property.objects.filter(is_featured=True, is_active=True)
@@ -82,18 +92,22 @@ class DeactivatePropertyView(LoginRequiredMixin, TemplateView):
     template_name = 'properties/deactivate.html'
 
 
-class PropertyGalleryView(DetailView):
-    """Vista de galería de propiedad."""
+class PropertyGalleryView(LoginRequiredMixin, DetailView):
+    """Vista de galería de propiedad. Requiere autenticación."""
     model = Property
     template_name = 'properties/gallery.html'
     context_object_name = 'property'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class VirtualTourView(DetailView):
-    """Vista de tour virtual."""
+class VirtualTourView(LoginRequiredMixin, DetailView):
+    """Vista de tour virtual. Requiere autenticación."""
     model = Property
     template_name = 'properties/virtual_tour.html'
     context_object_name = 'property'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
 class PropertyImageManagementView(LoginRequiredMixin, TemplateView):
@@ -131,11 +145,13 @@ class DeletePropertyVideoView(LoginRequiredMixin, TemplateView):
     template_name = 'properties/delete_video.html'
 
 
-class PropertyAmenitiesView(DetailView):
-    """Vista de amenidades de propiedad."""
+class PropertyAmenitiesView(LoginRequiredMixin, DetailView):
+    """Vista de amenidades de propiedad. Requiere autenticación."""
     model = Property
     template_name = 'properties/amenities.html'
     context_object_name = 'property'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
 class EditPropertyAmenitiesView(LoginRequiredMixin, TemplateView):
@@ -143,9 +159,11 @@ class EditPropertyAmenitiesView(LoginRequiredMixin, TemplateView):
     template_name = 'properties/edit_amenities.html'
 
 
-class PropertyInquiryView(TemplateView):
-    """Vista para consultar propiedad."""
+class PropertyInquiryView(LoginRequiredMixin, TemplateView):
+    """Vista para consultar propiedad. Requiere autenticación."""
     template_name = 'properties/inquire.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
 class AddToFavoritesView(LoginRequiredMixin, TemplateView):
@@ -158,29 +176,39 @@ class RemoveFromFavoritesView(LoginRequiredMixin, TemplateView):
     template_name = 'properties/remove_favorite.html'
 
 
-class SharePropertyView(TemplateView):
-    """Vista para compartir propiedad."""
+class SharePropertyView(LoginRequiredMixin, TemplateView):
+    """Vista para compartir propiedad. Requiere autenticación."""
     template_name = 'properties/share.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class ReportPropertyView(TemplateView):
-    """Vista para reportar propiedad."""
+class ReportPropertyView(LoginRequiredMixin, TemplateView):
+    """Vista para reportar propiedad. Requiere autenticación."""
     template_name = 'properties/report.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class ComparePropertiesView(TemplateView):
-    """Vista para comparar propiedades."""
+class ComparePropertiesView(LoginRequiredMixin, TemplateView):
+    """Vista para comparar propiedades. Requiere autenticación."""
     template_name = 'properties/compare.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class AddToComparisonView(TemplateView):
-    """Vista para agregar a comparación."""
+class AddToComparisonView(LoginRequiredMixin, TemplateView):
+    """Vista para agregar a comparación. Requiere autenticación."""
     template_name = 'properties/add_to_comparison.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
-class RemoveFromComparisonView(TemplateView):
-    """Vista para quitar de comparación."""
+class RemoveFromComparisonView(LoginRequiredMixin, TemplateView):
+    """Vista para quitar de comparación. Requiere autenticación."""
     template_name = 'properties/remove_from_comparison.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
 class MyFavoritesView(LoginRequiredMixin, TemplateView):
@@ -203,9 +231,11 @@ class RespondInquiryView(LoginRequiredMixin, TemplateView):
     template_name = 'properties/respond_inquiry.html'
 
 
-class AdvancedFiltersView(TemplateView):
-    """Vista de filtros avanzados."""
+class AdvancedFiltersView(LoginRequiredMixin, TemplateView):
+    """Vista de filtros avanzados. Requiere autenticación."""
     template_name = 'properties/advanced_filters.html'
+    login_url = '/accounts/login/'
+    redirect_field_name = 'next'
 
 
 class SavedSearchesView(LoginRequiredMixin, TemplateView):

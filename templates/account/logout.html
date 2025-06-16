@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Cerrar Sesión | VeriHome{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full bg-white rounded-xl shadow-elegant p-8">
+    <div class="text-center">
+      <div class="mx-auto h-16 w-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center mb-6">
+        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">¿Cerrar sesión?</h2>
+      <p class="text-gray-600 mb-6">¿Estás seguro que deseas cerrar tu sesión en VeriHome?</p>
+      
+      <form method="post" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+        {% endif %}
+        
+        <div class="flex flex-col space-y-4">
+          <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md">
+            Sí, cerrar sesión
+          </button>
+          <a href="{% url 'core:home' %}" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-lg text-sm font-medium transition-colors duration-200 text-center">
+            No, volver al inicio
+          </a>
+        </div>
+      </form>
+    </div>
+    
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <p class="text-center text-sm text-gray-500">
+        ¿Tienes algún problema? <a href="{% url 'core:support' %}" class="text-primary-600 hover:text-primary-700 font-medium">Contacta a soporte</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

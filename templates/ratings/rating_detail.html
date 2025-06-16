@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Calificación | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">{{ rating.title }}</h1>
+                <p class="text-gray-600">{{ rating.get_rating_type_display }}</p>
+            </div>
+            <div class="flex items-center">
+                <span class="text-3xl font-bold text-blue-600">{{ rating.overall_rating }}</span>
+                <span class="ml-1 text-yellow-500 text-2xl">★</span>
+                <span class="ml-1 text-gray-600">/10</span>
+            </div>
+        </div>
+        
+        <!-- Información de la calificación -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Detalles</h3>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">De</p>
+                            <p class="font-medium">
+                                {% if rating.is_anonymous and rating.reviewer != request.user %}
+                                Anónimo
+                                {% else %}
+                                {{ rating.reviewer.get_full_name }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Para</p>
+                            <p class="font-medium">{{ rating.reviewee.get_full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Fecha</p>
+                            <p class="font-medium">{{ rating.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Estado</p>
+                            <p class="font-medium">
+                                {% if rating.is_verified %}
+                                <span class="text-green-600">Verificada</span>
+                                {% else %}
+                                <span class="text-amber-600">Pendiente de verificación</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Información Relacionada</h3>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    {% if rating.contract %}
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Contrato</p>
+                        <p class="font-medium">{{ rating.contract.contract_number }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if rating.property %}
+                    <div>
+                        <p class="text-sm text-gray-500">Propiedad</p>
+                        <p class="font-medium">{{ rating.property.title }}</p>
+                        <p class="text-sm text-gray-600">{{ rating.property.address }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calificaciones por categoría -->
+        {% if categories %}
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Calificaciones por Categoría</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for category in categories %}
+                <div class="bg-gray-50 p-3 rounded-md">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-gray-700">{{ category.get_category_display }}</span>
+                        <span class="text-blue-600 font-semibold">{{ category.score }}/10</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ category.score|multiply:10 }}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Comentarios -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Comentarios</h3>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p class="text-gray-700">{{ rating.review_text|linebreaks }}</p>
+                <div class="mt-3 flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if rating.reviewer.profile_image %}
+                        <img class="h-8 w-8 rounded-full" src="{{ rating.reviewer.profile_image.url }}" alt="">
+                        {% else %}
+                        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span class="text-gray-600 text-sm">{{ rating.reviewer.get_initials }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">
+                            {% if rating.is_anonymous and rating.reviewer != request.user %}
+                            Anónimo
+                            {% else %}
+                            {{ rating.reviewer.get_full_name }}
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            {{ rating.reviewer.get_user_type_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Respuesta -->
+        {% if rating.response %}
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Respuesta</h3>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p class="text-gray-700">{{ rating.response.response_text|linebreaks }}</p>
+                <div class="mt-3 flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if rating.response.responder.profile_image %}
+                        <img class="h-8 w-8 rounded-full" src="{{ rating.response.responder.profile_image.url }}" alt="">
+                        {% else %}
+                        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span class="text-gray-600 text-sm">{{ rating.response.responder.get_initials }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">
+                            {{ rating.response.responder.get_full_name }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            {{ rating.response.created_at|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif can_respond %}
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-semibold text-gray-800">Responder a esta calificación</h3>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <p class="text-gray-700 mb-4">Puedes responder a esta calificación para dar tu punto de vista.</p>
+                <a href="{% url 'ratings:respond_to_rating' rating_id=rating.id %}" 
+                   class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
+                    Responder
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Acciones -->
+        <div class="flex justify-between items-center mt-8">
+            <div>
+                {% if request.user == rating.reviewee or request.user == rating.reviewer %}
+                <a href="{% url 'ratings:dashboard' %}" class="text-blue-600 hover:underline">
+                    Volver al panel de calificaciones
+                </a>
+                {% else %}
+                <a href="{% url 'ratings:user_ratings' user_id=rating.reviewee.id %}" class="text-blue-600 hover:underline">
+                    Ver todas las calificaciones de {{ rating.reviewee.get_full_name }}
+                </a>
+                {% endif %}
+            </div>
+            
+            <div>
+                {% if request.user != rating.reviewer %}
+                <a href="{% url 'ratings:report_rating' rating_id=rating.id %}" 
+                   class="text-red-600 hover:underline">
+                    Reportar calificación
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

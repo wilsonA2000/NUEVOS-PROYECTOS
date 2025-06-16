@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+
+{% block title %}Preguntas Frecuentes | VeriHome{% endblock %}
+
+{% block extra_css %}
+<style>
+    .faq-accordion {
+        transition: all 0.3s ease;
+    }
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+    }
+    .faq-accordion.active .faq-answer {
+        max-height: 1000px;
+    }
+    .faq-icon {
+        transition: transform 0.3s ease;
+    }
+    .faq-accordion.active .faq-icon {
+        transform: rotate(45deg);
+    }
+    .category-tab {
+        transition: all 0.3s ease;
+    }
+    .category-tab.active {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        background-color: rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Preguntas Frecuentes</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Todo lo que necesitas saber sobre VeriHome y cómo podemos ayudarte a encontrar tu hogar ideal.
+            </p>
+        </div>
+
+        <!-- Categorías de FAQ -->
+        <div class="flex flex-wrap justify-center gap-4 mb-10" id="category-tabs">
+            <button class="category-tab active px-6 py-3 rounded-full border-2 border-primary-500 font-medium text-primary-600 bg-primary-50" 
+                   data-category="general">General</button>
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+                   data-category="arrendadores">Arrendadores</button>
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+                   data-category="arrendatarios">Arrendatarios</button>
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+                   data-category="servicios">Servicios</button>
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+                   data-category="pagos">Pagos y Contratos</button>
+        </div>
+
+        <!-- Buscador de FAQ -->
+        <div class="max-w-2xl mx-auto mb-10">
+            <div class="relative">
+                <input type="text" id="faq-search" placeholder="Buscar preguntas..." 
+                       class="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+                <div class="absolute right-4 top-4 text-gray-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor de FAQs -->
+        <div class="space-y-6" id="faq-container">
+            <!-- General -->
+            <div class="faq-category" data-category="general">
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Qué es VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>VeriHome es una plataforma inmobiliaria innovadora que conecta arrendadores, arrendatarios y prestadores de servicios en un ecosistema seguro y confiable. Ofrecemos herramientas para la gestión de propiedades, contratos digitales, pagos seguros y un sistema de calificaciones para construir confianza entre los usuarios.</p>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo me registro en VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Registrarse en VeriHome es muy sencillo:</p>
+                        <ol class="list-decimal pl-5 mt-2 space-y-2">
+                            <li>Haz clic en "Registrarse" en la esquina superior derecha</li>
+                            <li>Selecciona tu tipo de perfil: Arrendador, Arrendatario o Prestador de Servicios</li>
+                            <li>Completa el formulario con tus datos personales</li>
+                            <li>Verifica tu correo electrónico</li>
+                            <li>¡Listo! Ya puedes comenzar a usar VeriHome</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Es gratis usar VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>VeriHome ofrece un plan básico gratuito para todos los usuarios. Sin embargo, contamos con planes premium que ofrecen características adicionales como:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Mayor visibilidad para propiedades</li>
+                            <li>Herramientas avanzadas de análisis</li>
+                            <li>Verificación prioritaria</li>
+                            <li>Soporte personalizado</li>
+                        </ul>
+                        <p class="mt-2">Puedes consultar nuestros planes y precios en la sección de membresías.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrendadores -->
+            <div class="faq-category hidden" data-category="arrendadores">
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo publico mi propiedad en VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Para publicar tu propiedad, sigue estos pasos:</p>
+                        <ol class="list-decimal pl-5 mt-2 space-y-2">
+                            <li>Inicia sesión en tu cuenta de arrendador</li>
+                            <li>Haz clic en "Mis Propiedades" y luego en "Agregar Propiedad"</li>
+                            <li>Completa todos los detalles de la propiedad (ubicación, características, precio, etc.)</li>
+                            <li>Sube fotos de alta calidad (recomendamos al menos 5 fotos)</li>
+                            <li>Establece tus preferencias de arrendamiento</li>
+                            <li>Haz clic en "Publicar" y tu propiedad estará disponible para los arrendatarios</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo verifico a los posibles arrendatarios?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>VeriHome ofrece varias herramientas para verificar a los arrendatarios:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Sistema de calificaciones y reseñas de otros arrendadores</li>
+                            <li>Verificación de identidad (todos los usuarios pasan por este proceso)</li>
+                            <li>Historial de pagos dentro de la plataforma</li>
+                            <li>Reportes de buró de crédito (disponible en planes premium)</li>
+                            <li>Referencias de arrendamientos anteriores</li>
+                        </ul>
+                        <p class="mt-2">Además, puedes programar entrevistas virtuales o presenciales con los candidatos directamente desde la plataforma.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrendatarios -->
+            <div class="faq-category hidden" data-category="arrendatarios">
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo busco propiedades en VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Buscar propiedades en VeriHome es muy sencillo e intuitivo:</p>
+                        <ol class="list-decimal pl-5 mt-2 space-y-2">
+                            <li>Utiliza el buscador en la página principal o en la sección "Propiedades"</li>
+                            <li>Filtra por ubicación, precio, número de habitaciones, etc.</li>
+                            <li>Explora los resultados con vista de lista o mapa</li>
+                            <li>Guarda tus búsquedas favoritas para recibir alertas</li>
+                            <li>Agenda visitas directamente desde la plataforma</li>
+                        </ol>
+                        <p class="mt-2">También puedes crear alertas personalizadas para recibir notificaciones cuando aparezcan propiedades que cumplan con tus criterios.</p>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Qué documentos necesito para rentar una propiedad?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Los documentos requeridos pueden variar según el arrendador, pero generalmente incluyen:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Identificación oficial vigente</li>
+                            <li>Comprobantes de ingresos (últimos 3 meses)</li>
+                            <li>Referencias personales y laborales</li>
+                            <li>Comprobante de domicilio actual</li>
+                            <li>Historial crediticio (opcional)</li>
+                        </ul>
+                        <p class="mt-2">En VeriHome puedes subir estos documentos a tu perfil de forma segura y compartirlos solo con los arrendadores a los que apliques.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="faq-category hidden" data-category="servicios">
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Qué tipos de servicios puedo ofrecer en VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>En VeriHome puedes ofrecer diversos servicios relacionados con bienes raíces, como:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Servicios de limpieza y mantenimiento</li>
+                            <li>Reparaciones y remodelaciones</li>
+                            <li>Servicios de mudanza</li>
+                            <li>Decoración de interiores</li>
+                            <li>Jardinería y paisajismo</li>
+                            <li>Servicios legales inmobiliarios</li>
+                            <li>Fotografía profesional de propiedades</li>
+                            <li>Inspección de propiedades</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo me contactan los clientes?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Los clientes pueden contactarte de varias formas:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>A través del sistema de mensajería integrado de VeriHome</li>
+                            <li>Solicitudes directas desde tu perfil de prestador de servicios</li>
+                            <li>Recomendaciones automáticas basadas en las necesidades de los usuarios</li>
+                            <li>Solicitudes de cotización para proyectos específicos</li>
+                        </ul>
+                        <p class="mt-2">Recibirás notificaciones en tiempo real cuando alguien te contacte, y podrás gestionar todas tus conversaciones desde el panel de control.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos y Contratos -->
+            <div class="faq-category hidden" data-category="pagos">
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Cómo funcionan los pagos en VeriHome?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>VeriHome ofrece un sistema de pagos seguro y transparente:</p>
+                        <ol class="list-decimal pl-5 mt-2 space-y-2">
+                            <li>Los arrendatarios pueden pagar la renta directamente a través de la plataforma</li>
+                            <li>Aceptamos múltiples métodos de pago: tarjetas de crédito/débito, transferencias bancarias y más</li>
+                            <li>El sistema genera recibos automáticos para cada transacción</li>
+                            <li>Los arrendadores reciben los pagos en su cuenta bancaria en 24-48 horas</li>
+                            <li>Se mantiene un historial completo de pagos para ambas partes</li>
+                        </ol>
+                        <p class="mt-2">Nuestro sistema de escrow garantiza que los pagos se realicen de forma segura y que ambas partes estén protegidas.</p>
+                    </div>
+                </div>
+
+                <div class="faq-accordion bg-white rounded-xl shadow-elegant p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Son legalmente válidos los contratos digitales?</h3>
+                        <div class="faq-icon text-primary-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="faq-answer mt-4 text-gray-600">
+                        <p>Sí, los contratos digitales en VeriHome son completamente legales y válidos. Utilizamos tecnología de firma electrónica avanzada que cumple con todas las regulaciones aplicables en México.</p>
+                        <p class="mt-2">Nuestros contratos incluyen:</p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Verificación de identidad de ambas partes</li>
+                            <li>Sellos de tiempo criptográficos</li>
+                            <li>Certificados digitales</li>
+                            <li>Registro inmutable de todas las firmas y modificaciones</li>
+                        </ul>
+                        <p class="mt-2">Además, todos los contratos son revisados por nuestro equipo legal para garantizar que cumplan con la legislación vigente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de contacto -->
+        <div class="mt-16 text-center">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">¿No encontraste lo que buscabas?</h2>
+            <p class="text-gray-600 mb-6">Nuestro equipo de soporte está listo para ayudarte con cualquier duda adicional.</p>
+            <a href="{% url 'core:contact' %}" class="inline-flex items-center px-8 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-all duration-200 shadow-md">
+                Contáctanos
+                <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidad de acordeón para las FAQs
+    const accordions = document.querySelectorAll('.faq-accordion');
+    accordions.forEach(accordion => {
+        accordion.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+    });
+
+    // Funcionalidad de pestañas para categorías
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const faqCategories = document.querySelectorAll('.faq-category');
+    
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Desactivar todas las pestañas
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            categoryTabs.forEach(t => t.classList.remove('border-primary-500', 'text-primary-600', 'bg-primary-50'));
+            categoryTabs.forEach(t => t.classList.add('border-gray-300', 'text-gray-700'));
+            
+            // Activar la pestaña actual
+            this.classList.add('active', 'border-primary-500', 'text-primary-600', 'bg-primary-50');
+            this.classList.remove('border-gray-300', 'text-gray-700');
+            
+            // Mostrar la categoría correspondiente
+            const category = this.getAttribute('data-category');
+            faqCategories.forEach(cat => {
+                if (cat.getAttribute('data-category') === category) {
+                    cat.classList.remove('hidden');
+                } else {
+                    cat.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    // Funcionalidad de búsqueda
+    const searchInput = document.getElementById('faq-search');
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length < 2) {
+            // Restaurar vista original
+            categoryTabs[0].click();
+            return;
+        }
+        
+        // Ocultar todas las categorías
+        faqCategories.forEach(cat => cat.classList.add('hidden'));
+        
+        // Mostrar todos los FAQs para buscar
+        const allFaqs = document.querySelectorAll('.faq-accordion');
+        allFaqs.forEach(faq => {
+            const question = faq.querySelector('h3').textContent.toLowerCase();
+            const answer = faq.querySelector('.faq-answer').textContent.toLowerCase();
+            
+            if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                faq.style.display = 'block';
+                faq.parentElement.classList.remove('hidden');
+                
+                // Destacar el término de búsqueda (opcional)
+                if (!faq.classList.contains('active')) {
+                    faq.classList.add('active');
+                }
+            } else {
+                faq.style.display = 'none';
+            }
+        });
+    });
+
+    // Animación de entrada
+    const faqContainer = document.getElementById('faq-container');
+    faqContainer.style.opacity = '0';
+    faqContainer.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        faqContainer.style.transition = 'all 0.6s ease';
+        faqContainer.style.opacity = '1';
+        faqContainer.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

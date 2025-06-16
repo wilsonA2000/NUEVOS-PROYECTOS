@@ -9,9 +9,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum, Avg
 from django.utils import timezone
 from datetime import timedelta
+import django.db.models
 
 from .models import (
     SiteConfiguration, Notification, ActivityLog, SystemAlert, 
@@ -142,7 +143,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'recent_inquiries': recent_inquiries,
             'monthly_income': pending_payments.filter(
                 transaction_type='rent_payment'
-            ).aggregate(total=models.Sum('amount'))['total'] or 0,
+            ).aggregate(total=django.db.models.Sum('amount'))['total'] or 0,
         }
     
     def _get_tenant_context(self):
@@ -180,7 +181,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'monthly_rent': my_payments.filter(
                 transaction_type='rent_payment',
                 created_at__month=timezone.now().month
-            ).aggregate(total=models.Sum('amount'))['total'] or 0,
+            ).aggregate(total=Sum('amount'))['total'] or 0,
         }
     
     def _get_service_provider_context(self):
@@ -205,7 +206,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             payee=user,
             status='completed',
             created_at__month=timezone.now().month
-        ).aggregate(total=models.Sum('amount'))['total'] or 0
+        ).aggregate(total=django.db.models.Sum('amount'))['total'] or 0
         
         # Portafolio
         from users.models import PortfolioItem
@@ -217,7 +218,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'active_services': service_contracts.filter(status='active').count(),
             'total_services': service_contracts.count(),
             'average_rating': my_ratings.aggregate(
-                avg=models.Avg('overall_rating')
+                avg=Avg('overall_rating')
             )['avg'] or 0,
             'total_ratings': my_ratings.count(),
             'monthly_income': monthly_income,

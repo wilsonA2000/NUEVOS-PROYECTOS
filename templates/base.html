@@ -134,6 +134,7 @@
         }
     </style>
     
+    <link rel="stylesheet" href="/static/css/ratings.css">
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -191,7 +192,8 @@
                     </div>
                 </div>
 
-                <!-- Búsqueda (desktop) -->
+                <!-- Búsqueda (desktop) - solo visible para usuarios autenticados -->
+                {% if user.is_authenticated %}
                 <div class="hidden md:flex md:items-center md:flex-1 md:mx-8">
                     <div class="w-full max-w-lg">
                         <form action="{% url 'core:global_search' %}" method="GET" class="relative">
@@ -205,6 +207,10 @@
                         </form>
                     </div>
                 </div>
+                {% else %}
+                <!-- Espacio vacío para mantener el diseño cuando no hay buscador -->
+                <div class="hidden md:flex md:flex-1"></div>
+                {% endif %}
 
                 <!-- Menú del usuario -->
                 <div class="flex items-center space-x-4">
@@ -305,6 +311,9 @@
                                     </a>
                                     <a href="{% url 'payments:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
                                         Pagos
+                                    </a>
+                                    <a href="{% url 'ratings:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                        Calificaciones
                                     </a>
                                     <div class="border-t border-gray-100"></div>
                                     <a href="{% url 'core:support' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
@@ -517,6 +526,7 @@
     </footer>
 
     <!-- Scripts adicionales -->
+    <script src="/static/js/ratings.js"></script>
     {% block extra_js %}{% endblock %}
 
     <!-- Scripts para funcionalidad básica -->

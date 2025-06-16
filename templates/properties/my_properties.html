@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Propiedades | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Encabezado -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Mis Propiedades</h1>
+                <p class="text-gray-600">Administra tus propiedades en VeriHome</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="{% url 'properties:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Añadir Propiedad
+                </a>
+            </div>
+        </div>
+        
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <form method="get" class="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-4">
+                <div class="flex-1">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                    <input type="text" name="search" id="search" placeholder="Título, dirección..." class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <select name="status" id="status" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Todos</option>
+                        <option value="available">Disponible</option>
+                        <option value="rented">Rentada</option>
+                        <option value="maintenance">En Mantenimiento</option>
+                        <option value="inactive">Inactiva</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="property_type" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select name="property_type" id="property_type" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Todos</option>
+                        <option value="apartment">Apartamento</option>
+                        <option value="house">Casa</option>
+                        <option value="commercial">Comercial</option>
+                        <option value="office">Oficina</option>
+                        <option value="land">Terreno</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="w-full md:w-auto inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Lista de propiedades -->
+        {% if properties %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for property in properties %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <!-- Imagen principal -->
+                <div class="relative h-48 bg-gray-200">
+                    {% if property.get_main_image %}
+                    <img src="{{ property.get_main_image }}" alt="{{ property.title }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Estado de la propiedad -->
+                    <div class="absolute top-2 right-2">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full 
+                            {% if property.status == 'available' %}bg-green-100 text-green-800
+                            {% elif property.status == 'rented' %}bg-blue-100 text-blue-800
+                            {% elif property.status == 'maintenance' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ property.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Información de la propiedad -->
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ property.title }}</h3>
+                    <p class="text-gray-600 text-sm mb-2">{{ property.address }}</p>
+                    
+                    <!-- Características principales -->
+                    <div class="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            {{ property.get_property_type_display }}
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            </svg>
+                            {{ property.bedrooms }} hab.
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {{ property.bathrooms }} baños
+                        </div>
+                    </div>
+                    
+                    <!-- Precio -->
+                    <div class="mb-3">
+                        <span class="text-lg font-bold text-primary-600">{{ property.get_formatted_price }}</span>
+                    </div>
+                    
+                    <!-- Estadísticas -->
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+                        <span>{{ property.views_count }} visualizaciones</span>
+                        <span>{{ property.favorites_count }} favoritos</span>
+                        <span>{{ property.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    <div class="flex justify-between">
+                        <a href="{% url 'properties:detail' pk=property.id %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                            Ver detalles
+                        </a>
+                        <div class="flex space-x-2">
+                            <a href="{% url 'properties:edit' pk=property.id %}" class="text-gray-600 hover:text-gray-800">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                            <button type="button" class="text-red-600 hover:text-red-800">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if properties.has_other_pages %}
+        <div class="flex justify-center mt-8">
+            <nav class="inline-flex rounded-md shadow">
+                {% if properties.has_previous %}
+                <a href="?page={{ properties.previous_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded-l-md hover:bg-gray-100">
+                    Anterior
+                </a>
+                {% endif %}
+                
+                {% for i in properties.paginator.page_range %}
+                {% if properties.number == i %}
+                <span class="px-3 py-2 bg-blue-50 border border-blue-300 text-blue-600">
+                    {{ i }}
+                </span>
+                {% else %}
+                <a href="?page={{ i }}" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-100">
+                    {{ i }}
+                </a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if properties.has_next %}
+                <a href="?page={{ properties.next_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100">
+                    Siguiente
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No hay propiedades -->
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">No tienes propiedades</h3>
+            <p class="mt-1 text-sm text-gray-500">Comienza añadiendo tu primera propiedad.</p>
+            <div class="mt-6">
+                <a href="{% url 'properties:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Añadir Propiedad
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

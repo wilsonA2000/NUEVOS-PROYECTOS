@@ -1,143 +1,137 @@
+"""
+Formularios para la aplicación de usuarios de VeriHome.
+"""
+
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import LandlordProfile, TenantProfile, ServiceProviderProfile
-from .widgets import CustomTextInput, CustomEmailInput, CustomPasswordInput
+from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
+from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, InterviewCode
 
 User = get_user_model()
 
-class LandlordRegistrationForm(forms.ModelForm):
-    password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput(attrs={
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-        'placeholder': '••••••••'
-    }))
-    password2 = forms.CharField(label='Confirmar contraseña', widget=forms.PasswordInput(attrs={
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-        'placeholder': '••••••••'
-    }))
+
+class UserRegistrationForm(UserCreationForm):
+    """Formulario para registro de usuarios."""
     
-    # Campos adicionales para el perfil de arrendador
-    company_name = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-        'placeholder': 'Mi Empresa Inmobiliaria'
-    }))
-    total_properties = forms.ChoiceField(required=False, choices=[
-        ('', 'Seleccionar'),
-        ('1', '1 propiedad'),
-        ('2-5', '2-5 propiedades'),
-        ('6-10', '6-10 propiedades'),
-        ('11-25', '11-25 propiedades'),
-        ('25+', 'Más de 25 propiedades')
-    ], widget=forms.Select(attrs={
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200'
-    }))
-    years_experience = forms.ChoiceField(required=False, choices=[
-        ('', 'Seleccionar'),
-        ('0', 'Principiante'),
-        ('1-2', '1-2 años'),
-        ('3-5', '3-5 años'),
-        ('6-10', '6-10 años'),
-        ('10+', 'Más de 10 años')
-    ], widget=forms.Select(attrs={
-        'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200'
-    }))
-    property_types = forms.MultipleChoiceField(required=False, choices=[
-        ('apartment', 'Apartamentos'),
-        ('house', 'Casas'),
-        ('studio', 'Estudios'),
-        ('commercial', 'Comercial')
-    ], widget=forms.CheckboxSelectMultiple)
+    interview_code = forms.CharField(
+        label='Código de entrevista',
+        max_length=8,
+        required=True,
+        help_text='Ingresa el código de entrevista que recibiste después de tu entrevista con VeriHome.'
+    )
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number']
-        widgets = {
-            'first_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-                'placeholder': 'Tu nombre'
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-                'placeholder': 'Tus apellidos'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-                'placeholder': 'tu@correo.com'
-            }),
-            'phone_number': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200',
-                'placeholder': '+52 55 1234 5678'
-            }),
-        }
+        fields = ('email', 'first_name', 'last_name', 'user_type', 'phone_number', 'interview_code')
         
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('Las contraseñas no coinciden')
-        return password2
+    def clean_interview_code(self):
+        code = self.cleaned_data.get('interview_code')
+        email = self.cleaned_data.get('email')
+        
+        try:
+            interview_code = InterviewCode.objects.get(code=code, email=email)
+            if interview_code.is_used:
+                raise ValidationError('Este código de entrevista ya ha sido utilizado.')
+        except InterviewCode.DoesNotExist:
+            raise ValidationError('Código de entrevista inválido o no coincide con el correo electrónico.')
+        
+        return code
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
-        user.user_type = 'landlord'
+        
+        # Obtener el código de entrevista y asignarlo al usuario
+        code = self.cleaned_data.get('interview_code')
+        interview_code = InterviewCode.objects.get(code=code)
+        user.interview_code = interview_code
+        user.initial_rating = interview_code.initial_rating
+        
         if commit:
             user.save()
+            # Marcar el código como utilizado
+            interview_code.is_used = True
+            interview_code.save()
+            
+            # Crear el perfil correspondiente según el tipo de usuario
+            if user.user_type == 'landlord':
+                LandlordProfile.objects.create(user=user)
+            elif user.user_type == 'tenant':
+                TenantProfile.objects.create(user=user)
+            elif user.user_type == 'service_provider':
+                ServiceProviderProfile.objects.create(user=user)
+        
         return user
 
-class TenantRegistrationForm(forms.ModelForm):
-    password1 = forms.CharField(label='Contraseña', widget=CustomPasswordInput())
-    password2 = forms.CharField(label='Confirmar contraseña', widget=CustomPasswordInput())
-    
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number']
-        widgets = {
-            'first_name': CustomTextInput(),
-            'last_name': CustomTextInput(),
-            'email': CustomEmailInput(),
-            'phone_number': CustomTextInput(),
-        }
-        
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('Las contraseñas no coinciden')
-        return password2
-    
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
-        user.user_type = 'tenant'
-        if commit:
-            user.save()
-        return user
 
-class ServiceProviderRegistrationForm(forms.ModelForm):
-    password1 = forms.CharField(label='Contraseña', widget=CustomPasswordInput())
-    password2 = forms.CharField(label='Confirmar contraseña', widget=CustomPasswordInput())
+class InterviewCodeVerificationForm(forms.Form):
+    """Formulario para verificar el código de entrevista."""
+    
+    interview_code = forms.CharField(
+        label='Código de entrevista',
+        max_length=8,
+        required=True
+    )
+    email = forms.EmailField(
+        label='Correo electrónico',
+        required=True
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        code = cleaned_data.get('interview_code')
+        email = cleaned_data.get('email')
+        
+        if code and email:
+            try:
+                interview_code = InterviewCode.objects.get(code=code, email=email)
+                if interview_code.is_used:
+                    raise ValidationError('Este código de entrevista ya ha sido utilizado.')
+                cleaned_data['interview_code_obj'] = interview_code
+            except InterviewCode.DoesNotExist:
+                raise ValidationError('Código de entrevista inválido o no coincide con el correo electrónico.')
+        
+        return cleaned_data
+
+
+class UserProfileForm(forms.ModelForm):
+    """Formulario para editar el perfil básico del usuario."""
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number']
-        widgets = {
-            'first_name': CustomTextInput(),
-            'last_name': CustomTextInput(),
-            'email': CustomEmailInput(),
-            'phone_number': CustomTextInput(),
-        }
-        
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError('Las contraseñas no coinciden')
-        return password2
+        fields = ('first_name', 'last_name', 'phone_number')
+
+
+class BaseProfileForm(forms.ModelForm):
+    """Formulario base para todos los perfiles."""
     
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
-        user.user_type = 'service_provider'
-        if commit:
-            user.save()
-        return user
+    class Meta:
+        fields = ('bio', 'profile_image', 'address', 'city', 'state', 'country', 
+                  'postal_code', 'identification_document', 'proof_of_address')
+
+
+class LandlordProfileForm(BaseProfileForm):
+    """Formulario para editar el perfil de arrendador."""
+    
+    class Meta(BaseProfileForm.Meta):
+        model = LandlordProfile
+        fields = BaseProfileForm.Meta.fields + ('company_name', 'years_experience', 
+                                               'property_ownership_docs', 'business_license')
+
+
+class TenantProfileForm(BaseProfileForm):
+    """Formulario para editar el perfil de arrendatario."""
+    
+    class Meta(BaseProfileForm.Meta):
+        model = TenantProfile
+        fields = BaseProfileForm.Meta.fields + ('employment_status', 'employer_name', 
+                                               'emergency_contact_name', 'emergency_contact_phone')
+
+
+class ServiceProviderProfileForm(BaseProfileForm):
+    """Formulario para editar el perfil de prestador de servicios."""
+    
+    class Meta(BaseProfileForm.Meta):
+        model = ServiceProviderProfile
+        fields = BaseProfileForm.Meta.fields + ('service_category', 'business_name', 
+                                               'years_experience', 'hourly_rate', 'service_description')

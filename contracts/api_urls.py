@@ -8,13 +8,13 @@ from . import api_views
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'contracts', api_views.ContractViewSet)
-router.register(r'templates', api_views.ContractTemplateViewSet)
-router.register(r'signatures', api_views.ContractSignatureViewSet)
-router.register(r'amendments', api_views.ContractAmendmentViewSet)
-router.register(r'renewals', api_views.ContractRenewalViewSet)
-router.register(r'terminations', api_views.ContractTerminationViewSet)
-router.register(r'documents', api_views.ContractDocumentViewSet)
+router.register(r'contracts', api_views.ContractViewSet, basename='contract')
+router.register(r'templates', api_views.ContractTemplateViewSet, basename='contract-template')
+router.register(r'signatures', api_views.ContractSignatureViewSet, basename='contract-signature')
+router.register(r'amendments', api_views.ContractAmendmentViewSet, basename='contract-amendment')
+router.register(r'renewals', api_views.ContractRenewalViewSet, basename='contract-renewal')
+router.register(r'terminations', api_views.ContractTerminationViewSet, basename='contract-termination')
+router.register(r'documents', api_views.ContractDocumentViewSet, basename='contract-document')
 
 urlpatterns = [
     # Incluir rutas del router

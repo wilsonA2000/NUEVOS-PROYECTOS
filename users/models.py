@@ -8,6 +8,35 @@ from django.db import models
 from django.core.validators import RegexValidator
 from PIL import Image
 import uuid
+import random
+import string
+
+
+def generate_interview_code():
+    """Genera un código de entrevista aleatorio de 8 caracteres."""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+
+from django.core.validators import MaxValueValidator
+
+class InterviewCode(models.Model):
+    """Código de entrevista para validar la creación de usuarios."""
+    
+    code = models.CharField('Código de entrevista', max_length=8, unique=True, default=generate_interview_code)
+    email = models.EmailField('Correo electrónico', unique=True)
+    is_used = models.BooleanField('Utilizado', default=False)
+    initial_rating = models.PositiveSmallIntegerField('Calificación inicial', default=0, 
+                                                     validators=[MaxValueValidator(10)])
+    notes = models.TextField('Notas de entrevista', blank=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    expires_at = models.DateTimeField('Fecha de expiración', null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Código de Entrevista'
+        verbose_name_plural = 'Códigos de Entrevista'
+        
+    def __str__(self):
+        return f"Código: {self.code} - {self.email}"
 
 
 class User(AbstractUser):
@@ -32,6 +61,14 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    interview_code = models.OneToOneField(
+        InterviewCode,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user'
+    )
+    initial_rating = models.PositiveSmallIntegerField('Calificación inicial', default=0)
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     

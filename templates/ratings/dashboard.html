@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Calificaciones | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Panel de Calificaciones</h1>
+        
+        <!-- Resumen de calificaciones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-800">Calificación Promedio</h3>
+                <div class="flex items-center mt-2">
+                    <span class="text-3xl font-bold text-blue-600">
+                        {{ average_rating|default:"N/A"|floatformat:1 }}
+                    </span>
+                    <span class="ml-2 text-yellow-500 text-2xl">★</span>
+                    <span class="ml-2 text-gray-600">/10</span>
+                </div>
+            </div>
+            
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h3 class="text-lg font-semibold text-green-800">Total de Calificaciones</h3>
+                <div class="flex items-center mt-2">
+                    <span class="text-3xl font-bold text-green-600">
+                        {{ rating_profile.total_ratings_received }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h3 class="text-lg font-semibold text-purple-800">Badges Obtenidos</h3>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    {% for badge in rating_profile.get_badge_display %}
+                    <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        {{ badge }}
+                    </span>
+                    {% empty %}
+                    <span class="text-gray-500">Aún no tienes badges</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pestañas -->
+        <div class="mb-4 border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px" id="ratingTabs" role="tablist">
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 border-blue-600 rounded-t-lg active" 
+                            id="received-tab" data-tabs-target="#received" type="button" role="tab" 
+                            aria-controls="received" aria-selected="true">
+                        Calificaciones Recibidas
+                    </button>
+                </li>
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                            id="given-tab" data-tabs-target="#given" type="button" role="tab" 
+                            aria-controls="given" aria-selected="false">
+                        Calificaciones Dadas
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Contenido de pestañas -->
+        <div id="ratingTabContent">
+            <!-- Calificaciones recibidas -->
+            <div class="block" id="received" role="tabpanel" aria-labelledby="received-tab">
+                {% if ratings_received %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Calificación</th>
+                                <th class="py-3 px-4 text-left">De</th>
+                                <th class="py-3 px-4 text-left">Título</th>
+                                <th class="py-3 px-4 text-left">Fecha</th>
+                                <th class="py-3 px-4 text-left">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rating in ratings_received %}
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold text-lg">{{ rating.overall_rating }}</span>
+                                        <span class="ml-1 text-yellow-500">★</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    {% if rating.is_anonymous and rating.reviewer != request.user %}
+                                    <span class="text-gray-500">Anónimo</span>
+                                    {% else %}
+                                    {{ rating.reviewer.get_full_name }}
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4">{{ rating.title }}</td>
+                                <td class="py-3 px-4">{{ rating.created_at|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4">
+                                    <a href="{% url 'ratings:rating_detail' rating_id=rating.id %}" 
+                                       class="text-blue-600 hover:underline">Ver</a>
+                                    
+                                    {% if not rating.response %}
+                                    <a href="{% url 'ratings:respond_to_rating' rating_id=rating.id %}" 
+                                       class="ml-3 text-green-600 hover:underline">Responder</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginación -->
+                {% if ratings_received.has_other_pages %}
+                <div class="flex justify-center mt-6">
+                    <nav class="inline-flex rounded-md shadow">
+                        {% if ratings_received.has_previous %}
+                        <a href="?page={{ ratings_received.previous_page_number }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 rounded-l-md hover:bg-gray-100">
+                            Anterior
+                        </a>
+                        {% endif %}
+                        
+                        {% for i in ratings_received.paginator.page_range %}
+                        {% if ratings_received.number == i %}
+                        <span class="px-3 py-2 bg-blue-50 border border-blue-300 text-blue-600">
+                            {{ i }}
+                        </span>
+                        {% else %}
+                        <a href="?page={{ i }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-100">
+                            {{ i }}
+                        </a>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if ratings_received.has_next %}
+                        <a href="?page={{ ratings_received.next_page_number }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100">
+                            Siguiente
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">Aún no has recibido calificaciones.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Calificaciones dadas -->
+            <div class="hidden" id="given" role="tabpanel" aria-labelledby="given-tab">
+                {% if ratings_given %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Calificación</th>
+                                <th class="py-3 px-4 text-left">Para</th>
+                                <th class="py-3 px-4 text-left">Título</th>
+                                <th class="py-3 px-4 text-left">Fecha</th>
+                                <th class="py-3 px-4 text-left">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rating in ratings_given %}
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold text-lg">{{ rating.overall_rating }}</span>
+                                        <span class="ml-1 text-yellow-500">★</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">{{ rating.reviewee.get_full_name }}</td>
+                                <td class="py-3 px-4">{{ rating.title }}</td>
+                                <td class="py-3 px-4">{{ rating.created_at|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4">
+                                    <a href="{% url 'ratings:rating_detail' rating_id=rating.id %}" 
+                                       class="text-blue-600 hover:underline">Ver</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">Aún no has dado calificaciones a otros usuarios.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Funcionalidad de pestañas
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('[data-tabs-target]');
+        const tabContents = document.querySelectorAll('[role="tabpanel"]');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = document.querySelector(tab.dataset.tabsTarget);
+                
+                tabContents.forEach(tabContent => {
+                    tabContent.classList.add('hidden');
+                });
+                
+                tabs.forEach(t => {
+                    t.classList.remove('border-blue-600');
+                    t.classList.add('border-transparent');
+                    t.setAttribute('aria-selected', false);
+                });
+                
+                tab.classList.remove('border-transparent');
+                tab.classList.add('border-blue-600');
+                tab.setAttribute('aria-selected', true);
+                
+                target.classList.remove('hidden');
+            });
+        });
+    });
+</script>
+{% endblock %}

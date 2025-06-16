@@ -37,15 +37,15 @@ urlpatterns = [
     # Ruta para reenviar correo de verificación
     path('reenviar-verificacion/', ResendVerificationEmailView.as_view(), name='account_email_verification_resend'),
     
-    # API REST (comentado temporalmente)
-    # path('api/v1/', include([
-    #     path('usuarios/', include('users.api_urls')),
-    #     path('propiedades/', include('properties.api_urls')),
-    #     path('contratos/', include('contracts.api_urls')),
-    #     path('mensajes/', include('messaging.api_urls')),
-    #     path('pagos/', include('payments.api_urls')),
-    #     path('calificaciones/', include('ratings.api_urls')),
-    # ])),
+    # API REST
+    path('api/v1/', include([
+        path('usuarios/', include('users.api_urls')),
+        path('propiedades/', include('properties.api_urls')),
+        path('contratos/', include('contracts.api_urls')),
+        path('mensajes/', include('messaging.api_urls')),
+        path('pagos/', include('payments.api_urls')),
+        path('calificaciones/', include('ratings.api_urls')),
+    ])),
     
     # Páginas especiales
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),

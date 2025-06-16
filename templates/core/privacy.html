@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}Política de Privacidad | VeriHome{% endblock %}
+
+{% block extra_css %}
+<style>
+    .privacy-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    .privacy-card:hover {
+        transform: translateY(-5px);
+    }
+    .privacy-card:hover .card-icon {
+        transform: scale(1.1);
+    }
+    .card-icon {
+        transition: all 0.3s ease;
+    }
+    .animated-gradient {
+        background: linear-gradient(-45deg, #dbeafe, #eff6ff, #e0f2fe, #f0f9ff);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+    }
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .highlight-text {
+        position: relative;
+        display: inline-block;
+    }
+    .highlight-text::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 30%;
+        background-color: rgba(59, 130, 246, 0.2);
+        z-index: -1;
+        transform: skew(-12deg);
+    }
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted #3b82f6;
+        cursor: help;
+    }
+    .tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: #1e40af;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .tooltip .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #1e40af transparent transparent transparent;
+    }
+    .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animated-gradient py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Política de Privacidad</h1>
+            <p class="text-xl text-gray-600">
+                Última actualización: <span class="font-medium">15 de junio de 2025</span>
+            </p>
+        </div>
+
+        <!-- Resumen visual -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <div class="privacy-card bg-white rounded-xl shadow-elegant p-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 card-icon">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Datos que Recopilamos</h3>
+                <p class="text-gray-600">Información personal, de contacto y de verificación para brindar nuestros servicios.</p>
+            </div>
+
+            <div class="privacy-card bg-white rounded-xl shadow-elegant p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 card-icon">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Cómo Protegemos tus Datos</h3>
+                <p class="text-gray-600">Implementamos medidas de seguridad técnicas y organizativas para proteger tu información.</p>
+            </div>
+
+            <div class="privacy-card bg-white rounded-xl shadow-elegant p-6 text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 card-icon">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Tus Derechos</h3>
+                <p class="text-gray-600">Acceso, rectificación, cancelación y oposición a tus datos personales en cualquier momento.</p>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="bg-white rounded-xl shadow-elegant p-8" id="privacy-content">
+            <div class="prose prose-lg max-w-none">
+                <h2 class="flex items-center text-2xl font-bold text-gray-900 mb-4">
+                    <span class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">1</span>
+                    Información que Recopilamos
+                </h2>
+                <p class="text-gray-700">
+                    En <span class="highlight-text">VeriHome</span>, recopilamos información personal como nombre, dirección de correo electrónico, número de teléfono y, en algunos casos, información de identificación oficial para verificar su identidad.
+                </p>
+                <p class="text-gray-700 mt-4">
+                    Los tipos de información que podemos recopilar incluyen:
+                </p>
+                <ul class="list-disc pl-5 mt-2 space-y-2 text-gray-700">
+                    <li><strong>Información de identificación personal:</strong> nombre completo, dirección de correo electrónico, número de teléfono, dirección postal.</li>
+                    <li><strong>Información de verificación:</strong> copia de identificación oficial, comprobantes de domicilio, información fiscal.</li>
+                    <li><strong>Información de pago:</strong> datos de tarjetas de crédito/débito, información bancaria para transferencias.</li>
+                    <li><strong>Información de propiedades:</strong> ubicación, características, imágenes, documentos legales.</li>
+                    <li><strong>Información de uso:</strong> cómo interactúa con nuestra plataforma, preferencias, historial de búsqueda.</li>
+                </ul>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                <strong>Nota:</strong> Solo recopilamos la información necesaria para proporcionar nuestros servicios y cumplir con las obligaciones legales.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-8">
+
+                <h2 class="flex items-center text-2xl font-bold text-gray-900 mb-4">
+                    <span class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">2</span>
+                    Cómo Utilizamos su Información
+                </h2>
+                <p class="text-gray-700">
+                    Utilizamos su información para:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-primary-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <h3 class="font-medium text-gray-900">Proporcionar y mejorar servicios</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Personalizar su experiencia y mejorar continuamente nuestras funcionalidades.</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-primary-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <h3 class="font-medium text-gray-900">Verificar identidad</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Confirmar que los usuarios son quienes dicen ser y prevenir fraudes.</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-primary-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <h3 class="font-medium text-gray-900">Facilitar comunicación</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Permitir que los usuarios se comuniquen de forma segura dentro de la plataforma.</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-primary-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <h3 class="font-medium text-gray-900">Procesar pagos</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Facilitar transacciones seguras entre usuarios de la plataforma.</p>
+                    </div>
+                </div>
+
+                <!-- Más secciones omitidas por brevedad -->
+                <hr class="my-8">
+
+                <h2 class="flex items-center text-2xl font-bold text-gray-900 mb-4">
+                    <span class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">3</span>
+                    Compartición de Información
+                </h2>
+                <!-- Contenido omitido por brevedad -->
+
+                <hr class="my-8">
+
+                <h2 class="flex items-center text-2xl font-bold text-gray-900 mb-4">
+                    <span class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">4</span>
+                    Seguridad de Datos
+                </h2>
+                <!-- Contenido omitido por brevedad -->
+
+                <!-- Secciones adicionales omitidas por brevedad -->
+            </div>
+
+            <!-- Glosario interactivo -->
+            <div class="mt-12 bg-gray-50 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Glosario de Términos</h3>
+                <p class="text-gray-600 mb-4">Algunos términos utilizados en nuestra política de privacidad:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-700">
+                            <span class="tooltip font-medium text-primary-600">Datos personales
+                                <span class="tooltip-text">Cualquier información que pueda identificar directa o indirectamente a una persona física.</span>
+                            </span>: Información que te identifica como individuo.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700">
+                            <span class="tooltip font-medium text-primary-600">Cookies
+                                <span class="tooltip-text">Pequeños archivos de texto que se almacenan en tu dispositivo cuando visitas un sitio web.</span>
+                            </span>: Archivos que almacenan información sobre tu navegación.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700">
+                            <span class="tooltip font-medium text-primary-600">Procesamiento de datos
+                                <span class="tooltip-text">Cualquier operación realizada con datos personales, como recopilación, registro, organización, estructuración, almacenamiento, etc.</span>
+                            </span>: Cómo utilizamos tu información.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700">
+                            <span class="tooltip font-medium text-primary-600">Consentimiento
+                                <span class="tooltip-text">Manifestación de voluntad libre, específica, informada e inequívoca por la que aceptas el tratamiento de tus datos personales.</span>
+                            </span>: Tu permiso para usar tus datos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles interactivos -->
+        <div class="mt-12 flex flex-col md:flex-row gap-6 items-center justify-center">
+            <button id="print-policy" class="flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                </svg>
+                Imprimir Política
+            </button>
+            <button id="download-pdf" class="flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Descargar PDF
+            </button>
+            <a href="{% url 'core:contact' %}" class="flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Preguntas sobre Privacidad
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada
+    const content = document.getElementById('privacy-content');
+    content.style.opacity = '0';
+    content.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        content.style.transition = 'all 0.6s ease';
+        content.style.opacity = '1';
+        content.style.transform = 'translateY(0)';
+    }, 100);
+
+    // Funcionalidad para imprimir
+    document.getElementById('print-policy').addEventListener('click', function() {
+        window.print();
+    });
+
+    // Funcionalidad para descargar PDF (simulada)
+    document.getElementById('download-pdf').addEventListener('click', function() {
+        alert('Esta funcionalidad generaría un PDF de la política de privacidad. En una implementación real, se conectaría con una biblioteca de generación de PDF.');
+    });
+
+    // Efecto de resaltado al hacer scroll
+    const sections = document.querySelectorAll('h2');
+    
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.transition = 'all 0.5s ease';
+                entry.target.style.transform = 'translateX(0)';
+                entry.target.style.opacity = '1';
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => {
+        section.style.transform = 'translateX(-20px)';
+        section.style.opacity = '0';
+        observer.observe(section);
+    });
+
+    // Tooltips mejorados
+    const tooltips = document.querySelectorAll('.tooltip');
+    tooltips.forEach(tooltip => {
+        tooltip.addEventListener('mouseenter', function() {
+            this.style.color = '#1d4ed8';
+        });
+        tooltip.addEventListener('mouseleave', function() {
+            this.style.color = '#3b82f6';
+        });
+    });
+});
+</script>
+{% endblock %}
