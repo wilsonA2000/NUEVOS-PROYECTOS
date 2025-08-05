@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Sesiones de Impersonación</h2>
+<table>
+  <tr><th>Admin</th><th>Usuario</th><th>Inicio</th><th>Fin</th><th>Activa</th></tr>
+  {% for s in page_obj %}
+    <tr>
+      <td>{{ s.admin_user }}</td>
+      <td>{{ s.impersonated_user }}</td>
+      <td>{{ s.started_at }}</td>
+      <td>{{ s.ended_at|default:'—' }}</td>
+      <td>{% if s.is_active %}✔{% else %}✖{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5">No hay sesiones de impersonación.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %} 

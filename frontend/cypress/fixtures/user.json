@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "email": "admin@verihome.com",
+  "first_name": "Admin",
+  "last_name": "User",
+  "user_type": "landlord",
+  "is_verified": true,
+  "phone_number": "+57 300 123 4567",
+  "avatar": null,
+  "created_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-01T00:00:00Z"
+}

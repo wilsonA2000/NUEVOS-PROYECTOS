@@ -9,6 +9,8 @@ from django.utils import timezone
 from decimal import Decimal
 import uuid
 from datetime import timedelta
+import hashlib
+import json
 
 User = get_user_model()
 
@@ -17,10 +19,12 @@ class ContractTemplate(models.Model):
     """Plantillas de contratos para diferentes tipos de acuerdos."""
     
     TEMPLATE_TYPES = [
-        ('rental', 'Contrato de Arrendamiento'),
-        ('service', 'Contrato de Servicios'),
-        ('sale', 'Contrato de Compraventa'),
-        ('sublease', 'Contrato de Subarrendamiento'),
+        ('rental_urban', 'Arrendamiento de Vivienda Urbana'),
+        ('rental_commercial', 'Arrendamiento de Local Comercial'),
+        ('rental_room', 'Arrendamiento de Habitación'),
+        ('rental_rural', 'Arrendamiento de Lote de Terreno Rural'),
+        ('service_provider', 'Contrato de Prestación de Servicios'),
+        ('other', 'Otro'),
     ]
     
     name = models.CharField('Nombre de la plantilla', max_length=200)
@@ -55,10 +59,12 @@ class Contract(models.Model):
     """Modelo principal para contratos digitales."""
     
     CONTRACT_TYPES = [
-        ('rental', 'Contrato de Arrendamiento'),
-        ('service', 'Contrato de Servicios'),
-        ('sale', 'Contrato de Compraventa'),
-        ('sublease', 'Contrato de Subarrendamiento'),
+        ('rental_urban', 'Arrendamiento de Vivienda Urbana'),
+        ('rental_commercial', 'Arrendamiento de Local Comercial'),
+        ('rental_room', 'Arrendamiento de Habitación'),
+        ('rental_rural', 'Arrendamiento de Lote de Terreno Rural'),
+        ('service_provider', 'Contrato de Prestación de Servicios'),
+        ('other', 'Otro'),
     ]
     
     STATUS_CHOICES = [
@@ -88,13 +94,13 @@ class Contract(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='contracts_as_primary',
-        verbose_name='Parte principal'
+        verbose_name='Parte principal (Arrendador/Cliente)'
     )
     secondary_party = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='contracts_as_secondary',
-        verbose_name='Parte secundaria'
+        verbose_name='Parte secundaria (Arrendatario/Prestador)'
     )
     
     # Información del contrato
@@ -155,6 +161,16 @@ class Contract(models.Model):
         help_text='Datos específicos utilizados en el contrato'
     )
     
+    # Campos para PDF y descarga
+    pdf_file = models.FileField(
+        'Archivo PDF del contrato',
+        upload_to='contracts/pdfs/',
+        null=True,
+        blank=True
+    )
+    pdf_generated_at = models.DateTimeField('Fecha de generación PDF', null=True, blank=True)
+    is_downloadable = models.BooleanField('Descargable', default=False)
+    
     class Meta:
         verbose_name = 'Contrato'
         verbose_name_plural = 'Contratos'
@@ -199,22 +215,60 @@ class Contract(models.Model):
         signatures = self.signatures.filter(is_valid=True)
         signatories = self.get_signatories()
         signed_count = signatures.filter(signer__in=signatories).count()
+        total_count = len(signatories)
         
-        if signed_count == 0:
-            return 'not_signed'
-        elif signed_count < len(signatories):
-            return 'partially_signed'
-        else:
-            return 'fully_signed'
+        return {
+            'signed_count': signed_count,
+            'total_count': total_count,
+            'is_complete': signed_count == total_count,
+            'percentage': (signed_count / total_count * 100) if total_count > 0 else 0
+        }
+    
+    def can_be_downloaded_by(self, user):
+        """Verifica si un usuario puede descargar el contrato."""
+        if not self.is_downloadable:
+            return False
+        
+        # Solo el arrendador puede descargar contratos de arrendamiento
+        if self.contract_type.startswith('rental_'):
+            return user == self.primary_party
+        
+        # Para contratos de servicios, tanto cliente como prestador pueden descargar
+        if self.contract_type == 'service_provider':
+            return user in [self.primary_party, self.secondary_party]
+        
+        return False
+    
+    def can_be_viewed_by(self, user):
+        """Verifica si un usuario puede ver el contrato."""
+        # Los firmantes siempre pueden ver
+        if user in [self.primary_party, self.secondary_party]:
+            return True
+        
+        # Para contratos de servicios, el prestador puede ver pero no descargar
+        if self.contract_type == 'service_provider' and user == self.secondary_party:
+            return True
+        
+        return False
 
 
 class ContractSignature(models.Model):
-    """Firmas digitales para contratos."""
+    """Firmas digitales para contratos con autenticación avanzada."""
     
     SIGNATURE_TYPES = [
         ('digital', 'Firma Digital'),
         ('electronic', 'Firma Electrónica'),
         ('biometric', 'Firma Biométrica'),
+        ('webcam', 'Firma con Cámara Web'),
+    ]
+    
+    AUTHENTICATION_METHODS = [
+        ('password', 'Contraseña'),
+        ('webcam_face', 'Reconocimiento Facial'),
+        ('webcam_document', 'Documento de Identidad'),
+        ('biometric_fingerprint', 'Huella Digital'),
+        ('sms_verification', 'Verificación SMS'),
+        ('email_verification', 'Verificación Email'),
     ]
     
     contract = models.ForeignKey(
@@ -230,12 +284,27 @@ class ContractSignature(models.Model):
     
     # Información de la firma
     signature_type = models.CharField('Tipo de firma', max_length=20, choices=SIGNATURE_TYPES)
+    authentication_method = models.CharField('Método de autenticación', max_length=30, choices=AUTHENTICATION_METHODS)
     signature_data = models.TextField('Datos de la firma', help_text='Firma codificada o hash')
     signature_image = models.ImageField(
         'Imagen de la firma',
         upload_to='signatures/',
         null=True,
         blank=True
+    )
+    
+    # Datos de autenticación biométrica
+    face_verification_data = models.JSONField(
+        'Datos de verificación facial',
+        default=dict,
+        blank=True,
+        help_text='Datos de reconocimiento facial'
+    )
+    document_verification_data = models.JSONField(
+        'Datos de verificación de documento',
+        default=dict,
+        blank=True,
+        help_text='Datos de verificación de documento de identidad'
     )
     
     # Información de verificación
@@ -258,6 +327,54 @@ class ContractSignature(models.Model):
     )
     notes = models.TextField('Notas', max_length=500, blank=True)
     
+    # Verificación de seguridad
+    security_checks = models.JSONField(
+        'Verificaciones de seguridad',
+        default=dict,
+        help_text='Resultados de verificaciones de seguridad'
+    )
+    
+    # Nuevos campos para firma digital avanzada
+    biometric_data = models.JSONField(
+        'Datos biométricos completos',
+        default=dict,
+        blank=True,
+        help_text='Datos completos de verificación biométrica'
+    )
+    device_fingerprint = models.JSONField(
+        'Huella digital del dispositivo',
+        default=dict,
+        blank=True,
+        help_text='Información única del dispositivo utilizado'
+    )
+    verification_level = models.CharField(
+        'Nivel de verificación',
+        max_length=20,
+        choices=[
+            ('basic', 'Básica'),
+            ('enhanced', 'Mejorada'),
+            ('maximum', 'Máxima')
+        ],
+        default='basic'
+    )
+    certificate_chain = models.JSONField(
+        'Cadena de certificados',
+        default=dict,
+        blank=True,
+        help_text='Cadena de certificados digitales'
+    )
+    timestamp_token = models.TextField(
+        'Token de marca temporal',
+        blank=True,
+        help_text='Token de sellado de tiempo RFC 3161'
+    )
+    blockchain_hash = models.CharField(
+        'Hash en blockchain',
+        max_length=64,
+        blank=True,
+        help_text='Hash de la transacción en blockchain para inmutabilidad'
+    )
+    
     class Meta:
         verbose_name = 'Firma de Contrato'
         verbose_name_plural = 'Firmas de Contratos'
@@ -265,7 +382,30 @@ class ContractSignature(models.Model):
         ordering = ['signed_at']
         
     def __str__(self):
-        return f"Firma de {self.signer.get_full_name()} - {self.contract.contract_number}"
+        return f"Firma de {self.signer} en {self.contract}"
+    
+    def save(self, *args, **kwargs):
+        # Generar hash de verificación si no existe
+        if not self.verification_hash:
+            data_to_hash = f"{self.contract.id}{self.signer.id}{self.signed_at}{self.signature_data}"
+            self.verification_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
+        
+        super().save(*args, **kwargs)
+    
+    def verify_signature(self):
+        """Verifica la autenticidad de la firma."""
+        # Verificar hash
+        data_to_hash = f"{self.contract.id}{self.signer.id}{self.signed_at}{self.signature_data}"
+        expected_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
+        
+        if self.verification_hash != expected_hash:
+            return False
+        
+        # Verificar que la firma no sea muy antigua (máximo 24 horas)
+        if timezone.now() - self.signed_at > timedelta(hours=24):
+            return False
+        
+        return True
 
 
 class ContractAmendment(models.Model):

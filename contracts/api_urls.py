@@ -2,6 +2,8 @@
 URLs de la API REST para la aplicación de contratos de VeriHome.
 """
 
+app_name = 'contracts_api'
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
@@ -22,6 +24,7 @@ urlpatterns = [
     
     # Firmas digitales
     path('<uuid:contract_pk>/sign/', api_views.SignContractAPIView.as_view(), name='api_sign_contract'),
+    path('<uuid:contract_pk>/digital-signature/', api_views.SignContractAPIView.as_view(), name='api_digital_signature'),
     path('<uuid:contract_pk>/verify-signature/', api_views.VerifySignatureAPIView.as_view(), name='api_verify_signature'),
     
     # Estados del contrato

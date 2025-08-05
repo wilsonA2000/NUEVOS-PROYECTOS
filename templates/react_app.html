@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriHome - Plataforma Inmobiliaria</title>
+    <meta name="description" content="Plataforma inmobiliaria revolucionaria para conectar arrendadores, arrendatarios y prestadores de servicios">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="{% static 'frontend/assets/index.css' %}" as="style">
+    <link rel="preload" href="{% static 'frontend/assets/index.js' %}" as="script">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/assets/index.css' %}">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- JavaScript -->
+    <script type="module" src="{% static 'frontend/assets/index.js' %}"></script>
+    
+    <!-- Fallback for JavaScript disabled -->
+    <noscript>
+        <div style="text-align: center; padding: 50px;">
+            <h1>VeriHome</h1>
+            <p>Esta aplicación requiere JavaScript para funcionar correctamente.</p>
+            <p>Por favor, habilita JavaScript en tu navegador y recarga la página.</p>
+        </div>
+    </noscript>
+</body>
+</html> 

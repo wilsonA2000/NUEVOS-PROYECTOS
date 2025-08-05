@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Notificaciones</h2>
+<table>
+  <tr><th>Título</th><th>Resumen</th><th>Estado</th><th>Acción</th></tr>
+  {% for n in page_obj %}
+    <tr>
+      <td>{{ n.title }}</td>
+      <td>{{ n.summary }}</td>
+      <td>{{ n.status }}</td>
+      <td>
+        {% if n.status != 'read' %}
+          <a href="{% url 'user:mark_notification_read' n.id %}">Marcar como leída</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">No tienes notificaciones.</td></tr>
+  {% endfor %}
+</table>
+<a href="{% url 'user:mark_all_notifications_read' %}">Marcar todas como leídas</a>
+{% endblock %} 

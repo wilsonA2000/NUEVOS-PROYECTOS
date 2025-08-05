@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.core.paginator import Paginator
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -20,6 +20,8 @@ from .serializers import (
     RatingResponseSerializer, RatingReportSerializer, UserRatingProfileSerializer
 )
 from contracts.models import Contract
+from users.services import AdminActionLogger
+from users.models import UserActivityLog
 
 
 # Vistas web
@@ -297,7 +299,7 @@ class RatingListCreateView(generics.ListCreateAPIView):
         
         # Usuarios normales ven sus calificaciones dadas y recibidas
         return Rating.objects.filter(
-            models.Q(reviewer=user) | models.Q(reviewee=user, is_public=True)
+            Q(reviewer=user) | Q(reviewee=user, is_public=True)
         ).order_by('-created_at')
     
     def perform_create(self, serializer):
@@ -319,7 +321,7 @@ class RatingListCreateView(generics.ListCreateAPIView):
                 rating_type = 'tenant_to_landlord' if self.request.user.user_type == 'tenant' else 'landlord_to_tenant'
             
             # Guardar la calificación
-            serializer.save(
+            rating = serializer.save(
                 reviewer=self.request.user,
                 rating_type=rating_type,
                 contract=contract,
@@ -327,7 +329,29 @@ class RatingListCreateView(generics.ListCreateAPIView):
             )
         else:
             # Calificación general sin contrato
-            serializer.save(reviewer=self.request.user, rating_type='general')
+            rating = serializer.save(reviewer=self.request.user, rating_type='general')
+        
+        # Logging automático
+        request = self.request
+        if hasattr(request, 'impersonation_session'):
+            logger = AdminActionLogger(request.impersonation_session)
+            logger.log_action(
+                action_type='rating_create',
+                description=f'Creación de calificación {rating.id}',
+                target_object=rating,
+                new_data=serializer.data,
+                notify_user=True
+            )
+        else:
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='rating_create',
+                description=f'Creación de calificación {rating.id}',
+                details={'rating_id': str(rating.id)},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                performed_by_admin=False
+            )
 
 
 class RatingDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -353,7 +377,29 @@ class RatingDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user != self.get_object().reviewer:
             raise permissions.PermissionDenied("No puedes modificar una calificación que no es tuya.")
         
-        serializer.save()
+        rating = serializer.save()
+        
+        # Logging automático
+        request = self.request
+        if hasattr(request, 'impersonation_session'):
+            logger = AdminActionLogger(request.impersonation_session)
+            logger.log_action(
+                action_type='rating_update',
+                description=f'Actualización de calificación {rating.id}',
+                target_object=rating,
+                new_data=serializer.data,
+                notify_user=True
+            )
+        else:
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='rating_update',
+                description=f'Actualización de calificación {rating.id}',
+                details={'rating_id': str(rating.id)},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                performed_by_admin=False
+            )
     
     def perform_destroy(self, instance):
         """Personalizar la eliminación de calificaciones."""
@@ -361,7 +407,30 @@ class RatingDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user != instance.reviewer and not self.request.user.is_staff:
             raise permissions.PermissionDenied("No puedes eliminar una calificación que no es tuya.")
         
+        rating_id = str(instance.id)
         instance.delete()
+        
+        # Logging automático
+        request = self.request
+        if hasattr(request, 'impersonation_session'):
+            logger = AdminActionLogger(request.impersonation_session)
+            logger.log_action(
+                action_type='rating_delete',
+                description=f'Eliminación de calificación {rating_id}',
+                target_object=None,
+                new_data={'deleted_rating_id': rating_id},
+                notify_user=True
+            )
+        else:
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='rating_delete',
+                description=f'Eliminación de calificación {rating_id}',
+                details={'deleted_rating_id': rating_id},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                performed_by_admin=False
+            )
 
 
 class RatingResponseCreateView(generics.CreateAPIView):
@@ -385,7 +454,29 @@ class RatingResponseCreateView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        serializer.save(rating=rating, responder=self.request.user)
+        response = serializer.save(rating=rating, responder=self.request.user)
+        
+        # Logging automático
+        request = self.request
+        if hasattr(request, 'impersonation_session'):
+            logger = AdminActionLogger(request.impersonation_session)
+            logger.log_action(
+                action_type='rating_response_create',
+                description=f'Respuesta a calificación {rating.id}',
+                target_object=response,
+                new_data=serializer.data,
+                notify_user=True
+            )
+        else:
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='rating_response_create',
+                description=f'Respuesta a calificación {rating.id}',
+                details={'rating_id': str(rating.id), 'response_id': str(response.id)},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                performed_by_admin=False
+            )
 
 
 class RatingReportCreateView(generics.CreateAPIView):
@@ -414,6 +505,28 @@ class RatingReportCreateView(generics.CreateAPIView):
         report = serializer.save(rating=rating, reporter=self.request.user)
         rating.is_flagged = True
         rating.save(update_fields=['is_flagged'])
+        
+        # Logging automático
+        request = self.request
+        if hasattr(request, 'impersonation_session'):
+            logger = AdminActionLogger(request.impersonation_session)
+            logger.log_action(
+                action_type='rating_report_create',
+                description=f'Reporte de calificación {rating.id}',
+                target_object=report,
+                new_data=serializer.data,
+                notify_user=True
+            )
+        else:
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='rating_report_create',
+                description=f'Reporte de calificación {rating.id}',
+                details={'rating_id': str(rating.id), 'report_id': str(report.id)},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                performed_by_admin=False
+            )
 
 
 class UserRatingsView(generics.ListAPIView):
@@ -470,7 +583,7 @@ class RatingCategoryListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         """Filtrar categorías por calificación."""
-        rating_id = self.request.query_params.get('rating_id')
+        rating_id = self.getattr(request, "query_params", request.GET).get('rating_id')
         
         if rating_id:
             return RatingCategory.objects.filter(rating_id=rating_id)

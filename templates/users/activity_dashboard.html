@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Mi Actividad Reciente</h2>
+<ul>
+  <li>Total de actividades: {{ activity_summary.total_activities }}</li>
+  <li>Acciones administrativas: {{ activity_summary.admin_activities }}</li>
+  <li>Acciones propias: {{ activity_summary.user_activities }}</li>
+</ul>
+<h3>Notificaciones recientes</h3>
+<ul>
+  {% for n in unread_notifications %}
+    <li>{{ n.title }} - {{ n.summary }} - {{ n.status }}</li>
+  {% empty %}
+    <li>No tienes notificaciones nuevas.</li>
+  {% endfor %}
+</ul>
+<h3>Acciones administrativas recientes</h3>
+<ul>
+  {% for a in admin_actions %}
+    <li>{{ a.get_action_type_display }} - {{ a.action_description }} - {{ a.timestamp }}</li>
+  {% empty %}
+    <li>No hay acciones administrativas recientes.</li>
+  {% endfor %}
+</ul>
+<a href="{% url 'user:activity_history' %}">Ver historial completo</a>
+{% endblock %} 

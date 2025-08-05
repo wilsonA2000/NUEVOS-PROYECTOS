@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes sin leer - {{ platform_name }}</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #FF6B6B 0%, #ee5a24 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-radius: 8px 8px 0 0; 
+        }
+        .content { 
+            background: #f8f9fa; 
+            padding: 30px; 
+            border-radius: 0 0 8px 8px; 
+        }
+        .digest-summary { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            text-align: center; 
+            margin-bottom: 30px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .unread-count { 
+            font-size: 48px; 
+            font-weight: bold; 
+            color: #FF6B6B; 
+            margin: 0; 
+        }
+        .conversation-item { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 6px; 
+            margin-bottom: 15px; 
+            border-left: 4px solid #FF6B6B; 
+        }
+        .conversation-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid #eee; 
+        }
+        .conversation-title { 
+            font-weight: bold; 
+            color: #333; 
+            font-size: 16px; 
+        }
+        .message-count { 
+            background: #FF6B6B; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold; 
+        }
+        .sender-list { 
+            color: #666; 
+            font-size: 14px; 
+            margin: 5px 0; 
+        }
+        .message-preview { 
+            color: #555; 
+            font-style: italic; 
+            font-size: 14px; 
+            margin-top: 10px; 
+        }
+        .action-button { 
+            display: inline-block; 
+            background: #FF6B6B; 
+            color: white; 
+            text-decoration: none; 
+            padding: 15px 35px; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            margin: 20px 0; 
+            font-size: 16px; 
+        }
+        .footer { 
+            text-align: center; 
+            color: #666; 
+            font-size: 14px; 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #eee; 
+        }
+        .frequency-info { 
+            background: #e8f4fd; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-size: 14px; 
+            color: #1976d2; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📮 Resumen de Mensajes</h1>
+        <p>{{ platform_name }} - Mensajes Sin Leer</p>
+    </div>
+    
+    <div class="content">
+        <h2>Hola {{ user_name }},</h2>
+        
+        <div class="digest-summary">
+            <div class="unread-count">{{ total_unread }}</div>
+            <p style="margin: 10px 0 0 0; font-size: 18px; color: #555;">
+                mensaje{{ total_unread|pluralize:"s" }} sin leer
+            </p>
+        </div>
+        
+        <p>Tienes mensajes importantes esperando tu respuesta en {{ platform_name }}. No dejes pasar oportunidades de negocio.</p>
+        
+        <div class="frequency-info">
+            📅 Este es tu resumen {{ frequency }} de mensajes sin leer
+        </div>
+        
+        <h3>Conversaciones con mensajes pendientes:</h3>
+        
+        {% for thread_id, conversation in conversations.items %}
+        <div class="conversation-item">
+            <div class="conversation-header">
+                <div class="conversation-title">{{ conversation.thread.subject }}</div>
+                <div class="message-count">{{ conversation.messages|length }}</div>
+            </div>
+            
+            <div class="sender-list">
+                <strong>De:</strong> {{ conversation.sender_names|join:", " }}
+            </div>
+            
+            {% if conversation.messages %}
+            <div class="message-preview">
+                "{{ conversation.messages.0.content|truncatewords:15 }}"
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ messages_url }}" class="action-button">
+                📬 Ver Todos los Mensajes
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f0f8ff; border-radius: 4px; border-left: 4px solid #2196F3;">
+            <h4 style="margin-top: 0; color: #1976d2;">💼 ¿Por qué es importante responder?</h4>
+            <ul style="margin: 10px 0 0 20px; color: #333;">
+                <li><strong>Oportunidades de negocio:</strong> Cada mensaje puede ser una nueva oportunidad</li>
+                <li><strong>Reputación profesional:</strong> La respuesta rápida mejora tu imagen</li>
+                <li><strong>Relaciones duraderas:</strong> La comunicación constante fortalece vínculos</li>
+                <li><strong>Ventaja competitiva:</strong> Quien responde primero, a menudo cierra el trato</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 25px; padding: 15px; background: #fff3cd; border-radius: 4px; text-align: center;">
+            <strong>⚡ Tip de productividad:</strong> Dedica 10 minutos cada mañana a revisar y responder mensajes. ¡Tu negocio te lo agradecerá!
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            Este resumen fue generado automáticamente por {{ platform_name }}.<br>
+            Puedes <a href="{{ platform_name }}/settings/notifications">personalizar la frecuencia</a> de estos resúmenes.
+        </p>
+        <p style="font-size: 12px; color: #999; margin-top: 15px;">
+            {{ platform_name }} - Tu plataforma inmobiliaria de confianza.<br>
+            Mantenemos conectados a profesionales del sector inmobiliario.
+        </p>
+    </div>
+</body>
+</html>

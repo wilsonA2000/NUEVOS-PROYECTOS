@@ -11,10 +11,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseRedirect
 
-from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, InterviewCode
+from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, InterviewCode, UserResume
 from .forms import (
     UserRegistrationForm, InterviewCodeVerificationForm, UserProfileForm,
-    LandlordProfileForm, TenantProfileForm, ServiceProviderProfileForm
+    LandlordProfileForm, TenantProfileForm, ServiceProviderProfileForm, UserResumeForm
 )
 
 User = get_user_model()
@@ -180,6 +180,92 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 class SettingsView(LoginRequiredMixin, TemplateView):
     """Vista para configuración de la cuenta."""
     template_name = 'users/settings.html'
+
+
+class ResumeView(LoginRequiredMixin, DetailView):
+    """Vista para ver la hoja de vida del usuario."""
+    model = UserResume
+    template_name = 'users/resume.html'
+    context_object_name = 'resume'
+    
+    def get_object(self):
+        """Obtener o crear la hoja de vida del usuario."""
+        resume, created = UserResume.objects.get_or_create(user=self.request.user)
+        if created:
+            # Calcular puntuación inicial
+            resume.calculate_verification_score()
+            resume.save()
+        return resume
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        resume = self.get_object()
+        
+        # Calcular estadísticas
+        context['completion_percentage'] = resume.get_completion_percentage()
+        context['verification_score'] = resume.calculate_verification_score()
+        
+        # Contar documentos por estado
+        document_fields = [
+            'id_document_status', 'proof_of_income_status', 'bank_statement_status',
+            'employment_letter_status', 'tax_return_status', 'credit_report_status'
+        ]
+        
+        document_counts = {
+            'pending': 0,
+            'verified': 0,
+            'rejected': 0,
+            'expired': 0
+        }
+        
+        for field in document_fields:
+            status = getattr(resume, field)
+            if status in document_counts:
+                document_counts[status] += 1
+        
+        context['document_counts'] = document_counts
+        
+        return context
+
+
+class ResumeEditView(LoginRequiredMixin, UpdateView):
+    """Vista para editar la hoja de vida del usuario."""
+    model = UserResume
+    form_class = UserResumeForm
+    template_name = 'users/resume_edit.html'
+    success_url = reverse_lazy('users:resume')
+    
+    def get_object(self):
+        """Obtener o crear la hoja de vida del usuario."""
+        resume, created = UserResume.objects.get_or_create(user=self.request.user)
+        return resume
+    
+    def form_valid(self, form):
+        """Procesar el formulario válido."""
+        response = super().form_valid(form)
+        
+        # Calcular puntuación de verificación
+        self.object.calculate_verification_score()
+        
+        # Verificar si está completa
+        completion_percentage = self.object.get_completion_percentage()
+        if completion_percentage >= 80:
+            self.object.is_complete = True
+        
+        self.object.save()
+        
+        messages.success(self.request, 'Tu hoja de vida ha sido actualizada exitosamente.')
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        resume = self.get_object()
+        
+        # Agregar estadísticas al contexto
+        context['completion_percentage'] = resume.get_completion_percentage()
+        context['verification_score'] = resume.calculate_verification_score()
+        
+        return context
 
 
 class ServiceProviderListView(ListView):

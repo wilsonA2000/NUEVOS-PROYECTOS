@@ -13,7 +13,7 @@ urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
     
     # Dashboard personalizado por tipo de usuario
-    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+    # path('dashboard/', views.DashboardView.as_view(), name='dashboard'),  # Comentado para usar solo React
     
     # Páginas informativas
     path('acerca-de/', views.AboutView.as_view(), name='about'),
@@ -28,9 +28,9 @@ urlpatterns = [
     path('soporte/ticket/<uuid:pk>/', views.TicketDetailView.as_view(), name='ticket_detail'),
     
     # Notificaciones
-    path('notificaciones/', views.NotificationListView.as_view(), name='notifications'),
-    path('notificaciones/<uuid:pk>/marcar-leida/', views.MarkNotificationReadView.as_view(), name='mark_notification_read'),
-    path('notificaciones/marcar-todas-leidas/', views.MarkAllNotificationsReadView.as_view(), name='mark_all_notifications_read'),
+    # path('notificaciones/', views.NotificationListView.as_view(), name='notifications'),  # Comentado para usar solo React
+    # path('notificaciones/<uuid:pk>/marcar-leida/', views.MarkNotificationReadView.as_view(), name='mark_notification_read'),  # Comentado para usar solo React
+    # path('notificaciones/marcar-todas-leidas/', views.MarkAllNotificationsReadView.as_view(), name='mark_all_notifications_read'),  # Comentado para usar solo React
     
     # Búsqueda global
     path('buscar/', views.GlobalSearchView.as_view(), name='global_search'),

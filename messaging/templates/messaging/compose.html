@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nuevo Mensaje - VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'messaging:inbox' %}" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-semibold text-gray-900">Nuevo Mensaje</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <form method="post" action="{% url 'messaging:compose' %}" class="space-y-6 p-6">
+            {% csrf_token %}
+            
+            <!-- Destinatarios -->
+            <div>
+                <label for="recipients" class="block text-sm font-medium text-gray-700">Destinatarios</label>
+                <div class="mt-1">
+                    <select id="recipients" name="recipients" multiple class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
+                        {% for user in available_users %}
+                            <option value="{{ user.id }}">{{ user.get_full_name }} ({{ user.get_user_type_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">Selecciona uno o más destinatarios. Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples destinatarios.</p>
+            </div>
+
+            <!-- Asunto -->
+            <div>
+                <label for="subject" class="block text-sm font-medium text-gray-700">Asunto</label>
+                <div class="mt-1">
+                    <input type="text" name="subject" id="subject" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
+                </div>
+            </div>
+
+            <!-- Tipo de Conversación -->
+            <div>
+                <label for="thread_type" class="block text-sm font-medium text-gray-700">Tipo de Conversación</label>
+                <div class="mt-1">
+                    <select id="thread_type" name="thread_type" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
+                        <option value="">Selecciona un tipo</option>
+                        <option value="general">General</option>
+                        <option value="property">Propiedad</option>
+                        <option value="contract">Contrato</option>
+                        <option value="maintenance">Mantenimiento</option>
+                        <option value="payment">Pago</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Propiedad (condicional) -->
+            <div id="property_field" class="hidden">
+                <label for="property" class="block text-sm font-medium text-gray-700">Propiedad</label>
+                <div class="mt-1">
+                    <select id="property" name="property" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        <option value="">Selecciona una propiedad</option>
+                        {% for property in available_properties %}
+                            <option value="{{ property.id }}">{{ property.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Contrato (condicional) -->
+            <div id="contract_field" class="hidden">
+                <label for="contract" class="block text-sm font-medium text-gray-700">Contrato</label>
+                <div class="mt-1">
+                    <select id="contract" name="contract" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        <option value="">Selecciona un contrato</option>
+                        {% for contract in available_contracts %}
+                            <option value="{{ contract.id }}">{{ contract.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Contenido -->
+            <div>
+                <label for="content" class="block text-sm font-medium text-gray-700">Mensaje</label>
+                <div class="mt-1">
+                    <textarea id="content" name="content" rows="6" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" required></textarea>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'messaging:inbox' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancelar
+                </a>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Enviar Mensaje
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const threadTypeSelect = document.getElementById('thread_type');
+    const propertyField = document.getElementById('property_field');
+    const contractField = document.getElementById('contract_field');
+    const propertySelect = document.getElementById('property');
+    const contractSelect = document.getElementById('contract');
+
+    threadTypeSelect.addEventListener('change', function() {
+        // Ocultar todos los campos condicionales
+        propertyField.classList.add('hidden');
+        contractField.classList.add('hidden');
+        propertySelect.removeAttribute('required');
+        contractSelect.removeAttribute('required');
+
+        // Mostrar el campo correspondiente según el tipo seleccionado
+        if (this.value === 'property') {
+            propertyField.classList.remove('hidden');
+            propertySelect.setAttribute('required', 'required');
+        } else if (this.value === 'contract') {
+            contractField.classList.remove('hidden');
+            contractSelect.setAttribute('required', 'required');
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

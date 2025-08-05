@@ -1,0 +1,19 @@
+Confirmar dirección de email - VeriHome
+
+Hola {{ user_display }},
+
+Has solicitado confirmar tu dirección de correo electrónico en {{ site_domain }}.
+
+Para confirmar que esta dirección de email es correcta, haz clic en el siguiente enlace:
+
+{{ activate_url }}
+
+Si el enlace no funciona, copia y pega la URL completa en tu navegador.
+
+⚠️ IMPORTANTE: Este enlace expirará en 24 horas por seguridad.
+
+Si no solicitaste esta confirmación, puedes ignorar este correo de forma segura.
+
+---
+© 2025 VeriHome. Todos los derechos reservados.
+Calle 123 #45-67, Bogotá, Colombia 

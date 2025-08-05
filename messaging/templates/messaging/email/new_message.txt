@@ -1,0 +1,30 @@
+NUEVO MENSAJE - {{ platform_name }}
+
+Hola {{ recipient_name }},
+
+Has recibido un nuevo mensaje en tu bandeja de entrada de {{ platform_name }}.
+
+DETALLES DEL MENSAJE:
+====================
+
+Conversación: {{ thread_subject }}
+Remitente: {{ sender_name }}
+Fecha: {{ message_sent_at }}
+
+CONTENIDO:
+----------
+{{ message_content|truncatewords:50 }}
+
+Ver mensaje completo: {{ message_url }}
+
+ACCIÓN REQUERIDA:
+================
+Para responder a este mensaje y mantener una comunicación fluida, ingresa a tu cuenta en {{ platform_name }} y accede a tu bandeja de mensajes.
+
+TIP: Responder rápidamente a los mensajes mejora tu reputación profesional y aumenta las oportunidades de negocio.
+
+---
+Este mensaje fue enviado automáticamente por {{ platform_name }}.
+Para gestionar tus notificaciones: {{ platform_name }}/settings/notifications
+
+{{ platform_name }} - Conectando propietarios, inquilinos y profesionales del sector inmobiliario.

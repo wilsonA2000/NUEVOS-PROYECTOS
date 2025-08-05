@@ -103,13 +103,20 @@ class Transaction(models.Model):
     
     TRANSACTION_TYPES = [
         ('rent_payment', 'Pago de Renta'),
+        ('monthly_rent', 'Renta Mensual'),
         ('security_deposit', 'Depósito de Garantía'),
         ('service_payment', 'Pago de Servicios'),
+        ('utilities', 'Servicios Públicos'),
+        ('parking_fee', 'Cuota de Estacionamiento'),
+        ('pet_deposit', 'Depósito por Mascota'),
+        ('rent_increase', 'Aumento de Renta'),
         ('commission', 'Comisión'),
         ('refund', 'Reembolso'),
         ('penalty', 'Penalización'),
         ('late_fee', 'Recargo por Mora'),
         ('maintenance_fee', 'Cuota de Mantenimiento'),
+        ('repair_cost', 'Costo de Reparación'),
+        ('cleaning_fee', 'Tarifa de Limpieza'),
         ('platform_fee', 'Comisión de Plataforma'),
         ('escrow_deposit', 'Depósito en Escrow'),
         ('escrow_release', 'Liberación de Escrow'),
@@ -656,3 +663,147 @@ class PaymentInstallment(models.Model):
     def get_total_amount_due(self):
         """Obtiene el monto total adeudado incluyendo recargos."""
         return self.amount + self.late_fee
+
+
+class RentPaymentSchedule(models.Model):
+    """Cronograma de pagos de alquiler automático."""
+    
+    # Relaciones
+    contract = models.OneToOneField(
+        'contracts.Contract',
+        on_delete=models.CASCADE,
+        related_name='rent_schedule',
+        verbose_name='Contrato'
+    )
+    tenant = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='rent_schedules',
+        verbose_name='Arrendatario'
+    )
+    landlord = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='landlord_rent_schedules',
+        verbose_name='Arrendador'
+    )
+    payment_method = models.ForeignKey(
+        PaymentMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Método de pago automático'
+    )
+    
+    # Detalles del pago
+    rent_amount = models.DecimalField('Monto de renta', max_digits=10, decimal_places=2)
+    due_date = models.PositiveIntegerField('Día de vencimiento', default=1)  # Día del mes
+    late_fee_amount = models.DecimalField('Recargo por mora', max_digits=10, decimal_places=2, default=0)
+    grace_period_days = models.PositiveIntegerField('Días de gracia', default=5)
+    
+    # Configuración automática
+    auto_charge_enabled = models.BooleanField('Cobro automático habilitado', default=False)
+    auto_late_fee_enabled = models.BooleanField('Recargo automático por mora', default=True)
+    
+    # Notificaciones
+    reminder_days_before = models.PositiveIntegerField('Días de recordatorio antes', default=3)
+    send_payment_confirmations = models.BooleanField('Enviar confirmaciones de pago', default=True)
+    
+    # Estado
+    is_active = models.BooleanField('Activo', default=True)
+    start_date = models.DateField('Fecha de inicio')
+    end_date = models.DateField('Fecha de fin', null=True, blank=True)
+    last_payment_date = models.DateField('Última fecha de pago', null=True, blank=True)
+    
+    # Metadatos
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Cronograma de Pago de Renta'
+        verbose_name_plural = 'Cronogramas de Pago de Renta'
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"Renta {self.contract.property.title} - {self.tenant.get_full_name()}"
+    
+    def get_next_due_date(self):
+        """Obtiene la próxima fecha de vencimiento."""
+        from datetime import date, timedelta
+        from calendar import monthrange
+        
+        today = date.today()
+        
+        # Si estamos antes del día de vencimiento este mes
+        if today.day < self.due_date:
+            try:
+                return date(today.year, today.month, self.due_date)
+            except ValueError:  # El día no existe en este mes
+                # Usar el último día del mes
+                last_day = monthrange(today.year, today.month)[1]
+                return date(today.year, today.month, min(self.due_date, last_day))
+        
+        # Calcular para el próximo mes
+        if today.month == 12:
+            next_month = 1
+            next_year = today.year + 1
+        else:
+            next_month = today.month + 1
+            next_year = today.year
+            
+        try:
+            return date(next_year, next_month, self.due_date)
+        except ValueError:
+            last_day = monthrange(next_year, next_month)[1]
+            return date(next_year, next_month, min(self.due_date, last_day))
+    
+    def is_payment_overdue(self):
+        """Verifica si el pago actual está vencido."""
+        from datetime import date, timedelta
+        
+        due_date = self.get_next_due_date()
+        grace_end = due_date + timedelta(days=self.grace_period_days)
+        
+        return date.today() > grace_end
+    
+    def calculate_late_fee(self):
+        """Calcula el recargo por mora si aplica."""
+        if self.is_payment_overdue() and self.auto_late_fee_enabled:
+            return self.late_fee_amount
+        return 0
+
+
+class RentPaymentReminder(models.Model):
+    """Recordatorios de pago de renta."""
+    
+    REMINDER_TYPES = [
+        ('upcoming', 'Próximo Vencimiento'),
+        ('due_today', 'Vence Hoy'),
+        ('overdue', 'Vencido'),
+        ('late_fee_applied', 'Recargo Aplicado'),
+    ]
+    
+    schedule = models.ForeignKey(
+        RentPaymentSchedule,
+        on_delete=models.CASCADE,
+        related_name='reminders',
+        verbose_name='Cronograma'
+    )
+    reminder_type = models.CharField('Tipo de recordatorio', max_length=20, choices=REMINDER_TYPES)
+    due_date = models.DateField('Fecha de vencimiento')
+    amount_due = models.DecimalField('Monto adeudado', max_digits=10, decimal_places=2)
+    
+    # Estado del recordatorio
+    sent_at = models.DateTimeField('Enviado el', null=True, blank=True)
+    is_sent = models.BooleanField('Enviado', default=False)
+    
+    # Metadatos
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Recordatorio de Pago'
+        verbose_name_plural = 'Recordatorios de Pago'
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"{self.get_reminder_type_display()} - {self.schedule.tenant.get_full_name()}"

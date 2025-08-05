@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Historial de Actividad</h2>
+<form method="get">
+  <label>Tipo de actividad:</label>
+  <select name="activity_type">
+    <option value="">Todas</option>
+    {% for t in activity_types %}
+      <option value="{{ t }}" {% if t == activity_type %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+  <label>¿Realizada por admin?</label>
+  <select name="performed_by_admin">
+    <option value="">Todas</option>
+    <option value="admin" {% if performed_by_admin == 'admin' %}selected{% endif %}>Sí</option>
+    <option value="user" {% if performed_by_admin == 'user' %}selected{% endif %}>No</option>
+  </select>
+  <button type="submit">Filtrar</button>
+</form>
+<table>
+  <tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Admin</th></tr>
+  {% for a in page_obj %}
+    <tr>
+      <td>{{ a.timestamp }}</td>
+      <td>{{ a.activity_type }}</td>
+      <td>{{ a.description }}</td>
+      <td>{% if a.performed_by_admin %}{{ a.admin_user }}{% else %}—{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">No hay actividades.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %} 

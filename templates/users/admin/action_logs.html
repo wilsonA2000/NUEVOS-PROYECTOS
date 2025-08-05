@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Registro de Acciones Administrativas</h2>
+<table>
+  <tr><th>Fecha</th><th>Admin</th><th>Usuario</th><th>Tipo</th><th>Descripción</th><th>Éxito</th></tr>
+  {% for a in page_obj %}
+    <tr>
+      <td>{{ a.timestamp }}</td>
+      <td>{{ a.impersonation_session.admin_user }}</td>
+      <td>{{ a.impersonation_session.impersonated_user }}</td>
+      <td>{{ a.get_action_type_display }}</td>
+      <td>{{ a.action_description }}</td>
+      <td>{% if a.success %}✔{% else %}✖{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">No hay acciones registradas.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %} 

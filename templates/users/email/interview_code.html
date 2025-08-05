@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código de Entrevista - VeriHome</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+        }
+        .code-container {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin: 10px 0;
+        }
+        .code-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            margin: 30px 0;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1d4ed8;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .warning {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning-title {
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .rating {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">VeriHome</div>
+            <div class="subtitle">Plataforma Inmobiliaria Revolucionaria</div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">¡Tu código de entrevista está listo!</div>
+                <p>Hola,</p>
+                <p>Nos complace informarte que has sido seleccionado para continuar con el proceso de registro en VeriHome. Nuestro administrador <strong>{{ admin_name }}</strong> ha revisado tu solicitud y te ha asignado un código único de entrevista.</p>
+            </div>
+
+            <div class="code-container">
+                <div class="code-label">Tu código de entrevista es:</div>
+                <div class="code">{{ interview_code.code }}</div>
+                <div class="code-label">Guárdalo de forma segura</div>
+            </div>
+
+            {% if interview_code.initial_rating > 0 %}
+            <div class="section">
+                <div class="section-title">Calificación de tu entrevista</div>
+                <p>Basado en tu entrevista, has recibido una calificación inicial de:</p>
+                <div class="rating">{{ interview_code.initial_rating }}/10</div>
+                {% if interview_code.notes %}
+                <p><strong>Notas del administrador:</strong></p>
+                <p style="font-style: italic; color: #6b7280;">{{ interview_code.notes }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="section">
+                <div class="section-title">¿Qué sigue?</div>
+                <ol>
+                    <li>Ve a nuestra plataforma de registro</li>
+                    <li>Ingresa tu código de entrevista cuando se te solicite</li>
+                    <li>Completa tu perfil con la información requerida</li>
+                    <li>¡Comienza a disfrutar de VeriHome!</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ registration_url }}" class="button">Registrarme en VeriHome</a>
+            </div>
+
+            <div class="warning">
+                <div class="warning-title">⚠️ Importante</div>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Este código es único y personal</li>
+                    <li>No lo compartas con nadie</li>
+                    <li>Expira el {{ interview_code.expires_at|date:"d/m/Y" }}</li>
+                    <li>Solo puede ser usado una vez</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">¿Necesitas ayuda?</div>
+                <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos:</p>
+                <ul>
+                    <li><strong>Email:</strong> soporte@verihome.com</li>
+                    <li><strong>WhatsApp:</strong> +57 300 123 4567</li>
+                    <li><strong>Horario:</strong> Lunes a Viernes 8:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 VeriHome. Todos los derechos reservados.</p>
+            <p>Este email fue enviado a {{ interview_code.email }}</p>
+            <p>Si no solicitaste este código, puedes ignorar este mensaje.</p>
+        </div>
+    </div>
+</body>
+</html> 

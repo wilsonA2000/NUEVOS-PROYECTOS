@@ -1,0 +1,593 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Hoja de Vida | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Encabezado -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Editar Hoja de Vida</h1>
+                    <p class="text-gray-600">Completa tu información para una verificación más precisa</p>
+                </div>
+                
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <!-- Progreso de completitud -->
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600">{{ completion_percentage }}%</div>
+                        <div class="text-sm text-gray-500">Completado</div>
+                    </div>
+                    
+                    <!-- Puntuación de verificación -->
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ verification_score }}%</div>
+                        <div class="text-sm text-gray-500">Verificado</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div class="mt-6">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progreso de completitud</span>
+                    <span>{{ completion_percentage }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-primary-600 h-2 rounded-full transition-all duration-300" style="width: {{ completion_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulario -->
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Información Personal -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Personal</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Fecha de nacimiento
+                        </label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.date_of_birth.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.nationality.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nacionalidad
+                        </label>
+                        {{ form.nationality }}
+                        {% if form.nationality.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.nationality.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.marital_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Estado civil
+                        </label>
+                        {{ form.marital_status }}
+                        {% if form.marital_status.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.marital_status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.dependents.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Número de dependientes
+                        </label>
+                        {{ form.dependents }}
+                        {% if form.dependents.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.dependents.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Educativa -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Educativa</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.education_level.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nivel educativo
+                        </label>
+                        {{ form.education_level }}
+                        {% if form.education_level.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.education_level.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.institution_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Institución
+                        </label>
+                        {{ form.institution_name }}
+                        {% if form.institution_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.institution_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.field_of_study.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Campo de estudio
+                        </label>
+                        {{ form.field_of_study }}
+                        {% if form.field_of_study.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.field_of_study.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.graduation_year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Año de graduación
+                        </label>
+                        {{ form.graduation_year }}
+                        {% if form.graduation_year.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.graduation_year.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.gpa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Promedio (GPA)
+                        </label>
+                        {{ form.gpa }}
+                        {% if form.gpa.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.gpa.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Laboral -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Laboral</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.current_employer.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Empleador actual
+                        </label>
+                        {{ form.current_employer }}
+                        {% if form.current_employer.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.current_employer.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.current_position.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Cargo actual
+                        </label>
+                        {{ form.current_position }}
+                        {% if form.current_position.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.current_position.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Tipo de empleo
+                        </label>
+                        {{ form.employment_type }}
+                        {% if form.employment_type.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.employment_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.monthly_salary.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Salario mensual
+                        </label>
+                        {{ form.monthly_salary }}
+                        {% if form.monthly_salary.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.monthly_salary.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Fecha de inicio
+                        </label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.start_date.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Fecha de fin (opcional)
+                        </label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.end_date.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.supervisor_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre del supervisor
+                        </label>
+                        {{ form.supervisor_name }}
+                        {% if form.supervisor_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.supervisor_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.supervisor_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono del supervisor
+                        </label>
+                        {{ form.supervisor_phone }}
+                        {% if form.supervisor_phone.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.supervisor_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ form.supervisor_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Email del supervisor
+                        </label>
+                        {{ form.supervisor_email }}
+                        {% if form.supervisor_email.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.supervisor_email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Financiera -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Financiera</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre del banco
+                        </label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.bank_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.account_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Tipo de cuenta
+                        </label>
+                        {{ form.account_type }}
+                        {% if form.account_type.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.account_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Número de cuenta
+                        </label>
+                        {{ form.account_number }}
+                        {% if form.account_number.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.account_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.credit_score.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Puntuación crediticia
+                        </label>
+                        {{ form.credit_score }}
+                        {% if form.credit_score.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.credit_score.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.monthly_expenses.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Gastos mensuales
+                        </label>
+                        {{ form.monthly_expenses }}
+                        {% if form.monthly_expenses.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.monthly_expenses.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contacto de Emergencia -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Contacto de Emergencia</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.emergency_contact_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre del contacto
+                        </label>
+                        {{ form.emergency_contact_name }}
+                        {% if form.emergency_contact_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.emergency_contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono
+                        </label>
+                        {{ form.emergency_contact_phone }}
+                        {% if form.emergency_contact_phone.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.emergency_contact_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Relación
+                        </label>
+                        {{ form.emergency_contact_relation }}
+                        {% if form.emergency_contact_relation.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_relation.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ form.emergency_contact_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Dirección
+                        </label>
+                        {{ form.emergency_contact_address }}
+                        {% if form.emergency_contact_address.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Referencias -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Referencias Personales</h2>
+                
+                <!-- Referencia 1 -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-700 mb-3">Referencia 1</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.reference1_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre
+                            </label>
+                            {{ form.reference1_name }}
+                            {% if form.reference1_name.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference1_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference1_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Teléfono
+                            </label>
+                            {{ form.reference1_phone }}
+                            {% if form.reference1_phone.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference1_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference1_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email
+                            </label>
+                            {{ form.reference1_email }}
+                            {% if form.reference1_email.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference1_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference1_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Relación
+                            </label>
+                            {{ form.reference1_relation }}
+                            {% if form.reference1_relation.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference1_relation.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Referencia 2 -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-3">Referencia 2 (opcional)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.reference2_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nombre
+                            </label>
+                            {{ form.reference2_name }}
+                            {% if form.reference2_name.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference2_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference2_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Teléfono
+                            </label>
+                            {{ form.reference2_phone }}
+                            {% if form.reference2_phone.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference2_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference2_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email
+                            </label>
+                            {{ form.reference2_email }}
+                            {% if form.reference2_email.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference2_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.reference2_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Relación
+                            </label>
+                            {{ form.reference2_relation }}
+                            {% if form.reference2_relation.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.reference2_relation.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Historial de Vivienda -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Historial de Vivienda</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        {{ form.eviction_history }}
+                        <label for="{{ form.eviction_history.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                            ¿Tiene historial de desalojo?
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.eviction_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Detalles del desalojo (si aplica)
+                        </label>
+                        {{ form.eviction_details }}
+                        {% if form.eviction_details.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.eviction_details.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documentos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Documentos de Verificación</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.id_document.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Documento de identificación
+                        </label>
+                        {{ form.id_document }}
+                        {% if form.id_document.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.id_document.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.proof_of_income.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Comprobante de ingresos
+                        </label>
+                        {{ form.proof_of_income }}
+                        {% if form.proof_of_income.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.proof_of_income.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.bank_statement.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Estado de cuenta bancario
+                        </label>
+                        {{ form.bank_statement }}
+                        {% if form.bank_statement.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.bank_statement.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.employment_letter.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Carta laboral
+                        </label>
+                        {{ form.employment_letter }}
+                        {% if form.employment_letter.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.employment_letter.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.tax_return.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Declaración de impuestos (opcional)
+                        </label>
+                        {{ form.tax_return }}
+                        {% if form.tax_return.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.tax_return.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.credit_report.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Reporte crediticio (opcional)
+                        </label>
+                        {{ form.credit_report }}
+                        {% if form.credit_report.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.credit_report.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Adicional -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Adicional</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        {{ form.criminal_record }}
+                        <label for="{{ form.criminal_record.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                            ¿Tiene antecedentes penales?
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.criminal_record_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Detalles de antecedentes penales (si aplica)
+                        </label>
+                        {{ form.criminal_record_details }}
+                        {% if form.criminal_record_details.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.criminal_record_details.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.criminal_record_document.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Documento de antecedentes penales (si aplica)
+                        </label>
+                        {{ form.criminal_record_document }}
+                        {% if form.criminal_record_document.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.criminal_record_document.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'users:resume' %}" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Estilos para los campos del formulario */
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="date"], select, textarea {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+}
+
+input[type="file"] {
+    @apply w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100;
+}
+
+input[type="checkbox"] {
+    @apply h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded;
+}
+</style>
+{% endblock %} 

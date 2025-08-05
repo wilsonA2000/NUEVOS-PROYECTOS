@@ -1,0 +1,40 @@
+NUEVA CONVERSACIÓN - {{ platform_name }}
+
+¡Hola {{ recipient_name }}!
+
+Se ha iniciado una nueva conversación contigo en {{ platform_name }}.
+
+DETALLES DE LA CONVERSACIÓN:
+============================
+
+Tipo: {{ thread_type_display }}
+Asunto: {{ thread_subject }}
+Iniciada por: {{ initiator_name }}
+
+ACCIÓN REQUERIDA:
+================
+Un usuario está interesado en comunicarse contigo. Esta es una oportunidad para:
+
+• Establecer nuevas relaciones profesionales
+• Explorar oportunidades de negocio
+• Ampliar tu red de contactos en el sector inmobiliario
+
+Ver conversación: {{ conversation_url }}
+
+CONSEJOS PARA UNA COMUNICACIÓN EFECTIVA:
+=======================================
+- Responde de manera profesional y cortés
+- Proporciona información clara y detallada
+- Utiliza la plataforma para mantener un registro de la comunicación
+- Si es necesario, agenda una cita o llamada telefónica
+
+IMPORTANCIA:
+===========
+Las conversaciones directas en {{ platform_name }} te permiten establecer relaciones profesionales sólidas y cerrar mejores acuerdos inmobiliarios.
+
+---
+Este mensaje fue enviado automáticamente por {{ platform_name }}.
+Para gestionar tus notificaciones de mensajería: {{ platform_name }}/settings/notifications
+
+{{ platform_name }} - Facilitando la comunicación en el sector inmobiliario.
+Conectamos propietarios, inquilinos y profesionales de manera segura y eficiente.

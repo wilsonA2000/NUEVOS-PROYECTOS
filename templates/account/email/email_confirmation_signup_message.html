@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar tu cuenta - VeriHome</title>
+    <style>
+        /* Reset y estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8fafc;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-text {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.7;
+        }
+        
+        .user-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .alternate-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .alternate-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .features {
+            background-color: #f7fafc;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        
+        .features-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background-color: #48bb78;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background-color: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .social-links {
+            margin-top: 20px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .expiry-notice {
+            background-color: #fed7d7;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .expiry-notice strong {
+            color: #c53030;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .welcome-text {
+                font-size: 20px;
+            }
+            
+            .cta-button {
+                padding: 14px 28px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">&#127968; VeriHome</div>
+            <div class="tagline">Tu plataforma inmobiliaria de confianza</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <h1 class="welcome-text">¡Bienvenido a VeriHome!</h1>
+            
+            <p class="message">
+                Hola <span class="user-name">{{ user.first_name|default:user.username }}</span>,<br>
+                Gracias por registrarte en VeriHome. Para completar tu registro y acceder a todas las funcionalidades de nuestra plataforma, necesitamos confirmar tu dirección de correo electrónico.
+            </p>
+            
+            <!-- CTA Button -->
+            <div class="cta-section">
+                <a href="{{ activate_url }}" class="cta-button">
+                    &#9989; Confirmar mi cuenta
+                </a>
+                
+                <div class="alternate-link">
+                    Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                    <a href="{{ activate_url }}">{{ activate_url }}</a>
+                </div>
+            </div>
+            
+            <!-- Expiry Notice -->
+            <div class="expiry-notice">
+                <strong>&#9888; Importante:</strong> Este enlace expirará en 24 horas por seguridad.
+            </div>
+            
+            <!-- Features -->
+            <div class="features">
+                <h3 class="features-title">¿Qué puedes hacer en VeriHome?</h3>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">&#127968;</span>
+                        Publicar y buscar propiedades en renta
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">&#128203;</span>
+                        Generar contratos digitales con validez legal
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">&#128179;</span>
+                        Realizar pagos seguros y depósitos en garantía
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">&#11088;</span>
+                        Calificar y reseñar propiedades y usuarios
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">&#128295;</span>
+                        Conectar con prestadores de servicios inmobiliarios
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">&#128172;</span>
+                        Comunicarte directamente con arrendadores y arrendatarios
+                    </li>
+                </ul>
+            </div>
+            
+            <p class="message">
+                Una vez confirmes tu cuenta, podrás acceder a todas estas funcionalidades y comenzar a usar VeriHome para encontrar tu hogar ideal o gestionar tus propiedades.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este correo fue enviado a {{ user.email }} como parte del proceso de registro en VeriHome.
+            </p>
+            
+            <p class="footer-text">
+                Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
+            </p>
+            
+            <div class="social-links">
+                <a href="#" class="social-link">&#128231; Soporte</a>
+                <a href="#" class="social-link">&#128222; Contacto</a>
+                <a href="#" class="social-link">&#127760; Sitio Web</a>
+            </div>
+            
+            <p class="footer-text" style="margin-top: 20px; font-size: 12px; opacity: 0.6;">
+                © 2025 VeriHome. Todos los derechos reservados.<br>
+                Calle 123 #45-67, Bogotá, Colombia
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

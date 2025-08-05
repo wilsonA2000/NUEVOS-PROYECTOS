@@ -2,71 +2,235 @@
 {% load i18n %}
 {% autoescape off %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Confirma tu dirección de correo electrónico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar email - VeriHome</title>
     <style>
+        /* Reset y estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
+            background-color: #f8fafc;
+        }
+        
+        .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
+        
         .header {
-            background-color: #2563eb;
-            color: white;
-            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
             text-align: center;
-            border-radius: 8px 8px 0 0;
+            color: white;
         }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
         .content {
-            padding: 20px;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
+            padding: 40px 30px;
         }
-        .button {
+        
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.7;
+        }
+        
+        .user-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-button {
             display: inline-block;
-            background-color: #2563eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: bold;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
         }
-        .footer {
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .alternate-link {
             margin-top: 20px;
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .alternate-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .expiry-notice {
+            background-color: #fed7d7;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
             text-align: center;
+        }
+        
+        .expiry-notice strong {
+            color: #c53030;
+        }
+        
+        .footer {
+            background-color: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .social-links {
+            margin-top: 20px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 20px;
+            }
+            
+            .cta-button {
+                padding: 14px 28px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>VeriHome</h1>
-    </div>
-    <div class="content">
-        <p>{% blocktrans %}Hola desde VeriHome!{% endblocktrans %}</p>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🏠 VeriHome Platform</div>
+            <div class="tagline">Verificación de cuenta - No es spam</div>
+        </div>
         
-        <p>{% blocktrans %}Estás recibiendo este correo porque tú o alguien más ha registrado una cuenta en VeriHome utilizando esta dirección de correo electrónico.{% endblocktrans %}</p>
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">Confirmar dirección de email</h1>
+            
+            <p class="message">
+                Hola <span class="user-name">{{ user_display }}</span>,<br>
+                Has solicitado confirmar tu dirección de correo electrónico en VeriHome Platform.
+                <br><br>
+                <strong>ESTE NO ES SPAM</strong> - Es un email oficial de verificación de cuenta.
+            </p>
+            
+            <p class="message">
+                Para activar tu cuenta y completar el registro, haz clic en el botón de abajo:
+            </p>
+            
+            <!-- CTA Button -->
+            <div class="cta-section">
+                <a href="{{ activate_url }}" class="cta-button">
+                    ✅ Confirmar email
+                </a>
+                
+                <div class="alternate-link">
+                    Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                    <a href="{{ activate_url }}">{{ activate_url }}</a>
+                </div>
+            </div>
+            
+            <!-- Expiry Notice -->
+            <div class="expiry-notice">
+                <strong>⚠️ Importante:</strong> Este enlace expirará en 24 horas por seguridad.
+            </div>
+            
+            <p class="message">
+                Si no solicitaste esta confirmación, puedes ignorar este correo de forma segura.
+            </p>
+        </div>
         
-        <p>{% blocktrans %}Para confirmar que esta dirección de correo es correcta, por favor haz clic en el siguiente botón:{% endblocktrans %}</p>
-        
-        <p style="text-align: center;">
-            <a href="{{ activate_url }}" class="button">{% trans "Confirmar mi correo electrónico" %}</a>
-        </p>
-        
-        <p>{% blocktrans %}Si no has sido tú quien ha registrado esta cuenta, puedes ignorar este mensaje.{% endblocktrans %}</p>
-        
-        <p>{% blocktrans %}¡Gracias por unirte a VeriHome!{% endblocktrans %}</p>
-    </div>
-    <div class="footer">
-        <p>© 2025 VeriHome. Todos los derechos reservados.</p>
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este correo fue enviado como parte del proceso de verificación de email en VeriHome.
+            </p>
+            
+            <div class="social-links">
+                <a href="#" class="social-link">📧 Soporte</a>
+                <a href="#" class="social-link">📞 Contacto</a>
+                <a href="#" class="social-link">🌐 Sitio Web</a>
+            </div>
+            
+            <p class="footer-text" style="margin-top: 20px; font-size: 12px; opacity: 0.6;">
+                © 2025 VeriHome. Todos los derechos reservados.<br>
+                Calle 123 #45-67, Bogotá, Colombia
+            </p>
+        </div>
     </div>
 </body>
 </html>

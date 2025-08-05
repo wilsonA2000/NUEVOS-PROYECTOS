@@ -62,7 +62,7 @@ class Property(models.Model):
     city = models.CharField('Ciudad', max_length=100)
     state = models.CharField('Estado/Provincia', max_length=100)
     country = models.CharField('País', max_length=100, default='México')
-    postal_code = models.CharField('Código postal', max_length=10)
+    postal_code = models.CharField('Código postal', max_length=10, null=True, blank=True)
     latitude = models.DecimalField('Latitud', max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField('Longitud', max_digits=9, decimal_places=6, null=True, blank=True)
     

@@ -2,6 +2,8 @@
 URLs de la API REST para la aplicación de mensajería de VeriHome.
 """
 
+app_name = 'messaging_api'
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
@@ -12,6 +14,7 @@ router.register(r'threads', api_views.MessageThreadViewSet, basename='message-th
 router.register(r'messages', api_views.MessageViewSet, basename='message')
 router.register(r'folders', api_views.MessageFolderViewSet, basename='message-folder')
 router.register(r'templates', api_views.MessageTemplateViewSet, basename='message-template')
+router.register(r'conversations', api_views.ConversationViewSet, basename='conversation')
 
 urlpatterns = [
     # Incluir rutas del router

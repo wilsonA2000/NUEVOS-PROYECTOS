@@ -1,0 +1,44 @@
+RESUMEN DE MENSAJES SIN LEER - {{ platform_name }}
+
+Hola {{ user_name }},
+
+Tienes {{ total_unread }} mensaje{{ total_unread|pluralize:"s" }} sin leer en {{ platform_name }}.
+
+RESUMEN ({{ frequency }}):
+========================
+
+{% for thread_id, conversation in conversations.items %}
+CONVERSACIÓN: {{ conversation.thread.subject }}
+Mensajes pendientes: {{ conversation.messages|length }}
+De: {{ conversation.sender_names|join:", " }}
+{% if conversation.messages %}Último mensaje: "{{ conversation.messages.0.content|truncatewords:20 }}"{% endif %}
+
+{% endfor %}
+
+ACCIÓN REQUERIDA:
+================
+No dejes pasar oportunidades de negocio. Revisa y responde a tus mensajes:
+
+Ver todos los mensajes: {{ messages_url }}
+
+¿POR QUÉ ES IMPORTANTE RESPONDER?
+================================
+• OPORTUNIDADES DE NEGOCIO: Cada mensaje puede ser una nueva oportunidad
+• REPUTACIÓN PROFESIONAL: La respuesta rápida mejora tu imagen
+• RELACIONES DURADERAS: La comunicación constante fortalece vínculos
+• VENTAJA COMPETITIVA: Quien responde primero, a menudo cierra el trato
+
+TIP DE PRODUCTIVIDAD:
+====================
+Dedica 10 minutos cada mañana a revisar y responder mensajes. ¡Tu negocio te lo agradecerá!
+
+GESTIÓN DE NOTIFICACIONES:
+=========================
+Puedes personalizar la frecuencia de estos resúmenes en:
+{{ platform_name }}/settings/notifications
+
+---
+Este resumen fue generado automáticamente por {{ platform_name }}.
+
+{{ platform_name }} - Tu plataforma inmobiliaria de confianza.
+Mantenemos conectados a profesionales del sector inmobiliario.

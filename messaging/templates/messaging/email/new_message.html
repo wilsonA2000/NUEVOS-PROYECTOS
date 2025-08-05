@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo mensaje - {{ platform_name }}</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-radius: 8px 8px 0 0; 
+        }
+        .content { 
+            background: #f8f9fa; 
+            padding: 30px; 
+            border-radius: 0 0 8px 8px; 
+        }
+        .message-preview { 
+            background: white; 
+            padding: 20px; 
+            border-left: 4px solid #667eea; 
+            margin: 20px 0; 
+            border-radius: 4px; 
+        }
+        .sender-info { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
+        .sender-avatar { 
+            width: 40px; 
+            height: 40px; 
+            background: #667eea; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            margin-right: 15px; 
+        }
+        .action-button { 
+            display: inline-block; 
+            background: #667eea; 
+            color: white; 
+            text-decoration: none; 
+            padding: 12px 30px; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            margin: 20px 0; 
+        }
+        .footer { 
+            text-align: center; 
+            color: #666; 
+            font-size: 14px; 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #eee; 
+        }
+        .thread-info { 
+            background: #e3f2fd; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+        }
+        .thread-info strong { 
+            color: #1976d2; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📨 Nuevo Mensaje</h1>
+        <p>{{ platform_name }} - Plataforma Inmobiliaria</p>
+    </div>
+    
+    <div class="content">
+        <h2>Hola {{ recipient_name }},</h2>
+        
+        <p>Has recibido un nuevo mensaje en tu bandeja de entrada de {{ platform_name }}.</p>
+        
+        <div class="thread-info">
+            <strong>Conversación:</strong> {{ thread_subject }}
+        </div>
+        
+        <div class="message-preview">
+            <div class="sender-info">
+                <div class="sender-avatar">{{ sender_initials }}</div>
+                <div>
+                    <strong>{{ sender_name }}</strong>
+                    <br>
+                    <small style="color: #666;">Mensaje recibido</small>
+                </div>
+            </div>
+            
+            <div class="message-content">
+                {{ message_content|truncatewords:30 }}
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ message_url }}" class="action-button">
+                📬 Ver Mensaje Completo
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+            <strong>💡 Tip:</strong> Puedes responder directamente desde la plataforma para mantener un historial organizado de tu comunicación.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            Este mensaje fue enviado automáticamente por {{ platform_name }}.<br>
+            Para gestionar tus notificaciones, <a href="{{ platform_name }}/settings/notifications">haz clic aquí</a>.
+        </p>
+        <p style="font-size: 12px; color: #999;">
+            {{ platform_name }} - Conectando propietarios, inquilinos y profesionales del sector inmobiliario.
+        </p>
+    </div>
+</body>
+</html>

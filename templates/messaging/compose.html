@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Mensaje - VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-2xl shadow-elegant">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'messaging:inbox' %}" class="text-gray-600 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">Nuevo Mensaje</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- Destinatarios -->
+            <div>
+                <label for="{{ form.recipients.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Destinatarios
+                </label>
+                <div class="mt-1">
+                    {{ form.recipients }}
+                </div>
+                {% if form.recipients.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.recipients.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Asunto -->
+            <div>
+                <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Asunto
+                </label>
+                <div class="mt-1">
+                    {{ form.subject }}
+                </div>
+                {% if form.subject.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.subject.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Tipo de hilo -->
+            <div>
+                <label for="{{ form.thread_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Tipo de Mensaje
+                </label>
+                <div class="mt-1">
+                    {{ form.thread_type }}
+                </div>
+                {% if form.thread_type.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.thread_type.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Propiedad (opcional) -->
+            <div>
+                <label for="{{ form.property.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Propiedad (opcional)
+                </label>
+                <div class="mt-1">
+                    {{ form.property }}
+                </div>
+                {% if form.property.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.property.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Contrato (opcional) -->
+            <div>
+                <label for="{{ form.contract.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Contrato (opcional)
+                </label>
+                <div class="mt-1">
+                    {{ form.contract }}
+                </div>
+                {% if form.contract.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.contract.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Contenido del mensaje -->
+            <div>
+                <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Mensaje
+                </label>
+                <div class="mt-1">
+                    {{ form.content }}
+                </div>
+                {% if form.content.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.content.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex items-center justify-end space-x-4">
+                <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Guardar borrador
+                </button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Enviar mensaje
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Inicializar select2 para los campos de selección múltiple
+    $(document).ready(function() {
+        $('#{{ form.recipients.id_for_label }}').select2({
+            placeholder: 'Selecciona los destinatarios...',
+            allowClear: true,
+            width: '100%'
+        });
+
+        $('#{{ form.property.id_for_label }}').select2({
+            placeholder: 'Selecciona una propiedad...',
+            allowClear: true,
+            width: '100%'
+        });
+
+        $('#{{ form.contract.id_for_label }}').select2({
+            placeholder: 'Selecciona un contrato...',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

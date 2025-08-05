@@ -2,12 +2,18 @@
 Vistas para la aplicación de mensajería de VeriHome.
 """
 
-from django.shortcuts import render
-from django.views.generic import TemplateView, ListView, DetailView
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-
+from django.urls import reverse_lazy
+from django.db.models import Q, Count
+from django.contrib import messages
+from django.utils import timezone
 from .models import MessageThread, Message
+from .forms import MessageForm, MessageThreadForm
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
 
 
 class MessagingDashboardView(LoginRequiredMixin, TemplateView):
@@ -20,16 +26,54 @@ class InboxView(LoginRequiredMixin, ListView):
     model = MessageThread
     template_name = 'messaging/inbox.html'
     context_object_name = 'threads'
+    paginate_by = 20
     
     def get_queryset(self):
         return MessageThread.objects.filter(
-            participants=self.request.user
+            participants=self.request.user,
+            thread_participants__is_archived=False,
+            thread_participants__user=self.request.user,
+            status='active'
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
         ).order_by('-last_message_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unread_count'] = Message.objects.filter(
+            thread__participants=self.request.user,
+            is_read=False,
+            thread__thread_participants__is_archived=False,
+            thread__thread_participants__user=self.request.user,
+            thread__status='active'
+        ).count()
+        return context
 
 
-class SentMessagesView(LoginRequiredMixin, TemplateView):
+class SentView(LoginRequiredMixin, ListView):
     """Vista de mensajes enviados."""
+    model = MessageThread
     template_name = 'messaging/sent.html'
+    context_object_name = 'threads'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return MessageThread.objects.filter(
+            created_by=self.request.user,
+            is_deleted=False
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        ).order_by('-last_message_at')
 
 
 class DraftsView(LoginRequiredMixin, TemplateView):
@@ -37,19 +81,69 @@ class DraftsView(LoginRequiredMixin, TemplateView):
     template_name = 'messaging/drafts.html'
 
 
-class ArchivedView(LoginRequiredMixin, TemplateView):
+class ArchivedView(LoginRequiredMixin, ListView):
     """Vista de archivados."""
+    model = MessageThread
     template_name = 'messaging/archived.html'
+    context_object_name = 'threads'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return MessageThread.objects.filter(
+            participants=self.request.user,
+            is_archived=True,
+            is_deleted=False
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        ).order_by('-last_message_at')
 
 
-class StarredView(LoginRequiredMixin, TemplateView):
+class StarredView(LoginRequiredMixin, ListView):
     """Vista de destacados."""
+    model = MessageThread
     template_name = 'messaging/starred.html'
+    context_object_name = 'threads'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return MessageThread.objects.filter(
+            participants=self.request.user,
+            is_starred=True,
+            is_deleted=False
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        ).order_by('-last_message_at')
 
 
-class TrashView(LoginRequiredMixin, TemplateView):
+class TrashView(LoginRequiredMixin, ListView):
     """Vista de papelera."""
+    model = MessageThread
     template_name = 'messaging/trash.html'
+    context_object_name = 'threads'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return MessageThread.objects.filter(
+            participants=self.request.user,
+            is_deleted=True
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        ).order_by('-last_message_at')
 
 
 class ConversationView(LoginRequiredMixin, DetailView):
@@ -116,9 +210,27 @@ class ForwardMessageView(LoginRequiredMixin, TemplateView):
     template_name = 'messaging/forward_message.html'
 
 
-class ComposeMessageView(LoginRequiredMixin, TemplateView):
+class ComposeView(LoginRequiredMixin, CreateView):
     """Vista para componer mensaje."""
+    model = MessageThread
+    form_class = MessageThreadForm
     template_name = 'messaging/compose.html'
+    success_url = reverse_lazy('messaging:inbox')
+
+    def form_valid(self, form):
+        thread = form.save(commit=False)
+        thread.created_by = self.request.user
+        thread.save()
+        
+        # Crear el primer mensaje
+        Message.objects.create(
+            thread=thread,
+            sender=self.request.user,
+            content=form.cleaned_data['content']
+        )
+        
+        messages.success(self.request, 'Mensaje enviado correctamente.')
+        return super().form_valid(form)
 
 
 class ReplyMessageView(LoginRequiredMixin, TemplateView):
@@ -299,3 +411,185 @@ class QuickReplyAPIView(LoginRequiredMixin, TemplateView):
     
     def post(self, request, *args, **kwargs):
         return JsonResponse({'success': True})
+
+
+class ThreadDetailView(LoginRequiredMixin, DetailView):
+    model = MessageThread
+    template_name = 'messaging/thread_detail.html'
+    context_object_name = 'thread'
+
+    def get_queryset(self):
+        return MessageThread.objects.filter(
+            participants=self.request.user
+        ).select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        thread = self.get_object()
+        
+        # Marcar mensajes como leídos
+        thread.messages.filter(
+            is_read=False
+        ).exclude(
+            sender=self.request.user
+        ).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        
+        context['form'] = MessageForm()
+        return context
+
+
+@method_decorator(require_POST, name='dispatch')
+class ArchiveThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_archived']
+    success_url = reverse_lazy('messaging:inbox')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_archived = True
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class UnarchiveThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_archived']
+    success_url = reverse_lazy('messaging:archived')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_archived = False
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class StarThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_starred']
+    success_url = reverse_lazy('messaging:inbox')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_starred = True
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class UnstarThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_starred']
+    success_url = reverse_lazy('messaging:starred')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_starred = False
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class DeleteThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_deleted']
+    success_url = reverse_lazy('messaging:inbox')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_deleted = True
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class RestoreThreadView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_deleted']
+    success_url = reverse_lazy('messaging:trash')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_deleted = False
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class PermanentlyDeleteThreadView(LoginRequiredMixin, DeleteView):
+    model = MessageThread
+    success_url = reverse_lazy('messaging:trash')
+
+    def delete(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.delete()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class MarkAsSpamView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_spam']
+    success_url = reverse_lazy('messaging:inbox')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_spam = True
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+@method_decorator(require_POST, name='dispatch')
+class MarkAsNotSpamView(LoginRequiredMixin, UpdateView):
+    model = MessageThread
+    fields = ['is_spam']
+    success_url = reverse_lazy('messaging:inbox')
+
+    def post(self, request, *args, **kwargs):
+        thread = self.get_object()
+        thread.is_spam = False
+        thread.save()
+        return JsonResponse({'status': 'success'})
+
+
+class SearchThreadsView(LoginRequiredMixin, ListView):
+    model = MessageThread
+    template_name = 'messaging/search_results.html'
+    context_object_name = 'threads'
+    paginate_by = 20
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        if not query:
+            return MessageThread.objects.none()
+
+        return MessageThread.objects.filter(
+            Q(participants=self.request.user) &
+            (Q(subject__icontains=query) |
+             Q(messages__content__icontains=query) |
+             Q(participants__first_name__icontains=query) |
+             Q(participants__last_name__icontains=query))
+        ).distinct().select_related(
+            'created_by',
+            'property',
+            'contract'
+        ).prefetch_related(
+            'messages',
+            'participants'
+        ).order_by('-last_message_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context

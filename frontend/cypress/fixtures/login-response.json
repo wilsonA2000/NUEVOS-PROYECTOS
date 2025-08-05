@@ -1,0 +1,12 @@
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test-access-token",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test-refresh-token",
+  "user": {
+    "id": 1,
+    "email": "test.user@verihome.com",
+    "first_name": "Test",
+    "last_name": "User",
+    "role": "tenant",
+    "is_verified": true
+  }
+}

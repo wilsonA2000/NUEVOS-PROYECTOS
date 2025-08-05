@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando servidor de desarrollo VeriHome Frontend...
+npx vite --host --port 5173

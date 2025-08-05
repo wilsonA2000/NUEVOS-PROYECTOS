@@ -15,3 +15,5 @@ class RatingsConfig(AppConfig):
     def ready(self):
         """Importar señales cuando la aplicación esté lista."""
         import ratings.signals
+        # Configurar signals adicionales
+        ratings.signals.setup_contract_signals()

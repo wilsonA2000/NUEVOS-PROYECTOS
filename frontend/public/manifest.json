@@ -1,0 +1,157 @@
+{
+  "name": "VeriHome - Plataforma Inmobiliaria",
+  "short_name": "VeriHome",
+  "description": "Plataforma integral para conectar arrendadores, arrendatarios y prestadores de servicios inmobiliarios",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["business", "real estate", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acceso directo al dashboard principal",
+      "url": "/app/dashboard",
+      "icons": [
+        {
+          "src": "/images/shortcut-dashboard.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Propiedades",
+      "short_name": "Propiedades",
+      "description": "Ver y gestionar propiedades",
+      "url": "/app/properties",
+      "icons": [
+        {
+          "src": "/images/shortcut-properties.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Mensajes",
+      "short_name": "Mensajes",
+      "description": "Centro de mensajes y comunicación",
+      "url": "/app/messages",
+      "icons": [
+        {
+          "src": "/images/shortcut-messages.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Nueva Propiedad",
+      "short_name": "Crear",
+      "description": "Crear nueva propiedad",
+      "url": "/app/properties/new",
+      "icons": [
+        {
+          "src": "/images/shortcut-create.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Vista del dashboard en desktop"
+    },
+    {
+      "src": "/images/screenshot-mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Vista del dashboard en móvil"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "share_target": {
+    "action": "/app/properties/new",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "description",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+verihome",
+      "url": "/app/properties?property=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/app/properties/import",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/vnd.ms-excel": [".xls"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      }
+    }
+  ]
+}

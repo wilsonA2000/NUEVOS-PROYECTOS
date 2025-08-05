@@ -7,12 +7,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
 from django.db.models import Count, Q, Sum, Avg
 from django.utils import timezone
 from datetime import timedelta
 import django.db.models
+import os
+from django.conf import settings
 
 from .models import (
     SiteConfiguration, Notification, ActivityLog, SystemAlert, 
@@ -444,3 +446,42 @@ class SystemStatusView(TemplateView):
         }
         
         return context
+
+
+def index(request):
+    """
+    Vista principal que sirve el frontend React.
+    En desarrollo, redirige al servidor de desarrollo de Vite.
+    En producción, sirve el archivo index.html del build.
+    """
+    if settings.DEBUG:
+        # En desarrollo, redirigir al servidor de Vite
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect('http://localhost:3000')
+    else:
+        # En producción, servir el archivo index.html del build
+        try:
+            with open(os.path.join(settings.STATIC_ROOT, 'frontend', 'index.html'), 'r', encoding='utf-8') as f:
+                return HttpResponse(f.read(), content_type='text/html')
+        except FileNotFoundError:
+            return HttpResponse("Frontend no encontrado. Ejecuta 'npm run build' en el directorio frontend.", status=404)
+
+
+class ReactAppView(TemplateView):
+    """
+    Vista para servir la aplicación React en todas las rutas del frontend.
+    """
+    template_name = 'react_app.html'
+    
+    def get(self, request, *args, **kwargs):
+        if settings.DEBUG:
+            # En desarrollo, redirigir al servidor de Vite
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect('http://localhost:3000' + request.path)
+        else:
+            # En producción, servir el archivo index.html del build
+            try:
+                with open(os.path.join(settings.STATIC_ROOT, 'frontend', 'index.html'), 'r', encoding='utf-8') as f:
+                    return HttpResponse(f.read(), content_type='text/html')
+            except FileNotFoundError:
+                return HttpResponse("Frontend no encontrado. Ejecuta 'npm run build' en el directorio frontend.", status=404)

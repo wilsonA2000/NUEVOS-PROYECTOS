@@ -7,6 +7,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 import uuid
+from django.contrib.auth.models import AbstractUser
 
 User = get_user_model()
 
@@ -443,6 +444,14 @@ class MessageTemplate(models.Model):
         return f"{self.name} - {self.user.get_full_name()}"
 
 
+class Conversation(models.Model):
+    participants = models.ManyToManyField(User, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Conversation between {', '.join([user.username for user in self.participants.all()])}"
+
+
 class ConversationAnalytics(models.Model):
     """Analíticas de conversaciones para métricas."""
     
@@ -483,3 +492,17 @@ class ConversationAnalytics(models.Model):
         
     def __str__(self):
         return f"Analíticas - {self.thread.subject}"
+
+
+def get_user_initials(self):
+    """Obtiene las iniciales del nombre completo del usuario."""
+    if self.first_name and self.last_name:
+        return f"{self.first_name[0]}{self.last_name[0]}".upper()
+    elif self.first_name:
+        return self.first_name[0].upper()
+    elif self.last_name:
+        return self.last_name[0].upper()
+    else:
+        return self.username[0].upper()
+
+User.add_to_class('get_initials', get_user_initials)

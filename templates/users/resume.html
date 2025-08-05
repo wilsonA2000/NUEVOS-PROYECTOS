@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Hoja de Vida | VeriHome{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Encabezado -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Mi Hoja de Vida</h1>
+                    <p class="text-gray-600">Información detallada para verificación en la plataforma</p>
+                </div>
+                
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <!-- Progreso de completitud -->
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary-600">{{ completion_percentage }}%</div>
+                        <div class="text-sm text-gray-500">Completado</div>
+                    </div>
+                    
+                    <!-- Puntuación de verificación -->
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ verification_score }}%</div>
+                        <div class="text-sm text-gray-500">Verificado</div>
+                    </div>
+                    
+                    <!-- Botón de editar -->
+                    <a href="{% url 'users:resume_edit' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Editar
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div class="mt-6">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progreso de completitud</span>
+                    <span>{{ completion_percentage }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-primary-600 h-2 rounded-full transition-all duration-300" style="width: {{ completion_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estado de documentos -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Estado de Documentos</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-600">{{ document_counts.pending }}</div>
+                    <div class="text-sm text-gray-600">Pendientes</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600">{{ document_counts.verified }}</div>
+                    <div class="text-sm text-gray-600">Verificados</div>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-2xl font-bold text-red-600">{{ document_counts.rejected }}</div>
+                    <div class="text-sm text-gray-600">Rechazados</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-600">{{ document_counts.expired }}</div>
+                    <div class="text-sm text-gray-600">Expirados</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información detallada -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Información Personal -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Personal</h2>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Fecha de nacimiento</p>
+                        <p class="font-medium">{{ resume.date_of_birth|date:"d/m/Y"|default:"No especificada" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Nacionalidad</p>
+                        <p class="font-medium">{{ resume.nationality|default:"No especificada" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Estado civil</p>
+                        <p class="font-medium">{{ resume.marital_status|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Dependientes</p>
+                        <p class="font-medium">{{ resume.dependents|default:"0" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Educativa -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Educativa</h2>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Nivel educativo</p>
+                        <p class="font-medium">{{ resume.get_education_level_display|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Institución</p>
+                        <p class="font-medium">{{ resume.institution_name|default:"No especificada" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Campo de estudio</p>
+                        <p class="font-medium">{{ resume.field_of_study|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Año de graduación</p>
+                        <p class="font-medium">{{ resume.graduation_year|default:"No especificado" }}</p>
+                    </div>
+                    {% if resume.gpa %}
+                    <div>
+                        <p class="text-sm text-gray-500">Promedio</p>
+                        <p class="font-medium">{{ resume.gpa }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Información Laboral -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Laboral</h2>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Empleador actual</p>
+                        <p class="font-medium">{{ resume.current_employer|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Cargo</p>
+                        <p class="font-medium">{{ resume.current_position|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Tipo de empleo</p>
+                        <p class="font-medium">{{ resume.get_employment_type_display|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Fecha de inicio</p>
+                        <p class="font-medium">{{ resume.start_date|date:"d/m/Y"|default:"No especificada" }}</p>
+                    </div>
+                    {% if resume.end_date %}
+                    <div>
+                        <p class="text-sm text-gray-500">Fecha de fin</p>
+                        <p class="font-medium">{{ resume.end_date|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if resume.monthly_salary %}
+                    <div>
+                        <p class="text-sm text-gray-500">Salario mensual</p>
+                        <p class="font-medium">${{ resume.monthly_salary|floatformat:2 }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Información Financiera -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Financiera</h2>
+                <div class="space-y-3">
+                    {% if resume.bank_name %}
+                    <div>
+                        <p class="text-sm text-gray-500">Banco</p>
+                        <p class="font-medium">{{ resume.bank_name }}</p>
+                    </div>
+                    {% endif %}
+                    {% if resume.account_type %}
+                    <div>
+                        <p class="text-sm text-gray-500">Tipo de cuenta</p>
+                        <p class="font-medium">{{ resume.account_type }}</p>
+                    </div>
+                    {% endif %}
+                    {% if resume.credit_score %}
+                    <div>
+                        <p class="text-sm text-gray-500">Puntuación crediticia</p>
+                        <p class="font-medium">{{ resume.credit_score }}</p>
+                    </div>
+                    {% endif %}
+                    {% if resume.monthly_expenses %}
+                    <div>
+                        <p class="text-sm text-gray-500">Gastos mensuales</p>
+                        <p class="font-medium">${{ resume.monthly_expenses|floatformat:2 }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contactos de Emergencia y Referencias -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <!-- Contacto de Emergencia -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Contacto de Emergencia</h2>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Nombre</p>
+                        <p class="font-medium">{{ resume.emergency_contact_name|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Teléfono</p>
+                        <p class="font-medium">{{ resume.emergency_contact_phone|default:"No especificado" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Relación</p>
+                        <p class="font-medium">{{ resume.emergency_contact_relation|default:"No especificada" }}</p>
+                    </div>
+                    {% if resume.emergency_contact_address %}
+                    <div>
+                        <p class="text-sm text-gray-500">Dirección</p>
+                        <p class="font-medium">{{ resume.emergency_contact_address }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Referencias -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Referencias</h2>
+                <div class="space-y-4">
+                    <!-- Referencia 1 -->
+                    <div>
+                        <h3 class="font-medium text-gray-700 mb-2">Referencia 1</h3>
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Nombre</p>
+                                <p class="font-medium">{{ resume.reference1_name|default:"No especificado" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Teléfono</p>
+                                <p class="font-medium">{{ resume.reference1_phone|default:"No especificado" }}</p>
+                            </div>
+                            {% if resume.reference1_email %}
+                            <div>
+                                <p class="text-sm text-gray-500">Email</p>
+                                <p class="font-medium">{{ resume.reference1_email }}</p>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="text-sm text-gray-500">Relación</p>
+                                <p class="font-medium">{{ resume.reference1_relation|default:"No especificada" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Referencia 2 -->
+                    {% if resume.reference2_name %}
+                    <div>
+                        <h3 class="font-medium text-gray-700 mb-2">Referencia 2</h3>
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Nombre</p>
+                                <p class="font-medium">{{ resume.reference2_name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Teléfono</p>
+                                <p class="font-medium">{{ resume.reference2_phone|default:"No especificado" }}</p>
+                            </div>
+                            {% if resume.reference2_email %}
+                            <div>
+                                <p class="text-sm text-gray-500">Email</p>
+                                <p class="font-medium">{{ resume.reference2_email }}</p>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="text-sm text-gray-500">Relación</p>
+                                <p class="font-medium">{{ resume.reference2_relation|default:"No especificada" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historial de Vivienda -->
+        {% if resume.eviction_history or resume.eviction_details %}
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Historial de Vivienda</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500">Historial de desalojo</p>
+                    <p class="font-medium">
+                        {% if resume.eviction_history %}
+                            <span class="text-red-600">Sí</span>
+                        {% else %}
+                            <span class="text-green-600">No</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% if resume.eviction_details %}
+                <div>
+                    <p class="text-sm text-gray-500">Detalles</p>
+                    <p class="font-medium">{{ resume.eviction_details }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Información Adicional -->
+        {% if resume.criminal_record or resume.criminal_record_details %}
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Adicional</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500">Antecedentes penales</p>
+                    <p class="font-medium">
+                        {% if resume.criminal_record %}
+                            <span class="text-red-600">Sí</span>
+                        {% else %}
+                            <span class="text-green-600">No</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% if resume.criminal_record_details %}
+                <div>
+                    <p class="text-sm text-gray-500">Detalles</p>
+                    <p class="font-medium">{{ resume.criminal_record_details }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -192,7 +192,7 @@ class ActivityLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='activity_logs'
+        related_name='core_activity_logs'
     )
     
     # Información de la acción

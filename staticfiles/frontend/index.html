@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriHome - Plataforma Inmobiliaria</title>
+    <meta name="description" content="Plataforma inmobiliaria revolucionaria para conectar arrendadores, arrendatarios y prestadores de servicios">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    
+    <!-- CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            margin: 20px;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status h3 {
+            color: #2e7d32;
+            margin: 0 0 10px 0;
+        }
+        .status p {
+            color: #388e3c;
+            margin: 5px 0;
+        }
+        .links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .link {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .link:hover {
+            background: #5a6fd8;
+        }
+        .api-link {
+            background: #ff9800;
+        }
+        .api-link:hover {
+            background: #f57c00;
+        }
+        .admin-link {
+            background: #f44336;
+        }
+        .admin-link:hover {
+            background: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏠 VeriHome</div>
+        <div class="subtitle">Plataforma Inmobiliaria Revolucionaria</div>
+        
+        <div class="status">
+            <h3>✅ Servidor Único Configurado</h3>
+            <p><strong>Frontend React:</strong> Servido por Django</p>
+            <p><strong>API REST:</strong> Disponible en /api/v1/</p>
+            <p><strong>Admin:</strong> Disponible en /admin/</p>
+            <p><strong>Estado:</strong> Funcionando correctamente</p>
+        </div>
+        
+        <p>Esta es una demostración de cómo el frontend React se sirve desde Django en un servidor único.</p>
+        
+        <div class="links">
+            <a href="/api/v1/" class="link api-link">🔗 API REST</a>
+            <a href="/admin/" class="link admin-link">⚙️ Admin Django</a>
+            <a href="http://localhost:3000" class="link">⚛️ Frontend Dev</a>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 0.9em; color: #666;">
+            <p><strong>Arquitectura:</strong></p>
+            <p>• Desarrollo: Django (8000) + Vite (3000)</p>
+            <p>• Producción: Django sirve todo</p>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        console.log('🚀 VeriHome - Servidor Único Funcionando');
+        console.log('📱 Frontend servido por Django');
+        console.log('🔧 API disponible en /api/v1/');
+    </script>
+</body>
+</html> 

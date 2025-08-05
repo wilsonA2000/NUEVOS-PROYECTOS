@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva conversación - {{ platform_name }}</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-radius: 8px 8px 0 0; 
+        }
+        .content { 
+            background: #f8f9fa; 
+            padding: 30px; 
+            border-radius: 0 0 8px 8px; 
+        }
+        .conversation-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            margin: 20px 0; 
+        }
+        .initiator-info { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px solid #eee; 
+        }
+        .initiator-avatar { 
+            width: 50px; 
+            height: 50px; 
+            background: #4CAF50; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 18px; 
+            margin-right: 15px; 
+        }
+        .conversation-type { 
+            display: inline-block; 
+            background: #e8f5e8; 
+            color: #2e7d32; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            font-weight: 500; 
+            margin-bottom: 15px; 
+        }
+        .action-button { 
+            display: inline-block; 
+            background: #4CAF50; 
+            color: white; 
+            text-decoration: none; 
+            padding: 15px 35px; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            margin: 20px 0; 
+            font-size: 16px; 
+        }
+        .footer { 
+            text-align: center; 
+            color: #666; 
+            font-size: 14px; 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #eee; 
+        }
+        .highlight-box { 
+            background: #e3f2fd; 
+            padding: 20px; 
+            border-radius: 6px; 
+            border-left: 4px solid #2196F3; 
+            margin: 20px 0; 
+        }
+        .highlight-box strong { 
+            color: #1976d2; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💬 Nueva Conversación</h1>
+        <p>{{ platform_name }} - Plataforma Inmobiliaria</p>
+    </div>
+    
+    <div class="content">
+        <h2>¡Hola {{ recipient_name }}!</h2>
+        
+        <p>Se ha iniciado una nueva conversación contigo en {{ platform_name }}. Un usuario está interesado en comunicarse contigo.</p>
+        
+        <div class="conversation-card">
+            <div class="conversation-type">{{ thread_type_display }}</div>
+            
+            <div class="initiator-info">
+                <div class="initiator-avatar">{{ initiator_name.0|upper }}{{ initiator_name.split.1.0|upper|default:'' }}</div>
+                <div>
+                    <strong style="font-size: 18px;">{{ initiator_name }}</strong>
+                    <br>
+                    <span style="color: #666;">ha iniciado una conversación contigo</span>
+                </div>
+            </div>
+            
+            <div>
+                <strong style="color: #333; font-size: 16px;">Asunto:</strong>
+                <p style="font-size: 16px; margin: 10px 0; color: #444;">{{ thread_subject }}</p>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>🎯 ¿Por qué es importante?</strong>
+            <p style="margin: 10px 0 0 0;">Las conversaciones directas en {{ platform_name }} te permiten establecer relaciones profesionales sólidas y cerrar mejores acuerdos inmobiliarios.</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ conversation_url }}" class="action-button">
+                💬 Ver Conversación y Responder
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #fff8e1; border-radius: 4px; border-left: 4px solid #ffb300;">
+            <h4 style="margin-top: 0; color: #e65100;">📋 Consejos para una comunicación efectiva:</h4>
+            <ul style="margin: 10px 0 0 20px; color: #333;">
+                <li>Responde de manera profesional y cortés</li>
+                <li>Proporciona información clara y detallada</li>
+                <li>Utiliza la plataforma para mantener un registro de la comunicación</li>
+                <li>Si es necesario, agenda una cita o llamada telefónica</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            Este mensaje fue enviado automáticamente por {{ platform_name }}.<br>
+            Para gestionar tus notificaciones de mensajería, <a href="{{ platform_name }}/settings/notifications">haz clic aquí</a>.
+        </p>
+        <p style="font-size: 12px; color: #999; margin-top: 15px;">
+            {{ platform_name }} - Facilitando la comunicación en el sector inmobiliario.<br>
+            Conectamos propietarios, inquilinos y profesionales de manera segura y eficiente.
+        </p>
+    </div>
+</body>
+</html>

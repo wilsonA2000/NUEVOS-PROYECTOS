@@ -1,0 +1,31 @@
+¡Bienvenido a VeriHome!
+
+Hola {{ user.first_name|default:user.username }},
+
+Gracias por registrarte en VeriHome. Para completar tu registro y acceder a todas las funcionalidades de nuestra plataforma, necesitamos confirmar tu dirección de correo electrónico.
+
+Para confirmar tu cuenta, haz clic en el siguiente enlace:
+
+{{ activate_url }}
+
+Si el enlace no funciona, copia y pega la URL completa en tu navegador.
+
+IMPORTANTE: Este enlace expirará en 24 horas por seguridad.
+
+¿Qué puedes hacer en VeriHome?
+* Publicar y buscar propiedades en renta
+* Generar contratos digitales con validez legal
+* Realizar pagos seguros y depósitos en garantía
+* Calificar y reseñar propiedades y usuarios
+* Conectar con prestadores de servicios inmobiliarios
+* Comunicarte directamente con arrendadores y arrendatarios
+
+Una vez confirmes tu cuenta, podrás acceder a todas estas funcionalidades y comenzar a usar VeriHome para encontrar tu hogar ideal o gestionar tus propiedades.
+
+Este correo fue enviado a {{ user.email }} como parte del proceso de registro en VeriHome.
+
+Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
+
+---
+© 2025 VeriHome. Todos los derechos reservados.
+Calle 123 #45-67, Bogotá, Colombia 

@@ -1,0 +1,63 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# JS/TS files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+
+# CSS files
+*.css text
+*.scss text
+*.sass text
+
+# HTML files
+*.html text
+
+# JSON files
+*.json text
+
+# YAML files
+*.yml text
+*.yaml text
+
+# Markdown files
+*.md text
+
+# Config files
+.editorconfig text
+.eslintrc text
+.prettierrc text
+.gitattributes text
+.gitignore text
+.npmrc text
+.nvmrc text
+tsconfig.json text
+vite.config.ts text
+
+# Documentation
+LICENSE text
+README.md text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+*.pyc binary
+*.pdf binary 

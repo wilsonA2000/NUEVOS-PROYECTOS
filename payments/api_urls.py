@@ -2,6 +2,8 @@
 URLs de la API REST para la aplicación de pagos de VeriHome.
 """
 
+app_name = 'payments_api'
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
@@ -9,11 +11,14 @@ from . import api_views
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r'transactions', api_views.TransactionViewSet, basename='transaction')
+router.register(r'payments', api_views.PaymentViewSet, basename='payment')
 router.register(r'payment-methods', api_views.PaymentMethodViewSet, basename='payment-method')
 router.register(r'invoices', api_views.InvoiceViewSet, basename='invoice')
 router.register(r'escrow-accounts', api_views.EscrowAccountViewSet, basename='escrow-account')
 router.register(r'payment-plans', api_views.PaymentPlanViewSet, basename='payment-plan')
-router.register(r'installments', api_views.PaymentInstallmentViewSet, basename='payment-installment')
+router.register(r'installments', api_views.PaymentPlanInstallmentViewSet, basename='payment-installment')
+# router.register(r'escrow-milestones', api_views.EscrowMilestoneViewSet, basename='escrow-milestone')  # Disabled - model not available
+router.register(r'rent-schedules', api_views.RentPaymentScheduleViewSet, basename='rent-schedule')
 
 urlpatterns = [
     # Incluir rutas del router
@@ -42,7 +47,12 @@ urlpatterns = [
     path('stats/dashboard/', api_views.PaymentDashboardStatsAPIView.as_view(), name='api_payment_dashboard_stats'),
     path('reports/transactions/', api_views.TransactionReportAPIView.as_view(), name='api_transaction_report'),
     
+    # Rent payments
+    path('rent/process/', api_views.ProcessRentPaymentAPIView.as_view(), name='api_process_rent_payment'),
+    path('tenant/portal/', api_views.TenantPaymentPortalAPIView.as_view(), name='api_tenant_portal'),
+    path('landlord/dashboard/', api_views.LandlordFinancialDashboardAPIView.as_view(), name='api_landlord_dashboard'),
+    
     # Webhooks
-    path('webhooks/stripe/', api_views.StripeWebhookAPIView.as_view(), name='api_stripe_webhook'),
+    path('webhooks/stripe/', api_views.PaymentWebhookView.as_view(), name='api_stripe_webhook'),
     path('webhooks/paypal/', api_views.PayPalWebhookAPIView.as_view(), name='api_paypal_webhook'),
 ]

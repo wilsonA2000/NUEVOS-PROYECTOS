@@ -3,20 +3,66 @@ URLs para la aplicación de mensajería de VeriHome.
 Sistema de mensajería tipo Gmail con restricciones de comunicación.
 """
 
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
+from .api_views import (
+    MessageThreadViewSet, MessageViewSet, MessageFolderViewSet,
+    MessageTemplateViewSet, SendMessageAPIView, QuickReplyAPIView,
+    MarkMessageReadAPIView, MarkMessageUnreadAPIView, StarMessageAPIView,
+    MarkConversationReadAPIView, ArchiveConversationAPIView,
+    SearchMessagesAPIView, MessagingStatsAPIView, UnreadCountAPIView,
+    CanCommunicateAPIView, ConversationViewSet
+)
+from .advanced_api_views import (
+    AdvancedMessageThreadViewSet, AdvancedMessageViewSet,
+    MessageConversationAPIView, MessageSendAPIView, MessageSearchAPIView,
+    MessageCommunicationCheckAPIView, MessageAttachmentAPIView,
+    MessageStatsAPIView
+)
+
+# Configurar router para ViewSets
+router = DefaultRouter()
+router.register('threads', MessageThreadViewSet, basename='messagethreads')
+router.register('messages', MessageViewSet, basename='messages')
+router.register('folders', MessageFolderViewSet, basename='messagefolders')
+router.register('templates', MessageTemplateViewSet, basename='messagetemplates')
+router.register('conversations', ConversationViewSet, basename='conversations')
+
+# Router para API avanzada
+advanced_router = DefaultRouter()
+advanced_router.register('advanced-threads', AdvancedMessageThreadViewSet, basename='advanced-threads')
+advanced_router.register('advanced-messages', AdvancedMessageViewSet, basename='advanced-messages')
 
 app_name = 'messaging'
 
 urlpatterns = [
-    # Vista principal de mensajería (tipo Gmail)
-    path('', views.MessagingDashboardView.as_view(), name='dashboard'),
+    # Vistas principales
+    path('', views.InboxView.as_view(), name='inbox'),
+    path('enviados/', views.SentView.as_view(), name='sent'),
+    path('archivados/', views.ArchivedView.as_view(), name='archived'),
+    path('destacados/', views.StarredView.as_view(), name='starred'),
+    path('papelera/', views.TrashView.as_view(), name='trash'),
+    path('buscar/', views.SearchThreadsView.as_view(), name='search'),
+    
+    # Composición y detalle de mensajes
+    path('nuevo/', views.ComposeView.as_view(), name='compose'),
+    path('hilo/<int:pk>/', views.ThreadDetailView.as_view(), name='thread_detail'),
+    
+    # Acciones sobre hilos
+    path('hilo/<int:pk>/archivar/', views.ArchiveThreadView.as_view(), name='archive_thread'),
+    path('hilo/<int:pk>/desarchivar/', views.UnarchiveThreadView.as_view(), name='unarchive_thread'),
+    path('hilo/<int:pk>/destacar/', views.StarThreadView.as_view(), name='star_thread'),
+    path('hilo/<int:pk>/quitar-destacado/', views.UnstarThreadView.as_view(), name='unstar_thread'),
+    path('hilo/<int:pk>/eliminar/', views.DeleteThreadView.as_view(), name='delete_thread'),
+    path('hilo/<int:pk>/restaurar/', views.RestoreThreadView.as_view(), name='restore_thread'),
+    path('hilo/<int:pk>/eliminar-permanentemente/', views.PermanentlyDeleteThreadView.as_view(), name='permanently_delete_thread'),
+    path('hilo/<int:pk>/marcar-spam/', views.MarkAsSpamView.as_view(), name='mark_spam'),
+    path('hilo/<int:pk>/quitar-spam/', views.MarkAsNotSpamView.as_view(), name='unmark_spam'),
     
     # Bandeja de entrada y carpetas
-    path('bandeja-entrada/', views.InboxView.as_view(), name='inbox'),
-    path('enviados/', views.SentMessagesView.as_view(), name='sent'),
+    path('mensajes/', views.InboxView.as_view(), name='inbox_alt'),
     path('borradores/', views.DraftsView.as_view(), name='drafts'),
-    path('archivados/', views.ArchivedView.as_view(), name='archived'),
     path('importantes/', views.StarredView.as_view(), name='starred'),
     path('papelera/', views.TrashView.as_view(), name='trash'),
     
@@ -37,7 +83,6 @@ urlpatterns = [
     path('mensaje/<uuid:message_pk>/reenviar/', views.ForwardMessageView.as_view(), name='forward_message'),
     
     # Envío de mensajes
-    path('nuevo/', views.ComposeMessageView.as_view(), name='compose'),
     path('responder/<uuid:message_pk>/', views.ReplyMessageView.as_view(), name='reply'),
     path('responder-todos/<uuid:thread_pk>/', views.ReplyAllView.as_view(), name='reply_all'),
     
@@ -58,7 +103,6 @@ urlpatterns = [
     path('plantilla/<int:template_pk>/usar/', views.UseTemplateView.as_view(), name='use_template'),
     
     # Búsqueda de mensajes
-    path('buscar/', views.SearchMessagesView.as_view(), name='search'),
     path('busqueda-avanzada/', views.AdvancedSearchView.as_view(), name='advanced_search'),
     
     # Configuración de mensajería
@@ -91,7 +135,30 @@ urlpatterns = [
     path('conversacion/<uuid:thread_pk>/exportar/', views.ExportConversationView.as_view(), name='export_conversation'),
     
     # API endpoints para funcionalidad AJAX
-    path('api/unread-count/', views.UnreadCountAPIView.as_view(), name='api_unread_count'),
+    path('api/unread-count/', UnreadCountAPIView.as_view(), name='api_unread_count'),
     path('api/mark-read/<uuid:message_pk>/', views.MarkReadAPIView.as_view(), name='api_mark_read'),
-    path('api/quick-reply/', views.QuickReplyAPIView.as_view(), name='api_quick_reply'),
+    path('api/quick-reply/', QuickReplyAPIView.as_view(), name='api_quick_reply'),
+    
+    # API REST endpoints
+    path('api/', include(router.urls)),
+    
+    # API básica de mensajería
+    path('api/send-message/', SendMessageAPIView.as_view(), name='api_send_message'),
+    path('api/mark-message-read/<uuid:message_pk>/', MarkMessageReadAPIView.as_view(), name='api_mark_message_read'),
+    path('api/mark-message-unread/<uuid:message_pk>/', MarkMessageUnreadAPIView.as_view(), name='api_mark_message_unread'),
+    path('api/star-message/<uuid:message_pk>/', StarMessageAPIView.as_view(), name='api_star_message'),
+    path('api/mark-conversation-read/<uuid:thread_pk>/', MarkConversationReadAPIView.as_view(), name='api_mark_conversation_read'),
+    path('api/archive-conversation/<uuid:thread_pk>/', ArchiveConversationAPIView.as_view(), name='api_archive_conversation'),
+    path('api/search-messages/', SearchMessagesAPIView.as_view(), name='api_search_messages'),
+    path('api/messaging-stats/', MessagingStatsAPIView.as_view(), name='api_messaging_stats'),
+    path('api/can-communicate/<uuid:user_pk>/', CanCommunicateAPIView.as_view(), name='api_can_communicate'),
+    
+    # API avanzada de mensajería
+    path('api/advanced/', include(advanced_router.urls)),
+    path('api/advanced/conversation/create/', MessageConversationAPIView.as_view(), name='api_create_conversation'),
+    path('api/advanced/message/send/', MessageSendAPIView.as_view(), name='api_send_advanced_message'),
+    path('api/advanced/search/', MessageSearchAPIView.as_view(), name='api_advanced_search'),
+    path('api/advanced/communication-check/<int:user_id>/', MessageCommunicationCheckAPIView.as_view(), name='api_communication_check'),
+    path('api/advanced/attachment/upload/', MessageAttachmentAPIView.as_view(), name='api_upload_attachment'),
+    path('api/advanced/stats/', MessageStatsAPIView.as_view(), name='api_advanced_stats'),
 ]
