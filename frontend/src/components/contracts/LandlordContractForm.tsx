@@ -71,6 +71,7 @@ import { LoadingButton } from '@mui/lab';
 // Services y hooks del nuevo sistema
 import { LandlordContractService } from '../../services/landlordContractService';
 import { useAuth } from '../../hooks/useAuth';
+import { useProperties } from '../../hooks/useProperties';
 
 // Types del nuevo sistema
 import {
@@ -78,7 +79,8 @@ import {
   ContractWorkflowState, 
   PropertyType,
   DocumentType,
-  LandlordData
+  LandlordData,
+  CreateContractPayload
 } from '../../types/landlordContract';
 
 // Utilidades
@@ -210,6 +212,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: properties = [], isLoading: propertiesLoading } = useProperties();
 
   // Form state
   const [activeStep, setActiveStep] = useState(0);
@@ -269,6 +272,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   // Property details state
   const [propertyData, setPropertyData] = useState({
+    property_id: propertyId || '',
     property_address: '',
     property_area: 0,
     property_stratum: 3,
@@ -286,6 +290,37 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     'Cláusulas Especiales',
     'Revisión y Creación'
   ];
+
+  // Actualizar propertyId en propertyData cuando cambie el prop
+  useEffect(() => {
+    if (propertyId && propertyId !== propertyData.property_id) {
+      setPropertyData(prev => ({ ...prev, property_id: propertyId }));
+    }
+  }, [propertyId]);
+
+  // Handle property selection
+  const handlePropertySelect = (selectedPropertyId: string) => {
+    const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+    if (selectedProperty) {
+      setPropertyData({
+        property_id: selectedProperty.id,
+        property_address: selectedProperty.address || '',
+        property_area: selectedProperty.area || 0,
+        property_stratum: selectedProperty.stratum || 3,
+        property_rooms: selectedProperty.rooms || 2,
+        property_bathrooms: selectedProperty.bathrooms || 2,
+        property_parking_spaces: selectedProperty.parking_spaces || 1,
+        property_furnished: selectedProperty.is_furnished || false
+      });
+      
+      // Also update contract data with property type
+      setContractData(prev => ({
+        ...prev,
+        property_type: selectedProperty.property_type || 'apartamento',
+        property_id: selectedProperty.id
+      }));
+    }
+  };
 
   // Cargar datos si es edición
   useEffect(() => {
@@ -325,6 +360,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         break;
 
       case 1: // Detalles de la Propiedad
+        if (!propertyData.property_id) errors.push('Debe seleccionar una propiedad');
         if (!propertyData.property_address) errors.push('La dirección de la propiedad es requerida');
         if (!propertyData.property_area || propertyData.property_area <= 0) errors.push('El área debe ser mayor a 0');
         if (!contractData.property_type) errors.push('El tipo de propiedad es requerido');
@@ -374,22 +410,39 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     try {
       setLoading(true);
 
-      // Preparar datos completos del contrato
-      const completeContractData: Omit<LandlordControlledContractData, 'id' | 'created_at' | 'updated_at'> = {
-        ...contractData,
-        ...propertyData,
-        landlord_data: landlordData,
-        contract_number: '', // Se generará en el backend
-        current_state: 'DRAFT',
-        workflow_history: []
-      } as Omit<LandlordControlledContractData, 'id' | 'created_at' | 'updated_at'>;
-
       let result: LandlordControlledContractData;
 
       if (isEdit && contractId) {
-        result = await LandlordContractService.updateContract(contractId, completeContractData);
+        // Para editar, enviar datos completos
+        const completeContractData: Partial<LandlordControlledContractData> = {
+          ...contractData,
+          ...propertyData,
+          landlord_data: landlordData,
+        };
+        result = await LandlordContractService.updateContractDraft(contractId, completeContractData);
       } else {
-        result = await LandlordContractService.createContract(completeContractData);
+        // Para crear, usar el payload simplificado
+        const createPayload: CreateContractPayload = {
+          property_id: propertyData.property_id || '',
+          contract_template: contractData.contract_template || 'rental_urban',
+          basic_terms: {
+            monthly_rent: contractData.monthly_rent || 0,
+            security_deposit: contractData.security_deposit || 0,
+            duration_months: contractData.duration_months || 12,
+            utilities_included: contractData.utilities_included || false,
+            pets_allowed: contractData.pets_allowed || false,
+            smoking_allowed: contractData.smoking_allowed || false,
+          }
+        };
+        
+        console.log('📝 FORM DATA DEBUG:', {
+          propertyData,
+          contractData,
+          createPayload,
+          user
+        });
+        
+        result = await LandlordContractService.createContractDraft(createPayload);
       }
 
       if (onSuccess) {
@@ -575,6 +628,55 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 Especifica las características de la propiedad a arrendar
               </Typography>
             </Grid>
+            
+            {/* Property Selector */}
+            {!propertyId && (
+              <Grid item xs={12}>
+                <FormControl fullWidth error={validationErrors.some(err => err.includes('seleccionar una propiedad'))}>
+                  <InputLabel id="property-select-label">Seleccionar Propiedad *</InputLabel>
+                  <Select
+                    labelId="property-select-label"
+                    value={propertyData.property_id}
+                    label="Seleccionar Propiedad *"
+                    onChange={(e) => handlePropertySelect(e.target.value as string)}
+                    disabled={propertiesLoading}
+                  >
+                    {propertiesLoading ? (
+                      <MenuItem disabled>Cargando propiedades...</MenuItem>
+                    ) : properties.length === 0 ? (
+                      <MenuItem disabled>No hay propiedades disponibles</MenuItem>
+                    ) : (
+                      properties.map((property) => (
+                        <MenuItem key={property.id} value={property.id}>
+                          <Box>
+                            <Typography variant="subtitle2">
+                              {property.title || `${property.property_type} - ${property.area}m²`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {property.address}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                  {validationErrors.some(err => err.includes('seleccionar una propiedad')) && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                      Debe seleccionar una propiedad para continuar
+                    </Typography>
+                  )}
+                </FormControl>
+              </Grid>
+            )}
+            
+            {propertyData.property_id && (
+              <Grid item xs={12}>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2">Propiedad seleccionada:</Typography>
+                  <Typography variant="body2">{propertyData.property_address}</Typography>
+                </Alert>
+              </Grid>
+            )}
 
             <Grid item xs={12}>
               <TextField
@@ -1335,3 +1437,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 };
 
 export default LandlordContractForm;
+
+/* PAYLOAD FIX 1754467945892 - PROPERTY ID INITIALIZATION - Fixed property_id missing in propertyData */
+/* FORCE RELOAD 1754456937847 - LANDLORD_CONTRACT_FORM - Nuclear fix applied */

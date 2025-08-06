@@ -24,8 +24,8 @@ import {
   PublishContractPayload,
 } from '../types/landlordContract';
 
-const BASE_URL = '/api/v1/contracts/landlord';
-const TENANT_BASE_URL = '/api/v1/contracts/tenant';
+const BASE_URL = '/contracts/landlord';
+const TENANT_BASE_URL = '/contracts/tenant';
 
 export class LandlordContractService {
   // =====================================================================
@@ -36,7 +36,44 @@ export class LandlordContractService {
    * Crear un nuevo borrador de contrato
    */
   static async createContractDraft(payload: CreateContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${BASE_URL}/contracts/`, payload);
+    // Transformar el payload al formato que espera el serializer backend
+    const backendPayload = {
+      property: payload.property_id,
+      monthly_rent: payload.basic_terms.monthly_rent,
+      security_deposit: payload.basic_terms.security_deposit,
+      contract_duration_months: payload.basic_terms.duration_months,
+      utilities_included: payload.basic_terms.utilities_included,
+      pets_allowed: payload.basic_terms.pets_allowed,
+      smoking_allowed: payload.basic_terms.smoking_allowed
+    };
+    
+    console.log('🚀 SENDING CONTRACT PAYLOAD:', {
+      originalPayload: payload,
+      transformedPayload: backendPayload,
+      endpoint: `${BASE_URL}/contracts/`
+    });
+    
+    const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
+    return response.data;
+  }
+
+  /**
+   * Método alias para compatibilidad con tests y componentes legacy
+   * Convierte datos genéricos a CreateContractPayload y llama createContractDraft
+   */
+  static async createContract(contractData: any): Promise<LandlordControlledContractData> {
+    // Transformar datos genéricos directamente al formato backend
+    const backendPayload = {
+      property: contractData.property_id || contractData.propertyId || contractData.property || '',
+      monthly_rent: Number(contractData.monthly_rent || contractData.monthlyRent || 0),
+      security_deposit: Number(contractData.security_deposit || contractData.securityDeposit || 0),
+      contract_duration_months: Number(contractData.duration_months || contractData.durationMonths || contractData.contract_duration_months || 12),
+      utilities_included: Boolean(contractData.utilities_included || contractData.utilitiesIncluded || false),
+      pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
+      smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false)
+    };
+    
+    const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
   }
 
@@ -150,7 +187,7 @@ export class LandlordContractService {
    * Obtener estadísticas generales de contratos (para ambos roles)
    */
   static async getContractStatistics(): Promise<ContractStatistics> {
-    const response = await api.get('/api/v1/contracts/statistics/');
+    const response = await api.get('/contracts/statistics/');
     return response.data;
   }
 
@@ -179,7 +216,7 @@ export class LandlordContractService {
       });
     }
 
-    const response = await api.get(`/api/v1/contracts/?${params.toString()}`);
+    const response = await api.get(`/contracts/?${params.toString()}`);
     return response.data;
   }
 
@@ -187,7 +224,7 @@ export class LandlordContractService {
    * Aprobar contrato (funciona para ambos roles)
    */
   static async approveContract(payload: ApproveContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`/api/v1/contracts/${payload.contract_id}/approve/`);
+    const response = await api.post(`/contracts/${payload.contract_id}/approve/`);
     return response.data;
   }
 
@@ -195,7 +232,7 @@ export class LandlordContractService {
    * Publicar contrato (solo arrendador)
    */
   static async publishContract(payload: PublishContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`/api/v1/contracts/${payload.contract_id}/publish/`);
+    const response = await api.post(`/contracts/${payload.contract_id}/publish/`);
     return response.data;
   }
 
@@ -316,7 +353,7 @@ export class LandlordContractService {
    * Presentar una objeción
    */
   static async submitObjection(payload: SubmitObjectionPayload): Promise<ContractObjection> {
-    const response = await api.post(`/api/v1/contracts/objections/`, payload);
+    const response = await api.post(`/contracts/objections/`, payload);
     return response.data;
   }
 
@@ -324,7 +361,7 @@ export class LandlordContractService {
    * Responder a una objeción
    */
   static async respondToObjection(payload: RespondObjectionPayload): Promise<ContractObjection> {
-    const response = await api.post(`/api/v1/contracts/objections/${payload.objection_id}/respond/`, {
+    const response = await api.post(`/contracts/objections/${payload.objection_id}/respond/`, {
       response: payload.response,
       response_note: payload.response_note,
     });
@@ -335,7 +372,7 @@ export class LandlordContractService {
    * Obtener objeciones de un contrato
    */
   static async getContractObjections(contractId: string): Promise<ContractObjection[]> {
-    const response = await api.get(`/api/v1/contracts/${contractId}/objections/`);
+    const response = await api.get(`/contracts/${contractId}/objections/`);
     return response.data;
   }
 
@@ -343,7 +380,7 @@ export class LandlordContractService {
    * Obtener una objeción específica
    */
   static async getObjection(objectionId: string): Promise<ContractObjection> {
-    const response = await api.get(`/api/v1/contracts/objections/${objectionId}/`);
+    const response = await api.get(`/contracts/objections/${objectionId}/`);
     return response.data;
   }
 
@@ -351,7 +388,7 @@ export class LandlordContractService {
    * Retirar una objeción
    */
   static async withdrawObjection(objectionId: string): Promise<ContractObjection> {
-    const response = await api.post(`/api/v1/contracts/objections/${objectionId}/withdraw/`);
+    const response = await api.post(`/contracts/objections/${objectionId}/withdraw/`);
     return response.data;
   }
 
@@ -366,7 +403,7 @@ export class LandlordContractService {
     contractId: string,
     guaranteeData: Partial<LandlordContractGuarantee>
   ): Promise<LandlordContractGuarantee> {
-    const response = await api.post(`/api/v1/contracts/${contractId}/guarantees/`, guaranteeData);
+    const response = await api.post(`/contracts/${contractId}/guarantees/`, guaranteeData);
     return response.data;
   }
 
@@ -374,7 +411,7 @@ export class LandlordContractService {
    * Obtener garantías de un contrato
    */
   static async getContractGuarantees(contractId: string): Promise<LandlordContractGuarantee[]> {
-    const response = await api.get(`/api/v1/contracts/${contractId}/guarantees/`);
+    const response = await api.get(`/contracts/${contractId}/guarantees/`);
     return response.data;
   }
 
@@ -385,7 +422,7 @@ export class LandlordContractService {
     guaranteeId: string,
     guaranteeData: Partial<LandlordContractGuarantee>
   ): Promise<LandlordContractGuarantee> {
-    const response = await api.patch(`/api/v1/contracts/guarantees/${guaranteeId}/`, guaranteeData);
+    const response = await api.patch(`/contracts/guarantees/${guaranteeId}/`, guaranteeData);
     return response.data;
   }
 
@@ -393,7 +430,7 @@ export class LandlordContractService {
    * Verificar una garantía
    */
   static async verifyGuarantee(guaranteeId: string, notes?: string): Promise<LandlordContractGuarantee> {
-    const response = await api.post(`/api/v1/contracts/guarantees/${guaranteeId}/verify/`, {
+    const response = await api.post(`/contracts/guarantees/${guaranteeId}/verify/`, {
       verification_notes: notes,
     });
     return response.data;
@@ -407,7 +444,7 @@ export class LandlordContractService {
    * Obtener historial completo de un contrato
    */
   static async getContractHistory(contractId: string): Promise<ContractWorkflowHistory[]> {
-    const response = await api.get(`/api/v1/contracts/${contractId}/history/`);
+    const response = await api.get(`/contracts/${contractId}/history/`);
     return response.data;
   }
 
@@ -415,7 +452,7 @@ export class LandlordContractService {
    * Obtener actividad reciente del usuario
    */
   static async getRecentActivity(limit: number = 10): Promise<ContractWorkflowHistory[]> {
-    const response = await api.get(`/api/v1/contracts/recent-activity/?limit=${limit}`);
+    const response = await api.get(`/contracts/recent-activity/?limit=${limit}`);
     return response.data;
   }
 
@@ -431,7 +468,7 @@ export class LandlordContractService {
     errors: Record<string, string[]>;
     warnings: Record<string, string[]>;
   }> {
-    const response = await api.post('/api/v1/contracts/validate/', data);
+    const response = await api.post('/contracts/validate/', data);
     return response.data;
   }
 
@@ -448,7 +485,7 @@ export class LandlordContractService {
       is_default: boolean;
     }[];
   }> {
-    const response = await api.get('/api/v1/contracts/templates/');
+    const response = await api.get('/contracts/templates/');
     return response.data;
   }
 
@@ -459,7 +496,7 @@ export class LandlordContractService {
     pdf_url: string;
     expires_at: string;
   }> {
-    const response = await api.post(`/api/v1/contracts/${contractId}/generate-preview/`);
+    const response = await api.post(`/contracts/${contractId}/generate-preview/`);
     return response.data;
   }
 
@@ -467,7 +504,7 @@ export class LandlordContractService {
    * Descargar contrato final firmado
    */
   static async downloadSignedContract(contractId: string): Promise<Blob> {
-    const response = await api.get(`/api/v1/contracts/${contractId}/download/`, {
+    const response = await api.get(`/contracts/${contractId}/download/`, {
       responseType: 'blob',
     });
     return response.data;
@@ -483,7 +520,7 @@ export class LandlordContractService {
     landlord_name?: string;
     property_address?: string;
   }> {
-    const response = await api.post('/api/v1/contracts/verify-invitation/', {
+    const response = await api.post('/contracts/verify-invitation/', {
       invitation_token: token,
     });
     return response.data;
@@ -500,7 +537,7 @@ export class LandlordContractService {
     contract_duration_months: number;
     invitation_expires_at: string;
   }> {
-    const response = await api.get(`/api/v1/contracts/invitation-info/${token}/`);
+    const response = await api.get(`/contracts/invitation-info/${token}/`);
     return response.data;
   }
 
@@ -661,7 +698,7 @@ export class LandlordContractService {
     invitationId: string,
     method: 'email' | 'sms' | 'whatsapp'
   ): Promise<{ success: boolean; method: string; sent_at: string }> {
-    const response = await api.post(`/api/v1/contracts/invitations/${invitationId}/send/`, {
+    const response = await api.post(`/contracts/invitations/${invitationId}/send/`, {
       method,
     });
     return response.data;
@@ -678,7 +715,7 @@ export class LandlordContractService {
     landlord_name?: string;
     property_address?: string;
   }> {
-    const response = await api.post('/api/v1/contracts/verify-invitation/', {
+    const response = await api.post('/contracts/verify-invitation/', {
       invitation_token: token,
     });
     return response.data;
@@ -720,7 +757,7 @@ export class LandlordContractService {
    * Cancelar invitación activa
    */
   static async cancelInvitation(invitationId: string): Promise<{ success: boolean }> {
-    const response = await api.post(`/api/v1/contracts/invitations/${invitationId}/cancel/`);
+    const response = await api.post(`/contracts/invitations/${invitationId}/cancel/`);
     return response.data;
   }
 
@@ -731,7 +768,7 @@ export class LandlordContractService {
     invitationId: string,
     newMethod?: 'email' | 'sms' | 'whatsapp'
   ): Promise<{ success: boolean; method: string; sent_at: string }> {
-    const response = await api.post(`/api/v1/contracts/invitations/${invitationId}/resend/`, {
+    const response = await api.post(`/contracts/invitations/${invitationId}/resend/`, {
       method: newMethod,
     });
     return response.data;
@@ -753,7 +790,7 @@ export class LandlordContractService {
    * Enviar recordatorio personalizado
    */
   static async sendCustomReminder(contractId: string, message: string, recipient: 'tenant' | 'landlord'): Promise<{ success: boolean }> {
-    const response = await api.post(`/api/v1/contracts/${contractId}/send-reminder/`, {
+    const response = await api.post(`/contracts/${contractId}/send-reminder/`, {
       message,
       recipient,
     });
@@ -783,7 +820,7 @@ export class LandlordContractService {
       formData.append('description', description);
     }
 
-    const response = await api.post(`/api/v1/contracts/${contractId}/documents/`, formData, {
+    const response = await api.post(`/contracts/${contractId}/documents/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -805,7 +842,7 @@ export class LandlordContractService {
       uploaded_at: string;
     }[];
   }> {
-    const response = await api.get(`/api/v1/contracts/${contractId}/documents/`);
+    const response = await api.get(`/contracts/${contractId}/documents/`);
     return response.data;
   }
 
@@ -905,3 +942,8 @@ export class LandlordContractService {
 }
 
 export default LandlordContractService;
+/* Cache busted: 2025-08-06T04:42:27.040Z - CONTRACT_SERVICE */
+
+/* FORCE RELOAD 1754456937777 - LANDLORD_CONTRACT_SERVICE - Nuclear fix applied */
+
+/* PAYLOAD FIX 1754467945892 - BACKEND SERIALIZER ALIGNMENT - Property ID and fields fixed */

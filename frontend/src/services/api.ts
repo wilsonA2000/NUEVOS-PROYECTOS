@@ -24,6 +24,8 @@ const PUBLIC_ENDPOINTS = [
   '/users/auth/login/',
   '/users/auth/register/',
   '/users/auth/validate-interview-code/',
+  '/users/auth/confirm-email/',
+  '/users/auth/resend-confirmation/',
   '/users/auth/forgot-password/',
   '/users/auth/reset-password/',
   '/auth/login/',
@@ -112,6 +114,14 @@ api.interceptors.response.use(
     
     // Para códigos 4xx, rechazar como error para que sea manejado por el catch
     if (response.status >= 400 && response.status < 500) {
+      console.error('🔥 API ERROR DETAILS:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.config.url,
+        method: response.config.method,
+        data: response.data,
+        headers: response.headers
+      });
       const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
       error.response = response;
       error.config = response.config;
@@ -184,3 +194,11 @@ setupAxiosCache(api, {
 
 // Exportar función para invalidar cache cuando sea necesario
 export { apiCache } from './apiCache';
+
+// Export the main API instance
+export default api;
+/* Cache busted: 2025-08-06T04:42:27.049Z - API_CONFIG */
+
+/* FORCE RELOAD 1754456937872 - API_CONFIG - Nuclear fix applied */
+
+/* DEBUG ERROR LOGGING 1754468245892 - Enhanced error details for HTTP 400 debugging */
