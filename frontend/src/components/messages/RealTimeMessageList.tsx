@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
-import { useRealTimeMessages } from '../../hooks/useRealTimeMessages';
+import { useOptimizedWebSocketContext } from '../../contexts/OptimizedWebSocketContext';
 import { ensureArray } from '../../utils/arrayUtils';
 import { Message, MessageThread } from '../../types/message';
 
@@ -54,31 +54,20 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
   const { messages, threads, isLoading, error, deleteMessage, markAsRead } = useMessages();
   const {
     isConnected,
-    unreadCount,
-    hasNewMessages,
-    typingUsers,
-    userStatuses,
-    markMessagesAsRead,
-    joinThread,
-    leaveThread,
-    currentThreadId,
-  } = useRealTimeMessages();
+    connectionStatus,
+    unreadMessagesCount,
+    onlineUsers,
+    send,
+    subscribe,
+  } = useOptimizedWebSocketContext();
+  
+  // Estado local para usuarios escribiendo
+  const [typingUsers, setTypingUsers] = useState<any[]>([]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [realTimeMessages, setRealTimeMessages] = useState<Message[]>([]);
-
-  // Estado de conexión y notificaciones
-  const [connectionStatus, setConnectionStatus] = useState<string>('');
-
-  useEffect(() => {
-    if (isConnected) {
-      setConnectionStatus('Conectado - Mensajes en tiempo real activos');
-    } else {
-      setConnectionStatus('Desconectado - Solo mensajes guardados');
-    }
-  }, [isConnected]);
 
   // Manejar mensajes en tiempo real
   useEffect(() => {
@@ -87,15 +76,27 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
     }
   }, [messages]);
 
-  // Unirse/salir de la conversación específica
+  // Manejar conversación específica con WebSocket
   useEffect(() => {
-    if (threadId && isConnected) {
-      joinThread(threadId);
-      return () => {
-        leaveThread(threadId);
-      };
+    if (!threadId || !isConnected) return;
+
+    // Unirse a la conversación
+    const success = send('messaging/thread/' + threadId, {
+      type: 'join_conversation',
+      thread_id: threadId,
+    });
+
+    if (success) {
+      console.log(`Joined thread ${threadId}`);
     }
-  }, [threadId, isConnected, joinThread, leaveThread]);
+
+    return () => {
+      send('messaging/thread/' + threadId, {
+        type: 'leave_conversation',
+        thread_id: threadId,
+      });
+    };
+  }, [threadId, isConnected, send]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, message: Message) => {
     setAnchorEl(event.currentTarget);
@@ -113,13 +114,17 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
       
       // Marcar como leído usando WebSocket si está disponible
       if (isConnected && !selectedMessage.is_read) {
-        markMessagesAsRead(selectedMessage.thread_id, [selectedMessage.id]);
+        send('messaging', {
+          type: 'mark_as_read',
+          message_id: selectedMessage.id,
+          thread_id: selectedMessage.thread_id,
+        });
       } else if (!selectedMessage.is_read) {
         markAsRead.mutate(selectedMessage.id);
       }
     }
     handleMenuClose();
-  }, [selectedMessage, navigate, isConnected, markMessagesAsRead, markAsRead]);
+  }, [selectedMessage, navigate, isConnected, send, markAsRead]);
 
   const handleReply = useCallback(() => {
     if (selectedMessage) {
@@ -156,7 +161,7 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
 
   // Obtener estado online de un usuario
   const getUserStatus = (userId: string) => {
-    return userStatuses.get(userId);
+    return onlineUsers.get(userId);
   };
 
   if (isLoading) {
@@ -189,9 +194,9 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
           <Typography variant="body2" color={isConnected ? 'success.dark' : 'warning.dark'}>
             {connectionStatus}
           </Typography>
-          {hasNewMessages && (
+          {unreadMessagesCount > 0 && (
             <Chip 
-              label={`${unreadCount} nuevos`} 
+              label={`${unreadMessagesCount} nuevos`} 
               color="primary" 
               size="small" 
               sx={{ ml: 2 }}
@@ -203,7 +208,7 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          Mensajes {unreadCount > 0 ? `(${unreadCount} nuevos)` : ''}
+          Mensajes {unreadMessagesCount > 0 ? `(${unreadMessagesCount} nuevos)` : ''}
         </Typography>
         <Button
           variant="contained"

@@ -200,125 +200,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   const shouldShowRealPayments = showRealPayments && propAmount && propAmount > 0;
   const paymentAmount = propAmount || formData.amount;
 
-  return (
-    <Card>
-      <CardContent>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Typography variant="h6">
-            {isEdit ? 'Editar Pago' : shouldShowRealPayments ? 'Procesar Pago' : 'Nuevo Pago'}
-          </Typography>
-          {!isEdit && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showRealPayments}
-                  onChange={(e) => setShowRealPayments(e.target.checked)}
-                  disabled={!propAmount || propAmount <= 0}
-                />
-              }
-              label="Procesamiento Real"
-            />
-          )}
-        </Box>
-
-        {shouldShowRealPayments && (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Está a punto de procesar un pago real por{' '}
-              <strong>
-                {new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: currency,
-                }).format(paymentAmount)}
-              </strong>
-              {description && <span> - {description}</span>}
-            </Typography>
-          </Alert>
-        )}
-
-        {shouldShowRealPayments ? (
-          // Mostrar pasarelas de pago reales
-          <Box>
-            <Tabs value={selectedPaymentMethod} onChange={handleTabChange} aria-label="payment methods">
-              <Tab 
-                icon={<CreditCardIcon />} 
-                label="Tarjeta de Crédito" 
-                id="payment-tab-0" 
-                aria-controls="payment-tabpanel-0" 
-              />
-              <Tab 
-                icon={<PaymentIcon />} 
-                label="PayPal" 
-                id="payment-tab-1" 
-                aria-controls="payment-tabpanel-1" 
-              />
-              <Tab 
-                icon={<AccountBalanceIcon />} 
-                label="Formulario Tradicional" 
-                id="payment-tab-2" 
-                aria-controls="payment-tabpanel-2" 
-              />
-            </Tabs>
-
-            <TabPanel value={selectedPaymentMethod} index={0}>
-              {stripePromise && (
-                <StripePaymentForm
-                  stripePromise={stripePromise}
-                  amount={paymentAmount}
-                  currency={currency}
-                  contractId={propContractId}
-                  description={description}
-                  onSuccess={handleStripePaymentSuccess}
-                  onError={handleStripePaymentError}
-                  onCancel={() => setSelectedPaymentMethod(2)}
-                  showSaveCard={true}
-                  enableSeparateFields={false}
-                />
-              )}
-            </TabPanel>
-
-            <TabPanel value={selectedPaymentMethod} index={1}>
-              <PayPalPaymentButton
-                clientId={PAYMENT_CONFIG.paypal.clientId}
-                environment={PAYMENT_CONFIG.paypal.environment}
-                amount={paymentAmount}
-                currency={currency}
-                contractId={propContractId}
-                description={description}
-                onSuccess={handlePayPalPaymentSuccess}
-                onError={handlePayPalPaymentError}
-                onCancel={() => setSelectedPaymentMethod(2)}
-                showSubscriptions={false}
-                style={{
-                  layout: 'vertical',
-                  color: 'gold',
-                  shape: 'rect',
-                  label: 'pay',
-                  tagline: false,
-                  height: 45,
-                }}
-              />
-            </TabPanel>
-
-            <TabPanel value={selectedPaymentMethod} index={2}>
-              <Alert severity="warning" sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  El formulario tradicional no procesa pagos reales. Use las pestañas anteriores para procesamiento en vivo.
-                </Typography>
-              </Alert>
-              {renderTraditionalForm()}
-            </TabPanel>
-          </Box>
-        ) : (
-          // Mostrar formulario tradicional
-          renderTraditionalForm()
-        )}
-      </CardContent>
-    </Card>
-  );
-
-  function renderTraditionalForm() {
+  // Función para renderizar el formulario tradicional
+  const renderTraditionalForm = () => {
     return (
       <Box component="form" onSubmit={handleSubmit}>
         <Grid container spacing={3}>
@@ -464,5 +347,123 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         </Grid>
       </Box>
     );
-  }
-}; 
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Typography variant="h6">
+            {isEdit ? 'Editar Pago' : shouldShowRealPayments ? 'Procesar Pago' : 'Nuevo Pago'}
+          </Typography>
+          {!isEdit && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showRealPayments}
+                  onChange={(e) => setShowRealPayments(e.target.checked)}
+                  disabled={!propAmount || propAmount <= 0}
+                />
+              }
+              label="Procesamiento Real"
+            />
+          )}
+        </Box>
+
+        {shouldShowRealPayments && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Está a punto de procesar un pago real por{' '}
+              <strong>
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: currency,
+                }).format(paymentAmount)}
+              </strong>
+              {description && <span> - {description}</span>}
+            </Typography>
+          </Alert>
+        )}
+
+        {shouldShowRealPayments ? (
+          // Mostrar pasarelas de pago reales
+          <Box>
+            <Tabs value={selectedPaymentMethod} onChange={handleTabChange} aria-label="payment methods">
+              <Tab 
+                icon={<CreditCardIcon />} 
+                label="Tarjeta de Crédito" 
+                id="payment-tab-0" 
+                aria-controls="payment-tabpanel-0" 
+              />
+              <Tab 
+                icon={<PaymentIcon />} 
+                label="PayPal" 
+                id="payment-tab-1" 
+                aria-controls="payment-tabpanel-1" 
+              />
+              <Tab 
+                icon={<AccountBalanceIcon />} 
+                label="Formulario Tradicional" 
+                id="payment-tab-2" 
+                aria-controls="payment-tabpanel-2" 
+              />
+            </Tabs>
+
+            <TabPanel value={selectedPaymentMethod} index={0}>
+              {stripePromise && (
+                <StripePaymentForm
+                  stripePromise={stripePromise}
+                  amount={paymentAmount}
+                  currency={currency}
+                  contractId={propContractId}
+                  description={description}
+                  onSuccess={handleStripePaymentSuccess}
+                  onError={handleStripePaymentError}
+                  onCancel={() => setSelectedPaymentMethod(2)}
+                  showSaveCard={true}
+                  enableSeparateFields={false}
+                />
+              )}
+            </TabPanel>
+
+            <TabPanel value={selectedPaymentMethod} index={1}>
+              <PayPalPaymentButton
+                clientId={PAYMENT_CONFIG.paypal.clientId}
+                environment={PAYMENT_CONFIG.paypal.environment}
+                amount={paymentAmount}
+                currency={currency}
+                contractId={propContractId}
+                description={description}
+                onSuccess={handlePayPalPaymentSuccess}
+                onError={handlePayPalPaymentError}
+                onCancel={() => setSelectedPaymentMethod(2)}
+                showSubscriptions={false}
+                style={{
+                  layout: 'vertical',
+                  color: 'gold',
+                  shape: 'rect',
+                  label: 'pay',
+                  tagline: false,
+                  height: 45,
+                }}
+              />
+            </TabPanel>
+
+            <TabPanel value={selectedPaymentMethod} index={2}>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  El formulario tradicional no procesa pagos reales. Use las pestañas anteriores para procesamiento en vivo.
+                </Typography>
+              </Alert>
+              {renderTraditionalForm()}
+            </TabPanel>
+          </Box>
+        ) : (
+          // Mostrar formulario tradicional
+          renderTraditionalForm()
+        )}
+      </CardContent>
+    </Card>
+  );
+};
