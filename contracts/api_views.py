@@ -1,5 +1,6 @@
 """
 Vistas de API REST para la aplicación de contratos de VeriHome.
+OPTIMIZED with performance monitoring and intelligent caching.
 """
 
 from rest_framework import viewsets, generics, permissions, status
@@ -7,6 +8,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import models
+# Import optimizations
+from core.optimizations import (
+    QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin,
+    cache_expensive_operation, OptimizedContractSerializer
+)
 from .models import (
     Contract, ContractTemplate, ContractSignature, ContractAmendment,
     ContractRenewal, ContractTermination, ContractDocument
@@ -21,17 +27,18 @@ from users.services import AdminActionLogger
 
 User = get_user_model()
 
-# ViewSets básicos
-class ContractViewSet(viewsets.ModelViewSet):
-    """ViewSet para contratos."""
+# Optimized ViewSets
+class ContractViewSet(QueryOptimizationMixin, PerformanceTrackingMixin, viewsets.ModelViewSet):
+    """ViewSet para contratos - OPTIMIZADO."""
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = OptimizedPagination
     
     def get_queryset(self):
-        return Contract.objects.filter(
-            primary_party=self.request.user
-        ) | Contract.objects.filter(
-            secondary_party=self.request.user
-        )
+        base_queryset = Contract.objects.filter(
+            models.Q(primary_party=self.request.user) | 
+            models.Q(secondary_party=self.request.user)
+        ).order_by('-created_at')
+        return self.get_optimized_queryset(base_queryset)
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -60,10 +67,9 @@ class ContractViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='contract_create',
                 description=f'Creación de contrato {contract.title}',
-                details={'contract_id': str(contract.id)},
+                metadata={'contract_id': str(contract.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
             )
 
     def perform_update(self, serializer):
@@ -85,10 +91,9 @@ class ContractViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='contract_edit',
                 description=f'Edición de contrato {contract.title}',
-                details={'contract_id': str(contract.id)},
+                metadata={'contract_id': str(contract.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
             )
 
 class ContractTemplateViewSet(viewsets.ModelViewSet):
@@ -299,14 +304,13 @@ class SignContractAPIView(APIView):
                     user=request.user,
                     activity_type='contract_sign',
                     description=f'Firma digital de contrato {contract.title}',
-                    details={
+                    metadata={
                         'contract_id': str(contract.id),
                         'signature_id': str(signature.id),
                         'verification_level': verification_level
                     },
                     ip_address=request.META.get('REMOTE_ADDR'),
-                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                    performed_by_admin=False
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
                 )
             
             return Response(ContractSignatureSerializer(signature).data, status=status.HTTP_201_CREATED)
@@ -379,10 +383,9 @@ class ActivateContractAPIView(APIView):
                     user=request.user,
                     activity_type='contract_activate',
                     description=f'Activación de contrato {contract.title}',
-                    details={'contract_id': str(contract.id)},
+                    metadata={'contract_id': str(contract.id)},
                     ip_address=request.META.get('REMOTE_ADDR'),
-                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                    performed_by_admin=False
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
                 )
             
             return Response({"detail": "Contrato activado correctamente"})
@@ -843,3 +846,1095 @@ class SignatureVerificationAPIView(APIView):
             data_string += f":{str(signature.biometric_data)[:100]}"
         
         return hashlib.sha256(data_string.encode()).hexdigest()
+
+
+# ===================================================================
+# NUEVAS APIS ESPECIALIZADAS PARA FLUJO BIOMÉTRICO COMPLETO
+# ===================================================================
+
+class GenerateContractPDFAPIView(APIView):
+    """Vista para generar PDF inicial del contrato."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Genera PDF del contrato y actualiza estado."""
+        try:
+            from .pdf_generator import pdf_generator
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user,
+                status='draft'
+            )
+            
+            # Generar PDF
+            pdf_content = pdf_generator.generate_contract_pdf(contract)
+            pdf_url = pdf_generator.save_pdf_to_contract(contract, pdf_content)
+            
+            # Actualizar estado del contrato
+            contract.status = 'pdf_generated'
+            contract.save(update_fields=['status'])
+            
+            return Response({
+                'success': True,
+                'message': 'PDF generado exitosamente',
+                'pdf_url': pdf_url,
+                'contract_status': contract.status,
+                'contract_id': str(contract.id),
+                'generated_at': contract.pdf_generated_at.isoformat() if contract.pdf_generated_at else None
+            })
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado o sin permisos'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error generando PDF: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class EditContractBeforeAuthAPIView(APIView):
+    """Vista para editar contrato antes de autenticación."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def put(self, request, contract_id):
+        """Permite editar el contrato antes de iniciar autenticación."""
+        try:
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user,
+                status__in=['pdf_generated', 'ready_for_authentication']
+            )
+            
+            # Obtener datos de edición
+            editable_fields = [
+                'title', 'description', 'monthly_rent', 'security_deposit', 
+                'late_fee', 'minimum_lease_term', 'start_date', 'end_date'
+            ]
+            
+            updated_fields = []
+            for field in editable_fields:
+                if field in request.data:
+                    setattr(contract, field, request.data[field])
+                    updated_fields.append(field)
+            
+            if updated_fields:
+                contract.save(update_fields=updated_fields)
+                
+                # Si se modificó el contrato, regenerar PDF
+                from .pdf_generator import pdf_generator
+                pdf_content = pdf_generator.generate_contract_pdf(contract)
+                pdf_generator.save_pdf_to_contract(contract, pdf_content)
+            
+            return Response({
+                'success': True,
+                'message': 'Contrato actualizado exitosamente',
+                'updated_fields': updated_fields,
+                'contract_status': contract.status,
+                'pdf_regenerated': bool(updated_fields)
+            })
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado o sin permisos'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class StartBiometricAuthenticationAPIView(APIView):
+    """Vista para iniciar autenticación biométrica."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Inicia el proceso de autenticación biométrica."""
+        try:
+            from .biometric_service import biometric_service
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                status__in=['pdf_generated', 'ready_for_authentication']
+            )
+            
+            # Verificar que el usuario sea parte del contrato
+            if request.user not in [contract.primary_party, contract.secondary_party]:
+                return Response(
+                    {'error': 'No tiene permisos para autenticarse en este contrato'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Iniciar autenticación biométrica
+            auth = biometric_service.initiate_authentication(contract, request.user, request)
+            
+            return Response({
+                'success': True,
+                'message': 'Autenticación biométrica iniciada',
+                'authentication_id': str(auth.id),
+                'contract_status': contract.status,
+                'expires_at': auth.expires_at.isoformat(),
+                'voice_text': auth.voice_text,
+                'next_step': 'face_capture',
+                'progress': auth.get_progress_percentage()
+            })
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error iniciando autenticación: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class FaceCaptureAPIView(APIView):
+    """Vista para capturar fotos faciales (frontal y lateral)."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Procesa capturas faciales."""
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+            
+            # Obtener autenticación activa
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status__in=['pending', 'in_progress']
+            )
+            
+            # Obtener datos de imágenes
+            face_front_data = request.data.get('face_front_image')
+            face_side_data = request.data.get('face_side_image')
+            
+            if not face_front_data or not face_side_data:
+                return Response(
+                    {'error': 'Se requieren ambas imágenes faciales (frontal y lateral)'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Procesar capturas faciales
+            result = biometric_service.process_face_capture(
+                str(auth.id), face_front_data, face_side_data
+            )
+            
+            return Response(result)
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada o expirada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error procesando capturas faciales: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class DocumentCaptureAPIView(APIView):
+    """Vista para capturar documento de identidad."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Procesa imagen del documento de identidad."""
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+            
+            # Obtener autenticación activa
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status='in_progress'
+            )
+            
+            # Obtener datos del documento
+            document_image_data = request.data.get('document_image')
+            document_type = request.data.get('document_type', 'cedula_ciudadania')
+            document_number = request.data.get('document_number', '')
+            
+            if not document_image_data:
+                return Response(
+                    {'error': 'Se requiere imagen del documento'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Procesar documento
+            result = biometric_service.process_document_verification(
+                str(auth.id), document_image_data, document_type, document_number
+            )
+            
+            return Response(result)
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error procesando documento: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class CombinedCaptureAPIView(APIView):
+    """Vista para capturar documento junto al rostro."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Procesa imagen del documento junto al rostro."""
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+            
+            # Obtener autenticación activa
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status='in_progress'
+            )
+            
+            # Obtener datos de imagen combinada
+            combined_image_data = request.data.get('combined_image')
+            
+            if not combined_image_data:
+                return Response(
+                    {'error': 'Se requiere imagen del documento junto al rostro'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Procesar imagen combinada
+            result = biometric_service.process_combined_verification(
+                str(auth.id), combined_image_data
+            )
+            
+            return Response(result)
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error procesando imagen combinada: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class VoiceCaptureAPIView(APIView):
+    """Vista para capturar grabación de voz."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Procesa grabación de voz."""
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+            
+            # Obtener autenticación activa
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status='in_progress'
+            )
+            
+            # Obtener datos de voz
+            voice_recording_data = request.data.get('voice_recording')
+            expected_text = request.data.get('expected_text', auth.voice_text)
+            
+            if not voice_recording_data:
+                return Response(
+                    {'error': 'Se requiere grabación de voz'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Procesar grabación de voz
+            result = biometric_service.process_voice_verification(
+                str(auth.id), voice_recording_data, expected_text
+            )
+            
+            return Response(result)
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error procesando grabación de voz: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class CompleteAuthenticationAPIView(APIView):
+    """Vista para completar autenticación biométrica."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, contract_id):
+        """Completa y valida la autenticación biométrica."""
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+            
+            # Obtener autenticación activa
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status='in_progress'
+            )
+            
+            # Completar autenticación
+            result = biometric_service.complete_authentication(str(auth.id))
+            
+            return Response(result)
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error completando autenticación: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class BiometricAuthenticationStatusAPIView(APIView):
+    """Vista para consultar estado de autenticación biométrica."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, contract_id):
+        """Obtiene el estado actual de la autenticación biométrica."""
+        try:
+            from .models import BiometricAuthentication
+            
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user
+            )
+            
+            return Response({
+                'authentication_id': str(auth.id),
+                'status': auth.status,
+                'progress': auth.get_progress_percentage(),
+                'overall_confidence': auth.overall_confidence_score,
+                'individual_scores': {
+                    'face_confidence': auth.face_confidence_score,
+                    'document_confidence': auth.document_confidence_score,
+                    'voice_confidence': auth.voice_confidence_score
+                },
+                'completed_steps': {
+                    'face_front': bool(auth.face_front_image),
+                    'face_side': bool(auth.face_side_image),
+                    'document': bool(auth.document_image),
+                    'combined': bool(auth.document_with_face_image),
+                    'voice': bool(auth.voice_recording)
+                },
+                'started_at': auth.started_at.isoformat(),
+                'completed_at': auth.completed_at.isoformat() if auth.completed_at else None,
+                'expires_at': auth.expires_at.isoformat(),
+                'is_expired': auth.is_expired(),
+                'is_complete': auth.is_complete(),
+                'voice_text': auth.voice_text,
+                'contract_status': auth.contract.status
+            })
+            
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {'error': 'Autenticación biométrica no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class TenantProcessesAPIView(generics.ListAPIView):
+    """Vista para que los inquilinos vean sus procesos de arrendamiento en curso."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Obtiene todos los procesos de arrendamiento del inquilino/candidato actual."""
+        try:
+            from requests.models import PropertyInterestRequest
+            from matching.models import MatchRequest
+            from django.db import models
+            
+            # Solo inquilinos pueden ver esta vista
+            if request.user.user_type not in ['tenant', 'candidate']:
+                return Response({
+                    'results': [],
+                    'count': 0,
+                    'message': 'Esta vista es solo para inquilinos y candidatos'
+                })
+            
+            processes = []
+            
+            # 1. Buscar en PropertyInterestRequest como requester
+            try:
+                property_requests = PropertyInterestRequest.objects.filter(
+                    requester=request.user,
+                    status='accepted'  # Solo procesos aprobados/en curso
+                ).select_related('property', 'assignee').order_by('-created_at')
+                
+                for request_obj in property_requests:
+                    processes.append(self._format_property_request(request_obj))
+                    
+            except Exception as e:
+                print(f"Error fetching PropertyInterestRequest: {e}")
+            
+            # 2. Buscar en MatchRequest como tenant (fallback)
+            try:
+                match_requests = MatchRequest.objects.filter(
+                    tenant=request.user,
+                    status='accepted'
+                ).select_related('property', 'landlord').order_by('-created_at')
+                
+                for match_obj in match_requests:
+                    processes.append(self._format_match_request(match_obj))
+                    
+            except Exception as e:
+                print(f"Error fetching MatchRequest: {e}")
+            
+            print(f"🔍 TenantProcesses: Found {len(processes)} processes for user {request.user}")
+            
+            return Response({
+                'results': processes,
+                'count': len(processes)
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error obteniendo procesos: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _format_property_request(self, request_obj):
+        """Formatea un PropertyInterestRequest para la vista del inquilino - SINCRONIZACIÓN FIX."""
+        # LEER ESTADO REAL DEL WORKFLOW DESDE LA BASE DE DATOS
+        current_stage = getattr(request_obj, 'workflow_stage', 1)
+        status_key = getattr(request_obj, 'workflow_status', 'visit_scheduled')
+        workflow_db_data = getattr(request_obj, 'workflow_data', {})
+        
+        print(f"🔍 TENANT VIEW - PropertyRequest {request_obj.id}: Stage={current_stage}, Status={status_key}")
+        
+        # Usar datos del workflow desde la base de datos o valores por defecto
+        workflow_data = workflow_db_data if workflow_db_data else {
+            'visit_scheduled': {
+                'date': 'Por definir',
+                'time': 'Por definir',
+                'notes': 'Pendiente coordinación VeriHome',
+                'completed': False
+            } if current_stage == 1 else None,
+            'documents_requested': {
+                'requested_at': request_obj.created_at.isoformat(),
+                'documents_list': [
+                    'Cédula de Ciudadanía',
+                    'Comprobante de Ingresos (3 meses)',
+                    'Referencias Laborales',
+                    'Referencias Comerciales',
+                    'Autorizaciones de Centrales de Riesgo'
+                ],
+                'uploaded_documents': []
+            } if current_stage >= 2 else None,
+            'contract_data': {
+                'generated_at': None,
+                'signed_by_tenant': False,
+                'signed_by_landlord': False
+            } if current_stage >= 3 else None
+        }
+        
+        return {
+            'id': str(request_obj.id),
+            'match_code': f"REQ-{str(request_obj.id)[:8].upper()}",
+            'current_stage': current_stage,
+            'status': status_key,
+            'property': {
+                'id': str(request_obj.property.id),
+                'title': request_obj.property.title,
+                'address': f"{request_obj.property.address}, {request_obj.property.city}",
+                'rent_price': float(request_obj.property.rent_price)
+            },
+            'landlord': {
+                'id': str(request_obj.assignee.id),
+                'full_name': request_obj.assignee.get_full_name(),
+                'email': request_obj.assignee.email
+            },
+            'workflow_data': workflow_data,
+            'created_at': request_obj.created_at.isoformat(),
+            'updated_at': request_obj.updated_at.isoformat()
+        }
+    
+    def _format_match_request(self, match_obj):
+        """Formatea un MatchRequest para la vista del inquilino."""
+        # Similar al anterior pero para MatchRequest
+        current_stage = 1  # Etapa 1: Visita por defecto
+        status_key = 'visit_scheduled'
+        
+        workflow_data = {
+            'visit_scheduled': {
+                'date': '2025-08-15',  # Datos de ejemplo, se puede mejorar
+                'time': '14:00',
+                'notes': 'Visita coordinada por VeriHome',
+                'completed': False
+            }
+        }
+        
+        return {
+            'id': str(match_obj.id),
+            'match_code': getattr(match_obj, 'match_code', f"MAT-{str(match_obj.id)[:8].upper()}"),
+            'current_stage': current_stage,
+            'status': status_key,
+            'property': {
+                'id': str(match_obj.property.id),
+                'title': match_obj.property.title,
+                'address': f"{match_obj.property.address}, {match_obj.property.city}",
+                'rent_price': float(match_obj.property.rent_price)
+            },
+            'landlord': {
+                'id': str(match_obj.landlord.id),
+                'full_name': match_obj.landlord.get_full_name(),
+                'email': match_obj.landlord.email
+            },
+            'workflow_data': workflow_data,
+            'created_at': match_obj.created_at.isoformat(),
+            'updated_at': match_obj.updated_at.isoformat()
+        }
+
+
+class MatchedCandidatesAPIView(APIView):
+    """Vista para obtener candidatos aprobados en el módulo de contratos."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Obtiene todos los matches aprobados para el arrendador actual."""
+        try:
+            from matching.models import MatchRequest
+            from requests.models import PropertyInterestRequest
+            
+            # Solo arrendadores pueden ver esta vista
+            if request.user.user_type != 'landlord':
+                return Response(
+                    {'error': 'Solo arrendadores pueden acceder a esta vista'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Obtener matches aceptados - buscar en ambos modelos
+            matches = []
+            
+            # Primero intentar MatchRequest
+            try:
+                match_requests = MatchRequest.objects.filter(
+                    landlord=request.user,
+                    status='accepted'
+                ).select_related('tenant', 'property', 'landlord').order_by('-created_at')
+                matches.extend(match_requests)
+            except:
+                pass
+            
+            # Luego buscar en PropertyInterestRequest 
+            try:
+                property_requests = PropertyInterestRequest.objects.filter(
+                    assignee=request.user,
+                    status='accepted'
+                ).select_related('requester', 'property', 'assignee').order_by('-created_at')
+                matches.extend(property_requests)
+                print(f"🔍 Found {len(property_requests)} PropertyInterestRequest matches for user {request.user}")
+            except Exception as e:
+                print(f"❌ Error fetching PropertyInterestRequest: {e}")
+            
+            print(f"🔍 Total matches found: {len(matches)}")
+            
+            # Serializar los datos
+            candidates_data = []
+            for match in matches:
+                # CRITICAL FIX: Leer estado real del workflow desde la base de datos
+                # No hardcodear valores por defecto
+                if isinstance(match, PropertyInterestRequest):
+                    # Usar campos de workflow reales de la base de datos
+                    workflow_stage = getattr(match, 'workflow_stage', 1)
+                    workflow_status = getattr(match, 'workflow_status', 'visit_scheduled')
+                    workflow_data = getattr(match, 'workflow_data', {})
+                    print(f"📊 PropertyInterestRequest {match.id}: Stage={workflow_stage}, Status={workflow_status}")
+                else:
+                    # MatchRequest - usar valores por defecto o lógica existente
+                    workflow_stage = 1
+                    workflow_data = {}
+                    workflow_status = 'visit_scheduled'
+                
+                # Determinar si es MatchRequest o PropertyInterestRequest
+                is_match_request = hasattr(match, 'match_code')
+                
+                if is_match_request:
+                    # Datos de MatchRequest
+                    tenant = match.tenant
+                    match_code = match.match_code
+                    tenant_message = getattr(match, 'tenant_message', '')
+                    preferred_move_in_date = getattr(match, 'preferred_move_in_date', None)
+                    lease_duration_months = getattr(match, 'lease_duration_months', 12)
+                    monthly_income = getattr(match, 'monthly_income', None)
+                    employment_type = getattr(match, 'employment_type', '')
+                else:
+                    # Datos de PropertyInterestRequest
+                    tenant = match.requester
+                    match_code = f"REQ-{str(match.id)[:8]}"
+                    tenant_message = getattr(match, 'description', '')
+                    preferred_move_in_date = getattr(match, 'preferred_move_in_date', None)
+                    lease_duration_months = getattr(match, 'lease_duration_months', 12)
+                    monthly_income = getattr(match, 'monthly_income', None)
+                    employment_type = getattr(match, 'employment_type', '')
+                
+                candidate_data = {
+                    'id': str(match.id),
+                    'match_code': match_code,
+                    'status': match.status,
+                    'tenant': {
+                        'id': str(tenant.id),
+                        'full_name': tenant.get_full_name(),
+                        'email': tenant.email,
+                        'phone': getattr(tenant, 'phone_number', None) or getattr(tenant, 'phone', None),
+                        'city': getattr(tenant, 'city', None),
+                        'country': getattr(tenant, 'country', None),
+                        'is_verified': getattr(tenant, 'is_verified', False),
+                    },
+                    'property': {
+                        'id': str(match.property.id),
+                        'title': match.property.title,
+                        'address': f"{match.property.address}, {match.property.city}",
+                        'rent_price': float(match.property.rent_price),
+                        'bedrooms': match.property.bedrooms,
+                        'bathrooms': match.property.bathrooms,
+                    },
+                    'tenant_message': tenant_message,
+                    'preferred_move_in_date': preferred_move_in_date.isoformat() if preferred_move_in_date else None,
+                    'lease_duration_months': lease_duration_months,
+                    'monthly_income': float(monthly_income) if monthly_income else None,
+                    'employment_type': employment_type,
+                    'created_at': match.created_at.isoformat(),
+                    'workflow_stage': workflow_stage,
+                    'workflow_status': workflow_status,  # AÑADIR STATUS PARA SINCRONIZACIÓN COMPLETA
+                    'workflow_data': workflow_data,
+                    'workflow_updated_at': match.workflow_updated_at.isoformat() if hasattr(match, 'workflow_updated_at') and match.workflow_updated_at else None
+                }
+                candidates_data.append(candidate_data)
+            
+            return Response({
+                'results': candidates_data,
+                'count': len(candidates_data)
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error obteniendo candidatos: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class WorkflowActionAPIView(APIView):
+    """Vista para ejecutar acciones del workflow de 3 etapas."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        """Ejecuta una acción del workflow de contratos con integración VeriHome."""
+        try:
+            from django.utils import timezone
+            from requests.models import PropertyInterestRequest
+            from messaging.models import Message
+            from django.core.mail import send_mail
+            from django.conf import settings
+            import json
+            
+            match_request_id = request.data.get('match_request_id')
+            action = request.data.get('action')
+            
+            if not match_request_id or not action:
+                return Response(
+                    {'error': 'match_request_id y action son requeridos'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Buscar primero en PropertyInterestRequest (principal)
+            match_request = None
+            try:
+                match_request = PropertyInterestRequest.objects.get(
+                    id=match_request_id,
+                    assignee=request.user,
+                    status='accepted'
+                )
+                print(f"🎯 Found PropertyInterestRequest: {match_request.id}")
+            except PropertyInterestRequest.DoesNotExist:
+                # Fallback a MatchRequest si existe
+                try:
+                    from matching.models import MatchRequest
+                    match_request = MatchRequest.objects.get(
+                        id=match_request_id,
+                        landlord=request.user,
+                        status='accepted'
+                    )
+                    print(f"🎯 Found MatchRequest: {match_request.id}")
+                except MatchRequest.DoesNotExist:
+                    return Response(
+                        {'error': 'Match request no encontrado o no tienes permisos'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            
+            if not match_request:
+                return Response(
+                    {'error': 'Match request no encontrado o no tienes permisos'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Ejecutar acción basada en el tipo
+            if action == 'visit_schedule':
+                visit_data = request.data.get('visit_data', {})
+                
+                # OPCIÓN C: COORDINACIÓN PROFESIONAL CON EQUIPO VERIHOME
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                property_obj = getattr(match_request, 'property', None)
+                
+                if not tenant or not property_obj:
+                    return Response(
+                        {'error': 'Datos de candidato o propiedad no encontrados'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # 1. CREAR HILO Y MENSAJE INTERNO PARA EL INQUILINO
+                visit_message_content = f"""🏠 VISITA PROGRAMADA - COORDINADA POR VERIHOME
+
+¡Excelente noticia! Tu solicitud para la propiedad {property_obj.title} ha avanzado a la siguiente fase.
+
+📋 DETALLES DE LA VISITA:
+• Fecha: {visit_data.get('date')}
+• Hora: {visit_data.get('time')}
+• Dirección: {property_obj.address}, {property_obj.city}
+• Arrendador: {request.user.get_full_name()}
+
+👥 COORDINACIÓN VERIHOME:
+Un agente de VeriHome se pondrá en contacto contigo para:
+• Confirmar tu disponibilidad
+• Coordinar los detalles logísticos  
+• Acompañarte durante la visita
+• Brindarte asesoría profesional
+
+{f'📝 NOTAS ADICIONALES: {visit_data.get("notes")}' if visit_data.get('notes') else ''}
+
+📞 PRÓXIMOS PASOS:
+1. Espera la llamada de nuestro agente (24-48 horas)
+2. Confirma tu asistencia a la visita
+3. Prepara tus preguntas sobre la propiedad
+
+¿Tienes alguna pregunta? Responde a este mensaje y te contactaremos inmediatamente.
+
+---
+Coordinado profesionalmente por el equipo VeriHome"""
+                
+                # Crear o encontrar hilo de conversación existente
+                from messaging.models import MessageThread
+                thread, created = MessageThread.objects.get_or_create(
+                    property=property_obj,
+                    created_by=request.user,
+                    thread_type='inquiry',
+                    defaults={
+                        'subject': f"🏠 Visita Programada - {property_obj.title}",
+                        'status': 'active'
+                    }
+                )
+                
+                # Asegurar que ambos usuarios son participantes
+                thread.participants.add(request.user, tenant)
+                
+                # Crear mensaje en el hilo
+                Message.objects.create(
+                    thread=thread,
+                    sender=request.user,
+                    recipient=tenant,
+                    message_type='system',
+                    content=visit_message_content
+                )
+                
+                # 2. ENVIAR EMAIL AL INQUILINO
+                email_subject = f"🏠 VeriHome: Visita Programada para {property_obj.title}"
+                email_body = f"""
+Estimado/a {tenant.get_full_name()},
+
+¡Excelentes noticias! Tu solicitud de arrendamiento ha sido aprobada para continuar con el proceso.
+
+DETALLES DE TU VISITA COORDINADA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 Propiedad: {property_obj.title}
+📅 Fecha: {visit_data.get('date')}  
+⏰ Hora: {visit_data.get('time')}
+🏠 Dirección: {property_obj.address}, {property_obj.city}
+👤 Arrendador: {request.user.get_full_name()}
+
+COORDINACIÓN PROFESIONAL VERIHOME:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Un agente VeriHome te contactará en las próximas 24-48 horas
+✅ Confirmaremos todos los detalles de la visita contigo  
+✅ Te acompañaremos durante toda la visita
+✅ Recibirás asesoría profesional gratuita
+✅ Te ayudaremos con el proceso de documentación
+
+{f'NOTAS ADICIONALES: {visit_data.get("notes")}' if visit_data.get('notes') else ''}
+
+¿Tienes preguntas antes de la visita?
+Responde a este email o ingresa a tu cuenta VeriHome.
+
+¡Estamos emocionados de ayudarte a encontrar tu nuevo hogar!
+
+Cordialmente,
+El Equipo VeriHome
+www.verihome.com | soporte@verihome.com
+                """
+                
+                try:
+                    send_mail(
+                        subject=email_subject,
+                        message=email_body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[tenant.email],
+                        fail_silently=False,
+                    )
+                    print(f"✅ Email de visita enviado a {tenant.email}")
+                except Exception as e:
+                    print(f"❌ Error enviando email: {str(e)}")
+                
+                # 3. CREAR NOTIFICACIÓN INTERNA PARA EL EQUIPO VERIHOME
+                # (Esto se puede expandir para crear tickets internos)
+                verihome_notification = f"""
+🎯 NUEVA COORDINACIÓN DE VISITA REQUERIDA
+
+📋 DETALLES:
+• Arrendador: {request.user.get_full_name()} ({request.user.email})
+• Inquilino: {tenant.get_full_name()} ({tenant.email})  
+• Propiedad: {property_obj.title}
+• Dirección: {property_obj.address}, {property_obj.city}
+• Fecha Programada: {visit_data.get('date')} a las {visit_data.get('time')}
+
+📞 TAREAS DE COORDINACIÓN:
+1. Contactar al inquilino en 24-48 horas
+2. Confirmar disponibilidad y detalles logísticos
+3. Asignar agente para acompañamiento
+4. Preparar documentación de apoyo
+5. Coordinar seguimiento post-visita
+
+{f'NOTAS DEL ARRENDADOR: {visit_data.get("notes")}' if visit_data.get('notes') else ''}
+                """
+                
+                # Log de la actividad
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='verihome_visit_coordination',
+                    description=f'Visita coordinada por VeriHome para {tenant.get_full_name()}',
+                    metadata={
+                        'match_id': str(match_request.id),
+                        'visit_date': visit_data.get('date'),
+                        'visit_time': visit_data.get('time'),
+                        'property_id': str(property_obj.id),
+                        'tenant_email': tenant.email,
+                        'coordination_type': 'verihome_professional',
+                        'verihome_notification': verihome_notification
+                    },
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                # Actualizar estado del match request - SINCRONIZACIÓN FIX
+                match_request.workflow_stage = 1
+                match_request.workflow_status = 'visit_scheduled'
+                match_request.workflow_data.update({
+                    'visit_scheduled': {
+                        'date': visit_data.get('date'),
+                        'time': visit_data.get('time'),
+                        'notes': visit_data.get('notes', ''),
+                        'completed': False,
+                        'coordination_type': 'verihome_professional'
+                    }
+                })
+                match_request.save()
+                print(f"✅ PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                
+                result_message = "✅ Visita programada y coordinación VeriHome activada. El inquilino será contactado en 24-48 horas."
+                updated_candidate_data = {
+                    'workflow_stage': 1,
+                    'workflow_status': 'visit_scheduled',
+                    'status': 'visit_scheduled',
+                    'last_action': 'visit_scheduled_verihome_coordination'
+                }
+                
+            elif action == 'visit_completed':
+                # Marcar visita como completada y avanzar a etapa 2 - SINCRONIZACIÓN FIX
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                
+                # Actualizar estado del match request - CRÍTICO PARA SINCRONIZACIÓN
+                match_request.workflow_stage = 2
+                match_request.workflow_status = 'documents_pending'
+                if 'visit_scheduled' not in match_request.workflow_data:
+                    match_request.workflow_data['visit_scheduled'] = {}
+                match_request.workflow_data['visit_scheduled']['completed'] = True
+                match_request.workflow_data['visit_scheduled']['completed_at'] = timezone.now().isoformat()
+                match_request.save()
+                print(f"🚀 VISIT COMPLETED - PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='workflow_visit_completed',
+                    description=f'Visita completada para candidato {tenant.get_full_name() if tenant else "Unknown"}',
+                    metadata={'match_id': str(match_request.id)},
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                result_message = "✅ Visita completada - Candidato avanzado a etapa 2 (Documentos)"
+                
+            elif action == 'documents_request':
+                # Solicitar documentos al candidato - SINCRONIZACIÓN FIX
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                
+                # Actualizar estado del match request - SINCRONIZACIÓN
+                match_request.workflow_stage = 2
+                match_request.workflow_status = 'documents_pending'
+                match_request.workflow_data.update({
+                    'documents_requested': {
+                        'requested_at': timezone.now().isoformat(),
+                        'documents_list': [
+                            'Cédula de Ciudadanía (frente y atrás)',
+                            'Certificado laboral',
+                            'Cartas de recomendación'
+                        ]
+                    }
+                })
+                match_request.save()
+                print(f"📄 DOCUMENTS REQUESTED - PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='workflow_documents_request',
+                    description=f'Documentos solicitados a candidato {tenant.get_full_name() if tenant else "Unknown"}',
+                    metadata={'match_id': str(match_request.id)},
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                result_message = "✅ Solicitud de documentos enviada - Candidato en etapa 2"
+                
+            elif action == 'documents_approved':
+                # Aprobar documentos y avanzar a etapa 3 - SINCRONIZACIÓN FIX
+                documents_data = request.data.get('documents_data', {})
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                
+                # Actualizar estado del match request - AVANZAR A ETAPA 3
+                match_request.workflow_stage = 3
+                match_request.workflow_status = 'contract_ready'
+                match_request.workflow_data.update({
+                    'documents_approved': {
+                        'approved_at': timezone.now().isoformat(),
+                        'notes': documents_data.get('notes', ''),
+                        'approved_by': request.user.get_full_name()
+                    }
+                })
+                match_request.save()
+                print(f"✅ DOCUMENTS APPROVED - PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='workflow_documents_approved',
+                    description=f'Documentos aprobados para candidato {tenant.get_full_name() if tenant else "Unknown"}',
+                    metadata={
+                        'match_id': str(match_request.id),
+                        'notes': documents_data.get('notes')
+                    },
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                result_message = "✅ Documentos aprobados - Candidato avanzado a etapa 3 (Contrato)"
+                
+            elif action == 'contract_create':
+                # Crear contrato usando el flujo existente
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                # Por ahora solo registramos la actividad, el contrato se crea desde el flujo normal
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='workflow_contract_create',
+                    description=f'Iniciando creación de contrato para candidato {tenant.get_full_name() if tenant else "Unknown"}',
+                    metadata={'match_id': str(match_request.id)},
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                # Marcar el match como listo para contrato si tiene el campo
+                if hasattr(match_request, 'has_contract'):
+                    match_request.has_contract = True
+                if hasattr(match_request, 'contract_generated_at'):
+                    match_request.contract_generated_at = timezone.now()
+                match_request.save()
+                
+                result_message = "Proceso iniciado - Redirigiendo al flujo de contratos"
+                
+            elif action == 'reject':
+                # Rechazar candidato
+                rejection_reason = request.data.get('rejection_reason', 'No especificado')
+                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                
+                # Cambiar el estado del match
+                match_request.status = 'rejected'
+                if hasattr(match_request, 'responded_at'):
+                    match_request.responded_at = timezone.now()
+                if hasattr(match_request, 'landlord_response'):
+                    match_request.landlord_response = f"Rechazado: {rejection_reason}"
+                match_request.save()
+                
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='workflow_candidate_rejected',
+                    description=f'Candidato {tenant.get_full_name() if tenant else "Unknown"} rechazado',
+                    metadata={
+                        'match_id': str(match_request.id),
+                        'rejection_reason': rejection_reason
+                    },
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                )
+                
+                result_message = "Candidato rechazado"
+                
+            else:
+                return Response(
+                    {'error': f'Acción no reconocida: {action}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            return Response({
+                'success': True,
+                'message': result_message,
+                'match_id': str(match_request.id),
+                'updated_candidate': updated_candidate_data if action == 'visit_schedule' else {
+                    'id': str(match_request.id),
+                    'status': getattr(match_request, 'status', 'accepted'),
+                    'workflow_stage': match_request.workflow_stage,  # USAR ESTADO REAL DE LA DB
+                    'workflow_status': match_request.workflow_status,  # USAR ESTADO REAL DE LA DB
+                    'workflow_updated_at': match_request.workflow_updated_at.isoformat() if hasattr(match_request, 'workflow_updated_at') and match_request.workflow_updated_at else None,
+                }
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error ejecutando acción: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

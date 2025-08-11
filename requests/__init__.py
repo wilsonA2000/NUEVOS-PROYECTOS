@@ -1,0 +1,1 @@
+# Módulo de solicitudes centralizadas para VeriHome
