@@ -14,6 +14,17 @@ import json
 
 User = get_user_model()
 
+# Importar modelos colombianos
+from .colombian_contracts import ColombianContract, ColombianContractType, ContractStatus, LegalClause
+
+# Importar modelos del sistema de workflow de contratos controlado por arrendador
+from .landlord_contract_models import (
+    LandlordControlledContract, 
+    ContractObjection, 
+    LandlordContractGuarantee, 
+    ContractWorkflowHistory
+)
+
 
 class ContractTemplate(models.Model):
     """Plantillas de contratos para diferentes tipos de acuerdos."""
@@ -70,10 +81,16 @@ class Contract(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Borrador'),
         ('pending_review', 'Pendiente de Revisión'),
+        ('pdf_generated', 'PDF Generado - Pendiente Edición'),
+        ('ready_for_authentication', 'Listo para Autenticación'),
+        ('pending_authentication', 'Pendiente de Autenticación Biométrica'),
+        ('authenticated_pending_signature', 'Autenticado - Pendiente de Firma'),
+        ('pending_tenant_authentication', 'Pendiente Autenticación del Arrendatario'),  # 🔥 NUEVO
         ('pending_signature', 'Pendiente de Firma'),
         ('partially_signed', 'Parcialmente Firmado'),
         ('fully_signed', 'Completamente Firmado'),
         ('active', 'Activo'),
+        ('en_ejecucion', 'En Ejecución'),  # NEW: Estado para contratos que están siendo ejecutados activamente
         ('expired', 'Vencido'),
         ('terminated', 'Terminado'),
         ('cancelled', 'Cancelado'),
@@ -115,7 +132,7 @@ class Contract(models.Model):
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     
     # Estado y seguimiento
-    status = models.CharField('Estado', max_length=20, choices=STATUS_CHOICES, default='draft')
+    status = models.CharField('Estado', max_length=35, choices=STATUS_CHOICES, default='draft')
     is_renewable = models.BooleanField('Renovable automáticamente', default=False)
     auto_renewal_notice_days = models.PositiveIntegerField(
         'Días de aviso para renovación automática',
@@ -250,6 +267,91 @@ class Contract(models.Model):
             return True
         
         return False
+    
+    def can_transition_to_executing(self):
+        """Verifica si el contrato puede pasar a estado 'en_ejecucion'."""
+        return (
+            self.status in ['active', 'fully_signed'] and
+            self.start_date <= timezone.now().date() and
+            not self.is_expired()
+        )
+    
+    def transition_to_executing(self, user=None):
+        """Transición automática a estado 'en_ejecucion'."""
+        if self.can_transition_to_executing():
+            old_status = self.status
+            self.status = 'en_ejecucion'
+            self.save(update_fields=['status'])
+            
+            # Log de la transición
+            if user:
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=user,
+                    activity_type='contract_status_changed',
+                    description=f'Contrato {self.contract_number} cambió a estado "En Ejecución"',
+                    metadata={
+                        'contract_id': str(self.id),
+                        'old_status': old_status,
+                        'new_status': 'en_ejecucion',
+                        'auto_transition': True
+                    }
+                )
+            
+            return True
+        return False
+    
+    def is_in_execution(self):
+        """Verifica si el contrato está en ejecución activa."""
+        return self.status == 'en_ejecucion'
+    
+    def get_execution_progress(self):
+        """Calcula el progreso de ejecución del contrato (0-100%)."""
+        if not self.is_in_execution():
+            return 0
+        
+        total_days = (self.end_date - self.start_date).days
+        elapsed_days = (timezone.now().date() - self.start_date).days
+        
+        if total_days <= 0:
+            return 100
+            
+        progress = min(100, max(0, (elapsed_days / total_days) * 100))
+        return round(progress, 2)
+    
+    def check_auto_transitions(self, user=None):
+        """Verifica y ejecuta transiciones automáticas de estado."""
+        transitions_made = []
+        
+        # Auto-transición de 'active' a 'en_ejecucion'
+        if self.status == 'active' and self.start_date <= timezone.now().date():
+            if self.transition_to_executing(user):
+                transitions_made.append('active -> en_ejecucion')
+        
+        # Auto-transición de 'en_ejecucion' a 'expired' 
+        if self.status == 'en_ejecucion' and self.is_expired():
+            old_status = self.status
+            self.status = 'expired'
+            self.save(update_fields=['status'])
+            transitions_made.append('en_ejecucion -> expired')
+            
+            # Log de la transición
+            if user:
+                from users.models import UserActivityLog
+                UserActivityLog.objects.create(
+                    user=user,
+                    activity_type='contract_status_changed',
+                    description=f'Contrato {self.contract_number} expiró automáticamente',
+                    metadata={
+                        'contract_id': str(self.id),
+                        'old_status': old_status,
+                        'new_status': 'expired',
+                        'auto_transition': True,
+                        'reason': 'contract_expired'
+                    }
+                )
+        
+        return transitions_made
 
 
 class ContractSignature(models.Model):
@@ -621,6 +723,208 @@ class ContractRenewal(models.Model):
         
     def __str__(self):
         return f"Renovación - {self.original_contract.contract_number}"
+
+
+class BiometricAuthentication(models.Model):
+    """Autenticación biométrica completa para contratos digitales."""
+    
+    AUTHENTICATION_STATUS = [
+        ('pending', 'Pendiente'),
+        ('in_progress', 'En Progreso'),
+        ('completed', 'Completado'),
+        ('failed', 'Fallido'),
+        ('expired', 'Expirado'),
+    ]
+    
+    DOCUMENT_TYPES = [
+        ('cedula_ciudadania', 'Cédula de Ciudadanía'),
+        ('cedula_extranjeria', 'Cédula de Extranjería'),
+        ('pasaporte', 'Pasaporte'),
+        ('licencia_conducir', 'Licencia de Conducir'),
+        ('tarjeta_identidad', 'Tarjeta de Identidad'),
+    ]
+    
+    # Relaciones
+    contract = models.ForeignKey(
+        Contract,
+        on_delete=models.CASCADE,
+        related_name='biometric_authentications'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='biometric_authentications'
+    )
+    
+    # Estado de autenticación
+    status = models.CharField('Estado', max_length=20, choices=AUTHENTICATION_STATUS, default='pending')
+    
+    # Imágenes biométricas
+    face_front_image = models.ImageField(
+        'Foto frontal del rostro',
+        upload_to='biometric/faces/',
+        null=True,
+        blank=True
+    )
+    face_side_image = models.ImageField(
+        'Foto lateral del rostro',
+        upload_to='biometric/faces/',
+        null=True,
+        blank=True
+    )
+    document_image = models.ImageField(
+        'Foto del documento de identidad',
+        upload_to='biometric/documents/',
+        null=True,
+        blank=True
+    )
+    document_with_face_image = models.ImageField(
+        'Foto del documento junto al rostro',
+        upload_to='biometric/verification/',
+        null=True,
+        blank=True
+    )
+    
+    # Audio de verificación
+    voice_recording = models.FileField(
+        'Grabación de voz',
+        upload_to='biometric/voice/',
+        null=True,
+        blank=True
+    )
+    voice_text = models.TextField(
+        'Texto de verificación de voz',
+        help_text='Texto que el usuario debe leer',
+        blank=True
+    )
+    
+    # Información del documento
+    document_type = models.CharField('Tipo de documento', max_length=30, choices=DOCUMENT_TYPES)
+    document_number = models.CharField('Número de documento', max_length=50, blank=True)
+    document_expiry_date = models.DateField('Fecha de expiración del documento', null=True, blank=True)
+    
+    # Análisis biométrico
+    facial_analysis = models.JSONField(
+        'Análisis facial',
+        default=dict,
+        help_text='Resultados del análisis de reconocimiento facial'
+    )
+    document_analysis = models.JSONField(
+        'Análisis del documento',
+        default=dict,
+        help_text='Resultados de la validación del documento'
+    )
+    voice_analysis = models.JSONField(
+        'Análisis de voz',
+        default=dict,
+        help_text='Análisis de la grabación de voz'
+    )
+    
+    # Puntuaciones de confianza
+    face_confidence_score = models.FloatField('Puntuación de confianza facial', default=0.0)
+    document_confidence_score = models.FloatField('Puntuación de confianza del documento', default=0.0)
+    voice_confidence_score = models.FloatField('Puntuación de confianza de voz', default=0.0)
+    overall_confidence_score = models.FloatField('Puntuación general de confianza', default=0.0)
+    
+    # Metadatos técnicos
+    ip_address = models.GenericIPAddressField('Dirección IP')
+    user_agent = models.TextField('User Agent')
+    device_info = models.JSONField('Información del dispositivo', default=dict)
+    geolocation = models.JSONField('Geolocalización', default=dict)
+    
+    # Control de tiempo
+    started_at = models.DateTimeField('Iniciado el', auto_now_add=True)
+    completed_at = models.DateTimeField('Completado el', null=True, blank=True)
+    expires_at = models.DateTimeField('Expira el')
+    
+    # Verificación de seguridad
+    security_checks = models.JSONField(
+        'Verificaciones de seguridad',
+        default=dict,
+        help_text='Resultados de verificaciones adicionales de seguridad'
+    )
+    
+    # Hash de integridad
+    integrity_hash = models.CharField('Hash de integridad', max_length=256, blank=True)
+    
+    class Meta:
+        verbose_name = 'Autenticación Biométrica'
+        verbose_name_plural = 'Autenticaciones Biométricas'
+        ordering = ['-started_at']
+        unique_together = ['contract', 'user']
+        
+    def __str__(self):
+        return f"Autenticación biométrica - {self.user.get_full_name()} - {self.contract.contract_number}"
+    
+    def save(self, *args, **kwargs):
+        # Generar texto de voz personalizado
+        if not self.voice_text:
+            self.voice_text = f"He firmado digitalmente el contrato número {self.contract.contract_number} el día {timezone.now().strftime('%d de %B de %Y')}"
+        
+        # Configurar fecha de expiración (24 horas)
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        
+        super().save(*args, **kwargs)
+        
+        # Generar hash de integridad después del guardado
+        if not self.integrity_hash:
+            self.generate_integrity_hash()
+    
+    def generate_integrity_hash(self):
+        """Genera hash de integridad para verificación."""
+        data_string = f"{self.contract.id}:{self.user.id}:{self.started_at}:{self.document_type}:{self.document_number}"
+        self.integrity_hash = hashlib.sha256(data_string.encode()).hexdigest()
+        self.save(update_fields=['integrity_hash'])
+    
+    def calculate_overall_confidence(self):
+        """Calcula la puntuación general de confianza."""
+        scores = [
+            self.face_confidence_score,
+            self.document_confidence_score,
+            self.voice_confidence_score
+        ]
+        valid_scores = [score for score in scores if score > 0]
+        
+        if valid_scores:
+            self.overall_confidence_score = sum(valid_scores) / len(valid_scores)
+        else:
+            self.overall_confidence_score = 0.0
+        
+        self.save(update_fields=['overall_confidence_score'])
+    
+    def is_complete(self):
+        """Verifica si la autenticación está completa."""
+        return all([
+            self.face_front_image,
+            self.face_side_image,
+            self.document_image,
+            self.document_with_face_image,
+            self.voice_recording,
+            self.overall_confidence_score >= 0.7  # Mínimo 70% de confianza
+        ])
+    
+    def is_expired(self):
+        """Verifica si la autenticación ha expirado."""
+        return timezone.now() > self.expires_at
+    
+    def get_progress_percentage(self):
+        """Calcula el porcentaje de progreso de la autenticación."""
+        completed_steps = 0
+        total_steps = 5
+        
+        if self.face_front_image:
+            completed_steps += 1
+        if self.face_side_image:
+            completed_steps += 1
+        if self.document_image:
+            completed_steps += 1
+        if self.document_with_face_image:
+            completed_steps += 1
+        if self.voice_recording:
+            completed_steps += 1
+        
+        return (completed_steps / total_steps) * 100
 
 
 class ContractDocument(models.Model):

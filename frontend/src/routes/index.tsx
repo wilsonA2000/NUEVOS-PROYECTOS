@@ -3,15 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import LandingPage from '../pages/LandingPage';
-import TestLanding from '../components/TestLanding';
-import Dashboard from '../pages/Dashboard';
 import NewDashboard from '../pages/dashboard/NewDashboard';
-import { PropertyList } from '../pages/properties/PropertyList';
+import PropertyList from '../pages/properties/PropertyList';
 import PropertyFormPage from '../pages/properties/PropertyFormPage';
 import { PropertyDetail } from '../components/properties/PropertyDetail';
-import { ContractList } from '../components/contracts/ContractList';
-import { ContractForm } from '../components/contracts/ContractForm';
-import { ContractDetail } from '../components/contracts/ContractDetail';
+import ContractRoutes from './contracts';
 import { PaymentList } from '../components/payments/PaymentList';
 import { PaymentForm } from '../components/payments/PaymentForm';
 import { PaymentDetail } from '../components/payments/PaymentDetail';
@@ -29,18 +25,22 @@ import Resume from '../pages/Resume';
 import ResumeEdit from '../pages/ResumeEdit';
 import ServicesPage from '../pages/services/ServicesPage';
 import ServiceRequestsPage from '../pages/services/ServiceRequestsPage';
-import MessagesMain from '../pages/messages/MessagesMain';
+import MessengerMain from '../pages/messages/MessengerMain';
 import { useAuth } from '../hooks/useAuth';
 import { Login } from '../pages/auth/Login';
-import { Register } from '../pages/auth/Register';
+import { RegisterWithCode } from '../pages/auth/RegisterWithCode';
+import { ForgotPassword } from '../pages/auth/ForgotPassword';
+import { ResetPassword } from '../pages/auth/ResetPassword';
 import AboutPage from '../pages/AboutPage';
 import ContactPage from '../pages/ContactPage';
 import ServicesOverviewPage from '../pages/ServicesOverviewPage';
 import SupportPage from '../pages/SupportPage';
 import CommunityPage from '../pages/CommunityPage';
-import Profile from '../pages/Profile';
+import Profile from '../pages/profile/Profile';
 import ConfirmEmail from '../pages/ConfirmEmail';
 import ContractSigningDemo from '../pages/ContractSigningDemo';
+import RequestsPage from '../pages/requests/RequestsPage';
+import TenantInvitationLanding from '../pages/contracts/TenantInvitationLanding';
 
 export const AppRoutes: React.FC = () => {
 
@@ -63,12 +63,12 @@ return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<RegisterWithCode />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/resend-verification" element={<ResendVerification />} />
         <Route path="/confirm-email/:key" element={<ConfirmEmail />} />
-        <Route path="/forgot-password" element={<LandingPage />} />
-        <Route path="/reset-password" element={<LandingPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/properties" element={<PropertyList />} />
         <Route path="/services" element={<ServicesOverviewPage />} />
         <Route path="/about" element={<AboutPage />} />
@@ -78,6 +78,8 @@ return (
         <Route path="/events" element={<CommunityPage />} />
         <Route path="/partners" element={<CommunityPage />} />
         <Route path="/careers" element={<CommunityPage />} />
+        {/* 🔥 NUEVA RUTA: Invitación de arrendatario */}
+        <Route path="/tenant/invitation/:token" element={<TenantInvitationLanding />} />
         {/* Redirigir cualquier otra ruta a la landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -115,13 +117,8 @@ return (
           <Route path=":id/edit" element={<PropertyFormPage />} />
         </Route>
         {/* Contracts Routes */}
-        <Route path="contracts">
-          <Route index element={<ContractList />} />
-          <Route path="new" element={<ContractForm />} />
-          <Route path="signing-demo" element={<ContractSigningDemo />} />
-          <Route path=":id" element={<ContractDetail />} />
-          <Route path=":id/edit" element={<ContractForm />} />
-        </Route>
+        <Route path="contracts/*" element={<ContractRoutes />} />
+        <Route path="contracts/signing-demo" element={<ContractSigningDemo />} />
         {/* Payments Routes */}
         <Route path="payments">
           <Route index element={<PaymentList />} />
@@ -131,7 +128,7 @@ return (
         </Route>
         {/* Messages Routes */}
         <Route path="messages">
-          <Route index element={<MessagesMain />} />
+          <Route index element={<MessengerMain />} />
           <Route path="new" element={<MessageForm />} />
           <Route path=":id" element={<MessageDetail />} />
           <Route path="reply" element={<ReplyForm />} />
@@ -141,6 +138,10 @@ return (
           <Route index element={<RatingList />} />
           <Route path="new" element={<RatingForm />} />
           <Route path=":id" element={<RatingDetail />} />
+        </Route>
+        {/* Requests Routes */}
+        <Route path="requests">
+          <Route index element={<RequestsPage />} />
         </Route>
         {/* Profile Route */}
         <Route path="profile" element={<Profile />} />
