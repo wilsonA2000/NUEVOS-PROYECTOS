@@ -8,7 +8,14 @@ const getContracts = async (filters?: ContractFilters): Promise<Contract[]> => {
     const response = await api.get('/contracts/contracts/', {
       params: filters,
     });
-    return response.data;
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && response.data.results) {
+      return response.data.results;
+    } else {
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching contracts:', error);
     throw error;
@@ -342,10 +349,141 @@ const getContractStats = async (): Promise<ContractStats> => {
   }
 };
 
-// ===== BIOMETRIC VERIFICATION (MOCK - TO BE REPLACED) =====
+// ===== BIOMETRIC AUTHENTICATION FLOW - NEW APIS =====
 
 /**
- * Procesar verificación biométrica (simulado - conectar con API real)
+ * Iniciar proceso de autenticación biométrica
+ */
+const startBiometricAuthentication = async (contractId: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/start-authentication/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error starting biometric authentication:', error);
+    throw error;
+  }
+};
+
+/**
+ * Procesar captura facial (frontal y lateral)
+ */
+const processFaceCapture = async (contractId: string, frontImage: string, sideImage: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/auth/face-capture/`, {
+      face_front_image: frontImage,
+      face_side_image: sideImage
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing face capture:', error);
+    throw error;
+  }
+};
+
+/**
+ * Procesar verificación de documento
+ */
+const processDocumentVerification = async (contractId: string, documentImage: string, documentType: string, documentNumber?: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/auth/document-capture/`, {
+      document_image: documentImage,
+      document_type: documentType,
+      document_number: documentNumber || ''
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing document verification:', error);
+    throw error;
+  }
+};
+
+/**
+ * Procesar verificación combinada (documento + rostro)
+ */
+const processCombinedVerification = async (contractId: string, combinedImage: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/auth/combined-capture/`, {
+      combined_image: combinedImage
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing combined verification:', error);
+    throw error;
+  }
+};
+
+/**
+ * Procesar verificación de voz
+ */
+const processVoiceVerification = async (contractId: string, voiceRecording: string, expectedText?: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/auth/voice-capture/`, {
+      voice_recording: voiceRecording,
+      expected_text: expectedText
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing voice verification:', error);
+    throw error;
+  }
+};
+
+/**
+ * Completar autenticación biométrica
+ */
+const completeAuthentication = async (contractId: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/complete-auth/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error completing authentication:', error);
+    throw error;
+  }
+};
+
+/**
+ * Consultar estado de autenticación biométrica
+ */
+const getBiometricAuthenticationStatus = async (contractId: string): Promise<any> => {
+  try {
+    const response = await api.get(`/contracts/${contractId}/auth/status/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting biometric authentication status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generar PDF del contrato
+ */
+const generateContractPDF = async (contractId: string): Promise<any> => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/generate-pdf/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error generating contract PDF:', error);
+    throw error;
+  }
+};
+
+/**
+ * Editar contrato antes de autenticación
+ */
+const editContractBeforeAuth = async (contractId: string, contractData: any): Promise<any> => {
+  try {
+    const response = await api.patch(`/contracts/${contractId}/edit-before-auth/`, contractData);
+    return response.data;
+  } catch (error) {
+    console.error('Error editing contract before auth:', error);
+    throw error;
+  }
+};
+
+// ===== LEGACY BIOMETRIC VERIFICATION (DEPRECATED) =====
+
+/**
+ * @deprecated Use new biometric authentication flow instead
  */
 const processBiometricVerification = async (biometricData: BiometricData): Promise<any> => {
   // Esta función debe conectarse con APIs reales de verificación biométrica
@@ -365,7 +503,7 @@ const processBiometricVerification = async (biometricData: BiometricData): Promi
 };
 
 /**
- * Verificar documento de identidad (simulado - conectar con API real)
+ * @deprecated Use processDocumentVerification instead
  */
 const verifyIdentityDocument = async (documentImage: string): Promise<any> => {
   // Conectar con API real de OCR y verificación de documentos
@@ -388,7 +526,7 @@ const verifyIdentityDocument = async (documentImage: string): Promise<any> => {
 };
 
 /**
- * Verificar reconocimiento facial (simulado - conectar con API real)
+ * @deprecated Use processFaceCapture instead
  */
 const verifyFacialRecognition = async (faceImage: string): Promise<any> => {
   // Conectar con API real de reconocimiento facial
@@ -406,6 +544,128 @@ const verifyFacialRecognition = async (faceImage: string): Promise<any> => {
       });
     }, 2000);
   });
+};
+
+// ===== COLOMBIAN CONTRACT INTEGRATION =====
+
+const validateMatchForContract = async (matchId: string) => {
+  try {
+    const response = await api.post(`/matching/requests/${matchId}/validate-contract/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error validating match for contract:', error);
+    throw error;
+  }
+};
+
+const createContractFromMatch = async (matchId: string, contractData: any) => {
+  try {
+    const response = await api.post(`/matching/requests/${matchId}/create-contract/`, contractData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating contract from match:', error);
+    throw error;
+  }
+};
+
+const verifyIdentityForContract = async (contractId: string, documents: any) => {
+  try {
+    const response = await api.post(`/matching/contracts/${contractId}/verify-identity/`, documents);
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying identity for contract:', error);
+    throw error;
+  }
+};
+
+const generateLegalClauses = async (contractId: string) => {
+  try {
+    const response = await api.post(`/matching/contracts/${contractId}/generate-clauses/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error generating legal clauses:', error);
+    throw error;
+  }
+};
+
+const downloadContractPDF = async (contractId: string) => {
+  try {
+    const response = await api.get(`/matching/contracts/${contractId}/download-pdf/`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error downloading contract PDF:', error);
+    throw error;
+  }
+};
+
+const getContractMilestones = async (contractId: string) => {
+  try {
+    const response = await api.get(`/matching/contracts/${contractId}/milestones/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting contract milestones:', error);
+    throw error;
+  }
+};
+
+// ===== CONTRACT WORKFLOW ACTIONS =====
+
+/**
+ * Enviar contrato para revisión del arrendatario
+ */
+const sendContractForReview = async (contractId: string): Promise<any> => {
+  try {
+    const response = await api.patch(`/contracts/contracts/${contractId}/`, {
+      status: 'pending_tenant_review'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error sending contract for review:', error);
+    throw error;
+  }
+};
+
+/**
+ * Respuesta del arrendatario a la revisión del contrato
+ */
+const tenantContractReview = async (contractId: string, action: 'approve' | 'request_changes', comments?: string): Promise<any> => {
+  try {
+    const response = await api.post('/contracts/tenant-review/', {
+      contract_id: contractId,
+      action: action,
+      comments: comments || ''
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error processing tenant contract review:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener contratos pendientes de revisión para el arrendatario actual
+ */
+const getPendingTenantReviewContracts = async (): Promise<Contract[]> => {
+  try {
+    const response = await api.get('/contracts/contracts/', {
+      params: {
+        status: 'pending_tenant_review'
+      }
+    });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && response.data.results) {
+      return response.data.results;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching pending tenant review contracts:', error);
+    throw error;
+  }
 };
 
 // ===== CONTRACT SERVICE EXPORT =====
@@ -457,10 +717,36 @@ export const contractService = {
   getPendingSignatures,
   getContractStats,
   
-  // Biometric (mock)
+  // Biometric Authentication Flow - NEW
+  startBiometricAuthentication,
+  processFaceCapture,
+  processDocumentVerification,
+  processCombinedVerification,
+  processVoiceVerification,
+  completeAuthentication,
+  getBiometricAuthenticationStatus,
+  generateContractPDF,
+  generateContractPdf: generateContractPDF, // Alias for compatibility
+  editContractBeforeAuth,
+  
+  // Biometric (deprecated - legacy)
   processBiometricVerification,
   verifyIdentityDocument,
   verifyFacialRecognition,
+  
+  // Colombian Contract Integration
+  validateMatchForContract,
+  createContractFromMatch,
+  verifyIdentityForContract,
+  generateLegalClauses,
+  downloadContractPDF,
+  getContractMilestones,
+  
+  // Contract Workflow Actions
+  sendContractForReview,
+  tenantContractReview,
+  getPendingTenantReviewContracts,
 };
 
 export default contractService;
+/* FORCE RELOAD 1754456937796 - CONTRACT_SERVICE - Nuclear fix applied */

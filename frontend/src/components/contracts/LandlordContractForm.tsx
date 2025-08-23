@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Box,
   Button,
@@ -63,13 +64,16 @@ import {
   Gavel as LegalIcon,
   Edit as EditIcon,
   AccountBalance as BankIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  Visibility as VisibilityIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { LoadingButton } from '@mui/lab';
 
 // Services y hooks del nuevo sistema
 import { LandlordContractService } from '../../services/landlordContractService';
+import { propertyService } from '../../services/propertyService';
 import { useAuth } from '../../hooks/useAuth';
 import { useProperties } from '../../hooks/useProperties';
 
@@ -211,13 +215,123 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   onCancel
 }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: properties = [], isLoading: propertiesLoading } = useProperties();
+  const { user, isAuthenticated } = useAuth();
+  // Obtener parámetros de query string
+  const [searchParams] = React.useState(() => new URLSearchParams(window.location.search));
+  const queryPropertyId = searchParams.get('property');
+  
+  const { data: allProperties = [], isLoading: propertiesLoading, error: propertiesError } = useProperties();
+  
+  // Hook adicional para cargar propiedad específica si viene del workflow
+  const { data: specificProperty, isLoading: specificPropertyLoading } = useQuery({
+    queryKey: ['property', queryPropertyId],
+    queryFn: async () => {
+      if (!queryPropertyId) return null;
+      console.log('🔍 Cargando propiedad específica:', queryPropertyId);
+      // Usar el propertyService para mantener consistencia con el resto de la app
+      const data = await propertyService.getProperty(queryPropertyId);
+      console.log('✅ Propiedad específica cargada:', data);
+      return data;
+    },
+    enabled: !!queryPropertyId && allProperties.length === 0,
+  });
+  const queryTenantId = searchParams.get('tenant');
+  
+  // Usar propertyId del prop o del query string
+  const effectivePropertyId = propertyId || queryPropertyId;
+  
+  // Filtrar solo propiedades del usuario actual que estén disponibles
+  const properties = React.useMemo(() => {
+    // Combinar allProperties con specificProperty si está disponible
+    let combinedProperties = [...(allProperties || [])];
+    
+    // Si tenemos una propiedad específica del workflow y no está en allProperties, agregarla
+    if (specificProperty && !combinedProperties.find(p => p.id === specificProperty.id)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Agregando propiedad específica del workflow:', specificProperty.title || specificProperty.id);
+      }
+      combinedProperties = [specificProperty, ...combinedProperties];
+    }
+    
+    // Early returns si no tenemos datos necesarios
+    if (!combinedProperties || !Array.isArray(combinedProperties)) {
+      console.log('⚠️ useProperties: combinedProperties no disponible o no es array', combinedProperties);
+      return [];
+    }
+    
+    if (!user || !user.id) {
+      console.log('⚠️ useProperties: user no disponible', user);
+      return [];
+    }
+    
+    if (combinedProperties.length === 0) {
+      console.log('⚠️ useProperties: combinedProperties está vacío');
+      return [];
+    }
+    
+    // Reduced logging - only log summary info once 
+    const shouldLogDebug = process.env.NODE_ENV === 'development' && combinedProperties.length > 0;
+    
+    // Aplicar filtro menos restrictivo
+    const filteredProperties = combinedProperties.filter(property => {
+      if (!property) return false;
+      
+      // Verificar ownership con múltiples fallbacks - MÁS PERMISIVO
+      const isOwner = (
+        // Direct landlord comparison (string)
+        (typeof property.landlord === 'string' && property.landlord === user.id) ||
+        // Landlord object with id
+        (property.landlord && typeof property.landlord === 'object' && property.landlord.id === user.id) ||
+        // Landlord object with email fallback
+        (property.landlord && typeof property.landlord === 'object' && property.landlord.email === user.email) ||
+        // Fallback to owner field
+        (property.owner === user.id) ||
+        // Si el usuario es arrendador y no hay landlord definido, incluir
+        (user.user_type === 'landlord' && !property.landlord)
+      );
+      
+      // Verificar availability - MÁS PERMISIVO
+      const isAvailable = (
+        property.is_available === true ||
+        property.is_available === 'true' ||
+        !property.status || 
+        property.status === 'available' || 
+        property.status === 'AVAILABLE' ||
+        property.status === 'disponible' ||
+        property.status === 'active' ||
+        property.status === 'ACTIVE' ||
+        property.status === 'published' ||
+        property.status === 'PUBLISHED'
+      );
+      
+      // Para debugging, incluir TODAS las propiedades si el usuario es arrendador
+      const shouldInclude = user.user_type === 'landlord' ? true : (isOwner && isAvailable);
+      
+      // Removed per-property logging to prevent spam
+      
+      return shouldInclude;
+    });
+    
+    // Only log summary once when there are significant changes
+    if (shouldLogDebug && filteredProperties.length === 0 && combinedProperties.length > 0) {
+      console.log(`⚠️ No properties available after filtering: ${combinedProperties.length} total properties`);
+    }
+    
+    // Si no hay propiedades después del filtro, mostrar advertencia
+    if (filteredProperties.length === 0 && combinedProperties.length > 0) {
+      console.warn('⚠️ ADVERTENCIA: No hay propiedades disponibles después del filtro. Revise los criterios de filtrado.');
+    }
+    
+    return filteredProperties;
+  }, [allProperties, specificProperty, user]);
 
   // Form state
   const [activeStep, setActiveStep] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof PROFESSIONAL_CONTRACT_TEMPLATES>('residential_urban');
   const [previewMode, setPreviewMode] = useState(false);
+  const [contractPreviewMode, setContractPreviewMode] = useState(false);
+  const [contractDraftContent, setContractDraftContent] = useState('');
+  const [contractHasBeenPreviewed, setContractHasBeenPreviewed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -272,7 +386,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   // Property details state
   const [propertyData, setPropertyData] = useState({
-    property_id: propertyId || '',
+    property_id: effectivePropertyId || '',
     property_address: '',
     property_area: 0,
     property_stratum: 3,
@@ -293,32 +407,118 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   // Actualizar propertyId en propertyData cuando cambie el prop
   useEffect(() => {
-    if (propertyId && propertyId !== propertyData.property_id) {
-      setPropertyData(prev => ({ ...prev, property_id: propertyId }));
-    }
-  }, [propertyId]);
-
-  // Handle property selection
-  const handlePropertySelect = (selectedPropertyId: string) => {
-    const selectedProperty = properties.find(p => p.id === selectedPropertyId);
-    if (selectedProperty) {
-      setPropertyData({
-        property_id: selectedProperty.id,
-        property_address: selectedProperty.address || '',
-        property_area: selectedProperty.area || 0,
-        property_stratum: selectedProperty.stratum || 3,
-        property_rooms: selectedProperty.rooms || 2,
-        property_bathrooms: selectedProperty.bathrooms || 2,
-        property_parking_spaces: selectedProperty.parking_spaces || 1,
-        property_furnished: selectedProperty.is_furnished || false
-      });
+    if (effectivePropertyId && effectivePropertyId !== propertyData.property_id) {
+      console.log('🏠 Estableciendo propiedad desde parámetros:', effectivePropertyId);
       
-      // Also update contract data with property type
+      // Auto-seleccionar la propiedad si está disponible
+      const selectedProperty = properties.find(p => p.id === effectivePropertyId) || 
+                              (specificProperty?.id === effectivePropertyId ? specificProperty : null);
+      
+      if (selectedProperty) {
+        console.log('🎯 Auto-llenando datos de propiedad:', selectedProperty.title || selectedProperty.id);
+        handlePropertySelect(effectivePropertyId);
+      } else {
+        // Si no se encuentra en properties, solo actualizar el ID
+        console.log('🔄 Propiedad no encontrada en lista, esperando carga...');
+        setPropertyData(prev => ({ ...prev, property_id: effectivePropertyId }));
+      }
+    }
+  }, [effectivePropertyId, properties, specificProperty]);
+
+  // Trigger auto-population when specificProperty loads
+  useEffect(() => {
+    if (specificProperty && effectivePropertyId === specificProperty.id && !propertyData.property_address) {
+      console.log('🎯 Auto-llenando desde propiedad específica cargada:', specificProperty.title);
+      handlePropertySelect(specificProperty.id);
+    }
+  }, [specificProperty, effectivePropertyId, propertyData.property_address]);
+
+  // Handle property selection - AUTO-FILL DATA FROM PROPERTY MODEL
+  const handlePropertySelect = (selectedPropertyId: string) => {
+    // Find property from multiple sources
+    const selectedProperty = properties.find(p => p.id === selectedPropertyId) || 
+                            specificProperty?.id === selectedPropertyId ? specificProperty : null;
+    
+    if (selectedProperty) {
+      console.log('🎯 Auto-llenando datos de propiedad completos:', selectedProperty);
+      
+      // Build complete address string with all available location data
+      const fullAddress = [
+        selectedProperty.address,
+        selectedProperty.city,
+        selectedProperty.state,
+        selectedProperty.country
+      ].filter(Boolean).join(', ');
+      
+      // Map property type from English to Spanish
+      const propertyTypeMapping: Record<string, string> = {
+        'apartment': 'apartamento',
+        'house': 'casa', 
+        'studio': 'apartamento',
+        'penthouse': 'apartamento',
+        'townhouse': 'casa',
+        'commercial': 'local_comercial',
+        'office': 'oficina',
+        'warehouse': 'bodega',
+        'land': 'lote',
+        'room': 'habitacion'
+      };
+      
+      // Update property data with comprehensive mapping from Property model
+      const newPropertyData = {
+        property_id: selectedProperty.id,
+        property_address: fullAddress || selectedProperty.address || '',
+        property_area: Number(selectedProperty.total_area) || Number(selectedProperty.area) || 0,
+        property_stratum: selectedProperty.stratum || selectedProperty.floor_number || 3,
+        property_rooms: Number(selectedProperty.bedrooms) || 0,
+        property_bathrooms: Number(selectedProperty.bathrooms) || 0,
+        property_parking_spaces: Number(selectedProperty.parking_spaces) || 0,
+        property_furnished: Boolean(selectedProperty.furnished)
+      };
+      
+      setPropertyData(newPropertyData);
+      
+      // Update contract data with comprehensive auto-filled values
       setContractData(prev => ({
         ...prev,
-        property_type: selectedProperty.property_type || 'apartamento',
-        property_id: selectedProperty.id
+        property_type: propertyTypeMapping[selectedProperty.property_type] || selectedProperty.property_type || 'apartamento',
+        property_id: selectedProperty.id,
+        // Auto-fill financial data
+        monthly_rent: prev.monthly_rent || Number(selectedProperty.rent_price) || 0,
+        security_deposit: prev.security_deposit || Number(selectedProperty.security_deposit) || (Number(selectedProperty.rent_price) || 0),
+        // Auto-fill property policies
+        pets_allowed: Boolean(selectedProperty.pets_allowed),
+        smoking_allowed: Boolean(selectedProperty.smoking_allowed),
+        // Auto-fill lease terms
+        contract_duration_months: Number(selectedProperty.minimum_lease_term) || 12,
+        utilities_included: Array.isArray(selectedProperty.utilities_included) && selectedProperty.utilities_included.length > 0,
+        // Auto-fill occupancy based on bedrooms
+        max_occupants: Number(selectedProperty.bedrooms) || 2,
+        // Auto-fill additional details
+        utilities_responsibility: selectedProperty.utilities_included?.length > 0 ? 'landlord' : 'tenant',
+        internet_included: selectedProperty.utilities_included?.includes('internet') || false
       }));
+      
+      console.log('✅ Datos completos auto-llenados desde propiedad:', {
+        id: selectedProperty.id,
+        title: selectedProperty.title,
+        address: fullAddress,
+        area: selectedProperty.total_area,
+        bedrooms: selectedProperty.bedrooms,
+        bathrooms: selectedProperty.bathrooms,
+        parking: selectedProperty.parking_spaces,
+        furnished: selectedProperty.furnished,
+        pets: selectedProperty.pets_allowed,
+        smoking: selectedProperty.smoking_allowed,
+        lease_term: selectedProperty.minimum_lease_term,
+        rent_price: selectedProperty.rent_price,
+        security_deposit: selectedProperty.security_deposit,
+        utilities: selectedProperty.utilities_included,
+        features: selectedProperty.property_features,
+        amenities: selectedProperty.nearby_amenities
+      });
+    } else {
+      console.warn('⚠️ No se encontró la propiedad con ID:', selectedPropertyId);
     }
   };
 
@@ -428,11 +628,13 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
           basic_terms: {
             monthly_rent: contractData.monthly_rent || 0,
             security_deposit: contractData.security_deposit || 0,
-            duration_months: contractData.duration_months || 12,
+            duration_months: contractData.contract_duration_months || 12,
             utilities_included: contractData.utilities_included || false,
             pets_allowed: contractData.pets_allowed || false,
             smoking_allowed: contractData.smoking_allowed || false,
-          }
+          },
+          // Incluir el contenido del contrato editado si está disponible
+          contract_content: contractDraftContent || generateContractPreview()
         };
         
         console.log('📝 FORM DATA DEBUG:', {
@@ -445,10 +647,52 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         result = await LandlordContractService.createContractDraft(createPayload);
       }
 
+      console.log('✅ Contrato creado exitosamente:', result);
+      
+      // SINCRONIZACIÓN WORKFLOW: Actualizar PropertyInterestRequest si viene del workflow
+      const queryMatchId = searchParams.get('match');
+      if (queryMatchId && result?.id) {
+        try {
+          console.log('🔄 Sincronizando workflow - Match ID:', queryMatchId);
+          
+          // Llamar endpoint para actualizar el workflow
+          const workflowResponse = await fetch('/api/v1/contracts/workflow-action/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({
+              match_request_id: queryMatchId,
+              action: 'contract_created',
+              contract_data: {
+                contract_id: result.id,
+                created_at: new Date().toISOString()
+              }
+            })
+          });
+          
+          if (workflowResponse.ok) {
+            const workflowResult = await workflowResponse.json();
+            console.log('✅ Workflow sincronizado correctamente:', workflowResult);
+          } else {
+            console.warn('⚠️ Advertencia: No se pudo sincronizar el workflow');
+          }
+        } catch (error) {
+          console.warn('⚠️ Error en sincronización del workflow:', error);
+        }
+      }
+
       if (onSuccess) {
         onSuccess(result);
       } else {
-        navigate('/app/contracts/landlord');
+        // Navigate to contract detail view to continue workflow (signature, authentication, publication)
+        if (result.id) {
+          navigate(`/app/contracts/landlord/${result.id}`);
+        } else {
+          // Fallback to contracts dashboard
+          navigate('/app/contracts/landlord');
+        }
       }
 
     } catch (error) {
@@ -465,6 +709,169 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     } else {
       navigate('/app/contracts/landlord');
     }
+  };
+
+  const generateContractPreview = () => {
+    const currentDate = new Date().toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Template base legal profesional para vivienda urbana
+    const contractContent = `
+# CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA
+
+**Conforme a la Ley 820 de 2003 del Régimen de Arrendamiento de Vivienda Urbana**
+
+---
+
+**FECHA DE SUSCRIPCIÓN:** ${currentDate}
+
+**LUGAR DE SUSCRIPCIÓN:** ${landlordData.city}, ${landlordData.department}
+
+---
+
+## IDENTIFICACIÓN DE LAS PARTES
+
+### ARRENDADOR (PRIMERA PARTE)
+- **Nombre completo:** ${landlordData.full_name}
+- **Documento de identidad:** ${landlordData.document_type} No. ${landlordData.document_number}
+- **Teléfono:** ${landlordData.phone}
+- **Correo electrónico:** ${landlordData.email}
+- **Dirección de notificaciones:** ${landlordData.address}, ${landlordData.city}, ${landlordData.department}
+
+### ARRENDATARIO (SEGUNDA PARTE)
+**[Los datos del arrendatario se completarán cuando acepte la invitación]**
+
+### INMUEBLE OBJETO DEL CONTRATO
+- **Dirección:** ${propertyData.property_address}
+- **Tipo de inmueble:** ${contractData.property_type}
+- **Área construida:** ${propertyData.property_area} metros cuadrados
+- **Número de habitaciones:** ${propertyData.property_rooms}
+- **Número de baños:** ${propertyData.property_bathrooms}
+- **Parqueaderos:** ${propertyData.property_parking_spaces}
+- **Estado del inmueble:** ${propertyData.property_furnished ? 'Amoblado' : 'Sin amoblar'}
+
+---
+
+## CLÁUSULAS CONTRACTUALES
+
+### PRIMERA - OBJETO DEL CONTRATO
+EL ARRENDADOR entrega en arrendamiento al ARRENDATARIO el inmueble identificado anteriormente, quien lo destinará exclusivamente para **vivienda familiar**, de conformidad con lo establecido en el artículo 3° de la Ley 820 de 2003.
+
+### SEGUNDA - CANON DE ARRENDAMIENTO
+El canon mensual de arrendamiento es de **$${contractData.monthly_rent?.toLocaleString('es-CO')} PESOS COLOMBIANOS** (${contractData.monthly_rent ? new Intl.NumberFormat('es-CO').format(contractData.monthly_rent) : 'N/A'}), que deberá ser cancelado por EL ARRENDATARIO dentro de los primeros **${contractData.payment_day || 5}** días de cada mes.
+
+### TERCERA - DEPÓSITO EN DINERO
+EL ARRENDATARIO entregará al ARRENDADOR la suma de **$${contractData.security_deposit?.toLocaleString('es-CO')} PESOS COLOMBIANOS** como depósito en dinero, conforme al artículo 19 de la Ley 820 de 2003, equivalente a ${contractData.security_deposit && contractData.monthly_rent ? Math.round((contractData.security_deposit / contractData.monthly_rent) * 10) / 10 : 'N/A'} meses de canon.
+
+### CUARTA - DURACIÓN DEL CONTRATO
+El término de duración del presente contrato es de **${contractData.contract_duration_months} MESES**, contados a partir de la fecha de entrega del inmueble. El contrato se prorrogará automáticamente por períodos iguales, salvo manifestación en contrario de cualquiera de las partes con una antelación mínima de tres (3) meses.
+
+### QUINTA - INCREMENTO DEL CANON
+El canon de arrendamiento se reajustará anualmente en una proporción igual al incremento del Índice de Precios al Consumidor (IPC) certificado por el DANE, conforme al artículo 20 de la Ley 820 de 2003.
+
+### SEXTA - SERVICIOS PÚBLICOS
+Los servicios públicos domiciliarios (energía, acueducto, alcantarillado, aseo, gas y telecomunicaciones) ${contractData.utilities_included ? 'están incluidos en el canon de arrendamiento' : 'estarán a cargo del ARRENDATARIO'} y deberán cancelarse oportunamente.
+
+### SÉPTIMA - OBLIGACIONES DEL ARRENDATARIO
+1. Pagar puntualmente el canon de arrendamiento y los servicios públicos.
+2. Destinar el inmueble exclusivamente para vivienda familiar.
+3. Conservar el inmueble en buen estado y restituirlo en las mismas condiciones.
+4. Permitir inspecciones del inmueble, previa cita acordada.
+5. No realizar modificaciones sin autorización escrita del ARRENDADOR.
+6. ${contractData.pets_allowed ? 'Cumplir las normas de tenencia responsable de mascotas.' : 'No introducir mascotas en el inmueble.'}
+7. ${contractData.smoking_allowed ? 'Fumar únicamente en áreas ventiladas.' : 'Abstenerse de fumar dentro del inmueble.'}
+8. No exceder el número máximo de ${contractData.max_occupants || 4} ocupantes.
+
+### OCTAVA - OBLIGACIONES DEL ARRENDADOR
+1. Entregar el inmueble en condiciones de habitabilidad.
+2. Mantener el inmueble en estado adecuado para la habitación.
+3. Realizar las reparaciones necesarias por deterioro natural.
+4. Respetar el derecho del ARRENDATARIO al goce pacífico del inmueble.
+5. Cumplir con las obligaciones establecidas en la Ley 820 de 2003.
+
+### NOVENA - REPARACIONES LOCATIVAS
+Las reparaciones locativas estarán a cargo del ${contractData.maintenance_responsibility === 'tenant' ? 'ARRENDATARIO' : contractData.maintenance_responsibility === 'landlord' ? 'ARRENDADOR' : 'ARRENDATARIO para reparaciones menores y del ARRENDADOR para reparaciones mayores'}, conforme a lo establecido en los artículos 2029 y 2030 del Código Civil.
+
+### DÉCIMA - TERMINACIÓN DEL CONTRATO
+El contrato terminará por las causales previstas en el artículo 22 de la Ley 820 de 2003, y por mutuo acuerdo entre las partes.
+
+### DÉCIMA PRIMERA - RESTITUCIÓN DEL INMUEBLE
+Al terminar el contrato, EL ARRENDATARIO deberá restituir el inmueble en las mismas condiciones en que lo recibió, salvo el deterioro natural por el uso adecuado.
+
+${contractData.guarantor_required ? `
+### DÉCIMA SEGUNDA - CODEUDOR
+El presente contrato cuenta con codeudor solidario, cuya información se completará en el proceso de formalización.` : ''}
+
+${contractData.special_clauses && contractData.special_clauses.length > 0 ? `
+### CLÁUSULAS ADICIONALES
+${contractData.special_clauses.map((clause, index) => `**${index + 1}.** ${clause}`).join('\n')}` : ''}
+
+---
+
+## FIRMAS
+
+En constancia de lo anterior, se firma el presente contrato en la fecha indicada.
+
+**EL ARRENDADOR**
+
+_____________________________
+${landlordData.full_name}
+${landlordData.document_type} ${landlordData.document_number}
+
+
+**EL ARRENDATARIO**
+
+_____________________________
+[Se completará con firma biométrica digital]
+
+${contractData.guarantor_required ? `
+**EL CODEUDOR**
+
+_____________________________
+[Se completará en el proceso de formalización]` : ''}
+
+---
+
+## INFORMACIÓN LEGAL
+
+- **Marco legal:** Ley 820 de 2003, Código Civil Colombiano
+- **Jurisdicción:** República de Colombia
+- **Estado del documento:** BORRADOR DIGITAL
+- **Sistema:** VeriHome - Plataforma Digital de Arrendamiento
+- **Fecha de generación:** ${currentDate}
+
+---
+
+*Este contrato cumple con la normatividad colombiana vigente para arrendamiento de vivienda urbana. Ha sido generado digitalmente y será perfeccionado mediante firmas biométricas de las partes.*
+    `;
+
+    return contractContent;
+  };
+
+  const handleContractPreview = () => {
+    if (!validateCurrentStep()) {
+      setValidationErrors(['Complete todos los campos requeridos antes de ver la previsualización del contrato']);
+      return;
+    }
+    
+    const content = generateContractPreview();
+    setContractDraftContent(content);
+    setContractHasBeenPreviewed(true);
+    setContractPreviewMode(true);
+  };
+
+  const handleSaveContractChanges = () => {
+    // Aquí podrías implementar lógica adicional para parsear cambios del contenido editado
+    // Por ahora solo cerramos el modal manteniendo los cambios
+    setContractPreviewMode(false);
+    
+    // Mostrar confirmación
+    setTimeout(() => {
+      alert('✅ Los cambios en el borrador del contrato han sido guardados. Puede continuar con la creación.');
+    }, 200);
   };
 
   const getRecommendedDeposit = (): number => {
@@ -629,8 +1036,238 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
               </Typography>
             </Grid>
             
+            {/* Selected Property Display */}
+            {effectivePropertyId && (
+              <Grid item xs={12}>
+                {(() => {
+                  const selectedProperty = properties.find(p => p.id === effectivePropertyId) || specificProperty;
+                  
+                  if (!selectedProperty) {
+                    return (
+                      <Card variant="outlined" sx={{ p: 2, bgcolor: 'warning.light', borderColor: 'warning.main' }}>
+                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                          <WarningIcon color="warning" />
+                          <Typography variant="h6" color="warning.main">
+                            Propiedad Preseleccionada
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Cargando información de la propiedad...
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Esta propiedad fue seleccionada automáticamente desde la solicitud de interés.
+                        </Typography>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <Card variant="outlined" sx={{ p: 3, bgcolor: 'success.50', borderColor: 'success.main', border: 2 }}>
+                      <Box display="flex" alignItems="center" gap={1} mb={2}>
+                        <CheckIcon color="success" />
+                        <Typography variant="h6" color="success.main">
+                          Propiedad Preseleccionada para Contrato
+                        </Typography>
+                      </Box>
+                      
+                      {/* Property Header */}
+                      <Box sx={{ mb: 3, p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
+                        <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
+                          🏠 {selectedProperty.title || `${selectedProperty.property_type} - ${selectedProperty.city}`}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" gutterBottom>
+                          📍 {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}, {selectedProperty.country}
+                        </Typography>
+                        {selectedProperty.description && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            📝 {selectedProperty.description.substring(0, 200)}{selectedProperty.description.length > 200 ? '...' : ''}
+                          </Typography>
+                        )}
+                      </Box>
+                      
+                      {/* Property Details Grid */}
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        {/* Basic Details */}
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
+                            <Typography variant="caption" color="text.secondary">Área Total</Typography>
+                            <Typography variant="h6" fontWeight="bold" color="primary">
+                              📐 {selectedProperty.total_area || selectedProperty.area || 'N/A'} m²
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
+                            <Typography variant="caption" color="text.secondary">Habitaciones</Typography>
+                            <Typography variant="h6" fontWeight="bold" color="primary">
+                              🛏️ {selectedProperty.bedrooms || 'N/A'}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
+                            <Typography variant="caption" color="text.secondary">Baños</Typography>
+                            <Typography variant="h6" fontWeight="bold" color="primary">
+                              🚿 {selectedProperty.bathrooms || 'N/A'}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
+                            <Typography variant="caption" color="text.secondary">Parqueaderos</Typography>
+                            <Typography variant="h6" fontWeight="bold" color="primary">
+                              🚗 {selectedProperty.parking_spaces || 'N/A'}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      </Grid>
+                      
+                      {/* Additional Details */}
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        {selectedProperty.built_area && (
+                          <Grid item xs={12} sm={4}>
+                            <Typography variant="caption" color="text.secondary">Área Construida</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              🏗️ {selectedProperty.built_area} m²
+                            </Typography>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.floors && (
+                          <Grid item xs={12} sm={4}>
+                            <Typography variant="caption" color="text.secondary">Pisos</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              🏢 {selectedProperty.floors} {selectedProperty.floors === 1 ? 'piso' : 'pisos'}
+                            </Typography>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.floor_number && (
+                          <Grid item xs={12} sm={4}>
+                            <Typography variant="caption" color="text.secondary">Piso #</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              📍 Piso {selectedProperty.floor_number}
+                            </Typography>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.year_built && (
+                          <Grid item xs={12} sm={4}>
+                            <Typography variant="caption" color="text.secondary">Año de Construcción</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              🗓️ {selectedProperty.year_built}
+                            </Typography>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.half_bathrooms > 0 && (
+                          <Grid item xs={12} sm={4}>
+                            <Typography variant="caption" color="text.secondary">Medios Baños</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              🚽 {selectedProperty.half_bathrooms}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                      
+                      {/* Financial Information */}
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        {selectedProperty.rent_price && (
+                          <Grid item xs={12} sm={6} md={4}>
+                            <Paper sx={{ p: 1.5, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
+                              <Typography variant="caption" color="success.dark">Precio de Renta</Typography>
+                              <Typography variant="h6" fontWeight="bold" color="success.main">
+                                💰 ${Number(selectedProperty.rent_price).toLocaleString()} COP/mes
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.security_deposit && (
+                          <Grid item xs={12} sm={6} md={4}>
+                            <Paper sx={{ p: 1.5, bgcolor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
+                              <Typography variant="caption" color="info.dark">Depósito de Garantía</Typography>
+                              <Typography variant="h6" fontWeight="bold" color="info.main">
+                                🏦 ${Number(selectedProperty.security_deposit).toLocaleString()} COP
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        )}
+                        
+                        {selectedProperty.maintenance_fee && (
+                          <Grid item xs={12} sm={6} md={4}>
+                            <Paper sx={{ p: 1.5, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+                              <Typography variant="caption" color="warning.dark">Administración</Typography>
+                              <Typography variant="h6" fontWeight="bold" color="warning.main">
+                                🏢 ${Number(selectedProperty.maintenance_fee).toLocaleString()} COP/mes
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        )}
+                      </Grid>
+                      
+                      {/* Property Policies & Features */}
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="caption" color="text.secondary" gutterBottom>Políticas de la Propiedad</Typography>
+                          <Box display="flex" gap={1} flexWrap="wrap">
+                            {selectedProperty.furnished && (
+                              <Chip label="🪑 Amoblado" size="small" color="info" />
+                            )}
+                            {selectedProperty.pets_allowed && (
+                              <Chip label="🐕 Mascotas Permitidas" size="small" color="success" />
+                            )}
+                            {selectedProperty.smoking_allowed && (
+                              <Chip label="🚬 Fumadores Permitidos" size="small" color="warning" />
+                            )}
+                            {selectedProperty.minimum_lease_term && (
+                              <Chip label={`📅 Min. ${selectedProperty.minimum_lease_term} meses`} size="small" color="primary" />
+                            )}
+                          </Box>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="caption" color="text.secondary" gutterBottom>Servicios Incluidos</Typography>
+                          <Box display="flex" gap={1} flexWrap="wrap">
+                            {(Array.isArray(selectedProperty.utilities_included) ? selectedProperty.utilities_included : [])?.map((utility, index) => (
+                              <Chip key={index} label={`⚡ ${utility}`} size="small" color="secondary" />
+                            )) || <Typography variant="caption" color="text.secondary">No especificados</Typography>}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                      
+                      {/* Property Features */}
+                      {selectedProperty.property_features && selectedProperty.property_features.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="caption" color="text.secondary" gutterBottom>Características Especiales</Typography>
+                          <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
+                            {selectedProperty.property_features.slice(0, 6).map((feature, index) => (
+                              <Chip key={index} label={`✨ ${feature}`} size="small" variant="outlined" />
+                            ))}
+                            {selectedProperty.property_features.length > 6 && (
+                              <Chip label={`+${selectedProperty.property_features.length - 6} más`} size="small" variant="outlined" />
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+                      
+                      <Alert severity="success" sx={{ mt: 2 }}>
+                        <Typography variant="body2">
+                          ✅ <strong>Datos Auto-Cargados:</strong> Toda la información de esta propiedad ha sido transferida automáticamente 
+                          al formulario del contrato. Verifica los datos en los campos de abajo y modifica lo que sea necesario antes de continuar.
+                        </Typography>
+                      </Alert>
+                    </Card>
+                  );
+                })()}
+              </Grid>
+            )}
+            
             {/* Property Selector */}
-            {!propertyId && (
+            {!effectivePropertyId && (
               <Grid item xs={12}>
                 <FormControl fullWidth error={validationErrors.some(err => err.includes('seleccionar una propiedad'))}>
                   <InputLabel id="property-select-label">Seleccionar Propiedad *</InputLabel>
@@ -644,7 +1281,16 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                     {propertiesLoading ? (
                       <MenuItem disabled>Cargando propiedades...</MenuItem>
                     ) : properties.length === 0 ? (
-                      <MenuItem disabled>No hay propiedades disponibles</MenuItem>
+                      <MenuItem disabled>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            No hay propiedades disponibles
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Asegúrate de tener propiedades activas y no arrendadas
+                          </Typography>
+                        </Box>
+                      </MenuItem>
                     ) : (
                       properties.map((property) => (
                         <MenuItem key={property.id} value={property.id}>
@@ -672,8 +1318,17 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
             {propertyData.property_id && (
               <Grid item xs={12}>
                 <Alert severity="success" sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2">Propiedad seleccionada:</Typography>
-                  <Typography variant="body2">{propertyData.property_address}</Typography>
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <CheckIcon fontSize="small" />
+                    <Typography variant="subtitle2" fontWeight="bold">Propiedad seleccionada:</Typography>
+                  </Box>
+                  <Typography variant="body2" fontWeight="medium">
+                    📍 {propertyData.property_address}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    📐 {propertyData.property_area}m² • 🛏️ {propertyData.property_rooms} hab. • 🚿 {propertyData.property_bathrooms} baños
+                    {propertyData.property_parking_spaces > 0 && ` • 🚗 ${propertyData.property_parking_spaces} parqueaderos`}
+                  </Typography>
                 </Alert>
               </Grid>
             )}
@@ -685,17 +1340,37 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 value={propertyData.property_address}
                 onChange={(e) => setPropertyData(prev => ({ ...prev, property_address: e.target.value }))}
                 error={validationErrors.some(err => err.includes('dirección de la propiedad'))}
-                helperText="Dirección exacta incluida nomenclatura y referencias"
+                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad seleccionada. Puedes editarlo si es necesario." : "Dirección exacta incluida nomenclatura y referencias"}
+                InputProps={{
+                  startAdornment: effectivePropertyId ? (
+                    <InputAdornment position="start">
+                      <CheckIcon color="success" fontSize="small" />
+                    </InputAdornment>
+                  ) : undefined
+                }}
+                sx={effectivePropertyId ? { 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: 'success.50',
+                    '&:hover': { bgcolor: 'success.100' },
+                    '&.Mui-focused': { bgcolor: 'background.paper' }
+                  } 
+                } : undefined}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Propiedad *</InputLabel>
+              <FormControl fullWidth sx={effectivePropertyId ? { 
+                '& .MuiOutlinedInput-root': { 
+                  bgcolor: 'success.50',
+                  '&:hover': { bgcolor: 'success.100' },
+                  '&.Mui-focused': { bgcolor: 'background.paper' }
+                } 
+              } : undefined}>
+                <InputLabel>Tipo de Propiedad * {effectivePropertyId && '✅'}</InputLabel>
                 <Select
                   value={contractData.property_type}
                   onChange={(e) => setContractData(prev => ({ ...prev, property_type: e.target.value as PropertyType }))}
-                  label="Tipo de Propiedad *"
+                  label={`Tipo de Propiedad * ${effectivePropertyId ? '✅' : ''}`}
                 >
                   <MenuItem value="apartamento">Apartamento</MenuItem>
                   <MenuItem value="casa">Casa</MenuItem>
@@ -706,6 +1381,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                   <MenuItem value="finca">Finca</MenuItem>
                   <MenuItem value="lote">Lote</MenuItem>
                 </Select>
+                {effectivePropertyId && (
+                  <Typography variant="caption" color="success.main" sx={{ mt: 0.5, ml: 1.5 }}>
+                    Auto-llenado desde la propiedad
+                  </Typography>
+                )}
               </FormControl>
             </Grid>
 
@@ -714,12 +1394,28 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Área (m²) *"
                 type="number"
-                value={propertyData.property_area}
-                onChange={(e) => setPropertyData(prev => ({ ...prev, property_area: Number(e.target.value) }))}
+                value={propertyData.property_area === 0 ? '' : propertyData.property_area}
+                onChange={(e) => setPropertyData(prev => ({ 
+                  ...prev, 
+                  property_area: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 error={validationErrors.some(err => err.includes('área'))}
+                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad seleccionada" : ""}
                 InputProps={{
+                  startAdornment: effectivePropertyId ? (
+                    <InputAdornment position="start">
+                      <CheckIcon color="success" fontSize="small" />
+                    </InputAdornment>
+                  ) : undefined,
                   endAdornment: <InputAdornment position="end">m²</InputAdornment>,
                 }}
+                sx={effectivePropertyId ? { 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: 'success.50',
+                    '&:hover': { bgcolor: 'success.100' },
+                    '&.Mui-focused': { bgcolor: 'background.paper' }
+                  } 
+                } : undefined}
               />
             </Grid>
 
@@ -728,8 +1424,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Estrato"
                 type="number"
-                value={propertyData.property_stratum}
-                onChange={(e) => setPropertyData(prev => ({ ...prev, property_stratum: Number(e.target.value) }))}
+                value={propertyData.property_stratum === 0 ? '' : propertyData.property_stratum}
+                onChange={(e) => setPropertyData(prev => ({ 
+                  ...prev, 
+                  property_stratum: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 1, max: 6 }}
               />
             </Grid>
@@ -739,9 +1438,27 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Habitaciones"
                 type="number"
-                value={propertyData.property_rooms}
-                onChange={(e) => setPropertyData(prev => ({ ...prev, property_rooms: Number(e.target.value) }))}
+                value={propertyData.property_rooms === 0 ? '' : propertyData.property_rooms}
+                onChange={(e) => setPropertyData(prev => ({ 
+                  ...prev, 
+                  property_rooms: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 0 }}
+                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                InputProps={{
+                  startAdornment: effectivePropertyId ? (
+                    <InputAdornment position="start">
+                      <CheckIcon color="success" fontSize="small" />
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+                sx={effectivePropertyId ? { 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: 'success.50',
+                    '&:hover': { bgcolor: 'success.100' },
+                    '&.Mui-focused': { bgcolor: 'background.paper' }
+                  } 
+                } : undefined}
               />
             </Grid>
 
@@ -750,9 +1467,27 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Baños"
                 type="number"
-                value={propertyData.property_bathrooms}
-                onChange={(e) => setPropertyData(prev => ({ ...prev, property_bathrooms: Number(e.target.value) }))}
+                value={propertyData.property_bathrooms === 0 ? '' : propertyData.property_bathrooms}
+                onChange={(e) => setPropertyData(prev => ({ 
+                  ...prev, 
+                  property_bathrooms: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 0 }}
+                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                InputProps={{
+                  startAdornment: effectivePropertyId ? (
+                    <InputAdornment position="start">
+                      <CheckIcon color="success" fontSize="small" />
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+                sx={effectivePropertyId ? { 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: 'success.50',
+                    '&:hover': { bgcolor: 'success.100' },
+                    '&.Mui-focused': { bgcolor: 'background.paper' }
+                  } 
+                } : undefined}
               />
             </Grid>
 
@@ -761,22 +1496,53 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Parqueaderos"
                 type="number"
-                value={propertyData.property_parking_spaces}
-                onChange={(e) => setPropertyData(prev => ({ ...prev, property_parking_spaces: Number(e.target.value) }))}
+                value={propertyData.property_parking_spaces === 0 ? '' : propertyData.property_parking_spaces}
+                onChange={(e) => setPropertyData(prev => ({ 
+                  ...prev, 
+                  property_parking_spaces: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 0 }}
+                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                InputProps={{
+                  startAdornment: effectivePropertyId ? (
+                    <InputAdornment position="start">
+                      <CheckIcon color="success" fontSize="small" />
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+                sx={effectivePropertyId ? { 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: 'success.50',
+                    '&:hover': { bgcolor: 'success.100' },
+                    '&.Mui-focused': { bgcolor: 'background.paper' }
+                  } 
+                } : undefined}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={propertyData.property_furnished}
-                    onChange={(e) => setPropertyData(prev => ({ ...prev, property_furnished: e.target.checked }))}
-                  />
-                }
-                label="Propiedad Amoblada"
-              />
+              <Box sx={{ mt: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={propertyData.property_furnished}
+                      onChange={(e) => setPropertyData(prev => ({ ...prev, property_furnished: e.target.checked }))}
+                      color={effectivePropertyId ? "success" : "primary"}
+                    />
+                  }
+                  label={
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {effectivePropertyId && <CheckIcon color="success" fontSize="small" />}
+                      <Typography>Propiedad Amoblada</Typography>
+                    </Box>
+                  }
+                />
+                {effectivePropertyId && (
+                  <Typography variant="caption" color="success.main" display="block">
+                    ✅ Auto-llenado desde la propiedad
+                  </Typography>
+                )}
+              </Box>
             </Grid>
 
             <Grid item xs={12}>
@@ -847,8 +1613,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Canon Mensual de Arrendamiento *"
                 type="number"
-                value={contractData.monthly_rent}
-                onChange={(e) => setContractData(prev => ({ ...prev, monthly_rent: Number(e.target.value) }))}
+                value={contractData.monthly_rent === 0 ? '' : contractData.monthly_rent}
+                onChange={(e) => setContractData(prev => ({ 
+                  ...prev, 
+                  monthly_rent: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 error={validationErrors.some(err => err.includes('canon mensual'))}
                 InputProps={{
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
@@ -862,8 +1631,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Depósito de Garantía"
                 type="number"
-                value={contractData.security_deposit}
-                onChange={(e) => setContractData(prev => ({ ...prev, security_deposit: Number(e.target.value) }))}
+                value={contractData.security_deposit === 0 ? '' : contractData.security_deposit}
+                onChange={(e) => setContractData(prev => ({ 
+                  ...prev, 
+                  security_deposit: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 InputProps={{
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 }}
@@ -876,8 +1648,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Duración del Contrato (meses) *"
                 type="number"
-                value={contractData.contract_duration_months}
-                onChange={(e) => setContractData(prev => ({ ...prev, contract_duration_months: Number(e.target.value) }))}
+                value={contractData.contract_duration_months === 0 ? '' : contractData.contract_duration_months}
+                onChange={(e) => setContractData(prev => ({ 
+                  ...prev, 
+                  contract_duration_months: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 error={validationErrors.some(err => err.includes('duración'))}
                 inputProps={{ min: 1 }}
                 helperText={`Recomendado: ${PROFESSIONAL_CONTRACT_TEMPLATES[selectedTemplate].recommended_duration} meses`}
@@ -904,8 +1679,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Día de Pago del Canon"
                 type="number"
-                value={contractData.payment_day}
-                onChange={(e) => setContractData(prev => ({ ...prev, payment_day: Number(e.target.value) }))}
+                value={contractData.payment_day === 0 ? '' : contractData.payment_day}
+                onChange={(e) => setContractData(prev => ({ 
+                  ...prev, 
+                  payment_day: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 1, max: 31 }}
                 helperText="Día del mes para el pago (1-31)"
               />
@@ -1007,8 +1785,11 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 fullWidth
                 label="Máximo de Ocupantes"
                 type="number"
-                value={contractData.max_occupants}
-                onChange={(e) => setContractData(prev => ({ ...prev, max_occupants: Number(e.target.value) }))}
+                value={contractData.max_occupants === 0 ? '' : contractData.max_occupants}
+                onChange={(e) => setContractData(prev => ({ 
+                  ...prev, 
+                  max_occupants: e.target.value === '' ? 0 : Number(e.target.value) 
+                }))}
                 inputProps={{ min: 1 }}
               />
             </Grid>
@@ -1339,6 +2120,18 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                 <StepContent>
                   {renderStepContent(index)}
                   <Box sx={{ mb: 2, mt: 4 }}>
+                    {index === steps.length - 1 && (
+                      <Button
+                        variant="outlined"
+                        onClick={handleContractPreview}
+                        startIcon={<VisibilityIcon />}
+                        sx={{ mr: 1 }}
+                        size="large"
+                        color={contractHasBeenPreviewed ? "success" : "primary"}
+                      >
+                        {contractHasBeenPreviewed ? '✅ Ver/Editar Borrador' : 'Ver Borrador del Contrato'}
+                      </Button>
+                    )}
                     <LoadingButton
                       variant="contained"
                       onClick={index === steps.length - 1 ? handleSubmit : handleNext}
@@ -1371,7 +2164,94 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         </CardContent>
       </Card>
 
-      {/* Preview Dialog */}
+      {/* Contract Preview Dialog - Editable Draft */}
+      <Dialog
+        open={contractPreviewMode}
+        onClose={() => setContractPreviewMode(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { height: '90vh' }
+        }}
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={1}>
+              <VisibilityIcon color="primary" />
+              <Typography variant="h6">
+                Borrador del Contrato - {PROFESSIONAL_CONTRACT_TEMPLATES[selectedTemplate].title}
+              </Typography>
+            </Box>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Chip label="BORRADOR EDITABLE" color="warning" size="small" />
+              <IconButton onClick={() => setContractPreviewMode(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 1 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              📝 Editor de Borrador del Contrato
+            </Typography>
+            <Typography variant="body2">
+              Puede editar el contenido del contrato directamente aquí. Los cambios se aplicarán al momento de crear el contrato.
+              Este borrador se generará oficialmente una vez que haga clic en "Crear Contrato".
+            </Typography>
+          </Alert>
+          
+          <TextField
+            fullWidth
+            multiline
+            value={contractDraftContent}
+            onChange={(e) => setContractDraftContent(e.target.value)}
+            variant="outlined"
+            sx={{
+              '& .MuiInputBase-root': {
+                minHeight: 'calc(90vh - 200px)',
+                alignItems: 'flex-start',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                lineHeight: 1.6,
+              },
+              '& .MuiInputBase-input': {
+                padding: '20px',
+                minHeight: 'calc(90vh - 240px) !important',
+              }
+            }}
+            placeholder="El contenido del contrato aparecerá aquí una vez que complete todos los campos requeridos..."
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Box display="flex" justifyContent="space-between" width="100%">
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                💡 Tip: Use formato Markdown para mejor presentación
+              </Typography>
+            </Box>
+            <Box>
+              <Button 
+                onClick={() => setContractPreviewMode(false)}
+                color="inherit"
+                sx={{ mr: 1 }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveContractChanges}
+                variant="contained"
+                startIcon={<SaveIcon />}
+                color="primary"
+              >
+                Guardar Cambios
+              </Button>
+            </Box>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      {/* Template Preview Dialog */}
       <Dialog
         open={previewMode}
         onClose={() => setPreviewMode(false)}
