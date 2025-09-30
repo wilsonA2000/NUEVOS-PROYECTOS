@@ -297,25 +297,31 @@ class TenantDocument(models.Model):
     # Tipos de documentos específicos según especificaciones
     DOCUMENT_TYPES = [
         # TOMADOR (Inquilino principal)
-        ('tomador_cedula_frente', 'Cédula de Ciudadanía - Frente'),
-        ('tomador_cedula_atras', 'Cédula de Ciudadanía - Atrás'),
+        ('tomador_cedula_ciudadania', 'Cédula de Ciudadanía'),
         ('tomador_pasaporte', 'Pasaporte'),
-        ('tomador_cedula_extranjeria_frente', 'Cédula de Extranjería - Frente'),
-        ('tomador_cedula_extranjeria_atras', 'Cédula de Extranjería - Atrás'),
+        ('tomador_cedula_extranjeria', 'Cédula de Extranjería'),
         ('tomador_certificado_laboral', 'Certificado Laboral'),
         ('tomador_carta_recomendacion', 'Carta de Recomendación'),
         
         # CODEUDOR
-        ('codeudor_cedula_frente', 'Codeudor: Cédula de Ciudadanía - Frente'),
-        ('codeudor_cedula_atras', 'Codeudor: Cédula de Ciudadanía - Atrás'),
+        ('codeudor_cedula_ciudadania', 'Codeudor: Cédula de Ciudadanía'),
         ('codeudor_pasaporte', 'Codeudor: Pasaporte'),
-        ('codeudor_cedula_extranjeria_frente', 'Codeudor: Cédula de Extranjería - Frente'),
-        ('codeudor_cedula_extranjeria_atras', 'Codeudor: Cédula de Extranjería - Atrás'),
+        ('codeudor_cedula_extranjeria', 'Codeudor: Cédula de Extranjería'),
         ('codeudor_certificado_laboral', 'Codeudor: Certificado Laboral'),
         ('codeudor_libertad_tradicion', 'Codeudor: Certificado de Libertad y Tradición'),
         
         # OTROS
-        ('otros', 'Otros Documentos'),
+        ('otros', 'Otros Documentos (Personalizable)'),
+        
+        # LEGACY - Mantener para compatibilidad con datos existentes
+        ('tomador_cedula_frente', 'Cédula de Ciudadanía - Frente (Legacy)'),
+        ('tomador_cedula_atras', 'Cédula de Ciudadanía - Atrás (Legacy)'),
+        ('codeudor_cedula_frente', 'Codeudor: Cédula de Ciudadanía - Frente (Legacy)'),
+        ('codeudor_cedula_atras', 'Codeudor: Cédula de Ciudadanía - Atrás (Legacy)'),
+        ('tomador_cedula_extranjeria_frente', 'Cédula de Extranjería - Frente (Legacy)'),
+        ('tomador_cedula_extranjeria_atras', 'Cédula de Extranjería - Atrás (Legacy)'),
+        ('codeudor_cedula_extranjeria_frente', 'Codeudor: Cédula de Extranjería - Frente (Legacy)'),
+        ('codeudor_cedula_extranjeria_atras', 'Codeudor: Cédula de Extranjería - Atrás (Legacy)'),
     ]
     
     STATUS_CHOICES = [
@@ -344,7 +350,8 @@ class TenantDocument(models.Model):
     # Información del documento
     document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
     document_file = models.FileField(
-        upload_to='tenant_documents/%Y/%m/', 
+        upload_to='tenant_documents/%Y/%m/',
+        max_length=255,
         help_text='Solo archivos PDF permitidos'
     )
     original_filename = models.CharField(max_length=255)
@@ -389,10 +396,13 @@ class TenantDocument(models.Model):
     def is_identity_document(self):
         """Verifica si es un documento de identidad."""
         identity_docs = [
+            # Nuevos tipos unificados
+            'tomador_cedula_ciudadania', 'tomador_pasaporte', 'tomador_cedula_extranjeria',
+            'codeudor_cedula_ciudadania', 'codeudor_pasaporte', 'codeudor_cedula_extranjeria',
+            # Legacy - mantener compatibilidad
             'tomador_cedula_frente', 'tomador_cedula_atras',
-            'tomador_pasaporte', 'tomador_cedula_extranjeria_frente',
-            'tomador_cedula_extranjeria_atras', 'codeudor_cedula_frente',
-            'codeudor_cedula_atras', 'codeudor_pasaporte',
+            'tomador_cedula_extranjeria_frente', 'tomador_cedula_extranjeria_atras', 
+            'codeudor_cedula_frente', 'codeudor_cedula_atras',
             'codeudor_cedula_extranjeria_frente', 'codeudor_cedula_extranjeria_atras'
         ]
         return self.document_type in identity_docs

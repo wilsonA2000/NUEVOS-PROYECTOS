@@ -5,7 +5,7 @@ export const propertyService = {
   getProperties: async (filters?: PropertySearchFilters): Promise<Property[]> => {
     try {
 
-const response = await api.get('/properties/properties/', { params: filters });
+const response = await api.get('/properties/', { params: filters });
 
 return response.data.results || response.data;
     } catch (error: any) {
@@ -19,7 +19,7 @@ return response.data.results || response.data;
   },
 
   getProperty: async (id: string): Promise<Property> => {
-    const response = await api.get(`/properties/properties/${id}/`);
+    const response = await api.get(`/properties/${id}/`);
     return response.data;
   },
 
@@ -41,7 +41,7 @@ return response.data.results || response.data;
         console.log('📦 PropertyService: Datos a enviar:', data);
       }
 
-      const response = await api.post('/properties/properties/', data, 
+      const response = await api.post('/properties/', data, 
         data instanceof FormData ? { 
           headers: { 
             'Content-Type': 'multipart/form-data' 
@@ -60,13 +60,47 @@ return response.data.results || response.data;
     }
   },
 
-  updateProperty: async (id: string, data: UpdatePropertyDto): Promise<Property> => {
-    const response = await api.put(`/properties/properties/${id}/`, data);
-    return response.data;
+  updateProperty: async (id: string, data: UpdatePropertyDto | FormData): Promise<Property> => {
+    try {
+      console.log('🚀 PropertyService: Iniciando actualización de propiedad:', id);
+      
+      if (data instanceof FormData) {
+        console.log('📦 PropertyService: Enviando FormData para actualización');
+        // Debug FormData contents
+        for (let [key, value] of data.entries()) {
+          if (value instanceof File) {
+            console.log(`📄 FormData: ${key} = File(${value.name}, ${value.size} bytes)`);
+          } else {
+            console.log(`📝 FormData: ${key} = ${value}`);
+          }
+        }
+      } else {
+        console.log('📦 PropertyService: Datos de actualización:', data);
+      }
+
+      const response = await api.put(
+        `/properties/${id}/`, 
+        data,
+        data instanceof FormData ? { 
+          headers: { 
+            'Content-Type': 'multipart/form-data' 
+          } 
+        } : undefined
+      );
+
+      console.log('✅ PropertyService: Propiedad actualizada exitosamente:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ PropertyService: Error actualizando propiedad:', error);
+      console.error('   Response:', error.response?.data);
+      console.error('   Status:', error.response?.status);
+      console.error('   Request config:', error.config);
+      throw error;
+    }
   },
 
   deleteProperty: async (id: string): Promise<void> => {
-    await api.delete(`/properties/properties/${id}/`);
+    await api.delete(`/properties/${id}/`);
   },
 
   searchProperties: async (filters: PropertySearchFilters): Promise<Property[]> => {
@@ -95,7 +129,7 @@ return response.data.results || response.data;
   },
 
   toggleFavorite: async (propertyId: string): Promise<{ message: string }> => {
-    const response = await api.post(`/properties/properties/${propertyId}/toggle-favorite/`);
+    const response = await api.post(`/properties/${propertyId}/toggle-favorite/`);
     return response.data;
   },
 
@@ -107,7 +141,7 @@ return response.data.results || response.data;
   contactLandlord: async (propertyId: string, data: any): Promise<{ message: string }> => {
     try {
 
-const response = await api.post(`/properties/properties/${propertyId}/contact-landlord/`, data);
+const response = await api.post(`/properties/${propertyId}/contact-landlord/`, data);
 
 return response.data;
     } catch (error: any) {

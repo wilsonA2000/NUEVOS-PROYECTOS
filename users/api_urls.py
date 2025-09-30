@@ -16,6 +16,7 @@ router.register(r'landlord-profiles', api_views.LandlordProfileViewSet, basename
 router.register(r'tenant-profiles', api_views.TenantProfileViewSet, basename='tenant-profile')
 router.register(r'service-provider-profiles', api_views.ServiceProviderProfileViewSet, basename='service-provider-profile')
 router.register(r'portfolio-items', api_views.PortfolioItemViewSet, basename='portfolio-item')
+router.register(r'activity-logs', api_views.UserActivityLogViewSet, basename='activity-log')
 
 urlpatterns = [
     # Incluir rutas del router
@@ -26,7 +27,7 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/me/', api_views.UserProfileView.as_view(), name='api_profile'),
     path('auth/logout/', api_views.LogoutAPIView.as_view(), name='api_logout'),
-    path('auth/confirm-email/<str:key>/', api_views.EmailConfirmationView.as_view(), name='api_confirm_email'),
+    path('auth/confirm-email/<path:key>/', api_views.EmailConfirmationView.as_view(), name='api_confirm_email'),
     path('auth/resend-confirmation/', api_views.ResendEmailConfirmationView.as_view(), name='api_resend_confirmation'),
     
     # Sistema de códigos de entrevista
@@ -38,6 +39,8 @@ urlpatterns = [
     path('auth/register-with-code/', RegisterWithCodeView.as_view(), name='api_register_with_code'),
     path('auth/validate-interview-code/', ValidateInterviewCodeView.as_view(), name='api_validate_interview_code'),
     path('auth/change-password/', api_views.ChangePasswordAPIView.as_view(), name='api_change_password'),
+    path('auth/forgot-password/', api_views.ForgotPasswordView.as_view(), name='api_forgot_password'),
+    path('auth/reset-password/', api_views.ResetPasswordView.as_view(), name='api_reset_password'),
     
     # Contacto público
     path('contact/', ContactRequestView.as_view(), name='api_contact'),
@@ -75,4 +78,18 @@ urlpatterns = [
     path('notifications/', api_views.UserNotificationsAPIView.as_view(), name='api_user_notifications'),
     path('notifications/<int:notification_id>/mark-read/', api_views.MarkNotificationReadAPIView.as_view(), name='api_mark_notification_read'),
     path('notifications/mark-all-read/', api_views.MarkAllNotificationsReadAPIView.as_view(), name='api_mark_all_notifications_read'),
+    
+    # Activity Logs
+    path('activity-logs/stats/', api_views.UserActivityStatsAPIView.as_view(), name='api_activity_stats'),
+    path('activity-logs/create/', api_views.CreateActivityLogAPIView.as_view(), name='api_create_activity_log'),
+    path('activity-logs/types/', api_views.ActivityTypesAPIView.as_view(), name='api_activity_types'),
+    
+    # Public Profile
+    path('<str:user_id>/profile/', api_views.PublicProfileView.as_view(), name='public_profile'),
+    
+    # Public Resume (Hoja de Vida)
+    path('<str:user_id>/resume/', api_views.PublicResumeView.as_view(), name='public_resume'),
+    
+    # Candidate Evaluation (Nueva vista unificada)
+    path('<str:user_id>/evaluation/', api_views.CandidateEvaluationView.as_view(), name='candidate_evaluation'),
 ]

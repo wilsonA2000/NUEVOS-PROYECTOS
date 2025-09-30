@@ -3,7 +3,7 @@ import { performanceMonitor } from '../utils/performanceMonitor';
 import { auditMiddleware } from '../utils/auditMiddleware';
 import { setupAxiosCache } from './apiCache';
 
-const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:8000/api/v1';
+const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:8001/api/v1';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -44,7 +44,7 @@ const requiresAuth = (url: string): boolean => {
 // Request interceptor to add auth token and start performance tracking
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     const endpoint = config.url || '';
     const needsAuth = requiresAuth(endpoint);
     

@@ -347,10 +347,9 @@ class RatingListCreateView(generics.ListCreateAPIView):
                 user=request.user,
                 activity_type='rating_create',
                 description=f'Creación de calificación {rating.id}',
-                details={'rating_id': str(rating.id)},
+                metadata={'rating_id': str(rating.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
@@ -395,10 +394,9 @@ class RatingDetailView(generics.RetrieveUpdateDestroyAPIView):
                 user=request.user,
                 activity_type='rating_update',
                 description=f'Actualización de calificación {rating.id}',
-                details={'rating_id': str(rating.id)},
+                metadata={'rating_id': str(rating.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -426,10 +424,9 @@ class RatingDetailView(generics.RetrieveUpdateDestroyAPIView):
                 user=request.user,
                 activity_type='rating_delete',
                 description=f'Eliminación de calificación {rating_id}',
-                details={'deleted_rating_id': rating_id},
+                metadata={'deleted_rating_id': rating_id},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
@@ -472,10 +469,9 @@ class RatingResponseCreateView(generics.CreateAPIView):
                 user=request.user,
                 activity_type='rating_response_create',
                 description=f'Respuesta a calificación {rating.id}',
-                details={'rating_id': str(rating.id), 'response_id': str(response.id)},
+                metadata={'rating_id': str(rating.id), 'response_id': str(response.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
@@ -522,10 +518,9 @@ class RatingReportCreateView(generics.CreateAPIView):
                 user=request.user,
                 activity_type='rating_report_create',
                 description=f'Reporte de calificación {rating.id}',
-                details={'rating_id': str(rating.id), 'report_id': str(report.id)},
+                metadata={'rating_id': str(rating.id), 'report_id': str(report.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 

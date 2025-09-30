@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpiar Cache - VeriHome</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 28px;
+        }
+        .steps {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .step::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            background: #4caf50;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .warning {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid #ff9800;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(76, 175, 80, 0.2);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpieza de Cache - VeriHome</h1>
+        
+        <div class="warning">
+            ⚠️ <strong>Importante:</strong> Los cambios requieren limpiar el cache del navegador
+        </div>
+
+        <div class="steps">
+            <h3>Pasos completados:</h3>
+            <div class="step">API URLs configuradas correctamente</div>
+            <div class="step">Backend URL: http://localhost:8000</div>
+            <div class="step">Configuración centralizada creada</div>
+        </div>
+
+        <h3>Opciones de limpieza:</h3>
+        
+        <button onclick="clearAll()">
+            🚀 Limpiar Todo el Cache
+        </button>
+        
+        <button onclick="hardReload()">
+            🔄 Forzar Recarga Completa
+        </button>
+
+        <div id="status"></div>
+
+        <div class="steps" style="margin-top: 30px;">
+            <h4>Método Manual (Recomendado):</h4>
+            <div class="step">Presiona <strong>Ctrl + Shift + R</strong> (Windows/Linux)</div>
+            <div class="step">O presiona <strong>Cmd + Shift + R</strong> (Mac)</div>
+            <div class="step">O abre una ventana de incógnito</div>
+        </div>
+    </div>
+
+    <script>
+        function clearAll() {
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.innerHTML = '⏳ Limpiando cache...';
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear service worker caches
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            // Unregister service workers
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => {
+                        registration.unregister();
+                    });
+                });
+            }
+            
+            setTimeout(() => {
+                status.innerHTML = '✅ Cache limpiado! Redirigiendo a la aplicación...';
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:5173';
+                }, 2000);
+            }, 1000);
+        }
+        
+        function hardReload() {
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.innerHTML = '🔄 Recargando con cache limpio...';
+            
+            // Force reload with cache bypass
+            setTimeout(() => {
+                window.location.href = 'http://localhost:5173?cacheBust=' + Date.now();
+            }, 500);
+        }
+    </script>
+</body>
+</html>

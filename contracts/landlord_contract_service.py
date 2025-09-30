@@ -72,17 +72,30 @@ class LandlordContractService:
             contract = LandlordControlledContract.objects.create(
                 landlord=landlord,
                 property_id=property_id,
-                contract_template=contract_template,
+                contract_type='rental_urban',
                 current_state='DRAFT',
-                monthly_rent=basic_terms.get('monthly_rent'),
-                security_deposit=basic_terms.get('security_deposit'),
-                contract_duration_months=basic_terms.get('duration_months', 12),
-                utilities_included=basic_terms.get('utilities_included', False),
-                pets_allowed=basic_terms.get('pets_allowed', False),
-                smoking_allowed=basic_terms.get('smoking_allowed', False)
+                title=f'Contrato de Arrendamiento - {landlord.get_full_name()}',
+                tenant_identifier='',  # Se completará cuando se invite al tenant
+                economic_terms={
+                    'monthly_rent': float(basic_terms.get('monthly_rent', 0)),
+                    'security_deposit': float(basic_terms.get('security_deposit', 0)),
+                    'currency': 'COP'
+                },
+                contract_terms={
+                    'contract_duration_months': basic_terms.get('duration_months', 12),
+                    'utilities_included': basic_terms.get('utilities_included', False),
+                    'pets_allowed': basic_terms.get('pets_allowed', False),
+                    'smoking_allowed': basic_terms.get('smoking_allowed', False)
+                }
             )
             
             # Registrar acción en historial
+            # Convertir Decimals a float para serialización JSON
+            json_safe_terms = {
+                k: (float(v) if hasattr(v, '__float__') else v) 
+                for k, v in basic_terms.items()
+            }
+            
             self._record_history(
                 contract=contract,
                 user=landlord,
@@ -90,7 +103,7 @@ class LandlordContractService:
                 description=f"Contrato creado para propiedad {property_id}",
                 old_state='',
                 new_state='DRAFT',
-                data_changes={'basic_terms': basic_terms}
+                data_changes={'basic_terms': json_safe_terms}
             )
             
             # Notificar al arrendador
@@ -180,7 +193,7 @@ class LandlordContractService:
                 raise ValidationError("Contrato no está en estado de invitación")
             
             # Actualizar email del arrendatario invitado
-            contract.tenant_email = tenant_email
+            contract.tenant_identifier = tenant_email
             contract.save()
             
             # Enviar email de invitación personalizado
@@ -248,7 +261,7 @@ class LandlordContractService:
                 raise ValidationError("Token de invitación inválido o expirado")
             
             # Verificar que el email coincida
-            if contract.tenant_email != tenant.email:
+            if contract.tenant_identifier != tenant.email:
                 raise PermissionDenied("El email no coincide con la invitación")
             
             # Asignar arrendatario al contrato
@@ -356,11 +369,10 @@ class LandlordContractService:
             # Crear objeción
             objection = ContractObjection.objects.create(
                 contract=contract,
-                objected_by=user,
-                field_name=field_name,
+                field_reference=field_name,
                 current_value=current_value,
-                proposed_value=proposed_value,
-                justification=justification,
+                proposed_modification=proposed_value,
+                objection_text=justification,
                 priority=priority,
                 status='PENDING'
             )
@@ -527,7 +539,7 @@ class LandlordContractService:
                 
                 # Notificar que está listo para firmar
                 self._notify_ready_to_sign(contract)
-            
+
             return contract
 
     # =====================================================================
@@ -587,7 +599,6 @@ class LandlordContractService:
             # Verificar si ambas partes han firmado
             if contract.landlord_signed and contract.tenant_signed:
                 contract.current_state = 'FULLY_SIGNED'
-                contract.fully_signed_at = timezone.now()
                 contract.save()
                 
                 self._record_history(
@@ -667,7 +678,7 @@ class LandlordContractService:
 
     def _validate_landlord_permissions(self, user: User) -> bool:
         """Validar que el usuario tiene permisos de arrendador."""
-        return hasattr(user, 'profile') and user.profile.user_type == 'landlord'
+        return user.user_type == 'landlord'
 
     def _validate_basic_terms(self, terms: Dict) -> None:
         """Validar términos básicos del contrato."""
@@ -686,9 +697,17 @@ class LandlordContractService:
         """Validar datos completos del arrendador."""
         required_fields = [
             'full_name', 'document_number', 'document_type',
-            'phone', 'address', 'city', 'emergency_contact'
+            'phone', 'address', 'city'
         ]
         for field in required_fields:
+            if not data.get(field):
+                raise ValidationError(f"Campo requerido del arrendador: {field}")
+        
+        # Validar campos de contacto de emergencia por separado
+        emergency_fields = [
+            'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship'
+        ]
+        for field in emergency_fields:
             if not data.get(field):
                 raise ValidationError(f"Campo requerido del arrendador: {field}")
 
@@ -753,21 +772,26 @@ class LandlordContractService:
             contract=contract,
             performed_by=user,
             action_type=action_type,
-            description=description,
+            action_description=description,
+            user_role=user.user_type,
             old_state=old_state,
             new_state=new_state,
-            data_changes=data_changes or {},
+            changes_made=data_changes or {},
             related_objection=related_objection,
             related_guarantee=related_guarantee
         )
         
         # También agregar al workflow_history JSON del contrato
-        contract.add_workflow_entry({
-            'timestamp': timezone.now().isoformat(),
-            'user': user.email,
-            'action': action_type,
-            'description': description
-        })
+        contract.add_workflow_entry(
+            action=action_type,
+            user=user,
+            details={
+                'description': description,
+                'old_state': old_state,
+                'new_state': new_state,
+                'changes': data_changes or {}
+            }
+        )
         
         return history_entry
 
@@ -903,3 +927,4 @@ class LandlordContractService:
             contract=contract,
             landlord=contract.landlord
         )
+

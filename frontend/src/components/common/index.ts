@@ -4,7 +4,7 @@
  */
 
 // Error Boundaries
-export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as ErrorBoundary } from '../ErrorBoundary';
 export * from './ErrorBoundaries';
 
 // UI Components

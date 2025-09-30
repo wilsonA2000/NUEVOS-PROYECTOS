@@ -207,7 +207,7 @@ class DashboardStatsView(APIView):
             },
             'ratings': {
                 'given': Rating.objects.filter(reviewer=user).count(),
-                'properties_rated': Rating.objects.filter(reviewer=user, content_type__model='property').count(),
+                'properties_rated': Rating.objects.filter(reviewer=user, property__isnull=False).count(),
                 'average_given': Rating.objects.filter(reviewer=user).aggregate(avg=Avg('overall_rating'))['avg'] or 0
             }
         }
@@ -374,3 +374,163 @@ class DashboardChartsView(APIView):
                 'data': data
             }]
         }
+
+
+class DashboardExportView(APIView):
+    """Vista para exportar datos del dashboard."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Exporta los datos del dashboard en formato CSV."""
+        import csv
+        from django.http import HttpResponse
+        
+        user = request.user
+        period = request.query_params.get('period', 'month')
+        
+        # Calcular fechas según el período
+        end_date = timezone.now()
+        if period == 'week':
+            start_date = end_date - timedelta(days=7)
+        elif period == 'year':
+            start_date = end_date - timedelta(days=365)
+        else:  # month (default)
+            start_date = end_date - timedelta(days=30)
+        
+        # Crear respuesta HTTP con CSV
+        response = HttpResponse(
+            content_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="dashboard-export-{period}.csv"'},
+        )
+        
+        writer = csv.writer(response)
+        
+        if user.user_type == 'landlord':
+            self._export_landlord_data(writer, user, start_date, end_date)
+        elif user.user_type == 'tenant':
+            self._export_tenant_data(writer, user, start_date, end_date)
+        elif user.user_type == 'service_provider':
+            self._export_service_provider_data(writer, user, start_date, end_date)
+        else:
+            self._export_general_data(writer, start_date, end_date)
+        
+        return response
+    
+    def _export_landlord_data(self, writer, user, start_date, end_date):
+        """Exporta datos específicos para arrendadores."""
+        # Encabezados
+        writer.writerow([
+            'Fecha', 'Tipo', 'Descripción', 'Propiedad', 'Monto', 'Estado'
+        ])
+        
+        # Transacciones
+        transactions = Transaction.objects.filter(
+            property__landlord=user,
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        ).order_by('-created_at')
+        
+        for transaction in transactions:
+            writer.writerow([
+                transaction.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Pago',
+                transaction.description,
+                transaction.property.title,
+                float(transaction.amount),
+                transaction.status
+            ])
+        
+        # Contratos
+        contracts = Contract.objects.filter(
+            property__landlord=user,
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        )
+        
+        for contract in contracts:
+            writer.writerow([
+                contract.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Contrato',
+                f'Contrato con {contract.secondary_party.get_full_name()}',
+                contract.property.title,
+                float(contract.property.rent_price) if contract.property.rent_price else 0,
+                contract.status
+            ])
+    
+    def _export_tenant_data(self, writer, user, start_date, end_date):
+        """Exporta datos específicos para inquilinos."""
+        writer.writerow([
+            'Fecha', 'Tipo', 'Descripción', 'Propiedad', 'Monto', 'Estado'
+        ])
+        
+        # Pagos realizados
+        transactions = Transaction.objects.filter(
+            payer=user,
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        ).order_by('-created_at')
+        
+        for transaction in transactions:
+            writer.writerow([
+                transaction.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Pago Realizado',
+                transaction.description,
+                transaction.property.title if transaction.property else 'N/A',
+                float(transaction.amount),
+                transaction.status
+            ])
+        
+        # Contratos
+        contracts = Contract.objects.filter(
+            secondary_party=user,
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        )
+        
+        for contract in contracts:
+            writer.writerow([
+                contract.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Contrato',
+                f'Contrato para {contract.property.title}',
+                contract.property.title,
+                float(contract.property.rent_price) if contract.property.rent_price else 0,
+                contract.status
+            ])
+    
+    def _export_service_provider_data(self, writer, user, start_date, end_date):
+        """Exporta datos específicos para proveedores de servicios."""
+        writer.writerow([
+            'Fecha', 'Tipo', 'Descripción', 'Cliente', 'Monto', 'Estado'
+        ])
+        
+        # TODO: Implementar cuando se cree el modelo de servicios
+        writer.writerow([
+            timezone.now().strftime('%Y-%m-%d %H:%M'),
+            'Información',
+            'Exportación de servicios no implementada aún',
+            'N/A',
+            0,
+            'Pendiente'
+        ])
+    
+    def _export_general_data(self, writer, start_date, end_date):
+        """Exporta datos generales para administradores."""
+        writer.writerow([
+            'Fecha', 'Tipo', 'Descripción', 'Usuario', 'Monto', 'Estado'
+        ])
+        
+        # Todas las transacciones del período
+        transactions = Transaction.objects.filter(
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        ).order_by('-created_at')
+        
+        for transaction in transactions:
+            writer.writerow([
+                transaction.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Transacción',
+                transaction.description,
+                transaction.payer.get_full_name() if transaction.payer else 'N/A',
+                float(transaction.amount),
+                transaction.status
+            ])

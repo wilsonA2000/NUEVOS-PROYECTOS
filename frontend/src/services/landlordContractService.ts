@@ -39,6 +39,20 @@ export class LandlordContractService {
     // Transformar el payload al formato que espera el serializer backend
     const backendPayload = {
       property: payload.property_id,
+      basic_terms: {
+        monthly_rent: payload.basic_terms.monthly_rent,
+        security_deposit: payload.basic_terms.security_deposit,
+        duration_months: payload.basic_terms.duration_months,
+        utilities_included: payload.basic_terms.utilities_included,
+        pets_allowed: payload.basic_terms.pets_allowed,
+        smoking_allowed: payload.basic_terms.smoking_allowed
+      },
+      // Incluir datos del arrendador si están disponibles
+      landlord_data: payload.landlord_data || {},
+      property_data: payload.property_data || {},
+      guarantee_terms: payload.guarantee_terms || {},
+      special_clauses: payload.special_clauses || [],
+      // Mantener también campos individuales para compatibilidad
       monthly_rent: payload.basic_terms.monthly_rent,
       security_deposit: payload.basic_terms.security_deposit,
       contract_duration_months: payload.basic_terms.duration_months,
@@ -46,13 +60,13 @@ export class LandlordContractService {
       pets_allowed: payload.basic_terms.pets_allowed,
       smoking_allowed: payload.basic_terms.smoking_allowed
     };
-    
+
     console.log('🚀 SENDING CONTRACT PAYLOAD:', {
       originalPayload: payload,
       transformedPayload: backendPayload,
       endpoint: `${BASE_URL}/contracts/`
     });
-    
+
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
   }
@@ -65,6 +79,15 @@ export class LandlordContractService {
     // Transformar datos genéricos directamente al formato backend
     const backendPayload = {
       property: contractData.property_id || contractData.propertyId || contractData.property || '',
+      basic_terms: {
+        monthly_rent: Number(contractData.monthly_rent || contractData.monthlyRent || 0),
+        security_deposit: Number(contractData.security_deposit || contractData.securityDeposit || 0),
+        duration_months: Number(contractData.duration_months || contractData.durationMonths || contractData.contract_duration_months || 12),
+        utilities_included: Boolean(contractData.utilities_included || contractData.utilitiesIncluded || false),
+        pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
+        smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false)
+      },
+      // Mantener también campos individuales para compatibilidad
       monthly_rent: Number(contractData.monthly_rent || contractData.monthlyRent || 0),
       security_deposit: Number(contractData.security_deposit || contractData.securityDeposit || 0),
       contract_duration_months: Number(contractData.duration_months || contractData.durationMonths || contractData.contract_duration_months || 12),
@@ -72,7 +95,12 @@ export class LandlordContractService {
       pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
       smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false)
     };
-    
+
+    console.log('🚀 SENDING LEGACY CONTRACT PAYLOAD:', {
+      originalData: contractData,
+      transformedPayload: backendPayload
+    });
+
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
   }
@@ -136,6 +164,88 @@ export class LandlordContractService {
   static async getLandlordContract(contractId: string): Promise<LandlordControlledContractData> {
     const response = await api.get(`${BASE_URL}/contracts/${contractId}/`);
     return response.data;
+  }
+
+  /**
+   * Obtener contrato para edición con datos formateados para el editor
+   */
+  static async getContractForEditing(contractId: string): Promise<LandlordControlledContractData> {
+    try {
+      // Usar el endpoint existente pero con datos formateados para edición
+      const response = await api.get(`${BASE_URL}/contracts/${contractId}/`);
+      const contractData = response.data;
+
+      // Formatear los datos para el editor si es necesario
+      const formattedContract: LandlordControlledContractData = {
+        id: contractData.id,
+        contract_number: contractData.contract_number,
+        current_state: contractData.current_state,
+        contract_template: contractData.contract_template || 'rental_urban',
+        
+        // Basic terms con valores por defecto
+        basic_terms: {
+          monthly_rent: contractData.monthly_rent || 0,
+          security_deposit: contractData.security_deposit || 0,
+          duration_months: contractData.contract_duration_months || 12,
+          utilities_included: contractData.utilities_included || false,
+          pets_allowed: contractData.pets_allowed || false,
+          smoking_allowed: contractData.smoking_allowed || false,
+          payment_day: contractData.payment_day || 5,
+          guarantee_type: contractData.basic_terms?.guarantee_type || 'none',
+          guarantee_data: contractData.basic_terms?.guarantee_data || {},
+          requires_biometric_codeudor: contractData.basic_terms?.requires_biometric_codeudor || false
+        },
+
+        // Landlord data con valores por defecto
+        landlord_data: {
+          full_name: contractData.landlord_data?.full_name || '',
+          document_type: contractData.landlord_data?.document_type || 'CC',
+          document_number: contractData.landlord_data?.document_number || '',
+          phone: contractData.landlord_data?.phone || '',
+          email: contractData.landlord_data?.email || '',
+          address: contractData.landlord_data?.address || '',
+          city: contractData.landlord_data?.city || ''
+        },
+
+        // Property data con valores por defecto
+        property_data: {
+          property_id: contractData.property_data?.property_id || contractData.property?.id || '',
+          property_address: contractData.property_data?.property_address || contractData.property?.address || '',
+          property_area: contractData.property_data?.property_area || contractData.property?.area || 0,
+          property_type: contractData.property_data?.property_type || contractData.property?.property_type || 'apartment',
+          property_furnished: contractData.property_data?.property_furnished || contractData.property?.furnished || false
+        },
+
+        // Tenant data (puede estar vacío en modo draft)
+        tenant_data: contractData.tenant_data || null,
+
+        // Special clauses
+        special_clauses: contractData.special_clauses || [],
+
+        // Contract states
+        landlord_approved: contractData.landlord_approved || false,
+        tenant_approved: contractData.tenant_approved || false,
+        landlord_signed: contractData.landlord_signed || false,
+        tenant_signed: contractData.tenant_signed || false,
+
+        // Timestamps
+        created_at: contractData.created_at,
+        updated_at: contractData.updated_at,
+        signed_at: contractData.signed_at,
+
+        // Optional fields
+        tenant_email: contractData.tenant_email,
+        invitation_token: contractData.invitation_token,
+        published_at: contractData.published_at
+      };
+
+      console.log('✅ Contract loaded for editing:', formattedContract.id);
+      return formattedContract;
+
+    } catch (error) {
+      console.error('❌ Error loading contract for editing:', error);
+      throw error;
+    }
   }
 
   /**
@@ -228,13 +338,6 @@ export class LandlordContractService {
     return response.data;
   }
 
-  /**
-   * Publicar contrato (solo arrendador)
-   */
-  static async publishContract(payload: PublishContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`/contracts/${payload.contract_id}/publish/`);
-    return response.data;
-  }
 
   /**
    * Obtener dashboard del arrendador
@@ -704,22 +807,6 @@ export class LandlordContractService {
     return response.data;
   }
 
-  /**
-   * Verificar token de invitación
-   */
-  static async verifyInvitationToken(token: string): Promise<{
-    is_valid: boolean;
-    error?: string;
-    contract_id?: string;
-    expires_at?: string;
-    landlord_name?: string;
-    property_address?: string;
-  }> {
-    const response = await api.post('/contracts/verify-invitation/', {
-      invitation_token: token,
-    });
-    return response.data;
-  }
 
   /**
    * Aceptar invitación con token

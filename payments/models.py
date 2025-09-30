@@ -11,6 +11,9 @@ import uuid
 
 User = get_user_model()
 
+# Importar modelos de escrow integration al final del archivo para evitar import circular
+# Los modelos se importan usando __all__ al final
+
 
 class PaymentMethod(models.Model):
     """Métodos de pago de los usuarios."""
@@ -189,6 +192,20 @@ class Transaction(models.Model):
         null=True,
         blank=True,
         related_name='transactions'
+    )
+    
+    # Referencia al escrow de contrato (para transacciones de escrow)
+    escrow_reference = models.CharField(
+        'Referencia de Escrow',
+        max_length=100,
+        blank=True,
+        help_text='ID de la cuenta de escrow relacionada con contratos'
+    )
+    escrow_milestone_id = models.CharField(
+        'ID de Hito de Escrow',
+        max_length=100,
+        blank=True,
+        help_text='ID del hito de escrow que esta transacción libera'
     )
     
     # Información de la pasarela de pago
@@ -807,3 +824,25 @@ class RentPaymentReminder(models.Model):
         
     def __str__(self):
         return f"{self.get_reminder_type_display()} - {self.schedule.tenant.get_full_name()}"
+
+
+# Importar modelos de escrow integration
+try:
+    from .escrow_integration import (
+        ContractEscrowAccount,
+        EscrowTransaction as ContractEscrowTransaction,
+        EscrowReleaseRule as ContractEscrowReleaseRule,
+        EscrowService as ContractEscrowService
+    )
+    # Hacer disponibles los modelos de escrow para otros módulos
+    __all__ = [
+        'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
+        'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder',
+        'ContractEscrowAccount', 'ContractEscrowTransaction', 'ContractEscrowReleaseRule', 'ContractEscrowService'
+    ]
+except ImportError:
+    # Si no está disponible escrow integration, solo exportar modelos básicos
+    __all__ = [
+        'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
+        'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder'
+    ]

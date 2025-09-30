@@ -57,6 +57,7 @@ urlpatterns = [
     path('plantilla/<int:template_pk>/editar/', views.EditTemplateView.as_view(), name='edit_template'),
     
     # Exportar y descargar
+    path('<uuid:pk>/preview-pdf/', views.DownloadContractPDFView.as_view(), name='preview_pdf'),
     path('<uuid:pk>/descargar-pdf/', views.DownloadContractPDFView.as_view(), name='download_pdf'),
     path('<uuid:pk>/exportar/', views.ExportContractView.as_view(), name='export'),
     

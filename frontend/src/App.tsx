@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { clearAuthState } from './utils/clearAuthState';
 import CustomNotification from './components/common/CustomNotification';
 import { useNotification } from './hooks/useNotification';
+import OptimizedWebSocketProvider from './contexts/OptimizedWebSocketContext';
 
 // Componente wrapper para las notificaciones
 const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,9 +44,11 @@ function App() {
         <ThemeProvider theme={theme}>
           <BrowserRouter>
             <AuthProvider>
-              <NotificationWrapper>
-                <AppRoutes />
-              </NotificationWrapper>
+              <OptimizedWebSocketProvider>
+                <NotificationWrapper>
+                  <AppRoutes />
+                </NotificationWrapper>
+              </OptimizedWebSocketProvider>
             </AuthProvider>
           </BrowserRouter>
         </ThemeProvider>

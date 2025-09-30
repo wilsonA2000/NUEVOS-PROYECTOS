@@ -21,7 +21,7 @@ class TenantContractListSerializer(serializers.ModelSerializer):
     landlord_name = serializers.CharField(source='landlord.get_full_name', read_only=True)
     landlord_email = serializers.CharField(source='landlord.email', read_only=True)
     landlord_phone = serializers.CharField(source='landlord.profile.phone', read_only=True)
-    property_address = serializers.CharField(source='property.full_address', read_only=True)
+    property_address = serializers.CharField(source='property.address', read_only=True)
     property_title = serializers.CharField(source='property.title', read_only=True)
     
     # Estados y progreso desde perspectiva del tenant
@@ -35,9 +35,17 @@ class TenantContractListSerializer(serializers.ModelSerializer):
     can_sign = serializers.SerializerMethodField()
     can_object = serializers.SerializerMethodField()
     
-    # Información de objeciones
-    tenant_objections_count = serializers.SerializerMethodField()
-    pending_landlord_responses = serializers.SerializerMethodField()
+    # Información de objeciones (temporalmente deshabilitado - modelo no soporta objected_by)
+    # tenant_objections_count = serializers.SerializerMethodField()
+    # pending_landlord_responses = serializers.SerializerMethodField()
+    
+    # Campos calculados desde JSONField
+    monthly_rent = serializers.SerializerMethodField()
+    security_deposit = serializers.SerializerMethodField()
+    contract_duration_months = serializers.SerializerMethodField()
+    utilities_included = serializers.SerializerMethodField()
+    pets_allowed = serializers.SerializerMethodField()
+    smoking_allowed = serializers.SerializerMethodField()
     
     class Meta:
         model = LandlordControlledContract
@@ -51,8 +59,7 @@ class TenantContractListSerializer(serializers.ModelSerializer):
             'tenant_approved', 'tenant_approved_at', 'tenant_signed', 'tenant_signed_at',
             'published', 'published_at', 'start_date', 'end_date',
             'tenant_progress_percentage', 'days_since_invitation',
-            'can_complete_data', 'can_approve', 'can_sign', 'can_object',
-            'tenant_objections_count', 'pending_landlord_responses'
+            'can_complete_data', 'can_approve', 'can_sign', 'can_object'
         ]
         read_only_fields = [
             'id', 'contract_number', 'created_at', 'updated_at',
@@ -96,22 +103,42 @@ class TenantContractListSerializer(serializers.ModelSerializer):
         """¿Puede presentar objeciones?"""
         return obj.current_state in ['LANDLORD_REVIEWING', 'TENANT_REVIEWING', 'OBJECTIONS_PENDING']
     
-    def get_tenant_objections_count(self, obj):
-        """Número de objeciones presentadas por el arrendatario."""
-        request = self.context.get('request')
-        if request and request.user:
-            return obj.objections.filter(objected_by=request.user).count()
-        return 0
+    # Métodos temporalmente deshabilitados - modelo no soporta objected_by
+    # def get_tenant_objections_count(self, obj):
+    #     """Número de objeciones presentadas por el arrendatario."""
+    #     request = self.context.get('request')
+    #     if request and request.user:
+    #         return obj.objections.filter(objected_by=request.user).count()
+    #     return 0
+    # 
+    # def get_pending_landlord_responses(self, obj):
+    #     """Objeciones del tenant esperando respuesta del landlord."""
+    #     request = self.context.get('request')
+    #     if request and request.user:
+    #         return obj.objections.filter(
+    #             objected_by=request.user,
+    #             status='PENDING'
+    #         ).count()
+    #     return 0
     
-    def get_pending_landlord_responses(self, obj):
-        """Objeciones del tenant esperando respuesta del landlord."""
-        request = self.context.get('request')
-        if request and request.user:
-            return obj.objections.filter(
-                objected_by=request.user,
-                status='PENDING'
-            ).count()
-        return 0
+    # Métodos para campos calculados desde JSONField - List Serializer
+    def get_monthly_rent(self, obj):
+        return obj.economic_terms.get('monthly_rent', 0) if obj.economic_terms else 0
+    
+    def get_security_deposit(self, obj):
+        return obj.economic_terms.get('security_deposit', 0) if obj.economic_terms else 0
+    
+    def get_contract_duration_months(self, obj):
+        return obj.contract_terms.get('contract_duration_months', 12) if obj.contract_terms else 12
+    
+    def get_utilities_included(self, obj):
+        return obj.contract_terms.get('utilities_included', False) if obj.contract_terms else False
+    
+    def get_pets_allowed(self, obj):
+        return obj.contract_terms.get('pets_allowed', False) if obj.contract_terms else False
+    
+    def get_smoking_allowed(self, obj):
+        return obj.contract_terms.get('smoking_allowed', False) if obj.contract_terms else False
 
 
 class TenantContractDetailSerializer(serializers.ModelSerializer):
@@ -142,6 +169,15 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
     # Información de firma y aprobación
     signature_status = serializers.SerializerMethodField()
     
+    # Campos calculados desde JSONField
+    monthly_rent = serializers.SerializerMethodField()
+    security_deposit = serializers.SerializerMethodField()
+    contract_duration_months = serializers.SerializerMethodField()
+    utilities_included = serializers.SerializerMethodField()
+    pets_allowed = serializers.SerializerMethodField()
+    smoking_allowed = serializers.SerializerMethodField()
+    additional_terms = serializers.SerializerMethodField()
+    
     class Meta:
         model = LandlordControlledContract
         fields = [
@@ -154,7 +190,7 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
             'next_action_required', 'tenant_capabilities',
             
             # Datos del contrato
-            'contract_template', 'monthly_rent', 'security_deposit',
+            'monthly_rent', 'security_deposit',
             'contract_duration_months', 'utilities_included', 'pets_allowed',
             'smoking_allowed', 'additional_terms',
             
@@ -173,7 +209,7 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
             'invitation_token', 'invitation_expires_at',
             
             # Fechas
-            'created_at', 'updated_at', 'fully_signed_at',
+            'created_at', 'updated_at',
             
             # Relaciones filtradas
             'my_objections', 'landlord_objections', 'guarantees',
@@ -185,7 +221,7 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'contract_number', 'created_at', 'updated_at',
             'landlord_approved_at', 'tenant_approved_at',
-            'published_at', 'fully_signed_at'
+            'published_at'
         ]
     
     def get_landlord_details(self, obj):
@@ -213,14 +249,14 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
                 'id': obj.property.id,
                 'title': obj.property.title,
                 'description': obj.property.description,
-                'address': obj.property.full_address,
+                'address': obj.property.address,
                 'property_type': obj.property.property_type,
                 'bedrooms': obj.property.bedrooms,
                 'bathrooms': obj.property.bathrooms,
-                'area': obj.property.area,
+                'area': getattr(obj.property, 'total_area', None),
                 'furnished': getattr(obj.property, 'furnished', False),
                 'parking': getattr(obj.property, 'parking', False),
-                'main_image_url': obj.property.main_image_url,
+                'main_image_url': getattr(obj.property, 'main_image_url', ''),
                 'amenities': [amenity.name for amenity in obj.property.amenities.all()] if hasattr(obj.property, 'amenities') else []
             }
         return None
@@ -276,19 +312,20 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
         return actions.get(obj.current_state)
     
     def get_my_objections(self, obj):
-        """Objeciones presentadas por el arrendatario."""
-        user = self.context.get('request').user if self.context.get('request') else None
-        if user:
-            my_objections = obj.objections.filter(objected_by=user).order_by('-submitted_at')
-            from .landlord_contract_serializers import ContractObjectionSerializer
-            return ContractObjectionSerializer(my_objections, many=True).data
+        """Objeciones presentadas por el arrendatario (deshabilitado - modelo no soporta objected_by)."""
+        # user = self.context.get('request').user if self.context.get('request') else None
+        # if user:
+        #     my_objections = obj.objections.filter(objected_by=user).order_by('-submitted_at')
+        #     from .landlord_contract_serializers import ContractObjectionSerializer
+        #     return ContractObjectionSerializer(my_objections, many=True).data
         return []
     
     def get_landlord_objections(self, obj):
-        """Objeciones presentadas por el arrendador."""
-        landlord_objections = obj.objections.filter(objected_by=obj.landlord).order_by('-submitted_at')
-        from .landlord_contract_serializers import ContractObjectionSerializer
-        return ContractObjectionSerializer(landlord_objections, many=True).data
+        """Objeciones presentadas por el arrendador (deshabilitado - modelo no soporta objected_by)."""
+        # landlord_objections = obj.objections.filter(objected_by=obj.landlord).order_by('-submitted_at')
+        # from .landlord_contract_serializers import ContractObjectionSerializer
+        # return ContractObjectionSerializer(landlord_objections, many=True).data
+        return []
     
     def get_guarantees(self, obj):
         """Garantías del contrato."""
@@ -311,10 +348,7 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
         return {
             'can_complete_data': obj.current_state == 'TENANT_REVIEWING',
             'can_create_objections': obj.current_state in ['LANDLORD_REVIEWING', 'TENANT_REVIEWING', 'OBJECTIONS_PENDING'],
-            'can_respond_objections': obj.objections.filter(
-                objected_by=obj.landlord,
-                status='PENDING'
-            ).exists(),
+            'can_respond_objections': False,  # Deshabilitado - modelo no soporta objected_by
             'can_approve': obj.current_state == 'BOTH_REVIEWING' and not obj.tenant_approved,
             'can_sign': obj.current_state == 'READY_TO_SIGN' and not obj.tenant_signed,
             'can_view_contract': obj.current_state in ['BOTH_REVIEWING', 'READY_TO_SIGN', 'FULLY_SIGNED', 'PUBLISHED']
@@ -327,9 +361,30 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
             'landlord_signed_at': obj.landlord_signed_at,
             'tenant_signed': obj.tenant_signed,
             'tenant_signed_at': obj.tenant_signed_at,
-            'fully_signed': obj.landlord_signed and obj.tenant_signed,
-            'fully_signed_at': obj.fully_signed_at
+            'fully_signed': obj.landlord_signed and obj.tenant_signed
         }
+    
+    # Métodos para campos calculados desde JSONField
+    def get_monthly_rent(self, obj):
+        return obj.economic_terms.get('monthly_rent', 0)
+    
+    def get_security_deposit(self, obj):
+        return obj.economic_terms.get('security_deposit', 0)
+    
+    def get_contract_duration_months(self, obj):
+        return obj.contract_terms.get('contract_duration_months', 12)
+    
+    def get_utilities_included(self, obj):
+        return obj.contract_terms.get('utilities_included', False)
+    
+    def get_pets_allowed(self, obj):
+        return obj.contract_terms.get('pets_allowed', False)
+    
+    def get_smoking_allowed(self, obj):
+        return obj.contract_terms.get('smoking_allowed', False)
+    
+    def get_additional_terms(self, obj):
+        return obj.contract_terms.get('additional_terms', '')
 
 
 class TenantDataSerializer(serializers.Serializer):

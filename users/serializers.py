@@ -5,7 +5,7 @@ Serializers para la aplicación de usuarios de VeriHome.
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, UserResume, UserSettings, InterviewCode, PortfolioItem
+from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, UserResume, UserSettings, InterviewCode, PortfolioItem, UserActivityLog
 
 User = get_user_model()
 
@@ -28,7 +28,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'phone_number')
+        fields = (
+            'first_name', 'last_name', 'email', 'phone_number', 'whatsapp', 
+            'date_of_birth', 'gender', 'nationality', 'marital_status', 
+            'country', 'state', 'city', 'postal_code', 'current_address',
+            'employment_status', 'monthly_income', 'currency', 'employer_name', 
+            'job_title', 'years_employed', 'family_size', 'pets', 'rental_history',
+            'total_properties', 'years_experience', 'company_name', 'business_name',
+            'service_category', 'hourly_rate', 'hourly_rate_currency', 
+            'budget_range', 'move_in_date', 'source', 'marketing_consent', 'avatar'
+        )
         read_only_fields = ('email',)
 
 
@@ -239,4 +248,48 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioItem
         fields = '__all__'
-        read_only_fields = ('id', 'created_at') 
+        read_only_fields = ('id', 'created_at')
+
+
+class UserActivityLogSerializer(serializers.ModelSerializer):
+    """Serializer para registros de actividad del usuario."""
+    
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    activity_type_display = serializers.CharField(source='get_activity_type_display', read_only=True)
+    formatted_timestamp = serializers.SerializerMethodField()
+    time_since = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = UserActivityLog
+        fields = [
+            'id', 'user', 'user_name', 'activity_type', 'activity_type_display',
+            'description', 'model_name', 'object_id', 'object_repr', 'metadata',
+            'ip_address', 'user_agent', 'session_key', 'latitude', 'longitude',
+            'location_city', 'location_country', 'response_time_ms', 'timestamp',
+            'formatted_timestamp', 'time_since'
+        ]
+        read_only_fields = [
+            'id', 'timestamp', 'user_name', 'activity_type_display', 
+            'formatted_timestamp', 'time_since'
+        ]
+    
+    def get_formatted_timestamp(self, obj):
+        """Formato de timestamp legible para humanos."""
+        return obj.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+    
+    def get_time_since(self, obj):
+        """Tiempo transcurrido desde la actividad."""
+        from django.utils.timesince import timesince
+        return timesince(obj.timestamp)
+
+
+class UserActivityStatsSerializer(serializers.Serializer):
+    """Serializer para estadísticas de actividad del usuario."""
+    
+    total_activities = serializers.IntegerField()
+    avg_response_time = serializers.FloatField(allow_null=True)
+    most_common_activity = serializers.DictField(allow_null=True)
+    activities_by_type = serializers.ListField(child=serializers.DictField())
+    daily_activity = serializers.ListField(child=serializers.DictField())
+    period_days = serializers.IntegerField()
+    generated_at = serializers.DateTimeField() 

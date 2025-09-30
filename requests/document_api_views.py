@@ -29,34 +29,127 @@ class TenantDocumentUploadAPIView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         """Subir un documento con validaciones específicas."""
-        
+
         # Solo inquilinos pueden subir documentos
         if request.user.user_type not in ['tenant', 'candidate']:
             return Response(
                 {'error': 'Solo los inquilinos pueden subir documentos.'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        serializer = self.get_serializer(data=request.data)
+
+        # CONSOLIDACIÓN: Manejar tanto MatchRequest IDs como PropertyInterestRequest IDs
+        process_id = request.data.get('property_request')
+
+        if not process_id:
+            return Response(
+                {'error': 'property_request es requerido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Buscar/crear el PropertyInterestRequest asociado
+        try:
+            property_request = self._get_or_create_property_request(process_id, request.user)
+            if not property_request:
+                return Response(
+                    {'error': 'No se pudo encontrar o crear el proceso de documentos.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        except Exception as e:
+            return Response(
+                {'error': f'Error al procesar la solicitud: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Crear una copia mutable de los datos
+        mutable_data = request.data.copy()
+        mutable_data['property_request'] = str(property_request.id)
+
+        serializer = self.get_serializer(data=mutable_data, context={'request': request})
         if serializer.is_valid():
             try:
                 document = serializer.save()
-                
+
                 # Respuesta con información completa del documento
                 response_serializer = TenantDocumentSerializer(document)
-                
+
                 return Response({
                     'message': 'Documento subido exitosamente',
                     'document': response_serializer.data
                 }, status=status.HTTP_201_CREATED)
-                
+
             except Exception as e:
                 return Response(
                     {'error': f'Error al subir el documento: {str(e)}'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _get_or_create_property_request(self, process_id, user):
+        """Obtener o crear PropertyInterestRequest desde MatchRequest ID."""
+        
+        # 1. Intentar MatchRequest primero (consolidación)
+        try:
+            from matching.models import MatchRequest
+            match_request = MatchRequest.objects.get(id=process_id)
+            
+            # Verificar permisos: solo el tenant puede subir documentos
+            if user != match_request.tenant:
+                print(f"❌ CONSOLIDACIÓN: Usuario {user.id} no es el tenant {match_request.tenant.id}")
+                return None
+            
+            # Buscar PropertyInterestRequest existente
+            existing_property_request = PropertyInterestRequest.objects.filter(
+                requester=match_request.tenant,
+                property=match_request.property
+            ).first()
+            
+            if existing_property_request:
+                print(f"✅ CONSOLIDACIÓN: Using existing PropertyInterestRequest {existing_property_request.id}")
+                return existing_property_request
+            
+            # Crear nuevo PropertyInterestRequest basado en MatchRequest
+            new_property_request = PropertyInterestRequest.objects.create(
+                requester=match_request.tenant,
+                assignee=match_request.landlord,
+                property=match_request.property,
+                request_type='property_interest',
+                title=f"Documentos para {match_request.property.title}",
+                description=f"Proceso de documentos generado automáticamente para la solicitud de match.",
+                status='in_progress',
+                priority='high',
+                # Copiar información relevante del MatchRequest
+                monthly_income=getattr(match_request, 'monthly_income', None),
+                employment_type=getattr(match_request, 'employment_type', 'employed'),
+                preferred_move_in_date=getattr(match_request, 'preferred_move_in_date', None),
+                lease_duration_months=getattr(match_request, 'lease_duration_months', 12),
+                number_of_occupants=getattr(match_request, 'number_of_occupants', 1),
+                has_pets=getattr(match_request, 'has_pets', False),
+                pet_details=getattr(match_request, 'pet_details', ''),
+            )
+            
+            print(f"🆕 CONSOLIDACIÓN: Created new PropertyInterestRequest {new_property_request.id} from MatchRequest {process_id}")
+            return new_property_request
+            
+        except Exception as e:
+            print(f"⚠️ CONSOLIDACIÓN: MatchRequest {process_id} not found, trying PropertyInterestRequest: {e}")
+            pass
+        
+        # 2. Fallback: intentar PropertyInterestRequest directo
+        try:
+            property_request = get_object_or_404(PropertyInterestRequest, id=process_id)
+            
+            # Verificar permisos
+            if user != property_request.requester:
+                print(f"❌ FALLBACK: Usuario {user.id} no es el requester {property_request.requester.id}")
+                return None
+                
+            print(f"✅ FALLBACK: Using direct PropertyInterestRequest {property_request.id}")
+            return property_request
+            
+        except Exception as e:
+            print(f"❌ ERROR: Process {process_id} not found in either MatchRequest or PropertyInterestRequest: {e}")
+            return None
 
 
 class TenantDocumentListAPIView(generics.ListAPIView):
@@ -123,20 +216,93 @@ class DocumentChecklistAPIView(generics.GenericAPIView):
     def get(self, request, process_id):
         """Obtener checklist de documentos para un proceso específico."""
         
-        # Verificar que el proceso existe
-        property_request = get_object_or_404(PropertyInterestRequest, id=process_id)
+        # CONSOLIDACIÓN: Intentar encontrar el proceso en MatchRequest primero, luego PropertyInterestRequest
+        property_request = None
         
-        # Solo el inquilino y el landlord pueden ver el checklist
-        if request.user not in [property_request.requester, property_request.assignee]:
-            return Response(
-                {'error': 'No tienes permisos para ver este proceso.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # 1. Intentar MatchRequest primero (fuente de verdad actual)
+        try:
+            from matching.models import MatchRequest
+            match_request = MatchRequest.objects.get(id=process_id)
+            
+            # Crear un objeto compatible para mantener compatibilidad con el código existente
+            class MatchRequestWrapper:
+                def __init__(self, match_request):
+                    self.id = match_request.id
+                    self.requester = match_request.tenant  # tenant en MatchRequest = requester en PropertyInterestRequest
+                    self.assignee = match_request.landlord  # landlord en MatchRequest = assignee en PropertyInterestRequest
+                    self.property = match_request.property
+                    self._match_request = match_request
+                    
+            property_request = MatchRequestWrapper(match_request)
+            print(f"🔄 CONSOLIDACIÓN: Using MatchRequest {process_id} for documents")
+            
+        except:
+            # 2. Fallback a PropertyInterestRequest si MatchRequest no existe
+            try:
+                property_request = get_object_or_404(PropertyInterestRequest, id=process_id)
+                print(f"🔄 FALLBACK: Using PropertyInterestRequest {process_id} for documents")
+            except:
+                return Response(
+                    {'error': 'Proceso no encontrado.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Debug logging para permisos
+        print(f"🔍 CHECKLIST DEBUG:")
+        print(f"  - Process ID: {process_id}")
+        print(f"  - Request User: {request.user.email} (ID: {request.user.id})")
+        print(f"  - Requester: {property_request.requester.email if property_request.requester else 'None'} (ID: {property_request.requester.id if property_request.requester else 'None'})")
+        print(f"  - Assignee: {property_request.assignee.email if property_request.assignee else 'None'} (ID: {property_request.assignee.id if property_request.assignee else 'None'})")
+        
+        # Verificar permisos con mensajes específicos
+        allowed_users = [property_request.requester, property_request.assignee]
+        user_is_requester = request.user == property_request.requester
+        user_is_assignee = request.user == property_request.assignee
+        
+        print(f"  - User is requester (tenant): {user_is_requester}")
+        print(f"  - User is assignee (landlord): {user_is_assignee}")
+        
+        if request.user not in allowed_users:
+            print(f"❌ CHECKLIST: Permission denied - User {request.user.email} not in allowed list")
+            error_details = {
+                'error': 'No tienes permisos para ver este proceso.',
+                'debug_info': {
+                    'authenticated_user': request.user.email,
+                    'process_id': str(process_id),
+                    'requester_email': property_request.requester.email if property_request.requester else None,
+                    'assignee_email': property_request.assignee.email if property_request.assignee else None,
+                }
+            }
+            return Response(error_details, status=status.HTTP_403_FORBIDDEN)
+            
+        print(f"✅ CHECKLIST: Permission granted for user {request.user.email}")
         
         # Obtener todos los documentos subidos para este proceso
-        uploaded_documents = TenantDocument.objects.filter(
-            property_request=property_request
-        ).select_related('uploaded_by', 'reviewed_by')
+        # CONSOLIDACIÓN: Buscar documentos según el tipo de request
+        if hasattr(property_request, '_match_request'):
+            # Si es MatchRequest, buscar PropertyInterestRequest asociado para documentos
+            try:
+                related_property_request = PropertyInterestRequest.objects.filter(
+                    requester=property_request.requester,
+                    property=property_request.property
+                ).first()
+                
+                if related_property_request:
+                    uploaded_documents = TenantDocument.objects.filter(
+                        property_request=related_property_request
+                    ).select_related('uploaded_by', 'reviewed_by')
+                    print(f"🔄 CONSOLIDACIÓN: Found {uploaded_documents.count()} documents via PropertyInterestRequest")
+                else:
+                    uploaded_documents = TenantDocument.objects.none()
+                    print(f"🔄 CONSOLIDACIÓN: No PropertyInterestRequest found for MatchRequest {process_id}")
+            except Exception as e:
+                uploaded_documents = TenantDocument.objects.none()
+                print(f"❌ Error finding documents: {e}")
+        else:
+            # Si es PropertyInterestRequest directo
+            uploaded_documents = TenantDocument.objects.filter(
+                property_request=property_request
+            ).select_related('uploaded_by', 'reviewed_by')
         
         # Crear mapa de documentos por tipo
         documents_map = {doc.document_type: doc for doc in uploaded_documents}
@@ -164,29 +330,25 @@ class DocumentChecklistAPIView(generics.GenericAPIView):
         
         # Documentos del TOMADOR
         tomador_types = [
-            ('tomador_cedula_frente', 'Cédula de Ciudadanía - Frente', True),
-            ('tomador_cedula_atras', 'Cédula de Ciudadanía - Atrás', True),
+            ('tomador_cedula_ciudadania', 'Cédula de Ciudadanía', True),
             ('tomador_pasaporte', 'Pasaporte', False),
-            ('tomador_cedula_extranjeria_frente', 'Cédula de Extranjería - Frente', False),
-            ('tomador_cedula_extranjeria_atras', 'Cédula de Extranjería - Atrás', False),
+            ('tomador_cedula_extranjeria', 'Cédula de Extranjería', False),
             ('tomador_certificado_laboral', 'Certificado Laboral', True),
             ('tomador_carta_recomendacion', 'Carta de Recomendación', True),
         ]
         
         # Documentos del CODEUDOR
         codeudor_types = [
-            ('codeudor_cedula_frente', 'Codeudor: Cédula de Ciudadanía - Frente', True),
-            ('codeudor_cedula_atras', 'Codeudor: Cédula de Ciudadanía - Atrás', True),
+            ('codeudor_cedula_ciudadania', 'Codeudor: Cédula de Ciudadanía', True),
             ('codeudor_pasaporte', 'Codeudor: Pasaporte', False),
-            ('codeudor_cedula_extranjeria_frente', 'Codeudor: Cédula de Extranjería - Frente', False),
-            ('codeudor_cedula_extranjeria_atras', 'Codeudor: Cédula de Extranjería - Atrás', False),
+            ('codeudor_cedula_extranjeria', 'Codeudor: Cédula de Extranjería', False),
             ('codeudor_certificado_laboral', 'Codeudor: Certificado Laboral', False),
             ('codeudor_libertad_tradicion', 'Codeudor: Certificado de Libertad y Tradición', False),
         ]
         
         # Otros documentos
         otros_types = [
-            ('otros', 'Otros Documentos', False),
+            ('otros', 'Otros Documentos (Personalizable)', False),
         ]
         
         def build_category_documents(types_list, category_name):

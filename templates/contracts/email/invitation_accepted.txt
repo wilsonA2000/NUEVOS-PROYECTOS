@@ -1,0 +1,33 @@
+===============================================
+¡INVITACIÓN ACEPTADA!
+VeriHome - Plataforma de Gestión de Arriendos
+===============================================
+
+¡Hola {{ landlord_name }}!
+
+Te informamos que {{ tenant_name }} ha aceptado tu invitación para el contrato de arrendamiento.
+
+INFORMACIÓN DEL CONTRATO:
+===============================================
+📋 Contrato: {{ contract_number }}
+🏠 Propiedad: {{ property_address }}
+👤 Arrendatario: {{ tenant_name }}
+📅 Fecha de Aceptación: {{ "now"|date:"d \d\e F \d\e Y \a \l\a\s H:i" }}
+
+PRÓXIMOS PASOS:
+===============================================
+1. El arrendatario está completando sus datos personales
+2. Recibirás una notificación cuando termine
+3. Podrás revisar la información y proceder con las firmas
+
+ENLACE PARA VER EL CONTRATO:
+===============================================
+{{ contract_url }}
+
+Mantente atento a tu email para recibir actualizaciones sobre el progreso del contrato.
+
+===============================================
+VeriHome - Plataforma de Gestión de Arriendos
+soporte@verihome.com
+www.verihome.com
+===============================================

@@ -1,4 +1,4 @@
-import { contractService } from '../contractService';
+import contractService from '../services/contractService';
 import { api } from '../api';
 import { jest } from '@jest/globals';
 

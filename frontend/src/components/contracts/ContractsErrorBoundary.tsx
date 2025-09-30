@@ -1,183 +1,387 @@
-/**
- * ContractsErrorBoundary - Specialized error boundary for Contracts module
- * Handles contract creation, signing and legal document errors
- */
-
-import React, { ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   Box,
   Typography,
   Button,
   Alert,
-  Paper,
+  Card,
+  CardContent,
+  Divider,
+  Chip,
 } from '@mui/material';
 import {
-  Description as ContractIcon,
+  Error as ErrorIcon,
   Refresh as RefreshIcon,
-  Assignment as DocumentIcon,
   Home as HomeIcon,
-  Gavel as LegalIcon,
+  Description as ContractIcon,
+  BugReport as BugIcon,
+  ContactSupport as SupportIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import ErrorBoundary from '../common/ErrorBoundary';
+
+interface ContractsErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorId: string;
+}
 
 interface ContractsErrorBoundaryProps {
   children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  showDetails?: boolean;
 }
 
-const ContractsFallback: React.FC = () => {
-  const navigate = useNavigate();
+class ContractsErrorBoundary extends Component<ContractsErrorBoundaryProps, ContractsErrorBoundaryState> {
+  constructor(props: ContractsErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: '',
+    };
+  }
 
-  const handleGoToDashboard = () => {
-    navigate('/app/dashboard');
-  };
+  static getDerivedStateFromError(error: Error): Partial<ContractsErrorBoundaryState> {
+    // Generar ID único para el error
+    const errorId = `contracts-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    return {
+      hasError: true,
+      error,
+      errorId,
+    };
+  }
 
-  const handleGoToContracts = () => {
-    navigate('/app/contracts');
-  };
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ContractsErrorBoundary caught an error:', error, errorInfo);
+    
+    this.setState({
+      error,
+      errorInfo,
+    });
 
-  const handleContactLegal = () => {
-    // TODO: Implement legal support contact
-    window.open('mailto:legal@verihome.com?subject=Error en Contratos', '_blank');
-  };
+    // Llamar callback personalizado si existe
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
+    // Logging para producción (integrar con servicio de logging)
+    this.logErrorToService(error, errorInfo);
+  }
 
-  const handleSaveProgress = () => {
-    // Save any form data to localStorage for recovery
-    const formData = document.querySelector('form');
-    if (formData) {
-      const formDataObj = new FormData(formData);
-      const data: Record<string, string> = {};
-      formDataObj.forEach((value, key) => {
-        data[key] = value.toString();
+  private logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
+    // Aquí integrarías con servicios como Sentry, LogRocket, etc.
+    const errorData = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      module: 'contracts',
+      errorId: this.state.errorId,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+    };
+
+    // Ejemplo de integración con API de logging
+    try {
+      fetch('/api/v1/core/log-error/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(errorData),
+      }).catch(() => {
+        // Fallar silenciosamente si no se puede enviar el log
       });
-      localStorage.setItem('contractFormBackup', JSON.stringify({
-        data,
-        timestamp: new Date().toISOString(),
-      }));
-      alert('Progreso guardado temporalmente');
+    } catch {
+      // Fallar silenciosamente
     }
   };
 
-  return (
-    <Box sx={{ p: 3, maxWidth: 600, mx: 'auto', mt: 4 }}>
-      <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Error en el módulo de Contratos
-        </Alert>
+  private handleRetry = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: '',
+    });
+  };
 
-        <Typography variant="h5" gutterBottom>
-          Problema con el sistema de contratos
-        </Typography>
+  private handleGoHome = () => {
+    window.location.href = '/';
+  };
 
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Ha ocurrido un error al procesar información de contratos. 
-          Tus documentos legales están seguros y protegidos.
-        </Typography>
+  private handleReportBug = () => {
+    const subject = encodeURIComponent(`Error en Módulo de Contratos - ${this.state.errorId}`);
+    const body = encodeURIComponent(`
+Descripción del error:
+${this.state.error?.message || 'Error desconocido'}
 
-        <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
-          <Typography variant="body2">
-            <strong>Importante:</strong> Si estabas creando o firmando un contrato, 
-            el progreso puede haberse guardado automáticamente.
-          </Typography>
-        </Alert>
+ID del error: ${this.state.errorId}
+Fecha: ${new Date().toLocaleString('es-ES')}
+URL: ${window.location.href}
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            onClick={handleRetry}
+Por favor describe qué estabas haciendo cuando ocurrió el error:
+[Describe aquí las acciones que realizaste]
+    `);
+    
+    window.open(`mailto:soporte@verihome.com?subject=${subject}&body=${body}`);
+  };
+
+  private getErrorCategory = (error: Error): string => {
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'Conectividad';
+    }
+    if (message.includes('contract') || message.includes('signature')) {
+      return 'Contrato';
+    }
+    if (message.includes('pdf') || message.includes('document')) {
+      return 'Documento';
+    }
+    if (message.includes('validation') || message.includes('required')) {
+      return 'Validación';
+    }
+    if (message.includes('permission') || message.includes('auth')) {
+      return 'Autorización';
+    }
+    
+    return 'Sistema';
+  };
+
+  private getErrorSeverity = (error: Error): 'error' | 'warning' => {
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('critical') || message.includes('fatal')) {
+      return 'error';
+    }
+    if (message.includes('validation') || message.includes('required')) {
+      return 'warning';
+    }
+    
+    return 'error';
+  };
+
+  private getUserFriendlyMessage = (error: Error): string => {
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'Error de conectividad. Verifica tu conexión a internet y vuelve a intentar.';
+    }
+    if (message.includes('contract')) {
+      return 'Error al procesar el contrato. Los datos pueden estar incompletos o en formato incorrecto.';
+    }
+    if (message.includes('signature')) {
+      return 'Error con la firma digital. Asegúrate de que tu dispositivo soporte la funcionalidad de firma.';
+    }
+    if (message.includes('pdf')) {
+      return 'Error al generar o mostrar el documento PDF. Verifica que tu navegador soporte documentos PDF.';
+    }
+    if (message.includes('validation')) {
+      return 'Error de validación. Algunos campos requeridos pueden estar vacíos o contener datos inválidos.';
+    }
+    if (message.includes('permission') || message.includes('auth')) {
+      return 'No tienes permisos suficientes para realizar esta acción. Contacta al administrador.';
+    }
+    
+    return 'Ha ocurrido un error inesperado en el módulo de contratos. Nuestro equipo ha sido notificado.';
+  };
+
+  render() {
+    if (this.state.hasError) {
+      // Si hay un fallback personalizado, usarlo
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      const error = this.state.error!;
+      const errorCategory = this.getErrorCategory(error);
+      const errorSeverity = this.getErrorSeverity(error);
+      const userFriendlyMessage = this.getUserFriendlyMessage(error);
+
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            p: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              maxWidth: 600,
+              width: '100%',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-lg)',
+            }}
           >
-            Reintentar
-          </Button>
+            <CardContent sx={{ p: 4 }}>
+              {/* Error Icon */}
+              <Box sx={{ mb: 3 }}>
+                <ErrorIcon
+                  sx={{
+                    fontSize: 64,
+                    color: errorSeverity === 'error' ? 'var(--color-error)' : 'var(--color-warning)',
+                    mb: 2,
+                  }}
+                />
+                <ContractIcon
+                  sx={{
+                    fontSize: 32,
+                    color: 'var(--color-text-secondary)',
+                    ml: 1,
+                  }}
+                />
+              </Box>
 
-          <Button
-            variant="outlined"
-            startIcon={<ContractIcon />}
-            onClick={handleGoToContracts}
-          >
-            Ver Contratos
-          </Button>
+              {/* Error Title */}
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+                Error en Módulo de Contratos
+              </Typography>
 
-          <Button
-            variant="outlined"
-            startIcon={<DocumentIcon />}
-            onClick={handleSaveProgress}
-          >
-            Guardar Progreso
-          </Button>
+              {/* Error Category */}
+              <Box sx={{ mb: 3 }}>
+                <Chip
+                  label={errorCategory}
+                  size="small"
+                  sx={{
+                    backgroundColor: errorSeverity === 'error' ? 'var(--color-error-light)' : 'var(--color-warning-light)',
+                    color: errorSeverity === 'error' ? 'var(--color-error-dark)' : 'var(--color-warning-dark)',
+                    fontWeight: 500,
+                  }}
+                />
+              </Box>
 
-          <Button
-            variant="text"
-            startIcon={<HomeIcon />}
-            onClick={handleGoToDashboard}
-          >
-            Dashboard
-          </Button>
+              {/* User-friendly message */}
+              <Alert
+                severity={errorSeverity}
+                sx={{
+                  mb: 3,
+                  textAlign: 'left',
+                  '& .MuiAlert-message': {
+                    width: '100%',
+                  },
+                }}
+              >
+                <Typography variant="body2">
+                  {userFriendlyMessage}
+                </Typography>
+              </Alert>
 
-          <Button
-            variant="text"
-            color="error"
-            startIcon={<LegalIcon />}
-            onClick={handleContactLegal}
-          >
-            Soporte Legal
-          </Button>
+              {/* Error ID */}
+              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
+                ID del error: <code>{this.state.errorId}</code>
+              </Typography>
+
+              {/* Technical details (solo si showDetails está habilitado) */}
+              {this.props.showDetails && process.env.NODE_ENV === 'development' && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  <Box sx={{ textAlign: 'left', mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Detalles Técnicos:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      component="pre"
+                      sx={{
+                        backgroundColor: 'var(--color-background)',
+                        p: 2,
+                        borderRadius: 1,
+                        fontSize: '0.75rem',
+                        overflow: 'auto',
+                        maxHeight: 200,
+                        border: '1px solid var(--color-border)',
+                      }}
+                    >
+                      {error.message}
+                      {error.stack && `\n\nStack trace:\n${error.stack}`}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<RefreshIcon />}
+                  onClick={this.handleRetry}
+                  sx={{
+                    backgroundColor: 'var(--color-primary)',
+                    '&:hover': {
+                      backgroundColor: 'var(--color-primary-dark)',
+                    },
+                  }}
+                >
+                  Reintentar
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<HomeIcon />}
+                  onClick={this.handleGoHome}
+                  sx={{
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                    '&:hover': {
+                      borderColor: 'var(--color-primary)',
+                    },
+                  }}
+                >
+                  Ir al Inicio
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<BugIcon />}
+                  onClick={this.handleReportBug}
+                  sx={{
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-secondary)',
+                    '&:hover': {
+                      borderColor: 'var(--color-warning)',
+                      color: 'var(--color-warning)',
+                    },
+                  }}
+                >
+                  Reportar Error
+                </Button>
+              </Box>
+
+              {/* Support info */}
+              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid var(--color-border)' }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+                  Si el problema persiste, contacta nuestro soporte:
+                </Typography>
+                <Button
+                  variant="text"
+                  startIcon={<SupportIcon />}
+                  href="mailto:soporte@verihome.com"
+                  sx={{
+                    color: 'var(--color-primary)',
+                    textTransform: 'none',
+                  }}
+                >
+                  soporte@verihome.com
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         </Box>
+      );
+    }
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-          Para asuntos legales urgentes, contacta nuestro equipo jurídico
-        </Typography>
-      </Paper>
-    </Box>
-  );
-};
-
-const ContractsErrorBoundary: React.FC<ContractsErrorBoundaryProps> = ({ children }) => {
-  return (
-    <ErrorBoundary
-      module="Contracts"
-      fallback={<ContractsFallback />}
-      onError={(error, errorInfo) => {
-        // Contracts-specific error logging with legal context
-        console.error('LEGAL - Contracts Module Error:', {
-          error: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          timestamp: new Date().toISOString(),
-          module: 'Contracts',
-          url: window.location.href,
-          userAgent: navigator.userAgent,
-          priority: 'HIGH',
-          category: 'LEGAL_DOCUMENT',
-        });
-
-        // Save form data for recovery if available
-        const formData = document.querySelector('form');
-        if (formData) {
-          try {
-            const formDataObj = new FormData(formData);
-            const data: Record<string, string> = {};
-            formDataObj.forEach((value, key) => {
-              data[key] = value.toString();
-            });
-            localStorage.setItem('contractErrorRecovery', JSON.stringify({
-              data,
-              error: error.message,
-              timestamp: new Date().toISOString(),
-            }));
-          } catch (saveError) {
-            console.error('Failed to save form data for recovery:', saveError);
-          }
-        }
-      }}
-    >
-      {children}
-    </ErrorBoundary>
-  );
-};
+    return this.props.children;
+  }
+}
 
 export default ContractsErrorBoundary;

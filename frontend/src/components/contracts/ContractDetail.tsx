@@ -12,6 +12,9 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  CircularProgress,
+  Alert,
+  AlertTitle,
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -19,23 +22,52 @@ import {
   CalendarToday as CalendarIcon,
   AttachMoney as AttachMoneyIcon,
   Description as DescriptionIcon,
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useContracts } from '../../hooks/useContracts';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
 
 export const ContractDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { contracts, isLoading, error } = useContracts();
 
-  const contract = contracts?.find((c) => c.id === id);
+  // Debug: Log contracts data structure
+  console.log('🔍 ContractDetail - contracts:', contracts, 'type:', typeof contracts, 'isArray:', Array.isArray(contracts));
+  console.log('🔍 ContractDetail - looking for id:', id);
+
+  const contract = Array.isArray(contracts) ? contracts.find((c) => c.id === id) : undefined;
 
   if (isLoading) {
-    return <Typography>Cargando...</Typography>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  if (error || !contract) {
-    return <Typography color="error">Error al cargar el contrato</Typography>;
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        <AlertTitle>Error al cargar el contrato</AlertTitle>
+        {error.message || 'Ha ocurrido un error al cargar los detalles del contrato.'}
+      </Alert>
+    );
+  }
+
+  if (!contract) {
+    return (
+      <Alert severity="warning" sx={{ m: 2 }}>
+        <AlertTitle>Contrato no encontrado</AlertTitle>
+        El contrato con ID {id?.substring(0, 8)}... no fue encontrado. 
+        <Box mt={2}>
+          <Button variant="contained" onClick={() => navigate('/app/contracts')}>
+            Volver a Contratos
+          </Button>
+        </Box>
+      </Alert>
+    );
   }
 
   return (
@@ -66,7 +98,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Propiedad"
-                  secondary={contract.propertyId}
+                  secondary={contract.property?.title || contract.property?.address || contract.propertyId || 'No especificada'}
                 />
               </ListItem>
               <ListItem>
@@ -75,7 +107,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Inquilino"
-                  secondary={contract.tenantId}
+                  secondary={contract.tenant?.name || contract.tenant?.full_name || contract.tenantId || 'No especificado'}
                 />
               </ListItem>
             </List>
@@ -88,7 +120,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Fecha de Inicio"
-                  secondary={new Date(contract.startDate).toLocaleDateString()}
+                  secondary={contract.startDate ? new Date(contract.startDate).toLocaleDateString() : contract.start_date ? new Date(contract.start_date).toLocaleDateString() : 'No especificada'}
                 />
               </ListItem>
               <ListItem>
@@ -97,7 +129,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Fecha de Fin"
-                  secondary={new Date(contract.endDate).toLocaleDateString()}
+                  secondary={contract.endDate ? new Date(contract.endDate).toLocaleDateString() : contract.end_date ? new Date(contract.end_date).toLocaleDateString() : 'No especificada'}
                 />
               </ListItem>
             </List>
@@ -110,7 +142,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Monto de Renta"
-                  secondary={`$${contract.rentAmount.toLocaleString()}`}
+                  secondary={`$${contract.rentAmount?.toLocaleString() || '0'}`}
                 />
               </ListItem>
               <ListItem>
@@ -119,7 +151,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Monto de Depósito"
-                  secondary={`$${contract.depositAmount.toLocaleString()}`}
+                  secondary={`$${contract.depositAmount?.toLocaleString() || '0'}`}
                 />
               </ListItem>
             </List>
@@ -159,6 +191,14 @@ export const ContractDetail: React.FC = () => {
             onClick={() => navigate('/app/contracts')}
           >
             Volver
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<PdfIcon />}
+            onClick={() => viewContractPDF(contract.id)}
+          >
+            Ver PDF del Contrato
           </Button>
           <Button
             variant="contained"

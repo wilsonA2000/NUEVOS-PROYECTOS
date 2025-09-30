@@ -1,0 +1,33 @@
+{{ title }} - {{ platform_name }}
+=====================================
+
+Hola {{ user_name }},
+
+{{ message }}
+
+{% if notification.related_object %}
+DETALLES DEL CONTRATO:
+{% if notification.related_object.property %}• Propiedad: {{ notification.related_object.property.title }}{% endif %}
+• Estado: {{ notification.related_object.get_status_display|default:"En proceso" }}
+{% if notification.related_object.created_at %}• Creado: {{ notification.related_object.created_at|date:"d/m/Y" }}{% endif %}
+{% endif %}
+
+{% if action_url %}{{ action_label|default:"Ver Contrato" }}: {{ action_url }}{% endif %}
+
+CONSEJOS IMPORTANTES:
+• Revisa cuidadosamente todos los términos antes de firmar
+• Guarda una copia del contrato firmado para tus registros  
+• Contacta con nosotros si tienes alguna pregunta
+• Este email contiene información confidencial
+
+---
+
+Enlaces útiles:
+• Mis Contratos: {{ base_url }}/app/contracts
+• Soporte: {{ base_url }}/support
+• Configurar Notificaciones: {{ base_url }}/app/settings/notifications
+
+© {{ current_year }} {{ platform_name }}. Todos los derechos reservados.
+
+Este email fue enviado desde {{ platform_name }}.
+Si no solicitaste esta notificación, por favor ignora este mensaje.

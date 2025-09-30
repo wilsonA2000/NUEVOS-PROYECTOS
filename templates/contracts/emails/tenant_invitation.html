@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitación a Contrato de Arrendamiento - VeriHome</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        .tagline {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .invitation-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        .landlord-info {
+            background: #f1f5f9;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .landlord-info h4 {
+            margin: 0 0 12px 0;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        .contract-summary {
+            background: #fef7ff;
+            border: 1px solid #e9d5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .contract-summary h4 {
+            color: #7c3aed;
+            margin: 0 0 12px 0;
+            font-weight: 600;
+        }
+        .contract-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .contract-detail strong {
+            color: #374151;
+        }
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        }
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .warning-box h5 {
+            color: #92400e;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+        .warning-box p {
+            color: #b45309;
+            margin: 0;
+            font-size: 14px;
+        }
+        .personal-message {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        .footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 30px 20px 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .footer-text {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .title {
+                font-size: 20px;
+            }
+            .contract-detail {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">VeriHome</div>
+            <div class="tagline">Tu hogar, nuestra confianza</div>
+        </div>
+
+        <!-- Content -->
+        <div class="invitation-badge">Invitación a Contrato</div>
+        
+        <h1 class="title">¡Has sido invitado a revisar un contrato de arrendamiento!</h1>
+        
+        <p>Estimado/a arrendatario/a,</p>
+        
+        <p>{{ landlord.get_full_name }} te ha invitado a revisar y completar un contrato de arrendamiento a través de VeriHome. Este es un proceso seguro y completamente digital.</p>
+
+        <!-- Landlord Info -->
+        <div class="landlord-info">
+            <h4>👤 Información del Arrendador</h4>
+            <div class="contract-detail">
+                <span>Nombre:</span>
+                <strong>{{ landlord.get_full_name }}</strong>
+            </div>
+            <div class="contract-detail">
+                <span>Email:</span>
+                <strong>{{ landlord.email }}</strong>
+            </div>
+            {% if landlord.phone %}
+            <div class="contract-detail">
+                <span>Teléfono:</span>
+                <strong>{{ landlord.phone }}</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Contract Summary -->
+        <div class="contract-summary">
+            <h4>📋 Resumen del Contrato</h4>
+            <div class="contract-detail">
+                <span>Número de Contrato:</span>
+                <strong>{{ contract.contract_number }}</strong>
+            </div>
+            {% if contract.monthly_rent %}
+            <div class="contract-detail">
+                <span>Canon Mensual:</span>
+                <strong>${{ contract.monthly_rent|floatformat:0 }}</strong>
+            </div>
+            {% endif %}
+            {% if contract.security_deposit %}
+            <div class="contract-detail">
+                <span>Depósito de Garantía:</span>
+                <strong>${{ contract.security_deposit|floatformat:0 }}</strong>
+            </div>
+            {% endif %}
+            {% if contract.contract_duration_months %}
+            <div class="contract-detail">
+                <span>Duración:</span>
+                <strong>{{ contract.contract_duration_months }} meses</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if personal_message %}
+        <div class="personal-message">
+            <strong>💬 Mensaje personal del arrendador:</strong><br>
+            "{{ personal_message }}"
+        </div>
+        {% endif %}
+
+        <!-- Warning Box -->
+        <div class="warning-box">
+            <h5>⏰ Invitación con tiempo limitado</h5>
+            <p>Esta invitación expira el <strong>{{ expiry_date|date:"d/m/Y" }} a las {{ expiry_date|time:"H:i" }}</strong>. Te recomendamos revisar el contrato lo antes posible.</p>
+        </div>
+        
+        <!-- Action Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ invitation_url }}" class="action-button">
+                📄 Revisar Contrato Ahora
+            </a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+            <strong>📝 Qué sucede después:</strong><br>
+            1. Haz clic en el botón para acceder al contrato<br>
+            2. Completa tus datos personales<br>
+            3. Revisa todos los términos cuidadosamente<br>
+            4. Presenta objeciones si es necesario<br>
+            5. Acepta y firma digitalmente cuando esté todo correcto
+        </p>
+
+        <p style="color: #64748b; font-size: 14px;">
+            <strong>🔒 Seguridad:</strong> Este enlace es único y seguro. Solo tú puedes acceder con tu email registrado.
+        </p>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este email fue enviado desde VeriHome - Plataforma de gestión de arriendos
+            </p>
+            
+            <p style="color: #9ca3af; font-size: 12px;">
+                Si no esperabas esta invitación, por favor ignora este mensaje.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -47,9 +47,9 @@ class IsTenantPermission(permissions.BasePermission):
             return False
         
         # Verificar que el usuario sea arrendatario o que tenga contratos como tenant
+        # El campo user_type está directamente en el modelo User
         return (
-            (hasattr(request.user, 'profile') and 
-             request.user.profile.user_type == 'tenant') or
+            request.user.user_type == 'tenant' or
             LandlordControlledContract.objects.filter(tenant=request.user).exists()
         )
 
@@ -70,7 +70,7 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Filtrar contratos donde el usuario es arrendatario o fue invitado."""
         return LandlordControlledContract.objects.filter(
-            Q(tenant=self.request.user) | Q(tenant_email=self.request.user.email)
+            Q(tenant=self.request.user) | Q(tenant_identifier=self.request.user.email)
         ).select_related(
             'landlord', 'tenant', 'property'
         ).prefetch_related(
@@ -136,11 +136,42 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         try:
+            # Transform serializer data to match service expectations
+            tenant_data = serializer.validated_data.copy()
+            
+            # Convert date objects to strings for JSON serialization
+            if 'birth_date' in tenant_data and tenant_data['birth_date']:
+                tenant_data['birth_date'] = tenant_data['birth_date'].isoformat()
+            if 'employment_start_date' in tenant_data and tenant_data['employment_start_date']:
+                tenant_data['employment_start_date'] = tenant_data['employment_start_date'].isoformat()
+                
+            # Convert Decimal objects to float for JSON serialization
+            if 'monthly_income' in tenant_data and tenant_data['monthly_income']:
+                tenant_data['monthly_income'] = float(tenant_data['monthly_income'])
+            
+            # Create references array from individual reference fields
+            references = []
+            if tenant_data.get('reference_1_name'):
+                references.append({
+                    'name': tenant_data.get('reference_1_name'),
+                    'phone': tenant_data.get('reference_1_phone'),
+                    'relationship': tenant_data.get('reference_1_relationship')
+                })
+                
+            if tenant_data.get('reference_2_name'):
+                references.append({
+                    'name': tenant_data.get('reference_2_name'),
+                    'phone': tenant_data.get('reference_2_phone'),
+                    'relationship': tenant_data.get('reference_2_relationship')
+                })
+            
+            tenant_data['references'] = references
+            
             service = LandlordContractService()
             updated_contract = service.complete_tenant_data(
                 contract_id=contract.id,
                 tenant=request.user,
-                tenant_data=serializer.validated_data
+                tenant_data=tenant_data
             )
             
             return Response(
@@ -282,7 +313,58 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
                 contract_id=contract.id,
                 user=request.user
             )
-            
+
+            # Sincronizar workflow_data con MatchRequest (reutilizando lógica existente)
+            try:
+                from matching.models import MatchRequest
+                match_request = MatchRequest.objects.filter(
+                    tenant=request.user,
+                    property=updated_contract.property
+                ).first()
+
+                if match_request:
+                    # Avanzar a etapa 4 - FLUJO SECUENCIAL: Arrendatario primero
+                    match_request.workflow_stage = 4
+                    match_request.workflow_status = 'pending_tenant_biometric'
+                    match_request.status = 'contract_approved_by_tenant'
+
+                    # Actualizar workflow_data
+                    if 'contract_created' in match_request.workflow_data:
+                        match_request.workflow_data['contract_created']['tenant_approved'] = True
+                        match_request.workflow_data['contract_created']['tenant_approved_at'] = timezone.now().isoformat()
+                        match_request.workflow_data['contract_created']['status'] = updated_contract.current_state
+                        # Remover flag de pending_tenant_approval
+                        if 'pending_tenant_approval' in match_request.workflow_data['contract_created']:
+                            del match_request.workflow_data['contract_created']['pending_tenant_approval']
+
+                    match_request.save()
+                    logger.info(f"✅ MatchRequest {match_request.id} advanced to stage 4 - Tenant approved contract")
+                else:
+                    logger.warning(f"⚠️ No MatchRequest found for tenant {request.user.id} and property {updated_contract.property.id}")
+
+            except Exception as e:
+                logger.warning(f"⚠️ Error updating workflow: {e}")
+
+            # CRÍTICO: Sincronizar Contract OLD para sistema biométrico
+            try:
+                from .models import Contract
+                old_contract = Contract.objects.filter(id=updated_contract.id).first()
+                if old_contract:
+                    # Mapear estados del sistema NEW al OLD
+                    if updated_contract.current_state == 'BOTH_REVIEWING':
+                        old_contract.status = 'ready_for_authentication'
+                    elif updated_contract.current_state == 'READY_TO_SIGN':
+                        old_contract.status = 'pending_biometric'
+
+                    old_contract.save()
+                    logger.info(f"✅ Contract OLD {old_contract.id} synchronized with state: {old_contract.status}")
+                else:
+                    logger.warning(f"⚠️ No Contract OLD found for ID {updated_contract.id}")
+
+            except Exception as e:
+                logger.warning(f"⚠️ Error synchronizing Contract OLD: {e}")
+                # No fallar el proceso principal si hay error en la sincronización
+
             return Response(
                 TenantContractDetailSerializer(updated_contract).data, 
                 status=status.HTTP_200_OK
@@ -454,15 +536,15 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
             avg_days_to_sign.days if avg_days_to_sign else 0
         )
         
-        # Objeciones del arrendatario
-        tenant_objections = ContractObjection.objects.filter(
-            contract__tenant=request.user,
-            objected_by=request.user
-        )
+        # Objeciones del arrendatario (temporalmente deshabilitado - modelo no soporta objected_by)
+        # tenant_objections = ContractObjection.objects.filter(
+        #     contract__tenant=request.user,
+        #     objected_by=request.user
+        # )
         
-        total_objections_made = tenant_objections.count()
-        accepted_objections = tenant_objections.filter(status='ACCEPTED').count()
-        rejected_objections = tenant_objections.filter(status='REJECTED').count()
+        total_objections_made = 0  # tenant_objections.count()
+        accepted_objections = 0    # tenant_objections.filter(status='ACCEPTED').count()
+        rejected_objections = 0    # tenant_objections.filter(status='REJECTED').count()
         
         # Desglose por estado
         state_breakdown = dict(
@@ -549,7 +631,7 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
         Listar invitaciones pendientes para el arrendatario.
         """
         pending_contracts = LandlordControlledContract.objects.filter(
-            tenant_email=request.user.email,
+            tenant_identifier=request.user.email,
             current_state='TENANT_INVITED',
             invitation_expires_at__gt=timezone.now()
         ).select_related('landlord', 'property')
@@ -572,7 +654,7 @@ class TenantDashboardView(viewsets.GenericViewSet):
         Vista general del dashboard del arrendatario.
         """
         user_contracts = LandlordControlledContract.objects.filter(
-            Q(tenant=request.user) | Q(tenant_email=request.user.email)
+            Q(tenant=request.user) | Q(tenant_identifier=request.user.email)
         )
         
         # Contratos activos

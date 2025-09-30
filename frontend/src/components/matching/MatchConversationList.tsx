@@ -4,275 +4,431 @@ import {
   Card,
   CardContent,
   Typography,
+  Avatar,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Avatar,
-  Badge,
+  ListItemSecondaryAction,
   Chip,
-  Divider,
-  Button,
   IconButton,
+  Badge,
+  TextField,
+  InputAdornment,
+  CircularProgress,
+  Button,
+  Alert,
+  Tabs,
+  Tab,
   Menu,
   MenuItem,
-  Alert,
-  Skeleton
+  Tooltip,
 } from '@mui/material';
 import {
+  Search as SearchIcon,
+  FilterList as FilterIcon,
   Message as MessageIcon,
-  Home as HomeIcon,
   Person as PersonIcon,
+  Home as HomeIcon,
   MoreVert as MoreVertIcon,
+  CheckCircle as AcceptedIcon,
+  Cancel as RejectedIcon,
+  Schedule as PendingIcon,
+  Visibility as ViewedIcon,
   Star as StarIcon,
-  Archive as ArchiveIcon,
-  VolumeOff as MuteIcon,
-  Delete as DeleteIcon,
-  Schedule as ScheduleIcon
+  AttachMoney as MoneyIcon,
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useAuth } from '../../hooks/useAuth';
 
+// Interfaces del backend
 interface MatchConversation {
   id: string;
-  subject: string;
-  thread_type: string;
-  status: string;
-  is_priority: boolean;
-  property?: {
+  match_code: string;
+  status: 'pending' | 'viewed' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  property: {
     id: string;
     title: string;
     city: string;
     rent_price: number;
+    property_type: string;
+    main_image?: string;
   };
-  other_participant: {
+  tenant: {
     id: string;
-    first_name: string;
-    last_name: string;
+    name: string;
     email: string;
     user_type: string;
   };
-  last_message?: {
+  landlord: {
     id: string;
+    name: string;
+    email: string;
+    user_type: string;
+  };
+  tenant_message: string;
+  landlord_response?: string;
+  compatibility_score?: number;
+  last_message?: {
     content: string;
-    sent_at: string;
-    sender: {
-      first_name: string;
-      last_name: string;
-    };
+    timestamp: string;
+    sender_type: 'tenant' | 'landlord';
   };
   unread_count: number;
   created_at: string;
-  last_message_at: string;
-  participant_data: {
-    is_archived: boolean;
-    is_muted: boolean;
-    is_starred: boolean;
-  };
+  viewed_at?: string;
+  responded_at?: string;
+  expires_at?: string;
 }
 
 interface MatchConversationListProps {
-  onConversationSelect?: (conversation: MatchConversation) => void;
-  onStartNewConversation?: () => void;
+  conversations: MatchConversation[];
+  isLoading?: boolean;
+  onConversationSelect: (conversation: MatchConversation) => void;
+  onStatusChange?: (matchCode: string, newStatus: string) => void;
+  selectedConversationId?: string;
 }
 
 const MatchConversationList: React.FC<MatchConversationListProps> = ({
+  conversations = [],
+  isLoading = false,
   onConversationSelect,
-  onStartNewConversation
+  onStatusChange,
+  selectedConversationId,
 }) => {
-  const [conversations, setConversations] = useState<MatchConversation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [menuAnchor, setMenuAnchor] = useState<{ element: HTMLElement; conversationId: string } | null>(null);
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedConversation, setSelectedConversation] = useState<MatchConversation | null>(null);
 
-  const fetchConversations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/v1/messages/threads/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
+  const isLandlord = user?.user_type === 'landlord';
+  const isTenant = user?.user_type === 'tenant';
 
-      if (response.ok) {
-        const data = await response.json();
-        // Filtrar solo conversaciones relacionadas con matching/propiedades
-        const matchConversations = (data.results || data).filter(
-          (conv: MatchConversation) => conv.thread_type === 'inquiry' && conv.property
-        );
-        setConversations(matchConversations);
-      } else {
-        setError('Error al cargar las conversaciones');
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      setError('Error de conexión');
-    } finally {
-      setLoading(false);
+  const statusTabs = [
+    { label: 'Todas', value: 'all', count: conversations.length },
+    { label: 'Pendientes', value: 'pending', count: conversations.filter(c => c.status === 'pending').length },
+    { label: 'Vistas', value: 'viewed', count: conversations.filter(c => c.status === 'viewed').length },
+    { label: 'Aceptadas', value: 'accepted', count: conversations.filter(c => c.status === 'accepted').length },
+    { label: 'Rechazadas', value: 'rejected', count: conversations.filter(c => c.status === 'rejected').length },
+  ];
+
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return {
+          color: '#f59e0b',
+          bgColor: '#fef3c7',
+          label: 'Pendiente',
+          icon: <PendingIcon fontSize="small" />,
+        };
+      case 'viewed':
+        return {
+          color: '#3b82f6',
+          bgColor: '#dbeafe',
+          label: 'Vista',
+          icon: <ViewedIcon fontSize="small" />,
+        };
+      case 'accepted':
+        return {
+          color: '#10b981',
+          bgColor: '#d1fae5',
+          label: 'Aceptada',
+          icon: <AcceptedIcon fontSize="small" />,
+        };
+      case 'rejected':
+        return {
+          color: '#ef4444',
+          bgColor: '#fee2e2',
+          label: 'Rechazada',
+          icon: <RejectedIcon fontSize="small" />,
+        };
+      case 'expired':
+        return {
+          color: '#6b7280',
+          bgColor: '#f3f4f6',
+          label: 'Expirada',
+          icon: <CalendarIcon fontSize="small" />,
+        };
+      default:
+        return {
+          color: '#6b7280',
+          bgColor: '#f3f4f6',
+          label: status,
+          icon: <PendingIcon fontSize="small" />,
+        };
     }
   };
 
-  useEffect(() => {
-    fetchConversations();
-    
-    // Actualizar cada minuto
-    const interval = setInterval(fetchConversations, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleConversationClick = (conversation: MatchConversation) => {
-    setSelectedConversation(conversation.id);
-    onConversationSelect?.(conversation);
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return '#dc2626';
+      case 'high':
+        return '#ea580c';
+      case 'medium':
+        return '#ca8a04';
+      case 'low':
+        return '#059669';
+      default:
+        return '#6b7280';
+    }
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, conversationId: string) => {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays === 0) {
+      if (diffHours === 0) {
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        return diffMinutes <= 1 ? 'Ahora' : `${diffMinutes}m`;
+      }
+      return `${diffHours}h`;
+    } else if (diffDays === 1) {
+      return 'Ayer';
+    } else if (diffDays < 7) {
+      return `${diffDays}d`;
+    } else {
+      return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const getPreviewMessage = (conversation: MatchConversation) => {
+    if (conversation.last_message) {
+      return conversation.last_message.content;
+    }
+    
+    if (conversation.landlord_response && isLandlord) {
+      return `Tú: ${conversation.landlord_response}`;
+    }
+    
+    if (conversation.landlord_response && isTenant) {
+      return conversation.landlord_response;
+    }
+    
+    return conversation.tenant_message;
+  };
+
+  const filteredConversations = conversations.filter(conversation => {
+    // Filtro por tab
+    if (selectedTab > 0) {
+      const tabValue = statusTabs[selectedTab].value;
+      if (conversation.status !== tabValue) return false;
+    }
+
+    // Filtro por búsqueda
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        conversation.property.title.toLowerCase().includes(searchLower) ||
+        conversation.property.city.toLowerCase().includes(searchLower) ||
+        conversation.tenant.name.toLowerCase().includes(searchLower) ||
+        conversation.landlord.name.toLowerCase().includes(searchLower) ||
+        conversation.match_code.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return true;
+  });
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, conversation: MatchConversation) => {
     event.stopPropagation();
-    setMenuAnchor({ element: event.currentTarget, conversationId });
+    setAnchorEl(event.currentTarget);
+    setSelectedConversation(conversation);
   };
 
   const handleMenuClose = () => {
-    setMenuAnchor(null);
+    setAnchorEl(null);
+    setSelectedConversation(null);
   };
 
-  const handleMenuAction = async (action: string, conversationId: string) => {
-    try {
-      const endpoint = `/api/v1/messages/threads/${conversationId}/${action}/`;
-      
-      await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Actualizar la lista
-      fetchConversations();
-    } catch (error) {
-      console.error(`Error with action ${action}:`, error);
-    } finally {
-      handleMenuClose();
+  const handleStatusChange = (newStatus: string) => {
+    if (selectedConversation && onStatusChange) {
+      onStatusChange(selectedConversation.match_code, newStatus);
     }
+    handleMenuClose();
   };
 
-  const formatLastMessageTime = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
-      addSuffix: true,
-      locale: es
-    });
-  };
-
-  const getParticipantTypeLabel = (userType: string) => {
-    switch (userType) {
-      case 'landlord':
-        return 'Arrendador';
-      case 'tenant':
-        return 'Arrendatario';
-      case 'service_provider':
-        return 'Proveedor';
-      default:
-        return 'Usuario';
-    }
-  };
-
-  const truncateMessage = (message: string, maxLength: number = 100) => {
-    if (message.length <= maxLength) return message;
-    return message.substring(0, maxLength) + '...';
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Conversaciones de Matching
-          </Typography>
-          <List>
-            {[...Array(3)].map((_, index) => (
-              <ListItem key={index}>
-                <ListItemAvatar>
-                  <Skeleton variant="circular" width={40} height={40} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={<Skeleton variant="text" width="60%" />}
-                  secondary={<Skeleton variant="text" width="80%" />}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
+      <Card
+        elevation={0}
+        sx={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-lg)',
+          height: '600px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
       </Card>
     );
   }
 
-  if (error) {
+  if (conversations.length === 0) {
     return (
-      <Card>
-        <CardContent>
-          <Alert severity="error" action={
-            <Button color="inherit" size="small" onClick={fetchConversations}>
-              Reintentar
-            </Button>
-          }>
-            {error}
-          </Alert>
-        </CardContent>
+      <Card
+        elevation={0}
+        sx={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-lg)',
+          height: '600px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{ textAlign: 'center', p: 4 }}>
+          <MessageIcon
+            sx={{
+              fontSize: 64,
+              color: 'var(--color-text-secondary)',
+              mb: 2,
+            }}
+          />
+          <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+            No hay conversaciones de match
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+            {isTenant
+              ? 'Envía solicitudes de match para comenzar conversaciones'
+              : 'Las solicitudes de match aparecerán aquí'
+            }
+          </Typography>
+        </Box>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            Conversaciones de Matching
+    <Card
+      elevation={0}
+      sx={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-lg)',
+        height: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <Box sx={{ p: 2, borderBottom: '1px solid var(--color-border)' }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Conversaciones de Match
           </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<MessageIcon />}
-            onClick={onStartNewConversation}
+
+          {/* Search */}
+          <TextField
+            fullWidth
             size="small"
+            placeholder="Buscar conversaciones..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'var(--color-text-secondary)' }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 'var(--border-radius-md)',
+                backgroundColor: 'var(--color-background)',
+              },
+            }}
+          />
+
+          {/* Status Tabs */}
+          <Tabs
+            value={selectedTab}
+            onChange={(_, newValue) => setSelectedTab(newValue)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              mt: 2,
+              '& .MuiTab-root': {
+                minWidth: 'auto',
+                textTransform: 'none',
+              },
+            }}
           >
-            Nueva conversación
-          </Button>
+            {statusTabs.map((tab, index) => (
+              <Tab
+                key={tab.value}
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <Chip
+                        label={tab.count}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.75rem',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'white',
+                        }}
+                      />
+                    )}
+                  </Box>
+                }
+              />
+            ))}
+          </Tabs>
         </Box>
 
-        {conversations.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <MessageIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="body1" color="text.secondary" gutterBottom>
-              No tienes conversaciones de matching activas
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Las conversaciones aparecerán aquí cuando aceptes o envíes solicitudes de match
-            </Typography>
-          </Box>
-        ) : (
-          <List sx={{ p: 0 }}>
-            {conversations.map((conversation) => (
-              <React.Fragment key={conversation.id}>
+        {/* Conversations List */}
+        <List sx={{ flex: 1, overflow: 'auto', p: 0 }}>
+          {filteredConversations.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                No se encontraron conversaciones
+              </Typography>
+            </Box>
+          ) : (
+            filteredConversations.map((conversation) => {
+              const statusConfig = getStatusConfig(conversation.status);
+              const otherUser = isTenant ? conversation.landlord : conversation.tenant;
+              const isSelected = conversation.id === selectedConversationId;
+
+              return (
                 <ListItem
+                  key={conversation.id}
                   button
-                  selected={selectedConversation === conversation.id}
-                  onClick={() => handleConversationClick(conversation)}
+                  onClick={() => onConversationSelect(conversation)}
+                  selected={isSelected}
                   sx={{
-                    borderRadius: 1,
-                    mb: 0.5,
+                    borderBottom: '1px solid var(--color-border)',
+                    backgroundColor: isSelected ? 'var(--color-primary-light)' : 'transparent',
                     '&:hover': {
-                      backgroundColor: 'action.hover'
+                      backgroundColor: isSelected ? 'var(--color-primary-light)' : 'var(--color-background)',
                     },
                     '&.Mui-selected': {
-                      backgroundColor: 'primary.light',
+                      backgroundColor: 'var(--color-primary-light)',
                       '&:hover': {
-                        backgroundColor: 'primary.light'
-                      }
-                    }
+                        backgroundColor: 'var(--color-primary-light)',
+                      },
+                    },
                   }}
                 >
                   <ListItemAvatar>
@@ -281,121 +437,152 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                       color="error"
                       invisible={conversation.unread_count === 0}
                     >
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        {conversation.other_participant.user_type === 'landlord' ? (
-                          <HomeIcon />
-                        ) : (
-                          <PersonIcon />
-                        )}
+                      <Avatar
+                        sx={{
+                          bgcolor: 'var(--color-primary)',
+                          width: 48,
+                          height: 48,
+                        }}
+                      >
+                        {isTenant ? <HomeIcon /> : <PersonIcon />}
                       </Avatar>
                     </Badge>
                   </ListItemAvatar>
 
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                         <Typography
-                          variant="subtitle2"
+                          variant="body1"
                           sx={{
-                            fontWeight: conversation.unread_count > 0 ? 'bold' : 'normal',
-                            flex: 1
+                            fontWeight: conversation.unread_count > 0 ? 600 : 500,
+                            flex: 1,
                           }}
                         >
-                          {conversation.other_participant.first_name} {conversation.other_participant.last_name}
+                          {isTenant ? conversation.property.title : otherUser.name}
                         </Typography>
                         
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                          {conversation.participant_data.is_starred && (
-                            <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
-                          )}
-                          {conversation.participant_data.is_muted && (
-                            <MuteIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          )}
-                          {conversation.is_priority && (
-                            <Chip
-                              label="Prioridad"
-                              size="small"
-                              color="warning"
-                              variant="outlined"
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {conversation.priority !== 'medium' && (
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                backgroundColor: getPriorityColor(conversation.priority),
+                              }}
                             />
                           )}
+                          
+                          <Chip
+                            icon={statusConfig.icon}
+                            label={statusConfig.label}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: '0.7rem',
+                              backgroundColor: statusConfig.bgColor,
+                              color: statusConfig.color,
+                            }}
+                          />
                         </Box>
                       </Box>
                     }
                     secondary={
                       <Box>
-                        <Typography variant="body2" color="primary" gutterBottom>
-                          📍 {conversation.property?.title} - {conversation.property?.city}
-                          <Chip
-                            label={`$${conversation.property?.rent_price?.toLocaleString()}/mes`}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'var(--color-text-secondary)',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            mb: 0.5,
+                          }}
+                        >
+                          {getPreviewMessage(conversation)}
                         </Typography>
                         
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                          {getParticipantTypeLabel(conversation.other_participant.user_type)}
-                        </Typography>
-
-                        {conversation.last_message && (
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{
-                                fontWeight: conversation.unread_count > 0 ? 'medium' : 'normal',
-                                fontSize: '0.85rem',
-                                flex: 1
-                              }}
-                            >
-                              {conversation.last_message.sender.first_name}: {truncateMessage(conversation.last_message.content)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              {formatLastMessageTime(conversation.last_message.sent_at)}
-                            </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {isTenant && (
+                              <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                                {conversation.property.city} • {formatCurrency(conversation.property.rent_price)}
+                              </Typography>
+                            )}
+                            
+                            {conversation.compatibility_score && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                                <StarIcon sx={{ fontSize: 12, color: '#f59e0b' }} />
+                                <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                                  {conversation.compatibility_score}%
+                                </Typography>
+                              </Box>
+                            )}
                           </Box>
-                        )}
+                          
+                          <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                            {formatDate(conversation.last_message?.timestamp || conversation.created_at)}
+                          </Typography>
+                        </Box>
                       </Box>
                     }
                   />
 
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, conversation.id)}
-                    sx={{ ml: 1 }}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      onClick={(e) => handleMenuOpen(e, conversation)}
+                      sx={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
                 </ListItem>
-                <Divider />
-              </React.Fragment>
-            ))}
-          </List>
-        )}
+              );
+            })
+          )}
+        </List>
+
+        {/* Status Summary */}
+        <Box sx={{ p: 2, borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)' }}>
+          <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+            {filteredConversations.length} de {conversations.length} conversaciones
+          </Typography>
+        </Box>
       </CardContent>
 
-      {/* Menu contextual */}
+      {/* Context Menu */}
       <Menu
-        anchorEl={menuAnchor?.element}
-        open={Boolean(menuAnchor)}
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
         onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-md)',
+          },
+        }}
       >
-        <MenuItem onClick={() => handleMenuAction('star', menuAnchor!.conversationId)}>
-          <StarIcon sx={{ mr: 1 }} />
-          Destacar
-        </MenuItem>
-        <MenuItem onClick={() => handleMenuAction('archive', menuAnchor!.conversationId)}>
-          <ArchiveIcon sx={{ mr: 1 }} />
-          Archivar
-        </MenuItem>
-        <MenuItem onClick={() => handleMenuAction('mute', menuAnchor!.conversationId)}>
-          <MuteIcon sx={{ mr: 1 }} />
-          Silenciar
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleMenuAction('delete', menuAnchor!.conversationId)}>
-          <DeleteIcon sx={{ mr: 1, color: 'error.main' }} />
-          Eliminar
+        {isLandlord && selectedConversation?.status === 'pending' && [
+          <MenuItem key="mark-viewed" onClick={() => handleStatusChange('viewed')}>
+            <ViewedIcon sx={{ mr: 1 }} fontSize="small" />
+            Marcar como vista
+          </MenuItem>,
+          <MenuItem key="accept" onClick={() => handleStatusChange('accepted')}>
+            <AcceptedIcon sx={{ mr: 1 }} fontSize="small" />
+            Aceptar solicitud
+          </MenuItem>,
+          <MenuItem key="reject" onClick={() => handleStatusChange('rejected')}>
+            <RejectedIcon sx={{ mr: 1 }} fontSize="small" />
+            Rechazar solicitud
+          </MenuItem>,
+        ]}
+        
+        <MenuItem onClick={() => onConversationSelect(selectedConversation!)}>
+          <MessageIcon sx={{ mr: 1 }} fontSize="small" />
+          Abrir conversación
         </MenuItem>
       </Menu>
     </Card>

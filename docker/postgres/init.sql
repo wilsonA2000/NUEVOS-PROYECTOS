@@ -1,19 +1,23 @@
 -- =============================================================================
--- VERIHOME - INICIALIZACIÓN DE BASE DE DATOS POSTGRESQL
+-- VERIHOME - INICIALIZACIÓN DE BASE DE DATOS POSTGRESQL  
+-- Enhanced for migration from SQLite with advanced features
 -- =============================================================================
 
 -- Crear extensiones necesarias
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "btree_gin";
-CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";      -- UUID generation
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";       -- Cryptographic functions
+CREATE EXTENSION IF NOT EXISTS "btree_gin";      -- Advanced indexing
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";        -- Text similarity search
+CREATE EXTENSION IF NOT EXISTS "unaccent";       -- Text normalization
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements"; -- Query statistics
 
--- Configurar timezone
+-- Configurar timezone para Colombia
 SET TIME ZONE 'America/Bogota';
 
--- Crear esquemas adicionales si es necesario
--- CREATE SCHEMA IF NOT EXISTS analytics;
--- CREATE SCHEMA IF NOT EXISTS audit;
+-- Crear esquemas adicionales para organización
+CREATE SCHEMA IF NOT EXISTS analytics;
+CREATE SCHEMA IF NOT EXISTS audit;
+CREATE SCHEMA IF NOT EXISTS cache;
 
 -- Configuraciones de rendimiento para PostgreSQL
 ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';

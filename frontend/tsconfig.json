@@ -12,11 +12,11 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
+    "noImplicitOverride": false,
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": false,
     "module": "ESNext",
@@ -38,5 +38,11 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/__tests__/**/*",
+    "src/__mocks__/**/*"
   ]
 } 

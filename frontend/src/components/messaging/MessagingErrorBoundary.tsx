@@ -19,7 +19,7 @@ import {
   NotificationImportant as NotificationIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import ErrorBoundary from '../common/ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface MessagingErrorBoundaryProps {
   children: ReactNode;

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
 from django.http import JsonResponse
 from datetime import timedelta
 # Import optimizations
@@ -17,7 +18,7 @@ from core.optimizations import (
 )
 from .models import (
     Contract, ContractTemplate, ContractSignature, ContractAmendment,
-    ContractRenewal, ContractTermination, ContractDocument
+    ContractRenewal, ContractTermination, ContractDocument, LandlordControlledContract
 )
 from .serializers import (
     ContractSerializer, CreateContractSerializer, UpdateContractSerializer,
@@ -26,6 +27,7 @@ from .serializers import (
     ContractStatsSerializer
 )
 from users.services import AdminActionLogger
+from requests.models import PropertyInterestRequest
 
 User = get_user_model()
 
@@ -902,6 +904,374 @@ class GenerateContractPDFAPIView(APIView):
             )
 
 
+class ContractPreviewPDFAPIView(APIView):
+    """Vista para generar y mostrar vista previa del PDF del contrato."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, contract_id):
+        """Genera y devuelve el PDF del contrato para vista previa."""
+        try:
+            from django.http import HttpResponse
+            from .pdf_generator import ContractPDFGenerator
+            
+            # Try to get LandlordControlledContract first, fall back to Contract
+            try:
+                contract = LandlordControlledContract.objects.get(id=contract_id)
+            except LandlordControlledContract.DoesNotExist:
+                contract = Contract.objects.get(id=contract_id)
+            
+            # Verificar permisos - debe ser parte del contrato
+            if hasattr(contract, 'landlord'):
+                # LandlordControlledContract
+                # Permitir acceso si es landlord, tenant, o si el tenant aún no está asignado
+                # pero el usuario es el tenant del workflow relacionado
+                allowed_users = [contract.landlord]
+                if contract.tenant:
+                    allowed_users.append(contract.tenant)
+                    
+                # También verificar si el usuario es parte del workflow
+                # Esto es útil cuando el contrato está en proceso pero el tenant aún no está formalmente asignado
+                from matching.models import PropertyInterestRequest
+                try:
+                    # Buscar si hay un match request asociado con este contrato
+                    match_request = PropertyInterestRequest.objects.filter(
+                        workflow_data__contract_created__contract_id=str(contract.id)
+                    ).first()
+                    if match_request and match_request.tenant:
+                        allowed_users.append(match_request.tenant)
+                except:
+                    pass
+                    
+                if request.user not in allowed_users:
+                    return Response(
+                        {'error': 'No tiene permisos para ver este contrato'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            else:
+                # Regular Contract
+                if request.user not in [contract.primary_party, contract.secondary_party]:
+                    return Response(
+                        {'error': 'No tiene permisos para ver este contrato'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Generar PDF
+            pdf_generator = ContractPDFGenerator()
+            pdf_content = pdf_generator.generate_contract_pdf(contract)
+            
+            # Devolver PDF como respuesta HTTP
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="Contrato-{contract.contract_number}.pdf"'
+            response['Cache-Control'] = 'no-cache'
+            
+            return response
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error generando vista previa del PDF: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ContractAdditionalClausesAPIView(APIView):
+    """Vista para gestionar cláusulas adicionales de un contrato."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, contract_id):
+        """Obtener cláusulas adicionales de un contrato."""
+        try:
+            from .models import Contract, ContractAdditionalClause
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user  # Solo el arrendador puede ver
+            )
+            
+            clauses = ContractAdditionalClause.objects.filter(
+                contract=contract,
+                is_active=True
+            ).order_by('order', 'clause_number')
+            
+            clauses_data = []
+            for clause in clauses:
+                clauses_data.append({
+                    'id': str(clause.id),
+                    'title': clause.title,
+                    'content': clause.content,
+                    'clause_number': clause.clause_number,
+                    'ordinal_text': clause.ordinal_text,
+                    'order': clause.order,
+                    'created_at': clause.created_at.isoformat(),
+                    'updated_at': clause.updated_at.isoformat(),
+                })
+            
+            return Response({
+                'success': True,
+                'clauses': clauses_data,
+                'total_clauses': len(clauses_data),
+                'next_clause_number': self._get_next_clause_number(contract)
+            })
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado o sin permisos'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def post(self, request, contract_id):
+        """Crear una nueva cláusula adicional."""
+        try:
+            from .models import Contract, ContractAdditionalClause
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user,
+                status__in=['pending_tenant_review', 'draft', 'tenant_changes_requested']
+            )
+            
+            title = request.data.get('title', '').strip()
+            content = request.data.get('content', '').strip()
+            
+            if not title or not content:
+                return Response(
+                    {'error': 'Título y contenido son requeridos'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Obtener siguiente número de cláusula
+            next_number = self._get_next_clause_number(contract)
+            
+            # Crear cláusula
+            clause = ContractAdditionalClause.objects.create(
+                contract=contract,
+                title=title,
+                content=content,
+                clause_number=next_number,
+                created_by=request.user,
+                order=next_number
+            )
+            
+            print(f"✅ Cláusula adicional creada: {clause.ordinal_text}. {clause.title}")
+            
+            return Response({
+                'success': True,
+                'message': 'Cláusula adicional creada exitosamente',
+                'clause': {
+                    'id': str(clause.id),
+                    'title': clause.title,
+                    'content': clause.content,
+                    'clause_number': clause.clause_number,
+                    'ordinal_text': clause.ordinal_text,
+                    'order': clause.order,
+                }
+            })
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado, sin permisos, o no editable'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def put(self, request, contract_id, clause_id):
+        """Actualizar una cláusula adicional existente."""
+        try:
+            from .models import Contract, ContractAdditionalClause
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user,
+                status__in=['pending_tenant_review', 'draft', 'tenant_changes_requested']
+            )
+            
+            clause = ContractAdditionalClause.objects.get(
+                id=clause_id,
+                contract=contract,
+                is_active=True
+            )
+            
+            title = request.data.get('title', '').strip()
+            content = request.data.get('content', '').strip()
+            
+            if not title or not content:
+                return Response(
+                    {'error': 'Título y contenido son requeridos'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Actualizar cláusula
+            clause.title = title
+            clause.content = content
+            clause.save()
+            
+            print(f"✅ Cláusula actualizada: {clause.ordinal_text}. {clause.title}")
+            
+            return Response({
+                'success': True,
+                'message': 'Cláusula actualizada exitosamente',
+                'clause': {
+                    'id': str(clause.id),
+                    'title': clause.title,
+                    'content': clause.content,
+                    'clause_number': clause.clause_number,
+                    'ordinal_text': clause.ordinal_text,
+                    'order': clause.order,
+                }
+            })
+            
+        except (Contract.DoesNotExist, ContractAdditionalClause.DoesNotExist):
+            return Response(
+                {'error': 'Contrato o cláusula no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def delete(self, request, contract_id, clause_id):
+        """Eliminar una cláusula adicional."""
+        try:
+            from .models import Contract, ContractAdditionalClause
+            
+            contract = Contract.objects.get(
+                id=contract_id,
+                primary_party=request.user,
+                status__in=['pending_tenant_review', 'draft', 'tenant_changes_requested']
+            )
+            
+            clause = ContractAdditionalClause.objects.get(
+                id=clause_id,
+                contract=contract,
+                is_active=True
+            )
+            
+            # Marcar como inactiva en lugar de eliminar
+            clause.is_active = False
+            clause.save()
+            
+            print(f"✅ Cláusula eliminada: {clause.ordinal_text}. {clause.title}")
+            
+            return Response({
+                'success': True,
+                'message': 'Cláusula eliminada exitosamente'
+            })
+            
+        except (Contract.DoesNotExist, ContractAdditionalClause.DoesNotExist):
+            return Response(
+                {'error': 'Contrato o cláusula no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def _get_next_clause_number(self, contract):
+        """Calcula el siguiente número de cláusula disponible."""
+        # Base: 10 cláusulas en la plantilla original
+        base_clauses = 10
+        
+        # Obtener el número más alto de cláusulas adicionales
+        last_clause = contract.additional_clauses.filter(is_active=True).order_by('-clause_number').first()
+        
+        if last_clause:
+            return last_clause.clause_number + 1
+        else:
+            return base_clauses + 1  # UNDÉCIMA será la número 11
+
+
+class ContractPreviewWithClausesAPIView(APIView):
+    """Vista para generar vista previa del contrato con cláusulas adicionales."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, contract_id):
+        """Genera vista previa del contrato incluyendo cláusulas adicionales."""
+        try:
+            from django.http import HttpResponse
+            from .models import Contract, ContractAdditionalClause
+            from .pdf_generator import ContractPDFGenerator
+            
+            contract = Contract.objects.get(id=contract_id)
+            
+            # Verificar permisos
+            if request.user not in [contract.primary_party, contract.secondary_party]:
+                return Response(
+                    {'error': 'No tiene permisos para ver este contrato'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Obtener cláusulas adicionales
+            additional_clauses = ContractAdditionalClause.objects.filter(
+                contract=contract,
+                is_active=True
+            ).order_by('order', 'clause_number')
+            
+            # Generar contenido con cláusulas adicionales
+            updated_content = self._generate_content_with_clauses(contract, additional_clauses)
+            
+            # Temporal: actualizar contenido del contrato para PDF
+            original_content = contract.content
+            contract.content = updated_content
+            
+            # Generar PDF
+            pdf_generator = ContractPDFGenerator()
+            pdf_content = pdf_generator.generate_contract_pdf(contract)
+            
+            # Restaurar contenido original
+            contract.content = original_content
+            
+            # Devolver PDF
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="Contrato-{contract.contract_number}-Preview.pdf"'
+            response['Cache-Control'] = 'no-cache'
+            
+            return response
+            
+        except Contract.DoesNotExist:
+            return Response(
+                {'error': 'Contrato no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error generando vista previa: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _generate_content_with_clauses(self, contract, additional_clauses):
+        """Genera el contenido del contrato incluyendo cláusulas adicionales."""
+        base_content = contract.content
+        
+        # Encontrar el punto donde insertar las cláusulas adicionales
+        # Buscar antes de la línea de firmas
+        signature_markers = [
+            'Para constancia se firma',
+            '__________________________',
+            'EL ARRENDADOR',
+            'EL ARRENDATARIO',
+            'C.C.'
+        ]
+        
+        # Encontrar el punto de inserción
+        insert_point = len(base_content)
+        for marker in signature_markers:
+            if marker in base_content:
+                insert_point = min(insert_point, base_content.find(marker))
+        
+        # Separar contenido
+        before_signatures = base_content[:insert_point].strip()
+        signatures_section = base_content[insert_point:].strip()
+        
+        # Generar cláusulas adicionales
+        additional_content = ""
+        if additional_clauses.exists():
+            additional_content = "\n\n"
+            for clause in additional_clauses:
+                additional_content += f"{clause.ordinal_text}. {clause.title.upper()}: {clause.content}\n\n"
+        
+        # Combinar todo
+        final_content = before_signatures + additional_content + "\n" + signatures_section
+        
+        return final_content
+
+
 class EditContractBeforeAuthAPIView(APIView):
     """Vista para editar contrato antes de autenticación."""
     permission_classes = [permissions.IsAuthenticated]
@@ -961,16 +1331,89 @@ class StartBiometricAuthenticationAPIView(APIView):
             
             contract = Contract.objects.get(
                 id=contract_id,
-                status__in=['pdf_generated', 'ready_for_authentication']
+                status__in=['pdf_generated', 'ready_for_authentication', 'pending_biometric']
             )
             
-            # Verificar que el usuario sea parte del contrato
-            if request.user not in [contract.primary_party, contract.secondary_party]:
+            # Verificar que el usuario sea parte del contrato (incluyendo garante)
+            allowed_users = [contract.primary_party, contract.secondary_party]
+            if contract.guarantor:
+                allowed_users.append(contract.guarantor)
+
+            if request.user not in allowed_users:
                 return Response(
                     {'error': 'No tiene permisos para autenticarse en este contrato'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
+
+            # NUEVO: Validar turno secuencial
+            from matching.models import MatchRequest
+            match_request = MatchRequest.objects.filter(
+                Q(tenant=request.user) | Q(landlord=request.user),
+                property=contract.property
+            ).first()
+
+            if match_request:
+                # Verificar si es el turno correcto del usuario
+                if request.user == contract.secondary_party:
+                    user_type = 'tenant'
+                elif request.user == contract.guarantor:
+                    user_type = 'guarantor'
+                elif request.user == contract.primary_party:
+                    user_type = 'landlord'
+                else:
+                    user_type = 'unknown'
+
+                workflow_status = match_request.workflow_status
+
+                print(f"🔐 Turn validation - User: {user_type}, Workflow status: {workflow_status}")
+
+                # Validación de turno: Flujo secuencial Tenant → Garante → Landlord
+                if workflow_status == 'biometric_pending':
+                    # Al inicio del proceso biométrico, solo el tenant puede empezar
+                    if user_type != 'tenant':
+                        return Response({
+                            'error': 'Esperando autenticación del arrendatario',
+                            'message': 'El arrendatario debe completar su autenticación biométrica primero',
+                            'current_turn': 'tenant',
+                            'waiting_for': 'tenant_biometric',
+                            'workflow_status': workflow_status
+                        }, status=status.HTTP_423_LOCKED)
+
+                elif workflow_status == 'pending_tenant_biometric' and user_type != 'tenant':
+                    return Response({
+                        'error': 'Esperando autenticación del arrendatario',
+                        'message': 'El arrendatario debe completar su autenticación biométrica primero',
+                        'current_turn': 'tenant',
+                        'waiting_for': 'tenant_biometric'
+                    }, status=status.HTTP_423_LOCKED)
+
+                elif workflow_status == 'pending_guarantor_biometric':
+                    if contract.guarantor and user_type != 'guarantor':
+                        return Response({
+                            'error': 'Esperando autenticación del garante',
+                            'message': 'El garante/codeudor debe completar su autenticación biométrica',
+                            'current_turn': 'guarantor',
+                            'waiting_for': 'guarantor_biometric'
+                        }, status=status.HTTP_423_LOCKED)
+                    elif not contract.guarantor:
+                        # Si no hay garante, pasa directo al landlord
+                        pass
+
+                elif workflow_status == 'pending_landlord_biometric' and user_type != 'landlord':
+                    return Response({
+                        'error': 'Esperando autenticación del arrendador',
+                        'message': 'El arrendador debe completar su autenticación biométrica',
+                        'current_turn': 'landlord',
+                        'waiting_for': 'landlord_biometric'
+                    }, status=status.HTTP_423_LOCKED)
+
+                elif workflow_status == 'all_biometrics_completed':
+                    return Response({
+                        'error': 'Autenticación biométrica ya completada',
+                        'message': 'Todas las partes ya completaron la autenticación biométrica',
+                        'status': 'completed'
+                    }, status=status.HTTP_409_CONFLICT)
+
             # Iniciar autenticación biométrica
             auth = biometric_service.initiate_authentication(contract, request.user, request)
             
@@ -1269,41 +1712,68 @@ class TenantProcessesAPIView(generics.ListAPIView):
     def get(self, request):
         """Obtiene todos los procesos de arrendamiento del inquilino/candidato actual."""
         try:
-            from requests.models import PropertyInterestRequest
             from matching.models import MatchRequest
             from django.db import models
             
-            # Solo inquilinos pueden ver esta vista
-            if request.user.user_type not in ['tenant', 'candidate']:
+            # Debug info del usuario actual
+            print(f"🔍 TenantProcesses - User: {request.user.email}, Type: {request.user.user_type}, ID: {request.user.id}")
+            
+            # Expandir tipos de usuario permitidos - incluir cualquier usuario que pueda ser arrendatario
+            allowed_types = ['tenant', 'candidate', 'landlord']  # Temporalmente permitir landlord para debug
+            if request.user.user_type not in allowed_types:
                 return Response({
                     'results': [],
                     'count': 0,
-                    'message': 'Esta vista es solo para inquilinos y candidatos'
+                    'message': f'Usuario tipo {request.user.user_type} no puede ver esta vista. Tipos permitidos: {allowed_types}'
                 })
             
             processes = []
             
-            # 1. Buscar en PropertyInterestRequest como requester
+            # CONSOLIDADO: Solo usar MatchRequest como fuente única de verdad
             try:
-                property_requests = PropertyInterestRequest.objects.filter(
-                    requester=request.user,
-                    status='accepted'  # Solo procesos aprobados/en curso
-                ).select_related('property', 'assignee').order_by('-created_at')
-                
-                for request_obj in property_requests:
-                    processes.append(self._format_property_request(request_obj))
-                    
-            except Exception as e:
-                print(f"Error fetching PropertyInterestRequest: {e}")
-            
-            # 2. Buscar en MatchRequest como tenant (fallback)
-            try:
+                # Buscar MatchRequests donde el usuario actual sea el tenant
+                # Incluir todos los estados de workflow avanzados, no solo 'accepted'
+                workflow_statuses = [
+                    'accepted',
+                    'contract_pending_tenant_approval',
+                    'contract_approved_by_tenant',
+                    'biometric_pending',
+                    'pending_biometric_authentication',
+                    'ready_for_authentication',
+                    'pending_tenant_biometric',      # NUEVO: Solo arrendatario puede autenticar
+                    'pending_landlord_biometric',    # NUEVO: Solo arrendador puede autenticar
+                    'biometric_completed',
+                    'both_biometrics_completed',     # NUEVO: Ambos completaron
+                    'contract_active'
+                ]
+
+                # Intentar con campo 'tenant' primero
                 match_requests = MatchRequest.objects.filter(
                     tenant=request.user,
-                    status='accepted'
+                    status__in=workflow_statuses
                 ).select_related('property', 'landlord').order_by('-created_at')
+
+                # Si no hay resultados, intentar con campo 'requester'
+                if not match_requests.exists():
+                    print(f"🔍 No matches found with tenant={request.user.email}, trying with requester field...")
+                    match_requests = MatchRequest.objects.filter(
+                        requester=request.user,
+                        status__in=workflow_statuses
+                    ).select_related('property', 'landlord').order_by('-created_at')
+
+                # Si aún no hay resultados, buscar por cualquier match con el usuario
+                if not match_requests.exists():
+                    print(f"🔍 No matches found with requester either, searching all matches...")
+                    from django.db.models import Q
+                    match_requests = MatchRequest.objects.filter(
+                        Q(tenant=request.user) | Q(requester=request.user),
+                        status__in=workflow_statuses
+                    ).select_related('property', 'landlord').order_by('-created_at')
+
+                print(f"🔍 Found {match_requests.count()} workflow MatchRequests for user {request.user.email}")
                 
                 for match_obj in match_requests:
+                    print(f"  - MatchRequest {match_obj.id}: Stage {match_obj.workflow_stage}, Status {match_obj.workflow_status}")
                     processes.append(self._format_match_request(match_obj))
                     
             except Exception as e:
@@ -1322,96 +1792,48 @@ class TenantProcessesAPIView(generics.ListAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    def _format_property_request(self, request_obj):
-        """Formatea un PropertyInterestRequest para la vista del inquilino - SINCRONIZACIÓN FIX."""
-        # LEER ESTADO REAL DEL WORKFLOW DESDE LA BASE DE DATOS
-        current_stage = getattr(request_obj, 'workflow_stage', 1)
-        status_key = getattr(request_obj, 'workflow_status', 'visit_scheduled')
-        workflow_db_data = getattr(request_obj, 'workflow_data', {})
-        
-        print(f"🔍 TENANT VIEW - PropertyRequest {request_obj.id}: Stage={current_stage}, Status={status_key}")
-        
-        # Usar datos del workflow desde la base de datos o valores por defecto
-        workflow_data = workflow_db_data if workflow_db_data else {
-            'visit_scheduled': {
-                'date': 'Por definir',
-                'time': 'Por definir',
-                'notes': 'Pendiente coordinación VeriHome',
-                'completed': False
-            } if current_stage == 1 else None,
-            'documents_requested': {
-                'requested_at': request_obj.created_at.isoformat(),
-                'documents_list': [
-                    'Cédula de Ciudadanía',
-                    'Comprobante de Ingresos (3 meses)',
-                    'Referencias Laborales',
-                    'Referencias Comerciales',
-                    'Autorizaciones de Centrales de Riesgo'
-                ],
-                'uploaded_documents': []
-            } if current_stage >= 2 else None,
-            'contract_data': {
-                'generated_at': None,
-                'signed_by_tenant': False,
-                'signed_by_landlord': False
-            } if current_stage >= 3 else None
-        }
-        
-        return {
-            'id': str(request_obj.id),
-            'match_code': f"REQ-{str(request_obj.id)[:8].upper()}",
-            'current_stage': current_stage,
-            'status': status_key,
-            'property': {
-                'id': str(request_obj.property.id),
-                'title': request_obj.property.title,
-                'address': f"{request_obj.property.address}, {request_obj.property.city}",
-                'rent_price': float(request_obj.property.rent_price)
-            },
-            'landlord': {
-                'id': str(request_obj.assignee.id),
-                'full_name': request_obj.assignee.get_full_name(),
-                'email': request_obj.assignee.email
-            },
-            'workflow_data': workflow_data,
-            'created_at': request_obj.created_at.isoformat(),
-            'updated_at': request_obj.updated_at.isoformat()
-        }
-    
     def _format_match_request(self, match_obj):
-        """Formatea un MatchRequest para la vista del inquilino."""
-        # Similar al anterior pero para MatchRequest
-        current_stage = 1  # Etapa 1: Visita por defecto
-        status_key = 'visit_scheduled'
+        """Formatea un MatchRequest para la vista del inquilino - USANDO DATOS REALES DEL WORKFLOW."""
+        # LEER ESTADO REAL DEL WORKFLOW DESDE LA BASE DE DATOS
+        current_stage = getattr(match_obj, 'workflow_stage', 1)
+        status_key = getattr(match_obj, 'workflow_status', 'pending')  
+        workflow_db_data = getattr(match_obj, 'workflow_data', {})
         
-        workflow_data = {
-            'visit_scheduled': {
-                'date': '2025-08-15',  # Datos de ejemplo, se puede mejorar
-                'time': '14:00',
-                'notes': 'Visita coordinada por VeriHome',
-                'completed': False
-            }
-        }
+        print(f"🔍 TENANT VIEW - MatchRequest {match_obj.id}: Stage={current_stage}, Status={status_key}")
+        print(f"🔍 TENANT VIEW - workflow_data from DB: {workflow_db_data}")
+        
+        # Usar datos reales del workflow o valores por defecto
+        workflow_data = workflow_db_data if workflow_db_data else {}
         
         return {
             'id': str(match_obj.id),
             'match_code': getattr(match_obj, 'match_code', f"MAT-{str(match_obj.id)[:8].upper()}"),
             'current_stage': current_stage,
+            'workflow_stage': current_stage,  # Para compatibilidad con el frontend
             'status': status_key,
+            'workflow_status': status_key,   # Para compatibilidad con el frontend
             'property': {
                 'id': str(match_obj.property.id),
                 'title': match_obj.property.title,
                 'address': f"{match_obj.property.address}, {match_obj.property.city}",
-                'rent_price': float(match_obj.property.rent_price)
+                'rent_price': float(match_obj.property.rent_price),
+                'bedrooms': getattr(match_obj.property, 'bedrooms', 1),
+                'bathrooms': getattr(match_obj.property, 'bathrooms', 1)
             },
             'landlord': {
                 'id': str(match_obj.landlord.id),
                 'full_name': match_obj.landlord.get_full_name(),
-                'email': match_obj.landlord.email
+                'email': match_obj.landlord.email,
+                'phone': getattr(match_obj.landlord, 'phone_number', None)
             },
+            # Campos adicionales requeridos por la interfaz frontend
+            'preferred_move_in_date': getattr(match_obj, 'preferred_move_in_date', None),
+            'lease_duration_months': getattr(match_obj, 'lease_duration_months', 12),
+            'monthly_income': getattr(match_obj, 'monthly_income', None),
+            'employment_type': getattr(match_obj, 'employment_type', ''),
             'workflow_data': workflow_data,
-            'created_at': match_obj.created_at.isoformat(),
-            'updated_at': match_obj.updated_at.isoformat()
+            'created_at': match_obj.created_at.isoformat() if hasattr(match_obj, 'created_at') else None,
+            'updated_at': match_obj.updated_at.isoformat() if hasattr(match_obj, 'updated_at') else match_obj.created_at.isoformat()
         }
 
 
@@ -1423,7 +1845,6 @@ class MatchedCandidatesAPIView(APIView):
         """Obtiene todos los matches aprobados para el arrendador actual."""
         try:
             from matching.models import MatchRequest
-            from requests.models import PropertyInterestRequest
             
             # Solo arrendadores pueden ver esta vista
             if request.user.user_type != 'landlord':
@@ -1432,71 +1853,56 @@ class MatchedCandidatesAPIView(APIView):
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Obtener matches aceptados - buscar en ambos modelos
+            # 🔧 FIX CRÍTICO: Solo usar MatchRequest como fuente única de verdad
+            # MatchRequest contiene los datos actualizados del workflow
             matches = []
             
-            # Primero intentar MatchRequest
             try:
+                # Incluir todos los estados de workflow para mantener visibilidad
+                workflow_statuses = [
+                    'accepted',
+                    'contract_pending_tenant_approval',
+                    'contract_approved_by_tenant',
+                    'biometric_pending',
+                    'pending_biometric_authentication',
+                    'ready_for_authentication',
+                    'pending_tenant_biometric',      # NUEVO: Solo arrendatario puede autenticar
+                    'pending_landlord_biometric',    # NUEVO: Solo arrendador puede autenticar
+                    'biometric_completed',
+                    'both_biometrics_completed',     # NUEVO: Ambos completaron
+                    'contract_active'
+                ]
+
                 match_requests = MatchRequest.objects.filter(
                     landlord=request.user,
-                    status='accepted'
+                    status__in=workflow_statuses
                 ).select_related('tenant', 'property', 'landlord').order_by('-created_at')
                 matches.extend(match_requests)
-            except:
-                pass
-            
-            # Luego buscar en PropertyInterestRequest 
-            # CRITICAL FIX: Incluir tanto 'accepted' como 'completed' status
-            try:
-                property_requests = PropertyInterestRequest.objects.filter(
-                    assignee=request.user,
-                    status__in=['accepted', 'completed', 'in_progress']  # Incluir todos los estados relevantes
-                ).select_related('requester', 'property', 'assignee').order_by('-created_at')
-                matches.extend(property_requests)
-                print(f"🔍 Found {len(property_requests)} PropertyInterestRequest matches for user {request.user}")
+                print(f"🔍 Found {len(match_requests)} MatchRequest matches for user {request.user}")
             except Exception as e:
-                print(f"❌ Error fetching PropertyInterestRequest: {e}")
+                print(f"❌ Error fetching MatchRequest: {e}")
+                
+            # CONSOLIDATED: Using only MatchRequest as single source of truth
             
             print(f"🔍 Total matches found: {len(matches)}")
             
-            # Serializar los datos
+            # 🔧 SERIALIZAR DATOS - Solo MatchRequest con datos reales del workflow
             candidates_data = []
             for match in matches:
-                # CRITICAL FIX: Leer estado real del workflow desde la base de datos
-                # No hardcodear valores por defecto
-                if isinstance(match, PropertyInterestRequest):
-                    # Usar campos de workflow reales de la base de datos
-                    workflow_stage = getattr(match, 'workflow_stage', 1)
-                    workflow_status = getattr(match, 'workflow_status', 'visit_scheduled')
-                    workflow_data = getattr(match, 'workflow_data', {})
-                    print(f"📊 PropertyInterestRequest {match.id}: Stage={workflow_stage}, Status={workflow_status}")
-                else:
-                    # MatchRequest - usar valores por defecto o lógica existente
-                    workflow_stage = 1
-                    workflow_data = {}
-                    workflow_status = 'visit_scheduled'
+                # ✅ Ahora todos los matches son MatchRequest - leer datos reales del workflow
+                workflow_stage = getattr(match, 'workflow_stage', 1)
+                workflow_status = getattr(match, 'workflow_status', 'pending')
+                workflow_data = getattr(match, 'workflow_data', {})
+                print(f"📊 MatchRequest {match.id}: Stage={workflow_stage}, Status={workflow_status}, Data={workflow_data}")
                 
-                # Determinar si es MatchRequest o PropertyInterestRequest
-                is_match_request = hasattr(match, 'match_code')
-                
-                if is_match_request:
-                    # Datos de MatchRequest
-                    tenant = match.tenant
-                    match_code = match.match_code
-                    tenant_message = getattr(match, 'tenant_message', '')
-                    preferred_move_in_date = getattr(match, 'preferred_move_in_date', None)
-                    lease_duration_months = getattr(match, 'lease_duration_months', 12)
-                    monthly_income = getattr(match, 'monthly_income', None)
-                    employment_type = getattr(match, 'employment_type', '')
-                else:
-                    # Datos de PropertyInterestRequest
-                    tenant = match.requester
-                    match_code = f"REQ-{str(match.id)[:8]}"
-                    tenant_message = getattr(match, 'description', '')
-                    preferred_move_in_date = getattr(match, 'preferred_move_in_date', None)
-                    lease_duration_months = getattr(match, 'lease_duration_months', 12)
-                    monthly_income = getattr(match, 'monthly_income', None)
-                    employment_type = getattr(match, 'employment_type', '')
+                # ✅ Simplificado: Solo MatchRequest
+                tenant = match.tenant
+                match_code = match.match_code
+                tenant_message = getattr(match, 'tenant_message', '')
+                preferred_move_in_date = getattr(match, 'preferred_move_in_date', None)
+                lease_duration_months = getattr(match, 'lease_duration_months', 12)
+                monthly_income = getattr(match, 'monthly_income', None)
+                employment_type = getattr(match, 'employment_type', '')
                 
                 # Buscar si existe un contrato para este match
                 contract_info = None
@@ -1559,9 +1965,9 @@ class MatchedCandidatesAPIView(APIView):
                         'id': str(match.property.id),
                         'title': match.property.title,
                         'address': f"{match.property.address}, {match.property.city}",
-                        'rent_price': float(match.property.rent_price),
+                        'rent_price': float(match.property.rent_price) if match.property.rent_price else 0,
                         'bedrooms': match.property.bedrooms,
-                        'bathrooms': match.property.bathrooms,
+                        'bathrooms': float(match.property.bathrooms) if match.property.bathrooms else 0,
                     },
                     'tenant_message': tenant_message,
                     'preferred_move_in_date': preferred_move_in_date.isoformat() if preferred_move_in_date else None,
@@ -1592,11 +1998,88 @@ class WorkflowActionAPIView(APIView):
     """Vista para ejecutar acciones del workflow de 3 etapas."""
     permission_classes = [permissions.IsAuthenticated]
     
+    def _get_default_contract_content(self, landlord, tenant, property_obj, context):
+        """Genera contenido por defecto para el contrato si no hay plantilla."""
+        return f"""CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA
+
+Entre los suscritos {landlord.get_full_name()}, mayor de edad, identificado con cédula de ciudadanía, 
+domiciliado en esta ciudad, quien en adelante se denominará EL ARRENDADOR, y {tenant.get_full_name()}, 
+mayor de edad, identificado con cédula de ciudadanía, quien en adelante se denominará EL ARRENDATARIO, 
+hemos convenido celebrar el presente contrato de arrendamiento de vivienda urbana, el cual se regirá 
+por las normas del Código Civil Colombiano, la Ley 820 de 2003 y las siguientes cláusulas:
+
+PRIMERA. OBJETO: El ARRENDADOR entrega al ARRENDATARIO, a título de arrendamiento, el inmueble ubicado en:
+{property_obj.address if property_obj else '[DIRECCIÓN]'}, {property_obj.city if hasattr(property_obj, 'city') else '[CIUDAD]'}
+
+El inmueble se entrega en buen estado, con los siguientes servicios públicos:
+- Agua
+- Energía eléctrica  
+- Gas
+- Internet (si aplica)
+
+SEGUNDA. DESTINACIÓN: El inmueble se destinará única y exclusivamente para VIVIENDA del ARRENDATARIO 
+y su núcleo familiar. No podrá darle otro uso sin autorización expresa y escrita del ARRENDADOR.
+
+TERCERA. PRECIO Y FORMA DE PAGO: El valor del canon de arrendamiento es de ${context.get('monthly_rent', 0):,.0f} COP 
+({self._numero_a_letras(context.get('monthly_rent', 0))} PESOS) mensuales, que el ARRENDATARIO pagará al 
+ARRENDADOR dentro de los primeros cinco (5) días de cada mes, en la cuenta bancaria que el ARRENDADOR indique.
+
+CUARTA. TÉRMINO: El término de duración del presente contrato es de DOCE (12) MESES, contados a partir 
+del {context.get('start_date', '[FECHA INICIO]')}, hasta el {context.get('end_date', '[FECHA FIN]')}.
+
+QUINTA. DEPÓSITO: El ARRENDATARIO entrega al ARRENDADOR, a título de depósito, la suma de 
+${context.get('security_deposit', 0):,.0f} COP, equivalente a un (1) mes de arrendamiento, suma que será 
+restituida al ARRENDATARIO a la terminación del contrato, previa deducción de los valores que se adeuden 
+por concepto de servicios públicos, reparaciones o cualquier otro concepto derivado del contrato.
+
+SEXTA. SERVICIOS PÚBLICOS: El ARRENDATARIO se obliga a pagar cumplidamente los servicios públicos del inmueble.
+
+SÉPTIMA. OBLIGACIONES DEL ARRENDATARIO:
+a) Pagar el canon de arrendamiento en las fechas convenidas
+b) Cuidar el inmueble y mantenerlo en buen estado
+c) Restituir el inmueble a la terminación del contrato en el mismo estado en que lo recibió
+d) Permitir las reparaciones necesarias del inmueble
+e) No subarrendar ni ceder el contrato sin autorización escrita del ARRENDADOR
+
+OCTAVA. OBLIGACIONES DEL ARRENDADOR:
+a) Entregar el inmueble en buen estado
+b) Mantener el inmueble en estado de servir para el fin convenido
+c) Las demás obligaciones consagradas en la ley
+
+NOVENA. CLÁUSULA PENAL: En caso de incumplimiento de cualquiera de las obligaciones por parte del 
+ARRENDATARIO, éste pagará al ARRENDADOR, a título de pena, una suma equivalente a dos (2) meses de 
+arrendamiento, sin perjuicio del cobro de los perjuicios adicionales que se causen.
+
+Para constancia se firma en la ciudad de {property_obj.city if hasattr(property_obj, 'city') else '[CIUDAD]'}, 
+a los {context.get('today', '[FECHA]')}.
+
+[PENDIENTE DE FIRMA DIGITAL Y AUTENTICACIÓN BIOMÉTRICA]
+
+__________________________               __________________________
+EL ARRENDADOR                           EL ARRENDATARIO
+C.C.                                    C.C.
+"""
+    
+    def _numero_a_letras(self, numero):
+        """Convierte un número a su representación en letras."""
+        # Implementación simplificada
+        if numero >= 1000000:
+            millones = int(numero / 1000000)
+            resto = numero % 1000000
+            if resto == 0:
+                return f"{millones} MILLONES DE"
+            else:
+                return f"{millones} MILLONES {int(resto/1000)} MIL"
+        elif numero >= 1000:
+            miles = int(numero / 1000)
+            return f"{miles} MIL"
+        else:
+            return str(int(numero))
+    
     def post(self, request):
         """Ejecuta una acción del workflow de contratos con integración VeriHome."""
         try:
             from django.utils import timezone
-            from requests.models import PropertyInterestRequest
             from messaging.models import Message
             from django.core.mail import send_mail
             from django.conf import settings
@@ -1611,30 +2094,20 @@ class WorkflowActionAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Buscar primero en PropertyInterestRequest (principal)
-            match_request = None
+            # CONSOLIDADO: Usar solo MatchRequest como fuente única de verdad
             try:
-                match_request = PropertyInterestRequest.objects.get(
+                from matching.models import MatchRequest
+                match_request = MatchRequest.objects.get(
                     id=match_request_id,
-                    property__landlord=request.user,
-                    status__in=['accepted', 'completed', 'in_progress']
+                    landlord=request.user
+                    # REMOVED: status='accepted' - Allow any status as workflow progresses
                 )
-                print(f"🎯 Found PropertyInterestRequest: {match_request.id}")
-            except PropertyInterestRequest.DoesNotExist:
-                # Fallback a MatchRequest si existe
-                try:
-                    from matching.models import MatchRequest
-                    match_request = MatchRequest.objects.get(
-                        id=match_request_id,
-                        landlord=request.user,
-                        status='accepted'
-                    )
-                    print(f"🎯 Found MatchRequest: {match_request.id}")
-                except MatchRequest.DoesNotExist:
-                    return Response(
-                        {'error': 'Match request no encontrado o no tienes permisos'},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
+                print(f"🎯 Found MatchRequest: {match_request.id}")
+            except MatchRequest.DoesNotExist:
+                return Response(
+                    {'error': 'Match request no encontrado o no tienes permisos'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
             
             if not match_request:
                 return Response(
@@ -1815,6 +2288,27 @@ www.verihome.com | soporte@verihome.com
                 match_request.save()
                 print(f"✅ PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
                 
+                # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar MatchRequest correspondiente
+                try:
+                    from matching.models import MatchRequest
+                    matching_request = MatchRequest.objects.filter(
+                        tenant=tenant,
+                        property=match_request.property,
+                        status='accepted'
+                    ).first()
+                    
+                    if matching_request:
+                        matching_request.workflow_stage = match_request.workflow_stage
+                        matching_request.workflow_status = match_request.workflow_status
+                        matching_request.workflow_data = match_request.workflow_data
+                        matching_request.save()
+                        print(f"✅ SYNC SUCCESS - MatchRequest {matching_request.id} synced with PropertyInterestRequest")
+                    else:
+                        print(f"⚠️ SYNC WARNING - No MatchRequest found for tenant {tenant.id} and property {match_request.property.id}")
+                except Exception as sync_error:
+                    print(f"❌ SYNC ERROR - Failed to sync MatchRequest: {str(sync_error)}")
+                    # No fallar la operación principal por error de sincronización
+                
                 result_message = "✅ Visita programada y coordinación VeriHome activada. El inquilino será contactado en 24-48 horas."
                 updated_candidate_data = {
                     'workflow_stage': 1,
@@ -1839,7 +2333,6 @@ www.verihome.com | soporte@verihome.com
                 
                 # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar PropertyInterestRequest correspondiente
                 try:
-                    from requests.models import PropertyInterestRequest
                     property_request = PropertyInterestRequest.objects.filter(
                         requester=tenant,
                         property=match_request.property
@@ -1890,7 +2383,6 @@ www.verihome.com | soporte@verihome.com
                 
                 # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar PropertyInterestRequest correspondiente
                 try:
-                    from requests.models import PropertyInterestRequest
                     property_request = PropertyInterestRequest.objects.filter(
                         requester=tenant,
                         property=match_request.property
@@ -1970,8 +2462,8 @@ www.verihome.com | soporte@verihome.com
                         # Crear contrato automáticamente
                         auto_contract = Contract.objects.create(
                             # Partes del contrato
-                            landlord=request.user,
-                            tenant=tenant,
+                            primary_party=request.user,  # Arrendador
+                            secondary_party=tenant,  # Arrendatario
                             property=property_obj,
                             
                             # Fechas
@@ -2056,8 +2548,135 @@ www.verihome.com | soporte@verihome.com
                 
                 try:
                     # Importar el modelo Contract y timedelta localmente para asegurar disponibilidad
-                    from .models import Contract
+                    from .models import Contract, ContractTemplate
                     from datetime import timedelta
+                    from django.template import Template, Context
+                    import uuid  # AGREGAR IMPORT FALTANTE
+                    
+                    # Determinar el tipo de contrato basado en el tipo de propiedad
+                    def get_contract_type_for_property(property_type):
+                        """Mapea el tipo de propiedad al tipo de contrato apropiado."""
+                        property_to_contract_mapping = {
+                            # Propiedades residenciales urbanas
+                            'apartment': 'rental_urban',
+                            'house': 'rental_urban', 
+                            'studio': 'rental_urban',
+                            'penthouse': 'rental_urban',
+                            'townhouse': 'rental_urban',
+                            'room': 'rental_room',
+                            
+                            # Propiedades comerciales
+                            'commercial': 'rental_commercial',
+                            'office': 'rental_commercial',
+                            'warehouse': 'rental_commercial',
+                            
+                            # Propiedades rurales/terrenos
+                            'land': 'rental_rural',
+                        }
+                        return property_to_contract_mapping.get(property_type, 'rental_urban')  # Default urbano
+                    
+                    # Obtener el tipo de contrato apropiado
+                    contract_type = get_contract_type_for_property(property_obj.property_type)
+                    
+                    # Obtener la plantilla de contrato apropiada con selección inteligente
+                    try:
+                        # Prioridad 1: Plantilla por defecto del tipo específico
+                        template = ContractTemplate.objects.filter(
+                            template_type=contract_type,
+                            is_active=True,
+                            is_default=True
+                        ).first()
+                        
+                        # Prioridad 2: Primera plantilla activa del tipo específico
+                        if not template:
+                            template = ContractTemplate.objects.filter(
+                                template_type=contract_type,
+                                is_active=True
+                            ).first()
+                        
+                        # Prioridad 3: Fallback a rental_urban por defecto
+                        if not template and contract_type != 'rental_urban':
+                            template = ContractTemplate.objects.filter(
+                                template_type='rental_urban',
+                                is_active=True,
+                                is_default=True
+                            ).first()
+                            
+                        # Prioridad 4: Primera plantilla urbana activa
+                        if not template:
+                            template = ContractTemplate.objects.filter(
+                                template_type='rental_urban',
+                                is_active=True
+                            ).first()
+                            
+                    except Exception as e:
+                        print(f"Error al obtener plantilla de contrato: {e}")
+                        template = None
+                    
+                    # Preparar el contexto con todos los datos disponibles - DATOS COMPLETOS AUTO-POBLADOS
+                    template_context = {
+                        # ===== DATOS DEL ARRENDADOR (AUTO-POBLADO) =====
+                        'primary_party': request.user,
+                        'landlord_name': request.user.get_full_name(),
+                        'landlord_email': request.user.email,
+                        'landlord_phone': getattr(request.user, 'phone', ''),
+                        'landlord_id': getattr(request.user, 'identification_number', ''),
+                        
+                        # ===== DATOS DEL ARRENDATARIO (AUTO-POBLADO) =====
+                        'secondary_party': tenant,
+                        'tenant_name': tenant.get_full_name(),
+                        'tenant_email': tenant.email,
+                        'tenant_phone': getattr(tenant, 'phone', ''),
+                        'tenant_id': getattr(tenant, 'identification_number', ''),
+                        'tenant_occupation': getattr(tenant, 'job_title', ''),
+                        'tenant_income': getattr(tenant, 'monthly_income', ''),
+                        
+                        # ===== DATOS DE LA PROPIEDAD (AUTO-POBLADO) =====
+                        'property': property_obj,
+                        'property_title': property_obj.title,
+                        'property_address': property_obj.address,
+                        'property_city': property_obj.city,
+                        'property_type': property_obj.get_property_type_display(),
+                        'property_bedrooms': property_obj.bedrooms,
+                        'property_bathrooms': property_obj.bathrooms,
+                        'property_area': property_obj.total_area,
+                        'property_furnished': 'amueblada' if property_obj.furnished else 'sin amoblar',
+                        'pets_allowed': 'permitidas' if property_obj.pets_allowed else 'no permitidas',
+                        
+                        # ===== DATOS FINANCIEROS (AUTO-POBLADO) =====
+                        'monthly_rent': property_obj.rent_price if hasattr(property_obj, 'rent_price') else 0,
+                        'security_deposit': property_obj.security_deposit if hasattr(property_obj, 'security_deposit') and property_obj.security_deposit else (property_obj.rent_price if hasattr(property_obj, 'rent_price') else 0),
+                        'maintenance_fee': property_obj.maintenance_fee if hasattr(property_obj, 'maintenance_fee') else 0,
+                        'minimum_lease_term': getattr(property_obj, 'minimum_lease_term', 12),
+                        
+                        # ===== FECHAS (AUTO-POBLADO) =====
+                        'start_date': getattr(match_request, 'preferred_move_in_date', None) or (timezone.now().date() + timedelta(days=30)),
+                        'end_date': (getattr(match_request, 'preferred_move_in_date', None) or (timezone.now().date() + timedelta(days=30))) + timedelta(days=365),
+                        'today': timezone.now().date(),
+                        'contract_year': timezone.now().year,
+                        
+                        # ===== DATOS DEL CONTRATO =====
+                        'contract_number': f"VH-{timezone.now().year}-{str(uuid.uuid4().hex[:6]).upper()}",
+                        'contract_type': contract_type,
+                        'contract_type_display': dict(ContractTemplate.TEMPLATE_TYPES).get(contract_type, 'Arrendamiento'),
+                        
+                        # ===== SERVICIOS Y AMENIDADES =====
+                        'utilities_included': ', '.join(property_obj.utilities_included) if hasattr(property_obj, 'utilities_included') and property_obj.utilities_included else 'Ninguno incluido',
+                        'property_features': ', '.join(property_obj.property_features) if hasattr(property_obj, 'property_features') and property_obj.property_features else '',
+                        'nearby_amenities': ', '.join(property_obj.nearby_amenities) if hasattr(property_obj, 'nearby_amenities') and property_obj.nearby_amenities else '',
+                    }
+                    
+                    # Generar el contenido del contrato usando la plantilla o un contenido por defecto
+                    if template:
+                        try:
+                            django_template = Template(template.content)
+                            contract_content = django_template.render(Context(template_context))
+                        except Exception as e:
+                            print(f"Error rendering template: {e}")
+                            # Usar contenido por defecto si falla el template
+                            contract_content = self._get_default_contract_content(request.user, tenant, property_obj, template_context)
+                    else:
+                        contract_content = self._get_default_contract_content(request.user, tenant, property_obj, template_context)
                     
                     # Crear el contrato real en la base de datos
                     real_contract = Contract.objects.create(
@@ -2067,9 +2686,12 @@ www.verihome.com | soporte@verihome.com
                         
                         # Información básica
                         title=f"Contrato de Arrendamiento - {property_obj.title}",
-                        description=f"Contrato generado automáticamente para la propiedad {property_obj.title}",
-                        contract_type='rental_urban',  # Por defecto para propiedades urbanas
-                        content=f"CONTRATO DE ARRENDAMIENTO\n\nArrendador: {request.user.get_full_name()}\nArrendatario: {tenant.get_full_name()}\nPropiedad: {property_obj.title}\n\n[Este es un contrato generado automáticamente. Será completado durante la etapa de revisión.]",
+                        description=f"Contrato de arrendamiento para la propiedad {property_obj.title}",
+                        contract_type=contract_type,  # Usar el tipo determinado inteligentemente
+                        content=contract_content,  # Usar el contenido generado desde la plantilla
+                        
+                        # Asociar la plantilla si existe
+                        template=template,
                         
                         # Fechas - usar las del match request si están disponibles
                         start_date=getattr(match_request, 'preferred_move_in_date', None) or (timezone.now().date() + timedelta(days=30)),
@@ -2083,7 +2705,7 @@ www.verihome.com | soporte@verihome.com
                         property=property_obj,
                         
                         # Estado inicial
-                        status='draft',  # Borrador listo para edición
+                        status='pending_tenant_review',  # IMPORTANTE: Pendiente revisión del arrendatario
                         
                         # Campos de workflow - almacenar en variables_data
                         variables_data={
@@ -2127,16 +2749,19 @@ www.verihome.com | soporte@verihome.com
                     
                     print(f"🎯 REAL CONTRACT CREATED: {real_contract.id} for PropertyInterestRequest {match_request.id}")
                     
-                    # Actualizar el workflow del match request a etapa 4 (Contrato creado)
-                    match_request.workflow_stage = 4
-                    match_request.workflow_status = 'contract_created'
+                    # IMPORTANTE: Mantener en etapa 3 hasta que el arrendatario apruebe el contrato
+                    # NO avanzar automáticamente a etapa 4
+                    match_request.workflow_stage = 3  # Mantener en etapa de contrato
+                    match_request.workflow_status = 'contract_pending_tenant_approval'
                     match_request.workflow_data.update({
                         'contract_created': {
                             'contract_id': str(real_contract.id),
                             'contract_number': real_contract.contract_number,
+                            'status': 'pending_tenant_review',  # Estado del contrato
                             'created_at': timezone.now().isoformat(),
                             'created_by': request.user.get_full_name(),
-                            'title': real_contract.title
+                            'title': real_contract.title,
+                            'pending_tenant_approval': True  # Flag para indicar que requiere aprobación
                         }
                     })
                     
@@ -2252,6 +2877,72 @@ www.verihome.com | soporte@verihome.com
                 
                 result_message = "Candidato rechazado"
                 
+            elif action == 'advance_to_biometric':
+                # AVANZAR A ETAPA 4: AUTENTICACIÓN BIOMÉTRICA
+                # Solo se permite si el contrato fue aprobado por el arrendatario
+                
+                if not match_request.workflow_data.get('contract_created'):
+                    return Response(
+                        {'error': 'No existe un contrato creado para este candidato'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                contract_id = match_request.workflow_data['contract_created'].get('contract_id')
+                
+                # Verificar el estado del contrato
+                try:
+                    from contracts.models import Contract
+                    contract = Contract.objects.get(id=contract_id)
+                    
+                    # Verificar que el contrato esté aprobado
+                    if contract.status not in ['ready_for_authentication', 'approved_by_tenant']:
+                        # Si el arrendatario ya aprobó desde su panel, actualizar el estado
+                        if contract.status == 'pending_tenant_review':
+                            # Marcar como listo para autenticación
+                            contract.status = 'ready_for_authentication'
+                            contract.save()
+                            print(f"✅ Contract {contract.id} marked as ready for authentication")
+                    
+                    # Avanzar el workflow a etapa 4
+                    match_request.workflow_stage = 4
+                    match_request.workflow_status = 'pending_biometric_authentication'
+                    match_request.workflow_data['contract_created'].update({
+                        'status': contract.status,
+                        'advanced_to_biometric_at': timezone.now().isoformat(),
+                        'pending_tenant_approval': False  # Ya fue aprobado
+                    })
+                    match_request.save()
+                    
+                    print(f"✅ Match {match_request.id} advanced to Stage 4 (Biometric Authentication)")
+                    
+                    # Registrar actividad
+                    from users.models import UserActivityLog
+                    UserActivityLog.objects.create(
+                        user=request.user,
+                        activity_type='workflow_advanced_to_biometric',
+                        description=f'Contrato {contract.contract_number} avanzado a autenticación biométrica',
+                        metadata={
+                            'match_id': str(match_request.id),
+                            'contract_id': str(contract.id),
+                            'contract_status': contract.status
+                        },
+                        ip_address=request.META.get('REMOTE_ADDR'),
+                        user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                    )
+                    
+                    result_message = "✅ Contrato avanzado a etapa de Autenticación Biométrica"
+                    updated_candidate_data = {
+                        'workflow_stage': 4,
+                        'workflow_status': 'pending_biometric_authentication',
+                        'contract_status': contract.status
+                    }
+                    
+                except Contract.DoesNotExist:
+                    return Response(
+                        {'error': 'Contrato no encontrado'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
             else:
                 return Response(
                     {'error': f'Acción no reconocida: {action}'},
@@ -2327,8 +3018,12 @@ class TenantContractReviewAPIView(APIView):
         try:
             from django.utils import timezone
             
+            print(f"🔍 TenantContractReview - User: {request.user.email}, Type: {request.user.user_type}")
+            print(f"🔍 Request data: {request.data}")
+            
             # Solo arrendatarios pueden usar esta vista
             if request.user.user_type not in ['tenant', 'candidate']:
+                print(f"❌ User type {request.user.user_type} not allowed")
                 return Response(
                     {'error': 'Solo arrendatarios pueden revisar contratos'},
                     status=status.HTTP_403_FORBIDDEN
@@ -2338,19 +3033,24 @@ class TenantContractReviewAPIView(APIView):
             action = request.data.get('action')  # 'approve' or 'request_changes'
             comments = request.data.get('comments', '')
             
+            print(f"📝 Contract ID: {contract_id}, Action: {action}, Comments: {comments}")
+            
             if not contract_id or not action:
+                print(f"❌ Missing required fields - contract_id: {contract_id}, action: {action}")
                 return Response(
                     {'error': 'contract_id y action son requeridos'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
             if action not in ['approve', 'request_changes']:
+                print(f"❌ Invalid action: {action}")
                 return Response(
                     {'error': 'action debe ser "approve" o "request_changes"'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
             if action == 'request_changes' and not comments.strip():
+                print(f"❌ Request changes without comments")
                 return Response(
                     {'error': 'Los comentarios son requeridos cuando se solicitan cambios'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -2358,18 +3058,35 @@ class TenantContractReviewAPIView(APIView):
             
             # Buscar el contrato
             try:
+                print(f"🔍 Looking for contract {contract_id} with secondary_party={request.user.id}")
                 contract = Contract.objects.get(
                     id=contract_id,
                     secondary_party=request.user  # El arrendatario es secondary_party
                 )
+                print(f"✅ Contract found: {contract.id}")
             except Contract.DoesNotExist:
+                print(f"❌ Contract not found - ID: {contract_id}, User: {request.user.id}")
+                # Intentar buscar sin filtro de usuario para debug
+                try:
+                    debug_contract = Contract.objects.get(id=contract_id)
+                    print(f"🔍 Contract exists but with different parties:")
+                    print(f"   - Primary party: {debug_contract.primary_party.email if debug_contract.primary_party else 'None'}")
+                    print(f"   - Secondary party: {debug_contract.secondary_party.email if debug_contract.secondary_party else 'None'}")
+                except:
+                    print(f"❌ Contract {contract_id} does not exist at all")
+                
                 return Response(
                     {'error': 'Contrato no encontrado o no autorizado'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
             # Verificar que el contrato esté en estado de revisión
-            if contract.status not in ['draft', 'pending_tenant_review']:
+            print(f"📋 Contract status: {contract.status}")
+            valid_statuses = ['draft', 'pending_tenant_review', 'tenant_changes_requested', 'ready_for_authentication', 'pending_biometric']
+            print(f"📋 Valid statuses for review: {valid_statuses}")
+            
+            if contract.status not in valid_statuses:
+                print(f"❌ Invalid contract status for review: {contract.status}")
                 return Response(
                     {'error': f'El contrato no puede ser revisado en su estado actual: {contract.status}'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -2377,16 +3094,35 @@ class TenantContractReviewAPIView(APIView):
             
             # Procesar la acción
             if action == 'approve':
+                print(f"🚀 Processing APPROVE action for contract {contract.id}")
+                print(f"   Current status: {contract.status}")
+                print(f"   Current tenant_review_status: {contract.tenant_review_status}")
+                
                 # Arrendatario aprueba el borrador
                 contract.tenant_review_status = 'approved'
                 contract.tenant_reviewed_at = timezone.now()
                 contract.tenant_review_comments = comments
-                contract.status = 'ready_for_authentication'
+                
+                # Manejar diferentes estados
+                if contract.status == 'pending_biometric':
+                    # Ya está en biométrico, no hacer cambios
+                    print(f"   ℹ️ Contract already in biometric phase, no status change needed")
+                    result_message = "ℹ️ El contrato ya fue aprobado y está en fase de autenticación biométrica."
+                elif contract.status == 'ready_for_authentication':
+                    # Ya está aprobado, avanzar a firma biométrica
+                    contract.status = 'pending_biometric'
+                    print(f"   ✅ Contract already approved, advancing to biometric: {contract.status}")
+                    result_message = "✅ Contrato avanzado a fase de autenticación biométrica."
+                else:
+                    # Aprobar por primera vez
+                    contract.status = 'ready_for_authentication'
+                    print(f"   ✅ Contract approved, status set to: {contract.status}")
+                    result_message = "✅ Borrador aprobado exitosamente. El proceso avanza a autenticación."
                 
                 # Avanzar el workflow a etapa 4 (Autenticación)
-                # Buscar el PropertyInterestRequest relacionado
-                from requests.models import PropertyInterestRequest
+                # Actualizar AMBOS: PropertyInterestRequest Y MatchRequest
                 try:
+                    # 1. Actualizar PropertyInterestRequest
                     property_request = PropertyInterestRequest.objects.filter(
                         requester=request.user,
                         property=contract.property,
@@ -2404,11 +3140,36 @@ class TenantContractReviewAPIView(APIView):
                         }
                         property_request.save()
                         print(f"✅ PropertyInterestRequest {property_request.id} advanced to stage 4 (Authentication)")
+                    
+                    # 2. CRÍTICO: También actualizar MatchRequest
+                    from matching.models import MatchRequest
+                    match_request = MatchRequest.objects.filter(
+                        tenant=request.user,
+                        property=contract.property
+                    ).first()
+                    
+                    if match_request:
+                        # Avanzar a etapa 4 - FLUJO SECUENCIAL: Arrendatario primero
+                        match_request.workflow_stage = 4
+                        match_request.workflow_status = 'pending_tenant_biometric'
+                        match_request.status = 'contract_approved_by_tenant'
+                        
+                        # Actualizar workflow_data
+                        if 'contract_created' in match_request.workflow_data:
+                            match_request.workflow_data['contract_created']['tenant_approved'] = True
+                            match_request.workflow_data['contract_created']['tenant_approved_at'] = timezone.now().isoformat()
+                            match_request.workflow_data['contract_created']['status'] = contract.status  # Use actual contract status
+                            # Remover flag de pending_tenant_approval
+                            if 'pending_tenant_approval' in match_request.workflow_data['contract_created']:
+                                del match_request.workflow_data['contract_created']['pending_tenant_approval']
+                        
+                        match_request.save()
+                        print(f"✅ MatchRequest {match_request.id} advanced to stage 4 - Tenant approved contract")
+                    else:
+                        print(f"⚠️ No MatchRequest found for tenant {request.user.id} and property {contract.property.id}")
                 
                 except Exception as e:
-                    print(f"⚠️ Error updating PropertyInterestRequest: {e}")
-                
-                result_message = "✅ Borrador aprobado exitosamente. El proceso avanza a autenticación biométrica."
+                    print(f"⚠️ Error updating workflow: {e}")
                 
             elif action == 'request_changes':
                 # Arrendatario solicita cambios
@@ -2470,6 +3231,7 @@ www.verihome.com
             
             # Guardar cambios
             contract.save()
+            print(f"💾 Contract saved with status: {contract.status}")
             
             # Registrar actividad
             from users.models import UserActivityLog
@@ -2487,13 +3249,16 @@ www.verihome.com
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
             )
             
+            print(f"✅ FINAL RESPONSE - Success: True, Contract Status: {contract.status}, Review Status: {contract.tenant_review_status}")
+            
             return Response({
                 'success': True,
                 'message': result_message,
                 'contract_id': str(contract.id),
                 'action': action,
                 'new_status': contract.status,
-                'review_status': contract.tenant_review_status
+                'review_status': contract.tenant_review_status,
+                'workflow_advanced': True  # Indicar que el workflow avanzó
             })
             
         except Exception as e:

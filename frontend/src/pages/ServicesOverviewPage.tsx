@@ -1,276 +1,612 @@
-import React from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
+import React, { useEffect, useState } from 'react';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardContent, 
   Button,
   Chip,
-  Avatar,
   useTheme,
+  alpha,
+  Tabs,
+  Tab,
+  Paper,
+  CircularProgress,
+  Alert,
+  Stack,
+  Avatar,
+  Divider,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Fade,
+  Grow
 } from '@mui/material';
-import {
-  Home as HomeIcon,
-  Business as BusinessIcon,
-  Build as BuildIcon,
-  Security as SecurityIcon,
-  Payment as PaymentIcon,
-  Assessment as AssessmentIcon,
-  Lock as LockIcon,
+import { 
+  Gavel,
+  AccountBalance,
+  Business,
+  Build,
+  Security,
+  AttachMoney,
+  Assessment,
+  LocalShipping,
+  Apartment,
+  Verified,
+  Star,
+  TrendingUp,
+  Phone,
+  Email,
+  Schedule,
+  Close,
+  CheckCircle
 } from '@mui/icons-material';
-import LandingNavbar from '../components/layout/LandingNavbar';
-import LandingFooter from '../components/layout/LandingFooter';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+// Mapa de iconos
+const iconMap: { [key: string]: React.ReactElement } = {
+  Gavel: <Gavel />,
+  AccountBalance: <AccountBalance />,
+  Business: <Business />,
+  Build: <Build />,
+  Security: <Security />,
+  AttachMoney: <AttachMoney />,
+  Assessment: <Assessment />,
+  LocalShipping: <LocalShipping />,
+  Apartment: <Apartment />,
+  Verified: <Verified />
+};
+
+interface ServiceCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon_name: string;
+  color: string;
+  is_featured: boolean;
+  services_count: number;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  short_description: string;
+  full_description: string;
+  category_name: string;
+  category_color: string;
+  pricing_type: string;
+  price_display: string;
+  difficulty: string;
+  estimated_duration: string;
+  popularity_score: number;
+  is_featured: boolean;
+  is_most_requested: boolean;
+  views_count: number;
+  requests_count: number;
+  contact_email?: string;
+  contact_phone?: string;
+  provider_info?: string;
+  requirements?: string;
+}
+
+interface ServiceRequestData {
+  service: string;
+  requester_name: string;
+  requester_email: string;
+  requester_phone: string;
+  message: string;
+  preferred_date?: string;
+  budget_range?: string;
+}
 
 const ServicesOverviewPage: React.FC = () => {
-  const navigate = useNavigate();
   const theme = useTheme();
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [featuredServices, setFeaturedServices] = useState<Service[]>([]);
+  const [mostRequestedServices, setMostRequestedServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [requestFormData, setRequestFormData] = useState<ServiceRequestData>({
+    service: '',
+    requester_name: '',
+    requester_email: '',
+    requester_phone: '',
+    message: '',
+    preferred_date: '',
+    budget_range: ''
+  });
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [requestSuccess, setRequestSuccess] = useState(false);
 
-  const services = [
-    {
-      icon: <HomeIcon sx={{ fontSize: 40 }} />,
-      title: 'Gestión de Propiedades',
-      description: 'Administra tus propiedades de manera eficiente con herramientas avanzadas.',
-      features: ['Inventario digital', 'Fotos profesionales', 'Documentación segura'],
-      category: 'Propietarios',
-      premium: false,
-    },
-    {
-      icon: <BusinessIcon sx={{ fontSize: 40 }} />,
-      title: 'Arrendamiento Inteligente',
-      description: 'Encuentra inquilinos confiables con nuestro sistema de verificación.',
-      features: ['Verificación de antecedentes', 'Contratos digitales', 'Pagos automáticos'],
-      category: 'Propietarios',
-      premium: true,
-    },
-    {
-      icon: <BuildIcon sx={{ fontSize: 40 }} />,
-      title: 'Servicios de Mantenimiento',
-      description: 'Conecta con prestadores de servicios verificados y calificados.',
-      features: ['Servicios verificados', 'Calificaciones reales', 'Respuesta rápida'],
-      category: 'Todos',
-      premium: true,
-    },
-    {
-      icon: <SecurityIcon sx={{ fontSize: 40 }} />,
-      title: 'Seguridad y Verificación',
-      description: 'Sistema de verificación integral para mayor confianza.',
-      features: ['Verificación de identidad', 'Antecedentes penales', 'Historial crediticio'],
-      category: 'Todos',
-      premium: true,
-    },
-    {
-      icon: <PaymentIcon sx={{ fontSize: 40 }} />,
-      title: 'Gestión de Pagos',
-      description: 'Sistema de pagos seguro y transparente para todas las transacciones.',
-      features: ['Pagos automáticos', 'Recibos digitales', 'Historial completo'],
-      category: 'Todos',
-      premium: true,
-    },
-    {
-      icon: <AssessmentIcon sx={{ fontSize: 40 }} />,
-      title: 'Reportes y Analytics',
-      description: 'Análisis detallado del rendimiento de tus propiedades.',
-      features: ['Reportes mensuales', 'Análisis de rentabilidad', 'Tendencias del mercado'],
-      category: 'Propietarios',
-      premium: true,
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const benefits = [
-    {
-      title: 'Ahorro de Tiempo',
-      description: 'Reduce el tiempo de gestión en un 70%',
-    },
-    {
-      title: 'Mayor Rentabilidad',
-      description: 'Optimiza el rendimiento de tus inversiones',
-    },
-    {
-      title: 'Tranquilidad',
-      description: 'Gestión profesional y transparente',
-    },
-    {
-      title: 'Comunidad',
-      description: 'Acceso a una red de profesionales verificados',
-    },
-  ];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [categoriesRes, featuredRes, mostRequestedRes] = await Promise.all([
+        axios.get('/api/v1/services/categories/'),
+        axios.get('/api/v1/services/services/featured/'),
+        axios.get('/api/v1/services/services/most_requested/')
+      ]);
+
+      setCategories(categoriesRes.data);
+      setFeaturedServices(featuredRes.data);
+      setMostRequestedServices(mostRequestedRes.data);
+    } catch (error) {
+      console.error('Error loading services data:', error);
+      setError('Error al cargar los servicios. Por favor, intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadServicesByCategory = async (categorySlug: string) => {
+    try {
+      const response = await axios.get(`/api/v1/services/services/by_category/?category=${categorySlug}`);
+      setServices(response.data);
+      setSelectedCategory(categorySlug);
+    } catch (error) {
+      console.error('Error loading services by category:', error);
+    }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
+    setSelectedCategory(null);
+    setServices([]);
+  };
+
+  const handleServiceRequest = (service: Service) => {
+    setSelectedService(service);
+    setRequestFormData({
+      ...requestFormData,
+      service: service.id
+    });
+    setRequestDialogOpen(true);
+  };
+
+  const handleRequestSubmit = async () => {
+    if (!selectedService) return;
+
+    try {
+      setSubmittingRequest(true);
+      await axios.post('/api/v1/services/requests/', requestFormData);
+      setRequestSuccess(true);
+      
+      setTimeout(() => {
+        setRequestDialogOpen(false);
+        setRequestSuccess(false);
+        setRequestFormData({
+          service: '',
+          requester_name: '',
+          requester_email: '',
+          requester_phone: '',
+          message: '',
+          preferred_date: '',
+          budget_range: ''
+        });
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting service request:', error);
+      setError('Error al enviar la solicitud. Por favor, intenta de nuevo.');
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
+  const ServiceCard = ({ service }: { service: Service }) => (
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: `0 12px 24px ${alpha(service.category_color, 0.15)}`,
+        }
+      }}
+    >
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+        <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1}>
+            {service.is_featured && (
+              <Chip 
+                label="Destacado" 
+                size="small" 
+                icon={<Star />}
+                sx={{ 
+                  bgcolor: theme.palette.warning.light,
+                  color: theme.palette.warning.contrastText,
+                  fontWeight: 600
+                }} 
+              />
+            )}
+            {service.is_most_requested && (
+              <Chip 
+                label="Más Solicitado" 
+                size="small" 
+                icon={<TrendingUp />}
+                sx={{ 
+                  bgcolor: theme.palette.error.light,
+                  color: theme.palette.error.contrastText,
+                  fontWeight: 600
+                }} 
+              />
+            )}
+          </Box>
+          <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
+            {service.price_display}
+          </Typography>
+        </Box>
+        
+        <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+          {service.name}
+        </Typography>
+        
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
+          {service.short_description}
+        </Typography>
+
+        <Box display="flex" gap={1} mb={2} flexWrap="wrap">
+          <Chip 
+            label={service.category_name} 
+            size="small" 
+            sx={{ 
+              bgcolor: alpha(service.category_color, 0.1),
+              color: service.category_color
+            }} 
+          />
+          <Chip 
+            label={service.estimated_duration} 
+            size="small" 
+            variant="outlined"
+            icon={<Schedule />}
+          />
+        </Box>
+
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="caption" color="text.secondary">
+            {service.views_count} vistas • {service.requests_count} solicitudes
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: service.difficulty === 'easy' ? 'success.main' : 
+                     service.difficulty === 'medium' ? 'warning.main' : 
+                     service.difficulty === 'hard' ? 'error.main' : 'info.main',
+              fontWeight: 600
+            }}
+          >
+            {service.difficulty === 'easy' ? 'Fácil' :
+             service.difficulty === 'medium' ? 'Medio' :
+             service.difficulty === 'hard' ? 'Difícil' : 'Experto'}
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => handleServiceRequest(service)}
+          sx={{
+            mt: 'auto',
+            bgcolor: service.category_color,
+            '&:hover': {
+              bgcolor: alpha(service.category_color, 0.8),
+            }
+          }}
+        >
+          Solicitar Servicio
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <LandingNavbar />
-      
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       {/* Hero Section */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          pt: 12,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}20 0%, ${theme.palette.secondary.main}20 100%)`,
+          pt: 8,
           pb: 8,
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
         <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" textAlign="center" gutterBottom>
-            Nuestros Servicios
-          </Typography>
-          <Typography variant="h5" component="h2" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
-            Descubre cómo VeriHome puede transformar tu experiencia inmobiliaria con servicios 
-            profesionales y tecnología de vanguardia.
-          </Typography>
+          <Fade in timeout={1000}>
+            <Box textAlign="center">
+              <Typography 
+                variant="h2" 
+                component="h1" 
+                gutterBottom 
+                sx={{ 
+                  fontWeight: 700,
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 3
+                }}
+              >
+                Servicios Adicionales VeriHome
+              </Typography>
+              <Typography 
+                variant="h5" 
+                color="text.secondary" 
+                sx={{ 
+                  maxWidth: 800, 
+                  mx: 'auto',
+                  lineHeight: 1.6,
+                  fontWeight: 400
+                }}
+              >
+                Conectamos con los mejores profesionales y servicios especializados 
+                para todas tus necesidades inmobiliarias y legales.
+              </Typography>
+            </Box>
+          </Fade>
         </Container>
       </Box>
 
-      {/* Servicios */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-          Servicios Disponibles
-        </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
-          Explora nuestra gama completa de servicios diseñados para simplificar 
-          la gestión inmobiliaria en Colombia.
-        </Typography>
+      {error && (
+        <Alert severity="error" sx={{ m: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-        <Grid container spacing={4}>
-          {services.map((service, index) => (
-            <Grid item xs={12} md={6} lg={4} key={index}>
-              <Card sx={{ 
-                height: '100%',
-                position: 'relative',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-8px)',
-                  boxShadow: 6,
-                }
-              }}>
-                {service.premium && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 16,
-                      right: 16,
-                      zIndex: 1,
-                    }}
-                  >
-                    <Chip
-                      icon={<LockIcon />}
-                      label="Premium"
-                      color="primary"
-                      size="small"
-                    />
-                  </Box>
-                )}
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Avatar sx={{ 
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      mr: 2,
-                      width: 60,
-                      height: 60
-                    }}>
-                      {service.icon}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" component="h3" gutterBottom>
-                        {service.title}
-                      </Typography>
-                      <Chip 
-                        label={service.category} 
-                        size="small" 
-                        color="secondary"
-                      />
-                    </Box>
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {service.description}
-                  </Typography>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Tabs Navigation */}
+        <Paper sx={{ mb: 4 }}>
+          <Tabs 
+            value={selectedTab} 
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ px: 2 }}
+          >
+            <Tab label="Servicios Destacados" />
+            <Tab label="Más Solicitados" />
+            <Tab label="Por Categorías" />
+          </Tabs>
+        </Paper>
 
-                  <Box sx={{ mb: 3 }}>
-                    {service.features.map((feature, idx) => (
-                      <Typography key={idx} variant="body2" sx={{ mb: 0.5 }}>
-                        • {feature}
-                      </Typography>
-                    ))}
-                  </Box>
-
-                  {service.premium && (
-                    <Box sx={{ 
-                      bgcolor: 'grey.50', 
-                      p: 2, 
-                      borderRadius: 1,
-                      textAlign: 'center',
-                      mb: 2
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Disponible para usuarios registrados
-                      </Typography>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      {/* Beneficios */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-            Beneficios de Unirse a VeriHome
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            {benefits.map((benefit, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Box textAlign="center">
-                  <Typography variant="h4" component="div" color="primary.main" fontWeight="bold" gutterBottom>
-                    {benefit.title}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    {benefit.description}
-                  </Typography>
-                </Box>
+        {/* Tab Content */}
+        {selectedTab === 0 && (
+          <Grow in timeout={800}>
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
+                Servicios Destacados
+              </Typography>
+              <Grid container spacing={3}>
+                {featuredServices.map((service) => (
+                  <Grid item xs={12} sm={6} lg={4} key={service.id}>
+                    <ServiceCard service={service} />
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+            </Box>
+          </Grow>
+        )}
 
-      {/* CTA */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box textAlign="center">
-          <Typography variant="h4" component="h2" gutterBottom>
-            ¿Listo para Experimentar VeriHome?
-          </Typography>
-          <Typography variant="body1" paragraph sx={{ maxWidth: 600, mx: 'auto' }}>
-            Únete a nuestra comunidad inmobiliaria exclusiva y descubre cómo podemos 
-            transformar tu experiencia en el sector inmobiliario.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/register')}
-            >
-              Registrarse Gratis
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={() => navigate('/contact')}
-            >
-              Solicitar Demo
-            </Button>
-          </Box>
-        </Box>
+        {selectedTab === 1 && (
+          <Grow in timeout={800}>
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
+                Servicios Más Solicitados
+              </Typography>
+              <Grid container spacing={3}>
+                {mostRequestedServices.map((service) => (
+                  <Grid item xs={12} sm={6} lg={4} key={service.id}>
+                    <ServiceCard service={service} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Grow>
+        )}
+
+        {selectedTab === 2 && (
+          <Grow in timeout={800}>
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
+                Servicios por Categorías
+              </Typography>
+              
+              {/* Categories Grid */}
+              <Grid container spacing={3} sx={{ mb: 4 }}>
+                {categories.map((category) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={category.id}>
+                    <Card
+                      onClick={() => loadServicesByCategory(category.name.toLowerCase().replace(/\s+/g, '-'))}
+                      sx={{
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        border: selectedCategory === category.name.toLowerCase().replace(/\s+/g, '-') ? 2 : 1,
+                        borderColor: selectedCategory === category.name.toLowerCase().replace(/\s+/g, '-') 
+                          ? category.color 
+                          : 'divider',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: `0 8px 16px ${alpha(category.color, 0.2)}`,
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                        <Avatar
+                          sx={{
+                            bgcolor: alpha(category.color, 0.1),
+                            color: category.color,
+                            width: 60,
+                            height: 60,
+                            mx: 'auto',
+                            mb: 2
+                          }}
+                        >
+                          {iconMap[category.icon_name] || <Build />}
+                        </Avatar>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                          {category.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {category.description}
+                        </Typography>
+                        <Chip 
+                          label={`${category.services_count} servicios`}
+                          size="small"
+                          sx={{
+                            bgcolor: alpha(category.color, 0.1),
+                            color: category.color
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Services by Category */}
+              {services.length > 0 && (
+                <Box>
+                  <Divider sx={{ my: 4 }} />
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+                    Servicios Disponibles
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {services.map((service) => (
+                      <Grid item xs={12} sm={6} lg={4} key={service.id}>
+                        <ServiceCard service={service} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          </Grow>
+        )}
       </Container>
 
-      <LandingFooter />
+      {/* Request Service Dialog */}
+      <Dialog 
+        open={requestDialogOpen} 
+        onClose={() => setRequestDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            Solicitar Servicio: {selectedService?.name}
+            <IconButton onClick={() => setRequestDialogOpen(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        
+        {requestSuccess ? (
+          <DialogContent>
+            <Box textAlign="center" py={4}>
+              <CheckCircle sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                ¡Solicitud Enviada Exitosamente!
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Nos pondremos en contacto contigo pronto.
+              </Typography>
+            </Box>
+          </DialogContent>
+        ) : (
+          <>
+            <DialogContent>
+              <Stack spacing={3}>
+                <TextField
+                  fullWidth
+                  label="Nombre Completo"
+                  value={requestFormData.requester_name}
+                  onChange={(e) => setRequestFormData({...requestFormData, requester_name: e.target.value})}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={requestFormData.requester_email}
+                  onChange={(e) => setRequestFormData({...requestFormData, requester_email: e.target.value})}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Teléfono"
+                  value={requestFormData.requester_phone}
+                  onChange={(e) => setRequestFormData({...requestFormData, requester_phone: e.target.value})}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Describe tu necesidad"
+                  value={requestFormData.message}
+                  onChange={(e) => setRequestFormData({...requestFormData, message: e.target.value})}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Fecha Preferida"
+                  value={requestFormData.preferred_date}
+                  onChange={(e) => setRequestFormData({...requestFormData, preferred_date: e.target.value})}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  fullWidth
+                  label="Presupuesto Estimado (opcional)"
+                  value={requestFormData.budget_range}
+                  onChange={(e) => setRequestFormData({...requestFormData, budget_range: e.target.value})}
+                />
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setRequestDialogOpen(false)} disabled={submittingRequest}>
+                Cancelar
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleRequestSubmit}
+                disabled={submittingRequest || !requestFormData.requester_name || !requestFormData.requester_email || !requestFormData.message}
+              >
+                {submittingRequest ? <CircularProgress size={20} /> : 'Enviar Solicitud'}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 };
 
-export default ServicesOverviewPage; 
+export default ServicesOverviewPage;

@@ -121,6 +121,7 @@ class ContractAdmin(admin.ModelAdmin):
         'pdf_generated_at'
     ]
     raw_id_fields = ['primary_party', 'secondary_party', 'property', 'template']
+    filter_horizontal = ['tenant_documents']  # Interfaz mejorada para documentos
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
     
@@ -143,6 +144,10 @@ class ContractAdmin(admin.ModelAdmin):
         ('Información Financiera', {
             'fields': ('monthly_rent', 'security_deposit', 'late_fee'),
             'classes': ('collapse',)
+        }),
+        ('📄 Documentos del Inquilino', {
+            'fields': ('tenant_documents',),
+            'description': 'Documentos subidos durante el proceso de solicitud y asociados a este contrato'
         }),
         ('Estado y Seguimiento', {
             'fields': (

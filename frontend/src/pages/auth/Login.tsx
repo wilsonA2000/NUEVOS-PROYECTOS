@@ -359,9 +359,7 @@ export const Login: React.FC = () => {
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {getErrorIcon()}
-          <Typography variant="h6">
-            Error de Inicio de Sesión
-          </Typography>
+          Error de Inicio de Sesión
         </DialogTitle>
         
         <DialogContent>

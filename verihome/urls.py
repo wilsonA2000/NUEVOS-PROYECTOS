@@ -7,7 +7,6 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-from users.direct_register import DirectRegisterView
 from users.views import ResendVerificationEmailView
 from rest_framework_simplejwt.views import TokenRefreshView
 from core.views import index, ReactAppView
@@ -33,9 +32,9 @@ urlpatterns = [
     path('pagos/', include('payments.urls')),
     path('calificaciones/', include('ratings.urls')),
     path('matching/', include('matching.urls')),
+    path('solicitudes/', include('requests.urls')),
+    path('servicios/', include('services.urls')),
     
-    # Ruta de registro directo para pruebas
-    path('registro-directo/', DirectRegisterView.as_view(), name='direct_register'),
     
     # Ruta para reenviar correo de verificación
     path('reenviar-verificacion/', ResendVerificationEmailView.as_view(), name='account_email_verification_resend'),
@@ -49,6 +48,8 @@ urlpatterns = [
         path('payments/', include('payments.api_urls')),
         path('ratings/', include('ratings.api_urls')),
         path('matching/', include('matching.urls', namespace='api-matching')),
+        path('requests/', include('requests.urls', namespace='api-requests')),
+        path('services/', include('services.urls', namespace='api-services')),
         path('core/', include('core.api_urls')),
         path('dashboard/', include('dashboard.urls')),
     ])),

@@ -76,6 +76,7 @@ import { LandlordContractService } from '../../services/landlordContractService'
 import { propertyService } from '../../services/propertyService';
 import { useAuth } from '../../hooks/useAuth';
 import { useProperties } from '../../hooks/useProperties';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
 
 // Types del nuevo sistema
 import {
@@ -90,6 +91,10 @@ import {
 // Utilidades
 import { format, addMonths, differenceInMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+// Componentes biométricos y documentos
+import CodeudorBiometricFlow from './CodeudorBiometricFlow';
+// REMOVIDO: GuaranteeDocumentUpload (ahora en TenantDocumentUpload)
 
 // Templates de contratos profesionales
 const PROFESSIONAL_CONTRACT_TEMPLATES = {
@@ -396,11 +401,47 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     property_furnished: false
   });
 
+  // Guarantee system state - 3 options
+  const [guaranteeData, setGuaranteeData] = useState({
+    guarantee_type: 'none' as 'none' | 'codeudor_salario' | 'codeudor_finca_raiz',
+    // Codeudor personal data
+    codeudor_full_name: '',
+    codeudor_document_type: 'CC' as 'CC' | 'CE' | 'TI' | 'NIT',
+    codeudor_document_number: '',
+    codeudor_phone: '',
+    codeudor_email: '',
+    codeudor_address: '',
+    codeudor_city: '',
+    codeudor_employer: '',
+    codeudor_position: '',
+    codeudor_monthly_income: 0,
+    codeudor_work_phone: '',
+    // Garantía real inmobiliaria fields
+    property_matricula: '',
+    property_address_guarantee: '',
+    property_predial_number: '',
+    property_catastral_number: '',
+    property_linderos: '',
+    property_area_guarantee: 0,
+    property_department_guarantee: '',
+    property_city_guarantee: '',
+    // Document requirement flags
+    requires_biometric_codeudor: false
+  });
+
+  // Codeudor biometric flow states
+  const [codeudorBiometricOpen, setCodeudorBiometricOpen] = useState(false);
+  const [codeudorBiometricData, setCodeudorBiometricData] = useState<any>(null);
+  const [requiresCodeudorBiometric, setRequiresCodeudorBiometric] = useState(false);
+
+  // REMOVIDO: guaranteeDocuments (ahora manejado por TenantDocumentUpload)
+
   const steps = [
     'Información del Arrendador',
     'Detalles de la Propiedad', 
     'Condiciones Económicas',
     'Términos del Contrato',
+    'Garantías del Contrato',
     'Cláusulas Especiales',
     'Revisión y Creación'
   ];
@@ -546,53 +587,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     }
   };
 
-  const validateCurrentStep = (): boolean => {
-    const errors: string[] = [];
-
-    switch (activeStep) {
-      case 0: // Información del Arrendador
-        if (!landlordData.full_name) errors.push('El nombre completo es requerido');
-        if (!landlordData.document_number) errors.push('El número de documento es requerido');
-        if (!landlordData.phone) errors.push('El teléfono es requerido');
-        if (!landlordData.email) errors.push('El email es requerido');
-        if (!landlordData.address) errors.push('La dirección es requerida');
-        if (!landlordData.city) errors.push('La ciudad es requerida');
-        break;
-
-      case 1: // Detalles de la Propiedad
-        if (!propertyData.property_id) errors.push('Debe seleccionar una propiedad');
-        if (!propertyData.property_address) errors.push('La dirección de la propiedad es requerida');
-        if (!propertyData.property_area || propertyData.property_area <= 0) errors.push('El área debe ser mayor a 0');
-        if (!contractData.property_type) errors.push('El tipo de propiedad es requerido');
-        break;
-
-      case 2: // Condiciones Económicas
-        if (!contractData.monthly_rent || contractData.monthly_rent <= 0) errors.push('El canon mensual debe ser mayor a 0');
-        if (!contractData.security_deposit || contractData.security_deposit < 0) errors.push('El depósito de garantía debe ser mayor o igual a 0');
-        if (!contractData.contract_duration_months || contractData.contract_duration_months <= 0) errors.push('La duración debe ser mayor a 0');
-        break;
-
-      case 3: // Términos del Contrato
-        if (!contractData.payment_day || contractData.payment_day < 1 || contractData.payment_day > 31) {
-          errors.push('El día de pago debe estar entre 1 y 31');
-        }
-        break;
-
-      case 4: // Cláusulas Especiales - opcional
-        break;
-
-      case 5: // Revisión final
-        // Validar todo
-        if (!landlordData.full_name || !landlordData.document_number || !propertyData.property_address || 
-            !contractData.monthly_rent || contractData.monthly_rent <= 0) {
-          errors.push('Hay campos requeridos sin completar en pasos anteriores');
-        }
-        break;
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
 
   const handleNext = () => {
     if (validateCurrentStep()) {
@@ -613,15 +607,20 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
       let result: LandlordControlledContractData;
 
       if (isEdit && contractId) {
-        // Para editar, enviar datos completos
+        // Para editar, enviar datos completos con garantías
         const completeContractData: Partial<LandlordControlledContractData> = {
           ...contractData,
           ...propertyData,
           landlord_data: landlordData,
+          // Incluir datos de garantías en la edición
+          contract_terms: {
+            ...contractData.contract_terms,
+            guarantee_data: guaranteeData
+          }
         };
         result = await LandlordContractService.updateContractDraft(contractId, completeContractData);
       } else {
-        // Para crear, usar el payload simplificado
+        // Para crear, usar el payload mejorado con garantías
         const createPayload: CreateContractPayload = {
           property_id: propertyData.property_id || '',
           contract_template: contractData.contract_template || 'rental_urban',
@@ -632,14 +631,23 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
             utilities_included: contractData.utilities_included || false,
             pets_allowed: contractData.pets_allowed || false,
             smoking_allowed: contractData.smoking_allowed || false,
+            // Incluir información de garantías
+            guarantee_type: guaranteeData.guarantee_type,
+            guarantee_data: guaranteeData,
+            requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor
           },
+          // Incluir datos adicionales
+          landlord_data: landlordData,
+          property_data: propertyData,
+          special_clauses: contractData.special_clauses || [],
           // Incluir el contenido del contrato editado si está disponible
           contract_content: contractDraftContent || generateContractPreview()
         };
         
-        console.log('📝 FORM DATA DEBUG:', {
+        console.log('📝 FORM DATA DEBUG con garantías:', {
           propertyData,
           contractData,
+          guaranteeData,
           createPayload,
           user
         });
@@ -710,6 +718,40 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
       navigate('/app/contracts/landlord');
     }
   };
+
+  // Codeudor biometric flow handlers
+  const handleCodeudorBiometricSuccess = (biometricData: any) => {
+    console.log('✅ Codeudor biometric authentication completed:', biometricData);
+    setCodeudorBiometricData(biometricData);
+    setCodeudorBiometricOpen(false);
+    
+    // Update guarantee data with biometric completion
+    setGuaranteeData(prev => ({
+      ...prev,
+      biometric_completed: true,
+      biometric_data: biometricData
+    }));
+    
+    // Show success message
+    setValidationErrors(['✅ Verificación biométrica del codeudor completada exitosamente']);
+    
+    // Auto-clear success message after 3 seconds
+    setTimeout(() => {
+      setValidationErrors([]);
+    }, 3000);
+  };
+
+  const handleCodeudorBiometricError = (error: string) => {
+    console.error('❌ Codeudor biometric authentication error:', error);
+    setCodeudorBiometricOpen(false);
+    setValidationErrors([`Error en verificación biométrica del codeudor: ${error}`]);
+  };
+
+  const handleCodeudorBiometricClose = () => {
+    setCodeudorBiometricOpen(false);
+  };
+
+  // REMOVIDO: handleGuaranteeDocumentsChange (documentos manejados por arrendatario)
 
   const generateContractPreview = () => {
     const currentDate = new Date().toLocaleDateString('es-CO', {
@@ -851,16 +893,134 @@ _____________________________
     return contractContent;
   };
 
-  const handleContractPreview = () => {
+  const handleContractPreview = async () => {
     if (!validateCurrentStep()) {
       setValidationErrors(['Complete todos los campos requeridos antes de ver la previsualización del contrato']);
       return;
     }
     
-    const content = generateContractPreview();
-    setContractDraftContent(content);
-    setContractHasBeenPreviewed(true);
-    setContractPreviewMode(true);
+    // Si ya tenemos un contractId, mostrar la vista previa profesional
+    if (contractId) {
+      viewContractPDF(contractId);
+      setContractHasBeenPreviewed(true);
+      return;
+    }
+    
+    // Si no hay contractId, necesitamos crear/guardar primero el contrato
+    try {
+      setLoading(true);
+      
+      // Preparar los datos para crear el contrato con TODOS los campos incluyendo codeudor
+      const createPayload: CreateContractPayload = {
+        property_id: propertyData.property_id || '',
+        contract_template: contractData.contract_template || 'rental_urban',
+
+        // Información de la propiedad
+        property_data: {
+          property_address: propertyData.property_address || '',
+          property_area: propertyData.property_area || 0,
+          property_rooms: propertyData.property_rooms || 0,
+          property_bathrooms: propertyData.property_bathrooms || 0,
+          property_parking_spaces: propertyData.property_parking_spaces || 0,
+          property_furnished: propertyData.property_furnished || false,
+          property_stratum: propertyData.property_stratum || 0,
+          property_type: contractData.property_type || 'house',
+        },
+
+        // Información del arrendador
+        landlord_data: {
+          full_name: landlordData.full_name || '',
+          document_type: landlordData.document_type || '',
+          document_number: landlordData.document_number || '',
+          email: landlordData.email || '',
+          phone: landlordData.phone || '',
+        },
+
+        // Términos básicos del contrato
+        basic_terms: {
+          monthly_rent: contractData.monthly_rent || 0,
+          security_deposit: contractData.security_deposit || 0,
+          duration_months: contractData.contract_duration_months || 12,
+          payment_day: contractData.payment_day || 5,
+          rent_increase_type: contractData.rent_increase_type || 'ipc',
+          utilities_included: contractData.utilities_included || false,
+          internet_included: contractData.internet_included || false,
+          pets_allowed: contractData.pets_allowed || false,
+          smoking_allowed: contractData.smoking_allowed || false,
+          guests_policy: contractData.guests_policy || 'limited',
+          max_occupants: contractData.max_occupants || 4,
+          maintenance_responsibility: contractData.maintenance_responsibility || 'tenant',
+        },
+
+        // Información de garantías y codeudor
+        guarantee_terms: {
+          guarantor_required: contractData.guarantor_required || false,
+          guarantor_type: contractData.guarantor_type || 'personal',
+          guarantee_type: guaranteeData.guarantee_type || 'none',
+
+          // Datos del codeudor (si aplica)
+          codeudor_data: guaranteeData.guarantee_type !== 'none' ? {
+            codeudor_full_name: guaranteeData.codeudor_full_name || '',
+            codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
+            codeudor_document_number: guaranteeData.codeudor_document_number || '',
+            codeudor_phone: guaranteeData.codeudor_phone || '',
+            codeudor_email: guaranteeData.codeudor_email || '',
+            codeudor_address: guaranteeData.codeudor_address || '',
+            codeudor_city: guaranteeData.codeudor_city || '',
+
+            // Datos adicionales para codeudor con salario
+            ...(guaranteeData.guarantee_type === 'codeudor_salario' && {
+              codeudor_employer: guaranteeData.codeudor_employer || '',
+              codeudor_position: guaranteeData.codeudor_position || '',
+              codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
+              codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
+            }),
+
+            // Datos adicionales para codeudor con finca raíz
+            ...(guaranteeData.guarantee_type === 'codeudor_finca_raiz' && {
+              property_matricula: guaranteeData.property_matricula || '',
+              property_address_guarantee: guaranteeData.property_address_guarantee || '',
+              property_predial_number: guaranteeData.property_predial_number || '',
+            }),
+          } : undefined,
+        },
+
+        // Cláusulas especiales
+        special_clauses: contractData.special_clauses || [],
+
+        // Contenido del contrato generado
+        contract_content: generateContractPreview()
+      };
+      
+      // Crear el contrato y obtener el ID
+      const result = await LandlordContractService.createContractDraft(createPayload);
+      
+      if (result?.id) {
+        // Abrir la vista previa profesional con el nuevo ID
+        viewContractPDF(result.id);
+        setContractHasBeenPreviewed(true);
+        
+        // Mostrar mensaje de éxito
+        setTimeout(() => {
+          alert('✅ Contrato creado exitosamente. La vista previa se ha abierto en una nueva pestaña.');
+        }, 500);
+      } else {
+        // Fallback: generar contenido básico si no se puede crear el contrato
+        const content = generateContractPreview();
+        setContractDraftContent(content);
+        setContractHasBeenPreviewed(true);
+        setContractPreviewMode(true);
+      }
+    } catch (error) {
+      console.error('Error al generar vista previa:', error);
+      // Fallback: mostrar contenido básico
+      const content = generateContractPreview();
+      setContractDraftContent(content);
+      setContractHasBeenPreviewed(true);
+      setContractPreviewMode(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveContractChanges = () => {
@@ -881,6 +1041,101 @@ _____________________________
     const recommendedMonths = config?.deposit_months[0] || 1;
     
     return contractData.monthly_rent * recommendedMonths;
+  };
+
+  const validateCurrentStep = (): boolean => {
+    setValidationErrors([]);
+    const errors: string[] = [];
+
+    switch (activeStep) {
+      case 0: // Información del Arrendador
+        if (!landlordData.full_name.trim()) errors.push('El nombre completo es requerido');
+        if (!landlordData.document_number.trim()) errors.push('El número de documento es requerido');
+        if (!landlordData.phone.trim()) errors.push('El teléfono es requerido');
+        if (!landlordData.email.trim()) errors.push('El email es requerido');
+        if (!landlordData.address.trim()) errors.push('La dirección es requerida');
+        if (!landlordData.city.trim()) errors.push('La ciudad es requerida');
+        break;
+
+      case 1: // Detalles de la Propiedad
+        if (!propertyData.property_id) errors.push('Debe seleccionar una propiedad');
+        if (!propertyData.property_address.trim()) errors.push('La dirección de la propiedad es requerida');
+        break;
+
+      case 2: // Condiciones Económicas
+        if (!contractData.monthly_rent || contractData.monthly_rent <= 0) {
+          errors.push('El canon mensual debe ser mayor a $0');
+        }
+        if (!contractData.security_deposit || contractData.security_deposit < 0) {
+          errors.push('El depósito de garantía no puede ser negativo');
+        }
+        break;
+
+      case 3: // Términos del Contrato
+        if (!contractData.contract_duration_months || contractData.contract_duration_months < 1) {
+          errors.push('La duración del contrato debe ser de al menos 1 mes');
+        }
+        break;
+
+      case 4: // Garantías del Contrato
+        if (guaranteeData.guarantee_type !== 'none') {
+          // Validar campos comunes del codeudor
+          if (!guaranteeData.codeudor_full_name.trim()) errors.push('El nombre del codeudor es requerido');
+          if (!guaranteeData.codeudor_document_number.trim()) errors.push('El número de documento del codeudor es requerido');
+          if (!guaranteeData.codeudor_phone.trim()) errors.push('El teléfono del codeudor es requerido');
+          if (!guaranteeData.codeudor_email.trim()) errors.push('El email del codeudor es requerido');
+          if (!guaranteeData.codeudor_address.trim()) errors.push('La dirección del codeudor es requerida');
+          if (!guaranteeData.codeudor_city.trim()) errors.push('La ciudad del codeudor es requerida');
+
+          // Validaciones específicas para codeudor con salario
+          if (guaranteeData.guarantee_type === 'codeudor_salario') {
+            if (!guaranteeData.codeudor_employer.trim()) errors.push('La empresa del codeudor es requerida');
+            if (!guaranteeData.codeudor_position.trim()) errors.push('El cargo del codeudor es requerido');
+            if (!guaranteeData.codeudor_monthly_income || guaranteeData.codeudor_monthly_income <= 0) {
+              errors.push('Los ingresos mensuales del codeudor deben ser mayores a $0');
+            }
+          }
+
+          // Validaciones específicas para codeudor con finca raíz
+          if (guaranteeData.guarantee_type === 'codeudor_finca_raiz') {
+            if (!guaranteeData.property_matricula.trim()) errors.push('La matrícula inmobiliaria es requerida');
+            if (!guaranteeData.property_address_guarantee.trim()) errors.push('La dirección del inmueble de garantía es requerida');
+            if (!guaranteeData.property_predial_number.trim()) errors.push('El número predial es requerido');
+            if (!guaranteeData.property_catastral_number.trim()) errors.push('El número catastral es requerido');
+            if (!guaranteeData.property_linderos.trim()) errors.push('Los linderos del inmueble son requeridos');
+            if (!guaranteeData.property_department_guarantee.trim()) errors.push('El departamento es requerido');
+            if (!guaranteeData.property_city_guarantee.trim()) errors.push('La ciudad del inmueble de garantía es requerida');
+            if (!guaranteeData.property_area_guarantee || guaranteeData.property_area_guarantee <= 0) {
+              errors.push('El área del inmueble de garantía debe ser mayor a 0 m²');
+            }
+          }
+
+          // NOTA: Validación de documentos de garantía removida
+          // Los documentos ahora son subidos por el arrendatario en la etapa 2 del workflow
+          if (guaranteeData.guarantee_type !== 'none') {
+            console.log('ℹ️ Documentos de garantía serán validados en el perfil del arrendatario');
+          }
+        }
+        break;
+
+      case 5: // Cláusulas Especiales
+        // Las cláusulas especiales son opcionales, no hay validaciones requeridas
+        break;
+
+      case 6: // Revisión y Creación
+        // Validación final de todos los datos
+        if (!landlordData.full_name.trim() || !contractData.monthly_rent || !propertyData.property_id) {
+          errors.push('Revise que todos los campos requeridos estén completos');
+        }
+        break;
+    }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return false;
+    }
+
+    return true;
   };
 
   const renderStepContent = (step: number) => {
@@ -1844,7 +2099,336 @@ _____________________________
           </Grid>
         );
 
-      case 4: // Cláusulas Especiales
+      case 4: // Garantías del Contrato
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom color="primary">
+                <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Garantías del Contrato
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Selecciona el tipo de garantía requerida para este contrato de arrendamiento
+              </Typography>
+            </Grid>
+
+            {/* Guarantee Type Selection */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Garantía</InputLabel>
+                <Select
+                  value={guaranteeData.guarantee_type}
+                  onChange={(e) => {
+                    const newType = e.target.value as 'none' | 'codeudor_salario' | 'codeudor_finca_raiz';
+                    const requiresBiometric = newType !== 'none';
+                    
+                    setGuaranteeData(prev => ({ 
+                      ...prev, 
+                      guarantee_type: newType,
+                      requires_biometric_codeudor: requiresBiometric
+                    }));
+                    
+                    // Update codeudor biometric requirement state
+                    setRequiresCodeudorBiometric(requiresBiometric);
+                    
+                    console.log(`🔐 Guarantee type changed to: ${newType}, requires biometric: ${requiresBiometric}`);
+                  }}
+                  label="Tipo de Garantía"
+                >
+                  <MenuItem value="none">Sin Garantía</MenuItem>
+                  <MenuItem value="codeudor_salario">Codeudor con Salario (Garantía Personal)</MenuItem>
+                  <MenuItem value="codeudor_finca_raiz">Codeudor con Finca Raíz (Garantía Real)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Codeudor Fields - Common for both types */}
+            {guaranteeData.guarantee_type !== 'none' && (
+              <>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Información del Codeudor
+                  </Typography>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      🔐 El codeudor deberá completar proceso biométrico durante la firma del contrato
+                    </Typography>
+                  </Alert>
+                  
+                  {/* Biometric Process Button */}
+                  {guaranteeData.codeudor_full_name && guaranteeData.codeudor_document_number && (
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<SecurityIcon />}
+                        onClick={() => setCodeudorBiometricOpen(true)}
+                        disabled={!requiresCodeudorBiometric}
+                        color="secondary"
+                      >
+                        Iniciar Verificación Biométrica del Codeudor
+                      </Button>
+                      {codeudorBiometricData && (
+                        <Chip
+                          icon={<CheckCircle />}
+                          label="Verificación Biométrica Completada"
+                          color="success"
+                          size="small"
+                          sx={{ ml: 2 }}
+                        />
+                      )}
+                    </Box>
+                  )}
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Nombre Completo del Codeudor *"
+                    value={guaranteeData.codeudor_full_name}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_full_name: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo de Documento</InputLabel>
+                    <Select
+                      value={guaranteeData.codeudor_document_type}
+                      onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_document_type: e.target.value as 'CC' | 'CE' | 'TI' | 'NIT' }))}
+                      label="Tipo de Documento"
+                    >
+                      <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                      <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                      <MenuItem value="TI">Tarjeta de Identidad</MenuItem>
+                      <MenuItem value="NIT">NIT</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="Número de Documento *"
+                    value={guaranteeData.codeudor_document_number}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_document_number: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono del Codeudor *"
+                    value={guaranteeData.codeudor_phone}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_phone: e.target.value }))}
+                    placeholder="+57 300 123 4567"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email del Codeudor *"
+                    type="email"
+                    value={guaranteeData.codeudor_email}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_email: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Dirección del Codeudor *"
+                    value={guaranteeData.codeudor_address}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_address: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ciudad *"
+                    value={guaranteeData.codeudor_city}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_city: e.target.value }))}
+                  />
+                </Grid>
+              </>
+            )}
+
+            {/* Codeudor Salario - Additional Fields */}
+            {guaranteeData.guarantee_type === 'codeudor_salario' && (
+              <>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Información Laboral
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Empresa donde Trabaja *"
+                    value={guaranteeData.codeudor_employer}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_employer: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Cargo/Posición *"
+                    value={guaranteeData.codeudor_position}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_position: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ingresos Mensuales *"
+                    type="number"
+                    value={guaranteeData.codeudor_monthly_income === 0 ? '' : guaranteeData.codeudor_monthly_income}
+                    onChange={(e) => setGuaranteeData(prev => ({ 
+                      ...prev, 
+                      codeudor_monthly_income: e.target.value === '' ? 0 : Number(e.target.value) 
+                    }))}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono de la Empresa"
+                    value={guaranteeData.codeudor_work_phone}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, codeudor_work_phone: e.target.value }))}
+                  />
+                </Grid>
+              </>
+            )}
+
+            {/* Codeudor Finca Raíz - Additional Fields */}
+            {guaranteeData.guarantee_type === 'codeudor_finca_raiz' && (
+              <>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Información del Inmueble de Garantía
+                  </Typography>
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      📋 Se requerirá certificado de libertad y tradición del inmueble
+                    </Typography>
+                  </Alert>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Matrícula Inmobiliaria *"
+                    value={guaranteeData.property_matricula}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_matricula: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Área del Inmueble (m²) *"
+                    type="number"
+                    value={guaranteeData.property_area_guarantee === 0 ? '' : guaranteeData.property_area_guarantee}
+                    onChange={(e) => setGuaranteeData(prev => ({ 
+                      ...prev, 
+                      property_area_guarantee: e.target.value === '' ? 0 : Number(e.target.value) 
+                    }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Dirección Completa del Inmueble *"
+                    value={guaranteeData.property_address_guarantee}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_address_guarantee: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Número Predial *"
+                    value={guaranteeData.property_predial_number}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_predial_number: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Número Catastral *"
+                    value={guaranteeData.property_catastral_number}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_catastral_number: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Departamento *"
+                    value={guaranteeData.property_department_guarantee}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_department_guarantee: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ciudad *"
+                    value={guaranteeData.property_city_guarantee}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_city_guarantee: e.target.value }))}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Linderos *"
+                    multiline
+                    rows={3}
+                    value={guaranteeData.property_linderos}
+                    onChange={(e) => setGuaranteeData(prev => ({ ...prev, property_linderos: e.target.value }))}
+                    helperText="Descripción detallada de los linderos del inmueble"
+                    placeholder="Por el Norte con..., por el Sur con..., por el Oriente con..., por el Occidente con..."
+                  />
+                </Grid>
+              </>
+            )}
+
+            {/* Nota: Los documentos de garantía ahora se suben en el perfil del arrendatario */}
+
+            {/* Summary */}
+            {guaranteeData.guarantee_type !== 'none' && (
+              <Grid item xs={12}>
+                <Alert severity="success" sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    ✅ Garantía Configurada
+                  </Typography>
+                  <Typography variant="body2">
+                    Tipo: {guaranteeData.guarantee_type === 'codeudor_salario' ? 'Codeudor con Salario' : 'Codeudor con Finca Raíz'}
+                    <br />
+                    Codeudor: {guaranteeData.codeudor_full_name} ({guaranteeData.codeudor_document_type} {guaranteeData.codeudor_document_number})
+                    <br />
+                    Documentos: {guaranteeData.documents_uploaded || 0} de {guaranteeData.documents_total || 0} subidos
+                    <br />
+                    El codeudor deberá completar el proceso biométrico al momento de la firma del contrato.
+                  </Typography>
+                </Alert>
+              </Grid>
+            )}
+          </Grid>
+        );
+
+      case 5: // Cláusulas Especiales
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -1909,7 +2493,7 @@ _____________________________
           </Grid>
         );
 
-      case 5: // Revisión y Creación
+      case 6: // Revisión y Creación
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -2120,18 +2704,6 @@ _____________________________
                 <StepContent>
                   {renderStepContent(index)}
                   <Box sx={{ mb: 2, mt: 4 }}>
-                    {index === steps.length - 1 && (
-                      <Button
-                        variant="outlined"
-                        onClick={handleContractPreview}
-                        startIcon={<VisibilityIcon />}
-                        sx={{ mr: 1 }}
-                        size="large"
-                        color={contractHasBeenPreviewed ? "success" : "primary"}
-                      >
-                        {contractHasBeenPreviewed ? '✅ Ver/Editar Borrador' : 'Ver Borrador del Contrato'}
-                      </Button>
-                    )}
                     <LoadingButton
                       variant="contained"
                       onClick={index === steps.length - 1 ? handleSubmit : handleNext}
@@ -2139,7 +2711,7 @@ _____________________________
                       sx={{ mr: 1 }}
                       size="large"
                     >
-                      {index === steps.length - 1 ? 'Crear Contrato' : 'Continuar'}
+                      {index === steps.length - 1 ? 'Crear Borrador' : 'Continuar'}
                     </LoadingButton>
                     <Button
                       disabled={index === 0}
@@ -2312,6 +2884,25 @@ _____________________________
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Codeudor Biometric Flow Dialog */}
+      {requiresCodeudorBiometric && guaranteeData.guarantee_type !== 'none' && (
+        <CodeudorBiometricFlow
+          open={codeudorBiometricOpen}
+          onClose={handleCodeudorBiometricClose}
+          contractId={contractId || ''}
+          codeudorData={{
+            full_name: guaranteeData.codeudor_full_name,
+            document_type: guaranteeData.codeudor_document_type,
+            document_number: guaranteeData.codeudor_document_number,
+            email: guaranteeData.codeudor_email,
+            phone: guaranteeData.codeudor_phone,
+            guarantee_type: guaranteeData.guarantee_type
+          }}
+          onSuccess={handleCodeudorBiometricSuccess}
+          onError={handleCodeudorBiometricError}
+        />
+      )}
     </Box>
   );
 };

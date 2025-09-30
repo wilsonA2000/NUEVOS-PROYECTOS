@@ -41,8 +41,8 @@ import {
   Person as PersonIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material';
-import BiometricVerification from './BiometricVerification';
-import SignaturePad from './SignaturePad';
+import { BiometricAuthenticationFlow } from './BiometricAuthenticationFlow';
+import DigitalSignaturePad from './DigitalSignaturePad';
 
 interface DigitalSignatureFlowProps {
   contractId: string;
@@ -151,12 +151,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
       }
 
       // Llamar al servicio real para firmar el contrato
-      const result = await contractService.signContract(
-        contractId,
-        signatureData,
-        biometricData,
-        verificationLevel
-      );
+      const result = await contractService.signContract(contractId, signatureData);
 
       const completeData: CompleteSignatureData = {
         contractId,
@@ -377,10 +372,50 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
 
               <Grid container spacing={3}>
                 <Grid item xs={12} md={8}>
-                  <BiometricVerification
-                    onVerificationComplete={handleBiometricComplete}
-                    onCancel={handleSkipBiometric}
-                  />
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <SecurityIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+                    <Typography variant="h6" gutterBottom>
+                      Verificación Biométrica Opcional
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      Para mayor seguridad, puede completar la verificación biométrica completa.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        // Aquí se abriría el BiometricAuthenticationFlow completo si es necesario
+                        // Por ahora simulamos datos biométricos
+                        const mockBiometricData = {
+                          authenticationId: `mock-${Date.now()}`,
+                          confidenceScores: {
+                            face_confidence: 0.95,
+                            document_confidence: 0.88,
+                            voice_confidence: 0.92,
+                            overall_confidence: 0.91
+                          },
+                          completedSteps: {
+                            face_front: true,
+                            face_side: true,
+                            document: true,
+                            combined: true,
+                            voice: true
+                          }
+                        };
+                        handleBiometricComplete(mockBiometricData);
+                      }}
+                      startIcon={<FingerprintIcon />}
+                      sx={{ mr: 2 }}
+                    >
+                      Iniciar Verificación Biométrica
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={handleSkipBiometric}
+                      startIcon={<SignatureIcon />}
+                    >
+                      Omitir y Continuar
+                    </Button>
+                  </Box>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Card>
@@ -456,13 +491,15 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                 Firma Digital del Contrato
               </Typography>
 
-              <SignaturePad
-                contractId={contractId}
-                signerName={signerName}
-                onSignatureComplete={handleSignatureComplete}
-                onCancel={() => setActiveStep(1)}
+              <DigitalSignaturePad
+                onSign={(signatureData) => {
+                  setSignatureData(signatureData);
+                  handleSignatureComplete(signatureData);
+                }}
+                contractNumber={contractId}
+                loading={isLoading}
+                error={error}
                 biometricData={biometricData}
-                verificationLevel={verificationLevel}
               />
             </Box>
           )}

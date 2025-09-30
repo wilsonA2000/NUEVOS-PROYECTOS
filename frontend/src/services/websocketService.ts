@@ -33,15 +33,28 @@ class WebSocketService {
   private reconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private pingIntervals: Map<string, NodeJS.Timeout> = new Map();
   
-  private readonly BASE_WS_URL = 'ws://localhost:8000/ws';
-  private readonly RECONNECT_DELAY = 3000;
-  private readonly MAX_RECONNECT_ATTEMPTS = 5;
-  private readonly PING_INTERVAL = 30000; // 30 seconds
+  private readonly BASE_WS_URL = this.getWebSocketBaseUrl();
+  private readonly RECONNECT_DELAY = 15000; // Increased to 15 seconds
+  private readonly MAX_RECONNECT_ATTEMPTS = 2; // Reduced to 2 attempts
+  private readonly PING_INTERVAL = 60000; // Increased to 60 seconds
 
   constructor() {
     // Listen for online/offline events
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
+  }
+
+  /**
+   * Connect to a WebSocket endpoint with automatic authentication - DISABLED
+   */
+  async connectAuthenticated(endpoint: string): Promise<void> {
+    console.log(`WebSocket connection disabled for endpoint: ${endpoint}`);
+    return Promise.resolve();
+    const token = this.getAuthToken();
+    if (!token) {
+      throw new Error('User not authenticated');
+    }
+    return this.connect(endpoint, token);
   }
 
   /**
@@ -57,6 +70,13 @@ class WebSocketService {
         }
       }
 
+      // Get authentication token
+      const authToken = token || this.getAuthToken();
+      if (!authToken) {
+        reject(new Error('No authentication token available'));
+        return;
+      }
+
       // Update connection status
       this.updateConnectionStatus(endpoint, {
         connected: false,
@@ -64,8 +84,10 @@ class WebSocketService {
         reconnectAttempts: this.getConnectionStatus(endpoint).reconnectAttempts,
       });
 
+      // Build WebSocket URL with authentication token
       const wsUrl = `${this.BASE_WS_URL}/${endpoint}/`;
-      const ws = new WebSocket(wsUrl);
+      const authenticatedUrl = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${authToken}`;
+      const ws = new WebSocket(authenticatedUrl);
 
       ws.onopen = () => {
         console.log(`WebSocket connected to ${endpoint}`);
@@ -89,7 +111,7 @@ class WebSocketService {
       };
 
       ws.onclose = (event) => {
-        console.log(`WebSocket disconnected from ${endpoint}:`, event.code, event.reason);
+        // DEV: Reduced logging - console.log(`WebSocket disconnected from ${endpoint}:`, event.code, event.reason);
         this.handleDisconnection(endpoint, event.code);
       };
 
@@ -207,6 +229,38 @@ class WebSocketService {
 
   // Private methods
 
+  /**
+   * Get WebSocket base URL based on environment
+   */
+  private getWebSocketBaseUrl(): string {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.hostname;
+    const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
+    
+    if (process.env.NODE_ENV === 'development') {
+      return `${protocol}//${host}:${port}/ws`;
+    } else {
+      return `${protocol}//${host}${port ? `:${port}` : ''}/ws`;
+    }
+  }
+
+  /**
+   * Get authentication token from localStorage
+   */
+  private getAuthToken(): string | null {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.warn('No authentication token found in localStorage');
+        return null;
+      }
+      return token;
+    } catch (error) {
+      console.error('Error retrieving auth token:', error);
+      return null;
+    }
+  }
+
   private handleMessage(endpoint: string, data: string): void {
     try {
       const message: WebSocketMessage = JSON.parse(data);
@@ -286,7 +340,7 @@ class WebSocketService {
 
     const reconnectDelay = this.RECONNECT_DELAY * Math.pow(2, status.reconnectAttempts);
     
-    console.log(`Attempting to reconnect to ${endpoint} in ${reconnectDelay}ms (attempt ${status.reconnectAttempts + 1})`);
+    // DEV: Reduced logging - console.log(`Attempting to reconnect to ${endpoint} in ${reconnectDelay}ms (attempt ${status.reconnectAttempts + 1})`);
     
     const timeout = setTimeout(async () => {
       this.updateConnectionStatus(endpoint, {
@@ -295,7 +349,9 @@ class WebSocketService {
       });
 
       try {
-        await this.connect(endpoint);
+        // Get fresh token for reconnection
+        const freshToken = this.getAuthToken();
+        await this.connect(endpoint, freshToken || undefined);
         toast.success('Connection restored');
       } catch (error) {
         console.error(`Reconnection failed for ${endpoint}:`, error);
@@ -333,13 +389,18 @@ class WebSocketService {
   private handleOnline(): void {
     console.log('Network connection restored');
     // Attempt to reconnect all disconnected endpoints
-    this.connectionStatus.forEach((status, endpoint) => {
-      if (!status.connected && !status.connecting) {
-        this.connect(endpoint).catch(error => {
-          console.error(`Failed to reconnect ${endpoint} after going online:`, error);
-        });
-      }
-    });
+    const freshToken = this.getAuthToken();
+    if (freshToken) {
+      this.connectionStatus.forEach((status, endpoint) => {
+        if (!status.connected && !status.connecting) {
+          this.connect(endpoint, freshToken).catch(error => {
+            console.error(`Failed to reconnect ${endpoint} after going online:`, error);
+          });
+        }
+      });
+    } else {
+      console.warn('Cannot reconnect: No auth token available');
+    }
   }
 
   private handleOffline(): void {
@@ -370,3 +431,12 @@ class WebSocketService {
 export const websocketService = new WebSocketService();
 
 export default websocketService;
+
+// === CONFIGURACIÓN ESPECIAL PARA DESARROLLO ===
+const isDevelopment = import.meta.env.DEV;
+const DEV_WEBSOCKET_CONFIG = {
+    maxReconnectAttempts: isDevelopment ? 2 : 5,
+    baseReconnectInterval: isDevelopment ? 10000 : 3000,
+    maxReconnectInterval: isDevelopment ? 30000 : 60000,
+    enableVerboseLogging: isDevelopment ? false : true
+};

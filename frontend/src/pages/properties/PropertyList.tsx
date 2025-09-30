@@ -1,45 +1,48 @@
+/**
+ * PropertyList - VERSIÓN FUSIONADA DEFINITIVA
+ * Combina lo mejor de todas las versiones anteriores:
+ * - Filtros avanzados del components
+ * - Export functionality del pages
+ * - Performance tracking y error boundaries
+ * - UI/UX mejorado y responsive
+ */
+
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import {
   Box,
   Button,
   Card,
   CardContent,
-  CardMedia,
   Chip,
   Grid,
   IconButton,
   Typography,
   CircularProgress,
-  TextField,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Slider,
-  Paper,
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert,
-  Fab,
+  useTheme,
+  useMediaQuery,
+  ToggleButton,
+  ToggleButtonGroup,
+  Skeleton,
+  Fade,
+  Paper,
+  Tooltip,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   LocationOn as LocationIcon,
-  Search as SearchIcon,
+  ViewModule as GridViewIcon,
+  ViewList as ListViewIcon,
   FilterList as FilterIcon,
-  Visibility as ViewIcon,
-  Favorite as FavoriteIcon,
-  FavoriteBorder as FavoriteBorderIcon,
-  Bed as BedIcon,
-  Bathtub as BathIcon,
-  SquareFoot as AreaIcon,
-  AttachMoney as PriceIcon,
+  Sort as SortIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -47,20 +50,76 @@ import { useProperties } from '../../hooks/useProperties';
 import { Property } from '../../types/property';
 import ExportButton from '../../components/ExportButton';
 import { ensureArray } from '../../utils/arrayUtils';
-import { api } from '../../services/api';
 import PropertyImage from '../../components/common/PropertyImage';
+import PropertyFilters from '../../components/properties/PropertyFilters';
+import PropertyCards from '../../components/properties/PropertyCards';
+import PropertyTable from '../../components/properties/PropertyTable';
+import { usePropertyFilters } from '../../components/properties/hooks/usePropertyFilters';
+import PropertiesErrorBoundary from '../../components/properties/PropertiesErrorBoundary';
+import { usePerformanceTracking } from '../../utils/performanceMonitor';
+import { SortableColumns, SortOrder } from '../../components/properties/PropertyTable';
+
+type ViewMode = 'cards' | 'table';
 
 const PropertyList: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
-  const { properties, isLoading, error, deleteProperty } = useProperties();
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+  const { trackRender } = usePerformanceTracking('PropertyList');
+  
+  // Estados locales
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const savedView = localStorage.getItem('property-view-mode') as ViewMode;
+    return savedView || (isMobile ? 'cards' : 'table');
+  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  
+  // Sorting state
+  const [sortBy, setSortBy] = useState<SortableColumns>('created_at');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  
+  // Pagination state for table view
+  const [tablePage, setTablePage] = useState(0);
+  const [tableRowsPerPage, setTableRowsPerPage] = useState(20);
+  
+  // Usar hook de filtros existente (lo mejor del components)
+  const { filters, updateFilter, clearFilters, hasActiveFilters } = usePropertyFilters();
+  
+  // Hook de propiedades con filtros
+  const { properties, isLoading, error, deleteProperty } = useProperties(filters);
+  
+  // Performance tracking
+  useEffect(() => {
+    const renderStart = performance.now();
+    return () => {
+      const renderEnd = performance.now();
+      trackRender(renderEnd - renderStart);
+    };
+  }, [trackRender]);
 
+  // Persistir view mode preference
+  useEffect(() => {
+    localStorage.setItem('property-view-mode', viewMode);
+  }, [viewMode]);
+  
+  // Auto switch to cards on mobile
+  useEffect(() => {
+    if (isMobile && viewMode === 'table') {
+      setViewMode('cards');
+    }
+  }, [isMobile, viewMode]);
+
+  // Event handlers mejorados
   const handleEdit = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     navigate(`/app/properties/${id}/edit`);
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/app/properties/${id}`);
   };
 
   const handleDeleteClick = (e: React.MouseEvent, id: string) => {
@@ -85,188 +144,332 @@ const PropertyList: React.FC = () => {
     navigate(`/app/properties/${property.id}`);
   };
 
+  const handleCreateNew = () => {
+    navigate('/app/properties/new');
+  };
+
+  const handleApplyFilters = () => {
+    // Los filtros se aplican automáticamente a través del hook
+    console.log('Filtros aplicados:', filters);
+  };
+
+  // View mode handlers
+  const handleViewModeChange = (_event: React.MouseEvent<HTMLElement>, newViewMode: ViewMode | null) => {
+    if (newViewMode && !isMobile) {
+      setViewMode(newViewMode);
+    }
+  };
+
+  // Sorting handlers
+  const handleSort = (column: SortableColumns) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
+
+  // Selection handlers
+  const handleSelectionChange = (selected: string[]) => {
+    setSelectedProperties(selected);
+  };
+
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      // Implement bulk delete logic
+      for (const id of ids) {
+        await deleteProperty.mutateAsync(id);
+      }
+      setSelectedProperties([]);
+    } catch (error) {
+      console.error('Error bulk deleting properties:', error);
+    }
+  };
+
+  const handleToggleFavorite = (id: string) => {
+    // Implement toggle favorite logic
+    console.log('Toggle favorite for property:', id);
+  };
+
+  // Table pagination handlers
+  const handleTablePageChange = (_event: unknown, newPage: number) => {
+    setTablePage(newPage);
+  };
+
+  const handleTableRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTableRowsPerPage(parseInt(event.target.value, 10));
+    setTablePage(0);
+  };
+
+  // Cards pagination (if you want to add pagination to cards)
+  const handleCardsPageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    // Implement if needed
+    console.log('Cards page change:', value);
+  };
+
   const isLandlord = user?.user_type === 'landlord' || user?.user_type === 'admin';
 
   // Asegurar que properties sea un array
   const propertiesArray = ensureArray(properties);
 
+  // Estados de carga y error mejorados
+  if (authLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" py={4}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Verificando autenticación...</Typography>
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Box textAlign="center" py={4}>
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          Necesitas iniciar sesión para ver las propiedades
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => navigate('/login')}
+          sx={{ mt: 2 }}
+        >
+          Iniciar Sesión
+        </Button>
+      </Box>
+    );
+  }
+
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+      <Box sx={{ p: 3 }}>
+        <Skeleton variant="rectangular" height={400} />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box sx={{ p: 3 }}>
         <Alert severity="error">
-          Error al cargar las propiedades: {error.message}
+          Error cargando propiedades: {error.message}
         </Alert>
       </Box>
     );
   }
 
+  const totalCount = propertiesArray.length;
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          Propiedades
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <ExportButton type="properties" />
-          {isAuthenticated && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/app/properties/new')}
-            >
-              Nueva Propiedad
-            </Button>
+    <PropertiesErrorBoundary>
+      <Box sx={{ p: 3 }}>
+        {/* Header mejorado */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+            <Box>
+              <Typography variant="h4" component="h1" gutterBottom>
+                Propiedades
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {totalCount} propiedades encontradas
+                {hasActiveFilters && ' (con filtros aplicados)'}
+              </Typography>
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={2}>
+              {/* View Toggle - Solo en desktop */}
+              {!isMobile && (
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={handleViewModeChange}
+                  size="small"
+                  sx={{ mr: 2 }}
+                >
+                  <ToggleButton value="cards" aria-label="Vista de tarjetas">
+                    <Tooltip title="Vista de tarjetas">
+                      <GridViewIcon />
+                    </Tooltip>
+                  </ToggleButton>
+                  <ToggleButton value="table" aria-label="Vista de tabla">
+                    <Tooltip title="Vista de tabla">
+                      <ListViewIcon />
+                    </Tooltip>
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              )}
+              
+              {/* Export Button */}
+              <ExportButton type="properties" />
+              
+              {/* Create New Button - Solo para landlords */}
+              {user?.user_type === 'landlord' && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleCreateNew}
+                  size="medium"
+                >
+                  Nueva Propiedad
+                </Button>
+              )}
+            </Box>
+          </Box>
+
+          {/* Selection info */}
+          {selectedProperties.length > 0 && (
+            <Fade in={true}>
+              <Box 
+                sx={{ 
+                  p: 2, 
+                  mt: 2,
+                  backgroundColor: theme.palette.primary.main + '08',
+                  borderRadius: 1,
+                  border: `1px solid ${theme.palette.primary.main}20`
+                }}
+              >
+                <Typography variant="body2" color="primary" fontWeight={600}>
+                  {selectedProperties.length} propiedades seleccionadas
+                </Typography>
+              </Box>
+            </Fade>
+          )}
+        </Paper>
+
+        {/* Filtros avanzados - Lo mejor de components */}
+        <PropertyFilters
+          filters={filters}
+          onFilterChange={updateFilter}
+          onClearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+          onApplyFilters={handleApplyFilters}
+          isLoading={isLoading}
+        />
+
+        {/* Content with view switching */}
+        <Box sx={{ minHeight: 400 }}>
+          {propertiesArray.length === 0 ? (
+            <Paper elevation={0} sx={{ p: 8, textAlign: 'center' }}>
+              <LocationIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No se encontraron propiedades
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                {hasActiveFilters
+                  ? 'Intenta ajustar los filtros de búsqueda'
+                  : 'Aún no hay propiedades registradas'}
+              </Typography>
+              {hasActiveFilters && (
+                <Button 
+                  variant="outlined" 
+                  onClick={clearFilters}
+                  startIcon={<FilterIcon />}
+                >
+                  Limpiar Filtros
+                </Button>
+              )}
+            </Paper>
+          ) : (
+            <Fade in={true} timeout={300}>
+              <Box>
+                {/* Cards View */}
+                {viewMode === 'cards' && (
+                  <PropertyCards
+                    properties={propertiesArray}
+                    page={1} // You may want to implement pagination for cards too
+                    totalPages={1}
+                    onPageChange={handleCardsPageChange}
+                    onView={handleView}
+                    onEdit={(id: string) => handleEdit(new MouseEvent('click') as any, id)}
+                    onDelete={(id: string) => handleDeleteClick(new MouseEvent('click') as any, id)}
+                    onToggleFavorite={handleToggleFavorite}
+                    userType={user?.user_type || 'tenant'}
+                    currentUser={user}
+                  />
+                )}
+
+                {/* Table View */}
+                {viewMode === 'table' && (
+                  <PropertyTable
+                    properties={propertiesArray}
+                    page={tablePage}
+                    rowsPerPage={tableRowsPerPage}
+                    totalCount={totalCount}
+                    onPageChange={handleTablePageChange}
+                    onRowsPerPageChange={handleTableRowsPerPageChange}
+                    onView={handleView}
+                    onEdit={(id: string) => handleEdit(new MouseEvent('click') as any, id)}
+                    onDelete={(id: string) => handleDeleteClick(new MouseEvent('click') as any, id)}
+                    onToggleFavorite={handleToggleFavorite}
+                    userType={user?.user_type || 'tenant'}
+                    currentUser={user}
+                    loading={isLoading}
+                    selected={selectedProperties}
+                    onSelectionChange={handleSelectionChange}
+                    onBulkDelete={handleBulkDelete}
+                    onBulkToggleFavorite={handleToggleFavorite}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    enableSelection={user?.user_type === 'landlord'}
+                    enableBulkActions={user?.user_type === 'landlord'}
+                    compactMode={false}
+                  />
+                )}
+              </Box>
+            </Fade>
           )}
         </Box>
+
+        {/* Dialog mejorado de confirmación para eliminar */}
+        <Dialog 
+          open={deleteDialogOpen} 
+          onClose={() => setDeleteDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ pb: 1 }}>
+            <Typography variant="h6" component="div">
+              Confirmar eliminación
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                ¿Estás seguro de que quieres eliminar esta propiedad? Esta acción no se puede deshacer.
+              </Typography>
+            </Alert>
+            <Typography variant="body2" color="text.secondary">
+              Todas las imágenes, datos e información relacionada se eliminarán permanentemente.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button 
+              onClick={() => setDeleteDialogOpen(false)}
+              variant="outlined"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained"
+              disabled={deleteProperty.isPending}
+              startIcon={
+                deleteProperty.isPending ? 
+                  <CircularProgress size={16} /> : 
+                  <DeleteIcon />
+              }
+            >
+              {deleteProperty.isPending ? 'Eliminando...' : 'Eliminar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
-
-      {propertiesArray.length === 0 ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-          <Typography variant="body1" color="text.secondary">
-            No se encontraron propiedades
-          </Typography>
-        </Box>
-      ) : (
-        <Grid container spacing={3}>
-          {propertiesArray.map((property) => (
-            <Grid item xs={12} sm={6} md={4} key={property.id}>
-              <Card 
-                sx={{ 
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 4,
-                  }
-                }}
-                onClick={() => handlePropertyClick(property)}
-              >
-                {property.images && property.images.length > 0 ? (
-                  <PropertyImage
-                    src={
-                      property.main_image_url ||
-                      (typeof property.images[0] === 'string' 
-                        ? property.images[0] 
-                        : property.images[0].image || property.images[0].image_url || property.images[0])
-                    }
-                    alt={property.title}
-                    height={200}
-                    objectFit="cover"
-                    placeholder={true}
-                    progressive={true}
-                  />
-                ) : (
-                  <Box
-                    sx={{
-                      height: 200,
-                      backgroundColor: '#f5f5f5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#bdbdbd',
-                    }}
-                  >
-                    <Box sx={{ textAlign: 'center' }}>
-                      <LocationIcon sx={{ fontSize: 48, mb: 1 }} />
-                      <Typography variant="body2">Sin imagen</Typography>
-                    </Box>
-                  </Box>
-                )}
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {property.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {property.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <LocationIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {property.address}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" color="primary">
-                      {property.formatted_price || 
-                       (property.listing_type === 'rent' ? 
-                         `$${property.rent_price?.toLocaleString()}/mes` : 
-                         `$${property.sale_price?.toLocaleString()}`)}
-                    </Typography>
-                    <Chip label={property.status} size="small" />
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="body2">
-                      {property.bedrooms} hab | {property.bathrooms} baños
-                    </Typography>
-                    <Typography variant="body2">
-                      {property.total_area} m²
-                    </Typography>
-                  </Box>
-                  {isAuthenticated && isLandlord && (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleEdit(e, property.id)}
-                        color="primary"
-                        title="Editar propiedad"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleDeleteClick(e, property.id)}
-                        color="error"
-                        title="Eliminar propiedad"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-
-      {/* Dialog de confirmación para eliminar */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirmar eliminación</DialogTitle>
-        <DialogContent>
-          <Typography>
-            ¿Estás seguro de que quieres eliminar esta propiedad? Esta acción no se puede deshacer.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained"
-            disabled={deleteProperty.isPending}
-          >
-            {deleteProperty.isPending ? (
-              <>
-                <CircularProgress size={20} sx={{ mr: 1 }} />
-                Eliminando...
-              </>
-            ) : (
-              'Eliminar'
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+    </PropertiesErrorBoundary>
   );
 };
 
 export default PropertyList;
-export { PropertyList }; 
+export { PropertyList };
+export type { ViewMode }; 

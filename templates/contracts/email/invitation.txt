@@ -1,0 +1,50 @@
+===============================================
+INVITACIÓN DE CONTRATO DE ARRENDAMIENTO
+VeriHome - Plataforma de Gestión de Arriendos
+===============================================
+
+¡Hola {{ tenant_name }}!
+
+{% if personal_message %}
+Mensaje personal del arrendador:
+"{{ personal_message }}"
+- {{ landlord_name }}
+
+{% endif %}Te invitamos cordialmente a revisar y participar en el proceso de contrato de arrendamiento para la siguiente propiedad:
+
+INFORMACIÓN DE LA PROPIEDAD:
+===============================================
+🏠 Dirección: {{ property_address }}
+📋 Contrato No.: {{ contract_number }}
+💰 Canon Mensual: ${{ monthly_rent|floatformat:0 }} COP
+🔒 Depósito de Garantía: ${{ security_deposit|floatformat:0 }} COP
+📅 Duración: {{ contract_duration }} meses
+👤 Arrendador: {{ landlord_name }}
+
+ENLACE DE ACCESO:
+===============================================
+{{ invitation_url }}
+
+¿QUÉ SUCEDE DESPUÉS?
+===============================================
+1. Revisarás los términos completos del contrato
+2. Completarás tus datos personales y referencias
+3. Podrás presentar objeciones si algo no te parece correcto
+4. Una vez acordados los términos, procederás con la firma digital
+5. El contrato tendrá vida jurídica una vez firmado por ambas partes
+
+INFORMACIÓN IMPORTANTE:
+===============================================
+🔒 SEGURIDAD: Este enlace es único y seguro. Solo tú puedes acceder a él.
+⏰ VENCIMIENTO: Esta invitación expira el {{ expires_at|date:"d \d\e F \d\e Y \a \l\a\s H:i" }}
+📧 SOPORTE: Si tienes preguntas, contáctanos en soporte@verihome.com
+
+Gracias por confiar en VeriHome para tu proceso de arrendamiento.
+
+===============================================
+VeriHome - Plataforma de Gestión de Arriendos
+www.verihome.com
+===============================================
+
+Este mensaje fue enviado desde una dirección que no acepta respuestas.
+Si necesitas asistencia, utiliza nuestros canales de soporte.

@@ -48,6 +48,8 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import Autocomplete from '@mui/material/Autocomplete';
 import axios from 'axios';
+import { EnhancedPropertyImageUpload as PropertyImageUpload } from './EnhancedPropertyImageUpload';
+import PropertyVideoUpload from './PropertyVideoUpload';
 import { Alert as MuiAlert } from '@mui/material';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
@@ -125,6 +127,8 @@ interface PropertyFormProps {
   onSubmit: (data: FormData) => Promise<void>;
   isLoading?: boolean;
   error?: string;
+  initialData?: any;
+  isEditMode?: boolean;
 }
 
 // Coordenadas centrales de Colombia
@@ -219,7 +223,13 @@ const validateVideoFile = (file: File): { valid: boolean, error?: string } => {
   return { valid: true };
 };
 
-const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false, error }) => {
+const PropertyForm: React.FC<PropertyFormProps> = ({ 
+  onSubmit, 
+  isLoading = false, 
+  error, 
+  initialData, 
+  isEditMode = false 
+}) => {
   const navigate = useNavigate();
   const [videoMode, setVideoMode] = useState<'url' | 'file'>('url');
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
@@ -228,15 +238,63 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
   const geocoder = useRef<MapboxGeocoder | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<PropertyFormData>({
-    defaultValues: {
+  // Función para generar valores por defecto basados en initialData
+  const getDefaultValues = useCallback(() => {
+    if (isEditMode && initialData) {
+      return {
+        title: initialData.title || '',
+        description: initialData.description || '',
+        property_type: initialData.property_type || '',
+        listing_type: initialData.listing_type || '',
+        status: initialData.status || 'available',
+        address: initialData.address || '',
+        city: initialData.city || '',
+        state: initialData.state || '',
+        country: initialData.country || 'Colombia',
+        postal_code: initialData.postal_code || '',
+        latitude: initialData.latitude?.toString() || '',
+        longitude: initialData.longitude?.toString() || '',
+        bedrooms: initialData.bedrooms?.toString() || '',
+        bathrooms: initialData.bathrooms?.toString() || '',
+        half_bathrooms: initialData.half_bathrooms?.toString() || '',
+        total_area: initialData.total_area?.toString() || '',
+        built_area: initialData.built_area?.toString() || '',
+        lot_area: initialData.lot_area?.toString() || '',
+        parking_spaces: initialData.parking_spaces?.toString() || '',
+        floors: initialData.floors?.toString() || '',
+        floor_number: initialData.floor_number?.toString() || '',
+        year_built: initialData.year_built?.toString() || '',
+        rent_price: initialData.rent_price?.toString() || '',
+        sale_price: initialData.sale_price?.toString() || '',
+        security_deposit: initialData.security_deposit?.toString() || '',
+        maintenance_fee: initialData.maintenance_fee?.toString() || '',
+        minimum_lease_term: initialData.minimum_lease_term?.toString() || '',
+        maximum_lease_term: initialData.maximum_lease_term?.toString() || '',
+        pets_allowed: initialData.pets_allowed || false,
+        smoking_allowed: initialData.smoking_allowed || false,
+        furnished: initialData.furnished || false,
+        utilities_included: Array.isArray(initialData.utilities_included) 
+          ? initialData.utilities_included.join(', ') 
+          : initialData.utilities_included || '',
+        property_features: Array.isArray(initialData.property_features)
+          ? initialData.property_features.join(', ')
+          : initialData.property_features || '',
+        nearby_amenities: Array.isArray(initialData.nearby_amenities)
+          ? initialData.nearby_amenities.join(', ')
+          : initialData.nearby_amenities || '',
+        transportation: Array.isArray(initialData.transportation)
+          ? initialData.transportation.join(', ')
+          : initialData.transportation || '',
+        available_from: initialData.available_from || '',
+        is_featured: initialData.is_featured || false,
+        is_active: initialData.is_active ?? true,
+        video_url: '',
+        video_file: null,
+      };
+    }
+    
+    // Valores por defecto para modo creación
+    return {
       title: '',
       description: '',
       property_type: '',
@@ -277,7 +335,61 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
       is_active: true,
       video_url: '',
       video_file: null,
-    },
+    };
+  }, [isEditMode, initialData]);
+
+  // Efecto para cargar imágenes existentes en modo edición
+  useEffect(() => {
+    if (isEditMode && initialData && initialData.images) {
+      const existingImages = initialData.images.map((img: any, index: number) => ({
+        id: `existing-${img.id || index}`,
+        url: img.image_url || img.image,
+        isMain: img.is_main || index === 0,
+        uploading: false,
+        progress: 100,
+        // No incluir file para imágenes existentes
+      }));
+      setPropertyImages(existingImages);
+    }
+    
+    // Cargar videos existentes si los hay
+    if (isEditMode && initialData && initialData.videos) {
+      const existingVideos = initialData.videos.map((video: any, index: number) => ({
+        id: video.id || index,
+        title: video.title || `Video ${index + 1}`,
+        description: video.description || '',
+        type: video.youtube_url ? 'youtube' : 'file',
+        order: index,
+        ...(video.youtube_url ? {
+          youtube: {
+            id: video.youtube_url.split('v=')[1]?.split('&')[0] || '',
+            url: video.youtube_url,
+            title: video.title,
+            thumbnail: `https://img.youtube.com/vi/${video.youtube_url.split('v=')[1]?.split('&')[0]}/maxresdefault.jpg`,
+          }
+        } : {
+          metadata: {
+            id: `existing-${video.id || index}`,
+            preview: video.video_url,
+            thumbnail: video.thumbnail_url || '',
+            duration: 0,
+            resolution: 'Unknown'
+          }
+        })
+      }));
+      setPropertyVideos(existingVideos);
+    }
+  }, [isEditMode, initialData]);
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
+    defaultValues: getDefaultValues(),
     mode: 'onBlur',
   });
 
@@ -295,6 +407,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [locationValidated, setLocationValidated] = useState(false);
   const [showLocationNotification, setShowLocationNotification] = useState(false);
+  
+  // Estados para los nuevos componentes de imagen y video
+  const [propertyImages, setPropertyImages] = useState<any[]>([]);
+  const [propertyVideos, setPropertyVideos] = useState<any[]>([]);
   const [showLocationPreview, setShowLocationPreview] = useState(false);
   const [selectedLocationText, setSelectedLocationText] = useState('No seleccionada');
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -310,9 +426,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdProperty, setCreatedProperty] = useState<any>(null);
 
-  // Estado para imágenes
-  const [images, setImages] = useState<File[]>([]);
-  const [mainImageIndex, setMainImageIndex] = useState<number | null>(null);
+  // Estado para errores de imágenes y videos
   const [imageErrors, setImageErrors] = useState<string[]>([]);
   const [videoError, setVideoError] = useState<string>('');
 
@@ -410,18 +524,88 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
     setLocationCaptured(false);
   };
 
-  // Capturar ubicación
-  const handleCaptureLocation = () => {
-    if (map.current && marker.current) {
-      const lngLat = marker.current.getLngLat();
-      setCapturedCoords([lngLat.lng, lngLat.lat]);
-      setCapturedAddress(addressInput);
-      setValue('address', addressInput);
-      setValue('latitude', lngLat.lat);
-      setValue('longitude', lngLat.lng);
-      setLocationCaptured(true);
+  // Capturar ubicación y sincronizar con campos del formulario
+  const handleCaptureLocation = useCallback(async () => {
+    if (!map.current || !marker.current) {
+      setSuccessMessage('⚠️ Por favor selecciona una ubicación en el mapa primero');
+      setShowSuccessMessage(true);
+      return;
     }
-  };
+
+    const lngLat = marker.current.getLngLat();
+    const lat = lngLat.lat;
+    const lng = lngLat.lng;
+
+    try {
+      // Usar reverse geocoding para obtener información de la dirección
+      const response = await axios.get(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`,
+        {
+          params: {
+            access_token: MAPBOX_TOKEN,
+            language: 'es',
+          }
+        }
+      );
+
+      if (response.data.features && response.data.features.length > 0) {
+        const feature = response.data.features[0];
+        const context = feature.context || [];
+        
+        // Actualizar dirección completa
+        const fullAddress = feature.place_name || addressInput;
+        setValue('address', fullAddress);
+        setAddressInput(fullAddress);
+        setCapturedAddress(fullAddress);
+        
+        // Actualizar coordenadas
+        setValue('latitude', lat.toFixed(6));
+        setValue('longitude', lng.toFixed(6));
+        setCapturedCoords([lng, lat]);
+        
+        // Extraer y actualizar ciudad
+        const place = context.find((c: any) => c.id.includes('place') || c.id.includes('locality'));
+        if (place) {
+          setValue('city', place.text);
+        }
+        
+        // Extraer y actualizar estado/departamento
+        const region = context.find((c: any) => c.id.includes('region') || c.id.includes('district'));
+        if (region) {
+          setValue('state', region.text);
+        }
+        
+        // Extraer y actualizar código postal si existe
+        const postcode = context.find((c: any) => c.id.includes('postcode'));
+        if (postcode) {
+          setValue('postal_code', postcode.text);
+        }
+        
+        // Actualizar país
+        const country = context.find((c: any) => c.id.includes('country'));
+        setValue('country', country ? country.text : 'Colombia');
+        
+        setLocationCaptured(true);
+        setSuccessMessage('✅ Ubicación capturada y campos actualizados exitosamente');
+        setShowSuccessMessage(true);
+        
+        // Desactivar el mapa después de capturar
+        if (mapContainer.current) {
+          mapContainer.current.style.pointerEvents = 'none';
+        }
+      }
+    } catch (error) {
+      console.error('Error capturando ubicación:', error);
+      // Fallback: usar solo las coordenadas sin geocoding
+      setValue('latitude', lat.toFixed(6));
+      setValue('longitude', lng.toFixed(6));
+      setValue('address', addressInput || 'Ubicación seleccionada');
+      setCapturedCoords([lng, lat]);
+      setLocationCaptured(true);
+      setSuccessMessage('✅ Ubicación capturada (sin detalles de dirección)');
+      setShowSuccessMessage(true);
+    }
+  }, [addressInput, setValue, MAPBOX_TOKEN]);
 
   // Video field logic
   const handleVideoModeChange = (mode: 'url' | 'file') => {
@@ -514,18 +698,89 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
         if (value && String(value).trim() !== '' && String(value) !== 'Invalid date') {
           formData.append(key, String(value));
         }
+      } else if (key === 'utilities_included' || key === 'property_features' || key === 'nearby_amenities' || key === 'transportation') {
+        // Convert comma-separated strings to JSON arrays
+        if (value && String(value).trim() !== '') {
+          const arrayValue = String(value).split(',').map(item => item.trim()).filter(item => item !== '');
+          formData.append(key, JSON.stringify(arrayValue));
+        } else {
+          formData.append(key, JSON.stringify([]));
+        }
       } else if (value !== '' && value !== undefined && value !== null) {
         // For other non-empty fields, convert to string
         formData.append(key, String(value));
       }
     });
     
-    // Agregar imágenes
-    images.forEach((img, idx) => {
-      formData.append('images', img);
-      if (idx === mainImageIndex) {
-        formData.append('main_image', img);
+    // Agregar imágenes desde PropertyImageUpload component
+    let mainImageFile: File | null = null;
+    let mainImageId: string | null = null;
+    
+    propertyImages.forEach((img, idx) => {
+      if (img.file) { // Solo agregar nuevas imágenes (que tienen archivo)
+        formData.append('images', img.file);
+        if (img.isMain) {
+          mainImageFile = img.file;
+        }
       }
+      
+      // Capturar ID de imagen principal (existente o nueva)
+      if (img.isMain) {
+        // Si es imagen existente, usar el ID original
+        if (img.id && img.id.startsWith('existing-')) {
+          mainImageId = img.id.replace('existing-', '');
+        }
+      }
+    });
+    
+    // Agregar imagen principal si es archivo nuevo
+    if (mainImageFile) {
+      formData.append('main_image', mainImageFile);
+    }
+    
+    // Agregar ID de imagen principal si es imagen existente
+    if (mainImageId) {
+      formData.append('main_image_id', mainImageId);
+    }
+    
+    // ARREGLO CRÍTICO: Separar lógica de archivos de video y URLs de YouTube
+    const videoFiles = [];
+    const youtubeUrls = [];
+    const videoMetadata = {};
+    const youtubeMetadata = {};
+    
+    // Separar videos por tipo y recopilar metadatos
+    propertyVideos.forEach((video, idx) => {
+      if (video.type === 'file' && video.file) {
+        videoFiles.push(video.file);
+        videoMetadata[`video_${videoFiles.length - 1}_title`] = video.title || '';
+        videoMetadata[`video_${videoFiles.length - 1}_description`] = video.description || '';
+      } else if (video.type === 'youtube' && video.youtube?.url) {
+        youtubeUrls.push(video.youtube.url);
+        youtubeMetadata[`youtube_${youtubeUrls.length - 1}_title`] = video.title || '';
+        youtubeMetadata[`youtube_${youtubeUrls.length - 1}_description`] = video.description || '';
+      }
+    });
+    
+    // Agregar archivos de video al FormData
+    videoFiles.forEach(file => {
+      formData.append('video_files', file);
+    });
+    
+    // Agregar metadatos de videos
+    Object.entries(videoMetadata).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    
+    // Agregar URLs de YouTube como un array (sin duplicados)
+    const uniqueYoutubeUrls = [...new Set(youtubeUrls)]; // Eliminar duplicados
+    uniqueYoutubeUrls.forEach(url => {
+      formData.append('youtube_urls', url);
+    });
+    
+    // Agregar metadatos de YouTube
+    Object.entries(youtubeMetadata).forEach(([key, value]) => {
+      formData.append(key, value);
     });
     
     // FormData created with images
@@ -598,8 +853,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
   const handleCreateAnother = () => {
     handleCloseSuccessModal();
     reset();
-    setImages([]);
-    setMainImageIndex(null);
+    setPropertyImages([]);
+    setPropertyVideos([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -617,7 +872,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
       <Card>
         <CardContent>
         <Typography variant="h5" gutterBottom>
-          Crear Nueva Propiedad
+          {isEditMode ? 'Editar Propiedad' : 'Crear Nueva Propiedad'}
         </Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <form onSubmit={handleSubmit(onFormSubmit)}>
@@ -787,7 +1042,58 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
               </Tooltip>
             </Grid>
             <Grid item xs={12}>
-              <Box sx={{ my: 2 }}>
+              <Box sx={{ my: 2, position: 'relative' }}>
+                {/* Map Overlay for better interaction */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1,
+                    pointerEvents: 'none',
+                  }}
+                  onClick={(e) => {
+                    // Enable map interaction on click
+                    const mapDiv = mapContainer.current;
+                    if (mapDiv) {
+                      mapDiv.style.pointerEvents = 'auto';
+                      // Auto-disable after interaction
+                      setTimeout(() => {
+                        if (mapDiv) mapDiv.style.pointerEvents = 'none';
+                      }, 10000); // 10 seconds of interaction
+                    }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      px: 3,
+                      py: 2,
+                      borderRadius: 2,
+                      boxShadow: 2,
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                        boxShadow: 3,
+                      }
+                    }}
+                  >
+                    <Typography variant="subtitle2" align="center">
+                      📍 Haz clic aquí para interactuar con el mapa
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" align="center" display="block">
+                      Podrás mover el marcador y seleccionar la ubicación exacta
+                    </Typography>
+                  </Box>
+                </Box>
+                
                 <div
                   ref={mapContainer}
                   style={{
@@ -796,10 +1102,13 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
                     borderRadius: '12px',
                     border: '1px solid #e0e0e0',
                     backgroundColor: '#f5f5f5',
+                    pointerEvents: 'none', // Start disabled
                   }}
                 />
+                
+                {/* Instructions below map */}
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Busca la dirección, selecciona una sugerencia o mueve el marcador. Haz click en "Capturar ubicación" para guardar la ubicación exacta.
+                  💡 Haz clic en el mapa para activar la interacción. Mueve el marcador para seleccionar la ubicación exacta y luego haz clic en "Capturar ubicación".
                 </Typography>
               </Box>
             </Grid>
@@ -1159,216 +1468,30 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
                 /></span>
               </Tooltip>
             </Grid>
-            {/* Video exclusivo */}
-            <Grid item xs={12} md={6}>
-              {/* Previsualización de imágenes y botón subir */}
-              <Box
-                sx={{
-                  minHeight: 320,
-                  border: '3px solid #1976d2',
-                  borderRadius: 2,
-                  p: 2,
-                  bgcolor: '#f5faff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  height: '100%',
-                  justifyContent: 'flex-start',
-                }}
-              >
-                <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ minWidth: 160 }}
-                  >
-                    Subir Fotos
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      hidden
-                      onChange={e => {
-                        if (e.target.files) {
-                          const files = Array.from(e.target.files);
-                          const { valid, errors } = validateImageFiles(files);
-                          
-                          if (errors.length > 0) {
-                            setImageErrors(errors);
-                            setSuccessMessage(`⚠️ Errores en archivos: ${errors.join(', ')}`);
-                            setShowSuccessMessage(true);
-                          } else {
-                            setImageErrors([]);
-                          }
-                          
-                          setImages(valid);
-                          setMainImageIndex(valid.length > 0 ? 0 : null);
-                        }
-                      }}
-                    />
-                  </Button>
-                  <Typography variant="caption" color="text.secondary">
-                    Máximo 10 imágenes, 5MB cada una. JPG, PNG, WebP
-                  </Typography>
-                </Box>
-                {imageErrors.length > 0 && (
-                  <Alert severity="warning" sx={{ mb: 2 }}>
-                    {imageErrors.map((error, index) => (
-                      <Typography key={index} variant="body2">
-                        • {error}
-                      </Typography>
-                    ))}
-                  </Alert>
-                )}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 2,
-                    alignItems: 'center',
-                    width: '100%',
-                    overflowX: 'auto',
-                    minHeight: 180,
-                    maxHeight: 220,
-                    pb: 1,
-                  }}
-                >
-                  {images.length === 0 && (
-                    <Typography variant="body2" color="text.secondary">
-                      No hay fotos seleccionadas.
-                    </Typography>
-                  )}
-                  {images.map((img, idx) => (
-                    <Box key={idx} sx={{ position: 'relative', flex: '0 0 auto' }}>
-                      <img
-                        src={URL.createObjectURL(img)}
-                        alt={`Foto ${idx + 1}`}
-                        width={160}
-                        height={120}
-                        style={{
-                          border: mainImageIndex === idx ? '3px solid #1976d2' : '1px solid #ccc',
-                          borderRadius: 8,
-                          cursor: 'pointer',
-                          objectFit: 'cover',
-                          marginRight: 8,
-                          maxWidth: 160,
-                          maxHeight: 120,
-                          display: 'block',
-                        }}
-                        onClick={() => setMainImageIndex(idx)}
-                      />
-                      {mainImageIndex === idx && (
-                        <Box sx={{ position: 'absolute', top: 0, left: 0, bgcolor: '#1976d2', color: '#fff', px: 1, borderRadius: '0 0 8px 0', fontSize: 12 }}>
-                          Principal
-                        </Box>
-                      )}
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
+            {/* Sección de Imágenes */}
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
+                Imágenes de la Propiedad
+              </Typography>
+              <PropertyImageUpload
+                images={propertyImages}
+                onImagesChange={setPropertyImages}
+                maxImages={10}
+                disabled={isLoading}
+              />
             </Grid>
-            <Grid item xs={12} md={6}>
-              {/* Previsualización de video */}
-              <Box
-                sx={{
-                  minHeight: 320,
-                  border: '3px solid #1976d2',
-                  borderRadius: 2,
-                  p: 2,
-                  bgcolor: '#f5faff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  height: '100%',
-                }}
-              >
-                <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <Button
-                    variant={videoMode === 'url' ? 'contained' : 'outlined'}
-                    startIcon={<YouTubeIcon />}
-                    onClick={() => handleVideoModeChange('url')}
-                  >
-                    URL de YouTube
-                  </Button>
-                  <Button
-                    variant={videoMode === 'file' ? 'contained' : 'outlined'}
-                    startIcon={<CloudUploadIcon />}
-                    component="label"
-                  >
-                    Subir Video
-                    <input
-                      type="file"
-                      accept="video/*"
-                      hidden
-                      onChange={e => {
-                        if (e.target.files && e.target.files[0]) {
-                          const file = e.target.files[0];
-                          const { valid, error } = validateVideoFile(file);
-                          
-                          if (!valid && error) {
-                            setVideoError(error);
-                            setSuccessMessage(`⚠️ Error en video: ${error}`);
-                            setShowSuccessMessage(true);
-                            return;
-                          }
-                          
-                          setVideoError('');
-                          setValue('video_file', file);
-                          setVideoMode('file');
-                        }
-                      }}
-                    />
-                  </Button>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                    Máximo 50MB. MP4, WebM, MOV
-                  </Typography>
-                </Box>
-                {videoError && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {videoError}
-                  </Alert>
-                )}
-                {videoMode === 'url' && (
-                  <Box sx={{ width: '100%' }}>
-                    <TextField
-                      label="URL de YouTube"
-                      value={videoUrl}
-                      onChange={e => setValue('video_url', e.target.value)}
-                      fullWidth
-                      id="propertyform-video-url"
-                      autoComplete="off"
-                    />
-                    {videoUrl && videoUrl.includes('youtube') && (
-                      <Box sx={{ mt: 2, width: '100%' }}>
-                        <Typography variant="caption">Previsualización:</Typography>
-                        <Box sx={{ width: '100%', aspectRatio: '16/9', bgcolor: '#000', borderRadius: 1, overflow: 'hidden', minHeight: 240 }}>
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            style={{ minHeight: 240 }}
-                            src={videoUrl.replace('watch?v=', 'embed/')}
-                            title="Video de la propiedad"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </Box>
-                      </Box>
-                    )}
-                  </Box>
-                )}
-                {videoMode === 'file' && videoFile && (
-                  <Box sx={{ mt: 2, width: '100%' }}>
-                    <Typography variant="caption">Previsualización:</Typography>
-                    <Box sx={{ width: '100%', aspectRatio: '16/9', bgcolor: '#000', borderRadius: 1, overflow: 'hidden', minHeight: 240 }}>
-                      <video width="100%" height="100%" controls style={{ minHeight: 240 }}>
-                        <source src={URL.createObjectURL(videoFile)} />
-                        Tu navegador no soporta la previsualización de video.
-                      </video>
-                    </Box>
-                  </Box>
-                )}
-              </Box>
+            
+            {/* Sección de Videos */}
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
+                Videos de la Propiedad
+              </Typography>
+              <PropertyVideoUpload
+                videos={propertyVideos}
+                onChange={setPropertyVideos}
+                maxVideos={5}
+                disabled={isLoading}
+              />
             </Grid>
             {/* Botones */}
             <Grid item xs={12}>
@@ -1387,7 +1510,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ onSubmit, isLoading = false
                   disabled={isLoading}
                   startIcon={isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
                 >
-                  {isLoading ? 'Creando...' : 'Crear Propiedad'}
+                  {isLoading 
+                    ? (isEditMode ? 'Actualizando...' : 'Creando...') 
+                    : (isEditMode ? 'Actualizar Propiedad' : 'Crear Propiedad')
+                  }
                 </Button>
               </Box>
             </Grid>

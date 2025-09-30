@@ -159,10 +159,9 @@ class AdvancedRatingViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='rating_marked_helpful',
                 description=f'Marked rating {rating.id} as helpful',
-                details={'rating_id': str(rating.id)},
+                metadata={'rating_id': str(rating.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
             
             return Response({'message': 'Calificación marcada como útil'})

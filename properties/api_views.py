@@ -347,11 +347,19 @@ class PropertyVideoViewSet(viewsets.ModelViewSet):
     permission_classes = [CanEditProperty]
     
     def get_queryset(self):
-        """Filtra videos por propiedad."""
+        """Filtra videos por propiedad o permite acceso directo."""
         property_id = self.kwargs.get('property_pk')
         if property_id:
+            # URL anidada: /properties/{property_pk}/videos/
             return self.queryset.filter(property_id=property_id)
-        return self.queryset.none()
+        
+        # URL directa: /property-videos/{id}/ - permitir acceso si el usuario es propietario
+        request = getattr(self, 'request', None)
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            # Filtrar solo videos de propiedades que le pertenecen al usuario
+            return self.queryset.filter(property__landlord=request.user)
+        
+        return self.queryset.all()  # Cambiar a all() en lugar de none()
     
     def perform_create(self, serializer):
         """Personalizar la creación de videos."""
@@ -374,10 +382,9 @@ class PropertyVideoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_video_create',
                 description=f'Agregar video a propiedad {video.property.title}',
-                details={'property_id': str(video.property.id), 'video_id': str(video.id)},
+                metadata={'property_id': str(video.property.id), 'video_id': str(video.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
 
 
@@ -695,3 +702,128 @@ class ToggleFavoriteAPIView(APIView):
                 {'error': 'Propiedad no encontrada'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class PropertyVideoDetailAPIView(APIView):
+    """Vista para operaciones específicas de videos de propiedades."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_video(self, video_id):
+        """Obtiene video por ID."""
+        try:
+            return PropertyVideo.objects.get(id=video_id)
+        except PropertyVideo.DoesNotExist:
+            return None
+    
+    def delete(self, request, video_id):
+        """Elimina un video específico."""
+        video = self.get_video(video_id)
+        if not video:
+            return Response(
+                {'error': 'Video no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verificar permisos - el usuario debe ser el dueño de la propiedad
+        if video.property.landlord != request.user:
+            return Response(
+                {'error': 'No tienes permisos para eliminar este video'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Eliminar archivo de video si existe
+        if video.video:
+            video.video.delete(save=False)
+        
+        # Guardar información para log
+        property_title = video.property.title
+        video_title = video.title
+        
+        # Eliminar video
+        video.delete()
+        
+        # Log de actividad
+        from users.models import UserActivityLog
+        UserActivityLog.objects.create(
+            user=request.user,
+            activity_type='property_video_delete',
+            description=f'Eliminar video "{video_title}" de propiedad "{property_title}"',
+            metadata={'video_id': video_id, 'property_id': str(video.property.id)},
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        )
+        
+        return Response(
+            {'message': f'Video "{video_title}" eliminado exitosamente'},
+            status=status.HTTP_200_OK
+        )
+    
+    def put(self, request, video_id):
+        """Actualiza un video específico."""
+        video = self.get_video(video_id)
+        if not video:
+            return Response(
+                {'error': 'Video no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verificar permisos
+        if video.property.landlord != request.user:
+            return Response(
+                {'error': 'No tienes permisos para editar este video'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Actualizar video
+        serializer = PropertyVideoSerializer(video, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PropertyVideoUploadAPIView(APIView):
+    """Vista para subir videos a propiedades."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, property_id):
+        """Sube un nuevo video a la propiedad."""
+        try:
+            property_obj = Property.objects.get(id=property_id)
+        except Property.DoesNotExist:
+            return Response(
+                {'error': 'Propiedad no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verificar permisos
+        if property_obj.landlord != request.user:
+            return Response(
+                {'error': 'No tienes permisos para agregar videos a esta propiedad'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Agregar la propiedad a los datos
+        data = request.data.copy()
+        data['property'] = property_obj.id
+        
+        # Crear video
+        serializer = PropertyVideoSerializer(data=data)
+        if serializer.is_valid():
+            video = serializer.save(property=property_obj)
+            
+            # Log de actividad
+            from users.models import UserActivityLog
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='property_video_create',
+                description=f'Agregar video "{video.title}" a propiedad "{property_obj.title}"',
+                metadata={'video_id': str(video.id), 'property_id': str(property_obj.id)},
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            )
+            
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

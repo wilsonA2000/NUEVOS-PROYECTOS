@@ -47,38 +47,79 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   className,
   style,
 }) => {
+  console.log('🖼️ PropertyImage component render:', { src, alt, width, height });
+  
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Generar URLs optimizadas
+  // ULTIMATE FIX: Absolute simplification - NO optimization interference
   const optimizedSrc = React.useMemo(() => {
-    if (webpSupport) {
-      return imageUtils.convertUrl(src, 'webp');
+    console.log('🔍 PropertyImage RAW INPUT:', { src, type: typeof src });
+    
+    if (!src || typeof src !== 'string' || src.trim() === '') {
+      console.log('❌ PropertyImage: Invalid/empty src, using placeholder');
+      return '/placeholder-property.jpg';
     }
-    return src;
-  }, [src, webpSupport]);
+    
+    const cleanSrc = src.trim();
+    console.log('🧼 PropertyImage CLEANED SRC:', cleanSrc);
+    
+    // ZERO INTERFERENCE: All HTTP URLs pass through untouched
+    if (cleanSrc.startsWith('http://') || cleanSrc.startsWith('https://')) {
+      console.log('🚀 PropertyImage: HTTP URL DIRECT PASSTHROUGH:', cleanSrc);
+      return cleanSrc;
+    }
+    
+    // For relative URLs, prefix with base URL
+    if (cleanSrc.startsWith('/media/') || cleanSrc.startsWith('media/')) {
+      const baseUrl = 'http://127.0.0.1:8001';
+      const fullUrl = baseUrl + (cleanSrc.startsWith('/') ? cleanSrc : '/' + cleanSrc);
+      console.log('🔗 PropertyImage: RELATIVE TO ABSOLUTE:', { cleanSrc, fullUrl });
+      return fullUrl;
+    }
+    
+    // Fallback for any other path format
+    console.log('✅ PropertyImage: Using original src as fallback:', cleanSrc);
+    return cleanSrc;
+  }, [src]);
 
-  // URLs para progressive loading
+  // URLs para progressive loading - SIMPLIFICADO
   const lowQualitySrc = React.useMemo(() => {
-    if (progressive) {
-      return imageUtils.addSizeToUrl(src, 'small');
+    if (!progressive || !optimizedSrc) return optimizedSrc;
+    
+    // Solo aplicar progressive loading si imageUtils está disponible
+    if (imageUtils?.addSizeToUrl) {
+      try {
+        return imageUtils.addSizeToUrl(optimizedSrc, 'small');
+      } catch (error) {
+        console.log('⚠️ PropertyImage: Progressive loading failed, using original');
+        return optimizedSrc;
+      }
     }
     return optimizedSrc;
-  }, [src, progressive, optimizedSrc]);
+  }, [progressive, optimizedSrc]);
 
   const highQualitySrc = React.useMemo(() => {
-    if (progressive) {
-      const qualityMap = {
-        low: 'medium',
-        medium: 'large',
-        high: 'xlarge'
-      };
-      return imageUtils.addSizeToUrl(optimizedSrc, qualityMap[quality]);
+    if (!progressive || !optimizedSrc) return optimizedSrc;
+    
+    // Solo aplicar progressive loading si imageUtils está disponible
+    if (imageUtils?.addSizeToUrl) {
+      try {
+        const qualityMap = {
+          low: 'medium',
+          medium: 'large',
+          high: 'xlarge'
+        };
+        return imageUtils.addSizeToUrl(optimizedSrc, qualityMap[quality]);
+      } catch (error) {
+        console.log('⚠️ PropertyImage: High quality loading failed, using original');
+        return optimizedSrc;
+      }
     }
     return optimizedSrc;
-  }, [optimizedSrc, progressive, quality]);
+  }, [progressive, optimizedSrc, quality]);
 
   // Hook para lazy loading
   const { imgRef: lazyRef, isLoaded: isLazyLoaded, isInView, error: lazyError } = useLazyImage(
@@ -92,25 +133,28 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
     highQualitySrc
   );
 
-  // Determinar la fuente final
+  // ULTIMATE ENGINEERING: Zero-complexity source determination
   const finalSrc = React.useMemo(() => {
-    if (loading === 'eager') {
-      return progressive ? progressiveSrc : optimizedSrc;
+    console.log('🎯 PropertyImage FINAL SRC DETERMINATION:', { optimizedSrc, loading, isInView });
+    
+    // Fail fast on invalid sources
+    if (!optimizedSrc || typeof optimizedSrc !== 'string' || optimizedSrc.trim() === '') {
+      console.log('❌ PropertyImage: Invalid final source, using placeholder');
+      return '/placeholder-property.jpg';
     }
-    return isInView ? (progressive ? progressiveSrc : optimizedSrc) : null;
-  }, [loading, progressive, progressiveSrc, optimizedSrc, isInView]);
+    
+    // Skip lazy loading check for now to debug
+    // if (loading === 'lazy' && !isInView) {
+    //   return null;
+    // }
+    
+    // Direct return - no more complexity
+    console.log('✅ PropertyImage: USING FINAL SRC:', optimizedSrc);
+    return optimizedSrc;
+  }, [optimizedSrc]);
 
-  // Generar srcSet si no se proporciona
-  const finalSrcSet = React.useMemo(() => {
-    if (srcSet) return srcSet;
-    
-    if (webpSupport) {
-      const baseSrc = imageUtils.convertUrl(src, 'webp');
-      return imageUtils.generateSrcSet(baseSrc, ['300', '600', '900', '1200']);
-    }
-    
-    return imageUtils.generateSrcSet(src, ['300', '600', '900', '1200']);
-  }, [srcSet, src, webpSupport]);
+  // DISABLE SRCSET FOR DEBUGGING
+  const finalSrcSet = undefined;
 
   // Placeholder optimizado
   const placeholderSrc = React.useMemo(() => {
@@ -120,12 +164,21 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   }, [width, height]);
 
   const handleLoad = () => {
+    console.log('✅ PropertyImage loaded successfully:', src);
     setImageLoaded(true);
     setShowLoader(false);
     onLoad?.();
   };
 
-  const handleError = () => {
+  const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const imgElement = event.target as HTMLImageElement;
+    console.error('❌ PropertyImage LOAD FAILED:', {
+      originalSrc: src,
+      finalSrc: finalSrc,
+      imageSrc: imgElement.src,
+      errorType: 'Image load error',
+      timestamp: new Date().toISOString()
+    });
     setImageError(true);
     setShowLoader(false);
     onError?.();
@@ -198,33 +251,19 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
         </Box>
       )}
 
-      {/* Imagen principal */}
+      {/* SIMPLIFIED IMAGE - NO PICTURE ELEMENT */}
       {finalSrc && !imageError && (
-        <picture>
-          {/* Source para WebP si es soportado */}
-          {webpSupport && (
-            <source
-              srcSet={finalSrcSet}
-              sizes={sizes || '(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw'}
-              type="image/webp"
-            />
-          )}
-          
-          {/* Fallback para otros formatos */}
-          <img
-            ref={combinedRef}
-            src={finalSrc}
-            srcSet={finalSrcSet}
-            sizes={sizes || '(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw'}
-            alt={alt}
-            style={imageStyle}
-            onLoad={handleLoad}
-            onError={handleError}
-            onLoadStart={handleLoadStart}
-            loading={loading}
-            decoding="async"
-          />
-        </picture>
+        <img
+          ref={combinedRef}
+          src={finalSrc}
+          alt={alt}
+          style={imageStyle}
+          onLoad={handleLoad}
+          onError={handleError}
+          onLoadStart={handleLoadStart}
+          loading="eager"
+          decoding="async"
+        />
       )}
 
       {/* Error fallback */}

@@ -107,6 +107,7 @@ class User(AbstractUser):
         'Fuente de registro',
         max_length=20,
         choices=[
+            ('direct', 'Directo'),
             ('google', 'Google'),
             ('facebook', 'Facebook'),
             ('instagram', 'Instagram'),
@@ -114,10 +115,74 @@ class User(AbstractUser):
             ('advertisement', 'Anuncio'),
             ('other', 'Otro'),
         ],
+        default='direct',
         null=True,
         blank=True
     )
     marketing_consent = models.BooleanField('Consentimiento de marketing', default=False)
+    
+    # Información adicional de verificación y seguridad
+    current_address = models.TextField('Dirección actual', blank=True)
+    family_size = models.PositiveIntegerField('Tamaño de familia', default=1)
+    pets = models.BooleanField('Tiene mascotas', default=False)
+    rental_history = models.BooleanField('Historial de arrendamiento', default=False)
+    
+    # Información específica para arrendadores
+    total_properties = models.PositiveIntegerField('Total de propiedades', default=0)
+    years_experience = models.PositiveIntegerField('Años de experiencia', default=0)
+    company_name = models.CharField('Nombre de la empresa', max_length=200, blank=True)
+    
+    # Información específica para prestadores de servicios
+    business_name = models.CharField('Nombre del negocio', max_length=200, blank=True)
+    service_category = models.CharField(
+        'Categoría de servicio',
+        max_length=50,
+        choices=[
+            ('maintenance', 'Mantenimiento'),
+            ('cleaning', 'Limpieza'),
+            ('security', 'Seguridad'),
+            ('gardening', 'Jardinería'),
+            ('electrical', 'Electricidad'),
+            ('plumbing', 'Plomería'),
+            ('painting', 'Pintura'),
+            ('moving', 'Mudanzas'),
+            ('other', 'Otro'),
+        ],
+        blank=True
+    )
+    hourly_rate = models.DecimalField(
+        'Tarifa por hora',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    hourly_rate_currency = models.CharField(
+        'Moneda de tarifa',
+        max_length=3,
+        choices=[
+            ('COP', 'Pesos Colombianos'),
+            ('USD', 'Dólares Americanos'),
+        ],
+        default='COP'
+    )
+    
+    # Información específica para arrendatarios
+    budget_range = models.CharField(
+        'Rango de presupuesto',
+        max_length=20,
+        choices=[
+            ('low', 'Económico'),
+            ('medium', 'Medio'),
+            ('high', 'Alto'),
+            ('luxury', 'Premium'),
+        ],
+        default='medium'
+    )
+    move_in_date = models.DateField('Fecha deseada de ingreso', null=True, blank=True)
+    
+    avatar = models.ImageField('Avatar', upload_to='avatars/', null=True, blank=True)
+    
     interview_code = models.OneToOneField(
         'InterviewCode',
         on_delete=models.SET_NULL,

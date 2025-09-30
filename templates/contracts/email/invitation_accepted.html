@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitación Aceptada - VeriHome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .success-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .success-icon .icon {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background-color: #10b981;
+            border-radius: 50%;
+            color: white;
+            font-size: 40px;
+            line-height: 80px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        .contract-info {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border-left: 5px solid #10b981;
+        }
+        .contract-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #059669;
+        }
+        .next-steps {
+            background-color: #fef7cd;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        .steps-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 600;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>✅ ¡Invitación Aceptada!</h1>
+            <p>VeriHome - Plataforma de Gestión de Arriendos</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <div class="icon">✓</div>
+            </div>
+
+            <!-- Greeting -->
+            <div class="greeting">
+                ¡Hola {{ landlord_name }}!
+            </div>
+
+            <!-- Main Message -->
+            <p>Te informamos que <strong>{{ tenant_name }}</strong> ha aceptado tu invitación para el contrato de arrendamiento.</p>
+
+            <!-- Contract Info -->
+            <div class="contract-info">
+                <div class="contract-title">
+                    📋 Contrato {{ contract_number }}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">🏠 Propiedad:</span> {{ property_address }}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">👤 Arrendatario:</span> {{ tenant_name }}
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📅 Fecha de Aceptación:</span> {{ "now"|date:"d \d\e F \d\e Y \a \l\a\s H:i" }}
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3 style="margin-bottom: 15px; color: #92400e;">🎯 Próximos Pasos</h3>
+                <ul class="steps-list">
+                    <li>
+                        <span class="step-number">1</span>
+                        <span>El arrendatario está completando sus datos personales</span>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <span>Recibirás una notificación cuando termine</span>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <span>Podrás revisar la información y proceder con las firmas</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{ contract_url }}" class="cta-button">
+                    🔗 Ver Estado del Contrato
+                </a>
+            </div>
+
+            <p style="margin-top: 30px; color: #64748b;">
+                Mantente atento a tu email para recibir actualizaciones sobre el progreso del contrato.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>VeriHome</strong> - Plataforma de Gestión de Arriendos</p>
+            <p>
+                ¿Necesitas ayuda? Contáctanos en 
+                <a href="mailto:soporte@verihome.com" style="color: #2563eb;">soporte@verihome.com</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

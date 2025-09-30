@@ -106,7 +106,7 @@ const Compose: React.FC = () => {
         content,
         related_property: selectedProperty,
         related_contract: selectedContract,
-        priority: 'normal',
+        priority: 'medium',
         attachments: [], // TODO: Implement file upload
       });
       if (!response.ok) {

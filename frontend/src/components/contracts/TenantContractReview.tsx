@@ -31,6 +31,7 @@ import {
   Warning as WarningIcon
 } from '@mui/icons-material';
 import { contractService } from '../../services/contractService';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
 
 interface TenantContractReviewProps {
   contract: {
@@ -109,6 +110,10 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-CO');
+  };
+
+  const handleViewProfessionalContract = (contractId: string) => {
+    viewContractPDF(contractId);
   };
 
   return (
@@ -206,14 +211,16 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
             </Button>
           </Stack>
           
-          <Button
-            variant="outlined"
-            startIcon={<ViewIcon />}
-            href={`/app/contracts/${contract.id}`}
-            target="_blank"
-          >
-            Ver Detalles
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<ViewIcon />}
+              onClick={() => handleViewProfessionalContract(contract.id)}
+            >
+              📄 Ver Contrato Profesional
+            </Button>
+          </Stack>
         </CardActions>
       </Card>
 

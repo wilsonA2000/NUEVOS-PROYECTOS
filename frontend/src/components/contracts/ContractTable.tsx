@@ -26,7 +26,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
-  Add as AddIcon,
   FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -211,13 +210,6 @@ export const ContractTable: React.FC = () => {
       <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h6">Lista de Contratos</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/contracts/new')}
-          >
-            Nuevo Contrato
-          </Button>
         </Box>
 
         {/* Filtros personalizados */}

@@ -34,7 +34,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
 import { useAuth } from '../../hooks/useAuth';
-import MessageList from './MessageList';
+import { MessageList } from '../../components/messages/MessageList';
 import Templates from './Templates';
 import Folders from './Folders';
 import MessagingStats from './MessagingStats';

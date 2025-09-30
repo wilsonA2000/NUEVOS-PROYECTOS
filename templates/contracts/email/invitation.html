@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitación de Contrato de Arrendamiento - VeriHome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        .property-card {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border-left: 5px solid #2563eb;
+        }
+        .property-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        .property-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .detail-value.highlight {
+            color: #2563eb;
+            font-size: 18px;
+        }
+        .message-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #475569;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        .info-section {
+            background-color: #fef7cd;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #f59e0b;
+            border-radius: 50%;
+            margin-right: 8px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            line-height: 20px;
+        }
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .steps-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .steps-list li:last-child {
+            border-bottom: none;
+        }
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 600;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .footer .contact {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .security-note {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #0c4a6e;
+        }
+        .expires-warning {
+            background-color: #fef2f2;
+            border: 1px solid #f87171;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            color: #dc2626;
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .content {
+                padding: 30px 20px;
+            }
+            .property-details {
+                grid-template-columns: 1fr;
+            }
+            .cta-button {
+                display: block;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📧 Invitación de Contrato</h1>
+            <p>VeriHome - Plataforma de Gestión de Arriendos</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Greeting -->
+            <div class="greeting">
+                ¡Hola {{ tenant_name }}!
+            </div>
+
+            <!-- Personal Message -->
+            {% if personal_message %}
+            <div class="message-box">
+                "{{ personal_message }}"
+                <br><br>
+                <strong>- {{ landlord_name }}</strong>
+            </div>
+            {% endif %}
+
+            <!-- Main Message -->
+            <p>Te invitamos cordialmente a revisar y participar en el proceso de contrato de arrendamiento para la siguiente propiedad:</p>
+
+            <!-- Property Card -->
+            <div class="property-card">
+                <div class="property-title">
+                    🏠 {{ property_address }}
+                </div>
+                <p>Contrato No. <strong>{{ contract_number }}</strong></p>
+                
+                <div class="property-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Canon Mensual</span>
+                        <span class="detail-value highlight">${{ monthly_rent|floatformat:0 }} COP</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Depósito de Garantía</span>
+                        <span class="detail-value">${{ security_deposit|floatformat:0 }} COP</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duración</span>
+                        <span class="detail-value">{{ contract_duration }} meses</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Arrendador</span>
+                        <span class="detail-value">{{ landlord_name }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{ invitation_url }}" class="cta-button">
+                    🔗 Revisar Contrato y Continuar
+                </a>
+            </div>
+
+            <!-- Process Steps -->
+            <div class="info-section">
+                <div>
+                    <span class="info-icon">ℹ</span>
+                    <strong>¿Qué sucede después?</strong>
+                </div>
+            </div>
+
+            <ul class="steps-list">
+                <li>
+                    <span class="step-number">1</span>
+                    <span>Revisarás los términos completos del contrato</span>
+                </li>
+                <li>
+                    <span class="step-number">2</span>
+                    <span>Completarás tus datos personales y referencias</span>
+                </li>
+                <li>
+                    <span class="step-number">3</span>
+                    <span>Podrás presentar objeciones si algo no te parece correcto</span>
+                </li>
+                <li>
+                    <span class="step-number">4</span>
+                    <span>Una vez acordados los términos, procederás con la firma digital</span>
+                </li>
+                <li>
+                    <span class="step-number">5</span>
+                    <span>El contrato tendrá vida jurídica una vez firmado por ambas partes</span>
+                </li>
+            </ul>
+
+            <!-- Security Note -->
+            <div class="security-note">
+                🔒 <strong>Seguridad Garantizada:</strong> Este enlace es único y seguro. Solo tú puedes acceder a él. 
+                Utilizamos autenticación biométrica para garantizar la identidad de los firmantes.
+            </div>
+
+            <!-- Expiration Warning -->
+            <div class="expires-warning">
+                ⏰ <strong>Importante:</strong> Esta invitación expira el {{ expires_at|date:"d \d\e F \d\e Y \a \l\a\s H:i" }}.
+                No podrás acceder después de esa fecha.
+            </div>
+
+            <!-- Additional Info -->
+            <p style="margin-top: 30px; color: #64748b;">
+                Si tienes alguna pregunta sobre el contrato o el proceso, no dudes en contactar directamente 
+                al arrendador o a nuestro equipo de soporte.
+            </p>
+
+            <!-- Alternative Access -->
+            <div style="margin-top: 20px; padding: 16px; background-color: #f8fafc; border-radius: 8px; font-size: 14px;">
+                <strong>¿No puedes hacer clic en el botón?</strong><br>
+                Copia y pega este enlace en tu navegador:<br>
+                <code style="word-break: break-all; color: #2563eb;">{{ invitation_url }}</code>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>VeriHome</strong> - Plataforma de Gestión de Arriendos</p>
+            <p>
+                ¿Necesitas ayuda? Contáctanos en 
+                <a href="mailto:soporte@verihome.com" class="contact">soporte@verihome.com</a>
+            </p>
+            <p style="margin-top: 16px; font-size: 12px; color: #94a3b8;">
+                Este mensaje fue enviado desde una dirección que no acepta respuestas. 
+                Si necesitas asistencia, utiliza nuestros canales de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

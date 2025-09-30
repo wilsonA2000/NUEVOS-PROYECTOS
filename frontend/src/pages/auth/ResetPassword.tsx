@@ -14,6 +14,7 @@ import { useAuth } from '../../hooks/useAuth';
 export const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const uid = searchParams.get('uid');
   const navigate = useNavigate();
   const { resetPassword } = useAuth();
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ export const ResetPassword: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    if (!token) {
+    if (!token || !uid) {
       setError('Token de restablecimiento no válido');
       return;
     }
@@ -52,7 +53,7 @@ export const ResetPassword: React.FC = () => {
     }
 
     try {
-      await resetPassword(token, formData.password);
+      await resetPassword(token, formData.password, uid);
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
@@ -62,7 +63,7 @@ export const ResetPassword: React.FC = () => {
     }
   };
 
-  if (!token) {
+  if (!token || !uid) {
     return (
       <Container maxWidth="sm">
         <Box sx={{ mt: 8 }}>

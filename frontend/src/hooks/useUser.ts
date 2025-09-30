@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { userService } from '../services/userService';
 
 export interface User {
   id: string;
@@ -46,7 +47,7 @@ export const useUser = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     if (token) {
       fetchUser();
     } else {

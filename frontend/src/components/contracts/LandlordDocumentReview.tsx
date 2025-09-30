@@ -124,7 +124,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       console.log(`🔍 Loading document checklist for process ${processId}`);
       const response = await fetch(`/api/v1/requests/api/documents/process/${processId}/checklist/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -168,7 +168,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       const response = await fetch(`/api/v1/requests/api/documents/${selectedDocument.id}/review/`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(reviewData),
@@ -191,7 +191,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       // Verificar si todos los documentos están aprobados
       const updatedResponse = await fetch(`/api/v1/requests/api/documents/process/${processId}/checklist/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -334,7 +334,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                   onClick={() => {
                     console.log('🔍 Opening document URL:', doc.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
-                    const backendUrl = 'http://localhost:8000';  // Django backend
+                    const backendUrl = 'http://localhost:8001';  // Django backend
                     const fullUrl = doc.file_url.startsWith('/') 
                       ? `${backendUrl}${doc.file_url}`
                       : doc.file_url;
@@ -537,7 +537,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                   onClick={() => {
                     console.log('🔍 Opening document from modal:', selectedDocument.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
-                    const backendUrl = 'http://localhost:8000';  // Django backend
+                    const backendUrl = 'http://localhost:8001';  // Django backend
                     const fullUrl = selectedDocument.file_url.startsWith('/') 
                       ? `${backendUrl}${selectedDocument.file_url}`
                       : selectedDocument.file_url;

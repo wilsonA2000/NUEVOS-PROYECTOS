@@ -31,6 +31,13 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
+  AlertTitle,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -48,6 +55,7 @@ import {
   Person as PersonIcon,
   AttachMoney as MoneyIcon,
   CalendarToday as CalendarIcon,
+  Security as SecurityIcon,
   LocationOn as LocationIcon,
   Business as LandlordIcon,
   TaskAlt as TaskIcon,
@@ -67,8 +75,9 @@ import {
 import { Contract } from '../../types/contract';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-import TenantContractView from './TenantContractView';
 import TenantContractReview from './TenantContractReview';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
+import api from '../../services/api';
 
 interface TenantAction {
   id: string;
@@ -87,8 +96,13 @@ const TenantContractsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState<LandlordControlledContractData[]>([]);
   const [pendingReviewContracts, setPendingReviewContracts] = useState<Contract[]>([]);
+  const [workflowProcesses, setWorkflowProcesses] = useState<any[]>([]); // Procesos del workflow
   const [error, setError] = useState<string>('');
   const [activeStep, setActiveStep] = useState(0);
+  const [approvingContract, setApprovingContract] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{open: boolean, contractId: string | null}>({open: false, contractId: null});
+  const [successDialog, setSuccessDialog] = useState<{open: boolean, title: string, message: string}>({open: false, title: '', message: ''});
+  const [errorDialog, setErrorDialog] = useState<{open: boolean, title: string, message: string}>({open: false, title: '', message: ''}); // ID del contrato siendo aprobado
 
   useEffect(() => {
     loadTenantContracts();
@@ -99,7 +113,32 @@ const TenantContractsDashboard: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // Cargar contratos del workflow del arrendador
+      // Cargar procesos del workflow (PRIORIDAD)
+      try {
+        const token = localStorage.getItem('access_token');
+        const workflowResponse = await fetch('http://localhost:8001/api/v1/contracts/tenant-processes/', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (workflowResponse.ok) {
+          const data = await workflowResponse.json();
+          // El backend devuelve {results: [...], count: N}
+          const processes = data.results || (Array.isArray(data) ? data : []);
+          setWorkflowProcesses(processes);
+          console.log('📋 Loaded workflow processes:', processes.length);
+        } else {
+          throw new Error(`HTTP ${workflowResponse.status}`);
+        }
+      } catch (workflowError) {
+        console.warn('Could not load workflow processes:', workflowError);
+        setWorkflowProcesses([]);
+      }
+      
+      // Cargar contratos del workflow del arrendador (SECUNDARIO)
       const response = await LandlordContractService.getTenantContracts();
       
       // La respuesta puede tener la estructura { contracts: [], pagination: {} }
@@ -120,6 +159,74 @@ const TenantContractsDashboard: React.FC = () => {
       setPendingReviewContracts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para aprobar contrato como arrendatario
+  const handleApproveContract = async (contractId: string) => {
+    if (!contractId) {
+      setErrorDialog({
+        open: true,
+        title: '❌ Error',
+        message: 'ID de contrato no encontrado'
+      });
+      return;
+    }
+
+    // Abrir modal de confirmación personalizado
+    setConfirmDialog({ open: true, contractId });
+  };
+
+  // Función para confirmar la aprobación del contrato
+  const handleConfirmApproval = async () => {
+    const contractId = confirmDialog.contractId;
+    if (!contractId) return;
+
+    setConfirmDialog({ open: false, contractId: null });
+
+    try {
+      setApprovingContract(contractId);
+
+      // Llamar al endpoint específico para aprobar contrato desde el workflow
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8001/api/v1/contracts/tenant/contracts/${contractId}/approve_contract/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          approved: true,
+          tenant_notes: 'Aprobado desde el dashboard del arrendatario',
+          confirm_understanding: true
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Contract approved successfully:', result);
+
+        setSuccessDialog({
+          open: true,
+          title: '🎉 ¡Contrato Aprobado Exitosamente!',
+          message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.'
+        });
+
+        // Recargar los datos para reflejar el cambio
+        await loadTenantContracts();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `HTTP ${response.status}`);
+      }
+    } catch (error: any) {
+      console.error('❌ Error approving contract:', error);
+      setErrorDialog({
+        open: true,
+        title: '❌ Error al Aprobar el Contrato',
+        message: error.message || 'Error desconocido'
+      });
+    } finally {
+      setApprovingContract(null);
     }
   };
 
@@ -501,10 +608,268 @@ const TenantContractsDashboard: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Tenant Contract View Section */}
-        <Box sx={{ mb: 4 }}>
-          <TenantContractView />
-        </Box>
+        {/* Procesos del Workflow - PRIORIDAD ALTA */}
+        {workflowProcesses.length > 0 && (
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <HomeIcon sx={{ mr: 1, color: 'primary.main' }} />
+              🏠 Procesos Activos ({workflowProcesses.length})
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Tus procesos de arrendamiento en curso con PDF profesional
+            </Typography>
+            {workflowProcesses.map(process => (
+              <Card key={process.id} sx={{ mb: 2 }}>
+                <CardContent>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={8}>
+                      <Typography variant="h6" gutterBottom>
+                        {process.property?.title || 'Propiedad'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {process.property?.address}
+                      </Typography>
+                      <Typography variant="subtitle1" color="primary" gutterBottom>
+                        Canon: ${process.property?.rent_price?.toLocaleString()}/mes
+                      </Typography>
+                      
+                      {/* Estado del proceso mejorado */}
+                      <Box sx={{ mt: 2 }}>
+                        {/* Mostrar el estado actual de manera más clara */}
+                        {(process.status === 'biometric_pending' ||
+                          process.status === 'pending_biometric_authentication' ||
+                          process.workflow_status === 'pending_tenant_biometric' ||
+                          (process.workflow_stage === 4 && process.workflow_data?.contract_created?.tenant_approved)) ? (
+                          <>
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                              <AlertTitle>⏳ Autenticación Biométrica Pendiente</AlertTitle>
+                              <Typography variant="body2">
+                                Tu contrato ha sido aprobado. El siguiente paso es completar la
+                                autenticación biométrica para activar el contrato.
+                              </Typography>
+                            </Alert>
+                            <Chip
+                              label="Etapa 4: Esperando Autenticación Biométrica"
+                              color="warning"
+                              variant="filled"
+                              icon={<SecurityIcon />}
+                              sx={{ mb: 1 }}
+                            />
+                          </>
+                        ) : process.status === 'contract_approved_by_tenant' ? (
+                          <>
+                            <Alert severity="success" sx={{ mb: 2 }}>
+                              <AlertTitle>✅ Contrato Aprobado por Ti</AlertTitle>
+                              <Typography variant="body2">
+                                Has aprobado el contrato exitosamente. Ahora el arrendador debe revisar
+                                y aprobar para continuar al siguiente paso de autenticación biométrica.
+                              </Typography>
+                            </Alert>
+                            <Chip
+                              label="Etapa 3: Esperando aprobación del arrendador"
+                              color="warning"
+                              variant="filled"
+                              icon={<InfoIcon />}
+                              sx={{ mb: 1 }}
+                            />
+                          </>
+                        ) : process.status === 'contract_pending_tenant_approval' ? (
+                          <>
+                            <Alert severity="warning" sx={{ mb: 2 }}>
+                              <AlertTitle>📋 Contrato Listo para Revisión</AlertTitle>
+                              <Typography variant="body2">
+                                El arrendador ha creado el contrato. ¡Es tu turno de revisarlo y aprobarlo!
+                              </Typography>
+                            </Alert>
+                            <Chip
+                              label="Etapa 3: Revisión del Contrato - Tu Aprobación Requerida"
+                              color="warning"
+                              variant="filled"
+                              icon={<DocumentIcon />}
+                              sx={{ mb: 1 }}
+                            />
+                          </>
+                        ) : (
+                          <Chip
+                            label={`Etapa ${process.workflow_stage}: ${process.status}`}
+                            color="primary"
+                            variant="outlined"
+                            sx={{ mb: 1 }}
+                          />
+                        )}
+
+                        {/* Barra de progreso con etapas */}
+                        <Box sx={{ mt: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="caption">Progreso del Proceso</Typography>
+                            <Typography variant="caption">{Math.round((process.workflow_stage / 5) * 100)}%</Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={(process.workflow_stage / 5) * 100}
+                            sx={{ mb: 2, height: 8, borderRadius: 1 }}
+                          />
+
+                          {/* Lista de etapas */}
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="caption" color={process.workflow_stage >= 1 ? 'success.main' : 'text.disabled'}>
+                              ✓ Etapa 1: Solicitud enviada
+                            </Typography>
+                            <Typography variant="caption" color={process.workflow_stage >= 2 ? 'success.main' : 'text.disabled'}>
+                              ✓ Etapa 2: Visita completada
+                            </Typography>
+                            <Typography variant="caption" color={process.workflow_stage >= 3 ? 'success.main' : 'text.disabled'}>
+                              ✓ Etapa 3: Documentos aprobados
+                            </Typography>
+                            <Typography variant="caption" color={process.workflow_stage >= 4 ? 'warning.main' : 'text.disabled'}>
+                              {process.workflow_stage === 4 ? '⏳' : '○'} Etapa 4: Autenticación biométrica
+                            </Typography>
+                            <Typography variant="caption" color={process.workflow_stage >= 5 ? 'success.main' : 'text.disabled'}>
+                              ○ Etapa 5: Contrato activo
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={12} md={4}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* Acciones según el estado */}
+                        {(process.status === 'biometric_pending' ||
+                          process.status === 'pending_biometric_authentication' ||
+                          process.workflow_status === 'pending_tenant_biometric' ||
+                          (process.workflow_stage === 4 && process.workflow_data?.contract_created?.tenant_approved)) && (
+                          <>
+                            <Alert severity="success" sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                🎯 ¡Es tu turno! Debes iniciar la autenticación biométrica
+                              </Typography>
+                              <Typography variant="body2" sx={{ mt: 1 }}>
+                                📋 Orden del proceso:
+                              </Typography>
+                              <Box component="ol" sx={{ pl: 2, mt: 0.5, mb: 1 }}>
+                                <Typography component="li" variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                                  1. Tú (Arrendatario) ← AHORA
+                                </Typography>
+                                {process.workflow_data?.contract_created?.guarantor_id && (
+                                  <Typography component="li" variant="body2" color="text.secondary">
+                                    2. Garante/Codeudor ← Después
+                                  </Typography>
+                                )}
+                                <Typography component="li" variant="body2" color="text.secondary">
+                                  {process.workflow_data?.contract_created?.guarantor_id ? '3.' : '2.'} Arrendador ← Al final
+                                </Typography>
+                              </Box>
+                              <Typography variant="body2">
+                                💡 Una vez que completes tu verificación, {process.workflow_data?.contract_created?.guarantor_id ? 'el garante continuará y luego' : ''} el arrendador podrá proceder.
+                              </Typography>
+                            </Alert>
+
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="large"
+                              startIcon={<SecurityIcon />}
+                              onClick={() => {
+                                // Navegar a autenticación biométrica
+                                window.location.href = `/app/contracts/${process.workflow_data?.contract_created?.contract_id}/authenticate`;
+                              }}
+                              sx={{ mb: 1, py: 1.5 }}
+                            >
+                              🔐 INICIAR MI AUTENTICACIÓN BIOMÉTRICA
+                            </Button>
+
+                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
+                              ⚡ Proceso rápido y seguro - Toma menos de 5 minutos
+                            </Typography>
+                          </>
+                        )}
+
+                        {/* Acciones para contrato pendiente de aprobación del arrendatario */}
+                        {process.status === 'contract_pending_tenant_approval' && (
+                          <>
+                            <Alert severity="warning" sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                📋 ¡Tu revisión es requerida!
+                              </Typography>
+                              <Typography variant="body2" sx={{ mt: 1 }}>
+                                El arrendador ha creado el contrato y está esperando tu aprobación para continuar al siguiente paso.
+                              </Typography>
+                            </Alert>
+
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                size="medium"
+                                startIcon={<ViewIcon />}
+                                onClick={() => viewContractPDF(process.workflow_data?.contract_created?.contract_id)}
+                                fullWidth
+                              >
+                                📄 Ver Contrato PDF
+                              </Button>
+
+                              <Button
+                                variant="contained"
+                                color="success"
+                                size="large"
+                                startIcon={approvingContract === process.workflow_data?.contract_created?.contract_id ?
+                                  <CircularProgress size={16} color="inherit" /> : <TaskIcon />}
+                                onClick={() => handleApproveContract(process.workflow_data?.contract_created?.contract_id)}
+                                disabled={approvingContract === process.workflow_data?.contract_created?.contract_id}
+                                sx={{ py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+                                fullWidth
+                              >
+                                {approvingContract === process.workflow_data?.contract_created?.contract_id
+                                  ? '⏳ APROBANDO...'
+                                  : '✅ APROBAR Y CONTINUAR'
+                                }
+                              </Button>
+                            </Box>
+
+                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mb: 2 }}>
+                              💡 Revisa cuidadosamente todos los términos antes de aprobar
+                            </Typography>
+                          </>
+                        )}
+
+                        {/* Botón para ver contrato con PDF profesional */}
+                        {process.workflow_data?.contract_created && (
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<ViewIcon />}
+                            onClick={() => viewContractPDF(process.workflow_data.contract_created.contract_id)}
+                            size="small"
+                          >
+                            📄 Ver Contrato PDF
+                          </Button>
+                        )}
+
+                        {/* Información adicional */}
+                        {process.workflow_data?.contract_created && (
+                          <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Typography variant="caption" display="block" gutterBottom>
+                              <strong>Contrato No:</strong> {process.workflow_data.contract_created.contract_number}
+                            </Typography>
+                            <Typography variant="caption" display="block" gutterBottom>
+                              <strong>Creado:</strong> {new Date(process.workflow_data.contract_created.created_at).toLocaleDateString()}
+                            </Typography>
+                            {process.workflow_data.contract_created.tenant_approved && (
+                              <Typography variant="caption" display="block" color="success.main">
+                                <strong>✅ Aprobado:</strong> {new Date(process.workflow_data.contract_created.tenant_approved_at).toLocaleDateString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -594,8 +959,8 @@ const TenantContractsDashboard: React.FC = () => {
           </Grid>
         </Grid>
 
-        {/* Contratos pendientes de revisión */}
-        {pendingReviewContracts.length > 0 && (
+        {/* Contratos pendientes de revisión - Solo si NO hay procesos de workflow */}
+        {pendingReviewContracts.length > 0 && workflowProcesses.length === 0 && (
           <Box sx={{ mb: 4 }}>
             <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
               <WarningIcon sx={{ mr: 1, color: 'warning.main' }} />
@@ -675,6 +1040,110 @@ const TenantContractsDashboard: React.FC = () => {
           </Grid>
         </Paper>
       </Box>
+
+      {/* Dialog de Confirmación para Aprobar Contrato */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, contractId: null })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: 'warning.50', color: 'warning.main' }}>
+          ⚠️ Confirmación de Aprobación
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <DialogContentText sx={{ mb: 2 }}>
+            ¿Estás seguro de que quieres aprobar este contrato?
+          </DialogContentText>
+          <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Al aprobar el contrato:</strong>
+            </Typography>
+            <Typography variant="body2" component="ul" sx={{ m: 0, pl: 2 }}>
+              <li>Aceptas todos los términos y condiciones</li>
+              <li>El proceso avanzará a la etapa de autenticación biométrica</li>
+              <li>Esta decisión no se puede revertir fácilmente</li>
+            </Typography>
+          </Box>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              Asegúrate de haber revisado completamente el contrato antes de continuar.
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button
+            onClick={() => setConfirmDialog({ open: false, contractId: null })}
+            color="inherit"
+            variant="outlined"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmApproval}
+            color="success"
+            variant="contained"
+            disabled={approvingContract !== null}
+            startIcon={approvingContract ? <CircularProgress size={16} /> : null}
+          >
+            {approvingContract ? 'Aprobando...' : 'Sí, Aprobar Contrato'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de Éxito */}
+      <Dialog
+        open={successDialog.open}
+        onClose={() => setSuccessDialog({ open: false, title: '', message: '' })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: 'success.50', color: 'success.main', textAlign: 'center' }}>
+          {successDialog.title}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <DialogContentText sx={{ whiteSpace: 'pre-line' }}>
+            {successDialog.message}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', p: 3 }}>
+          <Button
+            onClick={() => setSuccessDialog({ open: false, title: '', message: '' })}
+            color="success"
+            variant="contained"
+            size="large"
+          >
+            Entendido
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de Error */}
+      <Dialog
+        open={errorDialog.open}
+        onClose={() => setErrorDialog({ open: false, title: '', message: '' })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: 'error.50', color: 'error.main' }}>
+          {errorDialog.title}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <DialogContentText sx={{ whiteSpace: 'pre-line' }}>
+            {errorDialog.message}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button
+            onClick={() => setErrorDialog({ open: false, title: '', message: '' })}
+            color="error"
+            variant="outlined"
+            fullWidth
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

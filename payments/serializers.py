@@ -9,6 +9,14 @@ from .models import (
 )
 # Importaciones de escrow y payment plans ahora están en models.py
 
+# Importar modelos de escrow integration
+try:
+    from .escrow_integration import ContractEscrowAccount, EscrowTransaction, EscrowReleaseRule
+except ImportError:
+    ContractEscrowAccount = None
+    EscrowTransaction = None
+    EscrowReleaseRule = None
+
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     """Serializer para métodos de pago."""
@@ -52,80 +60,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-# class PaymentSerializer(serializers.ModelSerializer):
-#     """Serializer para pagos mejorados."""
-#     
-#     payer_name = serializers.CharField(source='payer.get_full_name', read_only=True)
-#     payee_name = serializers.CharField(source='payee.get_full_name', read_only=True)
-#     
-#     class Meta:
-#         model = Payment
-#         fields = '__all__'
-#         read_only_fields = ('id', 'payment_number', 'created_at', 'processed_at', 'refunded_at')
-
-
-# class CreatePaymentSerializer(serializers.ModelSerializer):
-#     """Serializer para crear pagos."""
-#     
-#     class Meta:
-#         model = Payment
-#         fields = [
-#             'payee', 'amount', 'currency', 'payment_method', 'description',
-#             'contract', 'property', 'payment_type'
-#         ]
-
-
-# class EscrowAccountSerializer(serializers.ModelSerializer):
-#     """Serializer para cuentas de escrow mejorado."""
-#     
-#     depositor_name = serializers.CharField(source='depositor.get_full_name', read_only=True)
-#     beneficiary_name = serializers.CharField(source='beneficiary.get_full_name', read_only=True)
-#     
-#     class Meta:
-#         model = EscrowAccount
-#         fields = '__all__'
-#         read_only_fields = ('id', 'account_number', 'created_at', 'actual_release_date')
-
-
-# class EscrowMilestoneSerializer(serializers.ModelSerializer):
-#     """Serializer para hitos de escrow."""
-#     
-#     class Meta:
-#         model = EscrowMilestone
-#         fields = '__all__'
-#         read_only_fields = ('is_completed', 'completed_date', 'release_transaction')
-
-
-# class PaymentPlanSerializer(serializers.ModelSerializer):
-#     """Serializer para planes de pago mejorado."""
-#     
-#     debtor_name = serializers.CharField(source='debtor.get_full_name', read_only=True)
-#     creditor_name = serializers.CharField(source='creditor.get_full_name', read_only=True)
-#     installments_count = serializers.IntegerField(source='installments.count', read_only=True)
-#     paid_installments = serializers.SerializerMethodField()
-#     
-#     class Meta:
-#         model = PaymentPlan
-#         fields = '__all__'
-#         read_only_fields = ('id', 'plan_number', 'created_at', 'approved_at', 'total_paid', 'total_pending')
-#     
-#     def get_paid_installments(self, obj):
-#         return obj.installments.filter(status='paid').count()
-
-
-# class PaymentPlanInstallmentSerializer(serializers.ModelSerializer):
-#     """Serializer para cuotas de planes de pago."""
-#     
-#     is_overdue = serializers.SerializerMethodField()
-#     plan_number = serializers.CharField(source='payment_plan.plan_number', read_only=True)
-#     
-#     class Meta:
-#         model = PaymentPlanInstallment
-#         fields = '__all__'
-#         read_only_fields = ('paid_date', 'payment_transaction', 'late_fee_applied')
-#     
-#     def get_is_overdue(self, obj):
-        return obj.is_overdue()
 
 
 class RentPaymentScheduleSerializer(serializers.ModelSerializer):
@@ -263,4 +197,72 @@ class PaymentInstallmentSerializer(serializers.ModelSerializer):
         return obj.is_overdue()
     
     def get_total_amount_due(self, obj):
-        return obj.get_total_amount_due() 
+        return obj.get_total_amount_due()
+
+
+# Serializers para sistema de escrow integrado con contratos
+if ContractEscrowAccount:
+    class ContractEscrowAccountSerializer(serializers.ModelSerializer):
+        """Serializer para cuentas de escrow de contratos."""
+        
+        contract_code = serializers.CharField(source='contract.match_request.match_code', read_only=True)
+        property_title = serializers.CharField(source='contract.match_request.property.title', read_only=True)
+        tenant_name = serializers.CharField(source='contract.match_request.tenant.get_full_name', read_only=True)
+        landlord_name = serializers.CharField(source='contract.match_request.property.landlord.get_full_name', read_only=True)
+        escrow_progress = serializers.SerializerMethodField()
+        
+        class Meta:
+            model = ContractEscrowAccount
+            fields = '__all__'
+            read_only_fields = (
+                'id', 'contract_code', 'property_title', 'tenant_name', 'landlord_name',
+                'created_at', 'updated_at'
+            )
+        
+        def get_escrow_progress(self, obj):
+            """Calcula el progreso del escrow basado en transacciones."""
+            if obj.total_deposited == 0:
+                return 0
+            return int((obj.released_balance / obj.total_deposited) * 100)
+
+
+if EscrowTransaction:
+    class EscrowTransactionSerializer(serializers.ModelSerializer):
+        """Serializer para transacciones de escrow."""
+        
+        account_balance = serializers.DecimalField(source='escrow_account.available_balance', max_digits=12, decimal_places=2, read_only=True)
+        contract_code = serializers.CharField(source='escrow_account.contract.match_request.match_code', read_only=True)
+        
+        class Meta:
+            model = EscrowTransaction
+            fields = '__all__'
+            read_only_fields = (
+                'id', 'transaction_id', 'account_balance', 'contract_code',
+                'created_at', 'processed_at'
+            )
+
+
+if EscrowReleaseRule:
+    class EscrowReleaseRuleSerializer(serializers.ModelSerializer):
+        """Serializer para reglas de liberación de escrow."""
+        
+        is_active = serializers.SerializerMethodField()
+        days_until_trigger = serializers.SerializerMethodField()
+        
+        class Meta:
+            model = EscrowReleaseRule
+            fields = '__all__'
+            read_only_fields = ('id', 'created_at')
+        
+        def get_is_active(self, obj):
+            """Verifica si la regla está activa."""
+            from django.utils import timezone
+            return obj.trigger_date >= timezone.now().date() and obj.is_enabled
+        
+        def get_days_until_trigger(self, obj):
+            """Calcula días hasta que se active la regla."""
+            from django.utils import timezone
+            if obj.trigger_date:
+                delta = obj.trigger_date - timezone.now().date()
+                return delta.days if delta.days >= 0 else 0
+            return None 

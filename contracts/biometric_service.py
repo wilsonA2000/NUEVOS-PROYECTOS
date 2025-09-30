@@ -48,12 +48,16 @@ class BiometricAuthenticationService:
         try:
             logger.info(f"Iniciando autenticación biométrica para usuario {user.id} y contrato {contract.id}")
             
-            # Verificar que el usuario sea parte del contrato
-            if user not in [contract.primary_party, contract.secondary_party]:
+            # Verificar que el usuario sea parte del contrato (incluyendo garante)
+            allowed_users = [contract.primary_party, contract.secondary_party]
+            if contract.guarantor:
+                allowed_users.append(contract.guarantor)
+
+            if user not in allowed_users:
                 raise ValueError("El usuario no es parte de este contrato")
             
             # Verificar que el contrato esté en estado correcto
-            if contract.status not in ['ready_for_authentication', 'pending_authentication']:
+            if contract.status not in ['ready_for_authentication', 'pending_authentication', 'pending_biometric']:
                 raise ValueError(f"El contrato no está en estado válido para autenticación: {contract.status}")
             
             # Verificar si ya existe una autenticación activa
@@ -502,13 +506,9 @@ class BiometricAuthenticationService:
             
             auth.save()
             
-            # Actualizar estado del contrato
+            # NUEVO: Lógica de progresión secuencial
             contract = auth.contract
-            contract.status = 'authenticated_pending_signature'
-            contract.save(update_fields=['status'])
-            
-            # 🔥 NUEVO: Activar automáticamente el workflow del arrendatario
-            self._activate_tenant_workflow(contract)
+            self._handle_sequential_progression(auth, contract)
             
             result = {
                 'success': True,
@@ -869,6 +869,94 @@ Tu participación es esencial para activar el contrato de arrendamiento.
             logger.error(f"❌ Error activando workflow del arrendatario: {str(e)}")
             # No fallar el proceso principal, solo logear el error
             pass
+
+    def _handle_sequential_progression(self, auth, contract):
+        """Maneja la progresión secuencial del flujo biométrico."""
+        try:
+            from matching.models import MatchRequest
+
+            # Obtener el MatchRequest asociado
+            match_request = MatchRequest.objects.filter(
+                property=contract.property,
+            ).first()
+
+            if not match_request:
+                logger.warning(f"No se encontró MatchRequest para el contrato {contract.id}")
+                return
+
+            # Determinar tipo de usuario que completó
+            if auth.user == contract.secondary_party:
+                user_type = 'tenant'
+            elif auth.user == contract.guarantor:
+                user_type = 'guarantor'
+            elif auth.user == contract.primary_party:
+                user_type = 'landlord'
+            else:
+                user_type = 'unknown'
+
+            current_status = match_request.workflow_status
+
+            logger.info(f"🔄 Sequential progression - User: {user_type}, Current status: {current_status}")
+
+            # Progresión secuencial con soporte para garante (Tenant → Garante → Landlord)
+            if current_status in ['biometric_pending', 'pending_tenant_biometric'] and user_type == 'tenant':
+                # Arrendatario completó → verificar si hay garante
+                if contract.guarantor:
+                    match_request.workflow_status = 'pending_guarantor_biometric'
+                    contract.status = 'pending_guarantor_biometric'
+                    logger.info("✅ Tenant completed biometric → Now guarantor's turn")
+                else:
+                    # No hay garante, pasa directo al landlord
+                    match_request.workflow_status = 'pending_landlord_biometric'
+                    contract.status = 'pending_landlord_biometric'
+                    logger.info("✅ Tenant completed biometric (no guarantor) → Now landlord's turn")
+
+            elif current_status == 'pending_guarantor_biometric' and user_type == 'guarantor':
+                # Garante completó → turno del arrendador
+                match_request.workflow_status = 'pending_landlord_biometric'
+                contract.status = 'pending_landlord_biometric'
+                logger.info("✅ Guarantor completed biometric → Now landlord's turn")
+
+            elif current_status == 'pending_landlord_biometric' and user_type == 'landlord':
+                # Arrendador completó → todos terminaron, activar contrato
+                match_request.workflow_status = 'all_biometrics_completed'
+                contract.status = 'active'
+                logger.info("✅ Landlord completed biometric → All biometrics completed, contract activated")
+
+            elif current_status == 'pending_biometric_authentication':
+                # Fallback para flujo legacy - determinar primer completador
+                if user_type == 'tenant':
+                    if contract.guarantor:
+                        match_request.workflow_status = 'pending_guarantor_biometric'
+                        contract.status = 'pending_guarantor_biometric'
+                        logger.info("✅ Legacy: Tenant completed first → Guarantor's turn")
+                    else:
+                        match_request.workflow_status = 'pending_landlord_biometric'
+                        contract.status = 'pending_landlord_biometric'
+                        logger.info("✅ Legacy: Tenant completed first (no guarantor) → Landlord's turn")
+                else:
+                    match_request.workflow_status = 'pending_tenant_biometric'
+                    contract.status = 'pending_tenant_biometric'
+                    logger.info("✅ Legacy: Other user completed first → Tenant's turn")
+
+            # Actualizar workflow_data con información de progresión
+            if 'biometric_progress' not in match_request.workflow_data:
+                match_request.workflow_data['biometric_progress'] = {}
+
+            match_request.workflow_data['biometric_progress'][f'{user_type}_completed'] = True
+            match_request.workflow_data['biometric_progress'][f'{user_type}_completed_at'] = timezone.now().isoformat()
+
+            # Guardar cambios
+            match_request.save()
+            contract.save(update_fields=['status'])
+
+            logger.info(f"✅ Sequential progression completed - New status: {match_request.workflow_status}")
+
+        except Exception as e:
+            logger.error(f"❌ Error en progresión secuencial: {str(e)}")
+            # Fallback: actualizar contrato básico
+            contract.status = 'authenticated_pending_signature'
+            contract.save(update_fields=['status'])
 
 
 # Instancia global del servicio

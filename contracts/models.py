@@ -80,17 +80,21 @@ class Contract(models.Model):
     
     STATUS_CHOICES = [
         ('draft', 'Borrador'),
+        ('pending_tenant_review', 'Pendiente Revisión del Arrendatario'),  # NUEVO
+        ('tenant_changes_requested', 'Cambios Solicitados por Arrendatario'),  # NUEVO
         ('pending_review', 'Pendiente de Revisión'),
         ('pdf_generated', 'PDF Generado - Pendiente Edición'),
         ('ready_for_authentication', 'Listo para Autenticación'),
+        ('pending_landlord_authentication', 'Pendiente Autenticación del Arrendador'),  # NUEVO
+        ('pending_tenant_authentication', 'Pendiente Autenticación del Arrendatario'),
         ('pending_authentication', 'Pendiente de Autenticación Biométrica'),
         ('authenticated_pending_signature', 'Autenticado - Pendiente de Firma'),
-        ('pending_tenant_authentication', 'Pendiente Autenticación del Arrendatario'),  # 🔥 NUEVO
         ('pending_signature', 'Pendiente de Firma'),
         ('partially_signed', 'Parcialmente Firmado'),
         ('fully_signed', 'Completamente Firmado'),
+        ('pending_move_in', 'Pendiente Entrega de Llaves'),  # NUEVO - Autenticado pero no ejecutado
         ('active', 'Activo'),
-        ('en_ejecucion', 'En Ejecución'),  # NEW: Estado para contratos que están siendo ejecutados activamente
+        ('en_ejecucion', 'En Ejecución'),
         ('expired', 'Vencido'),
         ('terminated', 'Terminado'),
         ('cancelled', 'Cancelado'),
@@ -119,11 +123,31 @@ class Contract(models.Model):
         related_name='contracts_as_secondary',
         verbose_name='Parte secundaria (Arrendatario/Prestador)'
     )
-    
+
+    # Garante/Codeudor (opcional)
+    guarantor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='contracts_as_guarantor',
+        verbose_name='Garante/Codeudor',
+        help_text='Usuario que actúa como garante o codeudor del contrato'
+    )
+
     # Información del contrato
     title = models.CharField('Título del contrato', max_length=200)
     description = models.TextField('Descripción', max_length=1000, blank=True)
     content = models.TextField('Contenido del contrato')
+    
+    # Documentos asociados del proceso de arrendamiento
+    tenant_documents = models.ManyToManyField(
+        'requests.TenantDocument',
+        blank=True,
+        related_name='associated_contracts',
+        verbose_name='Documentos del Inquilino',
+        help_text='Documentos subidos durante el proceso de solicitud'
+    )
     
     # Fechas importantes
     start_date = models.DateField('Fecha de inicio')
@@ -177,6 +201,41 @@ class Contract(models.Model):
         default=dict,
         help_text='Datos específicos utilizados en el contrato'
     )
+    
+    # NUEVOS CAMPOS PARA WORKFLOW PARTICIPATIVO
+    # Nota: La fecha de mudanza se hereda de PropertyInterestRequest.preferred_move_in_date
+    # No duplicamos el campo aquí, lo traemos del match request
+    
+    # Control de revisión del arrendatario
+    tenant_review_status = models.CharField(
+        'Estado de Revisión del Arrendatario',
+        max_length=30,
+        choices=[
+            ('pending', 'Pendiente'),
+            ('reviewing', 'En Revisión'),
+            ('approved', 'Aprobado'),
+            ('changes_requested', 'Cambios Solicitados'),
+        ],
+        default='pending'
+    )
+    tenant_review_comments = models.TextField(
+        'Comentarios del Arrendatario',
+        blank=True,
+        help_text='Comentarios o cambios solicitados por el arrendatario'
+    )
+    tenant_reviewed_at = models.DateTimeField('Fecha de Revisión del Arrendatario', null=True, blank=True)
+    
+    # Control de autenticación biométrica
+    landlord_auth_completed = models.BooleanField('Autenticación del Arrendador Completada', default=False)
+    landlord_auth_date = models.DateTimeField('Fecha de Autenticación del Arrendador', null=True, blank=True)
+    tenant_auth_completed = models.BooleanField('Autenticación del Arrendatario Completada', default=False)
+    tenant_auth_date = models.DateTimeField('Fecha de Autenticación del Arrendatario', null=True, blank=True)
+    
+    # Control de entrega de llaves
+    keys_delivered = models.BooleanField('Llaves Entregadas', default=False)
+    keys_delivery_date = models.DateTimeField('Fecha de Entrega de Llaves', null=True, blank=True)
+    keys_delivery_notes = models.TextField('Notas de Entrega', blank=True)
+    execution_started_at = models.DateTimeField('Fecha de Inicio de Ejecución', null=True, blank=True)
     
     # Campos para PDF y descarga
     pdf_file = models.FileField(
@@ -982,3 +1041,68 @@ class ContractDocument(models.Model):
         
     def __str__(self):
         return f"{self.title} - {self.contract.contract_number}"
+
+
+class ContractAdditionalClause(models.Model):
+    """Cláusulas adicionales personalizadas que puede agregar el arrendador."""
+    
+    contract = models.ForeignKey(
+        Contract,
+        on_delete=models.CASCADE,
+        related_name='additional_clauses'
+    )
+    
+    # Información de la cláusula
+    title = models.CharField('Título de la Cláusula', max_length=200)
+    content = models.TextField('Contenido de la Cláusula')
+    clause_number = models.PositiveIntegerField('Número de Cláusula')
+    
+    # Información ordinal automática
+    ordinal_text = models.CharField(
+        'Texto Ordinal', 
+        max_length=50,
+        help_text='Ej: UNDÉCIMA, DUODÉCIMA, etc.'
+    )
+    
+    # Metadatos
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='created_contract_clauses'
+    )
+    created_at = models.DateTimeField('Fecha de Creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de Actualización', auto_now=True)
+    
+    # Estado de la cláusula
+    is_active = models.BooleanField('Activa', default=True)
+    order = models.PositiveIntegerField(
+        'Orden', 
+        default=0,
+        help_text='Orden de aparición en el contrato'
+    )
+    
+    class Meta:
+        verbose_name = 'Cláusula Adicional de Contrato'
+        verbose_name_plural = 'Cláusulas Adicionales de Contratos'
+        ordering = ['contract', 'order', 'clause_number']
+        unique_together = [['contract', 'clause_number']]
+        
+    def __str__(self):
+        return f"{self.ordinal_text}. {self.title} - {self.contract.contract_number}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-generar texto ordinal si no existe
+        if not self.ordinal_text:
+            ordinales = [
+                'PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 
+                'SEXTA', 'SÉPTIMA', 'OCTAVA', 'NOVENA', 'DÉCIMA',
+                'UNDÉCIMA', 'DUODÉCIMA', 'DECIMOTERCERA', 'DECIMOCUARTA', 'DECIMOQUINTA',
+                'DECIMOSEXTA', 'DECIMOSÉPTIMA', 'DECIMOCTAVA', 'DECIMONOVENA', 'VIGÉSIMA'
+            ]
+            
+            if self.clause_number <= len(ordinales):
+                self.ordinal_text = ordinales[self.clause_number - 1]
+            else:
+                self.ordinal_text = f'CLÁUSULA {self.clause_number}'
+        
+        super().save(*args, **kwargs)

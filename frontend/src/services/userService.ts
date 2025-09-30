@@ -5,7 +5,7 @@ export const userService = {
   // Perfil público
   async updateProfile(data: UpdateProfileDto): Promise<User> {
     try {
-      const response = await api.put<User>('/users/profile/', data);
+      const response = await api.patch<User>('/users/profile/', data);
       return response.data;
     } catch (error: any) {
       console.error('Error updating profile:', error);

@@ -128,6 +128,20 @@ export const ContractList: React.FC = () => {
 
   // Asegurar que contracts sea un array
   const contractsArray = Array.isArray(contracts) ? contracts : [];
+  
+  // IMPORTANTE: Solo mostrar contratos que están firmados o en ejecución
+  // NO mostrar borradores ni contratos en proceso de aprobación
+  const finalContracts = contractsArray.filter(contract => {
+    const finalStatuses = [
+      'fully_signed',           // Completamente Firmado
+      'pending_move_in',        // Pendiente Entrega de Llaves
+      'active',                 // Activo
+      'en_ejecucion',          // En Ejecución
+      'expired',               // Vencido
+      'terminated',            // Terminado
+    ];
+    return finalStatuses.includes(contract.status);
+  });
 
   return (
     <Box>
@@ -149,8 +163,19 @@ export const ContractList: React.FC = () => {
         )}
       </Box>
 
+      {finalContracts.length === 0 ? (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body1">
+            No tienes contratos activos o finalizados.
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Los contratos aparecerán aquí una vez estén completamente firmados y autenticados.
+          </Typography>
+        </Alert>
+      ) : null}
+
       <Grid container spacing={3}>
-        {contractsArray.map((contract) => (
+        {finalContracts.map((contract) => (
           <Grid item xs={12} sm={6} md={4} key={contract.id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>

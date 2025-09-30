@@ -1,5 +1,6 @@
 """
 Vistas de API REST para la aplicación de pagos de VeriHome.
+OPTIMIZED with performance monitoring and intelligent caching.
 """
 
 from rest_framework import viewsets, generics, permissions, status
@@ -14,6 +15,11 @@ from django.conf import settings
 from decimal import Decimal
 import stripe
 import json
+# Import optimizations
+from core.optimizations import (
+    QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin,
+    cache_expensive_operation, OptimizedTransactionSerializer
+)
 from .models import (
     Transaction, PaymentMethod, Invoice, EscrowAccount, 
     PaymentPlan, PaymentInstallment, RentPaymentSchedule, 
@@ -32,17 +38,17 @@ from users.services import AdminActionLogger
 
 User = get_user_model()
 
-# ViewSets básicos
-class TransactionViewSet(viewsets.ModelViewSet):
-    """ViewSet para transacciones."""
+# Optimized ViewSets
+class TransactionViewSet(QueryOptimizationMixin, PerformanceTrackingMixin, viewsets.ModelViewSet):
+    """ViewSet para transacciones - OPTIMIZADO."""
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = OptimizedPagination
     
     def get_queryset(self):
-        return Transaction.objects.filter(
-            payer=self.request.user
-        ) | Transaction.objects.filter(
-            payee=self.request.user
-        )
+        base_queryset = Transaction.objects.filter(
+            Q(payer=self.request.user) | Q(payee=self.request.user)
+        ).order_by('-created_at')
+        return self.get_optimized_queryset(base_queryset)
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -68,10 +74,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_create',
                 description=f'Creación de pago {transaction.id}',
-                details={'transaction_id': str(transaction.id)},
+                metadata={'transaction_id': str(transaction.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_update(self, serializer):
@@ -93,10 +98,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_update',
                 description=f'Actualización de pago {transaction.id}',
-                details={'transaction_id': str(transaction.id)},
+                metadata={'transaction_id': str(transaction.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -120,10 +124,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_delete',
                 description=f'Eliminación de pago {transaction_id}',
-                details={'deleted_transaction_id': transaction_id},
+                metadata={'deleted_transaction_id': transaction_id},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 class PaymentMethodViewSet(viewsets.ModelViewSet):
@@ -156,10 +159,9 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_method_create',
                 description=f'Agregar método de pago {payment_method.id}',
-                details={'payment_method_id': str(payment_method.id)},
+                metadata={'payment_method_id': str(payment_method.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_update(self, serializer):
@@ -182,10 +184,9 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_method_update',
                 description=f'Actualizar método de pago {payment_method.id}',
-                details={'payment_method_id': str(payment_method.id)},
+                metadata={'payment_method_id': str(payment_method.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -209,10 +210,9 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='payment_method_delete',
                 description=f'Eliminar método de pago {payment_method_id}',
-                details={'deleted_payment_method_id': payment_method_id},
+                metadata={'deleted_payment_method_id': payment_method_id},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -251,10 +251,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='invoice_create',
                 description=f'Creación de factura {invoice.id}',
-                details={'invoice_id': str(invoice.id)},
+                metadata={'invoice_id': str(invoice.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_update(self, serializer):
@@ -277,10 +276,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='invoice_update',
                 description=f'Actualización de factura {invoice.id}',
-                details={'invoice_id': str(invoice.id)},
+                metadata={'invoice_id': str(invoice.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -304,10 +302,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='invoice_delete',
                 description=f'Eliminación de factura {invoice_id}',
-                details={'deleted_invoice_id': invoice_id},
+                metadata={'deleted_invoice_id': invoice_id},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -768,10 +765,9 @@ class ProcessPaymentAPIView(APIView):
                     user=request.user,
                     activity_type='payment_create',
                     description=f'Procesamiento de pago {transaction.id}',
-                    details={'transaction_id': str(transaction.id)},
+                    metadata={'transaction_id': str(transaction.id)},
                     ip_address=request.META.get('REMOTE_ADDR'),
                     user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                    performed_by_admin=False
                 )
             
             return Response(TransactionSerializer(transaction).data, status=status.HTTP_201_CREATED)
@@ -833,10 +829,9 @@ class VerifyPaymentMethodAPIView(APIView):
                     user=request.user,
                     activity_type='payment_verify',
                     description=f'Verificación de método de pago {payment_method.id}',
-                    details={'payment_method_id': str(payment_method.id)},
+                    metadata={'payment_method_id': str(payment_method.id)},
                     ip_address=request.META.get('REMOTE_ADDR'),
                     user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                    performed_by_admin=False
                 )
             
             return Response({"detail": "Método de pago verificado correctamente"})
@@ -1431,3 +1426,13 @@ class LandlordFinancialDashboardAPIView(APIView):
             'upcoming_payments': upcoming_payments,
             'active_properties': len(schedules)
         })
+
+
+# ===== ADVANCED PAYMENT ANALYTICS IMPORTS =====
+
+# Import the advanced payment statistics API views from payment_stats_api module
+from .payment_stats_api import (
+    PaymentStatsAPIView,
+    SystemPaymentStatsAPIView, 
+    ExportPaymentStatsAPIView
+)

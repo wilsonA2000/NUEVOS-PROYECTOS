@@ -19,7 +19,7 @@ export const clearAuthState = () => {
   lastClearTime = now;
 
   // Limpiar solo tokens y datos de autenticación específicos
-  const authKeys = ['token', 'refresh', 'user', 'authState'];
+  const authKeys = ['access_token', 'refresh_token', 'user', 'authState'];
   authKeys.forEach(key => {
     if (localStorage.getItem(key)) {
       localStorage.removeItem(key);
@@ -46,7 +46,7 @@ let lastConsistencyCheck = 0;
 const CHECK_THROTTLE_MS = 5000; // 5 segundos entre logs
 
 export const isAuthStateConsistent = (): boolean => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   const hasToken = !!token && token.length > 10;
   
   const now = Date.now();
@@ -63,7 +63,7 @@ export const isAuthStateConsistent = (): boolean => {
  * Solo ejecuta si realmente hay inconsistencias
  */
 export const forceAuthSync = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   const user = localStorage.getItem('user');
   
   // Solo limpiar si hay inconsistencias reales

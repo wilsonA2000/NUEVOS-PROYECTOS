@@ -43,17 +43,20 @@ export interface ContractTemplate {
 
 export interface ContractFormData {
   title: string;
-  contract_type: 'rental' | 'sale' | 'service' | 'other';
-  property_id?: string;
-  primary_party_id: string;
-  secondary_party_id: string;
+  contract_type: 'rental_urban' | 'rental_commercial' | 'rental_room' | 'rental_rural' | 'service_provider' | 'other';
+  property?: string;
+  secondary_party: string;
   start_date: string;
   end_date: string;
+  description?: string;
+  content: string;
   monthly_rent?: number;
-  deposit_amount?: number;
-  total_value?: number;
-  terms: string;
-  template_id?: string;
+  security_deposit?: number;
+  late_fee?: number;
+  is_renewable?: boolean;
+  auto_renewal_notice_days?: number;
+  template?: string;
+  variables_data?: Record<string, any>;
 }
 
 export interface ContractFilters {

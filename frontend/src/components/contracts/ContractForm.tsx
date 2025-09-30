@@ -11,29 +11,47 @@ import {
   Select,
   TextField,
   Typography,
+  Alert,
+  Chip,
 } from '@mui/material';
+import {
+  Assignment as ContractIcon,
+  AutoAwesome as ProfessionalIcon,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useContracts } from '../../hooks/useContracts';
 import { Contract, CreateContractDto, UpdateContractDto } from '../../types/contract';
+import { LandlordContractForm } from './LandlordContractForm';
 
 interface ContractFormProps {
   contract?: Contract;
   isEdit?: boolean;
+  propertyId?: string;
+  tenantId?: string;
 }
 
-export const ContractForm: React.FC<ContractFormProps> = ({ contract, isEdit = false }) => {
+export const ContractForm: React.FC<ContractFormProps> = ({ 
+  contract, 
+  isEdit = false, 
+  propertyId, 
+  tenantId 
+}) => {
   const navigate = useNavigate();
   const { createContract, updateContract } = useContracts();
+  const [useProfessionalMode, setUseProfessionalMode] = React.useState(true);
   const [formData, setFormData] = React.useState<CreateContractDto | UpdateContractDto>(
     contract || {
-      propertyId: '',
-      tenantId: '',
-      startDate: '',
-      endDate: '',
-      rentAmount: 0,
-      depositAmount: 0,
-      terms: '',
-      documents: [],
+      contract_type: 'rental_urban',
+      secondary_party: '',
+      title: '',
+      description: '',
+      content: '',
+      start_date: '',
+      end_date: '',
+      monthly_rent: 0,
+      security_deposit: 0,
+      property: '',
+      is_renewable: true,
     }
   );
 
@@ -59,41 +77,108 @@ export const ContractForm: React.FC<ContractFormProps> = ({ contract, isEdit = f
     }
   };
 
+  // Show landlord contract form by default (new system)
+  if (useProfessionalMode) {
+    return (
+      <LandlordContractForm 
+        contract={contract}
+        isEdit={isEdit}
+        propertyId={propertyId}
+        contractId={contract?.id}
+        onSuccess={() => navigate('/app/contracts')}
+        onCancel={() => navigate('/app/contracts')}
+      />
+    );
+  }
+
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {isEdit ? 'Editar Contrato' : 'Nuevo Contrato'}
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" display="flex" alignItems="center" gap={1}>
+            <ContractIcon />
+            {isEdit ? 'Editar Contrato' : 'Nuevo Contrato'}
+          </Typography>
+          <Box display="flex" gap={1}>
+            <Chip 
+              label="Modo Básico" 
+              color="default" 
+              variant="outlined"
+            />
+            <Button
+              startIcon={<ProfessionalIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => setUseProfessionalMode(true)}
+            >
+              Usar Modo Profesional
+            </Button>
+          </Box>
+        </Box>
+        
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            <strong>Recomendación:</strong> Usa el Modo Profesional para contratos con plantillas legales completas, 
+            generación automática de contenido y asistente paso a paso.
+          </Typography>
+        </Alert>
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="ID de Propiedad"
-                name="propertyId"
-                value={formData.propertyId}
+                label="Título del Contrato"
+                name="title"
+                value={formData.title}
                 onChange={handleChange}
                 required
               />
             </Grid>
             <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Tipo de Contrato</InputLabel>
+                <Select
+                  name="contract_type"
+                  value={formData.contract_type}
+                  onChange={handleChange}
+                  label="Tipo de Contrato"
+                >
+                  <MenuItem value="rental_urban">Arrendamiento de Vivienda Urbana</MenuItem>
+                  <MenuItem value="rental_commercial">Arrendamiento de Local Comercial</MenuItem>
+                  <MenuItem value="rental_room">Arrendamiento de Habitación</MenuItem>
+                  <MenuItem value="service_provider">Contrato de Prestación de Servicios</MenuItem>
+                  <MenuItem value="other">Otro</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="ID de Inquilino"
-                name="tenantId"
-                value={formData.tenantId}
+                label="ID de Propiedad (Opcional)"
+                name="property"
+                value={formData.property}
+                onChange={handleChange}
+                helperText="UUID de la propiedad relacionada"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="ID de Inquilino/Contraparte"
+                name="secondary_party"
+                value={formData.secondary_party}
                 onChange={handleChange}
                 required
+                helperText="UUID del usuario inquilino o contraparte"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Fecha de Inicio"
-                name="startDate"
+                name="start_date"
                 type="date"
-                value={formData.startDate}
+                value={formData.start_date}
                 onChange={handleChange}
                 required
                 InputLabelProps={{
@@ -105,9 +190,9 @@ export const ContractForm: React.FC<ContractFormProps> = ({ contract, isEdit = f
               <TextField
                 fullWidth
                 label="Fecha de Fin"
-                name="endDate"
+                name="end_date"
                 type="date"
-                value={formData.endDate}
+                value={formData.end_date}
                 onChange={handleChange}
                 required
                 InputLabelProps={{
@@ -118,41 +203,54 @@ export const ContractForm: React.FC<ContractFormProps> = ({ contract, isEdit = f
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Monto de Renta"
-                name="rentAmount"
+                label="Renta Mensual"
+                name="monthly_rent"
                 type="number"
-                value={formData.rentAmount}
+                value={formData.monthly_rent}
                 onChange={handleChange}
-                required
                 InputProps={{
                   startAdornment: '$',
                 }}
+                helperText="Monto en pesos colombianos"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Monto de Depósito"
-                name="depositAmount"
+                label="Depósito de Garantía"
+                name="security_deposit"
                 type="number"
-                value={formData.depositAmount}
+                value={formData.security_deposit}
                 onChange={handleChange}
-                required
                 InputProps={{
                   startAdornment: '$',
                 }}
+                helperText="Monto en pesos colombianos"
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Términos"
-                name="terms"
-                value={formData.terms}
+                label="Descripción"
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
                 multiline
-                rows={4}
+                rows={2}
+                helperText="Descripción breve del contrato"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Contenido del Contrato"
+                name="content"
+                value={formData.content}
+                onChange={handleChange}
+                multiline
+                rows={6}
                 required
+                helperText="Contenido completo del contrato"
               />
             </Grid>
             <Grid item xs={12}>

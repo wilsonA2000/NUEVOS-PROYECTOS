@@ -123,6 +123,15 @@ class MatchRequest(models.Model):
     follow_up_count = models.PositiveIntegerField('Número de seguimientos', default=0)
     last_follow_up = models.DateTimeField('Último seguimiento', null=True, blank=True)
     
+    # Estado del contrato
+    has_contract = models.BooleanField('Tiene contrato', default=False)
+    contract_generated_at = models.DateTimeField('Fecha de generación del contrato', null=True, blank=True)
+    
+    # Datos del workflow (sincronización con PropertyInterestRequest)
+    workflow_stage = models.IntegerField('Etapa del workflow', default=1, help_text="1=Visita, 2=Documentos, 3=Contrato")
+    workflow_status = models.CharField('Estado del workflow', max_length=30, default='pending', help_text="Estado específico dentro de la etapa")
+    workflow_data = models.JSONField('Datos del workflow', default=dict, blank=True)
+    
     class Meta:
         verbose_name = 'Solicitud de Match'
         verbose_name_plural = 'Solicitudes de Match'
@@ -179,15 +188,112 @@ class MatchRequest(models.Model):
         MatchingMessagingService.create_match_thread(self)
     
     def reject_match(self, landlord_message=''):
-        """Rechaza la solicitud de match."""
-        self.status = 'rejected'
-        self.responded_at = timezone.now()
-        self.landlord_response = landlord_message
-        self.save()
+        """Rechaza la solicitud de match y limpia todos los datos asociados."""
+        from django.db import transaction
         
-        # Enviar notificación de rechazo
-        from .services import MatchingMessagingService
-        MatchingMessagingService.send_match_rejection_message(self)
+        with transaction.atomic():
+            # 1. Cambiar status del match
+            old_status = self.status
+            self.status = 'rejected'
+            self.responded_at = timezone.now()
+            self.landlord_response = landlord_message
+            self.save()
+            
+            # 2. LIMPIAR TODOS LOS DATOS ASOCIADOS AL MATCH RECHAZADO
+            self._cleanup_associated_data()
+            
+            # 3. Enviar notificación de rechazo
+            from .services import MatchingMessagingService
+            MatchingMessagingService.send_match_rejection_message(self)
+            
+            # 4. Log de la limpieza
+            print(f"🧹 Match {self.match_code} rechazado y datos limpiados completamente")
+    
+    def _cleanup_associated_data(self):
+        """Limpia todos los datos asociados a este match cuando es rechazado."""
+        from django.db import transaction
+        
+        print(f"🧹 INICIANDO LIMPIEZA COMPLETA para match {self.match_code}")
+        
+        # 1. ELIMINAR CONTRATOS ASOCIADOS
+        from contracts.models import Contract, ContractSignature, BiometricAuthentication, ContractDocument
+        contracts = Contract.objects.filter(
+            variables_data__workflow_match_id=str(self.id)
+        )
+        contract_count = contracts.count()
+        if contract_count > 0:
+            print(f"   📄 Eliminando {contract_count} contrato(s) asociado(s)")
+            # Eliminar firmas y autenticaciones relacionadas
+            for contract in contracts:
+                ContractSignature.objects.filter(contract=contract).delete()
+                BiometricAuthentication.objects.filter(contract=contract).delete() 
+                ContractDocument.objects.filter(contract=contract).delete()
+            contracts.delete()
+        
+        # 2. ELIMINAR DOCUMENTOS DEL INQUILINO Y PROPERTYINTERESTREQUEST
+        from requests.models import TenantDocument, PropertyInterestRequest
+        
+        # Buscar PropertyInterestRequest asociado
+        property_requests = PropertyInterestRequest.objects.filter(
+            requester=self.tenant,
+            property=self.property
+        )
+        doc_count = 0
+        prop_request_count = property_requests.count()
+        
+        for prop_request in property_requests:
+            # Eliminar documentos asociados
+            tenant_docs = TenantDocument.objects.filter(property_request=prop_request)
+            doc_count += tenant_docs.count()
+            if tenant_docs.exists():
+                print(f"   📋 Eliminando {tenant_docs.count()} documento(s) del inquilino")
+                tenant_docs.delete()
+        
+        # Eliminar las PropertyInterestRequest completamente
+        if prop_request_count > 0:
+            print(f"   📄 Eliminando {prop_request_count} solicitud(es) de propiedad")
+            property_requests.delete()
+        
+        # 3. ELIMINAR MENSAJES DEL HILO DE CONVERSACIÓN
+        from messaging.models import Message, Thread
+        try:
+            # Buscar hilo de conversación específico de este match
+            thread = Thread.objects.filter(
+                participants__in=[self.landlord, self.tenant]
+            ).filter(
+                participants__in=[self.landlord, self.tenant]
+            ).distinct().first()
+            
+            if thread:
+                message_count = Message.objects.filter(thread=thread).count()
+                if message_count > 0:
+                    print(f"   💬 Eliminando {message_count} mensaje(s) del hilo")
+                    Message.objects.filter(thread=thread).delete()
+                    # No eliminar el thread, solo los mensajes
+        except Exception as e:
+            print(f"   ⚠️  Error limpiando mensajes: {e}")
+        
+        # 4. LIMPIAR DATOS DEL WORKFLOW EN EL MATCH
+        if hasattr(self, 'workflow_data') and self.workflow_data:
+            print(f"   🔄 Limpiando datos de workflow")
+            self.workflow_data = {}
+            self.current_stage = 1  # Resetear a etapa inicial
+            self.save(update_fields=['workflow_data', 'current_stage'])
+        
+        # 5. LIBERAR LA PROPIEDAD PARA NUEVAS SOLICITUDES
+        # No marcar como no disponible, solo limpiar reservas temporales
+        if self.property:
+            print(f"   🏠 Liberando propiedad {self.property.title} para nuevas solicitudes")
+            # La propiedad queda disponible automáticamente
+        
+        print(f"✅ Limpieza completa terminada para match {self.match_code}")
+        print(f"   • {contract_count} contratos eliminados")
+        print(f"   • {prop_request_count} solicitudes de propiedad eliminadas")
+        print(f"   • {doc_count} documentos de inquilino eliminados")
+        print(f"   • Mensajes del hilo de conversación limpiados")
+        print(f"   • Propiedad liberada para nuevas solicitudes")
+        print(f"   • Datos de workflow reiniciados")
+        print(f"🎯 El inquilino puede solicitar nuevamente sin datos residuales")
     
     def is_expired(self):
         """Verifica si la solicitud ha expirado."""
@@ -254,6 +360,34 @@ class MatchRequest(models.Model):
             score += 5
         
         return min(score, 100)  # Máximo 100 puntos
+    
+    def can_create_contract(self):
+        """Verifica si el match puede crear un contrato."""
+        # Solo matches aceptados pueden generar contratos
+        if self.status != 'accepted':
+            return False
+        
+        # No debe tener ya un contrato
+        if self.has_contract:
+            return False
+        
+        # Debe tener información financiera mínima
+        if not self.monthly_income or not self.has_employment_proof:
+            return False
+        
+        # La propiedad debe estar activa
+        if not self.property.is_active or self.property.status != 'available':
+            return False
+        
+        return True
+    
+    def get_contract(self):
+        """Obtiene el contrato asociado si existe."""
+        try:
+            from contracts.colombian_contracts import ColombianContract
+            return ColombianContract.objects.get(match_request=self)
+        except:
+            return None
 
 
 class MatchCriteria(models.Model):

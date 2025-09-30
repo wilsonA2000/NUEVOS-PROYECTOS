@@ -454,8 +454,7 @@ class MessageNotificationManager:
                 user=user,
                 activity_type=f'notification_{notification_type}',
                 description=f'Notification sent: {notification_type}',
-                details=data,
-                performed_by_admin=False
+                metadata=data,
             )
         except Exception as e:
             logger.error(f"Error logging notification: {str(e)}")

@@ -32,7 +32,7 @@ interface AuthContextType extends AuthState {
   hideErrorModal: () => void;
   // Funciones adicionales para compatibilidad
   forgotPassword?: (email: string) => Promise<void>;
-  resetPassword?: (token: string, password: string) => Promise<void>;
+  resetPassword?: (token: string, password: string, uid?: string) => Promise<void>;
   updateProfile?: (data: Partial<User>) => Promise<void>;
 }
 
@@ -139,7 +139,7 @@ clearAuthState();
         return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       
       try {
         const user = await authService.getCurrentUser();
@@ -294,12 +294,32 @@ navigate('/email-verification', {
     }));
   }, []);
 
+  const forgotPassword = useCallback(async (email: string) => {
+    try {
+      await authService.forgotPassword(email);
+    } catch (error) {
+      console.error('Error en forgot password:', error);
+      throw error;
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, password: string, uid?: string) => {
+    try {
+      await authService.resetPassword(token, password, uid);
+    } catch (error) {
+      console.error('Error en reset password:', error);
+      throw error;
+    }
+  }, []);
+
   const value: AuthContextType = {
     ...authState,
     login: loginMutation,
     register: registerMutation,
     logout,
     updateUser,
+    forgotPassword,
+    resetPassword,
     resetInactivityTimer,
     extendSession,
     showSessionWarning,
@@ -319,4 +339,13 @@ navigate('/email-verification', {
       />
     </AuthContext.Provider>
   );
+};
+
+// Hook para usar el contexto de autenticación
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }; 

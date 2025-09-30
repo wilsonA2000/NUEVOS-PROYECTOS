@@ -3,7 +3,7 @@ Modelos para la gestión de propiedades en VeriHome.
 Incluye propiedades, imágenes, amenidades y características.
 """
 
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from PIL import Image
@@ -119,9 +119,35 @@ class Property(models.Model):
         return f"{self.title} - {self.city}, {self.state}"
     
     def get_main_image(self):
-        """Obtiene la imagen principal de la propiedad."""
-        main_image = self.images.filter(is_main=True).first()
-        return main_image.image.url if main_image else None
+        """FIXED: Get main image URL with atomic operations and error handling."""
+        try:
+            # Try to get existing main image
+            main_image = self.images.filter(is_main=True).first()
+            
+            # If no main image exists, atomically set the first image as main
+            if not main_image:
+                with transaction.atomic():
+                    # Clear any existing main flags and set first image as main
+                    first_image = self.images.first()
+                    if first_image:
+                        # Use update to avoid race conditions
+                        self.images.update(is_main=False)
+                        PropertyImage.objects.filter(id=first_image.id).update(is_main=True)
+                        # Refresh the object to get updated state
+                        first_image.refresh_from_db()
+                        main_image = first_image
+                        print(f"🔧 AUTO-REPAIR: Set image {first_image.id} as main for property {self.id}")
+            
+            if main_image and hasattr(main_image, 'image') and main_image.image:
+                url = main_image.image.url
+                print(f"🖼️ Main image URL resolved: {url} for property {self.id}")
+                return url
+                
+        except Exception as e:
+            print(f"❌ ERROR in get_main_image for property {self.id}: {e}")
+        
+        print(f"⚠️ No main image available for property {self.id}")
+        return None
     
     def get_formatted_price(self):
         """Devuelve el precio formateado según el tipo de listado."""
@@ -188,17 +214,19 @@ class PropertyVideo(models.Model):
         on_delete=models.CASCADE,
         related_name='videos'
     )
-    video = models.FileField('Video', upload_to='properties/videos/')
+    video = models.FileField('Video', upload_to='properties/videos/', null=True, blank=True)
+    youtube_url = models.URLField('URL de YouTube', max_length=500, null=True, blank=True)
     title = models.CharField('Título', max_length=200)
     description = models.TextField('Descripción', max_length=500, blank=True)
     duration = models.DurationField('Duración', null=True, blank=True)
     thumbnail = models.ImageField('Miniatura', upload_to='properties/video_thumbnails/', null=True, blank=True)
+    order = models.PositiveIntegerField('Orden', default=0)
     created_at = models.DateTimeField('Fecha de subida', auto_now_add=True)
     
     class Meta:
         verbose_name = 'Video de Propiedad'
         verbose_name_plural = 'Videos de Propiedades'
-        ordering = ['created_at']
+        ordering = ['order', 'created_at']
         
     def __str__(self):
         return f"Video: {self.title} - {self.property.title}"

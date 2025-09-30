@@ -20,6 +20,8 @@ class MatchRequestSerializer(serializers.ModelSerializer):
     compatibility_score = serializers.SerializerMethodField()
     is_expired = serializers.SerializerMethodField()
     can_follow_up = serializers.SerializerMethodField()
+    can_create_contract = serializers.SerializerMethodField()
+    contract_status = serializers.SerializerMethodField()
     
     class Meta:
         model = MatchRequest
@@ -27,7 +29,14 @@ class MatchRequestSerializer(serializers.ModelSerializer):
             'id', 'match_code', 'status', 'priority', 'created_at', 'viewed_at', 
             'responded_at', 'expires_at', 'property_title', 'property_city', 
             'property_rent_price', 'tenant_name', 'landlord_name', 
-            'compatibility_score', 'is_expired', 'can_follow_up', 'follow_up_count'
+            'compatibility_score', 'is_expired', 'can_follow_up', 'follow_up_count',
+            'has_contract', 'contract_generated_at', 'can_create_contract', 'contract_status',
+            'workflow_status', 'workflow_stage', 'workflow_data',
+            # Campos adicionales para detalles del candidato
+            'tenant_message', 'tenant_phone', 'tenant_email', 'monthly_income',
+            'employment_type', 'preferred_move_in_date', 'lease_duration_months',
+            'has_rental_references', 'has_employment_proof', 'has_credit_check',
+            'number_of_occupants', 'has_pets', 'pet_details', 'smoking_allowed'
         ]
         read_only_fields = ['id', 'match_code', 'created_at', 'viewed_at', 'responded_at']
     
@@ -39,6 +48,37 @@ class MatchRequestSerializer(serializers.ModelSerializer):
     
     def get_can_follow_up(self, obj):
         return obj.can_follow_up()
+    
+    def get_can_create_contract(self, obj):
+        return obj.can_create_contract()
+    
+    def get_contract_status(self, obj):
+        """Obtiene el estado del contrato asociado si existe."""
+        if not obj.has_contract:
+            return None
+        
+        contract = obj.get_contract()
+        if contract:
+            return {
+                'status': contract.status,
+                'progress': self._get_contract_progress(contract.status),
+                'can_sign': contract.status in ['PENDING_SIG', 'PARTIAL_SIG'],
+                'is_active': contract.status == 'ACTIVE'
+            }
+        return None
+    
+    def _get_contract_progress(self, status):
+        """Calcula el progreso del contrato."""
+        stages = {
+            'DRAFT': 10,
+            'PENDING_VER': 25,
+            'PENDING_SIG': 50,
+            'PARTIAL_SIG': 75,
+            'SIGNED': 90,
+            'NOTARIZED': 95,
+            'ACTIVE': 100
+        }
+        return stages.get(status, 0)
 
 
 class MatchRequestDetailSerializer(serializers.ModelSerializer):
@@ -59,7 +99,7 @@ class MatchRequestDetailSerializer(serializers.ModelSerializer):
             'has_pets', 'pet_details', 'smoking_allowed', 'landlord_response',
             'created_at', 'viewed_at', 'responded_at', 'expires_at',
             'follow_up_count', 'last_follow_up', 'property', 'tenant', 'landlord',
-            'compatibility_analysis'
+            'compatibility_analysis', 'workflow_stage', 'workflow_status', 'workflow_data'
         ]
         read_only_fields = [
             'id', 'match_code', 'created_at', 'viewed_at', 'responded_at',
@@ -81,7 +121,7 @@ class MatchRequestDetailSerializer(serializers.ModelSerializer):
             'total_area': property.total_area,
             'city': property.city,
             'state': property.state,
-            'full_address': property.full_address,
+            'address': property.address,
             'pets_allowed': property.pets_allowed,
             'parking_spaces': property.parking_spaces,
             'main_image': property.get_main_image(),

@@ -115,7 +115,7 @@ class VeriHomeAccountAdapter(DefaultAccountAdapter):
     def get_email_confirmation_url(self, request, emailconfirmation):
         """Obtener URL de confirmación de email."""
         # Construir URL del frontend React
-        frontend_url = "http://localhost:5174"
+        frontend_url = "http://localhost:5173"
         confirmation_path = f"/confirm-email/{emailconfirmation.key}"
         return f"{frontend_url}{confirmation_path}"
 

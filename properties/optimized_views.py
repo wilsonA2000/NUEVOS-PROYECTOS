@@ -73,11 +73,18 @@ class OptimizedPropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, vi
         if (self.request.user.is_authenticated and 
             hasattr(self.request.user, 'user_type') and 
             self.request.user.user_type == 'landlord'):
-            # Landlords see all their properties
-            queryset = Property.objects.filter(landlord=self.request.user).select_related(
-                'landlord',
-                'landlord__landlord_profile',
-            )
+            # Superusers see all properties, regular landlords see only their properties
+            if self.request.user.is_superuser:
+                queryset = Property.objects.all().select_related(
+                    'landlord',
+                    'landlord__landlord_profile',
+                )
+            else:
+                # Regular landlords see only their properties
+                queryset = Property.objects.filter(landlord=self.request.user).select_related(
+                    'landlord',
+                    'landlord__landlord_profile',
+                )
         else:
             # Others see only active properties
             queryset = Property.objects.filter(is_active=True).select_related(
@@ -292,7 +299,47 @@ class OptimizedPropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, vi
         """Update property with cache invalidation."""
         property_obj = serializer.save()
         
-        # Invalidate specific property caches
+        # Invalidar el cache de manera más agresiva
+        # 1. Invalidar cache específico de la propiedad para todos los usuarios
+        from django.core.cache import cache
+        
+        # Limpiar cache de detalle de propiedad
+        detail_keys = []
+        # Key específica del log: property:detail:v2:c71e6c60-6122-46bd-8071-ff548b21bf2f:c41cc73f-fdf1-4ce1-99d2-3648bbdc2781
+        if self.request.user and hasattr(self.request.user, 'id'):
+            user_id = str(self.request.user.id)
+            # Key exacta como aparece en el log
+            detail_keys.append(f'property:detail:v2:{property_obj.id}:{user_id}')
+            # Variaciones posibles
+            detail_keys.append(f'property:detail:v2:{property_obj.id}:*')
+            detail_keys.append(f'property:detail:{property_obj.id}')
+            detail_keys.append(f'property:{property_obj.id}')
+        
+        # 2. Invalidar listas de propiedades
+        list_keys = []
+        if self.request.user:
+            # Generar diferentes combinaciones de keys de lista basadas en el log
+            user_id = str(self.request.user.id)
+            # Keys exactas del log
+            list_keys.extend([
+                f'properties:list:v2:{user_id}:133146708735736',
+                f'properties:list:v2:{user_id}:-4096558671697864446',
+                f'properties:list:v2:{user_id}:*',
+                'properties:list:v2:*',
+                'properties:list:*',
+                'verihome:properties:list',
+            ])
+        
+        # 3. Eliminar todas las keys directamente del cache
+        all_keys = detail_keys + list_keys
+        for key in all_keys:
+            try:
+                cache.delete(key)
+                logger.debug(f"Deleted cache key: {key}")
+            except Exception as e:
+                logger.debug(f"Could not delete key {key}: {e}")
+        
+        # 4. También intentar con SmartCache por si acaso
         cache_patterns = [
             f'property:detail:v2:{property_obj.id}:*',
             'properties:list:v2:*'
@@ -301,7 +348,7 @@ class OptimizedPropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, vi
         for pattern in cache_patterns:
             SmartCache.invalidate_pattern(pattern)
         
-        logger.info(f"Updated property {property_obj.id}")
+        logger.info(f"Updated property {property_obj.id} and invalidated cache")
     
     def perform_destroy(self, instance):
         """Soft delete property with cache invalidation."""

@@ -318,6 +318,7 @@ export const imageUtils = {
    * Convertir URL a diferentes formatos
    */
   convertUrl: (url: string, format: 'webp' | 'avif' | 'jpeg'): string => {
+    if (!url || typeof url !== 'string') return url || '';
     const extension = format === 'jpeg' ? 'jpg' : format;
     return url.replace(/\.(jpg|jpeg|png|gif)$/i, `.${extension}`);
   },
@@ -326,6 +327,7 @@ export const imageUtils = {
    * Generar srcSet para imágenes responsivas
    */
   generateSrcSet: (baseUrl: string, sizes: string[]): string => {
+    if (!baseUrl || typeof baseUrl !== 'string') return '';
     return sizes
       .map(size => `${imageUtils.addSizeToUrl(baseUrl, size)} ${size}w`)
       .join(', ');
@@ -335,6 +337,7 @@ export const imageUtils = {
    * Agregar tamaño a URL (asumiendo un patrón específico)
    */
   addSizeToUrl: (url: string, size: string): string => {
+    if (!url || typeof url !== 'string') return url || '';
     const extension = url.split('.').pop();
     const baseUrl = url.replace(/\.[^/.]+$/, '');
     return `${baseUrl}_${size}.${extension}`;

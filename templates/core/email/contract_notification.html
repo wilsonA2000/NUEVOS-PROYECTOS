@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ platform_name }}</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        .tagline {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .content {
+            padding: 0 20px;
+        }
+        .notification-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        .message {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        }
+        .contract-details {
+            background: #f1f5f9;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .contract-details h4 {
+            margin: 0 0 12px 0;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        .contract-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .contract-info strong {
+            color: #374151;
+        }
+        .priority-high {
+            border-left: 4px solid #ef4444;
+        }
+        .priority-urgent {
+            border-left: 4px solid #dc2626;
+            background: #fef2f2;
+        }
+        .priority-urgent .notification-type {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+        .footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 30px 20px 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .footer-text {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .footer-links {
+            margin-bottom: 20px;
+        }
+        .footer-links a {
+            color: #2563eb;
+            text-decoration: none;
+            margin: 0 12px;
+            font-size: 14px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .copyright {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .content {
+                padding: 0 15px;
+            }
+            .title {
+                font-size: 20px;
+            }
+            .contract-info {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">VeriHome</div>
+            <div class="tagline">Tu hogar, nuestra confianza</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="notification-type {% if notification.priority == 'urgent' %}priority-urgent{% elif notification.priority == 'high' %}priority-high{% endif %}">
+                Contrato
+            </div>
+            
+            <h1 class="title">{{ title }}</h1>
+            
+            <p class="message">
+                Hola {{ user_name }},<br><br>
+                {{ message }}
+            </p>
+
+            {% if notification.related_object %}
+            <div class="contract-details {% if notification.priority == 'urgent' %}priority-urgent{% elif notification.priority == 'high' %}priority-high{% endif %}">
+                <h4>📄 Detalles del Contrato</h4>
+                {% if notification.related_object.property %}
+                <div class="contract-info">
+                    <span>Propiedad:</span>
+                    <strong>{{ notification.related_object.property.title }}</strong>
+                </div>
+                {% endif %}
+                <div class="contract-info">
+                    <span>Estado:</span>
+                    <strong>{{ notification.related_object.get_status_display|default:"En proceso" }}</strong>
+                </div>
+                {% if notification.related_object.created_at %}
+                <div class="contract-info">
+                    <span>Creado:</span>
+                    <strong>{{ notification.related_object.created_at|date:"d/m/Y" }}</strong>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if action_url %}
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ action_url }}" class="action-button">
+                    {{ action_label|default:"Ver Contrato" }}
+                </a>
+            </div>
+            {% endif %}
+            
+            <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+                <strong>💡 Consejos importantes:</strong><br>
+                • Revisa cuidadosamente todos los términos antes de firmar<br>
+                • Guarda una copia del contrato firmado para tus registros<br>
+                • Contacta con nosotros si tienes alguna pregunta<br>
+                • Este email contiene información confidencial
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este email fue enviado desde {{ platform_name }}
+            </p>
+            
+            <div class="footer-links">
+                <a href="{{ base_url }}/app/contracts">Mis Contratos</a>
+                <a href="{{ base_url }}/support">Soporte</a>
+                <a href="{{ base_url }}/app/settings/notifications">Configurar Notificaciones</a>
+            </div>
+            
+            <p class="copyright">
+                © {{ current_year }} {{ platform_name }}. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

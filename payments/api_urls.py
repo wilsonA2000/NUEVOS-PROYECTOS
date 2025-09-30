@@ -47,6 +47,11 @@ urlpatterns = [
     path('stats/dashboard/', api_views.PaymentDashboardStatsAPIView.as_view(), name='api_payment_dashboard_stats'),
     path('reports/transactions/', api_views.TransactionReportAPIView.as_view(), name='api_transaction_report'),
     
+    # Advanced Payment Analytics
+    path('stats/', api_views.PaymentStatsAPIView.as_view(), name='api_payment_stats'),
+    path('stats/system/', api_views.SystemPaymentStatsAPIView.as_view(), name='api_system_payment_stats'),
+    path('stats/export/', api_views.ExportPaymentStatsAPIView.as_view(), name='api_export_payment_stats'),
+    
     # Rent payments
     path('rent/process/', api_views.ProcessRentPaymentAPIView.as_view(), name='api_process_rent_payment'),
     path('tenant/portal/', api_views.TenantPaymentPortalAPIView.as_view(), name='api_tenant_portal'),

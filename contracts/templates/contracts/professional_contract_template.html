@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ contract_title }}</title>
+    <style>
+        /* ===============================================
+           ESTILO PROFESIONAL PARA CONTRATO DE ARRENDAMIENTO
+           =============================================== */
+        
+        @page {
+            size: Letter;
+            margin: 2.5cm 2cm 2cm 2cm;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" opacity="0.05"><text x="400" y="300" font-family="Arial, sans-serif" font-size="48" text-anchor="middle" fill="%23007BFF" transform="rotate(-45 400 300)">VeriHome</text></svg>') center center no-repeat;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: Arial, sans-serif;
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            background: white;
+            position: relative;
+        }
+
+        /* Marca de agua */
+        body::before {
+            content: "VeriHome";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(0, 123, 255, 0.08);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Header profesional */
+        .contract-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #007BFF 0%, #0056B3 100%);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .company-name {
+            font-size: 14pt;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .contract-title {
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000;
+        }
+
+        /* Cuadro resumen profesional */
+        .contract-summary {
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table td {
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+
+        .summary-table .label {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            width: 40%;
+        }
+
+        .summary-table .value {
+            background-color: white;
+        }
+
+        /* Introducción legal */
+        .legal-introduction {
+            text-align: justify;
+            margin: 25px 0;
+            text-indent: 30px;
+        }
+
+        /* Cláusulas profesionales */
+        .clause {
+            margin: 20px 0;
+            text-align: justify;
+        }
+
+        .clause-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-size: 11pt;
+        }
+
+        .clause-content {
+            text-indent: 20px;
+            margin-bottom: 10px;
+        }
+
+        .paragraph {
+            margin-bottom: 10px;
+            text-indent: 20px;
+        }
+
+        /* Párrafos especiales */
+        .paragraph-title {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        /* Área de firmas */
+        .signatures-area {
+            margin-top: 60px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            display: inline-block;
+            width: 45%;
+            margin: 40px 2% 20px 2%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin: 40px 0 10px 0;
+            position: relative;
+        }
+
+        .signature-info {
+            font-size: 10pt;
+            line-height: 1.3;
+            margin-top: 10px;
+        }
+
+        /* Utilidades */
+        .text-center { text-align: center; }
+        .text-justify { text-align: justify; }
+        .font-bold { font-weight: bold; }
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+
+        /* Espacios de página */
+        .page-break { page-break-before: always; }
+        
+        /* Numeración de cláusulas */
+        .clause-number {
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        /* Responsive para vista web */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 15px;
+                font-size: 10pt;
+            }
+            
+            .signature-box {
+                width: 100%;
+                margin: 20px 0;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .contract-header {
+                background: #007BFF !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ENCABEZADO PROFESIONAL -->
+    <div class="contract-header">
+        <div class="company-name">VERIHOME - PLATAFORMA DE ARRENDAMIENTOS DIGITALES</div>
+    </div>
+
+    <!-- TÍTULO PRINCIPAL -->
+    <h1 class="contract-title">
+        {{ contract_type_display|default:"CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA" }}
+    </h1>
+
+    <!-- CUADRO RESUMEN DE INFORMACIÓN CLAVE -->
+    <div class="contract-summary">
+        <table class="summary-table">
+            <tr>
+                <td class="label">ARRENDADOR:</td>
+                <td class="value">{{ landlord_name|upper }}</td>
+                <td class="label">ARRENDATARIO:</td>
+                <td class="value">{{ tenant_name|upper }}</td>
+            </tr>
+            <tr>
+                <td class="label">DIRECCIÓN DEL INMUEBLE:</td>
+                <td class="value">{{ property_address|upper }}</td>
+                <td class="label">MUNICIPIO:</td>
+                <td class="value">{{ property_city|upper }}</td>
+            </tr>
+            <tr>
+                <td class="label">CANON:</td>
+                <td class="value">
+                    {% if monthly_rent %}
+                        ${{ monthly_rent|floatformat:0 }} PESOS M/CTE
+                    {% else %}
+                        POR DEFINIR
+                    {% endif %}
+                </td>
+                <td class="label">FECHA DE INICIACIÓN:</td>
+                <td class="value">{{ start_date|date:"d \d\e F \d\e Y"|upper }}</td>
+            </tr>
+            <tr>
+                <td class="label">TÉRMINO DE ARRENDAMIENTO:</td>
+                <td class="value">{{ minimum_lease_term|default:"12" }} MESES</td>
+                <td class="label">DESTINACIÓN INMUEBLE:</td>
+                <td class="value">{{ property_type|upper }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- INTRODUCCIÓN LEGAL -->
+    <div class="legal-introduction">
+        Entre los suscritos a saber: <strong>{{ landlord_name|upper }}</strong> identificado con cédula de ciudadanía No. <strong>{{ landlord_id }}</strong>, obrando en calidad de propietario del bien inmueble quien en el texto del presente contrato se denominará <strong>EL ARRENDADOR</strong> y para los efectos legales se tendrá en cuenta como usufructuario quien está autorizado para recibir el usufructo del inmueble objeto de este contrato por una parte y por la otra <strong>{{ tenant_name|upper }}</strong> identificado con cédula de ciudadanía No. <strong>{{ tenant_id }}</strong>, quien en el presente contrato se denominará <strong>EL ARRENDATARIO</strong>, se ha celebrado el presente contrato de arrendamiento, el cual se regirá en virtud del principio de libertad negocial o contractual, por las siguientes cláusulas y en lo no estipulado en ellas, por lo previsto en la ley.
+    </div>
+
+    <!-- CLÁUSULA PRIMERA - OBJETO -->
+    <div class="clause">
+        <div class="clause-title">
+            <span class="clause-number">CLÁUSULA PRIMERA</span> – OBJETO:
+        </div>
+        <div class="clause-content">
+            EL ARRENDADOR entrega a título de arrendamiento, a EL ARRENDATARIO, el inmueble ubicado en <strong>{{ property_address|upper }}</strong> del municipio de <strong>{{ property_city|upper }}</strong>, y cuyos linderos se encuentran relacionados en documento separado que hace parte integral de este contrato y a su turno, EL ARRENDATARIO se obliga a pagar a EL ARRENDADOR el precio establecido en el clausulado del presente contrato.
+        </div>
+    </div>
+
+    <!-- CLÁUSULA SEGUNDA - DESTINACIÓN -->
+    <div class="clause">
+        <div class="clause-title">
+            <span class="clause-number">CLÁUSULA SEGUNDA</span> – DESTINACIÓN:
+        </div>
+        <div class="clause-content">
+            EL ARRENDATARIO destinará el inmueble arrendado única y exclusivamente para <strong>{{ property_type|lower }}</strong>, destinación que no podrá ser cambiada. En el evento que esto ocurra, EL ARRENDADOR puede dar por terminado el arrendamiento, exigir la entrega inmediata del inmueble arrendado y solicitar el pago de la correspondiente indemnización de perjuicios o de las penalidades a que haya lugar.
+        </div>
+        
+        <div class="paragraph-title">PARÁGRAFO PRIMERO:</div>
+        <div class="paragraph">
+            EL ARRENDATARIO no destinará el inmueble para fines ilícitos, y en consecuencia se obliga de forma especial a no utilizarlo para ocultar o depositar armas, explosivos o dineros de grupos terroristas o artículos de contrabando o hurtados, o para que en él se elaboren, almacenen o vendan drogas, estupefacientes o sustancias alucinógenas y afines. EL ARRENDATARIO se obliga a no guardar o permitir que se guarden en el inmueble sustancias inflamables o explosivas que pongan en peligro la seguridad del mismo.
+        </div>
+
+        <div class="paragraph-title">PARÁGRAFO SEGUNDO:</div>
+        <div class="paragraph">
+            EL ARRENDATARIO faculta al ARRENDADOR para que, directamente o a través de sus funcionarios debidamente autorizado por escrito, visiten el Inmueble para verificar el cumplimiento de las obligaciones a cargo del ARRENDATARIO.
+        </div>
+    </div>
+
+    <!-- CLÁUSULA TERCERA - PRECIO -->
+    <div class="clause">
+        <div class="clause-title">
+            <span class="clause-number">CLÁUSULA TERCERA</span> – PRECIO:
+        </div>
+        <div class="clause-content">
+            El precio mensual del arrendamiento es de <strong>
+            {% if monthly_rent %}
+                ${{ monthly_rent|floatformat:0 }} PESOS M/CTE (${{ monthly_rent|floatformat:0 }})
+            {% else %}
+                [MONTO POR DEFINIR]
+            {% endif %}
+            </strong> el cual deberá ser pagado por EL ARRENDATARIO, de forma anticipada los primeros cinco (05) días hábiles de cada mes, cualquiera que sea la fecha de inicio de la vigencia del presente contrato.
+        </div>
+
+        <div class="paragraph-title">PARÁGRAFO PRIMERO:</div>
+        <div class="paragraph">
+            Se conviene que los períodos de pago del canon de Arrendamiento no serán divisibles, salvo el primero si la fecha de iniciación del contrato no coincide con la fecha en la que principia el mes calendario. El primer pago deberá hacerse de manera previa a la entrega del inmueble.
+        </div>
+
+        <div class="paragraph-title">PARÁGRAFO SEGUNDO:</div>
+        <div class="paragraph">
+            En caso de mora en el pago del precio del arrendamiento, EL ARRENDATARIO, además del saldo en mora reconocerá y pagará durante ella a EL ARRENDADOR los intereses de mora liquidados a la tasa máxima permitida además de los honorarios por gestión de cobranza.
+        </div>
+    </div>
+
+    <!-- CLÁUSULAS DINÁMICAS GENERADAS AUTOMÁTICAMENTE -->
+    {% if contract_clauses %}
+        {% for clause in contract_clauses %}
+            {% if clause.number > 3 %}  <!-- Solo mostrar cláusulas después de las 3 básicas -->
+                <div class="clause">
+                    <div class="clause-title">
+                        <span class="clause-number">CLÁUSULA {{ clause.ordinal|upper }}</span> – {{ clause.title|upper }}:
+                    </div>
+                    <div class="clause-content">
+                        {{ clause.formatted_content }}
+                    </div>
+                    
+                    {% if clause.paragraphs %}
+                        {% for paragraph in clause.paragraphs %}
+                            <div class="paragraph-title">{{ paragraph.type }}:</div>
+                            <div class="paragraph">{{ paragraph.content }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <!-- Cláusulas por defecto si no hay cláusulas dinámicas -->
+        <div class="clause">
+            <div class="clause-title">
+                <span class="clause-number">CLÁUSULA CUARTA</span> - REAJUSTE:
+            </div>
+            <div class="clause-content">
+                Cada doce (12) meses de ejecución del contrato en caso de prórroga sea esta tácita, expresa, automática o por ministerio de la Ley, el precio del arrendamiento se incrementará en una proporción igual al 100% del incremento que haya tenido el Índice de Precios al Consumidor en el año calendario inmediatamente anterior a aquel en que se efectúe el incremento.
+            </div>
+        </div>
+
+        <div class="clause">
+            <div class="clause-title">
+                <span class="clause-number">CLÁUSULA QUINTA</span> - ENTREGA:
+            </div>
+            <div class="clause-content">
+                EL ARRENDATARIO declara que ha recibido el inmueble en excelente estado conservación para su uso de conformidad con el inventario anexo que forma parte integral del contrato. Así mismo, declara que ha recibido el inmueble con todas sus instalaciones eléctricas, sanitarias, hidráulicas, de gas, telefónicas y estructurales en perfecto estado de funcionamiento.
+            </div>
+        </div>
+
+        <div class="clause">
+            <div class="clause-title">
+                <span class="clause-number">CLÁUSULA SEXTA</span> – TÉRMINO:
+            </div>
+            <div class="clause-content">
+                El término inicial del arrendamiento es de <strong>{{ minimum_lease_term|default:"DOCE (12)" }} MESES</strong>, contado a partir del <strong>{{ start_date|date:"d \d\e F \d\e Y"|upper }}</strong>. Sin perjuicio de las causales de terminación del contrato previstas a lo largo del clausulado contenido en el presente contrato, el término del arrendamiento se prorrogará por el mismo término inicial, siempre y cuando EL ARRENDATARIO haya cumplido con las obligaciones a su cargo.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ÁREA DE FIRMAS PROFESIONAL -->
+    <div class="signatures-area">
+        <h3 class="text-center mb-20">FIRMAS</h3>
+        
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-info">
+                <div class="font-bold">EL ARRENDADOR</div>
+                <div>Nombre: {{ landlord_name|upper }}</div>
+                <div>C.C. {{ landlord_id }}</div>
+                {% if landlord_phone %}<div>Teléfono: {{ landlord_phone }}</div>{% endif %}
+                {% if landlord_email %}<div>Email: {{ landlord_email }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-info">
+                <div class="font-bold">EL ARRENDATARIO</div>
+                <div>Nombre: {{ tenant_name|upper }}</div>
+                <div>C.C. {{ tenant_id }}</div>
+                {% if tenant_phone %}<div>Teléfono: {{ tenant_phone }}</div>{% endif %}
+                {% if tenant_email %}<div>Email: {{ tenant_email }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <div class="text-center mt-20" style="font-size: 10pt; color: #666; border-top: 1px solid #dee2e6; padding-top: 15px;">
+        <div>Contrato generado digitalmente por VeriHome</div>
+        <div>{{ today|date:"d \d\e F \d\e Y" }} - Número: {{ contract_number }}</div>
+    </div>
+</body>
+</html>

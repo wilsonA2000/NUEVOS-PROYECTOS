@@ -7,7 +7,7 @@ import { useDynamicQuery, useStableQuery, useStaticQuery, useOptimizedMutation, 
 import { cacheUtils } from '../lib/queryClient';
 
 export const useProperties = (filters?: PropertySearchFilters) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
   
   // Verificación robusta del queryClient - solo log en desarrollo
@@ -21,24 +21,50 @@ export const useProperties = (filters?: PropertySearchFilters) => {
     throw new Error('QueryClient no está disponible. Verifica que QueryClientProvider esté configurado.');
   }
 
+  // Apply role-based filtering
+  const roleBasedFilters = React.useMemo(() => {
+    const combinedFilters = { ...filters };
+    
+    // For tenants, only show available properties
+    if (user?.user_type === 'tenant') {
+      combinedFilters.status = 'available';
+    }
+    
+    return combinedFilters;
+  }, [filters, user?.user_type]);
+
   const { data: properties, isLoading, error } = useDynamicQuery<Property[]>(
-    ['properties', 'list', filters],
+    ['properties', 'list', roleBasedFilters, user?.user_type],
     () => {
 
-return propertyService.getProperties(filters);
+return propertyService.getProperties(roleBasedFilters);
     },
     {
       enabled: isAuthenticated,
       select: (data) => {
+        // Apply additional client-side filtering for enhanced security
+        let filteredData = data;
+        
+        // For tenants, ensure only available properties are shown
+        if (user?.user_type === 'tenant') {
+          filteredData = data?.filter(property => property.status === 'available') || [];
+        }
+        
         // Optimizar datos de propiedades
-        return data?.map(property => ({
+        return filteredData?.map(property => ({
           ...property,
           // Precargar imágenes optimizadas
-          images: property.images?.map((img: string) => ({
-            original: img,
-            webp: img.replace(/\.(jpg|jpeg|png)$/i, '.webp'),
-            thumbnail: img.replace(/\.(jpg|jpeg|png)$/i, '_thumb.webp'),
-          })),
+          images: property.images?.map((img: any) => {
+            const imgUrl = typeof img === 'string' ? img : img?.image || img?.image_url || img;
+            if (typeof imgUrl === 'string') {
+              return {
+                original: imgUrl,
+                webp: imgUrl.replace(/\.(jpg|jpeg|png)$/i, '.webp'),
+                thumbnail: imgUrl.replace(/\.(jpg|jpeg|png)$/i, '_thumb.webp'),
+              };
+            }
+            return img; // Return as-is if not a processable string
+          }),
           // Calcular métricas de rendimiento
           performance: {
             pricePerSqm: property.price && property.area ? property.price / property.area : null,

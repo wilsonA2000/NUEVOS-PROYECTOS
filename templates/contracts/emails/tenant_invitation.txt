@@ -1,0 +1,43 @@
+INVITACIÓN A CONTRATO DE ARRENDAMIENTO - VERIHOME
+==================================================
+
+¡Has sido invitado a revisar un contrato de arrendamiento!
+
+Estimado/a arrendatario/a,
+
+{{ landlord.get_full_name }} te ha invitado a revisar y completar un contrato de arrendamiento a través de VeriHome. Este es un proceso seguro y completamente digital.
+
+INFORMACIÓN DEL ARRENDADOR:
+• Nombre: {{ landlord.get_full_name }}
+• Email: {{ landlord.email }}
+{% if landlord.phone %}• Teléfono: {{ landlord.phone }}{% endif %}
+
+RESUMEN DEL CONTRATO:
+• Número de Contrato: {{ contract.contract_number }}
+{% if contract.monthly_rent %}• Canon Mensual: ${{ contract.monthly_rent|floatformat:0 }}{% endif %}
+{% if contract.security_deposit %}• Depósito de Garantía: ${{ contract.security_deposit|floatformat:0 }}{% endif %}
+{% if contract.contract_duration_months %}• Duración: {{ contract.contract_duration_months }} meses{% endif %}
+
+{% if personal_message %}MENSAJE PERSONAL DEL ARRENDADOR:
+"{{ personal_message }}"{% endif %}
+
+⏰ INVITACIÓN CON TIEMPO LIMITADO:
+Esta invitación expira el {{ expiry_date|date:"d/m/Y" }} a las {{ expiry_date|time:"H:i" }}. Te recomendamos revisar el contrato lo antes posible.
+
+REVISAR CONTRATO: {{ invitation_url }}
+
+QUÉ SUCEDE DESPUÉS:
+1. Haz clic en el enlace para acceder al contrato
+2. Completa tus datos personales
+3. Revisa todos los términos cuidadosamente
+4. Presenta objeciones si es necesario  
+5. Acepta y firma digitalmente cuando esté todo correcto
+
+🔒 SEGURIDAD: Este enlace es único y seguro. Solo tú puedes acceder con tu email registrado.
+
+---
+
+VeriHome - Plataforma de gestión de arriendos
+© 2025 VeriHome. Todos los derechos reservados.
+
+Si no esperabas esta invitación, por favor ignora este mensaje.

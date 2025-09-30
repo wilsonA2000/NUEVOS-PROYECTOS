@@ -14,7 +14,7 @@ export interface Notification {
   title: string;
   message: string;
   type: 'message' | 'property' | 'payment' | 'contract' | 'rating' | 'user' | 'system';
-  priority: 'low' | 'normal' | 'high' | 'urgent' | 'critical';
+  priority: 'low' | 'medium' | 'high' | 'urgent' | 'critical';
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
   timestamp: string;
   read: boolean;
@@ -204,7 +204,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         title: message.data.title,
         message: message.data.message,
         type: message.data.type,
-        priority: message.data.priority || 'normal',
+        priority: message.data.priority || 'medium',
         status: message.data.status || 'delivered',
         timestamp: message.data.timestamp,
         read: false,

@@ -235,7 +235,7 @@ export const usePropertiesQuery = (filters?: Record<string, any>) => {
           // Procesar datos de la propiedad
           images: property.images?.map((img: string) => ({
             url: img,
-            optimized: img.replace(/\.(jpg|jpeg|png)$/i, '.webp'), // Optimización de imágenes
+            optimized: typeof img === 'string' ? img.replace(/\.(jpg|jpeg|png)$/i, '.webp') : img, // Optimización de imágenes
           })),
         })),
       }),

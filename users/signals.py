@@ -5,6 +5,9 @@ Signals para la aplicación de usuarios.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import User, LandlordProfile, TenantProfile, ServiceProviderProfile, UserSettings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=User)
@@ -34,10 +37,17 @@ def create_user_profile(sender, instance, created, **kwargs):
             ServiceProviderProfile.objects.get_or_create(
                 user=instance,
                 defaults={
-                    'business_name': f'{instance.get_full_name()} Services',
+                    'company_name': f'{instance.get_full_name()} Services',
                     'bio': f'Proveedor de servicios profesionales en VeriHome.',
                 }
             )
+        
+        # Enviar notificación de bienvenida
+        try:
+            from core.notification_service import notification_service
+            notification_service.notify_welcome(instance)
+        except Exception as e:
+            logger.error(f"Error enviando notificación de bienvenida: {str(e)}")
 
 
 @receiver(post_save, sender=User)

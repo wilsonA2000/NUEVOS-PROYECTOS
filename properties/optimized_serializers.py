@@ -320,6 +320,25 @@ class OptimizedCreatePropertySerializer(serializers.ModelSerializer):
     nearby_amenities = serializers.CharField(required=False, allow_blank=True)
     transportation = serializers.CharField(required=False, allow_blank=True)
     
+    # Campos de medios
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        required=False,
+        write_only=True
+    )
+    main_image = serializers.ImageField(required=False, write_only=True)
+    video_file = serializers.FileField(required=False, write_only=True)
+    video_files = serializers.ListField(
+        child=serializers.FileField(),
+        required=False,
+        write_only=True
+    )
+    youtube_urls = serializers.ListField(
+        child=serializers.URLField(),
+        required=False,
+        write_only=True
+    )
+    
     class Meta:
         model = Property
         fields = [
@@ -331,7 +350,9 @@ class OptimizedCreatePropertySerializer(serializers.ModelSerializer):
             'furnished', 'pets_allowed', 'smoking_allowed', 'available_from',
             # Campos faltantes agregados
             'parking_spaces', 'floors', 'minimum_lease_term', 'property_features',
-            'nearby_amenities', 'transportation'
+            'nearby_amenities', 'transportation',
+            # Campos de medios
+            'images', 'main_image', 'video_file', 'video_files', 'youtube_urls'
         ]
     
     def validate_utilities_included(self, value):
@@ -421,6 +442,102 @@ class OptimizedCreatePropertySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"sale_price": "Sale price is required for sale properties."})
         
         return data
+    
+    def create(self, validated_data):
+        """Create property with images and videos."""
+        
+        # Extraer archivos de medios
+        images = validated_data.pop('images', [])
+        main_image = validated_data.pop('main_image', None)
+        video_file = validated_data.pop('video_file', None)
+        video_files = validated_data.pop('video_files', [])
+        youtube_urls = validated_data.pop('youtube_urls', [])
+        
+        # Obtener usuario de la request
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['landlord'] = request.user
+        
+        # Crear propiedad
+        property_instance = Property.objects.create(**validated_data)
+        
+        # Si hay video_file individual (por compatibilidad), agregarlo a la lista
+        if video_file:
+            video_files.append(video_file)
+        
+        # Procesar imágenes
+        if images:
+            for i, image in enumerate(images):
+                # Verificar si es main_image
+                is_main = (main_image and image == main_image) or (i == 0 and not main_image)
+                
+                PropertyImage.objects.create(
+                    property=property_instance,
+                    image=image,
+                    is_main=is_main if is_main is not None else False,
+                    order=i
+                )
+        
+        # Procesar múltiples archivos de video
+        for i, video in enumerate(video_files):
+            title_key = f'video_{i}_title'
+            description_key = f'video_{i}_description'
+            
+            title = request.data.get(title_key, f'Video {i+1}') if request else 'Video'
+            description = request.data.get(description_key, '') if request else ''
+            
+            PropertyVideo.objects.create(
+                property=property_instance,
+                video=video,
+                title=title,
+                description=description
+            )
+        
+        # Procesar URLs de YouTube
+        for i, youtube_url in enumerate(youtube_urls):
+            title_key = f'youtube_{i}_title'
+            description_key = f'youtube_{i}_description'
+            
+            title = request.data.get(title_key, f'YouTube Video {i+1}') if request else 'YouTube Video'
+            description = request.data.get(description_key, '') if request else ''
+            
+            PropertyVideo.objects.create(
+                property=property_instance,
+                youtube_url=youtube_url,
+                title=title,
+                description=description
+            )
+        
+        # Logging de actividad (opcional)
+        if request and hasattr(request, 'user'):
+            try:
+                from core.audit_service import AuditService
+                AuditService.log_activity(
+                    user=request.user,
+                    action_type='property_created',
+                    resource_type='property',
+                    resource_id=property_instance.id,
+                    metadata={
+                        'property_title': property_instance.title,
+                        'property_type': property_instance.property_type,
+                        'images_count': len(images),
+                        'videos_count': len(video_files) + len(youtube_urls)
+                    }
+                )
+            except Exception as e:
+                # Log pero no fallar si hay problemas con auditoría
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error logging property creation: {e}")
+        
+        return property_instance
+    
+    def to_representation(self, instance):
+        """Return property data with ID for frontend."""
+        data = super().to_representation(instance)
+        # Ensure ID is included in response
+        data['id'] = instance.id
+        return data
 
 
 class OptimizedUpdatePropertySerializer(OptimizedCreatePropertySerializer):
@@ -428,6 +545,120 @@ class OptimizedUpdatePropertySerializer(OptimizedCreatePropertySerializer):
     
     class Meta(OptimizedCreatePropertySerializer.Meta):
         fields = OptimizedCreatePropertySerializer.Meta.fields + ['status']
+    
+    def update(self, instance, validated_data):
+        """Update property with new images and videos."""
+        
+        # Extraer archivos de medios
+        images = validated_data.pop('images', [])
+        main_image = validated_data.pop('main_image', None)
+        video_file = validated_data.pop('video_file', None)
+        video_files = validated_data.pop('video_files', [])
+        youtube_urls = validated_data.pop('youtube_urls', [])
+        
+        # Actualizar campos básicos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Obtener request para metadatos de videos
+        request = self.context.get('request')
+        
+        # Si hay video_file individual (por compatibilidad), agregarlo a la lista
+        if video_file:
+            video_files.append(video_file)
+        
+        # Agregar nuevas imágenes (sin eliminar las existentes)
+        if images:
+            for i, image in enumerate(images):
+                # Verificar si es main_image
+                is_main = (main_image and image == main_image) or (i == 0 and not main_image)
+                
+                PropertyImage.objects.create(
+                    property=instance,
+                    image=image,
+                    is_main=is_main if is_main is not None else False,
+                    order=instance.images.count() + i
+                )
+        
+        # MEJORAR LÓGICA DE ARCHIVOS DE VIDEO - evitar duplicación
+        # Verificar si se están enviando archivos de video
+        has_video_files_data = any(key.startswith('video_') or key == 'video_files' for key in (request.data.keys() if request else []))
+        
+        # Si se detectan campos de video en el request, solo agregar los nuevos (no eliminar existentes)
+        # Los videos existentes se eliminan individualmente mediante la API deleteVideo
+        if video_files:
+            for i, video in enumerate(video_files):
+                if video:  # Solo archivos válidos
+                    title_key = f'video_{i}_title'
+                    description_key = f'video_{i}_description'
+                    
+                    title = request.data.get(title_key, f'Video {i+1}') if request else 'Video Actualizado'
+                    description = request.data.get(description_key, '') if request else ''
+                    
+                    PropertyVideo.objects.create(
+                        property=instance,
+                        video=video,
+                        title=title,
+                        description=description
+                    )
+                    print(f"➕ Added video file: {title}")
+                else:
+                    print(f"⚠️ Skipped empty video file at index {i}")
+        
+        # MEJORAR LÓGICA DE VIDEOS DE YOUTUBE - evitar duplicación
+        # Verificar si se están enviando datos de YouTube (incluso si están vacíos)
+        has_youtube_data = any(key.startswith('youtube') for key in (request.data.keys() if request else []))
+        
+        # Si se detectan campos de YouTube en el request (incluso vacíos), gestionar videos
+        if has_youtube_data or youtube_urls:
+            # Eliminar todos los videos de YouTube existentes
+            PropertyVideo.objects.filter(property=instance, youtube_url__isnull=False).delete()
+            print(f"🗑️ Deleted existing YouTube videos for property {instance.id}")
+        
+        # Agregar solo las URLs de YouTube válidas
+        if youtube_urls:
+            for i, youtube_url in enumerate(youtube_urls):
+                if youtube_url and youtube_url.strip():  # Solo URLs no vacías
+                    title_key = f'youtube_{i}_title'
+                    description_key = f'youtube_{i}_description'
+                    
+                    title = request.data.get(title_key, f'YouTube Video {i+1}') if request else 'YouTube Video Actualizado'
+                    description = request.data.get(description_key, '') if request else ''
+                    
+                    PropertyVideo.objects.create(
+                        property=instance,
+                        youtube_url=youtube_url.strip(),
+                        title=title,
+                        description=description
+                    )
+                    print(f"➕ Added YouTube video: {title}")
+                else:
+                    print(f"⚠️ Skipped empty YouTube URL at index {i}")
+        
+        # Logging de actividad (opcional)
+        if request and hasattr(request, 'user'):
+            try:
+                from core.audit_service import AuditService
+                AuditService.log_activity(
+                    user=request.user,
+                    action_type='property_updated',
+                    resource_type='property',
+                    resource_id=instance.id,
+                    metadata={
+                        'property_title': instance.title,
+                        'property_type': instance.property_type,
+                        'new_images_count': len(images),
+                        'new_videos_count': len(video_files) + len(youtube_urls)
+                    }
+                )
+            except Exception as e:
+                # Log pero no fallar si hay problemas con auditoría
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error logging property update: {e}")
+        
+        return instance
 
 
 class OptimizedPropertyFavoriteSerializer(serializers.ModelSerializer):

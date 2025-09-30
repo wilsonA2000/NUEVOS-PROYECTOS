@@ -147,19 +147,25 @@ class SmartCache:
 
 
 def _invalidate_known_keys(pattern):
-    """Fallback para invalidar keys conocidas basadas en el patrón."""
+    """Fallback para invalidar keys conocidas basadas en el patrón - MEJORADO."""
     # Mapeo de patrones a keys específicas conocidas
     pattern_mappings = {
         'verihome:properties:*': [
             'verihome:properties:list',
-            'verihome:properties:featured',
+            'verihome:properties:featured', 
             'verihome:properties:trending',
             'verihome:properties:search',
             'verihome:properties:stats',
         ],
+        'properties:list:v2:*': [
+            # Para patrones dinámicos, intentamos obtener todas las keys del cache
+        ],
+        'properties:suggestions:*': [
+            # Para patrones dinámicos, intentamos obtener todas las keys del cache
+        ],
         'verihome:users:*': [
             'verihome:users:stats',
-            'verihome:users:active',
+            'verihome:users:active', 
             'verihome:users:profiles',
         ],
         'verihome:contracts:*': [
@@ -179,17 +185,48 @@ def _invalidate_known_keys(pattern):
         ],
     }
     
-    # Obtener keys específicas para el patrón
-    keys_to_delete = pattern_mappings.get(pattern, [])
+    keys_to_delete = pattern_mappings.get(pattern, []).copy()
     
-    # También intentar con el patrón directo
+    # Para patrones con wildcard, intentar buscar keys dinámicamente
     if pattern.endswith('*'):
         base_pattern = pattern[:-1]
-        # Agregar algunas variaciones comunes
-        common_suffixes = ['list', 'detail', 'stats', 'search', 'featured']
-        for suffix in common_suffixes:
-            keys_to_delete.append(f"{base_pattern}{suffix}")
+        
+        # Intentar obtener todas las keys del cache (si es posible con el backend actual)
+        try:
+            # Para InMemoryCache, intentar acceder a las keys internas
+            if hasattr(cache, '_cache'):
+                all_cache_keys = []
+                try:
+                    # Diferentes formas de acceder a las keys dependiendo del backend
+                    if hasattr(cache._cache, 'keys'):
+                        all_cache_keys = list(cache._cache.keys())
+                    elif hasattr(cache._cache, '_data'):
+                        all_cache_keys = list(cache._cache._data.keys())
+                    elif hasattr(cache._cache, '_cache'):
+                        all_cache_keys = list(cache._cache._cache.keys())
+                        
+                    # Filtrar keys que coincidan con el patrón
+                    matching_keys = [
+                        key for key in all_cache_keys 
+                        if isinstance(key, str) and key.startswith(base_pattern)
+                    ]
+                    
+                    keys_to_delete.extend(matching_keys)
+                    logger.debug(f"Found {len(matching_keys)} dynamic keys matching pattern: {pattern}")
+                    
+                except Exception as e:
+                    logger.debug(f"Could not access cache keys dynamically: {e}")
+            
+        except Exception as e:
+            logger.debug(f"Cache key enumeration failed: {e}")
+        
+        # Agregar algunas variaciones comunes si no encontramos keys dinámicamente
+        if not keys_to_delete or len(keys_to_delete) == len(pattern_mappings.get(pattern, [])):
+            common_suffixes = ['list', 'detail', 'stats', 'search', 'featured', 'trending']
+            for suffix in common_suffixes:
+                keys_to_delete.append(f"{base_pattern}{suffix}")
     else:
+        # Patrón exacto
         keys_to_delete.append(pattern)
     
     # Eliminar keys individuales
@@ -199,6 +236,7 @@ def _invalidate_known_keys(pattern):
             if cache.get(key) is not None:
                 cache.delete(key)
                 deleted_count += 1
+                logger.debug(f"Deleted cache key: {key}")
         except Exception as e:
             logger.debug(f"Could not delete cache key {key}: {e}")
     

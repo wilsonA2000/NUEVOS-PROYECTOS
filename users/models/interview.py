@@ -6,6 +6,7 @@ Handles interview codes and contact requests.
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 import random
 import string
 from datetime import timedelta
@@ -52,6 +53,13 @@ class InterviewCode(models.Model):
     notes = models.TextField('Notas', blank=True)
     max_uses = models.PositiveIntegerField('Usos máximos', default=1)
     current_uses = models.PositiveIntegerField('Usos actuales', default=0)
+    interview_rating = models.PositiveSmallIntegerField(
+        'Calificación de entrevista',
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        help_text='Calificación de 0 a 10 estrellas basada en la entrevista'
+    )
     
     class Meta:
         verbose_name = 'Código de Entrevista'

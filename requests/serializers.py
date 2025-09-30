@@ -316,7 +316,27 @@ class TenantDocumentUploadSerializer(serializers.ModelSerializer):
         validated_data['original_filename'] = document_file.name
         validated_data['file_size'] = document_file.size
         
-        return super().create(validated_data)
+        # IMPORTANTE: Manejar reemplazo de documentos existentes
+        property_request = validated_data['property_request']
+        document_type = validated_data['document_type']
+        
+        # Verificar si ya existe un documento del mismo tipo
+        existing_document = TenantDocument.objects.filter(
+            property_request=property_request,
+            document_type=document_type
+        ).first()
+        
+        if existing_document:
+            # Eliminar el documento existente (reemplazo)
+            existing_document.delete()
+            print(f"🔄 Documento existente eliminado para reemplazo: {document_type}")
+        
+        # Crear el nuevo documento con status 'pending'
+        validated_data['status'] = 'pending'
+        new_document = super().create(validated_data)
+        print(f"✅ Nuevo documento creado: {document_type} - Status: {new_document.status}")
+        
+        return new_document
 
 
 class TenantDocumentReviewSerializer(serializers.ModelSerializer):

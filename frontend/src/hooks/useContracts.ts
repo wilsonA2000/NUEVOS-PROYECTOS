@@ -30,40 +30,9 @@ export const useContracts = () => {
     enabled: isAuthenticated,
   });
 
-  // Firmas
-  const { data: signatures } = useQuery<any[]>({
-    queryKey: ['contract-signatures'],
-    queryFn: contractService.getSignatures,
-    enabled: isAuthenticated,
-  });
-
-  // Enmiendas
-  const { data: amendments } = useQuery<any[]>({
-    queryKey: ['contract-amendments'],
-    queryFn: contractService.getAmendments,
-    enabled: isAuthenticated,
-  });
-
-  // Renovaciones
-  const { data: renewals } = useQuery<any[]>({
-    queryKey: ['contract-renewals'],
-    queryFn: contractService.getRenewals,
-    enabled: isAuthenticated,
-  });
-
-  // Terminaciones
-  const { data: terminations } = useQuery<any[]>({
-    queryKey: ['contract-terminations'],
-    queryFn: contractService.getTerminations,
-    enabled: isAuthenticated,
-  });
-
-  // Documentos
-  const { data: documents } = useQuery({
-    queryKey: ['contract-documents'],
-    queryFn: contractService.getDocuments,
-    enabled: isAuthenticated,
-  });
+  // Note: Firmas, enmiendas, renovaciones, terminaciones y documentos específicos 
+  // de contratos se consultan individualmente por contractId cuando sea necesario
+  // Estos no deberían ser consultas globales
 
   // Reportes
   const { data: expiringContracts } = useQuery({
@@ -213,15 +182,55 @@ export const useContracts = () => {
     },
   });
 
+  // Nuevas funcionalidades para contratos colombianos desde matching
+  const validateMatchForContract = useMutation({
+    mutationFn: ({ matchId }: { matchId: string }) =>
+      contractService.validateMatchForContract(matchId),
+    onError: (error) => {
+      console.error('Error validating match for contract:', error);
+    },
+  });
+
+  const createContractFromMatch = useMutation({
+    mutationFn: ({ matchId, contractData }: { matchId: string; contractData: any }) =>
+      contractService.createContractFromMatch(matchId, contractData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['match-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['contract-stats'] });
+    },
+  });
+
+  const verifyIdentityForContract = useMutation({
+    mutationFn: ({ contractId, documents }: { contractId: string; documents: any }) =>
+      contractService.verifyIdentityForContract(contractId, documents),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    },
+  });
+
+  const generateLegalClauses = useMutation({
+    mutationFn: ({ contractId }: { contractId: string }) =>
+      contractService.generateLegalClauses(contractId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    },
+  });
+
+  const downloadContractPDF = useMutation({
+    mutationFn: ({ contractId }: { contractId: string }) =>
+      contractService.downloadContractPDF(contractId),
+  });
+
+  const getContractMilestones = useMutation({
+    mutationFn: ({ contractId }: { contractId: string }) =>
+      contractService.getContractMilestones(contractId),
+  });
+
   return {
     // Datos
     contracts,
     templates,
-    signatures,
-    amendments,
-    renewals,
-    terminations,
-    documents,
     expiringContracts,
     pendingSignatures,
     contractStats,
@@ -246,5 +255,14 @@ export const useContracts = () => {
     createRenewal,
     createTermination,
     uploadDocument,
+    
+    // Nuevas funcionalidades para contratos colombianos
+    validateMatchForContract,
+    createContractFromMatch,
+    verifyIdentityForContract,
+    generateLegalClauses,
+    downloadContractPDF,
+    getContractMilestones,
   };
 }; 
+/* FORCE RELOAD 1754456937819 - USE_CONTRACTS_HOOK - Nuclear fix applied */

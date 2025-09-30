@@ -43,7 +43,7 @@ import {
   Info as InfoIcon,
   Circle as CircleIcon,
 } from '@mui/icons-material';
-import { useRealTimeNotifications, RealTimeNotification } from '../../hooks/useRealTimeNotifications';
+import { usePollingNotifications } from '../../hooks/usePollingNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -69,17 +69,13 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
 
 export const RealTimeNotificationCenter: React.FC = () => {
   const {
-    isConnected,
     notifications,
     unreadCount,
+    isLoading,
     markAsRead,
     markAllAsRead,
-    clearNotification,
-    clearAllNotifications,
-    enablePushNotifications,
-    disablePushNotifications,
-    isPushEnabled,
-  } = useRealTimeNotifications();
+    refresh,
+  } = usePollingNotifications();
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [currentTab, setCurrentTab] = useState(0);

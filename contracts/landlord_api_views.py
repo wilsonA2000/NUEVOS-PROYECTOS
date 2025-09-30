@@ -55,8 +55,8 @@ class IsLandlordPermission(permissions.BasePermission):
             return False
         
         # Verificar que el usuario sea arrendador
-        return (hasattr(request.user, 'profile') and 
-                request.user.profile.user_type == 'landlord')
+        # El campo user_type está directamente en el modelo User
+        return request.user.user_type == 'landlord'
 
 
 class LandlordContractViewSet(viewsets.ModelViewSet):
@@ -93,52 +93,86 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """
-        Crear nuevo contrato (Paso 1 del workflow).
-        Solo términos básicos, el arrendador completará datos después.
+        Crear nuevo contrato con datos completos del formulario.
+        Procesa todos los datos: propiedad, arrendador, términos, garantías y codeudor.
         """
+        print(f"🏠 Contract creation request from user: {request.user.email}")
+        print(f"📝 Request data keys: {list(request.data.keys())}")
+        print(f"📝 Request data: {request.data}")
+
         serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            print(f"❌ Serializer validation failed: {serializer.errors}")
+
         serializer.is_valid(raise_exception=True)
-        
+
         try:
-            service = LandlordContractService()
-            
-            # Extraer términos básicos
-            basic_terms = {
-                'monthly_rent': serializer.validated_data['monthly_rent'],
-                'security_deposit': serializer.validated_data['security_deposit'],
-                'duration_months': serializer.validated_data['contract_duration_months'],
-                'utilities_included': serializer.validated_data.get('utilities_included', False),
-                'pets_allowed': serializer.validated_data.get('pets_allowed', False),
-                'smoking_allowed': serializer.validated_data.get('smoking_allowed', False)
+            # El serializer ya procesó y validó todos los datos
+            # Simplemente crear el contrato con los datos validados
+            contract = serializer.save()
+
+            # Registrar en historial detallado
+            self._record_contract_creation_history(contract, request.user, serializer.validated_data)
+
+            # Respuesta detallada con información del contrato creado
+            response_data = {
+                'id': str(contract.id),
+                'contract_number': contract.contract_number,
+                'current_state': contract.current_state,
+                'created_at': contract.created_at.isoformat() if contract.created_at else None,
+                'has_property_data': bool(contract.property_data),
+                'has_landlord_data': bool(contract.landlord_data),
+                'has_guarantee_terms': bool(contract.contract_terms.get('guarantor_required')),
+                'has_codeudor_data': bool(contract.contract_terms.get('codeudor_data')),
+                'monthly_rent': contract.economic_terms.get('monthly_rent', 0),
+                'security_deposit': contract.economic_terms.get('security_deposit', 0),
+                'contract_duration_months': contract.contract_terms.get('contract_duration_months', 12)
             }
-            
-            contract = service.create_contract_draft(
-                landlord=request.user,
-                property_id=str(serializer.validated_data['property'].id),
-                contract_template=serializer.validated_data.get('contract_template', 'default'),
-                basic_terms=basic_terms
-            )
-            
-            # Asignar campos adicionales
-            for field, value in serializer.validated_data.items():
-                if hasattr(contract, field):
-                    setattr(contract, field, value)
-            contract.save()
-            
-            response_serializer = LandlordControlledContractDetailSerializer(contract)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-            
+            return Response(response_data, status=status.HTTP_201_CREATED)
+
         except (ValidationError, PermissionDenied) as e:
             return Response(
-                {'error': str(e)}, 
+                {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            import traceback
             logger.error(f"Error creating contract: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return Response(
-                {'error': 'Error interno al crear el contrato'}, 
+                {'error': 'Error interno al crear el contrato'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def _record_contract_creation_history(self, contract, user, validated_data):
+        """Registrar historial detallado de la creación del contrato"""
+        try:
+            from .landlord_contract_models import ContractWorkflowHistory
+
+            # Preparar resumen de datos para el historial
+            data_summary = {
+                'has_property_data': bool(contract.property_data),
+                'has_landlord_data': bool(contract.landlord_data),
+                'has_guarantee_terms': bool(contract.contract_terms.get('guarantor_required')),
+                'has_special_clauses': bool(contract.special_clauses),
+                'economic_terms_count': len(contract.economic_terms),
+                'contract_terms_count': len(contract.contract_terms)
+            }
+
+            ContractWorkflowHistory.objects.create(
+                contract=contract,
+                performed_by=user,
+                action_type='CONTRACT_CREATED_COMPLETE',
+                action_description=f"Contrato creado con datos completos del formulario",
+                old_state='',
+                new_state='DRAFT',
+                changes_made=data_summary,
+                user_role='landlord'
+            )
+        except Exception as e:
+            logger.warning(f"No se pudo registrar historial: {e}")
+            # No fallar la creación del contrato por problemas de historial
     
     @action(detail=True, methods=['post'])
     def complete_landlord_data(self, request, pk=None):
@@ -330,7 +364,27 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
                 contract_id=contract.id,
                 user=request.user
             )
-            
+
+            # CRÍTICO: Sincronizar Contract OLD para sistema biométrico
+            try:
+                from .models import Contract
+                old_contract = Contract.objects.filter(id=updated_contract.id).first()
+                if old_contract:
+                    # Mapear estados del sistema NEW al OLD
+                    if updated_contract.current_state == 'BOTH_REVIEWING':
+                        old_contract.status = 'ready_for_authentication'
+                    elif updated_contract.current_state == 'READY_TO_SIGN':
+                        old_contract.status = 'pending_biometric'
+
+                    old_contract.save()
+                    logger.info(f"✅ Contract OLD {old_contract.id} synchronized with state: {old_contract.status}")
+                else:
+                    logger.warning(f"⚠️ No Contract OLD found for ID {updated_contract.id}")
+
+            except Exception as e:
+                logger.warning(f"⚠️ Error synchronizing Contract OLD: {e}")
+                # No fallar el proceso principal si hay error en la sincronización
+
             return Response(
                 LandlordControlledContractDetailSerializer(updated_contract).data, 
                 status=status.HTTP_200_OK

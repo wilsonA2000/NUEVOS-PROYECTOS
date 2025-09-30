@@ -88,7 +88,7 @@ class MessageService {
   }
 
   async markMessageAsRead(id: string): Promise<void> {
-    await api.post(`/messages/messages/${id}/mark-read/`);
+    await api.post(`/messages/mark-read/${id}/`);
     
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('message_read', { id, isRead: true });
@@ -365,16 +365,6 @@ class MessageService {
     await api.post('/messages/mark-unread/', { ids });
   }
 
-  async updateMessage(id: string, data: any): Promise<Message> {
-    const response = await api.put(`/messages/messages/${id}/`, data);
-    this.emitWebSocketEvent('message_updated', response.data);
-    return response.data;
-  }
-
-  async updateFolder(id: string, data: any): Promise<MessageFolder> {
-    const response = await api.put(`/messages/folders/${id}/`, data);
-    return response.data;
-  }
 }
 
 // Crear instancia singleton

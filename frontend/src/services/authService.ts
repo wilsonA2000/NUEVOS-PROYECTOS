@@ -106,8 +106,8 @@ const { access, refresh } = response.data;
       
       // Solo guardar tokens si realmente tenemos tokens válidos
       if (access && refresh) {
-        localStorage.setItem('token', access);
-        localStorage.setItem('refresh', refresh);
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('refresh_token', refresh);
         
         // Obtener el usuario actual con el token
 
@@ -120,8 +120,8 @@ return userResponse.data;
     } catch (error: any) {
       console.error('❌ Error en login:', error);
       // Limpiar cualquier token inválido
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       throw processError(error);
     }
   },
@@ -173,7 +173,8 @@ try {
 
   async logout(): Promise<void> {
     console.log('🔓 AuthService.logout - Iniciando...');
-    const token = getStoredToken();
+    // Obtener token del localStorage o sessionStorage
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
     console.log('🔑 Token:', token ? 'Presente' : 'No presente');
     
     try {
@@ -201,6 +202,12 @@ try {
       
       return response.data;
     } catch (error: any) {
+      // Si es 401, es esperado cuando no hay token válido
+      if (error.response?.status === 401) {
+        // No loguear error 401 como es esperado cuando no hay autenticación
+        throw error;
+      }
+      // Solo loguear otros errores inesperados
       console.error('❌ Error obteniendo usuario actual:', error);
       console.error('❌ Status:', error.response?.status);
       console.error('❌ Data:', error.response?.data);
@@ -211,7 +218,7 @@ try {
   async updateProfile(data: UpdateProfileDto): Promise<User> {
 
 try {
-      const response = await api.put<User>('/auth/profile/', data);
+      const response = await api.put<User>('/users/profile/', data);
 
 return response.data;
     } catch (error: any) {
@@ -223,7 +230,7 @@ return response.data;
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
 
 try {
-      await api.put('/auth/change-password/', { oldPassword, newPassword });
+      await api.put('/users/auth/change-password/', { oldPassword, newPassword });
 
 } catch (error: any) {
       console.error('❌ Error cambiando contraseña:', error);
@@ -234,7 +241,7 @@ try {
   async forgotPassword(email: string): Promise<void> {
 
 try {
-      await api.post('/auth/forgot-password/', { email });
+      await api.post('/users/auth/forgot-password/', { email });
 
 } catch (error: any) {
       console.error('❌ Error solicitando restablecimiento:', error);
@@ -242,10 +249,10 @@ try {
     }
   },
 
-  async resetPassword(token: string, newPassword: string): Promise<void> {
+  async resetPassword(token: string, newPassword: string, uid?: string): Promise<void> {
 
 try {
-      await api.post('/auth/reset-password/', { token, newPassword });
+      await api.post('/users/auth/reset-password/', { token, newPassword, uid });
 
 } catch (error: any) {
       console.error('❌ Error restableciendo contraseña:', error);
@@ -253,3 +260,4 @@ try {
     }
   },
 }; 
+/* Cache busted: 2025-08-06T04:42:27.058Z - AUTH_SERVICE */

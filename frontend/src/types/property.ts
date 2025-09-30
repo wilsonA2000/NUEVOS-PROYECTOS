@@ -1,7 +1,7 @@
 export interface Property {
   id: string; // UUID field
   landlord: {
-    id: number;
+    id: string;
     email: string;
     first_name: string;
     last_name: string;
@@ -76,7 +76,7 @@ export interface Property {
 }
 
 export interface PropertyImage {
-  id: number;
+  id: string;
   image: string;
   image_url: string;
   caption: string;
@@ -86,9 +86,10 @@ export interface PropertyImage {
 }
 
 export interface PropertyVideo {
-  id: number;
+  id: string;
   video: string;
   video_url: string;
+  youtube_url?: string;
   title: string;
   description: string;
   duration?: string;
@@ -98,7 +99,7 @@ export interface PropertyVideo {
 }
 
 export interface PropertyAmenity {
-  id: number;
+  id: string;
   name: string;
   category: 'interior' | 'exterior' | 'security' | 'recreation' | 'utilities' | 'parking' | 'accessibility';
   icon: string;
@@ -107,31 +108,31 @@ export interface PropertyAmenity {
 }
 
 export interface PropertyAmenityRelation {
-  id: number;
+  id: string;
   amenity: PropertyAmenity;
-  amenity_id: number;
+  amenity_id: string;
   available: boolean;
   notes: string;
 }
 
 export interface PropertyFavorite {
-  id: number;
+  id: string;
   user: {
-    id: number;
+    id: string;
     email: string;
     first_name: string;
     last_name: string;
     role: string;
   };
-  property: number;
+  property: string;
   property_title: string;
   created_at: string;
 }
 
 export interface PropertyView {
-  id: number;
-  property: number;
-  user?: number;
+  id: string;
+  property: string;
+  user?: string;
   ip_address?: string;
   user_agent: string;
   viewed_at: string;
@@ -139,11 +140,11 @@ export interface PropertyView {
 }
 
 export interface PropertyInquiry {
-  id: number;
-  property: number;
+  id: string;
+  property: string;
   property_title: string;
   inquirer: {
-    id: number;
+    id: string;
     email: string;
     first_name: string;
     last_name: string;
@@ -245,17 +246,39 @@ export interface UpdatePropertyDto {
 }
 
 export interface PropertySearchFilters {
+  // Basic search
+  search?: string;
   property_type?: string;
   listing_type?: string;
   status?: string;
   city?: string;
   state?: string;
+  
+  // Price range
   min_price?: number;
   max_price?: number;
+  
+  // Area range  
+  min_area?: number;
+  max_area?: number;
+  
+  // Rooms and bathrooms
   min_bedrooms?: number;
   max_bedrooms?: number;
+  min_bathrooms?: number;
+  max_bathrooms?: number;
+  
+  // Amenities and features
+  has_parking?: boolean;
+  has_pool?: boolean;
+  allows_pets?: boolean;
+  is_furnished?: boolean;
+  
+  // Additional filters
   pets_allowed?: boolean;
   furnished?: boolean;
+  
+  // Ordering and pagination
   ordering?: string;
   page?: number;
   page_size?: number;

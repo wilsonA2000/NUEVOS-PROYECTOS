@@ -36,27 +36,35 @@ class ValidateInterviewCodeView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            code_obj = InterviewCode.objects.get(interview_code=interview_code)
-            is_valid, message = code_obj.is_valid()
+            code_obj = InterviewCode.objects.get(code=interview_code)
             
-            if is_valid:
+            if code_obj.is_valid():
                 return Response({
                     'is_valid': True,
                     'message': 'Código válido',
                     'code_data': {
-                        'interview_code': code_obj.interview_code,
-                        'candidate_name': code_obj.candidate_name,
-                        'candidate_email': code_obj.candidate_email,
-                        'approved_user_type': code_obj.approved_user_type,
-                        'interview_rating': code_obj.interview_rating or 0,
-                        'status': code_obj.status,
-                        'expires_at': code_obj.expires_at.isoformat() if code_obj.expires_at else None,
-                        'is_approved': code_obj.is_approved
+                        'code': code_obj.code,
+                        'user_type': code_obj.user_type,
+                        'email': code_obj.email,
+                        'is_active': code_obj.is_active,
+                        'valid_until': code_obj.valid_until.isoformat() if code_obj.valid_until else None,
                     }
                 })
             else:
                 # Incrementar intentos si el código existe pero no es válido
-                code_obj.increment_attempt()
+                code_obj.current_uses += 1
+                code_obj.save()
+                
+                message = 'Código inválido'
+                if not code_obj.is_active:
+                    message = 'El código está inactivo'
+                elif code_obj.is_used:
+                    message = 'El código ya fue utilizado'
+                elif timezone.now() > code_obj.valid_until:
+                    message = 'El código ha expirado'
+                elif code_obj.current_uses >= code_obj.max_uses:
+                    message = 'El código ha alcanzado el máximo de usos'
+                    
                 return Response({
                     'is_valid': False,
                     'message': message
@@ -157,11 +165,22 @@ class RegisterWithCodeView(APIView):
             
             # Validar el código de entrevista
             try:
-                code_obj = InterviewCode.objects.get(interview_code=interview_code)
-                is_valid, message = code_obj.is_valid()
+                code_obj = InterviewCode.objects.get(code=interview_code)
                 
-                if not is_valid:
-                    code_obj.increment_attempt()
+                if not code_obj.is_valid():
+                    code_obj.current_uses += 1
+                    code_obj.save()
+                    
+                    message = 'Código inválido'
+                    if not code_obj.is_active:
+                        message = 'El código está inactivo'
+                    elif code_obj.is_used:
+                        message = 'El código ya fue utilizado'
+                    elif timezone.now() > code_obj.valid_until:
+                        message = 'El código ha expirado'
+                    elif code_obj.current_uses >= code_obj.max_uses:
+                        message = 'El código ha alcanzado el máximo de usos'
+                        
                     return Response({
                         'error': f'Código de entrevista inválido: {message}'
                     }, status=status.HTTP_400_BAD_REQUEST)
@@ -171,14 +190,14 @@ class RegisterWithCodeView(APIView):
                     'error': 'Código de entrevista no encontrado'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            # Verificar que el email coincida
-            if data.get('email') != code_obj.candidate_email:
+            # Verificar que el email coincida (si el código tiene email asociado)
+            if code_obj.email and data.get('email') != code_obj.email:
                 return Response({
                     'error': 'El email no coincide con el código de entrevista'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Verificar que el tipo de usuario coincida
-            if data.get('user_type') != code_obj.approved_user_type:
+            if data.get('user_type') != code_obj.user_type:
                 return Response({
                     'error': 'El tipo de usuario no coincide con el código de entrevista'
                 }, status=status.HTTP_400_BAD_REQUEST)

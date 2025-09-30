@@ -32,6 +32,8 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { userService } from '../../services/userService';
 import { UserSettings } from '../../types/user';
+import UserStatusSelector from '../../components/users/UserStatusSelector';
+import OptimizedWebSocketStatus from '../../components/common/OptimizedWebSocketStatus';
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -133,6 +135,25 @@ const Settings: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Ajustes
       </Typography>
+
+      {/* User Status & Real-Time Control */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6}>
+          <UserStatusSelector />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <NotificationsIcon />
+              Control de Tiempo Real
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Activa o desactiva las funciones en tiempo real como chat en vivo y notificaciones instantáneas.
+            </Typography>
+            <OptimizedWebSocketStatus compact={false} showControls={true} />
+          </Box>
+        </Grid>
+      </Grid>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>

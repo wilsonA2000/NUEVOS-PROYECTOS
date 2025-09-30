@@ -27,6 +27,7 @@ import {
   Bathtub as BathtubIcon,
 } from '@mui/icons-material';
 import { Property } from '../../types/property';
+import { User } from '../../types/user';
 import PropertyImage from '../common/PropertyImage';
 
 interface PropertyCardsProps {
@@ -39,6 +40,7 @@ interface PropertyCardsProps {
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   userType: string;
+  currentUser: User | null;
 }
 
 const PropertyCards: React.FC<PropertyCardsProps> = ({
@@ -51,6 +53,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
   onDelete,
   onToggleFavorite,
   userType,
+  currentUser,
 }) => {
   const getStatusColor = (status: string): 'success' | 'primary' | 'warning' | 'error' => {
     switch (status) {
@@ -125,11 +128,10 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
               <Box sx={{ position: 'relative', height: 200 }}>
                 <PropertyImage
                   src={
-                    property.images && property.images.length > 0 
-                      ? (typeof property.images[0] === 'string' 
-                          ? property.images[0] 
-                          : property.images[0].image || property.images[0])
-                      : '/placeholder-property.jpg'
+                    property.main_image_url || 
+                    (property.images && property.images.length > 0 
+                      ? property.images[0].image_url || property.images[0].image || '/placeholder-property.jpg'
+                      : '/placeholder-property.jpg')
                   }
                   alt={property.title}
                   width="100%"
@@ -166,7 +168,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                     size="small"
                     onClick={() => onToggleFavorite(property.id.toString())}
                   >
-                    {property.is_favorite ? (
+                    {property.is_favorited ? (
                       <FavoriteIcon fontSize="small" color="error" />
                     ) : (
                       <FavoriteBorderIcon fontSize="small" />
@@ -269,7 +271,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                   Ver Detalles
                 </Button>
 
-                {userType === 'landlord' && (
+                {userType === 'landlord' && (currentUser?.email === property.landlord?.email || currentUser?.is_superuser || currentUser?.role === 'admin') && (
                   <Box>
                     <IconButton
                       size="small"

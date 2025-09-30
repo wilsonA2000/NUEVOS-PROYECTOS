@@ -6,212 +6,240 @@ import {
   MenuItem,
   Typography,
   Box,
-  Divider,
-  Button,
   List,
   ListItem,
   ListItemText,
   ListItemAvatar,
   Avatar,
+  Button,
+  Divider,
+  Alert,
+  Fade,
   Chip,
-  Tooltip
+  Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
+  NotificationsNone as NotificationsNoneIcon,
   Home as HomeIcon,
   Person as PersonIcon,
-  Check as CheckIcon,
-  Close as CloseIcon,
+  CheckCircle as AcceptedIcon,
+  Cancel as RejectedIcon,
+  Schedule as PendingIcon,
+  Visibility as ViewedIcon,
   Star as StarIcon,
-  AccessTime as TimeIcon,
-  MarkEmailRead as MarkReadIcon
+  Clear as ClearIcon,
+  MarkEmailRead as MarkReadIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useAuth } from '../../hooks/useAuth';
 
+// Interfaces del backend MatchNotification
 interface MatchNotification {
   id: string;
-  notification_type: string;
+  notification_type: 'new_match_found' | 'match_request_received' | 'match_accepted' | 'match_rejected' | 'match_expired' | 'follow_up_reminder' | 'criteria_updated';
   title: string;
   message: string;
   is_read: boolean;
-  created_at: string;
-  match_request?: {
-    id: string;
-    match_code: string;
-    property: {
-      title: string;
-      city: string;
-    };
-    tenant: {
-      first_name: string;
-      last_name: string;
-    };
-    compatibility_score?: number;
-  };
-  metadata?: {
-    thread_id?: string;
+  is_sent: boolean;
+  metadata: {
+    match_code?: string;
     property_id?: string;
+    property_title?: string;
+    tenant_name?: string;
+    landlord_name?: string;
     compatibility_score?: number;
+    [key: string]: any;
   };
+  match_request_code?: string;
+  property_title?: string;
+  time_since_created: string;
+  created_at: string;
+  read_at?: string;
+  sent_at?: string;
 }
 
 interface MatchNotificationBellProps {
+  notifications: MatchNotification[];
+  isLoading?: boolean;
+  onMarkAsRead: (notificationId: string) => void;
+  onMarkAllAsRead: () => void;
   onNotificationClick?: (notification: MatchNotification) => void;
-  onMarkAllRead?: () => void;
+  onSettingsClick?: () => void;
+  refreshNotifications?: () => void;
 }
 
 const MatchNotificationBell: React.FC<MatchNotificationBellProps> = ({
+  notifications = [],
+  isLoading = false,
+  onMarkAsRead,
+  onMarkAllAsRead,
   onNotificationClick,
-  onMarkAllRead
+  onSettingsClick,
+  refreshNotifications,
 }) => {
+  const { user } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [notifications, setNotifications] = useState<MatchNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/v1/matching/api/notifications/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
+  const isLandlord = user?.user_type === 'landlord';
+  const isTenant = user?.user_type === 'tenant';
 
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.results || data);
-        setUnreadCount(data.results?.filter((n: MatchNotification) => !n.is_read).length || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
+  // Filtrar notificaciones no leídas
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  const unreadCount = unreadNotifications.length;
+
+  // Mostrar máximo 5 notificaciones en el dropdown
+  const displayNotifications = showAll ? notifications : notifications.slice(0, 5);
+
+  const getNotificationConfig = (type: string) => {
+    switch (type) {
+      case 'new_match_found':
+        return {
+          icon: <StarIcon fontSize="small" />,
+          color: '#3b82f6',
+          bgColor: '#dbeafe',
+          title: 'Nuevo Match Encontrado',
+        };
+      case 'match_request_received':
+        return {
+          icon: <HomeIcon fontSize="small" />,
+          color: '#f59e0b',
+          bgColor: '#fef3c7',
+          title: 'Nueva Solicitud',
+        };
+      case 'match_accepted':
+        return {
+          icon: <AcceptedIcon fontSize="small" />,
+          color: '#10b981',
+          bgColor: '#d1fae5',
+          title: 'Solicitud Aceptada',
+        };
+      case 'match_rejected':
+        return {
+          icon: <RejectedIcon fontSize="small" />,
+          color: '#ef4444',
+          bgColor: '#fee2e2',
+          title: 'Solicitud Rechazada',
+        };
+      case 'match_expired':
+        return {
+          icon: <PendingIcon fontSize="small" />,
+          color: '#6b7280',
+          bgColor: '#f3f4f6',
+          title: 'Match Expirado',
+        };
+      case 'follow_up_reminder':
+        return {
+          icon: <ViewedIcon fontSize="small" />,
+          color: '#8b5cf6',
+          bgColor: '#ede9fe',
+          title: 'Recordatorio',
+        };
+      case 'criteria_updated':
+        return {
+          icon: <SettingsIcon fontSize="small" />,
+          color: '#059669',
+          bgColor: '#ecfdf5',
+          title: 'Criterios Actualizados',
+        };
+      default:
+        return {
+          icon: <NotificationsIcon fontSize="small" />,
+          color: '#6b7280',
+          bgColor: '#f3f4f6',
+          title: 'Notificación',
+        };
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
-    
-    // Polling para actualizaciones en tiempo real
-    const interval = setInterval(fetchNotifications, 30000); // Cada 30 segundos
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    if (refreshNotifications) {
+      refreshNotifications();
+    }
   };
 
-  const handleClose = () => {
+  const handleMenuClose = () => {
     setAnchorEl(null);
+    setShowAll(false);
   };
 
-  const handleNotificationClick = async (notification: MatchNotification) => {
+  const handleNotificationClick = (notification: MatchNotification) => {
     // Marcar como leída si no lo está
     if (!notification.is_read) {
-      try {
-        await fetch(`/api/v1/matching/api/notifications/${notification.id}/mark_as_read/`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        // Actualizar estado local
-        setNotifications(prev => 
-          prev.map(n => 
-            n.id === notification.id 
-              ? { ...n, is_read: true }
-              : n
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-      }
+      onMarkAsRead(notification.id);
     }
 
-    onNotificationClick?.(notification);
-    handleClose();
-  };
-
-  const handleMarkAllRead = async () => {
-    try {
-      await fetch('/api/v1/matching/api/notifications/mark_all_read/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-      onMarkAllRead?.();
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+    // Ejecutar callback personalizado
+    if (onNotificationClick) {
+      onNotificationClick(notification);
     }
+
+    handleMenuClose();
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'match_request_received':
-        return <PersonIcon sx={{ color: 'primary.main' }} />;
-      case 'match_accepted':
-        return <CheckIcon sx={{ color: 'success.main' }} />;
-      case 'match_rejected':
-        return <CloseIcon sx={{ color: 'error.main' }} />;
-      case 'new_match_found':
-        return <StarIcon sx={{ color: 'warning.main' }} />;
-      case 'match_expired':
-        return <TimeIcon sx={{ color: 'grey.500' }} />;
-      default:
-        return <HomeIcon sx={{ color: 'info.main' }} />;
+  const handleMarkAllRead = () => {
+    onMarkAllAsRead();
+  };
+
+  const formatTimeAgo = (timeString: string) => {
+    return timeString; // Ya viene formateado del backend
+  };
+
+  const getNotificationPriority = (notification: MatchNotification) => {
+    if (notification.notification_type === 'match_request_received' && isLandlord) {
+      return 'high';
     }
-  };
-
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'match_request_received':
-        return 'primary';
-      case 'match_accepted':
-        return 'success';
-      case 'match_rejected':
-        return 'error';
-      case 'new_match_found':
-        return 'warning';
-      case 'match_expired':
-        return 'default';
-      default:
-        return 'info';
+    if (notification.notification_type === 'match_accepted' && isTenant) {
+      return 'high';
     }
+    if (notification.notification_type === 'new_match_found' && isTenant) {
+      return 'medium';
+    }
+    return 'low';
   };
 
-  const formatNotificationTime = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
-      addSuffix: true,
-      locale: es
-    });
-  };
+  // Auto-refresh cada 30 segundos si hay notificaciones no leídas
+  useEffect(() => {
+    if (unreadCount > 0 && refreshNotifications) {
+      const interval = setInterval(refreshNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [unreadCount, refreshNotifications]);
 
   return (
     <>
-      <Tooltip title="Notificaciones de Matching">
+      <Tooltip title={`${unreadCount} notificaciones no leídas`}>
         <IconButton
           color="inherit"
-          onClick={handleClick}
+          onClick={handleMenuOpen}
           sx={{
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)'
-            }
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            },
           }}
         >
-          <Badge badgeContent={unreadCount} color="error">
-            <NotificationsIcon />
+          <Badge
+            badgeContent={unreadCount}
+            color="error"
+            max={99}
+            invisible={unreadCount === 0}
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: '#ef4444',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              },
+            }}
+          >
+            {unreadCount > 0 ? (
+              <NotificationsIcon sx={{ color: '#f59e0b' }} />
+            ) : (
+              <NotificationsNoneIcon />
+            )}
           </Badge>
         </IconButton>
       </Tooltip>
@@ -219,140 +247,269 @@ const MatchNotificationBell: React.FC<MatchNotificationBellProps> = ({
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        onClose={handleClose}
+        onClose={handleMenuClose}
         PaperProps={{
           sx: {
             width: 400,
             maxHeight: 500,
-            overflow: 'auto'
-          }
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-lg)',
+            background: 'var(--color-surface)',
+            boxShadow: 'var(--shadow-lg)',
+          },
         }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right'
-        }}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         {/* Header */}
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">
-              Notificaciones de Matching
+        <Box sx={{ p: 2, borderBottom: '1px solid var(--color-border)' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Notificaciones de Match
             </Typography>
-            {unreadCount > 0 && (
+            {isLoading && <CircularProgress size={16} />}
+          </Box>
+          
+          {unreadCount > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                {unreadCount} sin leer
+              </Typography>
               <Button
                 size="small"
-                startIcon={<MarkReadIcon />}
+                startIcon={<MarkReadIcon fontSize="small" />}
                 onClick={handleMarkAllRead}
+                sx={{
+                  color: 'var(--color-primary)',
+                  textTransform: 'none',
+                  fontSize: '0.8rem',
+                }}
               >
-                Marcar todo como leído
+                Marcar todas como leídas
               </Button>
-            )}
-          </Box>
-          {unreadCount > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {unreadCount} notificación{unreadCount !== 1 ? 'es' : ''} sin leer
-            </Typography>
+            </Box>
           )}
         </Box>
 
-        {/* Lista de notificaciones */}
-        {loading ? (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="text.secondary">Cargando notificaciones...</Typography>
-          </Box>
-        ) : notifications.length === 0 ? (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="text.secondary">No hay notificaciones</Typography>
+        {/* Notifications List */}
+        {notifications.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <NotificationsNoneIcon
+              sx={{
+                fontSize: 48,
+                color: 'var(--color-text-secondary)',
+                mb: 1,
+              }}
+            />
+            <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+              No hay notificaciones
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+              Las notificaciones de match aparecerán aquí
+            </Typography>
           </Box>
         ) : (
-          <List sx={{ p: 0 }}>
-            {notifications.slice(0, 10).map((notification) => (
-              <React.Fragment key={notification.id}>
-                <ListItem
-                  button
-                  onClick={() => handleNotificationClick(notification)}
-                  sx={{
-                    backgroundColor: notification.is_read ? 'transparent' : 'action.hover',
-                    '&:hover': {
-                      backgroundColor: 'action.selected'
-                    }
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'background.paper' }}>
-                      {getNotificationIcon(notification.notification_type)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: notification.is_read ? 'normal' : 'bold',
-                            flex: 1
-                          }}
-                        >
-                          {notification.title}
-                        </Typography>
-                        <Chip
-                          size="small"
-                          label={getNotificationColor(notification.notification_type)}
-                          color={getNotificationColor(notification.notification_type) as any}
-                          variant="outlined"
-                        />
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            fontSize: '0.85rem',
-                            lineHeight: 1.3,
-                            mb: 0.5,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          {notification.message}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {formatNotificationTime(notification.created_at)}
+          <List sx={{ p: 0, maxHeight: 300, overflow: 'auto' }}>
+            {displayNotifications.map((notification, index) => {
+              const config = getNotificationConfig(notification.notification_type);
+              const priority = getNotificationPriority(notification);
+              
+              return (
+                <Fade in={true} key={notification.id} timeout={300 + index * 100}>
+                  <ListItem
+                    button
+                    onClick={() => handleNotificationClick(notification)}
+                    sx={{
+                      borderBottom: index < displayNotifications.length - 1 ? '1px solid var(--color-border)' : 'none',
+                      backgroundColor: !notification.is_read ? 'var(--color-primary-light)' : 'transparent',
+                      '&:hover': {
+                        backgroundColor: !notification.is_read ? 'var(--color-primary-light)' : 'var(--color-background)',
+                      },
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Priority Indicator */}
+                    {priority === 'high' && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 4,
+                          backgroundColor: '#ef4444',
+                        }}
+                      />
+                    )}
+
+                    <ListItemAvatar>
+                      <Avatar
+                        sx={{
+                          backgroundColor: config.bgColor,
+                          color: config.color,
+                          width: 36,
+                          height: 36,
+                        }}
+                      >
+                        {config.icon}
+                      </Avatar>
+                    </ListItemAvatar>
+
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: !notification.is_read ? 600 : 500,
+                              flex: 1,
+                            }}
+                          >
+                            {notification.title}
                           </Typography>
-                          {notification.metadata?.compatibility_score && (
-                            <Chip
-                              size="small"
-                              label={`${notification.metadata.compatibility_score}% compatible`}
-                              color="success"
-                              variant="outlined"
-                            />
-                          )}
+                          
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                            {!notification.is_read && (
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  backgroundColor: 'var(--color-primary)',
+                                }}
+                              />
+                            )}
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'var(--color-text-secondary)',
+                                fontSize: '0.7rem',
+                              }}
+                            >
+                              {formatTimeAgo(notification.time_since_created)}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-                <Divider />
-              </React.Fragment>
-            ))}
+                      }
+                      secondary={
+                        <Box sx={{ mt: 0.5 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'var(--color-text-secondary)',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              mb: 0.5,
+                            }}
+                          >
+                            {notification.message}
+                          </Typography>
+                          
+                          {/* Match Code & Property Info */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            {notification.match_request_code && (
+                              <Chip
+                                label={notification.match_request_code}
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: '0.7rem',
+                                  backgroundColor: 'var(--color-background)',
+                                  border: '1px solid var(--color-border)',
+                                }}
+                              />
+                            )}
+                            
+                            {notification.property_title && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'var(--color-text-secondary)',
+                                  fontStyle: 'italic',
+                                }}
+                              >
+                                {notification.property_title}
+                              </Typography>
+                            )}
+                            
+                            {notification.metadata.compatibility_score && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                                <StarIcon sx={{ fontSize: 12, color: '#f59e0b' }} />
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: 'var(--color-text-secondary)' }}
+                                >
+                                  {notification.metadata.compatibility_score}%
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Box>
+                      }
+                    />
+
+                    {/* Mark as Read Button */}
+                    {!notification.is_read && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMarkAsRead(notification.id);
+                        }}
+                        sx={{
+                          color: 'var(--color-text-secondary)',
+                          '&:hover': {
+                            backgroundColor: 'var(--color-background)',
+                          },
+                        }}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </ListItem>
+                </Fade>
+              );
+            })}
           </List>
         )}
 
         {/* Footer */}
-        {notifications.length > 10 && (
-          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', textAlign: 'center' }}>
-            <Button size="small" color="primary">
-              Ver todas las notificaciones
-            </Button>
+        {notifications.length > 0 && (
+          <Box sx={{ p: 2, borderTop: '1px solid var(--color-border)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {notifications.length > 5 && !showAll && (
+                <Button
+                  size="small"
+                  onClick={() => setShowAll(true)}
+                  sx={{
+                    color: 'var(--color-primary)',
+                    textTransform: 'none',
+                  }}
+                >
+                  Ver todas ({notifications.length})
+                </Button>
+              )}
+              
+              {onSettingsClick && (
+                <Button
+                  size="small"
+                  startIcon={<SettingsIcon fontSize="small" />}
+                  onClick={() => {
+                    onSettingsClick();
+                    handleMenuClose();
+                  }}
+                  sx={{
+                    color: 'var(--color-text-secondary)',
+                    textTransform: 'none',
+                    ml: 'auto',
+                  }}
+                >
+                  Configurar
+                </Button>
+              )}
+            </Box>
           </Box>
         )}
       </Menu>

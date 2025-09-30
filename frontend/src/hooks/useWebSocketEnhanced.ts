@@ -44,69 +44,37 @@ export const useWebSocketEnhanced = (
     onConnectionChangeRef.current = onConnectionChange;
   }, [onConnectionChange]);
 
-  // Connect function
+  // Connect function disabled
   const connect = useCallback(async () => {
-    try {
-      await websocketService.connect(endpoint);
-    } catch (error) {
-      console.error(`Failed to connect to WebSocket ${endpoint}:`, error);
-      throw error;
-    }
+    console.log(`WebSocket connect disabled for ${endpoint}`);
+    return Promise.resolve();
   }, [endpoint]);
 
-  // Disconnect function  
+  // Disconnect function disabled
   const disconnect = useCallback(() => {
-    websocketService.disconnect(endpoint);
+    console.log(`WebSocket disconnect disabled for ${endpoint}`);
   }, [endpoint]);
 
-  // Send function
+  // Send function disabled
   const send = useCallback((message: WebSocketMessage) => {
-    return websocketService.send(endpoint, message);
+    console.log(`WebSocket send disabled for ${endpoint}:`, message);
+    return false;
   }, [endpoint]);
 
-  // Subscribe function
+  // Subscribe function disabled
   const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    return websocketService.subscribe(eventType, callback);
+    console.log(`WebSocket subscribe disabled for ${eventType}`);
+    return () => {};
   }, []);
 
-  // Auto-connect effect
+  // Auto-connect completely disabled
+
+  // Connection status monitoring disabled
   useEffect(() => {
-    if (autoConnect) {
-      connect().catch(error => {
-        console.error('Auto-connect failed:', error);
-      });
-    }
-
-    return () => {
-      if (autoConnect) {
-        disconnect();
-      }
-    };
-  }, [autoConnect, connect, disconnect, ...dependencies]);
-
-  // Connection status effect
-  useEffect(() => {
-    const unsubscribe = websocketService.onConnectionStatusChange((status) => {
-      setConnectionStatus(status);
-      onConnectionChangeRef.current?.(status);
-    });
-
-    // Set initial status
-    setConnectionStatus(websocketService.getConnectionStatus(endpoint));
-
-    return unsubscribe;
+    setConnectionStatus({ connected: false, connecting: false, error: null });
   }, [endpoint]);
 
-  // Global message handler effect
-  useEffect(() => {
-    if (!onMessageRef.current) return;
-
-    const unsubscribe = websocketService.subscribe('*', (message) => {
-      onMessageRef.current?.(message);
-    });
-
-    return unsubscribe;
-  }, []);
+  // Message handler disabled
 
   return {
     connectionStatus,
@@ -121,15 +89,15 @@ export const useWebSocketEnhanced = (
 // Specialized hooks for different WebSocket endpoints
 
 export const useMessaging = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
-  return useWebSocketEnhanced('messaging', { ...options, autoConnect: true });
+  return useWebSocketEnhanced('messaging', { ...options, autoConnect: false });
 };
 
 export const useNotifications = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
-  return useWebSocketEnhanced('notifications', { ...options, autoConnect: true });
+  return useWebSocketEnhanced('notifications', { ...options, autoConnect: false });
 };
 
-export const useUserStatus = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
-  return useWebSocketEnhanced('user-status', { ...options, autoConnect: true });
+export const useUserStatusWS = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
+  return useWebSocketEnhanced('user-status', { ...options, autoConnect: false });
 };
 
 export const useThreadMessaging = (
@@ -139,7 +107,7 @@ export const useThreadMessaging = (
   const endpoint = `messaging/thread/${threadId}`;
   return useWebSocketEnhanced(endpoint, { 
     ...options, 
-    autoConnect: true,
+    autoConnect: false,
     dependencies: [threadId],
   });
 };

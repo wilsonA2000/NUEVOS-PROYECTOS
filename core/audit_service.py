@@ -89,7 +89,7 @@ class AuditService:
                 user=user,
                 activity_type=action_type,
                 description=description,
-                details={
+                metadata={
                     **(details or {}),
                     'activity_log_id': str(activity_log.id),
                     'target_object_type': content_type.model if content_type else None,
@@ -98,8 +98,7 @@ class AuditService:
                     'error_message': error_message
                 },
                 ip_address=ip_address,
-                user_agent=user_agent,
-                performed_by_admin=False
+                user_agent=user_agent[:255] if user_agent else ''
             )
             
             # Log estructurado
@@ -361,7 +360,7 @@ class AuditService:
         admin_activities = UserActivityLog.objects.filter(
             user=user,
             timestamp__gte=cutoff_date,
-            performed_by_admin=True
+            metadata__performed_by_admin=True
         ).count()
         
         summary = {

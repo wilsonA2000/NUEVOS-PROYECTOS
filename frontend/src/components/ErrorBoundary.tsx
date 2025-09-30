@@ -1,19 +1,30 @@
+/**
+ * ErrorBoundary - Base error boundary component
+ * Catches JavaScript errors anywhere in the child component tree
+ * Logs error details and displays fallback UI
+ */
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Paper,
   Alert,
   AlertTitle,
-  Container,
+  Paper,
+  Divider,
 } from '@mui/material';
-import { Refresh as RefreshIcon, Home as HomeIcon } from '@mui/icons-material';
-import { useLanguage } from '../hooks/useLanguage';
+import {
+  Refresh as RefreshIcon,
+  BugReport as BugIcon,
+  Home as HomeIcon,
+} from '@mui/icons-material';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  module?: string;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -33,90 +44,154 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log error details
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.setState({ error, errorInfo });
     
-    // Aquí podrías enviar el error a un servicio de monitoreo
-    // como Sentry, LogRocket, etc.
+    // Performance monitoring integration
+    if (window.performance && window.performance.mark) {
+      window.performance.mark('error-boundary-triggered');
+    }
+
+    // Update state with error info
+    this.setState({ errorInfo });
+
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    // Send error to monitoring service (if available)
+    this.reportError(error, errorInfo);
   }
 
-  handleRefresh = () => {
-    window.location.reload();
+  private reportError = (error: Error, errorInfo: ErrorInfo) => {
+    // Integration point for error monitoring services like Sentry
+    const errorReport = {
+      message: error.message,
+      stack: error.stack,
+      module: this.props.module || 'unknown',
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      componentStack: errorInfo.componentStack,
+    };
+
+    // Log to console for development
+    console.group('🚨 Error Boundary Report');
+    console.error('Error:', error);
+    console.error('Module:', this.props.module);
+    console.error('Component Stack:', errorInfo.componentStack);
+    console.error('Full Report:', errorReport);
+    console.groupEnd();
+
+    // TODO: Send to external monitoring service
+    // Example: Sentry.captureException(error, { extra: errorReport });
   };
 
-  handleGoHome = () => {
-    window.location.href = '/';
+  private handleRetry = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  };
+
+  private handleGoHome = () => {
+    window.location.href = '/app/dashboard';
+  };
+
+  private handleReload = () => {
+    window.location.reload();
   };
 
   render() {
     if (this.state.hasError) {
-      // Si hay un fallback personalizado, usarlo
+      // Custom fallback UI if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Fallback por defecto
+      // Default error UI
       return (
-        <Container maxWidth="md" sx={{ py: 4 }}>
-          <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+        <Box
+          sx={{
+            p: 3,
+            maxWidth: 800,
+            mx: 'auto',
+            mt: 4,
+          }}
+        >
+          <Paper elevation={2} sx={{ p: 4 }}>
             <Alert severity="error" sx={{ mb: 3 }}>
-              <AlertTitle>Error Inesperado</AlertTitle>
-              Ha ocurrido un error inesperado en la aplicación.
+              <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BugIcon />
+                Algo salió mal
+              </AlertTitle>
+              {this.props.module && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Error en el módulo: <strong>{this.props.module}</strong>
+                </Typography>
+              )}
             </Alert>
 
-            <Typography variant="h5" gutterBottom>
-              Algo salió mal
+            <Typography variant="h6" gutterBottom>
+              Se ha producido un error inesperado
             </Typography>
 
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Lo sentimos, ha ocurrido un error inesperado. Por favor, intenta recargar la página o regresa al inicio.
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Esto puede ser temporal. Intenta recargar la página o volver al inicio.
             </Typography>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <Box sx={{ mb: 3, textAlign: 'left' }}>
-                <Typography variant="h6" gutterBottom>
-                  Detalles del Error (Solo en desarrollo):
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" color="error" gutterBottom>
+                  Detalles del Error (Desarrollo):
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
-                  <Typography variant="body2" component="pre" sx={{ 
-                    whiteSpace: 'pre-wrap', 
-                    wordBreak: 'break-word',
-                    fontSize: '0.75rem'
-                  }}>
-                    {this.state.error.toString()}
-                  </Typography>
-                  {this.state.errorInfo && (
-                    <Typography variant="body2" component="pre" sx={{ 
-                      whiteSpace: 'pre-wrap', 
-                      wordBreak: 'break-word',
-                      fontSize: '0.75rem',
-                      mt: 1
-                    }}>
-                      {this.state.errorInfo.componentStack}
-                    </Typography>
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    fontSize: '0.875rem',
+                    maxHeight: 200,
+                  }}
+                >
+                  {this.state.error.message}
+                  {this.state.error.stack && (
+                    <>
+                      {'\n\nStack Trace:\n'}
+                      {this.state.error.stack}
+                    </>
                   )}
-                </Paper>
-              </Box>
+                </Box>
+              </>
             )}
 
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
                 startIcon={<RefreshIcon />}
-                onClick={this.handleRefresh}
+                onClick={this.handleRetry}
               >
-                Recargar Página
+                Intentar de nuevo
               </Button>
+
               <Button
                 variant="outlined"
                 startIcon={<HomeIcon />}
                 onClick={this.handleGoHome}
               >
-                Ir al Inicio
+                Ir al inicio
+              </Button>
+
+              <Button
+                variant="text"
+                onClick={this.handleReload}
+              >
+                Recargar página
               </Button>
             </Box>
           </Paper>
-        </Container>
+        </Box>
       );
     }
 
@@ -124,35 +199,4 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-const ErrorDisplay: React.FC<{ error: Error | null }> = ({ error }) => {
-  const { t } = useLanguage();
-
-  return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
-      p={3}
-      textAlign="center"
-    >
-      <Typography variant="h4" gutterBottom>
-        {t('common.error')}
-      </Typography>
-      <Typography variant="body1" color="text.secondary" gutterBottom>
-        {error?.message || t('common.unknownError')}
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => window.location.reload()}
-        sx={{ mt: 2 }}
-      >
-        {t('common.reload')}
-      </Button>
-    </Box>
-  );
-};
-
-export default ErrorBoundary; 
+export default ErrorBoundary;

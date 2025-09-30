@@ -10,7 +10,7 @@ from . import api_views
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'properties', api_views.PropertyViewSet, basename='property')
+router.register(r'', api_views.PropertyViewSet, basename='property')
 router.register(r'property-images', api_views.PropertyImageViewSet, basename='property-image')
 router.register(r'property-videos', api_views.PropertyVideoViewSet, basename='property-video')
 router.register(r'amenities', api_views.PropertyAmenityViewSet, basename='amenity')
@@ -33,5 +33,9 @@ urlpatterns = [
     path('stats/', api_views.PropertyStatsAPIView.as_view(), name='api_property_stats'),
     
     # Favoritos
-    path('properties/<uuid:property_id>/toggle-favorite/', api_views.ToggleFavoriteAPIView.as_view(), name='api_toggle_favorite'),
+    path('<uuid:property_id>/toggle-favorite/', api_views.ToggleFavoriteAPIView.as_view(), name='api_toggle_favorite'),
+    
+    # Videos específicos
+    path('property-videos/<int:video_id>/', api_views.PropertyVideoDetailAPIView.as_view(), name='api_property_video_detail'),
+    path('<uuid:property_id>/videos/upload/', api_views.PropertyVideoUploadAPIView.as_view(), name='api_property_video_upload'),
 ]

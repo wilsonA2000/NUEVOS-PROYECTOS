@@ -4,7 +4,7 @@
  */
 
 // Base error boundary
-export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as ErrorBoundary } from '../ErrorBoundary';
 
 // Module-specific error boundaries
 export { default as PropertiesErrorBoundary } from '../properties/PropertiesErrorBoundary';
@@ -16,7 +16,7 @@ export { default as RatingsErrorBoundary } from '../ratings/RatingsErrorBoundary
 
 // Higher-order component for wrapping routes with error boundaries
 import React, { ReactNode } from 'react';
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface WithErrorBoundaryProps {
   children: ReactNode;

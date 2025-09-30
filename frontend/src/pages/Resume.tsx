@@ -33,6 +33,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
+import { api } from '../services/api';
 
 interface ResumeData {
   id: string;
@@ -98,59 +99,73 @@ const Resume: React.FC = () => {
 
   const fetchResume = async () => {
     try {
-      // Simular llamada a la API
-      // En producción, esto sería una llamada real a la API
-      const mockResume: ResumeData = {
-        id: '1',
-        dateOfBirth: '1990-05-15',
-        nationality: 'Mexicana',
-        maritalStatus: 'Soltero',
-        dependents: 0,
-        educationLevel: 'Licenciatura',
-        institutionName: 'Universidad Nacional Autónoma de México',
-        fieldOfStudy: 'Ingeniería en Sistemas',
-        graduationYear: 2015,
-        gpa: 8.5,
-        currentEmployer: 'Tech Solutions S.A.',
-        currentPosition: 'Desarrollador Senior',
-        employmentType: 'Tiempo completo',
-        startDate: '2020-03-01',
-        monthlySalary: 45000,
-        supervisorName: 'María González',
-        supervisorPhone: '+52 55 1234 5678',
-        supervisorEmail: 'maria.gonzalez@techsolutions.com',
-        bankName: 'Banco Azteca',
-        accountType: 'Cuenta de cheques',
-        accountNumber: '****1234',
-        creditScore: 750,
-        monthlyExpenses: 25000,
-        emergencyContactName: 'Juan Pérez',
-        emergencyContactPhone: '+52 55 9876 5432',
-        emergencyContactRelation: 'Hermano',
-        emergencyContactAddress: 'Av. Reforma 123, CDMX',
-        reference1Name: 'Ana López',
-        reference1Phone: '+52 55 1111 2222',
-        reference1Email: 'ana.lopez@email.com',
-        reference1Relation: 'Ex compañera de trabajo',
-        reference2Name: 'Carlos Ruiz',
-        reference2Phone: '+52 55 3333 4444',
-        reference2Email: 'carlos.ruiz@email.com',
-        reference2Relation: 'Amigo',
-        evictionHistory: false,
-        criminalRecord: false,
-        completionPercentage: 85,
-        verificationScore: 78,
+      setLoading(true);
+      
+      // Llamada real a la API
+      const response = await api.get('/users/resume/');
+      const resumeData = response.data;
+      
+      // Mapear los datos de la API al formato del componente
+      const mappedResume: ResumeData = {
+        id: resumeData.id || 'new',
+        dateOfBirth: resumeData.date_of_birth || '',
+        nationality: resumeData.nationality || 'Colombiana',
+        maritalStatus: resumeData.marital_status || '',
+        dependents: resumeData.dependents || 0,
+        educationLevel: resumeData.education_level || '',
+        institutionName: resumeData.institution_name || '',
+        fieldOfStudy: resumeData.field_of_study || '',
+        graduationYear: resumeData.graduation_year || 0,
+        gpa: resumeData.gpa || 0,
+        currentEmployer: resumeData.current_employer || '',
+        currentPosition: resumeData.current_position || '',
+        employmentType: resumeData.employment_type || '',
+        startDate: resumeData.start_date || '',
+        monthlySalary: resumeData.monthly_salary || 0,
+        supervisorName: resumeData.supervisor_name || '',
+        supervisorPhone: resumeData.supervisor_phone || '',
+        supervisorEmail: resumeData.supervisor_email || '',
+        bankName: resumeData.bank_name || '',
+        accountType: resumeData.account_type || '',
+        accountNumber: resumeData.account_number || '',
+        creditScore: resumeData.credit_score || 0,
+        monthlyExpenses: resumeData.monthly_expenses || 0,
+        emergencyContactName: resumeData.emergency_contact_name || '',
+        emergencyContactPhone: resumeData.emergency_contact_phone || '',
+        emergencyContactRelation: resumeData.emergency_contact_relation || '',
+        emergencyContactAddress: resumeData.emergency_contact_address || '',
+        reference1Name: resumeData.reference1_name || '',
+        reference1Phone: resumeData.reference1_phone || '',
+        reference1Email: resumeData.reference1_email || '',
+        reference1Relation: resumeData.reference1_relation || '',
+        reference2Name: resumeData.reference2_name || '',
+        reference2Phone: resumeData.reference2_phone || '',
+        reference2Email: resumeData.reference2_email || '',
+        reference2Relation: resumeData.reference2_relation || '',
+        evictionHistory: resumeData.eviction_history || false,
+        evictionDetails: resumeData.eviction_details || '',
+        criminalRecord: resumeData.criminal_record || false,
+        criminalRecordDetails: resumeData.criminal_record_details || '',
+        completionPercentage: resumeData.verification_score || 0,
+        verificationScore: resumeData.verification_score || 0,
         documentCounts: {
-          pending: 2,
+          pending: 2,  // Estos podrían calcularse de los documentos reales
           verified: 3,
           rejected: 0,
           expired: 1,
         },
       };
       
-      setResume(mockResume);
-    } catch (err) {
-      error('Error al cargar la hoja de vida');
+      setResume(mappedResume);
+    } catch (err: any) {
+      console.error('Error loading resume:', err);
+      if (err.response?.status === 404) {
+        // Si no existe resume, mostrar mensaje apropiado
+        console.log('No existe resume, usuario debe crear uno');
+        setResume(null);
+      } else {
+        error('Error al cargar la hoja de vida: ' + (err.response?.data?.error || err.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -197,9 +212,22 @@ const Resume: React.FC = () => {
   if (!resume) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Error al cargar la hoja de vida
-        </Typography>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h4" gutterBottom>
+            No tienes hoja de vida
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Crea tu hoja de vida para mejorar tu perfil en la plataforma
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<EditIcon />}
+            onClick={() => navigate('/app/resume/edit')}
+          >
+            Crear Hoja de Vida
+          </Button>
+        </Paper>
       </Container>
     );
   }
@@ -240,7 +268,7 @@ const Resume: React.FC = () => {
             <Button
               variant="contained"
               startIcon={<EditIcon />}
-              onClick={() => navigate('/resume/edit')}
+              onClick={() => navigate('/app/resume/edit')}
             >
               Editar
             </Button>
@@ -322,298 +350,224 @@ const Resume: React.FC = () => {
         </Grid>
       </Paper>
 
-      {/* Detailed Information */}
+      {/* Detailed Information - Reorganized for better visual hierarchy */}
       <Grid container spacing={3}>
-        {/* Personal Information */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        
+        {/* Row 1: Personal & Educational Information */}
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom sx={{ mt: 2, mb: 2, fontWeight: 600 }}>
+            Información Básica
+          </Typography>
+        </Grid>
+        
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <PersonIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Información Personal</Typography>
+                <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Información Personal</Typography>
               </Box>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Fecha de nacimiento"
-                    secondary={new Date(resume.dateOfBirth).toLocaleDateString('es-ES')}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Nacionalidad"
-                    secondary={resume.nationality}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Estado civil"
-                    secondary={resume.maritalStatus}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Dependientes"
-                    secondary={resume.dependents}
-                  />
-                </ListItem>
-              </List>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Fecha de nacimiento</Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {resume.dateOfBirth ? new Date(resume.dateOfBirth).toLocaleDateString('es-ES') : 'No especificado'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Nacionalidad</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.nationality || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Estado civil</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.maritalStatus || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Dependientes</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.dependents || 0}</Typography>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Educational Information */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <SchoolIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Información Educativa</Typography>
+                <SchoolIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Información Educativa</Typography>
               </Box>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Nivel educativo"
-                    secondary={resume.educationLevel}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Institución"
-                    secondary={resume.institutionName}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Campo de estudio"
-                    secondary={resume.fieldOfStudy}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Año de graduación"
-                    secondary={resume.graduationYear}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Promedio"
-                    secondary={resume.gpa}
-                  />
-                </ListItem>
-              </List>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Nivel educativo</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.educationLevel || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Institución</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.institutionName || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Campo de estudio</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.fieldOfStudy || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Año de graduación</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.graduationYear || 'No especificado'}</Typography>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Employment Information */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        {/* Row 2: Employment & Financial Information */}
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 2, fontWeight: 600 }}>
+            Información Profesional y Financiera
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <WorkIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Información Laboral</Typography>
+                <WorkIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Información Laboral</Typography>
               </Box>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Empleador actual"
-                    secondary={resume.currentEmployer}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Cargo"
-                    secondary={resume.currentPosition}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Tipo de empleo"
-                    secondary={resume.employmentType}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Fecha de inicio"
-                    secondary={new Date(resume.startDate).toLocaleDateString('es-ES')}
-                  />
-                </ListItem>
-                {resume.endDate && (
-                  <ListItem>
-                    <ListItemText
-                      primary="Fecha de fin"
-                      secondary={new Date(resume.endDate).toLocaleDateString('es-ES')}
-                    />
-                  </ListItem>
-                )}
-                <ListItem>
-                  <ListItemText
-                    primary="Salario mensual"
-                    secondary={`$${resume.monthlySalary.toLocaleString()}`}
-                  />
-                </ListItem>
-              </List>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Empleador actual</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.currentEmployer || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Cargo</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.currentPosition || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Tipo de empleo</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.employmentType || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Salario mensual</Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {resume.monthlySalary ? `$${resume.monthlySalary.toLocaleString()} COP` : 'No especificado'}
+                  </Typography>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Financial Information */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <BankIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Información Financiera</Typography>
+                <BankIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Información Financiera</Typography>
               </Box>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Banco"
-                    secondary={resume.bankName}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Tipo de cuenta"
-                    secondary={resume.accountType}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Número de cuenta"
-                    secondary={resume.accountNumber}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Puntuación crediticia"
-                    secondary={resume.creditScore}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Gastos mensuales"
-                    secondary={`$${resume.monthlyExpenses.toLocaleString()}`}
-                  />
-                </ListItem>
-              </List>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Banco</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.bankName || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Tipo de cuenta</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.accountType || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="text.secondary">Gastos mensuales</Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {resume.monthlyExpenses ? `$${resume.monthlyExpenses.toLocaleString()} COP` : 'No especificado'}
+                  </Typography>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Emergency Contact */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        {/* Row 3: Contact & References */}
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 2, fontWeight: 600 }}>
+            Contactos y Referencias
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <ContactIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Contacto de Emergencia</Typography>
+                <ContactIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Contacto de Emergencia</Typography>
               </Box>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Nombre"
-                    secondary={resume.emergencyContactName}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Teléfono"
-                    secondary={resume.emergencyContactPhone}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Relación"
-                    secondary={resume.emergencyContactRelation}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Dirección"
-                    secondary={resume.emergencyContactAddress}
-                  />
-                </ListItem>
-              </List>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Nombre</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactName || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="text.secondary">Teléfono</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactPhone || 'No especificado'}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="text.secondary">Relación</Typography>
+                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactRelation || 'No especificado'}</Typography>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* References */}
-        <Grid item xs={12} md={6}>
-          <Card>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box display="flex" alignItems="center" mb={2}>
-                <PersonIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">Referencias</Typography>
+                <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" color="primary.main">Referencias</Typography>
               </Box>
               
               {/* Reference 1 */}
-              <Typography variant="subtitle2" color="primary" gutterBottom>
-                Referencia 1
-              </Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Nombre"
-                    secondary={resume.reference1Name}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Teléfono"
-                    secondary={resume.reference1Phone}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Email"
-                    secondary={resume.reference1Email}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Relación"
-                    secondary={resume.reference1Relation}
-                  />
-                </ListItem>
-              </List>
+              <Box mb={2}>
+                <Typography variant="subtitle2" color="primary" gutterBottom>
+                  Referencia Personal
+                </Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">Nombre</Typography>
+                    <Typography variant="body1" fontWeight={500}>{resume.reference1Name || 'No especificado'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Teléfono</Typography>
+                    <Typography variant="body1" fontWeight={500}>{resume.reference1Phone || 'No especificado'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Relación</Typography>
+                    <Typography variant="body1" fontWeight={500}>{resume.reference1Relation || 'No especificado'}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
 
               {/* Reference 2 */}
               {resume.reference2Name && (
-                <>
+                <Box>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="subtitle2" color="primary" gutterBottom>
-                    Referencia 2
+                    Referencia Familiar
                   </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="Nombre"
-                        secondary={resume.reference2Name}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Teléfono"
-                        secondary={resume.reference2Phone}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Email"
-                        secondary={resume.reference2Email}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Relación"
-                        secondary={resume.reference2Relation}
-                      />
-                    </ListItem>
-                  </List>
-                </>
+                  <Grid container spacing={1}>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">Nombre</Typography>
+                      <Typography variant="body1" fontWeight={500}>{resume.reference2Name}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">Teléfono</Typography>
+                      <Typography variant="body1" fontWeight={500}>{resume.reference2Phone}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">Relación</Typography>
+                      <Typography variant="body1" fontWeight={500}>{resume.reference2Relation}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
               )}
             </CardContent>
           </Card>
@@ -621,43 +575,56 @@ const Resume: React.FC = () => {
       </Grid>
 
       {/* Additional Information */}
-      {(resume.evictionHistory || resume.criminalRecord) && (
-        <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Información Adicional
-          </Typography>
-          <Grid container spacing={2}>
-            {resume.evictionHistory && (
-              <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: 'error.50' }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" color="error" gutterBottom>
-                      Historial de Desalojo
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {resume.evictionDetails || 'Detalles no especificados'}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-            {resume.criminalRecord && (
-              <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: 'error.50' }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" color="error" gutterBottom>
-                      Antecedentes Penales
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {resume.criminalRecordDetails || 'Detalles no especificados'}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
+      <Paper sx={{ p: 3, mt: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Información Adicional
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ bgcolor: resume.evictionHistory ? 'error.50' : 'success.50' }}>
+              <CardContent>
+                <Typography 
+                  variant="subtitle1" 
+                  color={resume.evictionHistory ? 'error' : 'success'} 
+                  gutterBottom
+                >
+                  Historial de Desalojo
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {resume.evictionHistory ? 'Sí' : 'No'}
+                </Typography>
+                {resume.evictionHistory && resume.evictionDetails && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                    Detalles: {resume.evictionDetails}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
-        </Paper>
-      )}
+          
+          <Grid item xs={12} md={6}>
+            <Card sx={{ bgcolor: resume.criminalRecord ? 'error.50' : 'success.50' }}>
+              <CardContent>
+                <Typography 
+                  variant="subtitle1" 
+                  color={resume.criminalRecord ? 'error' : 'success'} 
+                  gutterBottom
+                >
+                  Antecedentes Penales
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {resume.criminalRecord ? 'Sí' : 'No'}
+                </Typography>
+                {resume.criminalRecord && resume.criminalRecordDetails && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                    Detalles: {resume.criminalRecordDetails}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Paper>
     </Container>
   );
 };

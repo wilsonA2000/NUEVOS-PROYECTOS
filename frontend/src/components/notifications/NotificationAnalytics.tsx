@@ -1,495 +1,603 @@
-/**
- * NotificationAnalytics - Notification system analytics dashboard
- * Displays metrics, charts, and performance insights for notifications
- */
-
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Typography,
-  Grid,
   Card,
   CardContent,
+  Typography,
+  Box,
+  Grid,
+  LinearProgress,
+  Chip,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Chip,
-  LinearProgress,
-  Alert,
+  Button,
+  IconButton,
+  Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
-  Email as EmailIcon,
-  Sms as SmsIcon,
-  Computer as InAppIcon,
-  NotificationsActive as PushIcon,
-  Visibility as ViewIcon,
+  TrendingDown as TrendingDownIcon,
+  Notifications as NotificationsIcon,
   MarkEmailRead as ReadIcon,
-  Schedule as DelayIcon,
-  Error as ErrorIcon,
-  CheckCircle as SuccessIcon,
+  Schedule as PendingIcon,
+  Refresh as RefreshIcon,
+  DateRange as DateRangeIcon,
+  BarChart as ChartIcon,
+  Email as EmailIcon,
+  Smartphone as MobileIcon,
+  Desktop as DesktopIcon,
 } from '@mui/icons-material';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { format, subDays, startOfDay } from 'date-fns';
-import { es } from 'date-fns/locale';
-import api from '../../services/api';
 
-interface AnalyticsData {
-  summary: {
-    total_sent: number;
-    total_delivered: number;
-    total_read: number;
-    total_failed: number;
-    delivery_rate: number;
-    read_rate: number;
-    avg_delivery_time: number;
-    avg_read_time: number;
+// Interfaces para métricas de notificaciones
+interface NotificationMetrics {
+  total_sent: number;
+  total_delivered: number;
+  total_read: number;
+  total_clicked: number;
+  delivery_rate: number;
+  open_rate: number;
+  click_rate: number;
+  bounce_rate: number;
+  unsubscribe_rate: number;
+}
+
+interface NotificationAnalyticsData {
+  period: string;
+  metrics: NotificationMetrics;
+  metrics_by_type: {
+    [key: string]: {
+      count: number;
+      read_rate: number;
+      avg_response_time: number;
+    };
   };
-  channels: Array<{
-    channel: string;
-    sent: number;
-    delivered: number;
-    failed: number;
-    delivery_rate: number;
-    avg_delivery_time: number;
-  }>;
-  daily_stats: Array<{
+  metrics_by_channel: {
+    email: NotificationMetrics;
+    push: NotificationMetrics;
+    in_app: NotificationMetrics;
+  };
+  trend_data: {
     date: string;
     sent: number;
-    delivered: number;
     read: number;
-    failed: number;
-  }>;
-  priority_distribution: Array<{
-    priority: string;
-    count: number;
-    percentage: number;
-  }>;
-  type_distribution: Array<{
+    clicked: number;
+  }[];
+  top_performing: {
     type: string;
-    count: number;
-    percentage: number;
-  }>;
-  performance_metrics: {
-    peak_hours: Array<{
-      hour: number;
-      count: number;
-    }>;
-    response_times: Array<{
-      timeframe: string;
-      avg_time: number;
-    }>;
+    title: string;
+    open_rate: number;
+    click_rate: number;
+  }[];
+  device_breakdown: {
+    desktop: number;
+    mobile: number;
+    tablet: number;
   };
 }
 
-const NotificationAnalytics: React.FC = () => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [timeRange, setTimeRange] = useState('7d');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface NotificationAnalyticsProps {
+  data?: NotificationAnalyticsData;
+  isLoading?: boolean;
+  onRefresh?: () => void;
+  onPeriodChange?: (period: string) => void;
+  onExport?: () => void;
+}
 
-  const timeRanges = [
-    { value: '1d', label: 'Último día' },
+const NotificationAnalytics: React.FC<NotificationAnalyticsProps> = ({
+  data,
+  isLoading = false,
+  onRefresh,
+  onPeriodChange,
+  onExport,
+}) => {
+  const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [selectedMetric, setSelectedMetric] = useState('open_rate');
+
+  const periods = [
+    { value: '24h', label: 'Últimas 24 horas' },
     { value: '7d', label: 'Últimos 7 días' },
     { value: '30d', label: 'Últimos 30 días' },
     { value: '90d', label: 'Últimos 90 días' },
   ];
 
-  const channelColors = {
-    email: '#1976d2',
-    sms: '#388e3c',
-    push: '#f57c00',
-    in_app: '#7b1fa2',
-  };
+  const metrics = [
+    { value: 'open_rate', label: 'Tasa de Apertura' },
+    { value: 'click_rate', label: 'Tasa de Clicks' },
+    { value: 'delivery_rate', label: 'Tasa de Entrega' },
+    { value: 'bounce_rate', label: 'Tasa de Rebote' },
+  ];
 
-  const priorityColors = {
-    low: '#4caf50',
-    normal: '#2196f3',
-    high: '#ff9800',
-    urgent: '#f44336',
-    critical: '#9c27b0',
-  };
-
-  const channelIcons = {
-    email: <EmailIcon />,
-    sms: <SmsIcon />,
-    push: <PushIcon />,
-    in_app: <InAppIcon />,
-  };
-
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
-
-  const loadAnalytics = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await api.get('/core/notifications/analytics/', {
-        params: { time_range: timeRange },
-      });
-      setAnalyticsData(response.data);
-    } catch (err: any) {
-      setError(err.message || 'Error loading analytics');
-      console.error('Error loading notification analytics:', err);
-    } finally {
-      setLoading(false);
+  const handlePeriodChange = (newPeriod: string) => {
+    setSelectedPeriod(newPeriod);
+    if (onPeriodChange) {
+      onPeriodChange(newPeriod);
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          Analíticas de Notificaciones
-        </Typography>
-        <LinearProgress />
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          Cargando datos analíticos...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          {error}
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (!analyticsData) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="info">
-          No hay datos analíticos disponibles.
-        </Alert>
-      </Box>
-    );
-  }
-
-  const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds.toFixed(1)}s`;
-    if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`;
-    return `${(seconds / 3600).toFixed(1)}h`;
+  const formatPercentage = (value: number) => {
+    return `${(value * 100).toFixed(1)}%`;
   };
 
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('es-ES').format(value);
+  };
+
+  const getMetricColor = (value: number, type: 'success' | 'warning' | 'error') => {
+    switch (type) {
+      case 'success':
+        return value >= 0.7 ? '#10b981' : value >= 0.5 ? '#f59e0b' : '#ef4444';
+      case 'warning':
+        return value <= 0.1 ? '#10b981' : value <= 0.3 ? '#f59e0b' : '#ef4444';
+      case 'error':
+        return value <= 0.05 ? '#10b981' : value <= 0.15 ? '#f59e0b' : '#ef4444';
+      default:
+        return '#6b7280';
+    }
+  };
+
+  const getTrendIcon = (current: number, previous: number) => {
+    if (current > previous) {
+      return <TrendingUpIcon sx={{ fontSize: 16, color: '#10b981' }} />;
+    } else if (current < previous) {
+      return <TrendingDownIcon sx={{ fontSize: 16, color: '#ef4444' }} />;
+    }
+    return null;
+  };
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'email':
+        return <EmailIcon fontSize="small" />;
+      case 'push':
+        return <MobileIcon fontSize="small" />;
+      case 'in_app':
+        return <NotificationsIcon fontSize="small" />;
+      default:
+        return <NotificationsIcon fontSize="small" />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card
+        elevation={0}
+        sx={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-lg)',
+          height: 400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card
+        elevation={0}
+        sx={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-lg)',
+          height: 400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <ChartIcon sx={{ fontSize: 64, color: 'var(--color-text-secondary)', mb: 2 }} />
+          <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)' }}>
+            No hay datos de analíticas
+          </Typography>
+        </Box>
+      </Card>
+    );
+  }
+
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">
-          Analíticas de Notificaciones
-        </Typography>
-        
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Período</InputLabel>
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            label="Período"
-          >
-            {timeRanges.map((range) => (
-              <MenuItem key={range.value} value={range.value}>
-                {range.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Summary Cards */}
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" color="primary">
-                    {analyticsData.summary.total_sent.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Enviadas
-                  </Typography>
-                </Box>
-                <TrendingUpIcon color="primary" sx={{ fontSize: 40 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" color="success.main">
-                    {formatPercentage(analyticsData.summary.delivery_rate)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tasa de Entrega
-                  </Typography>
-                </Box>
-                <SuccessIcon color="success" sx={{ fontSize: 40 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" color="info.main">
-                    {formatPercentage(analyticsData.summary.read_rate)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tasa de Lectura
-                  </Typography>
-                </Box>
-                <ReadIcon color="info" sx={{ fontSize: 40 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" color="warning.main">
-                    {formatTime(analyticsData.summary.avg_delivery_time)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tiempo Promedio
-                  </Typography>
-                </Box>
-                <DelayIcon color="warning" sx={{ fontSize: 40 }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Charts */}
-      <Grid container spacing={3} mb={3}>
-        {/* Daily Trends */}
-        <Grid item xs={12} lg={8}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Tendencias Diarias
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={analyticsData.daily_stats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => format(new Date(value), 'dd/MM')}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => format(new Date(value), 'dd/MM/yyyy')}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sent" 
-                  stroke="#1976d2" 
-                  strokeWidth={2}
-                  name="Enviadas"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="delivered" 
-                  stroke="#4caf50" 
-                  strokeWidth={2}
-                  name="Entregadas"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="read" 
-                  stroke="#ff9800" 
-                  strokeWidth={2}
-                  name="Leídas"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="failed" 
-                  stroke="#f44336" 
-                  strokeWidth={2}
-                  name="Fallidas"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        {/* Priority Distribution */}
-        <Grid item xs={12} lg={4}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Distribución por Prioridad
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={analyticsData.priority_distribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ priority, percentage }) => `${priority}: ${percentage.toFixed(1)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {analyticsData.priority_distribution.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={priorityColors[entry.priority as keyof typeof priorityColors] || '#8884d8'} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={3}>
-        {/* Channel Performance */}
-        <Grid item xs={12} lg={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Rendimiento por Canal
-            </Typography>
-            <List>
-              {analyticsData.channels.map((channel) => (
-                <ListItem key={channel.channel}>
-                  <ListItemIcon>
-                    {channelIcons[channel.channel as keyof typeof channelIcons]}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-                          {channel.channel}
-                        </Typography>
-                        <Chip
-                          label={formatPercentage(channel.delivery_rate)}
-                          color={channel.delivery_rate > 90 ? 'success' : channel.delivery_rate > 70 ? 'warning' : 'error'}
-                          size="small"
-                        />
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {channel.delivered.toLocaleString()} de {channel.sent.toLocaleString()} entregadas
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Tiempo promedio: {formatTime(channel.avg_delivery_time)}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Type Distribution */}
-        <Grid item xs={12} lg={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Distribución por Tipo
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analyticsData.type_distribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="type" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#1976d2" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Performance Insights */}
-      <Paper sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Insights de Rendimiento
-        </Typography>
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle1" gutterBottom>
-              Horas Pico
-            </Typography>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={analyticsData.performance_metrics.peak_hours}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="hour" 
-                  tickFormatter={(value) => `${value}:00`}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => `${value}:00 - ${value + 1}:00`}
-                />
-                <Bar dataKey="count" fill="#ff9800" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Grid>
+    <Card
+      elevation={0}
+      sx={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-lg)',
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Analíticas de Notificaciones
+          </Typography>
           
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle1" gutterBottom>
-              Tiempos de Respuesta
-            </Typography>
-            <List dense>
-              {analyticsData.performance_metrics.response_times.map((metric, index) => (
-                <ListItem key={index}>
-                  <ListItemText
-                    primary={metric.timeframe}
-                    secondary={formatTime(metric.avg_time)}
-                  />
-                </ListItem>
-              ))}
-            </List>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Período</InputLabel>
+              <Select
+                value={selectedPeriod}
+                label="Período"
+                onChange={(e) => handlePeriodChange(e.target.value)}
+              >
+                {periods.map((period) => (
+                  <MenuItem key={period.value} value={period.value}>
+                    {period.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            {onRefresh && (
+              <Tooltip title="Actualizar datos">
+                <IconButton onClick={onRefresh} size="small">
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        </Box>
+
+        {/* Main Metrics */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--color-background)',
+                borderRadius: 'var(--border-radius-md)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Total Enviadas
+                </Typography>
+                <NotificationsIcon sx={{ color: 'var(--color-primary)' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                {formatNumber(data.metrics.total_sent)}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={100}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: 'var(--color-border)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: 'var(--color-primary)',
+                  },
+                }}
+              />
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--color-background)',
+                borderRadius: 'var(--border-radius-md)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Tasa de Apertura
+                </Typography>
+                <ReadIcon sx={{ color: getMetricColor(data.metrics.open_rate, 'success') }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                {formatPercentage(data.metrics.open_rate)}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={data.metrics.open_rate * 100}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: 'var(--color-border)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: getMetricColor(data.metrics.open_rate, 'success'),
+                  },
+                }}
+              />
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--color-background)',
+                borderRadius: 'var(--border-radius-md)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Tasa de Clicks
+                </Typography>
+                <TrendingUpIcon sx={{ color: getMetricColor(data.metrics.click_rate, 'success') }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                {formatPercentage(data.metrics.click_rate)}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={data.metrics.click_rate * 100}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: 'var(--color-border)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: getMetricColor(data.metrics.click_rate, 'success'),
+                  },
+                }}
+              />
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--color-background)',
+                borderRadius: 'var(--border-radius-md)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Tasa de Entrega
+                </Typography>
+                <PendingIcon sx={{ color: getMetricColor(data.metrics.delivery_rate, 'success') }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                {formatPercentage(data.metrics.delivery_rate)}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={data.metrics.delivery_rate * 100}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: 'var(--color-border)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: getMetricColor(data.metrics.delivery_rate, 'success'),
+                  },
+                }}
+              />
+            </Box>
           </Grid>
         </Grid>
-      </Paper>
-    </Box>
+
+        {/* Channel Breakdown */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Por Canal de Comunicación
+            </Typography>
+            
+            {Object.entries(data.metrics_by_channel).map(([channel, metrics]) => (
+              <Box
+                key={channel}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 2,
+                  mb: 1,
+                  backgroundColor: 'var(--color-background)',
+                  borderRadius: 'var(--border-radius-md)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {getChannelIcon(channel)}
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                      {channel === 'in_app' ? 'En App' : channel}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                      {formatNumber(metrics.total_sent)} enviadas
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {formatPercentage(metrics.open_rate)}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                    apertura
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Por Tipo de Notificación
+            </Typography>
+            
+            {Object.entries(data.metrics_by_type).map(([type, metrics]) => (
+              <Box
+                key={type}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 2,
+                  mb: 1,
+                  backgroundColor: 'var(--color-background)',
+                  borderRadius: 'var(--border-radius-md)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                    {type.replace('_', ' ')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                    {formatNumber(metrics.count)} notificaciones
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    label={formatPercentage(metrics.read_rate)}
+                    size="small"
+                    sx={{
+                      backgroundColor: getMetricColor(metrics.read_rate, 'success'),
+                      color: 'white',
+                      fontWeight: 500,
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                    {metrics.avg_response_time}h promedio
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Grid>
+        </Grid>
+
+        {/* Device Breakdown */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Dispositivos Utilizados
+          </Typography>
+          
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 2 }}>
+                <DesktopIcon sx={{ fontSize: 32, color: 'var(--color-primary)', mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {data.device_breakdown.desktop}%
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Escritorio
+                </Typography>
+              </Box>
+            </Grid>
+            
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 2 }}>
+                <MobileIcon sx={{ fontSize: 32, color: 'var(--color-primary)', mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {data.device_breakdown.mobile}%
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Móvil
+                </Typography>
+              </Box>
+            </Grid>
+            
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', p: 2 }}>
+                <NotificationsIcon sx={{ fontSize: 32, color: 'var(--color-primary)', mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {data.device_breakdown.tablet}%
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                  Tablet
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Top Performing */}
+        {data.top_performing.length > 0 && (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Mejor Rendimiento
+            </Typography>
+            
+            {data.top_performing.slice(0, 3).map((item, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 2,
+                  mb: 1,
+                  backgroundColor: 'var(--color-background)',
+                  borderRadius: 'var(--border-radius-md)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: index === 0 ? '#f59e0b' : 'var(--color-text-secondary)',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>
+                      {item.type.replace('_', ' ')}
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatPercentage(item.open_rate)} apertura
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                    {formatPercentage(item.click_rate)} clicks
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {/* Export Button */}
+        {onExport && (
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={onExport}
+              startIcon={<DateRangeIcon />}
+              sx={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)',
+                '&:hover': {
+                  borderColor: 'var(--color-primary)',
+                },
+              }}
+            >
+              Exportar Reporte
+            </Button>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

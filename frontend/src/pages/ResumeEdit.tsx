@@ -16,8 +16,8 @@ import {
   LinearProgress,
   Card,
   CardContent,
-  Divider,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -31,8 +31,9 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useNotification } from '../hooks/useNotification';
+import { api } from '../services/api';
 
+// Interfaz simplificada
 interface ResumeFormData {
   dateOfBirth: string;
   nationality: string;
@@ -42,25 +43,20 @@ interface ResumeFormData {
   institutionName: string;
   fieldOfStudy: string;
   graduationYear: number;
-  gpa: number;
   currentEmployer: string;
   currentPosition: string;
   employmentType: string;
-  startDate: string;
-  endDate: string;
   monthlySalary: number;
   supervisorName: string;
   supervisorPhone: string;
   supervisorEmail: string;
   bankName: string;
   accountType: string;
-  accountNumber: string;
   creditScore: number;
   monthlyExpenses: number;
   emergencyContactName: string;
   emergencyContactPhone: string;
   emergencyContactRelation: string;
-  emergencyContactAddress: string;
   reference1Name: string;
   reference1Phone: string;
   reference1Email: string;
@@ -78,40 +74,35 @@ interface ResumeFormData {
 const ResumeEdit: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { success, error } = useNotification();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [verificationScore, setVerificationScore] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ResumeFormData>({
     dateOfBirth: '',
-    nationality: 'Mexicana',
+    nationality: 'Colombiana',
     maritalStatus: '',
     dependents: 0,
     educationLevel: '',
     institutionName: '',
     fieldOfStudy: '',
     graduationYear: 0,
-    gpa: 0,
     currentEmployer: '',
     currentPosition: '',
     employmentType: '',
-    startDate: '',
-    endDate: '',
     monthlySalary: 0,
     supervisorName: '',
     supervisorPhone: '',
     supervisorEmail: '',
     bankName: '',
     accountType: '',
-    accountNumber: '',
     creditScore: 0,
     monthlyExpenses: 0,
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelation: '',
-    emergencyContactAddress: '',
     reference1Name: '',
     reference1Phone: '',
     reference1Email: '',
@@ -134,56 +125,74 @@ const ResumeEdit: React.FC = () => {
     calculateCompletion();
   }, [formData]);
 
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    // Implementación simple de notificación sin depender de hooks externos
+    if (type === 'error') {
+      setError(message);
+    } else {
+      setError(null);
+      // Podrías usar alert temporal o implementar una notificación simple
+      console.log('✅', message);
+    }
+  };
+
   const fetchResume = async () => {
     try {
       setLoading(true);
-      // Simular llamada a la API
-      // En producción, esto sería una llamada real a la API
-      const mockResume = {
-        dateOfBirth: '1990-05-15',
-        nationality: 'Mexicana',
-        maritalStatus: 'Soltero',
-        dependents: 0,
-        educationLevel: 'Licenciatura',
-        institutionName: 'Universidad Nacional Autónoma de México',
-        fieldOfStudy: 'Ingeniería en Sistemas',
-        graduationYear: 2015,
-        gpa: 8.5,
-        currentEmployer: 'Tech Solutions S.A.',
-        currentPosition: 'Desarrollador Senior',
-        employmentType: 'Tiempo completo',
-        startDate: '2020-03-01',
-        endDate: '',
-        monthlySalary: 45000,
-        supervisorName: 'María González',
-        supervisorPhone: '+52 55 1234 5678',
-        supervisorEmail: 'maria.gonzalez@techsolutions.com',
-        bankName: 'Banco Azteca',
-        accountType: 'Cuenta de cheques',
-        accountNumber: '****1234',
-        creditScore: 750,
-        monthlyExpenses: 25000,
-        emergencyContactName: 'Juan Pérez',
-        emergencyContactPhone: '+52 55 9876 5432',
-        emergencyContactRelation: 'Hermano',
-        emergencyContactAddress: 'Av. Reforma 123, CDMX',
-        reference1Name: 'Ana López',
-        reference1Phone: '+52 55 1111 2222',
-        reference1Email: 'ana.lopez@email.com',
-        reference1Relation: 'Ex compañera de trabajo',
-        reference2Name: 'Carlos Ruiz',
-        reference2Phone: '+52 55 3333 4444',
-        reference2Email: 'carlos.ruiz@email.com',
-        reference2Relation: 'Amigo',
-        evictionHistory: false,
-        evictionDetails: '',
-        criminalRecord: false,
-        criminalRecordDetails: '',
-      };
+      setError(null);
+      
+      // Usar el servicio API con autenticación JWT
+      const response = await api.get('/users/resume/');
+      const resume = response.data;
+        
+        // Mapear los datos de la API al formato del formulario
+        const mappedData = {
+          dateOfBirth: resume.date_of_birth || '',
+          nationality: resume.nationality || 'Colombiana',
+          maritalStatus: resume.marital_status || '',
+          dependents: resume.dependents || 0,
+          educationLevel: resume.education_level || '',
+          institutionName: resume.institution_name || '',
+          fieldOfStudy: resume.field_of_study || '',
+          graduationYear: resume.graduation_year || 0,
+          currentEmployer: resume.current_employer || '',
+          currentPosition: resume.current_position || '',
+          employmentType: resume.employment_type || '',
+          monthlySalary: resume.monthly_salary || 0,
+          supervisorName: resume.supervisor_name || '',
+          supervisorPhone: resume.supervisor_phone || '',
+          supervisorEmail: resume.supervisor_email || '',
+          bankName: resume.bank_name || '',
+          accountType: resume.account_type || '',
+          creditScore: resume.credit_score || 0,
+          monthlyExpenses: resume.monthly_expenses || 0,
+          emergencyContactName: resume.emergency_contact_name || '',
+          emergencyContactPhone: resume.emergency_contact_phone || '',
+          emergencyContactRelation: resume.emergency_contact_relation || '',
+          reference1Name: resume.reference1_name || '',
+          reference1Phone: resume.reference1_phone || '',
+          reference1Email: resume.reference1_email || '',
+          reference1Relation: resume.reference1_relation || '',
+          reference2Name: resume.reference2_name || '',
+          reference2Phone: resume.reference2_phone || '',
+          reference2Email: resume.reference2_email || '',
+          reference2Relation: resume.reference2_relation || '',
+          evictionHistory: resume.eviction_history || false,
+          evictionDetails: resume.eviction_details || '',
+          criminalRecord: resume.criminal_record || false,
+          criminalRecordDetails: resume.criminal_record_details || '',
+        };
 
-      setFormData(mockResume);
-    } catch (err) {
-      error('Error al cargar la hoja de vida');
+      setFormData(mappedData);
+      setVerificationScore(resume.verification_score || 0);
+    } catch (err: any) {
+      console.error('Error loading resume:', err);
+      if (err.response?.status === 404) {
+        console.log('No existe resume, mostrando formulario vacío');
+        setError(null);
+      } else {
+        setError('Error al cargar la hoja de vida: ' + (err.response?.data?.error || err.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -203,7 +212,7 @@ const ResumeEdit: React.FC = () => {
 
     const percentage = Math.round((completed / requiredFields.length) * 100);
     setCompletionPercentage(percentage);
-    setVerificationScore(Math.round(percentage * 0.9)); // Simular puntuación de verificación
+    setVerificationScore(Math.round(percentage * 0.9));
   };
 
   const handleChange = (field: keyof ResumeFormData, value: any) => {
@@ -213,16 +222,76 @@ const ResumeEdit: React.FC = () => {
     }));
   };
 
+  // Función para formatear números de teléfono (máximo 15 caracteres para cumplir con el modelo)
+  const formatPhoneNumber = (phone: string | undefined): string => {
+    if (!phone) return '';
+    // Remover espacios y limitar a 15 caracteres
+    return phone.replace(/\s+/g, '').slice(0, 15);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSaving(true);
-      // Simular guardado
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      success('Hoja de vida actualizada exitosamente');
-      navigate('/resume');
-    } catch (err) {
-      error('Error al guardar la hoja de vida');
+      setError(null);
+      
+      // Mapear los datos del formulario al formato de la API
+      const resumeData = {
+        date_of_birth: formData.dateOfBirth || null,
+        nationality: formData.nationality,
+        marital_status: formData.maritalStatus,
+        dependents: formData.dependents,
+        education_level: formData.educationLevel,
+        institution_name: formData.institutionName,
+        field_of_study: formData.fieldOfStudy,
+        graduation_year: formData.graduationYear || null,
+        current_employer: formData.currentEmployer,
+        current_position: formData.currentPosition,
+        employment_type: formData.employmentType,
+        monthly_salary: formData.monthlySalary || null,
+        supervisor_name: formData.supervisorName,
+        supervisor_phone: formatPhoneNumber(formData.supervisorPhone),
+        supervisor_email: formData.supervisorEmail,
+        bank_name: formData.bankName,
+        account_type: formData.accountType,
+        credit_score: formData.creditScore || null,
+        monthly_expenses: formData.monthlyExpenses || null,
+        emergency_contact_name: formData.emergencyContactName,
+        emergency_contact_phone: formatPhoneNumber(formData.emergencyContactPhone),
+        emergency_contact_relation: formData.emergencyContactRelation,
+        reference1_name: formData.reference1Name,
+        reference1_phone: formatPhoneNumber(formData.reference1Phone),
+        reference1_email: formData.reference1Email,
+        reference1_relation: formData.reference1Relation,
+        reference2_name: formData.reference2Name,
+        reference2_phone: formatPhoneNumber(formData.reference2Phone),
+        reference2_email: formData.reference2Email,
+        reference2_relation: formData.reference2Relation,
+        eviction_history: formData.evictionHistory,
+        eviction_details: formData.evictionDetails,
+        criminal_record: formData.criminalRecord,
+        criminal_record_details: formData.criminalRecordDetails,
+      };
+
+      // Intentar actualizar primero
+      try {
+        await api.put('/users/resume/', resumeData);
+        showNotification('Hoja de vida actualizada exitosamente', 'success');
+        navigate('/app/resume');
+      } catch (updateError: any) {
+        // Si el update falla (404), intentar crear
+        if (updateError.response?.status === 404) {
+          await api.post('/users/resume/', resumeData);
+          showNotification('Hoja de vida creada exitosamente', 'success');
+          navigate('/app/resume');
+        } else {
+          throw updateError;
+        }
+      }
+      
+    } catch (err: any) {
+      console.error('Error saving resume:', err);
+      showNotification('Error al guardar la hoja de vida: ' + (err.response?.data?.error || err.message), 'error');
     } finally {
       setSaving(false);
     }
@@ -231,7 +300,12 @@ const ResumeEdit: React.FC = () => {
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <LinearProgress />
+        <Box textAlign="center">
+          <CircularProgress />
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Cargando hoja de vida...
+          </Typography>
+        </Box>
       </Container>
     );
   }
@@ -287,6 +361,12 @@ const ResumeEdit: React.FC = () => {
             sx={{ height: 8, borderRadius: 4 }}
           />
         </Box>
+        
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
       </Paper>
 
       <form onSubmit={handleSubmit}>
@@ -354,14 +434,14 @@ const ResumeEdit: React.FC = () => {
                     label="Nivel educativo"
                     onChange={(e) => handleChange('educationLevel', e.target.value)}
                   >
-                    <MenuItem value="Primaria">Primaria</MenuItem>
-                    <MenuItem value="Secundaria">Secundaria</MenuItem>
-                    <MenuItem value="Preparatoria">Preparatoria</MenuItem>
-                    <MenuItem value="Licenciatura">Licenciatura</MenuItem>
-                    <MenuItem value="Maestría">Maestría</MenuItem>
-                    <MenuItem value="Doctorado">Doctorado</MenuItem>
-                    <MenuItem value="Técnico">Técnico</MenuItem>
-                    <MenuItem value="Otro">Otro</MenuItem>
+                    <MenuItem value="primary">Primaria</MenuItem>
+                    <MenuItem value="secondary">Secundaria</MenuItem>
+                    <MenuItem value="high_school">Preparatoria</MenuItem>
+                    <MenuItem value="bachelor">Licenciatura</MenuItem>
+                    <MenuItem value="master">Maestría</MenuItem>
+                    <MenuItem value="doctorate">Doctorado</MenuItem>
+                    <MenuItem value="technical">Técnico</MenuItem>
+                    <MenuItem value="other">Otro</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -386,19 +466,9 @@ const ResumeEdit: React.FC = () => {
                   fullWidth
                   label="Año de graduación"
                   type="number"
-                  value={formData.graduationYear}
+                  value={formData.graduationYear || ''}
                   onChange={(e) => handleChange('graduationYear', parseInt(e.target.value) || 0)}
                   inputProps={{ min: 1950, max: new Date().getFullYear() }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Promedio (GPA)"
-                  type="number"
-                  value={formData.gpa}
-                  onChange={(e) => handleChange('gpa', parseFloat(e.target.value) || 0)}
-                  inputProps={{ min: 0, max: 10, step: 0.01 }}
                 />
               </Grid>
             </Grid>
@@ -437,47 +507,27 @@ const ResumeEdit: React.FC = () => {
                     label="Tipo de empleo"
                     onChange={(e) => handleChange('employmentType', e.target.value)}
                   >
-                    <MenuItem value="Tiempo completo">Tiempo completo</MenuItem>
-                    <MenuItem value="Tiempo parcial">Tiempo parcial</MenuItem>
-                    <MenuItem value="Por contrato">Por contrato</MenuItem>
-                    <MenuItem value="Freelance">Freelance</MenuItem>
-                    <MenuItem value="Temporal">Temporal</MenuItem>
-                    <MenuItem value="Pasante">Pasante</MenuItem>
-                    <MenuItem value="Trabajador independiente">Trabajador independiente</MenuItem>
+                    <MenuItem value="full_time">Tiempo completo</MenuItem>
+                    <MenuItem value="part_time">Tiempo parcial</MenuItem>
+                    <MenuItem value="contract">Por contrato</MenuItem>
+                    <MenuItem value="freelance">Freelance</MenuItem>
+                    <MenuItem value="temporary">Temporal</MenuItem>
+                    <MenuItem value="internship">Pasante</MenuItem>
+                    <MenuItem value="self_employed">Trabajador independiente</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Salario mensual"
+                  label="Salario mensual (COP)"
                   type="number"
-                  value={formData.monthlySalary}
+                  value={formData.monthlySalary || ''}
                   onChange={(e) => handleChange('monthlySalary', parseFloat(e.target.value) || 0)}
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0, step: 1000 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Fecha de inicio"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleChange('startDate', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Fecha de fin (opcional)"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => handleChange('endDate', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Nombre del supervisor"
@@ -485,15 +535,16 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('supervisorName', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Teléfono del supervisor"
                   value={formData.supervisorPhone}
                   onChange={(e) => handleChange('supervisorPhone', e.target.value)}
+                  inputProps={{ maxLength: 15 }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Email del supervisor"
@@ -533,29 +584,11 @@ const ResumeEdit: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Número de cuenta"
-                  value={formData.accountNumber}
-                  onChange={(e) => handleChange('accountNumber', e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Puntuación crediticia"
+                  label="Gastos mensuales (COP)"
                   type="number"
-                  value={formData.creditScore}
-                  onChange={(e) => handleChange('creditScore', parseInt(e.target.value) || 0)}
-                  inputProps={{ min: 300, max: 850 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Gastos mensuales"
-                  type="number"
-                  value={formData.monthlyExpenses}
+                  value={formData.monthlyExpenses || ''}
                   onChange={(e) => handleChange('monthlyExpenses', parseFloat(e.target.value) || 0)}
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0, step: 1000 }}
                 />
               </Grid>
             </Grid>
@@ -570,7 +603,7 @@ const ResumeEdit: React.FC = () => {
               <Typography variant="h6">Contacto de Emergencia</Typography>
             </Box>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Nombre del contacto"
@@ -578,28 +611,21 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('emergencyContactName', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Teléfono"
                   value={formData.emergencyContactPhone}
                   onChange={(e) => handleChange('emergencyContactPhone', e.target.value)}
+                  inputProps={{ maxLength: 15 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   label="Relación"
                   value={formData.emergencyContactRelation}
                   onChange={(e) => handleChange('emergencyContactRelation', e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Dirección"
-                  value={formData.emergencyContactAddress}
-                  onChange={(e) => handleChange('emergencyContactAddress', e.target.value)}
                 />
               </Grid>
             </Grid>
@@ -611,15 +637,15 @@ const ResumeEdit: React.FC = () => {
           <CardContent>
             <Box display="flex" alignItems="center" mb={3}>
               <PersonIcon sx={{ mr: 1 }} />
-              <Typography variant="h6">Referencias Personales</Typography>
+              <Typography variant="h6">Referencias</Typography>
             </Box>
             
-            {/* Reference 1 */}
-            <Typography variant="subtitle1" color="primary" gutterBottom>
-              Referencia 1
+            {/* Reference 1 - Personal */}
+            <Typography variant="subtitle1" color="primary" gutterBottom sx={{ mt: 2, fontWeight: 600 }}>
+              Referencia Personal
             </Typography>
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} md={6}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Nombre"
@@ -627,15 +653,16 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('reference1Name', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Teléfono"
                   value={formData.reference1Phone}
                   onChange={(e) => handleChange('reference1Phone', e.target.value)}
+                  inputProps={{ maxLength: 15 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -644,7 +671,7 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('reference1Email', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Relación"
@@ -654,14 +681,12 @@ const ResumeEdit: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Divider sx={{ my: 2 }} />
-
-            {/* Reference 2 */}
-            <Typography variant="subtitle1" color="primary" gutterBottom>
-              Referencia 2 (opcional)
+            {/* Reference 2 - Familiar */}
+            <Typography variant="subtitle1" color="primary" gutterBottom sx={{ mt: 3, fontWeight: 600 }}>
+              Referencia Familiar
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Nombre"
@@ -669,15 +694,16 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('reference2Name', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Teléfono"
                   value={formData.reference2Phone}
                   onChange={(e) => handleChange('reference2Phone', e.target.value)}
+                  inputProps={{ maxLength: 15 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -686,7 +712,7 @@ const ResumeEdit: React.FC = () => {
                   onChange={(e) => handleChange('reference2Email', e.target.value)}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
                   label="Relación"
@@ -702,7 +728,7 @@ const ResumeEdit: React.FC = () => {
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={3}>
-              <DescriptionIcon sx={{ mr: 1 }} />
+              <DocumentIcon sx={{ mr: 1 }} />
               <Typography variant="h6">Información Adicional</Typography>
             </Box>
             <Grid container spacing={2}>
@@ -761,7 +787,8 @@ const ResumeEdit: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<CancelIcon />}
-            onClick={() => navigate('/resume')}
+            onClick={() => navigate('/app/resume')}
+            disabled={saving}
           >
             Cancelar
           </Button>
@@ -771,7 +798,14 @@ const ResumeEdit: React.FC = () => {
             startIcon={<SaveIcon />}
             disabled={saving}
           >
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
+            {saving ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Guardando...
+              </>
+            ) : (
+              'Guardar Cambios'
+            )}
           </Button>
         </Box>
       </form>
@@ -779,4 +813,4 @@ const ResumeEdit: React.FC = () => {
   );
 };
 
-export default ResumeEdit; 
+export default ResumeEdit;

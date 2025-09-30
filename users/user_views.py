@@ -58,9 +58,9 @@ def user_activity_history(request):
         activities = activities.filter(activity_type=activity_type)
     
     if performed_by_admin == 'admin':
-        activities = activities.filter(performed_by_admin=True)
+        activities = activities.filter(metadata__performed_by_admin=True)
     elif performed_by_admin == 'user':
-        activities = activities.filter(performed_by_admin=False)
+        activities = activities.exclude(metadata__performed_by_admin=True)
     
     # Filtrar por días
     if days > 0:

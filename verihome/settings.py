@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'messaging.apps.MessagingConfig',
     'ratings.apps.RatingsConfig',
     'matching.apps.MatchingConfig',
+    'requests.apps.RequestsConfig',
+    'services.apps.ServicesConfig',
     'dashboard.apps.DashboardConfig',
     # 'analytics.apps.AnalyticsConfig',  # Comentado temporalmente
     # 'maintenance.apps.MaintenanceConfig',  # Comentado temporalmente
@@ -69,7 +71,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Deshabilitado para permitir iframes en desarrollo
     'allauth.account.middleware.AccountMiddleware',
     # Middleware de impersonación y logging
     'users.middleware.ImpersonationMiddleware',
@@ -107,14 +109,25 @@ ASGI_APPLICATION = 'verihome.asgi.application'
 
 # Database Configuration
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
-# SQLite fallback para desarrollo local (opcional)
+# Import database configuration manager
+import sys
+sys.path.append(str(BASE_DIR / 'scripts' / 'database'))
+from database_config import get_database_config, validate_database_config
+
+try:
+    # Validate and get database configuration
+    validate_database_config()
+    DATABASES = get_database_config()
+except Exception as e:
+    print(f"Database configuration error: {e}")
+    # Fallback to SQLite for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 SQLITE_FALLBACK = {
     'ENGINE': 'django.db.backends.sqlite3',
     'NAME': BASE_DIR / 'db.sqlite3',
@@ -291,7 +304,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 # Configuración de seguridad
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
 
 # Configuración adicional de seguridad para desarrollo
 if DEBUG:
@@ -303,6 +315,8 @@ if DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SECURE_PROXY_SSL_HEADER = None
+    # Permitir iframes desde localhost para visualización de documentos
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
 else:
     # Configuración para producción
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
@@ -804,6 +818,7 @@ if not DEBUG:
     # Content Security
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
+    # En producción mantener seguridad estricta
     X_FRAME_OPTIONS = 'DENY'
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
     
@@ -825,3 +840,5 @@ if not DEBUG:
 else:
     # Configuraciones de desarrollo más permisivas (actuales)
     CORS_ALLOW_ALL_ORIGINS = True
+# Frontend URL for invitation emails
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

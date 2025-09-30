@@ -1,9 +1,4 @@
-/**
- * UserStatusIndicator - Real-time user status display
- * Shows online/offline status and last seen information
- */
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Avatar,
@@ -11,353 +6,484 @@ import {
   Typography,
   Tooltip,
   Chip,
-  List,
-  ListItem,
-  ListItemAvatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
   ListItemText,
+  Switch,
+  FormControlLabel,
+  Divider,
+  CircularProgress,
+  useTheme,
 } from '@mui/material';
 import {
   Circle as CircleIcon,
   Person as PersonIcon,
+  Visibility as OnlineIcon,
+  VisibilityOff as OfflineIcon,
+  Schedule as IdleIcon,
+  DoNotDisturb as DoNotDisturbIcon,
+  Settings as SettingsIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { useUserStatus } from '../../hooks/useWebSocketEnhanced';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { UserStatus, useUserStatus } from '../../hooks/useUserStatus';
 
-interface UserStatus {
-  user_id: string;
-  username: string;
+// Interface for user information
+interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
   avatar?: string;
-  online: boolean;
-  last_seen?: string;
-  status_message?: string;
+  user_type: 'landlord' | 'tenant' | 'service_provider';
+  is_verified?: boolean;
 }
 
 interface UserStatusIndicatorProps {
-  userId: string;
-  username: string;
-  avatar?: string;
-  showUsername?: boolean;
+  /** User status data from useUserStatus hook */
+  userStatus: UserStatus;
+  /** Whether to show detailed information */
+  showDetails?: boolean;
+  /** Whether to show the avatar */
+  showAvatar?: boolean;
+  /** Whether to show last seen time */
   showLastSeen?: boolean;
+  /** Whether to show status settings menu */
+  showSettings?: boolean;
+  /** Size variant */
   size?: 'small' | 'medium' | 'large';
-  variant?: 'badge' | 'chip' | 'inline';
+  /** Click handler for the user */
+  onClick?: (userStatus: UserStatus) => void;
+  /** Status change handler */
+  onStatusChange?: (newStatus: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => void;
+  /** Loading state */
+  isLoading?: boolean;
+  /** Whether the component is interactive */
+  interactive?: boolean;
+  /** Custom avatar source */
+  avatarSrc?: string;
+  /** Whether to show tooltip with details */
+  showTooltip?: boolean;
 }
 
-export const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
-  userId,
-  username,
-  avatar,
-  showUsername = false,
-  showLastSeen = false,
+const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
+  userStatus,
+  showDetails = true,
+  showAvatar = true,
+  showLastSeen = true,
+  showSettings = false,
   size = 'medium',
-  variant = 'badge',
+  onClick,
+  onStatusChange,
+  isLoading = false,
+  interactive = true,
+  avatarSrc,
+  showTooltip = true,
 }) => {
-  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
+  const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { setMyStatus, myStatus } = useUserStatus();
+  
+  // Check if this is the current user
+  const isCurrentUser = myStatus?.userId === userStatus.userId;
 
-  const { isConnected, send, subscribe } = useUserStatus();
-
-  // Handle status updates
-  useEffect(() => {
-    const unsubscribeStatusUpdate = subscribe('user_status_update', (message) => {
-      const { user_id, online, last_seen, status_message } = message.data;
-      
-      if (user_id === userId) {
-        setUserStatus(prev => ({
-          user_id: userId,
-          username,
-          avatar,
-          online,
-          last_seen,
-          status_message,
-          ...prev,
-        }));
-      }
-    });
-
-    // Request current status
-    if (isConnected) {
-      send({
-        type: 'get_user_status',
-        data: { user_id: userId },
-      });
+  const getStatusConfig = (status: UserStatus['status'], isOnline: boolean) => {
+    if (!isOnline) {
+      return {
+        color: theme.palette.grey[400],
+        label: 'Desconectado',
+        icon: <OfflineIcon fontSize="small" />,
+        description: 'No disponible',
+      };
     }
 
-    return unsubscribeStatusUpdate;
-  }, [subscribe, userId, username, avatar, isConnected, send]);
-
-  const getAvatarSize = () => {
-    switch (size) {
-      case 'small': return { width: 24, height: 24 };
-      case 'large': return { width: 48, height: 48 };
-      default: return { width: 32, height: 32 };
+    switch (status) {
+      case 'online':
+        return {
+          color: theme.palette.success.main,
+          label: 'En línea',
+          icon: <OnlineIcon fontSize="small" />,
+          description: 'Disponible ahora',
+        };
+      case 'away':
+        return {
+          color: theme.palette.warning.main,
+          label: 'Ausente',
+          icon: <IdleIcon fontSize="small" />,
+          description: 'Inactivo temporalmente',
+        };
+      case 'busy':
+        return {
+          color: theme.palette.error.main,
+          label: 'Ocupado',
+          icon: <DoNotDisturbIcon fontSize="small" />,
+          description: 'No molestar',
+        };
+      default:
+        return {
+          color: theme.palette.info.main,
+          label: 'En línea',
+          icon: <OnlineIcon fontSize="small" />,
+          description: 'Disponible',
+        };
     }
   };
 
-  const getBadgeSize = () => {
-    switch (size) {
-      case 'small': return 8;
-      case 'large': return 16;
-      default: return 12;
+  const getSizeConfig = (avatarSize: string) => {
+    switch (avatarSize) {
+      case 'small':
+        return {
+          avatar: { width: 32, height: 32 },
+          badge: { width: 10, height: 10 },
+          badgeAnchor: { vertical: 'bottom' as const, horizontal: 'right' as const },
+          badgeOverlap: 'circular' as const,
+        };
+      case 'medium':
+        return {
+          avatar: { width: 40, height: 40 },
+          badge: { width: 12, height: 12 },
+          badgeAnchor: { vertical: 'bottom' as const, horizontal: 'right' as const },
+          badgeOverlap: 'circular' as const,
+        };
+      case 'large':
+        return {
+          avatar: { width: 56, height: 56 },
+          badge: { width: 16, height: 16 },
+          badgeAnchor: { vertical: 'bottom' as const, horizontal: 'right' as const },
+          badgeOverlap: 'circular' as const,
+        };
+      default:
+        return {
+          avatar: { width: 40, height: 40 },
+          badge: { width: 12, height: 12 },
+          badgeAnchor: { vertical: 'bottom' as const, horizontal: 'right' as const },
+          badgeOverlap: 'circular' as const,
+        };
     }
   };
 
-  const getLastSeenText = () => {
-    if (!userStatus?.last_seen) return '';
+  const formatLastSeen = (lastSeenString: string) => {
+    if (!lastSeenString) return 'Nunca conectado';
     
     try {
-      const lastSeen = new Date(userStatus.last_seen);
-      return `Visto ${formatDistanceToNow(lastSeen, { addSuffix: true, locale: es })}`;
-    } catch {
-      return '';
+      return formatDistanceToNow(new Date(lastSeenString), { 
+        addSuffix: true, 
+        locale: es 
+      });
+    } catch (error) {
+      return 'Fecha inválida';
     }
   };
 
-  const statusColor = userStatus?.online ? 'success.main' : 'grey.400';
-  const statusText = userStatus?.online ? 'En línea' : 'Desconectado';
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    if (interactive && showSettings) {
+      setAnchorEl(event.currentTarget);
+    }
+  };
 
-  if (variant === 'chip') {
-    return (
-      <Chip
-        avatar={
-          <Avatar src={avatar} sx={getAvatarSize()}>
-            {username.charAt(0)}
-          </Avatar>
-        }
-        label={
-          <Box>
-            <Typography variant="body2">
-              {username}
-            </Typography>
-            {showLastSeen && !userStatus?.online && (
-              <Typography variant="caption" color="text.secondary">
-                {getLastSeenText()}
-              </Typography>
-            )}
-          </Box>
-        }
-        icon={
-          <CircleIcon 
-            sx={{ 
-              fontSize: getBadgeSize(), 
-              color: statusColor,
-            }} 
-          />
-        }
-        variant="outlined"
-        size={size}
-      />
-    );
-  }
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-  if (variant === 'inline') {
+  const handleStatusChange = (newStatus: UserStatus['status']) => {
+    if (isCurrentUser && setMyStatus) {
+      setMyStatus({ status: newStatus });
+    }
+    if (onStatusChange) {
+      onStatusChange({ status: newStatus });
+    }
+    handleMenuClose();
+  };
+
+  const handleUserClick = () => {
+    if (onClick && interactive) {
+      onClick(userStatus);
+    }
+  };
+
+  const statusConfig = getStatusConfig(userStatus.status, userStatus.isOnline);
+  const sizeConfig = getSizeConfig(size);
+
+  const StatusBadge = () => (
+    <CircleIcon
+      sx={{
+        ...sizeConfig.badge,
+        color: statusConfig.color,
+        border: '2px solid white',
+        borderRadius: '50%',
+        backgroundColor: statusConfig.color,
+      }}
+    />
+  );
+
+  const renderUserInfo = () => {
+    if (!showDetails) return null;
+
     return (
-      <Box display="flex" alignItems="center" gap={1}>
-        <Badge
-          overlap="circular"
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          badgeContent={
-            <CircleIcon 
-              sx={{ 
-                fontSize: getBadgeSize(), 
-                color: statusColor,
-              }} 
-            />
-          }
-        >
-          <Avatar src={avatar} sx={getAvatarSize()}>
-            {username.charAt(0)}
-          </Avatar>
-        </Badge>
-        
-        {showUsername && (
-          <Box>
-            <Typography variant="body2" fontWeight="medium">
-              {username}
-            </Typography>
-            {showLastSeen && (
-              <Typography variant="caption" color="text.secondary">
-                {userStatus?.online ? statusText : getLastSeenText()}
-              </Typography>
-            )}
-          </Box>
+      <Box sx={{ ml: showAvatar ? 1.5 : 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant={size === 'small' ? 'body2' : 'body1'}
+            sx={{
+              fontWeight: 500,
+              color: 'text.primary',
+            }}
+          >
+            {userStatus.userName}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: statusConfig.color,
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <CircleIcon sx={{ fontSize: 8 }} />
+            {statusConfig.label}
+          </Typography>
+        </Box>
+
+        {userStatus.customMessage && (
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mt: 0.25,
+              fontStyle: 'italic',
+            }}
+          >
+            "{userStatus.customMessage}"
+          </Typography>
+        )}
+
+        {showLastSeen && !userStatus.isOnline && (
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mt: 0.25,
+            }}
+          >
+            {formatLastSeen(userStatus.lastSeen)}
+          </Typography>
         )}
       </Box>
     );
-  }
+  };
 
-  // Default badge variant
-  return (
-    <Tooltip
-      title={
-        <Box>
-          <Typography variant="body2" fontWeight="medium">
-            {username}
-          </Typography>
-          <Typography variant="caption">
-            {userStatus?.online ? statusText : getLastSeenText()}
-          </Typography>
-          {userStatus?.status_message && (
-            <Typography variant="caption" sx={{ fontStyle: 'italic', display: 'block' }}>
-              "{userStatus.status_message}"
-            </Typography>
-          )}
-        </Box>
-      }
-      placement="top"
+  const content = (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        cursor: interactive ? 'pointer' : 'default',
+        p: interactive ? 0.5 : 0,
+        borderRadius: 1,
+        '&:hover': interactive ? {
+          backgroundColor: 'action.hover',
+        } : {},
+      }}
+      onClick={showSettings ? handleMenuOpen : handleUserClick}
     >
-      <Badge
-        overlap="circular"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        badgeContent={
-          <CircleIcon 
-            sx={{ 
-              fontSize: getBadgeSize(), 
-              color: statusColor,
-              border: 2,
-              borderColor: 'background.paper',
-              borderRadius: '50%',
-            }} 
+        {showAvatar && (
+          <Badge
+            overlap={sizeConfig.badgeOverlap}
+            anchorOrigin={sizeConfig.badgeAnchor}
+            badgeContent={isLoading ? <CircularProgress size={8} /> : <StatusBadge />}
+          >
+            <Avatar
+              src={avatarSrc}
+              sx={{
+                ...sizeConfig.avatar,
+                backgroundColor: userStatus.isOnline ? 'primary.main' : 'grey.400',
+              }}
+            >
+              {userStatus.userName.charAt(0).toUpperCase()}
+            </Avatar>
+          </Badge>
+        )}
+
+        {renderUserInfo()}
+
+        {showSettings && interactive && isCurrentUser && (
+          <SettingsIcon
+            sx={{
+              ml: 'auto',
+              fontSize: 16,
+              color: 'text.secondary',
+            }}
           />
+        )}
+    </Box>
+  );
+
+  // Tooltip content
+  const tooltipContent = showTooltip ? (
+    <Box>
+      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+        {userStatus.userName}
+      </Typography>
+      <Typography variant="body2" color="inherit">
+        Estado: {statusConfig.label}
+      </Typography>
+      {userStatus.customMessage && (
+        <Typography variant="body2" color="inherit" sx={{ fontStyle: 'italic' }}>
+          "{userStatus.customMessage}"
+        </Typography>
+      )}
+      <Typography variant="caption" color="inherit">
+        {userStatus.isOnline 
+          ? 'Activo ahora' 
+          : `Visto ${formatLastSeen(userStatus.lastSeen)}`
         }
+      </Typography>
+    </Box>
+  ) : null;
+
+  return (
+    <>
+      {showTooltip ? (
+        <Tooltip
+          title={tooltipContent}
+          placement="top"
+          arrow
+          enterDelay={500}
+          leaveDelay={200}
+        >
+          {content}
+        </Tooltip>
+      ) : (
+        content
+      )}
+
+      {/* Status Settings Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            minWidth: 200,
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 2,
+          },
+        }}
       >
-        <Avatar src={avatar} sx={getAvatarSize()}>
-          {username.charAt(0)}
-        </Avatar>
-      </Badge>
-    </Tooltip>
+        {onClick && (
+          <>
+            <MenuItem onClick={() => handleUserClick()}>
+              <ListItemIcon>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Ver perfil" />
+            </MenuItem>
+            <Divider />
+          </>
+        )}
+
+        {isCurrentUser && (['online', 'away', 'busy'] as UserStatus['status'][]).map((statusOption) => {
+          const config = getStatusConfig(statusOption, true);
+          return (
+            <MenuItem
+              key={statusOption}
+              onClick={() => handleStatusChange(statusOption)}
+              selected={userStatus.status === statusOption}
+            >
+              <ListItemIcon>
+                <CircleIcon sx={{ fontSize: 12, color: config.color }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={config.label}
+                secondary={config.description}
+                secondaryTypographyProps={{
+                  sx: { fontSize: '0.75rem' }
+                }}
+              />
+            </MenuItem>
+          );
+        })}
+      </Menu>
+    </>
   );
 };
 
-// Component for displaying multiple users' status
-interface UsersStatusListProps {
-  users: Array<{
-    id: string;
-    username: string;
-    avatar?: string;
-  }>;
-  title?: string;
-  maxVisible?: number;
-}
-
-export const UsersStatusList: React.FC<UsersStatusListProps> = ({
-  users,
-  title = "Usuarios conectados",
-  maxVisible = 10,
-}) => {
-  const [usersStatus, setUsersStatus] = useState<Map<string, UserStatus>>(new Map());
-
-  const { isConnected, send, subscribe } = useUserStatus();
-
-  // Handle status updates for all users
-  useEffect(() => {
-    const unsubscribeStatusUpdate = subscribe('user_status_update', (message) => {
-      const { user_id, online, last_seen, status_message } = message.data;
-      
-      const user = users.find(u => u.id === user_id);
-      if (user) {
-        setUsersStatus(prev => {
-          const newMap = new Map(prev);
-          newMap.set(user_id, {
-            user_id,
-            username: user.username,
-            avatar: user.avatar,
-            online,
-            last_seen,
-            status_message,
-          });
-          return newMap;
-        });
-      }
-    });
-
-    const unsubscribeStatusList = subscribe('users_status_list', (message) => {
-      const { users_status } = message.data;
-      
-      const statusMap = new Map<string, UserStatus>();
-      users_status.forEach((status: UserStatus) => {
-        statusMap.set(status.user_id, status);
-      });
-      
-      setUsersStatus(statusMap);
-    });
-
-    // Request current status for all users
-    if (isConnected && users.length > 0) {
-      send({
-        type: 'get_users_status',
-        data: { user_ids: users.map(u => u.id) },
-      });
+// Simplified status chip component
+export const UserStatusChip: React.FC<{
+  userStatus: UserStatus;
+  size?: 'small' | 'medium';
+}> = ({ userStatus, size = 'small' }) => {
+  const theme = useTheme();
+  
+  const getStatusConfig = (status: UserStatus['status'], isOnline: boolean) => {
+    if (!isOnline) {
+      return { label: 'Offline', color: 'default' as const };
     }
 
-    return () => {
-      unsubscribeStatusUpdate();
-      unsubscribeStatusList();
-    };
-  }, [subscribe, users, isConnected, send]);
+    switch (status) {
+      case 'online':
+        return { label: 'Online', color: 'success' as const };
+      case 'away':
+        return { label: 'Away', color: 'warning' as const };
+      case 'busy':
+        return { label: 'Busy', color: 'error' as const };
+      default:
+        return { label: 'Online', color: 'info' as const };
+    }
+  };
 
-  const sortedUsers = users
-    .map(user => ({
-      ...user,
-      status: usersStatus.get(user.id),
-    }))
-    .sort((a, b) => {
-      // Online users first
-      if (a.status?.online && !b.status?.online) return -1;
-      if (!a.status?.online && b.status?.online) return 1;
-      
-      // Then by username
-      return a.username.localeCompare(b.username);
-    })
-    .slice(0, maxVisible);
+  const statusConfig = getStatusConfig(userStatus.status, userStatus.isOnline);
 
   return (
-    <Box>
-      {title && (
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
+    <Chip
+      label={statusConfig.label}
+      color={statusConfig.color}
+      size={size}
+      variant="outlined"
+      sx={{
+        fontSize: size === 'small' ? '0.7rem' : '0.8rem',
+        height: size === 'small' ? 20 : 24,
+      }}
+    />
+  );
+};
+
+// Online users counter component
+export const OnlineUsersCounter: React.FC<{
+  onlineCount: number;
+  totalCount: number;
+  showIcon?: boolean;
+}> = ({ onlineCount, totalCount, showIcon = true }) => {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+      {showIcon && (
+        <CircleIcon 
+          sx={{ 
+            fontSize: 12, 
+            color: 'success.main',
+            animation: onlineCount > 0 ? 'pulse 2s infinite' : 'none',
+            '@keyframes pulse': {
+              '0%': { opacity: 1 },
+              '50%': { opacity: 0.5 },
+              '100%': { opacity: 1 },
+            },
+          }} 
+        />
       )}
-      
-      <List dense>
-        {sortedUsers.map((user) => (
-          <ListItem key={user.id} sx={{ px: 0 }}>
-            <ListItemAvatar>
-              <UserStatusIndicator
-                userId={user.id}
-                username={user.username}
-                avatar={user.avatar}
-                variant="badge"
-                size="medium"
-              />
-            </ListItemAvatar>
-            
-            <ListItemText
-              primary={user.username}
-              secondary={
-                user.status?.online 
-                  ? "En línea"
-                  : user.status?.last_seen 
-                    ? `Visto ${formatDistanceToNow(new Date(user.status.last_seen), { addSuffix: true, locale: es })}`
-                    : "Desconectado"
-              }
-            />
-            
-            {user.status?.status_message && (
-              <Typography 
-                variant="caption" 
-                color="text.secondary"
-                sx={{ fontStyle: 'italic', maxWidth: 100, textAlign: 'right' }}
-              >
-                "{user.status.status_message}"
-              </Typography>
-            )}
-          </ListItem>
-        ))}
-      </List>
-      
-      {users.length > maxVisible && (
+      <Typography variant="caption" color="success.main">
+        {onlineCount} en línea
+      </Typography>
+      {totalCount > 0 && (
         <Typography variant="caption" color="text.secondary">
-          +{users.length - maxVisible} más
+          de {totalCount}
         </Typography>
       )}
     </Box>

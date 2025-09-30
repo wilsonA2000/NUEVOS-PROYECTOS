@@ -8,6 +8,7 @@ import { useAuth } from './useAuth';
 
 export interface WebSocketMessage {
   type: string;
+  data?: string;
   [key: string]: any;
 }
 
@@ -34,7 +35,12 @@ export interface UseWebSocketReturn {
   isConnected: boolean;
 }
 
-export const useWebSocket = (options: UseWebSocketOptions): UseWebSocketReturn => {
+// Simple hook for URL string compatibility with useNotifications
+export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWebSocketReturn & { lastMessage?: WebSocketMessage } => {
+  // Handle both string URL and options object
+  const options: UseWebSocketOptions = typeof urlOrOptions === 'string' 
+    ? { url: urlOrOptions } 
+    : urlOrOptions;
   const {
     url,
     protocols,
@@ -51,6 +57,7 @@ export const useWebSocket = (options: UseWebSocketOptions): UseWebSocketReturn =
   const { token, isAuthenticated } = useAuth();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connectionState, setConnectionState] = useState<UseWebSocketReturn['connectionState']>('disconnected');
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | undefined>();
   
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
@@ -77,12 +84,24 @@ export const useWebSocket = (options: UseWebSocketOptions): UseWebSocketReturn =
     try {
       setConnectionState('connecting');
       
-      // Construir URL con token de autenticación
-      const wsUrl = new URL(url, window.location.origin);
-      wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-      wsUrl.searchParams.set('token', token);
+      // Construir URL correcta para WebSocket
+      let wsUrl: string;
+      if (url.startsWith('ws://') || url.startsWith('wss://')) {
+        // URL completa
+        wsUrl = url;
+      } else {
+        // URL relativa - construir URL completa
+        const baseUrl = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.hostname;
+        const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
+        wsUrl = `${baseUrl}//${host}:${port}${url.startsWith('/') ? url : `/${url}`}`;
+      }
+      
+      // Agregar token de autenticación
+      const urlWithToken = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${token}`;
 
-      const newSocket = new WebSocket(wsUrl.toString(), protocols);
+      console.log('Conectando WebSocket a:', urlWithToken);
+      const newSocket = new WebSocket(urlWithToken, protocols);
 
       newSocket.onopen = (event) => {
 
@@ -137,6 +156,8 @@ reconnectTimeoutRef.current = setTimeout(() => {
             return;
           }
 
+          // Set lastMessage for compatibility with useNotifications
+          setLastMessage({ ...message, data: event.data });
           onMessage?.(message);
         } catch (error) {
           console.error('Error parseando mensaje WebSocket:', error);
@@ -217,5 +238,6 @@ reconnectTimeoutRef.current = setTimeout(() => {
     reconnect,
     disconnect,
     isConnected: connectionState === 'connected',
+    lastMessage,
   };
 };

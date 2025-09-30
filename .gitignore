@@ -26,6 +26,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
+staticfiles/
 static/
 
 # React
@@ -38,19 +39,23 @@ frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 frontend/build/
+frontend/dist/
 
-# Environment variables
+# Environment variables - CRÍTICO
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production.example
+*.env
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.claude/
 
 # OS
 .DS_Store
@@ -62,12 +67,37 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Virtual Environments
+venv/
+venv_*/
+.venv/
+env/
+
 # Archivos temporales
 *.bak
 *.tmp
 *~
+.temp_token
+*.pid
+
+# Logs
+logs/
+*.log
 
 # Archivos específicos del proyecto
 test_email.py
 redis_*.txt
 agent_workspace.zip
+
+# Directorios archivados
+archived/
+ARCHIVOS INNECESARIOS/
+archived-components/
+
+# Testing
+test_env/
+.pytest_cache/
+
+# Backups
+backups/
+*.backup

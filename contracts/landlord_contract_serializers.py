@@ -67,8 +67,8 @@ class ContractWorkflowHistorySerializer(serializers.ModelSerializer):
         model = ContractWorkflowHistory
         fields = [
             'id', 'contract', 'performed_by', 'performed_by_name',
-            'action_type', 'description', 'old_state', 'new_state',
-            'data_changes', 'timestamp', 'ip_address', 'user_agent',
+            'action_type', 'action_description', 'old_state', 'new_state',
+            'changes_made', 'timestamp', 'user_role',
             'related_objection', 'related_objection_details', 'related_guarantee'
         ]
         read_only_fields = ['id', 'timestamp']
@@ -137,6 +137,15 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
     pending_objections = serializers.SerializerMethodField()
     approved_objections = serializers.SerializerMethodField()
     
+    # Campos calculados desde JSONField
+    monthly_rent = serializers.SerializerMethodField()
+    security_deposit = serializers.SerializerMethodField()
+    contract_duration_months = serializers.SerializerMethodField()
+    utilities_included = serializers.SerializerMethodField()
+    pets_allowed = serializers.SerializerMethodField()
+    smoking_allowed = serializers.SerializerMethodField()
+    additional_terms = serializers.SerializerMethodField()
+    
     class Meta:
         model = LandlordControlledContract
         fields = [
@@ -149,7 +158,7 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             'days_in_current_state', 'can_be_published',
             
             # Datos del contrato
-            'contract_template', 'monthly_rent', 'security_deposit',
+            'monthly_rent', 'security_deposit',
             'contract_duration_months', 'utilities_included', 'pets_allowed',
             'smoking_allowed', 'additional_terms',
             
@@ -169,7 +178,7 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             'invitation_token', 'invitation_expires_at',
             
             # Fechas
-            'created_at', 'updated_at', 'fully_signed_at',
+            'created_at', 'updated_at',
             
             # Relaciones
             'objections', 'guarantees', 'recent_history',
@@ -185,7 +194,7 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             'progress_percentage', 'days_in_current_state',
             'landlord_approved_at', 'tenant_approved_at',
             'landlord_signed_at', 'tenant_signed_at',
-            'published_at', 'fully_signed_at'
+            'published_at'
         ]
     
     def get_property_details(self, obj):
@@ -193,27 +202,41 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             return {
                 'id': obj.property.id,
                 'title': obj.property.title,
-                'address': obj.property.full_address,
+                'address': obj.property.address,
                 'property_type': obj.property.property_type,
                 'bedrooms': obj.property.bedrooms,
                 'bathrooms': obj.property.bathrooms,
-                'area': obj.property.area,
-                'main_image_url': obj.property.main_image_url
+                'area': getattr(obj.property, 'total_area', 0),
+                'main_image_url': getattr(obj.property, 'main_image_url', '')
             }
         return None
     
     def get_progress_percentage(self, obj):
-        return obj.get_progress_percentage()
+        # Calcular progreso basado en el estado actual
+        state_progress = {
+            'DRAFT': 10,
+            'TENANT_INVITED': 30,
+            'TENANT_REVIEWING': 50,
+            'LANDLORD_REVIEWING': 70,
+            'BOTH_REVIEWING': 80,
+            'READY_TO_SIGN': 90,
+            'FULLY_SIGNED': 95,
+            'PUBLISHED': 100
+        }
+        return state_progress.get(obj.current_state, 0)
     
     def get_days_in_current_state(self, obj):
-        return obj.get_days_in_current_state()
+        # Calcular días en el estado actual
+        from django.utils import timezone
+        return (timezone.now() - obj.updated_at).days
     
     def get_can_be_published(self, obj):
-        return obj.can_be_published()
+        # Un contrato puede ser publicado si está completamente firmado
+        return obj.current_state == 'FULLY_SIGNED'
     
     def get_recent_history(self, obj):
-        recent_entries = obj.history_entries.order_by('-timestamp')[:10]
-        return ContractWorkflowHistorySerializer(recent_entries, many=True).data
+        # Simplificar historial - usar workflow_history JSONField en lugar de objetos relacionados
+        return obj.workflow_history[-10:] if obj.workflow_history else []
     
     def get_total_objections(self, obj):
         return obj.objections.count()
@@ -223,31 +246,259 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
     
     def get_approved_objections(self, obj):
         return obj.objections.filter(status='ACCEPTED').count()
+    
+    # Métodos para campos calculados desde JSONField
+    def get_monthly_rent(self, obj):
+        return obj.economic_terms.get('monthly_rent', 0)
+    
+    def get_security_deposit(self, obj):
+        return obj.economic_terms.get('security_deposit', 0)
+    
+    def get_contract_duration_months(self, obj):
+        return obj.contract_terms.get('contract_duration_months', 12)
+    
+    def get_utilities_included(self, obj):
+        return obj.contract_terms.get('utilities_included', False)
+    
+    def get_pets_allowed(self, obj):
+        return obj.contract_terms.get('pets_allowed', False)
+    
+    def get_smoking_allowed(self, obj):
+        return obj.contract_terms.get('smoking_allowed', False)
+    
+    def get_additional_terms(self, obj):
+        return obj.contract_terms.get('additional_terms', '')
 
 
 class ContractCreateSerializer(serializers.ModelSerializer):
-    """Serializer para crear nuevos contratos."""
+    """Serializer para crear nuevos contratos con datos completos del formulario."""
+
+    # Estructura completa de datos del formulario
+    property_data = serializers.JSONField(required=False, default=dict)
+    landlord_data = serializers.JSONField(required=False, default=dict)
+    basic_terms = serializers.JSONField(required=True)
+    guarantee_terms = serializers.JSONField(required=False, default=dict)
+    special_clauses = serializers.JSONField(required=False, default=list)
+    contract_template = serializers.CharField(required=False, default='rental_urban')
+    contract_content = serializers.CharField(required=False, allow_blank=True)
+
+    # Campos adicionales para retrocompatibilidad
+    monthly_rent = serializers.DecimalField(max_digits=12, decimal_places=2, write_only=True, required=False)
+    security_deposit = serializers.DecimalField(max_digits=12, decimal_places=2, write_only=True, required=False)
+    contract_duration_months = serializers.IntegerField(write_only=True, required=False)
+    utilities_included = serializers.BooleanField(required=False, default=False, write_only=True)
+    pets_allowed = serializers.BooleanField(required=False, default=False, write_only=True)
+    smoking_allowed = serializers.BooleanField(required=False, default=False, write_only=True)
     
     class Meta:
         model = LandlordControlledContract
         fields = [
-            'property', 'contract_template', 'monthly_rent', 'security_deposit',
+            'property', 'property_data', 'landlord_data', 'basic_terms',
+            'guarantee_terms', 'special_clauses', 'contract_template',
+            'contract_content', 'monthly_rent', 'security_deposit',
             'contract_duration_months', 'utilities_included', 'pets_allowed',
-            'smoking_allowed', 'additional_terms'
+            'smoking_allowed'
         ]
     
+    def create(self, validated_data):
+        # Extraer datos estructurados del formulario
+        property_data = validated_data.pop('property_data', {})
+        landlord_data = validated_data.pop('landlord_data', {})
+        basic_terms = validated_data.pop('basic_terms', {})
+        guarantee_terms = validated_data.pop('guarantee_terms', {})
+        special_clauses = validated_data.pop('special_clauses', [])
+        contract_template = validated_data.pop('contract_template', 'rental_urban')
+        contract_content = validated_data.pop('contract_content', '')
+
+        # Extraer campos de retrocompatibilidad si existen
+        monthly_rent = validated_data.pop('monthly_rent', None)
+        security_deposit = validated_data.pop('security_deposit', None)
+        contract_duration_months = validated_data.pop('contract_duration_months', None)
+        utilities_included = validated_data.pop('utilities_included', False)
+        pets_allowed = validated_data.pop('pets_allowed', False)
+        smoking_allowed = validated_data.pop('smoking_allowed', False)
+
+        # Configurar datos básicos del contrato
+        validated_data['primary_party'] = self.context['request'].user
+        validated_data['contract_type'] = contract_template
+        validated_data['tenant_identifier'] = ''  # Se completará cuando se invite al tenant
+
+        # Preparar términos económicos (priorizar basic_terms, fallback a campos individuales)
+        economic_terms = {
+            'monthly_rent': float(basic_terms.get('monthly_rent', monthly_rent or 0)),
+            'security_deposit': float(basic_terms.get('security_deposit', security_deposit or 0)),
+            'currency': basic_terms.get('currency', 'COP'),
+            'payment_method': basic_terms.get('payment_method', 'transfer'),
+            'late_payment_fee': float(basic_terms.get('late_payment_fee', 0)),
+            'rent_increment_percentage': float(basic_terms.get('rent_increment_percentage', 0))
+        }
+        validated_data['economic_terms'] = economic_terms
+
+        # Preparar términos del contrato
+        contract_terms = {
+            'contract_duration_months': basic_terms.get('contract_duration_months', contract_duration_months or 12),
+            'utilities_included': basic_terms.get('utilities_included', utilities_included),
+            'pets_allowed': basic_terms.get('pets_allowed', pets_allowed),
+            'smoking_allowed': basic_terms.get('smoking_allowed', smoking_allowed),
+            'start_date': basic_terms.get('start_date', ''),
+            'end_date': basic_terms.get('end_date', ''),
+            'payment_due_day': basic_terms.get('payment_due_day', 1),
+            'grace_period_days': basic_terms.get('grace_period_days', 5)
+        }
+
+        # Agregar datos de garantías del codeudor si existen
+        if guarantee_terms and guarantee_terms.get('guarantor_required'):
+            contract_terms.update({
+                'guarantor_required': True,
+                'guarantee_type': guarantee_terms.get('guarantee_type', 'codeudor'),
+                'guarantee_amount': float(guarantee_terms.get('guarantee_amount', 0)),
+                'codeudor_data': guarantee_terms.get('codeudor_data', {})
+            })
+
+        validated_data['contract_terms'] = contract_terms
+
+        # Asignar datos específicos para las secciones del contrato
+        validated_data['property_data'] = self._enhance_property_data(property_data)
+        validated_data['landlord_data'] = self._enhance_landlord_data(landlord_data)
+        validated_data['special_clauses'] = special_clauses
+
+        # Establecer título descriptivo
+        landlord_name = self.context['request'].user.get_full_name()
+        validated_data['title'] = f'Contrato de Arrendamiento - {landlord_name}'
+
+        # Agregar contenido del contrato generado si se proporcionó
+        if contract_content:
+            validated_data['description'] = contract_content[:1000]  # Limitar a 1000 caracteres
+
+        return super().create(validated_data)
+
+    def _enhance_property_data(self, property_data):
+        """Enriquecer datos de la propiedad para el contrato"""
+        enhanced = property_data.copy()
+
+        # Formatear datos para el contrato PDF
+        if 'property_area' in enhanced:
+            enhanced['area_formatted'] = f"{enhanced['property_area']} metros cuadrados"
+
+        if 'property_type' in enhanced:
+            property_types = {
+                'apartment': 'Apartamento',
+                'house': 'Casa',
+                'room': 'Habitación',
+                'commercial': 'Local Comercial',
+                'office': 'Oficina'
+            }
+            enhanced['property_type_display'] = property_types.get(enhanced['property_type'], enhanced['property_type'])
+
+        return enhanced
+
+    def _enhance_landlord_data(self, landlord_data):
+        """Enriquecer datos del arrendador para el contrato"""
+        enhanced = landlord_data.copy()
+
+        # Formatear datos para el contrato PDF
+        if 'document_type' in enhanced:
+            doc_types = {
+                'CC': 'Cédula de Ciudadanía',
+                'CE': 'Cédula de Extranjería',
+                'NIT': 'NIT',
+                'PP': 'Pasaporte'
+            }
+            enhanced['document_type_display'] = doc_types.get(enhanced['document_type'], enhanced['document_type'])
+
+        # Crear dirección completa si hay componentes separados
+        address_parts = []
+        if enhanced.get('address'):
+            address_parts.append(enhanced['address'])
+        if enhanced.get('city'):
+            address_parts.append(enhanced['city'])
+        if enhanced.get('department'):
+            address_parts.append(enhanced['department'])
+        if address_parts:
+            enhanced['full_address'] = ', '.join(address_parts)
+
+        return enhanced
+    
+    def validate_basic_terms(self, value):
+        """Validar términos básicos del contrato."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("basic_terms debe ser un objeto JSON")
+
+        # Validar campos requeridos
+        required_fields = ['monthly_rent']
+        for field in required_fields:
+            if field not in value:
+                raise serializers.ValidationError(f"Campo requerido en basic_terms: {field}")
+
+        # Validar valores monetarios
+        if 'monthly_rent' in value:
+            try:
+                monthly_rent = float(value['monthly_rent'])
+                if monthly_rent <= 0:
+                    raise serializers.ValidationError("El canon mensual debe ser mayor a 0")
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("El canon mensual debe ser un número válido")
+
+        if 'security_deposit' in value:
+            try:
+                security_deposit = float(value['security_deposit'])
+                if security_deposit < 0:
+                    raise serializers.ValidationError("El depósito no puede ser negativo")
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("El depósito debe ser un número válido")
+
+        # Validar duración del contrato
+        if 'contract_duration_months' in value:
+            try:
+                duration = int(value['contract_duration_months'])
+                if duration < 1 or duration > 60:
+                    raise serializers.ValidationError("La duración debe estar entre 1 y 60 meses")
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("La duración debe ser un número entero válido")
+
+        return value
+
+    def validate_guarantee_terms(self, value):
+        """Validar términos de garantía incluyendo datos del codeudor."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("guarantee_terms debe ser un objeto JSON")
+
+        # Si se requiere codeudor, validar que los datos estén presentes
+        if value.get('guarantor_required') and value.get('guarantee_type') != 'none':
+            codeudor_data = value.get('codeudor_data', {})
+
+            # Validar campos obligatorios del codeudor
+            required_codeudor_fields = [
+                'codeudor_full_name', 'codeudor_document_number',
+                'codeudor_phone', 'codeudor_email'
+            ]
+
+            for field in required_codeudor_fields:
+                if not codeudor_data.get(field):
+                    field_display = field.replace('codeudor_', '').replace('_', ' ').title()
+                    raise serializers.ValidationError(f"Se requiere {field_display} del codeudor")
+
+            # Validar formato de email del codeudor
+            if 'codeudor_email' in codeudor_data:
+                import re
+                email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if not re.match(email_pattern, codeudor_data['codeudor_email']):
+                    raise serializers.ValidationError("Email del codeudor debe tener un formato válido")
+
+        return value
+
     def validate_monthly_rent(self, value):
-        if value <= 0:
+        if value and value <= 0:
             raise serializers.ValidationError("El canon mensual debe ser mayor a 0")
         return value
-    
+
     def validate_security_deposit(self, value):
-        if value < 0:
+        if value and value < 0:
             raise serializers.ValidationError("El depósito no puede ser negativo")
         return value
-    
+
     def validate_contract_duration_months(self, value):
-        if value < 1 or value > 60:
+        if value and (value < 1 or value > 60):
             raise serializers.ValidationError("La duración debe estar entre 1 y 60 meses")
         return value
 

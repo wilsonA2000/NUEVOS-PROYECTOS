@@ -153,7 +153,15 @@ class CanEditProperty(permissions.BasePermission):
         )
     
     def has_object_permission(self, request, view, obj):
-        return obj.landlord == request.user
+        # Para Property directamente
+        if hasattr(obj, 'landlord'):
+            return obj.landlord == request.user
+        
+        # Para objetos relacionados como PropertyVideo, PropertyImage, etc.
+        if hasattr(obj, 'property') and hasattr(obj.property, 'landlord'):
+            return obj.property.landlord == request.user
+            
+        return False
 
 
 class CanDeleteProperty(permissions.BasePermission):
@@ -164,11 +172,15 @@ class CanDeleteProperty(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and 
-            hasattr(request.user, 'user_type') and 
-            request.user.user_type == 'landlord'
+            (hasattr(request.user, 'user_type') and 
+             request.user.user_type == 'landlord') or
+            request.user.is_superuser
         )
     
     def has_object_permission(self, request, view, obj):
+        # Superusuarios pueden eliminar cualquier propiedad
+        if request.user.is_superuser:
+            return True
         return obj.landlord == request.user
 
 

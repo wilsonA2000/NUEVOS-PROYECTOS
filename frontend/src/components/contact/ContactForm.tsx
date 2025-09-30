@@ -1,221 +1,202 @@
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-  Box,
   Alert,
-  Grid,
   CircularProgress,
-  Stepper,
-  Step,
-  StepLabel
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  Fade,
+  useTheme,
 } from '@mui/material';
-import {
-  Contact as ContactIcon,
-  Send as SendIcon,
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Business as BusinessIcon
+import { 
+  Send as SendIcon, 
+  CheckCircle as CheckIcon,
+  ContactSupport as ContactIcon 
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
+import { api } from '../../services/api';
 
 interface ContactFormData {
-  full_name: string;
+  name: string;
   email: string;
   phone: string;
-  interested_as: string;
+  subject: string;
   message: string;
-  company_name?: string;
-  experience_years?: number;
+  inquiry_type: 'general' | 'property' | 'technical' | 'partnership';
 }
 
-interface ContactFormProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
-
-const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, onSuccess }) => {
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeStep, setActiveStep] = useState(0);
+const ContactForm: React.FC = () => {
+  const theme = useTheme();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
 
   const {
     control,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<ContactFormData>({
     defaultValues: {
-      full_name: '',
-      email: '',
-      phone: '',
-      interested_as: '',
-      message: '',
-      company_name: '',
-      experience_years: 0
-    }
+      inquiry_type: 'general',
+    },
   });
 
-  const watchedValues = watch();
-  const steps = ['Información Personal', 'Interés y Experiencia', 'Mensaje'];
-
-  const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-  };
-
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 0:
-        return !!(watchedValues.full_name && watchedValues.email && watchedValues.phone);
-      case 1:
-        return !!(watchedValues.interested_as);
-      case 2:
-        return !!(watchedValues.message && watchedValues.message.length >= 20);
-      default:
-        return false;
-    }
-  };
-
   const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
     try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/v1/contact/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          // Agregar metadatos adicionales
-          user_agent: navigator.userAgent,
-          referrer: document.referrer || window.location.href
-        })
+      await api.post('/users/contact/', data);
+      setSubmitStatus({
+        type: 'success',
+        message: '¡Mensaje enviado exitosamente! Te contactaremos dentro de las próximas 24 horas.',
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSubmitted(true);
-        setActiveStep(0);
-        reset();
-        onSuccess?.();
-        
-        // Mostrar mensaje de éxito por unos segundos antes de cerrar
-        setTimeout(() => {
-          setSubmitted(false);
-          onClose();
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Error al enviar la solicitud');
-      }
-    } catch (error) {
-      console.error('Error submitting contact form:', error);
-      setError('Error de conexión. Por favor, intente nuevamente.');
+      reset();
+    } catch (error: any) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Error al enviar el mensaje. Por favor verifica tus datos e intenta nuevamente.',
+      });
+      console.error('Error enviando formulario de contacto:', error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const getUserTypeLabel = (type: string) => {
-    switch (type) {
-      case 'landlord':
-        return 'Arrendador';
-      case 'tenant':
-        return 'Arrendatario';
-      case 'service_provider':
-        return 'Prestador de Servicios';
-      default:
-        return 'Otro';
-    }
-  };
+  const inquiryTypes = [
+    { value: 'general', label: 'Consulta General' },
+    { value: 'property', label: 'Propiedades / Alquileres' },
+    { value: 'technical', label: 'Soporte Técnico' },
+    { value: 'partnership', label: 'Alianzas / Negocios' },
+  ];
 
-  const getUserTypeDescription = (type: string) => {
-    switch (type) {
-      case 'landlord':
-        return 'Tengo propiedades para alquilar y busco arrendatarios confiables';
-      case 'tenant':
-        return 'Busco una propiedad para alquilar';
-      case 'service_provider':
-        return 'Ofrezco servicios relacionados con propiedades (plomería, electricidad, etc.)';
-      default:
-        return 'Otro tipo de interés';
-    }
-  };
+  return (
+    <Card 
+      elevation={0}
+      sx={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-lg)',
+        overflow: 'hidden',
+      }}
+    >
+      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <ContactIcon 
+            sx={{ 
+              fontSize: 48, 
+              color: 'var(--color-primary)',
+              mb: 2,
+            }} 
+          />
+          <Typography 
+            variant="h4" 
+            component="h2"
+            sx={{
+              fontWeight: 600,
+              color: 'var(--color-text-primary)',
+              mb: 1,
+            }}
+          >
+            Contáctanos
+          </Typography>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'var(--color-text-secondary)',
+              maxWidth: 500,
+              mx: 'auto',
+            }}
+          >
+            Completa el formulario y te responderemos lo antes posible. 
+            Estamos aquí para ayudarte con todas tus necesidades inmobiliarias.
+          </Typography>
+        </Box>
 
-  const renderStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return (
+        {/* Formulario */}
+        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            {/* Nombre */}
+            <Grid item xs={12} sm={6}>
               <Controller
-                name="full_name"
+                name="name"
                 control={control}
                 rules={{ 
-                  required: 'El nombre completo es requerido',
-                  minLength: { value: 2, message: 'El nombre debe tener al menos 2 caracteres' }
+                  required: 'El nombre es requerido',
+                  minLength: { value: 2, message: 'Mínimo 2 caracteres' }
                 }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
-                    label="Nombre Completo"
-                    error={!!errors.full_name}
-                    helperText={errors.full_name?.message}
-                    InputProps={{
-                      startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    label="Nombre completo *"
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                    disabled={isSubmitting}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
                     }}
                   />
                 )}
               />
             </Grid>
-            
+
+            {/* Email */}
             <Grid item xs={12} sm={6}>
               <Controller
                 name="email"
                 control={control}
-                rules={{ 
+                rules={{
                   required: 'El email es requerido',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email inválido'
-                  }
+                    message: 'Email inválido',
+                  },
                 }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
+                    label="Correo electrónico *"
                     type="email"
-                    label="Correo Electrónico"
                     error={!!errors.email}
                     helperText={errors.email?.message}
-                    InputProps={{
-                      startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    disabled={isSubmitting}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
                     }}
                   />
                 )}
               />
             </Grid>
-            
+
+            {/* Teléfono */}
             <Grid item xs={12} sm={6}>
               <Controller
                 name="phone"
@@ -223,7 +204,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, onSuccess }) =
                 rules={{ 
                   required: 'El teléfono es requerido',
                   pattern: {
-                    value: /^[+]?[\d\s\-\(\)]{10,}$/,
+                    value: /^[+]?[\d\s\-()]{10,}$/,
                     message: 'Teléfono inválido'
                   }
                 }}
@@ -231,247 +212,212 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, onSuccess }) =
                   <TextField
                     {...field}
                     fullWidth
-                    label="Teléfono"
+                    label="Teléfono *"
                     placeholder="+57 300 123 4567"
                     error={!!errors.phone}
                     helperText={errors.phone?.message}
-                    InputProps={{
-                      startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    disabled={isSubmitting}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
                     }}
                   />
                 )}
               />
             </Grid>
-          </Grid>
-        );
 
-      case 1:
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
+            {/* Tipo de consulta */}
+            <Grid item xs={12} sm={6}>
               <Controller
-                name="interested_as"
+                name="inquiry_type"
                 control={control}
-                rules={{ required: 'Debe seleccionar una opción' }}
                 render={({ field }) => (
-                  <FormControl fullWidth error={!!errors.interested_as}>
-                    <InputLabel>¿Cómo te interesa unirte a VeriHome?</InputLabel>
-                    <Select {...field} label="¿Cómo te interesa unirte a VeriHome?">
-                      <MenuItem value="landlord">
-                        <Box>
-                          <Typography variant="subtitle2">Arrendador</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {getUserTypeDescription('landlord')}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="tenant">
-                        <Box>
-                          <Typography variant="subtitle2">Arrendatario</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {getUserTypeDescription('tenant')}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="service_provider">
-                        <Box>
-                          <Typography variant="subtitle2">Prestador de Servicios</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {getUserTypeDescription('service_provider')}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                      <MenuItem value="other">
-                        <Box>
-                          <Typography variant="subtitle2">Otro</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Otro tipo de interés
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                    {errors.interested_as && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                        {errors.interested_as.message}
-                      </Typography>
-                    )}
-                  </FormControl>
+                  <TextField
+                    {...field}
+                    fullWidth
+                    select
+                    label="Tipo de consulta"
+                    disabled={isSubmitting}
+                    SelectProps={{ native: true }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
+                    }}
+                  >
+                    {inquiryTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </TextField>
                 )}
               />
             </Grid>
 
-            {(watchedValues.interested_as === 'landlord' || watchedValues.interested_as === 'service_provider') && (
-              <>
-                <Grid item xs={12} sm={6}>
-                  <Controller
-                    name="company_name"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Nombre de Empresa (Opcional)"
-                        InputProps={{
-                          startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                        }}
-                      />
-                    )}
+            {/* Asunto */}
+            <Grid item xs={12}>
+              <Controller
+                name="subject"
+                control={control}
+                rules={{ 
+                  required: 'El asunto es requerido',
+                  minLength: { value: 5, message: 'Mínimo 5 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Asunto *"
+                    error={!!errors.subject}
+                    helperText={errors.subject?.message}
+                    disabled={isSubmitting}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
+                    }}
                   />
-                </Grid>
+                )}
+              />
+            </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <Controller
-                    name="experience_years"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        type="number"
-                        label="Años de Experiencia"
-                        inputProps={{ min: 0, max: 50 }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </>
-            )}
-          </Grid>
-        );
-
-      case 2:
-        return (
-          <Grid container spacing={3}>
+            {/* Mensaje */}
             <Grid item xs={12}>
               <Controller
                 name="message"
                 control={control}
-                rules={{ 
+                rules={{
                   required: 'El mensaje es requerido',
-                  minLength: { value: 20, message: 'El mensaje debe tener al menos 20 caracteres' }
+                  minLength: {
+                    value: 20,
+                    message: 'El mensaje debe tener al menos 20 caracteres',
+                  },
                 }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     multiline
-                    rows={6}
-                    label="Cuéntanos más sobre tu interés"
-                    placeholder="Describe por qué quieres unirte a VeriHome, tu experiencia relevante, o cualquier pregunta que tengas..."
+                    rows={4}
+                    label="Mensaje *"
+                    placeholder="Describe tu consulta o necesidad en detalle..."
                     error={!!errors.message}
-                    helperText={errors.message?.message || `${field.value.length}/1000 caracteres`}
-                    inputProps={{ maxLength: 1000 }}
+                    helperText={errors.message?.message}
+                    disabled={isSubmitting}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-background)',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--color-primary)',
+                        },
+                      },
+                    }}
                   />
                 )}
               />
             </Grid>
 
-            {watchedValues.interested_as && (
+            {/* Status Alert */}
+            {submitStatus.type && (
               <Grid item xs={12}>
-                <Alert severity="info">
-                  <Typography variant="body2">
-                    <strong>Siguiente paso:</strong> Después de enviar esta solicitud, nuestro equipo 
-                    revisará tu información y te contactará para programar una entrevista. Si es 
-                    aprobada, recibirás un código único que te permitirá registrarte en la plataforma 
-                    como <strong>{getUserTypeLabel(watchedValues.interested_as)}</strong>.
-                  </Typography>
-                </Alert>
+                <Fade in={true}>
+                  <Alert 
+                    severity={submitStatus.type}
+                    sx={{
+                      borderRadius: 'var(--border-radius-md)',
+                      '& .MuiAlert-icon': {
+                        fontSize: '1.5rem',
+                      },
+                    }}
+                    icon={submitStatus.type === 'success' ? <CheckIcon /> : undefined}
+                  >
+                    {submitStatus.message}
+                  </Alert>
+                </Fade>
               </Grid>
             )}
+
+            {/* Submit Button */}
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={isSubmitting}
+                startIcon={
+                  isSubmitting ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <SendIcon />
+                  )
+                }
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: 'var(--border-radius-md)',
+                  background: 'var(--color-primary)',
+                  boxShadow: 'var(--shadow-md)',
+                  textTransform: 'none',
+                  '&:hover': {
+                    background: 'var(--color-primary-dark)',
+                    boxShadow: 'var(--shadow-lg)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                {isSubmitting ? 'Enviando mensaje...' : 'Enviar mensaje'}
+              </Button>
+            </Grid>
           </Grid>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  if (submitted) {
-    return (
-      <Dialog open={open} onClose={() => {}} maxWidth="sm" fullWidth>
-        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
-          <ContactIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-          <Typography variant="h5" gutterBottom color="success.main">
-            ¡Solicitud Enviada Exitosamente!
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Gracias por tu interés en VeriHome. Hemos recibido tu solicitud y nuestro equipo 
-            la revisará pronto. Te contactaremos por email para programar una entrevista.
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Este diálogo se cerrará automáticamente...
-          </Typography>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <ContactIcon sx={{ mr: 1 }} />
-          Únete a la Comunidad VeriHome
         </Box>
-      </DialogTitle>
 
-      <DialogContent>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Para mantener la calidad y seguridad de nuestra plataforma, todos los nuevos miembros 
-          pasan por un proceso de verificación que incluye una entrevista personal.
-        </Typography>
-
-        <Stepper activeStep={activeStep} sx={{ my: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {renderStepContent(activeStep)}
-        </form>
-      </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose} disabled={loading}>
-          Cancelar
-        </Button>
-        
-        {activeStep > 0 && (
-          <Button onClick={handleBack} disabled={loading}>
-            Anterior
-          </Button>
-        )}
-        
-        {activeStep < steps.length - 1 ? (
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            disabled={!validateStep(activeStep)}
+        {/* Footer info */}
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'var(--color-text-secondary)',
+              fontSize: '0.875rem',
+            }}
           >
-            Siguiente
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            type="submit"
-            onClick={handleSubmit(onSubmit)}
-            disabled={loading || !validateStep(activeStep)}
-            startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
-          >
-            {loading ? 'Enviando...' : 'Enviar Solicitud'}
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+            * Campos obligatorios. Tiempo de respuesta típico: 24 horas.
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

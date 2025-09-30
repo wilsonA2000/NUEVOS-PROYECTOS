@@ -10,6 +10,8 @@ from .models import (
 )
 # Importar los admin de entrevistas
 from .admin_interview import InterviewCodeAdmin
+# Importar modelos de allauth para email confirmation
+from allauth.account.models import EmailConfirmation, EmailAddress
 
 
 @admin.register(User)
@@ -277,3 +279,24 @@ class UserResumeAdmin(admin.ModelAdmin):
         return obj.user.is_verified
     user_verification_status.boolean = True
     user_verification_status.short_description = 'Usuario Verificado'
+
+
+
+# Admin para EmailConfirmation de django-allauth
+@admin.register(EmailConfirmation)
+class EmailConfirmationAdmin(admin.ModelAdmin):
+    """Administración para confirmaciones de email."""
+    
+    list_display = [
+        'key', 'email_address', 'created', 'sent', 'is_expired'
+    ]
+    list_filter = ['created', 'sent']
+    search_fields = ['key', 'email_address__email', 'email_address__user__email']
+    ordering = ['-created']
+    readonly_fields = ['key', 'created', 'sent']
+    
+    def is_expired(self, obj):
+        """Muestra si el token ha expirado."""
+        return obj.key_expired()
+    is_expired.boolean = True
+    is_expired.short_description = 'Expirado'

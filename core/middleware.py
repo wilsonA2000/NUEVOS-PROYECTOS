@@ -101,11 +101,16 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         # Headers básicos de seguridad
         security_headers = {
             'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin',
             'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
         }
+
+        # X-Frame-Options según entorno (sin restricciones en desarrollo)
+        if not settings.DEBUG:
+            # Solo agregar X-Frame-Options en producción
+            security_headers['X-Frame-Options'] = 'DENY'
+        # En desarrollo NO agregamos X-Frame-Options para permitir iframes cross-origin
         
         # CSP específico para API vs frontend
         if request.path.startswith('/api/'):

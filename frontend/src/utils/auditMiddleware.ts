@@ -262,22 +262,36 @@ class AuditMiddleware {
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
 
-        // Cumulative Layout Shift (CLS)
+        // Cumulative Layout Shift (CLS) - Acumular valores y loguear solo al final
+        let clsValue = 0;
+        let clsDebounceTimer: any = null;
+        
         const clsObserver = new PerformanceObserver((list) => {
           list.getEntries().forEach((entry) => {
-            loggingService.logPerformance(
-              'cumulative_layout_shift',
-              (entry as any).value,
-              {
-                hadRecentInput: (entry as any).hadRecentInput,
-                sources: (entry as any).sources?.map((source: any) => ({
-                  node: source.node?.tagName,
-                  currentRect: source.currentRect,
-                  previousRect: source.previousRect
-                }))
-              }
-            );
+            // Solo contar shifts sin input reciente del usuario
+            if (!(entry as any).hadRecentInput) {
+              clsValue += (entry as any).value;
+            }
           });
+          
+          // Debounce para evitar logs excesivos - solo loguear después de 5 segundos de inactividad
+          if (clsDebounceTimer) {
+            clearTimeout(clsDebounceTimer);
+          }
+          
+          clsDebounceTimer = setTimeout(() => {
+            if (clsValue > 0.1) { // Solo loguear si el CLS es significativo
+              loggingService.logPerformance(
+                'cumulative_layout_shift',
+                clsValue,
+                {
+                  totalShifts: list.getEntries().length,
+                  threshold: 'significant'
+                }
+              );
+            }
+            clsValue = 0; // Reset valor acumulado
+          }, 5000);
         });
         clsObserver.observe({ entryTypes: ['layout-shift'] });
 
@@ -325,7 +339,7 @@ class AuditMiddleware {
         method: config.method,
         url: config.url,
         hasData: !!config.data,
-        headers: this.sanitizeHeaders(config.headers),
+        headers: this.sanitizeHeaders(config.headers || {}),
         params: config.params
       },
       'APIInterceptor'
@@ -356,7 +370,7 @@ class AuditMiddleware {
         statusText: response.statusText,
         duration,
         responseSize: JSON.stringify(response.data).length,
-        headers: this.sanitizeHeaders(response.headers)
+        headers: this.sanitizeHeaders(response.headers || {})
       },
       'APIInterceptor'
     );
@@ -423,7 +437,7 @@ class AuditMiddleware {
     
     return (
       ['email', 'password', 'search', 'tel'].includes(type) ||
-      name.includes('search') ||
+      (name && name.includes('search')) ||
       input.hasAttribute('data-audit-log')
     );
   }
@@ -547,3 +561,4 @@ export const useAuditTrack = (componentName: string) => {
 if (typeof window !== 'undefined') {
   auditMiddleware.initialize();
 }
+/* Cache busted: 2025-08-06T04:42:27.093Z - AUDIT_MIDDLEWARE */

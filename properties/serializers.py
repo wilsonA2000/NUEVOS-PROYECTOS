@@ -49,7 +49,7 @@ class PropertyVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyVideo
         fields = [
-            'id', 'video', 'video_url', 'title', 'description', 
+            'id', 'video', 'video_url', 'youtube_url', 'title', 'description', 
             'duration', 'thumbnail', 'thumbnail_url', 'created_at'
         ]
     
@@ -157,7 +157,17 @@ class PropertySerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, obj):
         """Obtiene la URL de la imagen principal."""
+        # Intentar obtener imagen principal marcada
         main_image = obj.get_main_image()
+        
+        # Si no hay imagen principal, usar la primera imagen disponible
+        if not main_image:
+            first_image = obj.images.first()
+            if first_image and first_image.image:
+                main_image = first_image.image.url
+            else:
+                return None
+        
         if main_image:
             request = self.context.get('request')
             if request:
@@ -189,6 +199,16 @@ class CreatePropertySerializer(serializers.ModelSerializer):
     )
     main_image = serializers.ImageField(required=False, write_only=True)
     video_file = serializers.FileField(required=False, write_only=True)
+    video_files = serializers.ListField(
+        child=serializers.FileField(),
+        required=False,
+        write_only=True
+    )
+    youtube_urls = serializers.ListField(
+        child=serializers.URLField(),
+        required=False,
+        write_only=True
+    )
     
     class Meta:
         model = Property
@@ -202,11 +222,11 @@ class CreatePropertySerializer(serializers.ModelSerializer):
             'pets_allowed', 'smoking_allowed', 'furnished', 'utilities_included',
             'property_features', 'nearby_amenities', 'transportation',
             'available_from', 'is_featured', 'is_active', 'images', 'main_image',
-            'video_file'
+            'main_image_id', 'video_file', 'video_files', 'youtube_urls'
         ]
     
     def to_representation(self, instance):
-        from .serializers import PropertySerializer
+        # Usar PropertySerializer (definido arriba en el mismo archivo)
         return PropertySerializer(instance, context=self.context).data
 
     def create(self, validated_data):
@@ -215,6 +235,8 @@ class CreatePropertySerializer(serializers.ModelSerializer):
         images = validated_data.pop('images', [])
         main_image = validated_data.pop('main_image', None)
         video_file = validated_data.pop('video_file', None)
+        video_files = validated_data.pop('video_files', [])
+        youtube_urls = validated_data.pop('youtube_urls', [])
         
         # Convertir campos JSON si vienen como strings
         for field in ['utilities_included', 'property_features', 'nearby_amenities', 'transportation']:
@@ -258,7 +280,7 @@ class CreatePropertySerializer(serializers.ModelSerializer):
                 order=i
             )
         
-        # Crear video si existe
+        # Crear video si existe (legacy)
         if video_file:
             PropertyVideo.objects.create(
                 property=property_instance,
@@ -266,11 +288,72 @@ class CreatePropertySerializer(serializers.ModelSerializer):
                 title=f"Video de {property_instance.title}"
             )
         
+        # Procesar múltiples archivos de video
+        for i, video in enumerate(video_files):
+            # Buscar metadatos del video en la data original
+            title_key = f'video_{i}_title'
+            description_key = f'video_{i}_description'
+            
+            request = self.context.get('request')
+            title = 'Video'
+            description = ''
+            
+            if request and request.data:
+                title = request.data.get(title_key, f'Video {i+1} de {property_instance.title}')
+                description = request.data.get(description_key, '')
+            
+            PropertyVideo.objects.create(
+                property=property_instance,
+                video=video,
+                title=title,
+                description=description
+            )
+        
+        # Procesar URLs de YouTube
+        for i, youtube_url in enumerate(youtube_urls):
+            # Buscar metadatos del video de YouTube en la data original
+            title_key = f'youtube_{i}_title'
+            description_key = f'youtube_{i}_description'
+            
+            request = self.context.get('request')
+            title = 'Video YouTube'
+            description = ''
+            
+            if request and request.data:
+                title = request.data.get(title_key, f'Video YouTube {i+1} de {property_instance.title}')
+                description = request.data.get(description_key, '')
+            
+            PropertyVideo.objects.create(
+                property=property_instance,
+                youtube_url=youtube_url,
+                title=title,
+                description=description
+            )
+        
         return property_instance
 
 
 class UpdatePropertySerializer(serializers.ModelSerializer):
     """Serializador para actualizar propiedades."""
+    
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        required=False,
+        write_only=True
+    )
+    main_image = serializers.ImageField(required=False, write_only=True)
+    main_image_id = serializers.CharField(required=False, write_only=True)
+    video_file = serializers.FileField(required=False, write_only=True)
+    video_files = serializers.ListField(
+        child=serializers.FileField(),
+        required=False,
+        write_only=True
+    )
+    youtube_urls = serializers.ListField(
+        child=serializers.URLField(),
+        required=False,
+        write_only=True
+    )
     
     class Meta:
         model = Property
@@ -283,8 +366,127 @@ class UpdatePropertySerializer(serializers.ModelSerializer):
             'maintenance_fee', 'minimum_lease_term', 'maximum_lease_term',
             'pets_allowed', 'smoking_allowed', 'furnished', 'utilities_included',
             'property_features', 'nearby_amenities', 'transportation',
-            'available_from', 'is_featured', 'is_active'
+            'available_from', 'is_featured', 'is_active', 'images', 'main_image',
+            'main_image_id', 'video_file', 'video_files', 'youtube_urls'
         ]
+    
+    def to_representation(self, instance):
+        # Usar PropertySerializer (definido arriba en el mismo archivo)
+        return PropertySerializer(instance, context=self.context).data
+
+    def update(self, instance, validated_data):
+        """Actualiza una propiedad existente incluyendo nuevas imágenes y videos."""
+        # Extraer archivos
+        images = validated_data.pop('images', [])
+        main_image = validated_data.pop('main_image', None)
+        main_image_id = validated_data.pop('main_image_id', None)
+        video_file = validated_data.pop('video_file', None)
+        video_files = validated_data.pop('video_files', [])
+        youtube_urls = validated_data.pop('youtube_urls', [])
+        
+        # Convertir campos JSON si vienen como strings
+        for field in ['utilities_included', 'property_features', 'nearby_amenities', 'transportation']:
+            if field in validated_data and isinstance(validated_data[field], str):
+                try:
+                    import json
+                    validated_data[field] = json.loads(validated_data[field]) if validated_data[field] else []
+                except:
+                    validated_data[field] = []
+        
+        # Convertir campos booleanos
+        for field in ['pets_allowed', 'smoking_allowed', 'furnished', 'is_featured', 'is_active']:
+            if field in validated_data and isinstance(validated_data[field], str):
+                validated_data[field] = validated_data[field].lower() == 'true'
+        
+        # Actualizar campos básicos de la propiedad
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Procesar nuevas imágenes (si se envían)
+        if images:
+            # Agregar nuevas imágenes sin eliminar las existentes
+            for i, image in enumerate(images):
+                # Determinar si es imagen principal
+                is_main = (main_image and image == main_image)
+                # Si se marca como principal, desmarcar otras
+                if is_main:
+                    PropertyImage.objects.filter(property=instance, is_main=True).update(is_main=False)
+                
+                PropertyImage.objects.create(
+                    property=instance,
+                    image=image,
+                    is_main=is_main if is_main is not None else False,
+                    order=instance.images.count() + i
+                )
+        
+        # Manejar designación de imagen principal existente
+        if main_image_id:
+            try:
+                # Desmarcar todas las imágenes como principales
+                PropertyImage.objects.filter(property=instance, is_main=True).update(is_main=False)
+                # Marcar la imagen especificada como principal
+                PropertyImage.objects.filter(property=instance, id=main_image_id).update(is_main=True)
+                print(f"✅ Imagen {main_image_id} marcada como principal para propiedad {instance.id}")
+            except Exception as e:
+                print(f"⚠️ Error marcando imagen principal {main_image_id}: {str(e)}")
+        
+        # Crear video si existe (legacy)
+        if video_file:
+            PropertyVideo.objects.create(
+                property=instance,
+                video=video_file,
+                title=f"Video de {instance.title}"
+            )
+        
+        # Procesar múltiples archivos de video
+        for i, video in enumerate(video_files):
+            # Buscar metadatos del video en la data original
+            title_key = f'video_{i}_title'
+            description_key = f'video_{i}_description'
+            
+            # Los metadatos se envían en el FormData, así que los buscamos en el request
+            request = self.context.get('request')
+            title = 'Video'
+            description = ''
+            
+            if request and request.data:
+                title = request.data.get(title_key, f'Video {i+1} de {instance.title}')
+                description = request.data.get(description_key, '')
+            
+            PropertyVideo.objects.create(
+                property=instance,
+                video=video,
+                title=title,
+                description=description
+            )
+        
+        # CRITICAL FIX: Replace ALL YouTube videos to prevent exponential duplication
+        # 1. Delete ALL existing YouTube videos for this property FIRST
+        existing_youtube_videos = instance.videos.filter(youtube_url__isnull=False)
+        deleted_count = existing_youtube_videos.count()
+        if deleted_count > 0:
+            existing_youtube_videos.delete()
+            print(f"🔥 CLEANUP: Deleted {deleted_count} existing YouTube videos to prevent duplication")
+        
+        # 2. Create fresh YouTube videos from the current request data ONLY
+        unique_youtube_urls = list(dict.fromkeys([url.strip() for url in youtube_urls if url and url.strip()]))
+        print(f"📹 Processing {len(unique_youtube_urls)} unique YouTube URLs: {unique_youtube_urls}")
+        
+        for i, youtube_url in enumerate(unique_youtube_urls):
+            try:
+                new_video = PropertyVideo.objects.create(
+                    property=instance,
+                    youtube_url=youtube_url,
+                    title=f'Video YouTube {i+1}',
+                    description=f'Video de YouTube para {instance.title}',
+                    order=i+1
+                )
+                print(f"✅ NEW YouTube video created: {youtube_url} (ID: {new_video.id}, Order: {i+1})")
+            except Exception as e:
+                print(f"❌ ERROR creating YouTube video {youtube_url}: {e}")
+        
+        return instance
 
 
 class PropertySearchSerializer(serializers.Serializer):

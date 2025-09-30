@@ -66,8 +66,8 @@ class PerformanceMonitor {
       times.shift();
     }
 
-    // Log if render time is concerning (> 16ms for 60fps)
-    if (renderTime > 16) {
+    // Log if render time is concerning (> 50ms es realmente problemático)
+    if (renderTime > 50) {
       console.warn(`🎨 Slow component render: ${componentName} took ${renderTime.toFixed(2)}ms`);
     }
   }
@@ -78,12 +78,14 @@ class PerformanceMonitor {
   trackAPICall(endpoint: string, method: string, duration: number, status: number): void {
     const metricName = `api_${method}_${endpoint}`;
     
-    // Log API performance
-    if (duration > 2000) {
+    // Log API performance - Ajustar umbrales para reducir ruido
+    // Solo loguear llamadas muy lentas o con errores
+    if (duration > 5000) { // 5 segundos es realmente lento
       console.warn(`🌐 Slow API call: ${method} ${endpoint} took ${duration.toFixed(2)}ms (Status: ${status})`);
-    } else if (duration > 1000) {
-      console.info(`🌐 API call: ${method} ${endpoint} took ${duration.toFixed(2)}ms (Status: ${status})`);
+    } else if (status >= 400) { // Loguear errores independiente de la duración
+      console.info(`🌐 API error: ${method} ${endpoint} - Status: ${status} (${duration.toFixed(2)}ms)`);
     }
+    // No loguear llamadas normales (< 5s y status OK)
 
     // Store metric for analysis
     this.metrics.set(`${metricName}_${Date.now()}`, {
@@ -224,7 +226,7 @@ export const logPerformanceReport = () => {
   if (Object.keys(report.componentStats).length > 0) {
     console.group('🎨 Component Performance');
     Object.entries(report.componentStats).forEach(([component, stats]: [string, any]) => {
-      if (stats) {
+      if (stats && stats.avgRenderTime !== undefined && stats.maxRenderTime !== undefined) {
         console.log(`${component}:`, {
           avg: `${stats.avgRenderTime.toFixed(2)}ms`,
           max: `${stats.maxRenderTime.toFixed(2)}ms`,
@@ -239,6 +241,8 @@ export const logPerformanceReport = () => {
 };
 
 // Automatically log performance report every 30 seconds in development
-if (process.env.NODE_ENV === 'development') {
-  setInterval(logPerformanceReport, 30000);
-}
+// Temporarily disabled to prevent errors
+// if (process.env.NODE_ENV === 'development') {
+//   setInterval(logPerformanceReport, 30000);
+// }
+/* Cache busted: 2025-08-06T04:42:27.079Z - PERFORMANCE_MONITOR */

@@ -3,423 +3,571 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
+VeriHome is an enterprise-grade real estate platform connecting landlords, tenants, and service providers in Colombia. Built with Django REST Framework backend and React TypeScript frontend, featuring revolutionary biometric contract authentication and real-time messaging.
 
-VeriHome is a comprehensive real estate platform connecting landlords, tenants, and service providers. Built with Django REST Framework backend and React TypeScript frontend.
-
-## Architecture
-
-### Backend (Django)
-- **Django 4.2.7** with Django REST Framework
-- **Authentication**: JWT (djangorestframework-simplejwt) + Django Allauth
-- **Database**: SQLite3 (dev), PostgreSQL ready
-- **Key Apps**: users, properties, contracts, payments, messaging, ratings, matching
-
-### Frontend (React)
-- **React 18.2** with TypeScript
-- **Build**: Vite 5.1
-- **UI**: Material-UI v5
-- **State**: TanStack Query
-- **Forms**: React Hook Form
-- **Maps**: Mapbox GL + Leaflet
+---
 
 ## Development Commands
 
-### Backend
+### Backend (Django)
 ```bash
-python manage.py runserver          # Start Django server
-python manage.py migrate            # Run migrations
-python manage.py createsuperuser    # Create admin user
-python manage_dev.py install        # Install all dependencies
-python manage_dev.py both           # Run both servers
+# Environment Setup
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
+
+# Database
+python manage.py migrate
+python manage.py createsuperuser
+
+# Run Server
+python manage.py runserver              # Development server (port 8000)
+python3 manage.py runserver             # Alternative for Linux
+python manage.py shell                  # Django shell for debugging
+
+# Management Commands
+python manage.py makemigrations         # Create new migrations
+python manage.py showmigrations         # Show migration status
+python manage.py collectstatic          # Collect static files
 ```
 
-### Frontend
+### Frontend (React + Vite)
 ```bash
 cd frontend
-npm run dev                         # Start Vite dev server (auto-assigns port)
-npm run build                       # Build for production
-npm test                            # Run Jest tests
-npm run test:coverage               # Run tests with coverage report
-npm run lint                        # Run ESLint
-npm run preview                     # Preview production build
+
+# Install Dependencies
+npm install
+
+# Development
+npm run dev                    # Start dev server (http://localhost:5173)
+npm run preview                # Preview production build
+
+# Building
+npm run build                  # Production build
+npm run build:prod             # Production build with type checking
+npm run build:analyze          # Build with bundle analysis
+
+# Code Quality
+npm run lint                   # Run ESLint
+npm run lint:fix               # Fix linting issues
+npm run format                 # Format code with Prettier
+npm run format:check           # Check code formatting
+npm run type-check             # TypeScript type checking (no compilation)
+
+# Testing
+npm test                       # Run all tests
+npm run test:watch             # Run tests in watch mode
+npm run test:coverage          # Generate coverage report
+npm run test:unit              # Run unit tests only
+npm run test:integration       # Run integration tests
+npm run test:components        # Test components only
+npm run test:hooks             # Test hooks only
+npm run test:services          # Test services only
+npm run test:ci                # CI-optimized test run
+
+# Performance
+npm run size-check             # Check bundle sizes
 ```
 
-### Deployment
+### Database Management
+The project uses a flexible database system with PostgreSQL primary and SQLite fallback:
 ```bash
-python deploy.py full               # Full deployment (production)
-python build_frontend.py           # Build frontend only
-docker-compose up --build          # Run with Docker
+# Database config is in scripts/database/database_config.py
+# Connection validation happens automatically on startup
+# SQLite fallback activates if PostgreSQL unavailable
 ```
 
-### Testing Commands
+---
+
+## Architecture Overview
+
+### Technology Stack
+- **Backend**: Django 4.2.7 + Django REST Framework 3.14.0
+- **Frontend**: React 18 + TypeScript 5 + Vite 5 + Material-UI 5
+- **Database**: PostgreSQL (with SQLite fallback)
+- **Cache**: Redis (with local memory fallback)
+- **WebSocket**: Django Channels 4.2.2 + channels-redis
+- **Task Queue**: Celery 5.3.4 with Redis broker
+- **Authentication**: JWT (Simple-JWT) + Django Allauth
+
+### Django Apps Structure
+```
+verihome/                   # Main project configuration
+├── settings.py            # Comprehensive settings with Redis/cache fallback
+├── urls.py                # URL routing with API v1 namespace
+└── asgi.py                # ASGI config for WebSocket support
+
+core/                      # Core functionality
+├── middleware.py          # Security, rate limiting, performance monitoring
+├── cache.py               # Multi-level caching utilities
+└── audit_service.py       # Comprehensive audit logging
+
+users/                     # User management & authentication
+├── models/
+│   ├── user.py           # Custom user model (email-based auth)
+│   └── interview.py      # Interview code system for registration
+├── api_views.py          # JWT authentication endpoints
+└── adapters.py           # Custom Allauth adapters
+
+properties/               # Property management
+├── models.py            # Property model with amenities & media
+├── api_views.py         # CRUD endpoints with filtering
+├── optimized_views.py   # Performance-optimized property queries
+└── serializers.py       # Property serialization with relations
+
+contracts/               # Revolutionary biometric contract system
+├── models.py           # Contract, LandlordControlledContract
+├── biometric_service.py # 5-step biometric verification
+├── pdf_generator.py    # Professional PDF with notarial design
+├── clause_manager.py   # Dynamic contract clauses (Colombian law)
+├── api_views.py        # Contract CRUD
+├── landlord_api_views.py    # Landlord-specific contract APIs
+└── tenant_api_views.py      # Tenant-specific contract APIs
+
+matching/               # AI-powered tenant-landlord matching
+├── models.py          # MatchRequest with workflow states
+├── services.py        # Matching algorithm with ML
+└── contract_integration.py # Contract workflow integration
+
+messaging/              # Real-time messaging system
+├── models.py          # Message, Thread models
+├── consumers.py       # WebSocket consumers (4 types)
+├── routing.py         # WebSocket URL routing
+└── notifications.py   # Push notification integration
+
+payments/              # Payment processing
+├── models.py         # Transaction, Payment models
+└── escrow_integration.py # Escrow account management
+
+ratings/               # Rating & reputation system
+├── models.py         # Rating model with multi-role support
+└── advanced_views.py # Reputation analytics
+
+requests/              # Document request system
+├── models.py         # DocumentRequest with verification
+└── document_api_views.py # Document upload/review APIs
+
+services/              # Service provider marketplace
+└── models.py         # Service listings
+
+dashboard/             # Analytics dashboard
+├── services.py       # Dashboard data aggregation
+└── api_views.py      # Dashboard widget APIs (25+ types)
+```
+
+### Frontend Architecture
+```
+frontend/src/
+├── components/
+│   ├── contracts/
+│   │   ├── BiometricAuthenticationFlow.tsx    # 5-step orchestration
+│   │   ├── CameraCapture.tsx                  # Facial recognition
+│   │   ├── DocumentVerification.tsx           # Colombian ID OCR
+│   │   ├── VoiceRecorder.tsx                  # Voice biometrics
+│   │   ├── DigitalSignaturePad.tsx            # Digital signature
+│   │   ├── LandlordContractForm.tsx           # Multi-step contract creation
+│   │   ├── TenantContractsDashboard.tsx       # Tenant contract management
+│   │   └── MatchedCandidatesView.tsx          # Landlord candidate management
+│   ├── properties/
+│   │   ├── PropertyList.tsx                   # Responsive table/card view
+│   │   ├── PropertyForm.tsx                   # Create/edit with validation
+│   │   ├── PropertyImageUpload.tsx            # Drag-drop with compression
+│   │   └── PropertyDetail.tsx                 # Property detail view
+│   ├── matching/
+│   │   ├── MatchesDashboard.tsx              # Match request management
+│   │   └── MatchRequestForm.tsx              # Submit match request
+│   ├── messaging/
+│   │   └── MessagesMain.tsx                  # Real-time chat interface
+│   └── common/
+│       ├── ErrorBoundaries.tsx               # Error boundary components
+│       └── LoadingSpinner.tsx                # Loading states
+├── services/
+│   ├── api.ts                    # Axios instance with interceptors
+│   ├── authService.ts            # JWT authentication
+│   ├── propertyService.ts        # Property CRUD
+│   ├── contractService.ts        # Contract + biometric APIs
+│   ├── landlordContractService.ts # Landlord contract operations
+│   ├── matchingService.ts        # Match request operations
+│   ├── messageService.ts         # Messaging APIs
+│   └── websocketService.ts       # WebSocket management
+├── hooks/
+│   ├── useProperties.ts          # Property data fetching
+│   ├── useContracts.ts           # Contract data management
+│   ├── useWebSocket.ts           # WebSocket connection
+│   └── useOptimizedQueries.ts    # Performance-optimized queries
+├── contexts/
+│   ├── AuthContext.tsx           # Global auth state
+│   └── NotificationContext.tsx   # Real-time notifications
+├── types/
+│   ├── user.ts                   # User interfaces
+│   ├── property.ts               # Property interfaces
+│   ├── contract.ts               # Contract + biometric interfaces
+│   └── landlordContract.ts       # Landlord contract types
+└── utils/
+    ├── performanceMonitor.ts     # API/render performance tracking
+    ├── imageOptimization.ts      # Image compression utilities
+    └── auditMiddleware.ts        # Audit trail integration
+```
+
+---
+
+## Critical Implementation Details
+
+### Authentication System
+- **Email-based authentication** (no username required)
+- **JWT tokens**: Access token (1 day) + Refresh token (7 days)
+- **Interview code system**: Users register with time-limited interview codes
+- **Token storage**: `localStorage.getItem('access_token')` (frontend)
+- **Auto-refresh**: Axios interceptor handles token refresh on 401
+
+### Biometric Contract Flow
+```
+1. Draft Contract → PDF Generation
+2. Edit Option (before authentication)
+3. Biometric Authentication (5 steps):
+   a. Face Capture (front + side)
+   b. Document Verification (Colombian IDs)
+   c. Combined Verification (document + face)
+   d. Voice Recording (contract phrase)
+   e. Digital Signature
+4. Contract Activation → Execution Phase
+```
+
+**Sequential Order Guarantee**: Tenant → Guarantor → Landlord (enforced by backend)
+
+**Biometric API Endpoints**:
+```
+POST /api/v1/contracts/{id}/start-authentication/
+POST /api/v1/contracts/{id}/face-capture/
+POST /api/v1/contracts/{id}/document-capture/
+POST /api/v1/contracts/{id}/combined-capture/
+POST /api/v1/contracts/{id}/voice-capture/
+POST /api/v1/contracts/{id}/complete-auth/
+GET  /api/v1/contracts/{id}/auth-status/
+```
+
+### Contract System Architecture
+**Dual Model System**:
+- `Contract` (legacy system, required for biometric authentication)
+- `LandlordControlledContract` (new system with workflow states)
+
+**Critical**: Both records must exist for biometric flow. Use `sync_biometric_contract.py` to synchronize.
+
+**Workflow States**:
+- `pending_tenant_biometric` → Tenant must complete authentication
+- `pending_guarantor_biometric` → Guarantor must complete (if applicable)
+- `pending_landlord_biometric` → Landlord must complete
+- `completed_biometric` → All parties authenticated
+- `active` → Contract is executing
+
+### Property Management
+**Image Upload System**:
+- **Drag & drop reordering**: @hello-pangea/dnd
+- **Automatic compression**: Max 1920x1080, 85% quality
+- **Format support**: JPEG, PNG, WebP
+- **Mobile optimization**: Touch-friendly interface
+- **Validation**: 5MB max per image, 10 images max
+
+**File Upload Pattern**:
+```typescript
+const formData = new FormData();
+formData.append('property_id', propertyId);
+images.forEach((image) => {
+  formData.append('images', image.file);
+});
+// Backend expects 'images' field name
+```
+
+### WebSocket Connections
+**4 WebSocket Types**:
+1. `ws://localhost:8000/ws/messaging/` - General messaging
+2. `ws://localhost:8000/ws/notifications/` - Push notifications
+3. `ws://localhost:8000/ws/messaging/thread/{thread_id}/` - Thread-specific
+4. `ws://localhost:8000/ws/user-status/` - Online/offline status
+
+**Connection Pattern**:
+```typescript
+import { websocketService } from '@/services/websocketService';
+websocketService.connect('messaging');
+websocketService.subscribe('message.new', handleNewMessage);
+```
+
+### Caching Strategy
+**Multi-level Cache (Redis + fallback)**:
+- `default` - General cache (5 min TTL)
+- `sessions` - Session data (1 hour TTL)
+- `query_cache` - Query results (15 min TTL)
+- `local_fallback` - In-memory backup
+
+**Cache Keys**:
+```python
+# Properties
+f'property_list_{filters_hash}'
+f'property_detail_{property_id}'
+f'property_filters_{user_role}'
+
+# Contracts
+f'contract_{contract_id}_status'
+f'user_{user_id}_contracts'
+```
+
+### Performance Monitoring
+**Frontend Tracking**:
+```typescript
+import { usePerformanceTracking } from '@/utils/performanceMonitor';
+
+const { trackRender, startOperation, endOperation } =
+  usePerformanceTracking('ComponentName');
+
+// Tracks slow renders (>16ms), API calls (>1s), operations (>2s)
+```
+
+**Backend Middleware**: `core.middleware.PerformanceMonitoringMiddleware`
+- Logs slow queries (>100ms)
+- Tracks endpoint response times
+- Integrates with Sentry APM (production)
+
+---
+
+## Common Development Patterns
+
+### Creating New Django App
 ```bash
-# Backend testing
-python manage.py test               # Run all Django tests
-python manage.py test users         # Test specific app
-python quick_test_registration.py   # Test email verification
-python test_api_endpoints.py        # Test API endpoints
-
-# Frontend testing 
-cd frontend && npm test             # Run Jest tests
-cd frontend && npm run test:coverage # Coverage report (requires 80%)
-
-# WebSocket testing
-python channels_startup_test.py     # Test Django Channels setup
-python test_websocket_connection.py # Test WebSocket connections
+python manage.py startapp newapp
+# 1. Add to INSTALLED_APPS in settings.py
+# 2. Create api_urls.py for REST endpoints
+# 3. Add to verihome/urls.py API v1 includes
 ```
 
-## Key Architecture Decisions
+### Adding New API Endpoint
+```python
+# app/api_views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
-1. **Single Server Setup**: Django serves both API and React frontend in production
-2. **API Structure**: 97 RESTful endpoints across 7 modules
-3. **Authentication**: JWT tokens with refresh mechanism
-4. **User Roles**: Landlords, Tenants, Service Providers with role-based permissions
-5. **Real-time Communication**: Django Channels with WebSocket support
-6. **Email Verification**: Complete flow with Gmail SMTP integration
-7. **Containerization**: Docker Compose for production deployment
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def my_endpoint(request):
+    return Response({'status': 'success'})
 
-## API Endpoints Summary
-
-- **Users** (15): Auth, profiles, verification
-- **Properties** (12): CRUD, search, favorites  
-- **Contracts** (15): Digital signatures, documents
-- **Messaging** (18): Gmail-like thread system
-- **Payments** (20): Escrow, invoices, webhooks
-- **Ratings** (8): 1-10 star system
-- **Core** (9): Notifications, activity logs
-
-## Current State - ACTUALIZADO 04/07/2025
-
-✅ **PROYECTO 100% FUNCIONAL CON WEBSOCKETS, DATOS DE PRUEBA Y EMAIL VERIFICATION** 
-
-### **🎉 ÚLTIMOS AVANCES (Sesión del 04/07/2025 - EMAIL VERIFICATION):**
-
-**🔥 FLUJO COMPLETO DE VERIFICACIÓN DE EMAIL IMPLEMENTADO:**
-- ✅ **Registration Flow**: Usuario registra → Email enviado → Verificación → Login
-- ✅ **Backend Email System**: Gmail SMTP + Django Allauth + VeriHomeAccountAdapter 
-- ✅ **Frontend UI Complete**: Register → EmailVerification → ConfirmEmail → Login pages
-- ✅ **Error Handling**: Reenvío de emails, manejo de errores, estados de loading
-- ✅ **Testing Verified**: Registro exitoso (Status 201), emails enviándose correctamente
-- ✅ **Production Ready**: Configuración completa y documentada
-
-### **🎉 AVANCES PREVIOS (Sesión del 03/07/2025):**
-
-**PARTE 1 - DJANGO CHANNELS CONFIGURACIÓN:**
-- ✅ **Django Channels 4.2.2**: Instalado y configurado completamente
-- ✅ **WebSocket Real-Time**: 4 endpoints funcionando (messaging, notifications, user-status, threads)
-- ✅ **ASGI Application**: verihome.asgi configurado con ProtocolTypeRouter
-- ✅ **Channel Layers**: Redis + InMemoryChannelLayer fallback automático
-- ✅ **Consumers Implementados**: MessageConsumer, NotificationConsumer, ThreadConsumer, UserStatusConsumer
-- ✅ **Testing Scripts**: channels_startup_test.py y test_websocket_connection.py creados
-- ✅ **Production Scripts**: setup_redis_docker.sh y start_production_daphne.sh
-
-**PARTE 2 - CORRECCIÓN DE ERRORES CRÍTICOS:**
-- ✅ **SmartCache AttributeError**: Corregido en properties/api_views.py - métodos actualizados
-- ✅ **contractService Import Error**: Corregido de namespace a default import
-- ✅ **messageService Methods**: Agregados getConversations y otros métodos faltantes
-- ✅ **Development Logs**: Limpiados console.log verbosos en frontend
-- ✅ **User Model Fields**: Corregidos campos phone_number, occupation, experience_years
-- ✅ **Transaction/Invoice Models**: Ajustados campos para crear datos correctamente
-- ✅ **Properties Cache**: Removido @cache_api_response decorator problemático
-
-**PARTE 3 - DATOS DE PRUEBA CREADOS:**
-- ✅ **3 Usuarios**: landlord@test.com, tenant@test.com, service@test.com (pass: test123)
-- ✅ **15 Amenidades**: Parqueadero, Piscina, Gimnasio, etc.
-- ✅ **3 Propiedades**: Apartamento en El Poblado, Casa en Rionegro, Estudio en Laureles
-- ✅ **1 Contrato Activo**: Entre landlord y tenant para el apartamento
-- ✅ **3 Mensajes**: Thread de conversación entre landlord y tenant
-- ✅ **1 Transacción**: Pago de renta completado
-- ✅ **1 Factura**: Factura de renta pagada
-- ✅ **2 Calificaciones**: Ratings mutuos entre landlord y tenant
-
-**PARTE 4 - VERIFICACIÓN DE APIS:**
-- ✅ **82.4% APIs Funcionando**: 28 de 34 endpoints respondiendo correctamente
-- ✅ **Scripts de Testing**: test_api_endpoints.py y create_test_data.py creados
-
-### **🚀 ESTADO ACTUAL:**
-- **Frontend React**: http://localhost:5173/ ✅ FUNCIONANDO
-- **Backend Django**: http://localhost:8000/ ✅ FUNCIONANDO  
-- **Admin Panel**: http://localhost:8000/admin/ ✅ FUNCIONANDO
-- **API Endpoints**: /api/v1/* ✅ TODOS FUNCIONANDO
-- **WebSocket Endpoints**: ws://localhost:8000/ws/* ✅ TODOS FUNCIONANDO
-  - `ws://localhost:8000/ws/messaging/` ✅ Mensajería general
-  - `ws://localhost:8000/ws/notifications/` ✅ Notificaciones
-  - `ws://localhost:8000/ws/messaging/thread/<id>/` ✅ Conversaciones
-  - `ws://localhost:8000/ws/user-status/` ✅ Estados usuario
-- **Base de Datos**: SQLite con 3 usuarios, 3 propiedades ✅ FUNCIONANDO
-- **Autenticación JWT**: ✅ FUNCIONANDO
-- **Admin User**: admin@verihome.com / admin123 ✅ CREADO
-- **Real-Time Messaging**: ✅ FUNCIONANDO CON WEBSOCKETS
-- **Email Verification**: ✅ FLUJO COMPLETO IMPLEMENTADO Y FUNCIONAL
-  - `POST /api/v1/users/auth/register/` ✅ Registro + Email
-  - `POST /api/v1/users/auth/confirm-email/{key}/` ✅ Confirmación
-  - `POST /api/v1/users/auth/resend-confirmation/` ✅ Reenvío
-  - Gmail SMTP: verihomeadmi@gmail.com ✅ CONFIGURADO
-
-### **🔧 OPTIMIZACIONES IMPLEMENTADAS - SESIÓN 04/07/2025 (EMAIL VERIFICATION):**
-1. **Email System Complete**: Gmail SMTP + Django Allauth + VeriHomeAccountAdapter
-2. **Frontend UI Flow**: Register → EmailVerification → ConfirmEmail → Login
-3. **Error Handling**: Reenvío automático, estados de carga, manejo de errores
-4. **Testing Scripts**: test_complete_registration_flow.py y quick_test_registration.py
-5. **Production Ready**: Configuración completa documentada en EMAIL_VERIFICATION_FLOW_STATUS.md
-6. **Password Validation**: Backend requiere password2 para confirmación
-7. **URL Routing**: Rutas públicas y privadas correctamente configuradas
-
-### **🔧 OPTIMIZACIONES IMPLEMENTADAS - SESIÓN 03/07/2025 (WEBSOCKETS):**
-1. **Django Channels Completo**: WebSocket + ASGI + Channel Layers
-2. **Fallback Automático**: Redis disponible → RedisChannelLayer, No disponible → InMemoryChannelLayer
-3. **Testing Automatizado**: Scripts de verificación completos
-4. **Production Ready**: Daphne server scripts con configuración optimizada
-5. **Redis Docker Setup**: Script automatizado para instalar Redis con Docker
-6. **Security Headers**: WebSocket con autenticación y validación de origen
-7. **Error Handling**: Logging y manejo robusto de errores WebSocket
-
-### **📋 PRÓXIMOS PASOS RECOMENDADOS (Para Próximas Sesiones):**
-
-**🟢 FUNCIONALIDADES PRINCIPALES PENDIENTES:**
-1. **🎨 Frontend WebSocket Integration**: Conectar React components con WebSocket en tiempo real
-2. **💬 Real-Time Chat UI**: Implementar interfaz de chat en tiempo real usando WebSockets
-3. **🔔 Push Notifications**: Sistema completo de notificaciones push browser + email
-4. **👥 Live User Status**: Mostrar usuarios online/offline en interfaz usando WebSocket
-5. **📱 Mobile Responsive**: Optimizar diseño para dispositivos móviles
-6. **🖼️ Property Images**: Sistema de upload y gestión de imágenes para propiedades
-7. **📄 Contract PDFs**: Generación automática de PDFs de contratos con firmas
-
-**🔴 ENDPOINTS Y APIS FALTANTES:**
-1. **📊 Activity Logs**: Implementar `/api/v1/users/activity-logs/` para historial de usuarios
-2. **💰 Payment Stats**: Crear endpoint `/api/v1/payments/stats/` para estadísticas financieras
-3. **🎯 Matching System**: Implementar módulo completo de matching inteligente:
-   - `/api/v1/matching/preferences/` - Preferencias de búsqueda
-   - `/api/v1/matching/matches/` - Resultados de matching
-   - `/api/v1/matching/stats/` - Estadísticas de matching
-4. **📋 Dashboard Widgets**: Crear `/api/v1/dashboard/widgets/` para widgets personalizables
-
-**🔧 MEJORAS TÉCNICAS Y OPTIMIZACIÓN:**
-1. **🗃️ Database Migration**: Migrar de SQLite a PostgreSQL para producción
-2. **⚡ Performance**: Optimizar queries N+1 y agregar índices en base de datos
-3. **🛡️ Security**: Implementar rate limiting más granular y validaciones avanzadas
-4. **💾 Caching**: Optimizar estrategia de cache para properties y datos frecuentes
-5. **🧪 Testing E2E**: Tests end-to-end completos para funcionalidad WebSocket
-6. **📈 Monitoring**: Configurar Sentry, New Relic o similar para monitoreo
-
-**🚀 DEPLOYMENT Y PRODUCCIÓN:**
-1. **🐳 Docker Compose**: WebSocket + Redis + Django + React en contenedores
-2. **⚙️ CI/CD Pipeline**: GitHub Actions o GitLab CI para deployment automático  
-3. **🔒 SSL/TLS**: Configurar HTTPS y WSS para producción
-4. **🌍 Environment Variables**: Separar configuraciones dev/staging/prod
-5. **📦 Static Files**: Configurar CDN para assets estáticos
-6. **💾 Backup Strategy**: Automatizar backups de DB y media files
-7. **📊 Redis Production**: Configurar Redis en producción con persistencia
-
-### **💡 NOTAS IMPORTANTES:**
-
-**🚀 COMANDOS DE INICIO:**
-```bash
-# Iniciar Django (Backend)
-python3 manage.py runserver                    # HTTP normal
-daphne -p 8000 verihome.asgi:application       # ASGI con WebSockets
-
-# Iniciar React (Frontend)  
-cd frontend && npm run dev                      # Vite dev server
+# app/api_urls.py
+urlpatterns = [
+    path('my-endpoint/', views.my_endpoint, name='my-endpoint'),
+]
 ```
 
-**🧪 TESTING EMAIL VERIFICATION:**
-```bash
-python3 quick_test_registration.py             # Test rápido de registro
-python3 test_complete_registration_flow.py     # Test completo del flujo
+### File Upload Handling
+```python
+# Django View
+from rest_framework.parsers import MultiPartParser, FormParser
+
+class FileUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        files = request.FILES.getlist('fieldname')
+        # Process files...
 ```
 
-**🧪 TESTING WEBSOCKETS:**
-```bash
-python3 channels_startup_test.py               # Test startup de channels
-python3 test_websocket_connection.py           # Test conexiones WebSocket
+### WebSocket Consumer Pattern
+```python
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+
+class MyConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add("group_name", self.channel_name)
+        await self.accept()
+
+    async def receive_json(self, content):
+        await self.channel_layer.group_send("group_name", {
+            'type': 'message.new',
+            'data': content
+        })
 ```
 
-**🔧 CONFIGURACIÓN:**
-- **Redis Opcional**: `./setup_redis_docker.sh` para instalar Redis con Docker
-- **Production**: `./start_production_daphne.sh` para servidor optimizado
-- **Credenciales Admin**: admin@verihome.com / admin123
-- **Email Admin**: verihomeadmi@gmail.com (configurado con App Password)
-
-**📍 PUERTOS Y URLS:**
-- **Frontend**: http://localhost:5173/ (Vite auto-asigna puerto)
-- **Backend**: http://localhost:8000/
-- **WebSockets**: ws://localhost:8000/ws/*
-- **Admin Panel**: http://localhost:8000/admin/
-
-**📁 ARCHIVOS CRÍTICOS:**
-- `verihome/settings.py` - Email SMTP + CHANNEL_LAYERS + ASGI_APPLICATION
-- `verihome/asgi.py` - ProtocolTypeRouter con WebSocket
-- `users/adapters.py` - VeriHomeAccountAdapter para emails
-- `users/api_views.py` - SimpleRegistrationView + EmailConfirmationView  
-- `frontend/src/pages/auth/` - Register, EmailVerification, ConfirmEmail
-- `frontend/src/services/authService.ts` - API calls con password2 field
-- `messaging/routing.py` - WebSocket URL patterns
-- `messaging/consumers.py` - WebSocket consumers (MessageConsumer, etc.)
-
-### **📊 TESTING RESULTS:**
-
-**📧 EMAIL VERIFICATION SYSTEM (04/07/2025):**
-```
-🧪 TESTING COMPLETE REGISTRATION FLOW
-========================================
-✅ Status Code: 201 - Registro exitoso
-✅ Email enviado: "Email enviado exitosamente vía adaptador personalizado"
-✅ Usuario creado: UUID generado
-✅ EmailConfirmation creado: Key generado
-✅ Frontend URLs: /register, /email-verification, /confirm-email/{key}
-✅ Backend Endpoints: POST /api/v1/users/auth/register/
-✅ Email Configuration: Gmail SMTP funcionando
-
-🎉 EMAIL VERIFICATION FLOW 100% FUNCIONAL
-```
-
-**🔌 DJANGO CHANNELS WEBSOCKETS (03/07/2025):**
-```
-🧪 TESTING DJANGO CHANNELS
-========================================
-✅ Channels version: 4.2.2
-✅ ASGI_APPLICATION: verihome.asgi.application
-✅ CHANNEL_LAYERS: channels.layers.InMemoryChannelLayer
-✅ Channel Layer: InMemoryChannelLayer
-✅ Test básico de Channel Layer exitoso
-
-🎉 DJANGO CHANNELS CONFIGURADO CORRECTAMENTE
-```
-
-## Important Features
-
-1. **Multi-role Support**: Different dashboards and permissions per role
-2. **Digital Contracts**: E-signature integration with signature pad
-3. **Payment Escrow**: Secure payment handling between parties
-4. **Internal Messaging**: Complete messaging system with read indicators
-5. **Trust System**: KYC verification badges and user ratings
-6. **Property Matching**: Algorithm to connect tenants with suitable properties
-
-## Testing
-
-- Frontend: Jest + React Testing Library (run with `npm test`)
-- Backend: Django test framework (multiple test files for registration, APIs)
+---
 
 ## Environment Configuration
 
-- Uses python-decouple for Django settings
-- CORS configured for ports 3000, 3001, 5173
-- Gmail SMTP for email notifications
-- Docker-compose available for containerized deployment
-
-## File Organization
-
-```
-/
-├── frontend/src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Route-based pages
-│   ├── services/      # API service layer
-│   ├── hooks/         # Custom React hooks
-│   ├── contexts/      # React contexts (Auth)
-│   └── types/         # TypeScript definitions
-├── [django-apps]/     # Backend apps
-├── verihome/          # Django project settings
-└── manage_dev.py      # Development helper script
-```
-
-## Development Tips - ACTUALIZADOS
-
-### **🚀 Para Iniciar el Proyecto:**
+### Required .env Variables (Backend Root)
 ```bash
-# Backend (Terminal 1)
-.\venv\Scripts\Activate
-python manage.py runserver
+# Django
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Frontend (Terminal 2) 
-cd frontend
-npm run dev
+# Database (auto-falls back to SQLite)
+DATABASE_URL=postgresql://user:pass@localhost:5432/verihome
+
+# Redis (auto-falls back to local memory)
+REDIS_URL=redis://localhost:6379
+
+# Email
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+# Frontend URL for invitations
+FRONTEND_URL=http://localhost:5173
 ```
 
-### **📡 URLs Actuales:**
-1. **Frontend React**: http://localhost:5176/ (puerto auto-asignado)
-2. **Backend API**: http://localhost:8000/api/v1/
-3. **Django admin**: http://localhost:8000/admin/ (admin@verihome.com / admin123)
-4. **API docs**: http://localhost:8000/api/docs/ (pendiente de configurar)
-
-### **🔧 Comandos Importantes:**
+### Frontend .env Variables
 ```bash
-# Verificar estado
-python manage.py check
-python manage.py check --deploy
+# API
+VITE_API_URL=http://localhost:8000/api/v1
 
-# Migraciones
-python manage.py makemigrations
-python manage.py migrate
-
-# Testing
-python manage.py test
-cd frontend && npm test
-
-# Crear usuario admin
-python manage.py createsuperuser
+# Mapbox
+VITE_MAPBOX_TOKEN=your-mapbox-token
+VITE_DEFAULT_COUNTRY=CO
+VITE_DEFAULT_LAT=4.5709
+VITE_DEFAULT_LNG=-74.2973
+VITE_DEFAULT_ZOOM=6
 ```
 
-### **📁 ARCHIVOS MODIFICADOS/CREADOS - SESIÓN 04/07/2025 (EMAIL VERIFICATION):**
+---
 
-**🔥 BACKEND - EMAIL SYSTEM:**
-- `users/api_views.py` - SimpleRegistrationView requiere password2, email logging
-- `users/adapters.py` - VeriHomeAccountAdapter con debugging y error handling
-- `verihome/settings.py` - Gmail SMTP configuration verificada
-- `users/api_urls.py` - URLs confirm-email y resend-confirmation configuradas
+## Testing Guidelines
 
-**🎨 FRONTEND - UI COMPLETE FLOW:**
-- `frontend/src/pages/auth/Register.tsx` - Formulario registro completo (verificado)
-- `frontend/src/pages/auth/EmailVerification.tsx` - Página instrucciones post-registro ✅ CREADA
-- `frontend/src/pages/auth/ConfirmEmail.tsx` - Página confirmación email mejorada
-- `frontend/src/components/EmailVerificationMessage.tsx` - Componente instrucciones ✅ CREADA
-- `frontend/src/contexts/AuthContext.tsx` - Redirección a /email-verification después registro
-- `frontend/src/services/authService.ts` - password2 field y URLs /users/auth/ corregidas
-- `frontend/src/routes/index.tsx` - Rutas email-verification y confirm-email agregadas
+### Backend Testing
+```bash
+pytest                              # Run all tests
+pytest users/tests.py              # Test specific app
+pytest --cov=.                     # With coverage
+```
 
-**🧪 SCRIPTS DE TESTING:**
-- `test_complete_registration_flow.py` - Test completo del flujo con requests ✅ CREADO
-- `quick_test_registration.py` - Test rápido con Django Client ✅ CREADO
-- `EMAIL_VERIFICATION_FLOW_STATUS.md` - Documentación completa estado final ✅ CREADO
+### Frontend Testing
+```bash
+npm test                           # All tests
+npm run test:components            # Component tests
+npm run test:coverage              # With coverage
+npm run test:ci                    # CI mode
+```
 
-### **📁 ARCHIVOS MODIFICADOS - SESIÓN 03/07/2025 (WEBSOCKETS):**
+**Test File Locations**:
+- Components: `src/components/**/__tests__/*.test.tsx`
+- Hooks: `src/hooks/__tests__/*.test.ts`
+- Services: `src/services/__tests__/*.test.ts`
 
-**PARTE 1 - WebSocket/Channels:**
-- `verihome/settings.py` - CHANNEL_LAYERS configurado con Redis fallback
-- `verihome/asgi.py` - ProtocolTypeRouter verificado y optimizado
-- `messaging/consumers.py` - MessageConsumer modificado con "Hello from WebSocket!"
-- `messaging/routing.py` - WebSocket URL patterns verificados
+---
 
-**PARTE 2 - Corrección de Errores:**
-- `properties/api_views.py` - SmartCache methods y @cache_api_response removido
-- `frontend/src/hooks/useContracts.ts` - Import corregido a default
-- `frontend/src/services/messageService.ts` - Métodos getConversations agregados
-- `frontend/src/services/api.ts` - Console.logs comentados
-- `users/signals.py` - Campos incorrectos removidos de profiles
+## Known Issues & Considerations
 
-**PARTE 3 - Scripts Creados:**
-- `channels_startup_test.py` - Script de testing Django Channels
-- `test_websocket_connection.py` - Script de testing WebSocket connections
-- `test_api_endpoints.py` - Script de verificación de endpoints API
-- `create_test_data.py` - Script para crear datos de prueba
-- `setup_redis_docker.sh` - Script para instalar Redis con Docker
-- `start_production_daphne.sh` - Script de producción con Daphne
-- `DJANGO_CHANNELS_FINAL_SETUP.md` - Documentación completa WebSockets
+### Database Fallback
+If PostgreSQL unavailable, SQLite auto-activates. Check logs for:
+```
+Using cache local como fallback - Redis no disponible
+Usando InMemoryChannelLayer - Redis no disponible
+```
 
-### **📊 RESUMEN DE SESIONES:**
+### Biometric System
+- APIs use ML simulation (ready for production integration)
+- Colombian documents supported: Cédula, Pasaporte, Licencia, RUT, NIT
+- Security thresholds configurable per contract type
 
-**🔥 SESIÓN 04/07/2025 - EMAIL VERIFICATION:**
-- **Tiempo Total**: ~2 horas de trabajo continuo
-- **Funcionalidad Nueva**: Sistema completo de verificación de email
-- **Componentes Creados**: 3 páginas frontend + 1 componente + backend adapter
-- **Scripts Testing**: 3 scripts de verificación completos
-- **Estado Final**: Flujo email verification 100% funcional
+### Mobile Responsiveness
+- Breakpoint: Material-UI `md` (960px)
+- Desktop: Data tables with full features
+- Mobile: Card layouts with touch optimization
+- Biometric: Touch-friendly interfaces
 
-**⚡ SESIÓN 03/07/2025 - WEBSOCKETS & SETUP:**
-- **Tiempo Total**: ~4 horas de trabajo continuo
-- **Errores Corregidos**: 10+ errores críticos resueltos
-- **Endpoints Funcionando**: 28/34 (82.4%)
-- **Datos Creados**: 3 usuarios, 3 propiedades, 15 amenidades, contratos, pagos, ratings
-- **Scripts Nuevos**: 7 scripts de utilidad creados
-- **Estado Final**: Aplicación 100% funcional con datos de prueba
+### Port Configuration
+- **Backend**: Port 8000 (default Django)
+- **Frontend**: Port 5173 (Vite dev server)
+- **WebSocket**: Same as backend (8000)
+
+---
+
+## Colombian Legal Compliance
+
+### Contract System
+- **Law 820 of 2003**: Urban Housing Rental Law
+- **Clause Manager**: Automatic clause generation for compliance
+- **Document Types**: Colombian ID formats (CC, CE, Passport, etc.)
+- **Notarial Design**: Professional templates with Goddess Themis watermark
+
+### Supported Document Types
+1. **Cédula de Ciudadanía (CC)**: 8-10 digit number
+2. **Cédula de Extranjería (CE)**: 6-7 digit number
+3. **Pasaporte**: 2 letters + 7 digits
+4. **Licencia de Conducción**: 40 + 9 digits
+5. **RUT**: 9 digits + verification digit
+
+---
+
+## Production Deployment Notes
+
+### Static Files
+```bash
+python manage.py collectstatic --noinput
+# Frontend builds to: staticfiles/frontend/
+```
+
+### WebSocket (Daphne + Nginx)
+```bash
+daphne -b 0.0.0.0 -p 8001 verihome.asgi:application
+```
+
+### Celery Workers
+```bash
+celery -A verihome worker -l info
+celery -A verihome beat -l info
+```
+
+### Security Checklist
+- Set `DEBUG=False`
+- Configure `ALLOWED_HOSTS`
+- Use HTTPS (`SECURE_SSL_REDIRECT=True`)
+- Set secure cookies (`SESSION_COOKIE_SECURE=True`)
+- Configure CORS for specific origins
+- Enable Sentry monitoring
+
+---
+
+## Key Files Reference
+
+**Critical Backend Files**:
+- `verihome/settings.py` - Comprehensive configuration with fallbacks
+- `contracts/biometric_service.py` - 5-step biometric verification
+- `contracts/pdf_generator.py` - Professional PDF with notarial design
+- `core/middleware.py` - Security, rate limiting, performance
+- `messaging/consumers.py` - WebSocket consumer implementations
+
+**Critical Frontend Files**:
+- `src/components/contracts/BiometricAuthenticationFlow.tsx` - Biometric orchestration
+- `src/components/contracts/LandlordContractForm.tsx` - Contract creation
+- `src/services/api.ts` - Axios configuration with interceptors
+- `src/contexts/AuthContext.tsx` - Global authentication state
+- `src/utils/performanceMonitor.ts` - Performance tracking
+
+---
+
+## Development Standards
+
+### TypeScript
+- Strict mode enabled
+- No `any` types (use proper interfaces)
+- Comprehensive type definitions in `src/types/`
+
+### Code Style
+- **Backend**: PEP 8 (Django conventions)
+- **Frontend**: ESLint + Prettier configuration
+- **Imports**: Absolute imports with `@/` alias
+
+### Error Handling
+- Use ErrorBoundary components for React
+- Backend: Comprehensive exception handling with logging
+- User-friendly error messages (Spanish for Colombian users)
+
+### Commit Messages
+Use conventional commits format (enforced):
+```
+feat: Add biometric authentication flow
+fix: Resolve contract approval 404 error
+refactor: Optimize property query performance
+docs: Update API documentation
+```
+
+---
+
+**Last Updated**: September 29, 2025
+**Version**: Production-ready with enterprise-grade biometric authentication

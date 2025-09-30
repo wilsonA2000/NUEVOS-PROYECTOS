@@ -54,45 +54,25 @@ class UserSettings(models.Model):
         default=False
     )
     
-    # Tipos de notificaciones específicas
-    notify_new_messages = models.BooleanField(
+    # Tipos de notificaciones específicas (usando campos existentes en DB)
+    message_notifications = models.BooleanField(
         'Notificar nuevos mensajes',
         default=True
     )
-    notify_property_updates = models.BooleanField(
+    property_alerts = models.BooleanField(
         'Notificar actualizaciones de propiedades',
         default=True
     )
-    notify_contract_updates = models.BooleanField(
-        'Notificar actualizaciones de contratos',
-        default=True
-    )
-    notify_payment_reminders = models.BooleanField(
+    payment_reminders = models.BooleanField(
         'Notificar recordatorios de pago',
         default=True
     )
-    notify_new_ratings = models.BooleanField(
-        'Notificar nuevas calificaciones',
-        default=True
-    )
-    notify_marketing = models.BooleanField(
+    newsletter = models.BooleanField(
         'Notificaciones de marketing',
         default=False
     )
-    notify_system_updates = models.BooleanField(
-        'Notificaciones del sistema',
-        default=True
-    )
     
-    # Frecuencia de notificaciones
-    notification_frequency = models.CharField(
-        'Frecuencia de notificaciones',
-        max_length=10,
-        choices=NOTIFICATION_FREQUENCIES,
-        default='instant'
-    )
-    
-    # Preferencias de idioma y tema
+    # Preferencias de idioma y tema (usando campos existentes)
     language = models.CharField(
         'Idioma',
         max_length=2,
@@ -106,7 +86,7 @@ class UserSettings(models.Model):
         default='light'
     )
     
-    # Privacidad
+    # Privacidad (usando campos existentes)
     profile_visibility = models.CharField(
         'Visibilidad del perfil',
         max_length=20,
@@ -118,41 +98,20 @@ class UserSettings(models.Model):
         ],
         default='registered'
     )
-    show_email = models.BooleanField(
-        'Mostrar email en perfil',
+    show_contact_info = models.BooleanField(
+        'Mostrar información de contacto',
         default=False
     )
-    show_phone = models.BooleanField(
-        'Mostrar teléfono en perfil',
-        default=False
+    show_property_history = models.BooleanField(
+        'Mostrar historial de propiedades',
+        default=True
     )
-    show_location = models.BooleanField(
-        'Mostrar ubicación en perfil',
+    allow_messages = models.BooleanField(
+        'Permitir mensajes',
         default=True
     )
     
-    # Configuraciones de búsqueda
-    default_search_radius_km = models.PositiveIntegerField(
-        'Radio de búsqueda por defecto (km)',
-        default=10
-    )
-    save_search_history = models.BooleanField(
-        'Guardar historial de búsquedas',
-        default=True
-    )
-    
-    # Configuraciones de sesión
-    auto_logout_minutes = models.PositiveIntegerField(
-        'Auto cerrar sesión (minutos)',
-        default=0,  # 0 = deshabilitado
-        help_text='0 para deshabilitar'
-    )
-    remember_me_days = models.PositiveIntegerField(
-        'Recordar sesión (días)',
-        default=30
-    )
-    
-    # Configuraciones adicionales
+    # Configuraciones adicionales (usando campos existentes)
     currency = models.CharField(
         'Moneda preferida',
         max_length=3,
@@ -162,14 +121,29 @@ class UserSettings(models.Model):
         ],
         default='COP'
     )
-    measurement_unit = models.CharField(
-        'Unidad de medida',
-        max_length=10,
-        choices=[
-            ('metric', 'Métrico (m²)'),
-            ('imperial', 'Imperial (ft²)'),
-        ],
-        default='metric'
+    
+    # Configuraciones existentes en DB
+    timezone = models.CharField(
+        'Zona horaria',
+        max_length=50,
+        default='America/Bogota'
+    )
+    date_format = models.CharField(
+        'Formato de fecha',
+        max_length=20,
+        default='DD/MM/YYYY'
+    )
+    two_factor_enabled = models.BooleanField(
+        'Autenticación de dos factores',
+        default=False
+    )
+    login_notifications = models.BooleanField(
+        'Notificaciones de inicio de sesión',
+        default=True
+    )
+    session_timeout = models.PositiveIntegerField(
+        'Tiempo de sesión (minutos)',
+        default=30
     )
     
     # Metadatos
