@@ -178,9 +178,9 @@ LOCALE_PATHS = [
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
-    BASE_DIR / 'staticfiles' / 'frontend',  # Frontend React build
+    BASE_DIR / 'static' / 'frontend',  # Frontend React build
 ]
 
 # Configuración de archivos multimedia

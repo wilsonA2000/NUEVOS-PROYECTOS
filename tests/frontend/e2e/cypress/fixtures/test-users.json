@@ -1,0 +1,46 @@
+{
+  "landlord": {
+    "email": "landlord@test.com",
+    "password": "test123",
+    "first_name": "John",
+    "last_name": "Landlord",
+    "user_type": "landlord",
+    "phone_number": "3001234567",
+    "profile": {
+      "occupation": "Real Estate Investor",
+      "experience_years": 10,
+      "properties_owned": 15
+    }
+  },
+  "tenant": {
+    "email": "tenant@test.com", 
+    "password": "test123",
+    "first_name": "Jane",
+    "last_name": "Tenant",
+    "user_type": "tenant",
+    "phone_number": "3007654321",
+    "profile": {
+      "occupation": "Software Engineer",
+      "employment_type": "employed",
+      "monthly_income": 5000000,
+      "budget_range": {
+        "min": 1500000,
+        "max": 3000000
+      }
+    }
+  },
+  "service_provider": {
+    "email": "service@test.com",
+    "password": "test123",
+    "first_name": "Bob",
+    "last_name": "Service",
+    "user_type": "service_provider",
+    "phone_number": "3009876543",
+    "profile": {
+      "business_name": "Fix It Fast Services",
+      "service_types": ["plumbing", "electrical", "maintenance"],
+      "experience_years": 8,
+      "service_area": ["Medellín", "Envigado", "Sabaneta"]
+    }
+  }
+}
