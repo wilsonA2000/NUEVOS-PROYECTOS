@@ -56,8 +56,6 @@ import {
 } from '@mui/icons-material';
 
 import CameraCaptureSimple from './CameraCaptureSimple';
-// import CameraCapture from './CameraCapture'; // Temporalmente deshabilitado
-import DocumentVerification from './DocumentVerification';
 import EnhancedDocumentVerification from './EnhancedDocumentVerification';
 import VoiceRecorder from './VoiceRecorder';
 import DigitalSignaturePad from './DigitalSignaturePad';

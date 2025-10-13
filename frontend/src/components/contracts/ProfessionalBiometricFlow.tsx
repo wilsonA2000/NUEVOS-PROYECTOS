@@ -31,7 +31,6 @@ import {
 
 import SimpleProfessionalCamera from './SimpleProfessionalCamera';
 import EnhancedFaceCapture from './EnhancedFaceCapture';
-import DocumentVerification from './DocumentVerification';
 import EnhancedDocumentVerification from './EnhancedDocumentVerification';
 import VoiceRecorder from './VoiceRecorder';
 import EnhancedVoiceRecording from './EnhancedVoiceRecording';
