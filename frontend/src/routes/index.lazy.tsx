@@ -2,12 +2,11 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { useAuth } from '../hooks/useAuth';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { 
-  LazyLoadingSpinner, 
-  SkeletonLoader, 
+import {
+  LazyLoadingSpinner,
+  SkeletonLoader,
   useIntelligentPreload,
-  preloadBasedOnRoute 
+  preloadBasedOnRoute
 } from '../components/common/LazyComponents';
 
 // Componentes cargados inmediatamente (críticos para UX)

@@ -34,7 +34,8 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  LinearProgress
+  LinearProgress,
+  Snackbar
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import ContractClausesEditor from './ContractClausesEditor';
@@ -69,6 +70,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import VisitScheduleModal from './VisitScheduleModal';
+import VisitEvaluationModal from './VisitEvaluationModal';
 import LandlordDocumentReview from './LandlordDocumentReview';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 
@@ -136,6 +138,7 @@ const MatchedCandidatesView: React.FC = () => {
   const [candidates, setCandidates] = useState<MatchedCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchedCandidate | null>(null);
   const [workflowDialogOpen, setWorkflowDialogOpen] = useState(false);
   const [currentAction, setCurrentAction] = useState<WorkflowAction | null>(null);
@@ -148,7 +151,11 @@ const MatchedCandidatesView: React.FC = () => {
   // Estados para el modal de programar visita
   const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [selectedCandidateForVisit, setSelectedCandidateForVisit] = useState<MatchedCandidate | null>(null);
-  
+
+  // Estados para el modal de evaluación de visita
+  const [visitEvaluationModalOpen, setVisitEvaluationModalOpen] = useState(false);
+  const [selectedCandidateForEvaluation, setSelectedCandidateForEvaluation] = useState<MatchedCandidate | null>(null);
+
   // Estados para el modal de revisión de documentos
   const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
   const [selectedCandidateForDocuments, setSelectedCandidateForDocuments] = useState<MatchedCandidate | null>(null);
@@ -195,17 +202,63 @@ const MatchedCandidatesView: React.FC = () => {
 
       const response = await api.post('/contracts/workflow-action/', requestBody);
       const result = response.data;
-      
+
       // CRITICAL FIX: Reload all candidates from server to ensure synchronization
       console.log('🔄 Recargando candidatos para sincronización después de programar visita...');
       await fetchMatchedCandidates();
 
+      // Show success message
+      setSuccess('✅ Visita programada exitosamente. El arrendatario ha sido notificado.');
       console.log('✅ Visita programada exitosamente y datos sincronizados');
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al programar visita';
+      setError(errorMsg);
       console.error('❌ Error al programar visita:', err);
       throw err; // Re-lanzar el error para que el modal lo maneje
     }
   }, [selectedCandidateForVisit]);
+
+  // Handler para abrir el modal de evaluación de visita
+  const handleOpenVisitEvaluation = useCallback((candidate: MatchedCandidate) => {
+    setSelectedCandidateForEvaluation(candidate);
+    setVisitEvaluationModalOpen(true);
+  }, []);
+
+  // Handler para evaluar la visita
+  const handleEvaluateVisit = useCallback(async (approved: boolean, notes: string) => {
+    if (!selectedCandidateForEvaluation) return;
+
+    try {
+      const requestBody = {
+        match_request_id: selectedCandidateForEvaluation.id,
+        action: approved ? 'visit_completed' : 'reject',
+        evaluation_notes: notes
+      };
+
+      const response = await api.post('/contracts/workflow-action/', requestBody);
+      const result = response.data;
+
+      // Recargar candidatos para sincronización
+      console.log('🔄 Recargando candidatos después de evaluar visita...');
+      await fetchMatchedCandidates();
+
+      // Show success message
+      if (result.deleted) {
+        setSuccess(`✅ ${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
+      } else {
+        setSuccess(approved
+          ? '✅ Visita aprobada exitosamente. El candidato avanzó a la etapa de revisión de documentos.'
+          : '✅ Candidato rechazado. El proceso ha sido eliminado completamente.'
+        );
+      }
+      console.log(`✅ Visita ${approved ? 'aprobada y avanzada a Etapa 2' : 'rechazada'} exitosamente`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al evaluar visita';
+      setError(errorMsg);
+      console.error('❌ Error al evaluar visita:', err);
+      throw err;
+    }
+  }, [selectedCandidateForEvaluation]);
 
   const fetchMatchedCandidates = async () => {
     try {
@@ -297,8 +350,13 @@ const MatchedCandidatesView: React.FC = () => {
       setWorkflowDialogOpen(false);
       setSelectedCandidate(null);
       setCurrentAction(null);
-      
-      // Show success message
+
+      // Show success message to user
+      if (result.deleted) {
+        setSuccess(`✅ ${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
+      } else {
+        setSuccess(result.message || '✅ Acción ejecutada exitosamente');
+      }
       console.log('✅ Acción ejecutada y datos sincronizados:', result.message);
 
     } catch (err) {
@@ -629,6 +687,15 @@ const MatchedCandidatesView: React.FC = () => {
           >
             📬 Recordar al Arrendatario
           </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<RejectIcon />}
+            onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+            size="small"
+          >
+            Rechazar Candidato
+          </Button>
         </>
       );
     }
@@ -654,6 +721,15 @@ const MatchedCandidatesView: React.FC = () => {
             disabled
           >
             ✅ Arrendatario ya autenticado
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<RejectIcon />}
+            onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+            size="small"
+          >
+            Rechazar Candidato
           </Button>
         </>
       );
@@ -690,12 +766,21 @@ const MatchedCandidatesView: React.FC = () => {
           >
             📬 Recordar al Arrendatario
           </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<RejectIcon />}
+            onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+            size="small"
+          >
+            Rechazar Candidato
+          </Button>
         </>
       );
     }
 
     return null;
-  }, [handleStartBiometricAuth, handleViewContractStatus, handleSendBiometricReminder]);
+  }, [handleStartBiometricAuth, handleViewContractStatus, handleSendBiometricReminder, handleWorkflowAction]);
 
   // ETAPA 5: Botones para entrega y ejecución
   const renderExecutionActionButtons = useCallback((candidate: MatchedCandidate) => {
@@ -952,24 +1037,73 @@ const MatchedCandidatesView: React.FC = () => {
             {/* ETAPA 1: Programar visita */}
             {candidate.workflow_stage === 1 && (
               <>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<ScheduleIcon />}
-                  onClick={() => handleScheduleVisit(candidate)}
-                  size="small"
-                >
-                  Programar Visita
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<RejectIcon />}
-                  onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
-                  size="small"
-                >
-                  Rechazar
-                </Button>
+                {/* Si la visita ya está programada, mostrar confirmación */}
+                {candidate.workflow_data?.visit_scheduled ? (
+                  <Box sx={{ width: '100%' }}>
+                    <Alert severity="success" sx={{ mb: 1 }}>
+                      <AlertTitle>✅ Visita Programada</AlertTitle>
+                      <Typography variant="body2">
+                        <strong>Fecha:</strong> {new Date(candidate.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Hora:</strong> {candidate.workflow_data.visit_scheduled.time}
+                      </Typography>
+                      {candidate.workflow_data.visit_scheduled.notes && (
+                        <Typography variant="body2">
+                          <strong>Notas:</strong> {candidate.workflow_data.visit_scheduled.notes}
+                        </Typography>
+                      )}
+                    </Alert>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<CheckCircleIcon />}
+                      onClick={() => handleOpenVisitEvaluation(candidate)}
+                      size="small"
+                      fullWidth
+                      sx={{ mb: 1 }}
+                    >
+                      Evaluar Visita
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<RejectIcon />}
+                      onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+                      size="small"
+                      fullWidth
+                    >
+                      Rechazar Candidato
+                    </Button>
+                  </Box>
+                ) : (
+                  // Si no está programada, mostrar botón para programar
+                  <>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<ScheduleIcon />}
+                      onClick={() => handleScheduleVisit(candidate)}
+                      size="small"
+                    >
+                      Programar Visita
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<RejectIcon />}
+                      onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+                      size="small"
+                    >
+                      Rechazar
+                    </Button>
+                  </>
+                )}
               </>
             )}
 
@@ -1019,6 +1153,15 @@ const MatchedCandidatesView: React.FC = () => {
                 >
                   ✏️ Crear Manualmente
                 </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<RejectIcon />}
+                  onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+                  size="small"
+                >
+                  Rechazar Candidato
+                </Button>
               </>
             )}
 
@@ -1046,6 +1189,15 @@ const MatchedCandidatesView: React.FC = () => {
                     Aprobar Contrato
                   </Button>
                 )}
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<RejectIcon />}
+                  onClick={() => handleWorkflowAction(candidate, { type: 'reject' })}
+                  size="small"
+                >
+                  Rechazar Candidato
+                </Button>
               </>
             )}
 
@@ -1293,6 +1445,17 @@ const MatchedCandidatesView: React.FC = () => {
         propertyTitle={selectedCandidateForVisit?.property.title || ''}
       />
 
+      {/* Modal de evaluación de visita */}
+      <VisitEvaluationModal
+        open={visitEvaluationModalOpen}
+        onClose={() => setVisitEvaluationModalOpen(false)}
+        onEvaluate={handleEvaluateVisit}
+        candidateName={selectedCandidateForEvaluation?.tenant.full_name || ''}
+        propertyTitle={selectedCandidateForEvaluation?.property.title || ''}
+        visitDate={selectedCandidateForEvaluation?.workflow_data?.visit_scheduled?.date || ''}
+        visitTime={selectedCandidateForEvaluation?.workflow_data?.visit_scheduled?.time || ''}
+      />
+
       {/* Document Review Modal */}
       <Dialog 
         open={documentsModalOpen} 
@@ -1386,6 +1549,29 @@ const MatchedCandidatesView: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbars */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="error" onClose={() => setError(null)} sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={4000}
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccess(null)} sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
