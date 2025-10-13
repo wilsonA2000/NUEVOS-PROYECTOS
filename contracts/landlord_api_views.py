@@ -173,7 +173,61 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.warning(f"No se pudo registrar historial: {e}")
             # No fallar la creación del contrato por problemas de historial
-    
+
+    def update(self, request, *args, **kwargs):
+        """
+        Actualizar contrato - PROTECCIÓN PARA CONTRATOS ACTIVOS.
+        Solo administradores pueden modificar contratos activos.
+        """
+        instance = self.get_object()
+
+        # Validar si el contrato está activo
+        if instance.is_active and not request.user.is_staff:
+            return Response({
+                'error': 'Contrato activo no puede ser modificado',
+                'message': 'Los contratos activos solo pueden ser modificados por administradores de VeriHome',
+                'contract_status': 'active',
+                'is_active': True
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Actualización parcial - PROTECCIÓN PARA CONTRATOS ACTIVOS.
+        Solo administradores pueden modificar contratos activos.
+        """
+        instance = self.get_object()
+
+        # Validar si el contrato está activo
+        if instance.is_active and not request.user.is_staff:
+            return Response({
+                'error': 'Contrato activo no puede ser modificado',
+                'message': 'Los contratos activos solo pueden ser modificados por administradores de VeriHome',
+                'contract_status': 'active',
+                'is_active': True
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Eliminar contrato - PROTECCIÓN PARA CONTRATOS ACTIVOS.
+        Solo administradores pueden eliminar contratos activos.
+        """
+        instance = self.get_object()
+
+        # Validar si el contrato está activo
+        if instance.is_active and not request.user.is_staff:
+            return Response({
+                'error': 'Contrato activo no puede ser eliminado',
+                'message': 'Los contratos activos solo pueden ser eliminados por administradores de VeriHome',
+                'contract_status': 'active',
+                'is_active': True
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=True, methods=['post'])
     def complete_landlord_data(self, request, pk=None):
         """

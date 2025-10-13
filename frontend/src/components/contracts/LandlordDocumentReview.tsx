@@ -334,7 +334,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                   onClick={() => {
                     console.log('🔍 Opening document URL:', doc.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
-                    const backendUrl = 'http://localhost:8001';  // Django backend
+                    const backendUrl = 'http://localhost:8000';  // Django backend
                     const fullUrl = doc.file_url.startsWith('/') 
                       ? `${backendUrl}${doc.file_url}`
                       : doc.file_url;
@@ -537,7 +537,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                   onClick={() => {
                     console.log('🔍 Opening document from modal:', selectedDocument.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
-                    const backendUrl = 'http://localhost:8001';  // Django backend
+                    const backendUrl = 'http://localhost:8000';  // Django backend
                     const fullUrl = selectedDocument.file_url.startsWith('/') 
                       ? `${backendUrl}${selectedDocument.file_url}`
                       : selectedDocument.file_url;

@@ -47,7 +47,7 @@ class BiometricAuthenticationService:
         """
         try:
             logger.info(f"Iniciando autenticación biométrica para usuario {user.id} y contrato {contract.id}")
-            
+
             # Verificar que el usuario sea parte del contrato (incluyendo garante)
             allowed_users = [contract.primary_party, contract.secondary_party]
             if contract.guarantor:
@@ -55,21 +55,26 @@ class BiometricAuthenticationService:
 
             if user not in allowed_users:
                 raise ValueError("El usuario no es parte de este contrato")
-            
+
             # Verificar que el contrato esté en estado correcto
             if contract.status not in ['ready_for_authentication', 'pending_authentication', 'pending_biometric']:
                 raise ValueError(f"El contrato no está en estado válido para autenticación: {contract.status}")
             
-            # Verificar si ya existe una autenticación activa
+            # Verificar si ya existe una autenticación (cualquier estado)
             existing_auth = BiometricAuthentication.objects.filter(
                 contract=contract,
-                user=user,
-                status__in=['pending', 'in_progress']
+                user=user
             ).first()
-            
-            if existing_auth and not existing_auth.is_expired():
-                logger.info(f"Reutilizando autenticación existente {existing_auth.id}")
-                return existing_auth
+
+            if existing_auth:
+                # Si está activa y no expirada, reutilizarla
+                if existing_auth.status in ['pending', 'in_progress'] and not existing_auth.is_expired():
+                    logger.info(f"Reutilizando autenticación existente {existing_auth.id}")
+                    return existing_auth
+                else:
+                    # Si está expirada o en otro estado, eliminarla para crear una nueva
+                    logger.info(f"Eliminando autenticación previa {existing_auth.id} (estado: {existing_auth.status})")
+                    existing_auth.delete()
             
             # Obtener información del cliente
             client_ip = self._get_client_ip(request)
@@ -94,7 +99,7 @@ class BiometricAuthenticationService:
                         'initiated_at': timezone.now().isoformat()
                     }
                 )
-                
+
                 # Actualizar estado del contrato
                 contract.status = 'pending_authentication'
                 contract.save(update_fields=['status'])
@@ -946,9 +951,48 @@ Tu participación es esencial para activar el contrato de arrendamiento.
             match_request.workflow_data['biometric_progress'][f'{user_type}_completed'] = True
             match_request.workflow_data['biometric_progress'][f'{user_type}_completed_at'] = timezone.now().isoformat()
 
+            # 🔧 FIX: Actualizar también los flags específicos que el frontend busca
+            if 'contract_created' not in match_request.workflow_data:
+                match_request.workflow_data['contract_created'] = {}
+
+            if user_type == 'tenant':
+                match_request.workflow_data['contract_created']['tenant_auth_completed'] = True
+                match_request.workflow_data['contract_created']['tenant_auth_completed_at'] = timezone.now().isoformat()
+            elif user_type == 'landlord':
+                match_request.workflow_data['contract_created']['landlord_auth_completed'] = True
+                match_request.workflow_data['contract_created']['landlord_auth_completed_at'] = timezone.now().isoformat()
+            elif user_type == 'guarantor':
+                match_request.workflow_data['contract_created']['guarantor_auth_completed'] = True
+                match_request.workflow_data['contract_created']['guarantor_auth_completed_at'] = timezone.now().isoformat()
+
             # Guardar cambios
             match_request.save()
             contract.save(update_fields=['status'])
+
+            # 🔄 SINCRONIZAR CON LANDLORDCONTROLLEDCONTRACT
+            try:
+                from .landlord_contract_models import LandlordControlledContract
+
+                landlord_contract = LandlordControlledContract.objects.get(id=contract.id)
+
+                # Actualizar workflow_stage y workflow_status
+                if match_request.workflow_status == 'pending_landlord_biometric':
+                    landlord_contract.workflow_stage = 'biometric_authentication'
+                    landlord_contract.workflow_status = 'pending_landlord_biometric'
+                    logger.info(f"🔄 LandlordContract: Esperando autenticación del landlord")
+
+                elif match_request.workflow_status == 'all_biometrics_completed':
+                    landlord_contract.workflow_stage = 'contract_active'
+                    landlord_contract.workflow_status = 'active'
+                    landlord_contract.is_active = True
+                    landlord_contract.activation_date = timezone.now()
+                    logger.info(f"🎉 LandlordContract: ACTIVADO - Nace a la vida jurídica")
+
+                landlord_contract.save()
+                logger.info(f"✅ LandlordControlledContract sincronizado: {landlord_contract.workflow_status}")
+
+            except Exception as sync_error:
+                logger.warning(f"⚠️ Error sincronizando LandlordControlledContract: {sync_error}")
 
             logger.info(f"✅ Sequential progression completed - New status: {match_request.workflow_status}")
 

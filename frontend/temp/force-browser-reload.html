@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔄 Forzar Recarga Total del Navegador</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .step { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        .highlight { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔄 Solución para Error: "Cannot read properties of undefined (reading 'baseUrl')"</h2>
+        
+        <div class="highlight">
+            <h3>🎯 PROBLEMA IDENTIFICADO:</h3>
+            <p>El navegador está usando una versión cacheada del archivo <code>matchingService.ts</code> que aún contiene la importación incorrecta <code>apiClient</code>.</p>
+        </div>
+
+        <div class="step">
+            <h3>✅ PASO 1: Limpiar Cache Completo</h3>
+            <p>Presiona este botón para limpiar TODO el cache del navegador:</p>
+            <button onclick="clearAllCache()">🗑️ LIMPIAR CACHE COMPLETO</button>
+        </div>
+
+        <div class="step">
+            <h3>✅ PASO 2: Recarga Forzada</h3>
+            <p>Usa una de estas opciones:</p>
+            <button onclick="hardReload()">🔄 RECARGA FORZADA (Ctrl+Shift+R)</button>
+            <p><strong>O manualmente:</strong></p>
+            <ul>
+                <li><strong>Windows/Linux:</strong> Ctrl + Shift + R</li>
+                <li><strong>Mac:</strong> Cmd + Shift + R</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>✅ PASO 3: Verificar Red</h3>
+            <p>Abre las herramientas de desarrollador (F12) → pestaña "Network" → marca "Disable cache"</p>
+        </div>
+
+        <div class="step">
+            <h3>🔧 VERIFICACIÓN TÉCNICA</h3>
+            <p>El archivo ha sido corregido correctamente:</p>
+            <code>import api from './api';</code> ✅<br>
+            <s><code>import apiClient from './api';</code></s> ❌
+            <p>Timestamp de corrección: <code>2025-08-31T01:27:00Z</code></p>
+        </div>
+    </div>
+
+    <script>
+        function clearAllCache() {
+            console.log('🔄 LIMPIANDO CACHE COMPLETO...');
+            
+            // Limpiar localStorage
+            localStorage.clear();
+            console.log('✅ localStorage limpiado');
+            
+            // Limpiar sessionStorage
+            sessionStorage.clear();
+            console.log('✅ sessionStorage limpiado');
+            
+            // Limpiar cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            console.log('✅ Cookies limpiadas');
+            
+            // Desregistrar service workers
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    registrations.forEach(function(registration) {
+                        registration.unregister();
+                    });
+                    console.log('✅ Service workers desregistrados');
+                });
+            }
+            
+            alert('✅ Cache completamente limpiado. Ahora recarga la página.');
+        }
+        
+        function hardReload() {
+            console.log('🔄 EJECUTANDO RECARGA FORZADA...');
+            // Forzar recarga sin cache
+            location.reload(true);
+        }
+        
+        // Auto-ejecutar limpieza si se accede con ?auto=true
+        if (window.location.search.includes('auto=true')) {
+            clearAllCache();
+            setTimeout(hardReload, 2000);
+        }
+    </script>
+</body>
+</html>

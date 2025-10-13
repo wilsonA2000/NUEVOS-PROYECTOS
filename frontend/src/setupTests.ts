@@ -9,7 +9,7 @@ jest.mock('./services/api', () => require('./__mocks__/api'));
 (global as any).import = {
   meta: {
     env: {
-      VITE_API_URL: 'http://localhost:8001/api/v1',
+      VITE_API_URL: 'http://localhost:8000/api/v1',
       VITE_MAPBOX_TOKEN: 'test-token',
       VITE_DEFAULT_COUNTRY: 'CO',
       VITE_DEFAULT_LAT: '4.5709',

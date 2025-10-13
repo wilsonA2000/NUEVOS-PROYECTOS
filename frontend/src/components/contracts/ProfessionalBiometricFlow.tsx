@@ -104,28 +104,65 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
 
   // Handlers
   const handleStepComplete = useCallback((stepIndex: number, data: any) => {
-    setSteps(prev => prev.map((step, index) => 
-      index === stepIndex ? { ...step, completed: true, data } : step
-    ));
-    
-    if (stepIndex === steps.length - 1) {
-      // Último paso - completar flujo
-      const allData = steps.reduce((acc, step, index) => ({
-        ...acc,
-        [step.id]: index === stepIndex ? data : step.data
-      }), {});
-      onComplete(allData);
-    } else {
-      // Ir al siguiente paso
-      setCurrentStep(prev => prev + 1);
-    }
-  }, [steps, onComplete]);
+    console.log('🔥 handleStepComplete called:', { stepIndex, totalSteps: steps.length, isLastStep: stepIndex === 3 });
+
+    // Actualizar el estado del paso
+    setSteps(prev => {
+      const updatedSteps = prev.map((step, index) =>
+        index === stepIndex ? { ...step, completed: true, data } : step
+      );
+
+      // 🔧 FIX CRÍTICO: Usar stepIndex === 3 directamente en lugar de steps.length - 1
+      // Esto evita problemas con closures stale
+      if (stepIndex === 3) {
+        console.log('✅ ÚLTIMO PASO DETECTADO - Preparando para completar flujo');
+
+        // Construir allData con los pasos actualizados
+        const allData = updatedSteps.reduce((acc, step, index) => ({
+          ...acc,
+          [step.id]: step.data
+        }), {});
+
+        console.log('📦 All biometric data collected:', allData);
+
+        // Llamar a onComplete en el siguiente tick para evitar problemas de estado
+        setTimeout(() => {
+          console.log('🚀 Calling onComplete with allData');
+          onComplete(allData);
+        }, 0);
+      } else {
+        console.log('➡️ Avanzando al siguiente paso:', stepIndex + 1);
+        // Ir al siguiente paso
+        setCurrentStep(stepIndex + 1);
+      }
+
+      return updatedSteps;
+    });
+  }, [onComplete]);
 
   const handleFaceCapture = useCallback((image: string) => {
     handleStepComplete(0, { faceImage: image });
   }, [handleStepComplete]);
 
-  const handleDocumentVerification = useCallback((data: any) => {
+  const handleDocumentVerification = useCallback(async (data: any) => {
+    console.log('📄 handleDocumentVerification - Datos recibidos:', data);
+
+    // 🔧 CRÍTICO: Convertir File a base64 si existe
+    if (data.pdfFile && data.pdfFile instanceof File) {
+      console.log('🔄 Convirtiendo PDF File a base64...');
+      const reader = new FileReader();
+      const pdfBase64 = await new Promise<string>((resolve) => {
+        reader.onload = (e) => {
+          resolve(e.target?.result as string);
+        };
+        reader.readAsDataURL(data.pdfFile);
+      });
+
+      // Reemplazar File con base64
+      data.pdfFile = pdfBase64;
+      console.log('✅ PDF convertido a base64, length:', pdfBase64.length);
+    }
+
     handleStepComplete(1, data);
   }, [handleStepComplete]);
 

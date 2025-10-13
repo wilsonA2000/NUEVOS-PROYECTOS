@@ -1,0 +1,151 @@
+{
+  "luxury_apartment": {
+    "title": "Luxury Apartment in El Poblado",
+    "description": "Stunning luxury apartment with panoramic city views, modern amenities, and prime location in El Poblado. Perfect for executives and professionals.",
+    "address": "Carrera 43A #5-15, El Poblado",
+    "city": "Medellín",
+    "property_type": "apartment",
+    "rent_price": 3500000,
+    "sale_price": 650000000,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "area": 120,
+    "floor": 15,
+    "is_furnished": true,
+    "is_active": true,
+    "amenities": ["parqueadero", "piscina", "gimnasio", "balcon", "porteria"],
+    "features": {
+      "has_elevator": true,
+      "has_security": true,
+      "has_parking": true,
+      "pets_allowed": false,
+      "smoking_allowed": false
+    },
+    "utilities": {
+      "electricity_included": false,
+      "water_included": true,
+      "gas_included": true,
+      "internet_included": true,
+      "cable_included": true
+    }
+  },
+  "family_house": {
+    "title": "Spacious Family House in Envigado",
+    "description": "Beautiful family home in quiet residential neighborhood. Perfect for families with children, featuring large garden and parking for two cars.",
+    "address": "Calle 30 Sur #25-45, Las Antillas",
+    "city": "Envigado",
+    "property_type": "house",
+    "rent_price": 2800000,
+    "sale_price": 520000000,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "area": 180,
+    "lot_size": 250,
+    "is_furnished": false,
+    "is_active": true,
+    "amenities": ["parqueadero", "jardin", "bbq", "terraza"],
+    "features": {
+      "has_garage": true,
+      "has_garden": true,
+      "has_security": false,
+      "pets_allowed": true,
+      "smoking_allowed": false
+    },
+    "utilities": {
+      "electricity_included": false,
+      "water_included": false,
+      "gas_included": false,
+      "internet_included": false,
+      "cable_included": false
+    }
+  },
+  "modern_studio": {
+    "title": "Modern Studio in Sabaneta",
+    "description": "Contemporary studio apartment perfect for young professionals or students. Fully furnished with modern appliances and great public transportation access.",
+    "address": "Carrera 45 #76-23, Centro",
+    "city": "Sabaneta",
+    "property_type": "studio",
+    "rent_price": 1200000,
+    "sale_price": 180000000,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "area": 45,
+    "floor": 8,
+    "is_furnished": true,
+    "is_active": true,
+    "amenities": ["parqueadero", "ascensor", "porteria"],
+    "features": {
+      "has_elevator": true,
+      "has_security": true,
+      "has_parking": true,
+      "pets_allowed": false,
+      "smoking_allowed": false
+    },
+    "utilities": {
+      "electricity_included": true,
+      "water_included": true,
+      "gas_included": true,
+      "internet_included": true,
+      "cable_included": false
+    }
+  },
+  "commercial_space": {
+    "title": "Prime Commercial Space - Centro",
+    "description": "Excellent commercial space in busy downtown area. Perfect for retail, office, or restaurant. High foot traffic and great visibility.",
+    "address": "Carrera 50 #45-30, Centro",
+    "city": "Medellín",
+    "property_type": "commercial",
+    "rent_price": 4500000,
+    "sale_price": 800000000,
+    "bedrooms": 0,
+    "bathrooms": 2,
+    "area": 150,
+    "is_furnished": false,
+    "is_active": true,
+    "amenities": ["parqueadero", "vitrina", "deposito"],
+    "features": {
+      "has_storefront": true,
+      "has_storage": true,
+      "has_parking": true,
+      "commercial_license": true,
+      "accessible": true
+    },
+    "utilities": {
+      "electricity_included": false,
+      "water_included": false,
+      "gas_included": false,
+      "internet_included": false,
+      "cable_included": false
+    }
+  },
+  "budget_apartment": {
+    "title": "Affordable Apartment - Bello",
+    "description": "Cozy and affordable apartment perfect for students or first-time renters. Basic amenities and good public transportation connections.",
+    "address": "Calle 55 #78-20, Madera",
+    "city": "Bello",
+    "property_type": "apartment",
+    "rent_price": 800000,
+    "sale_price": 120000000,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "area": 55,
+    "floor": 3,
+    "is_furnished": false,
+    "is_active": true,
+    "amenities": ["parqueadero"],
+    "features": {
+      "has_elevator": false,
+      "has_security": false,
+      "has_parking": true,
+      "pets_allowed": true,
+      "smoking_allowed": false
+    },
+    "utilities": {
+      "electricity_included": false,
+      "water_included": true,
+      "gas_included": false,
+      "internet_included": false,
+      "cable_included": false
+    }
+  }
+}

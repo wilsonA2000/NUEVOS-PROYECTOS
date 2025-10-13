@@ -27,7 +27,7 @@ from .serializers import (
     ContractStatsSerializer
 )
 from users.services import AdminActionLogger
-from requests.models import PropertyInterestRequest
+from matching.models import MatchRequest
 
 User = get_user_model()
 
@@ -931,16 +931,16 @@ class ContractPreviewPDFAPIView(APIView):
                     
                 # También verificar si el usuario es parte del workflow
                 # Esto es útil cuando el contrato está en proceso pero el tenant aún no está formalmente asignado
-                from matching.models import PropertyInterestRequest
+                from matching.models import MatchRequest
                 try:
                     # Buscar si hay un match request asociado con este contrato
-                    match_request = PropertyInterestRequest.objects.filter(
+                    match_request = MatchRequest.objects.filter(
                         workflow_data__contract_created__contract_id=str(contract.id)
                     ).first()
                     if match_request and match_request.tenant:
                         allowed_users.append(match_request.tenant)
-                except:
-                    pass
+                except Exception as e:
+                    print(f"⚠️ Error buscando match_request: {e}")
                     
                 if request.user not in allowed_users:
                     return Response(
@@ -1328,16 +1328,33 @@ class StartBiometricAuthenticationAPIView(APIView):
         """Inicia el proceso de autenticación biométrica."""
         try:
             from .biometric_service import biometric_service
-            
-            contract = Contract.objects.get(
-                id=contract_id,
-                status__in=['pdf_generated', 'ready_for_authentication', 'pending_biometric']
-            )
-            
+
+            # Intentar buscar en LandlordControlledContract primero, luego en Contract
+            contract = None
+            try:
+                contract = LandlordControlledContract.objects.get(id=contract_id)
+                print(f"✅ Contrato encontrado en LandlordControlledContract: {contract.contract_number}")
+            except LandlordControlledContract.DoesNotExist:
+                contract = Contract.objects.get(
+                    id=contract_id,
+                    status__in=['pdf_generated', 'ready_for_authentication', 'pending_biometric']
+                )
+                print(f"✅ Contrato encontrado en Contract (viejo): {contract.contract_number}")
+
             # Verificar que el usuario sea parte del contrato (incluyendo garante)
-            allowed_users = [contract.primary_party, contract.secondary_party]
-            if contract.guarantor:
-                allowed_users.append(contract.guarantor)
+            # Manejar ambos tipos de contratos
+            if hasattr(contract, 'landlord'):
+                # LandlordControlledContract
+                allowed_users = [contract.landlord]
+                if contract.tenant:
+                    allowed_users.append(contract.tenant)
+                if hasattr(contract, 'guarantor') and contract.guarantor:
+                    allowed_users.append(contract.guarantor)
+            else:
+                # Contract (viejo)
+                allowed_users = [contract.primary_party, contract.secondary_party]
+                if contract.guarantor:
+                    allowed_users.append(contract.guarantor)
 
             if request.user not in allowed_users:
                 return Response(
@@ -1354,14 +1371,27 @@ class StartBiometricAuthenticationAPIView(APIView):
 
             if match_request:
                 # Verificar si es el turno correcto del usuario
-                if request.user == contract.secondary_party:
-                    user_type = 'tenant'
-                elif request.user == contract.guarantor:
-                    user_type = 'guarantor'
-                elif request.user == contract.primary_party:
-                    user_type = 'landlord'
+                # Manejar ambos tipos de contratos
+                if hasattr(contract, 'landlord'):
+                    # LandlordControlledContract
+                    if request.user == contract.tenant:
+                        user_type = 'tenant'
+                    elif hasattr(contract, 'guarantor') and request.user == contract.guarantor:
+                        user_type = 'guarantor'
+                    elif request.user == contract.landlord:
+                        user_type = 'landlord'
+                    else:
+                        user_type = 'unknown'
                 else:
-                    user_type = 'unknown'
+                    # Contract (viejo)
+                    if request.user == contract.secondary_party:
+                        user_type = 'tenant'
+                    elif request.user == contract.guarantor:
+                        user_type = 'guarantor'
+                    elif request.user == contract.primary_party:
+                        user_type = 'landlord'
+                    else:
+                        user_type = 'unknown'
 
                 workflow_status = match_request.workflow_status
 
@@ -1415,13 +1445,29 @@ class StartBiometricAuthenticationAPIView(APIView):
                     }, status=status.HTTP_409_CONFLICT)
 
             # Iniciar autenticación biométrica
-            auth = biometric_service.initiate_authentication(contract, request.user, request)
-            
+            # Si tenemos LandlordControlledContract, necesitamos obtener el Contract sincronizado
+            contract_for_biometric = contract
+            if hasattr(contract, 'landlord'):
+                # Es un LandlordControlledContract, obtener el Contract sincronizado
+                try:
+                    contract_for_biometric = Contract.objects.get(id=contract.id)
+                    print(f"✅ Usando Contract sincronizado para biométrico: {contract_for_biometric.contract_number}")
+                except Contract.DoesNotExist:
+                    return Response({
+                        'error': 'Contract sincronizado no encontrado',
+                        'message': 'El contrato no está preparado para autenticación biométrica. Contacte al administrador.'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            auth = biometric_service.initiate_authentication(contract_for_biometric, request.user, request)
+
+            # Obtener status del contrato correcto
+            contract_status = contract_for_biometric.status if hasattr(contract_for_biometric, 'status') else 'pending_biometric'
+
             return Response({
                 'success': True,
                 'message': 'Autenticación biométrica iniciada',
                 'authentication_id': str(auth.id),
-                'contract_status': contract.status,
+                'contract_status': contract_status,
                 'expires_at': auth.expires_at.isoformat(),
                 'voice_text': auth.voice_text,
                 'next_step': 'face_capture',
@@ -1633,27 +1679,129 @@ class CompleteAuthenticationAPIView(APIView):
         try:
             from .biometric_service import biometric_service
             from .models import BiometricAuthentication
-            
-            # Obtener autenticación activa
-            auth = BiometricAuthentication.objects.get(
+            import base64
+            import io
+            from django.core.files.base import ContentFile
+
+            # Helper function to convert base64 to Django file
+            def base64_to_file(base64_string, filename):
+                if not base64_string or not base64_string.startswith('data:'):
+                    return None
+                # Extract the actual base64 data
+                format_data, base64_data = base64_string.split(';base64,')
+                file_ext = format_data.split('/')[-1]  # image/jpeg -> jpeg
+                decoded = base64.b64decode(base64_data)
+                return ContentFile(decoded, name=f"{filename}.{file_ext}")
+
+            # 🔧 FIX: Buscar la autenticación MÁS RECIENTE del usuario para este contrato
+            # sin importar el estado, ya que puede estar en 'pending', 'in_progress', o incluso 'completed'
+            auth = BiometricAuthentication.objects.filter(
                 contract_id=contract_id,
-                user=request.user,
-                status='in_progress'
-            )
-            
+                user=request.user
+            ).order_by('-started_at').first()
+
+            if not auth:
+                return Response(
+                    {'error': 'Autenticación biométrica no encontrada'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Si ya está completada, permitir re-procesamiento
+            if auth.status == 'completed':
+                # Actualizar estado a in_progress para permitir re-procesar
+                auth.status = 'in_progress'
+                auth.save(update_fields=['status'])
+
+            # 🔧 CRÍTICO: Procesar los datos biométricos enviados desde el frontend
+            data = request.data
+            print(f"📦 Datos recibidos en complete-auth: {data.keys()}")
+
+            # Los datos vienen con IDs de pasos: face_capture, document_verification, voice_recording, digital_signature
+            # Necesitamos mapearlos a los campos del modelo
+
+            # 1. Face Capture - contiene faceImage (una sola foto frontal)
+            if 'face_capture' in data and data['face_capture']:
+                face_data = data['face_capture']
+                # El frontend envía 'faceImage' con una sola foto frontal
+                if 'faceImage' in face_data:
+                    face_file = base64_to_file(face_data['faceImage'], f'face_front_{auth.id}')
+                    if face_file:
+                        auth.face_front_image = face_file
+                        # Usar la misma imagen para side (el componente actual solo toma 1 foto)
+                        auth.face_side_image = face_file
+                auth.face_confidence_score = face_data.get('confidence', 0.85)
+
+            # 2. Document Verification - contiene pdfFile, frontPhotoWithFace, backPhotoWithFace
+            if 'document_verification' in data and data['document_verification']:
+                doc_data = data['document_verification']
+
+                # pdfFile es el documento escaneado (convertir base64 a archivo)
+                if 'pdfFile' in doc_data and doc_data['pdfFile']:
+                    pdf_file = base64_to_file(doc_data['pdfFile'], f'document_{auth.id}')
+                    if pdf_file:
+                        auth.document_image = pdf_file
+
+                # frontPhotoWithFace es documento + rostro (combined)
+                if 'frontPhotoWithFace' in doc_data and doc_data['frontPhotoWithFace']:
+                    combined_file = base64_to_file(doc_data['frontPhotoWithFace'], f'combined_{auth.id}')
+                    if combined_file:
+                        auth.document_with_face_image = combined_file
+
+                auth.document_confidence_score = doc_data.get('confidence', 0.90)
+                auth.document_number = doc_data.get('documentNumber', '')
+                auth.document_type = doc_data.get('documentType', '')
+
+            # 3. Voice Recording - contiene identificationRecording y culturalRecording
+            if 'voice_recording' in data and data['voice_recording']:
+                voice_data = data['voice_recording']
+                # 🔧 CRÍTICO: Convertir audio base64 a file
+                if 'identificationRecording' in voice_data and voice_data['identificationRecording']:
+                    voice_file = base64_to_file(voice_data['identificationRecording'], f'voice_{auth.id}')
+                    if voice_file:
+                        auth.voice_recording = voice_file
+                auth.voice_confidence_score = voice_data.get('confidence', 0.88)
+                # Guardar ambas grabaciones en voice_analysis JSON (mantener base64 para análisis)
+                auth.voice_analysis = {
+                    'identification_recording': voice_data.get('identificationRecording'),
+                    'cultural_recording': voice_data.get('culturalRecording'),
+                    'educational_phrase': voice_data.get('educationalPhrase'),
+                    'user_info': voice_data.get('userInfo')
+                }
+                auth.voice_text = voice_data.get('educationalPhrase', '')
+
+            # 4. Digital Signature
+            if 'digital_signature' in data and data['digital_signature']:
+                sig_data = data['digital_signature']
+                # La firma digital se maneja en el modelo Contract, no aquí
+                # Pero podemos registrar que se completó
+                pass
+
+            # Guardar los datos actualizados
+            auth.save()
+            print(f"✅ Datos biométricos guardados en auth {auth.id}")
+
+            # 🔧 CRÍTICO: Calcular overall_confidence_score ANTES de completar
+            auth.calculate_overall_confidence()
+            auth.save()
+            print(f"✅ overall_confidence_score calculado: {auth.overall_confidence_score}")
+
             # Completar autenticación
             result = biometric_service.complete_authentication(str(auth.id))
-            
+
             return Response(result)
-            
+
         except BiometricAuthentication.DoesNotExist:
             return Response(
                 {'error': 'Autenticación biométrica no encontrada'},
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"❌ ERROR COMPLETO en complete-auth:")
+            print(error_traceback)
             return Response(
-                {'error': f'Error completando autenticación: {str(e)}'},
+                {'error': f'Error completando autenticación: {str(e)}', 'traceback': error_traceback},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -2276,6 +2424,8 @@ www.verihome.com | soporte@verihome.com
                 # Actualizar estado del match request - SINCRONIZACIÓN FIX
                 match_request.workflow_stage = 1
                 match_request.workflow_status = 'visit_scheduled'
+                if not match_request.workflow_data:
+                    match_request.workflow_data = {}
                 match_request.workflow_data.update({
                     'visit_scheduled': {
                         'date': visit_data.get('date'),
@@ -2286,28 +2436,7 @@ www.verihome.com | soporte@verihome.com
                     }
                 })
                 match_request.save()
-                print(f"✅ PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
-                
-                # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar MatchRequest correspondiente
-                try:
-                    from matching.models import MatchRequest
-                    matching_request = MatchRequest.objects.filter(
-                        tenant=tenant,
-                        property=match_request.property,
-                        status='accepted'
-                    ).first()
-                    
-                    if matching_request:
-                        matching_request.workflow_stage = match_request.workflow_stage
-                        matching_request.workflow_status = match_request.workflow_status
-                        matching_request.workflow_data = match_request.workflow_data
-                        matching_request.save()
-                        print(f"✅ SYNC SUCCESS - MatchRequest {matching_request.id} synced with PropertyInterestRequest")
-                    else:
-                        print(f"⚠️ SYNC WARNING - No MatchRequest found for tenant {tenant.id} and property {match_request.property.id}")
-                except Exception as sync_error:
-                    print(f"❌ SYNC ERROR - Failed to sync MatchRequest: {str(sync_error)}")
-                    # No fallar la operación principal por error de sincronización
+                print(f"✅ MatchRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
                 
                 result_message = "✅ Visita programada y coordinación VeriHome activada. El inquilino será contactado en 24-48 horas."
                 updated_candidate_data = {
@@ -2320,34 +2449,18 @@ www.verihome.com | soporte@verihome.com
             elif action == 'visit_completed':
                 # Marcar visita como completada y avanzar a etapa 2 - SINCRONIZACIÓN FIX
                 tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
-                
+
                 # Actualizar estado del match request - CRÍTICO PARA SINCRONIZACIÓN
                 match_request.workflow_stage = 2
                 match_request.workflow_status = 'documents_pending'
+                if not match_request.workflow_data:
+                    match_request.workflow_data = {}
                 if 'visit_scheduled' not in match_request.workflow_data:
                     match_request.workflow_data['visit_scheduled'] = {}
                 match_request.workflow_data['visit_scheduled']['completed'] = True
                 match_request.workflow_data['visit_scheduled']['completed_at'] = timezone.now().isoformat()
                 match_request.save()
                 print(f"🚀 VISIT COMPLETED - MatchRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
-                
-                # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar PropertyInterestRequest correspondiente
-                try:
-                    property_request = PropertyInterestRequest.objects.filter(
-                        requester=tenant,
-                        property=match_request.property
-                    ).first()
-                    
-                    if property_request:
-                        property_request.workflow_stage = 2
-                        property_request.workflow_status = 'documents_pending'
-                        property_request.workflow_data = match_request.workflow_data
-                        property_request.save()
-                        print(f"✅ SYNC SUCCESS - PropertyInterestRequest {property_request.id} synced to stage 2")
-                    else:
-                        print(f"⚠️ SYNC WARNING - No PropertyInterestRequest found for tenant {tenant.id} and property {match_request.property.id}")
-                except Exception as sync_error:
-                    print(f"❌ SYNC ERROR: {sync_error}")
                 
                 from users.models import UserActivityLog
                 UserActivityLog.objects.create(
@@ -2381,9 +2494,9 @@ www.verihome.com | soporte@verihome.com
                 match_request.save()
                 print(f"📄 DOCUMENTS REQUESTED - MatchRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
                 
-                # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar PropertyInterestRequest correspondiente
+                # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar MatchRequest correspondiente
                 try:
-                    property_request = PropertyInterestRequest.objects.filter(
+                    property_request = MatchRequest.objects.filter(
                         requester=tenant,
                         property=match_request.property
                     ).first()
@@ -2393,9 +2506,9 @@ www.verihome.com | soporte@verihome.com
                         property_request.workflow_status = 'documents_pending'
                         property_request.workflow_data = match_request.workflow_data
                         property_request.save()
-                        print(f"✅ SYNC SUCCESS - PropertyInterestRequest {property_request.id} synced to stage 2")
+                        print(f"✅ SYNC SUCCESS - MatchRequest {property_request.id} synced to stage 2")
                     else:
-                        print(f"⚠️ SYNC WARNING - No PropertyInterestRequest found for tenant {tenant.id} and property {match_request.property.id}")
+                        print(f"⚠️ SYNC WARNING - No MatchRequest found for tenant {tenant.id} and property {match_request.property.id}")
                 except Exception as sync_error:
                     print(f"❌ SYNC ERROR: {sync_error}")
                 
@@ -2427,7 +2540,7 @@ www.verihome.com | soporte@verihome.com
                     }
                 })
                 match_request.save()
-                print(f"✅ DOCUMENTS APPROVED - PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                print(f"✅ DOCUMENTS APPROVED - MatchRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
                 
                 # 🔒 CRITICAL BUSINESS LOGIC: Marcar propiedad como no disponible
                 # Cuando todos los documentos sean aprobados, la propiedad debe salir del mercado
@@ -2500,7 +2613,7 @@ www.verihome.com | soporte@verihome.com
                         })
                         match_request.save()
                         
-                        print(f"🎯 AUTO-CONTRACT CREATED: {auto_contract.id} for PropertyInterestRequest {match_request.id}")
+                        print(f"🎯 AUTO-CONTRACT CREATED: {auto_contract.id} for MatchRequest {match_request.id}")
                         
                         # Actualizar respuesta con datos del contrato
                         result_message = f"✅ Documentos aprobados - Contrato #{auto_contract.id.hex[:8]} creado automáticamente"
@@ -2721,8 +2834,8 @@ www.verihome.com | soporte@verihome.com
                     try:
                         from requests.models import TenantDocument
                         
-                        # Buscar PropertyInterestRequest asociado
-                        property_request = PropertyInterestRequest.objects.filter(
+                        # Buscar MatchRequest asociado
+                        property_request = MatchRequest.objects.filter(
                             requester=tenant,
                             property=property_obj
                         ).first()
@@ -2741,13 +2854,13 @@ www.verihome.com | soporte@verihome.com
                             else:
                                 print(f"⚠️ No approved documents found for migration to contract {real_contract.id}")
                         else:
-                            print(f"⚠️ No PropertyInterestRequest found for document migration")
+                            print(f"⚠️ No MatchRequest found for document migration")
                             
                     except Exception as doc_migration_error:
                         print(f"❌ Error migrating documents to contract: {doc_migration_error}")
                         # No fallar el proceso por error en migración de documentos
                     
-                    print(f"🎯 REAL CONTRACT CREATED: {real_contract.id} for PropertyInterestRequest {match_request.id}")
+                    print(f"🎯 REAL CONTRACT CREATED: {real_contract.id} for MatchRequest {match_request.id}")
                     
                     # IMPORTANTE: Mantener en etapa 3 hasta que el arrendatario apruebe el contrato
                     # NO avanzar automáticamente a etapa 4
@@ -2825,7 +2938,7 @@ www.verihome.com | soporte@verihome.com
                 })
                 match_request.save()
                 
-                print(f"✅ PropertyInterestRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
+                print(f"✅ MatchRequest {match_request.id} updated - Stage: {match_request.workflow_stage}, Status: {match_request.workflow_status}")
                 
                 # Registrar actividad
                 from users.models import UserActivityLog
@@ -3120,10 +3233,10 @@ class TenantContractReviewAPIView(APIView):
                     result_message = "✅ Borrador aprobado exitosamente. El proceso avanza a autenticación."
                 
                 # Avanzar el workflow a etapa 4 (Autenticación)
-                # Actualizar AMBOS: PropertyInterestRequest Y MatchRequest
+                # Actualizar AMBOS: MatchRequest Y MatchRequest
                 try:
-                    # 1. Actualizar PropertyInterestRequest
-                    property_request = PropertyInterestRequest.objects.filter(
+                    # 1. Actualizar MatchRequest
+                    property_request = MatchRequest.objects.filter(
                         requester=request.user,
                         property=contract.property,
                         assignee=contract.primary_party
@@ -3139,7 +3252,7 @@ class TenantContractReviewAPIView(APIView):
                             'contract_id': str(contract.id)
                         }
                         property_request.save()
-                        print(f"✅ PropertyInterestRequest {property_request.id} advanced to stage 4 (Authentication)")
+                        print(f"✅ MatchRequest {property_request.id} advanced to stage 4 (Authentication)")
                     
                     # 2. CRÍTICO: También actualizar MatchRequest
                     from matching.models import MatchRequest

@@ -235,6 +235,75 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             'match_code': match_request.match_code,
             'status': match_request.status
         })
+
+    @action(detail=True, methods=['post'], url_path='generate-contract')
+    def generate_contract(self, request, pk=None):
+        """
+        ✅ GENERA AUTOMÁTICAMENTE UN CONTRATO DESDE EL MATCH APROBADO
+        Endpoint para crear el contrato del workflow unificado end-to-end.
+        """
+        match_request = self.get_object()
+
+        # Verificar que el usuario es el arrendador
+        if request.user != match_request.landlord:
+            return Response(
+                {'error': 'Solo el arrendador puede generar el contrato'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Verificar estado del match
+        if match_request.status != 'accepted':
+            return Response(
+                {'error': 'El match debe estar aceptado para generar contrato'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verificar si ya tiene contrato
+        if match_request.has_contract:
+            return Response(
+                {
+                    'error': 'Ya existe un contrato para este match',
+                    'contract_id': match_request.workflow_data.get('contract_id')
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # ✅ GENERAR CONTRATO AUTOMÁTICAMENTE
+            contract = match_request.auto_create_contract()
+
+            logger.info(f"✅ Contrato {contract.contract_number} generado automáticamente desde match {match_request.match_code}")
+
+            return Response({
+                'success': True,
+                'message': 'Contrato generado automáticamente',
+                'contract': {
+                    'id': str(contract.id),
+                    'contract_number': contract.contract_number,
+                    'status': contract.status,
+                    'title': contract.title,
+                    'monthly_rent': float(contract.monthly_rent),
+                    'start_date': contract.start_date.isoformat(),
+                    'end_date': contract.end_date.isoformat(),
+                },
+                'match': {
+                    'match_code': match_request.match_code,
+                    'workflow_stage': match_request.workflow_stage,
+                    'workflow_status': match_request.workflow_status,
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"❌ Error generando contrato: {str(e)}")
+            return Response(
+                {'error': 'Error al generar el contrato', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
@@ -277,7 +346,90 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             'match_code': match_request.match_code,
             'status': match_request.status
         })
-    
+
+    @action(detail=True, methods=['post'], url_path='upload-document')
+    def upload_document(self, request, pk=None):
+        """✅ SUBIR DOCUMENTOS DEL ARRENDATARIO VINCULADOS AL MATCH"""
+        from requests.models import TenantDocument
+
+        match_request = self.get_object()
+
+        # Solo el tenant puede subir documentos
+        if request.user != match_request.tenant:
+            return Response(
+                {'error': 'Solo el arrendatario puede subir documentos'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # El match debe estar aceptado
+        if match_request.status != 'accepted':
+            return Response(
+                {'error': 'Los documentos solo pueden subirse cuando el match ha sido aceptado'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validar datos requeridos
+        document_type = request.data.get('document_type')
+        document_file = request.FILES.get('document_file')
+
+        if not document_type or not document_file:
+            return Response(
+                {'error': 'Debe proporcionar document_type y document_file'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Crear el documento vinculado al match
+            document = TenantDocument.objects.create(
+                match_request=match_request,
+                uploaded_by=request.user,
+                document_type=document_type,
+                document_file=document_file,
+                original_filename=document_file.name,
+                file_size=document_file.size,
+                other_description=request.data.get('other_description', ''),
+                status='pending'
+            )
+
+            # Actualizar workflow del match
+            if match_request.workflow_stage < 2:
+                match_request.workflow_stage = 2
+                match_request.workflow_status = 'documents_pending'
+
+            match_request.workflow_data['documents_uploaded'] = True
+            match_request.workflow_data['last_document_uploaded_at'] = timezone.now().isoformat()
+            match_request.save()
+
+            # Notificar al arrendador
+            create_match_notification(
+                match_request,
+                'document_uploaded',
+                message=f"{request.user.get_full_name()} ha subido un documento: {document.get_document_type_display()}"
+            )
+
+            return Response({
+                'success': True,
+                'message': 'Documento subido exitosamente',
+                'document': {
+                    'id': str(document.id),
+                    'document_type': document.document_type,
+                    'document_type_display': document.get_document_type_display(),
+                    'status': document.status,
+                    'uploaded_at': document.uploaded_at.isoformat()
+                },
+                'match': {
+                    'workflow_stage': match_request.workflow_stage,
+                    'workflow_status': match_request.workflow_status
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logger.error(f"❌ Error subiendo documento: {str(e)}")
+            return Response(
+                {'error': 'Error al subir el documento', 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=True, methods=['get'])
     def compatibility(self, request, pk=None):
         """Obtiene el análisis de compatibilidad para un match."""

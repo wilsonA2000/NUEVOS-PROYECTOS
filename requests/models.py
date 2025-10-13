@@ -332,12 +332,23 @@ class TenantDocument(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
-    # Relación con el proceso de solicitud
+
+    # ✅ VINCULACIÓN CON MATCH REQUEST (WORKFLOW UNIFICADO)
+    match_request = models.ForeignKey(
+        'matching.MatchRequest',
+        on_delete=models.CASCADE,
+        related_name='tenant_documents',
+        verbose_name='Solicitud de Match',
+        help_text='Match request al que pertenece este documento'
+    )
+
+    # Legacy - mantener por compatibilidad temporal
     property_request = models.ForeignKey(
-        PropertyInterestRequest, 
-        on_delete=models.CASCADE, 
-        related_name='tenant_documents'
+        PropertyInterestRequest,
+        on_delete=models.CASCADE,
+        related_name='legacy_tenant_documents',
+        null=True,
+        blank=True
     )
     
     # Usuario que sube el documento
@@ -383,15 +394,16 @@ class TenantDocument(models.Model):
     class Meta:
         ordering = ['-uploaded_at']
         indexes = [
-            models.Index(fields=['property_request', 'document_type']),
+            models.Index(fields=['match_request', 'document_type']),
             models.Index(fields=['uploaded_by', 'status']),
             models.Index(fields=['status', 'uploaded_at']),
         ]
         # Evitar duplicados del mismo tipo de documento para la misma solicitud
-        unique_together = ['property_request', 'document_type', 'uploaded_by']
+        unique_together = ['match_request', 'document_type', 'uploaded_by']
     
     def __str__(self):
-        return f"{self.get_document_type_display()} - {self.property_request.property.title}"
+        property_title = self.match_request.property.title if self.match_request else "Sin propiedad"
+        return f"{self.get_document_type_display()} - {property_title}"
     
     def is_identity_document(self):
         """Verifica si es un documento de identidad."""

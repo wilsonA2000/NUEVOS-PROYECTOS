@@ -389,6 +389,85 @@ class MatchRequest(models.Model):
         except:
             return None
 
+    def auto_create_contract(self):
+        """
+        ✅ GENERA AUTOMÁTICAMENTE UN CONTRATO DESDE EL MATCH APROBADO
+        Vincula el contrato con este match y copia todos los datos relevantes.
+        """
+        from contracts.models import Contract
+        from django.utils import timezone
+        from dateutil.relativedelta import relativedelta
+
+        # Validaciones
+        if self.has_contract:
+            raise ValueError("Ya existe un contrato para este match")
+
+        if self.status != 'accepted':
+            raise ValueError("El match debe estar aceptado para generar contrato")
+
+        if not self.property:
+            raise ValueError("El match debe tener una propiedad asociada")
+
+        # Calcular fechas del contrato
+        start_date = self.preferred_move_in_date or (timezone.now().date() + timezone.timedelta(days=7))
+        end_date = start_date + relativedelta(months=self.lease_duration_months)
+
+        # Crear contrato con datos del match
+        contract = Contract.objects.create(
+            match_request=self,  # ✅ VÍNCULO CON MATCH
+            contract_type='rental_urban',
+            title=f"Contrato de Arrendamiento - {self.property.title}",
+            description=f"Generado automáticamente desde match {self.match_code}",
+            content="Contrato de arrendamiento de vivienda urbana",
+
+            # Partes del contrato
+            primary_party=self.landlord,
+            secondary_party=self.tenant,
+
+            # Fechas
+            start_date=start_date,
+            end_date=end_date,
+
+            # Información financiera
+            monthly_rent=self.property.rent_price,
+            security_deposit=self.property.rent_price * 1,  # 1 mes de depósito
+
+            # Estado inicial
+            status='draft',
+
+            # Variables adicionales del match
+            variables_data={
+                'match_code': self.match_code,
+                'monthly_income': float(self.monthly_income) if self.monthly_income else None,
+                'employment_type': self.employment_type,
+                'number_of_occupants': self.number_of_occupants,
+                'has_pets': self.has_pets,
+                'pet_details': self.pet_details,
+                'lease_duration_months': self.lease_duration_months,
+                'workflow_match_id': str(self.id),
+            }
+        )
+
+        # Actualizar estado del match
+        self.has_contract = True
+        self.contract_generated_at = timezone.now()
+        self.workflow_stage = 3  # Etapa 3: Contrato
+        self.workflow_status = 'contract_ready'
+
+        # Guardar en workflow_data
+        if not self.workflow_data:
+            self.workflow_data = {}
+
+        self.workflow_data.update({
+            'contract_id': str(contract.id),
+            'contract_number': contract.contract_number,
+            'contract_created_at': contract.created_at.isoformat(),
+        })
+
+        self.save()
+
+        return contract
+
 
 class MatchCriteria(models.Model):
     """Criterios de búsqueda y matching para arrendatarios."""

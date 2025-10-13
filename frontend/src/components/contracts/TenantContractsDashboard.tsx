@@ -116,7 +116,7 @@ const TenantContractsDashboard: React.FC = () => {
       // Cargar procesos del workflow (PRIORIDAD)
       try {
         const token = localStorage.getItem('access_token');
-        const workflowResponse = await fetch('http://localhost:8001/api/v1/contracts/tenant-processes/', {
+        const workflowResponse = await fetch('http://localhost:8000/api/v1/contracts/tenant-processes/', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -189,7 +189,7 @@ const TenantContractsDashboard: React.FC = () => {
 
       // Llamar al endpoint específico para aprobar contrato desde el workflow
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8001/api/v1/contracts/tenant/contracts/${contractId}/approve_contract/`, {
+      const response = await fetch(`http://localhost:8000/api/v1/contracts/tenant/contracts/${contractId}/approve_contract/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

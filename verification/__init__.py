@@ -1,1 +1,0 @@
-# Módulo de verificación de CV

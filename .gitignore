@@ -101,3 +101,6 @@ test_env/
 # Backups
 backups/
 *.backup
+
+# Tests node_modules
+tests/**/node_modules/
