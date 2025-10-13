@@ -956,7 +956,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`http://localhost:8001/api/v1/requests/api/documents/process/${processId}/checklist/`, {
+      const response = await fetch(`http://localhost:8000/api/v1/requests/api/documents/process/${processId}/checklist/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -991,7 +991,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
   const deleteDocument = useCallback(async (documentId: string) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8001/api/v1/requests/api/documents/${documentId}/delete/`, {
+      const response = await fetch(`http://localhost:8000/api/v1/requests/api/documents/${documentId}/delete/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1073,7 +1073,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       });
 
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8001/api/v1/requests/api/documents/upload/', {
+      const response = await fetch('http://localhost:8000/api/v1/requests/api/documents/upload/', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -2020,7 +2020,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               <iframe
                 src={previewDocument.file_url.startsWith('http')
                   ? previewDocument.file_url
-                  : `http://localhost:8001${previewDocument.file_url}`}
+                  : `http://localhost:8000${previewDocument.file_url}`}
                 width="100%"
                 height="100%"
                 style={{

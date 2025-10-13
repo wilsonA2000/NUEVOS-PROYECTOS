@@ -78,23 +78,26 @@ class Contract(models.Model):
         ('other', 'Otro'),
     ]
     
+    # ✅ ESTADOS LIMPIOS Y LINEALES DEL WORKFLOW CONTRACTUAL
     STATUS_CHOICES = [
-        ('draft', 'Borrador'),
-        ('pending_tenant_review', 'Pendiente Revisión del Arrendatario'),  # NUEVO
-        ('tenant_changes_requested', 'Cambios Solicitados por Arrendatario'),  # NUEVO
-        ('pending_review', 'Pendiente de Revisión'),
-        ('pdf_generated', 'PDF Generado - Pendiente Edición'),
-        ('ready_for_authentication', 'Listo para Autenticación'),
-        ('pending_landlord_authentication', 'Pendiente Autenticación del Arrendador'),  # NUEVO
-        ('pending_tenant_authentication', 'Pendiente Autenticación del Arrendatario'),
-        ('pending_authentication', 'Pendiente de Autenticación Biométrica'),
-        ('authenticated_pending_signature', 'Autenticado - Pendiente de Firma'),
-        ('pending_signature', 'Pendiente de Firma'),
-        ('partially_signed', 'Parcialmente Firmado'),
-        ('fully_signed', 'Completamente Firmado'),
-        ('pending_move_in', 'Pendiente Entrega de Llaves'),  # NUEVO - Autenticado pero no ejecutado
-        ('active', 'Activo'),
-        ('en_ejecucion', 'En Ejecución'),
+        # FASE 1: CREACIÓN Y REVISIÓN
+        ('draft', 'Borrador del Arrendador'),
+        ('tenant_review', 'En Revisión por Arrendatario'),
+        ('tenant_approved', 'Aprobado por Arrendatario'),
+        ('objections_pending', 'Objeciones Pendientes'),
+
+        # FASE 2: AUTENTICACIÓN BIOMÉTRICA SECUENCIAL
+        ('tenant_biometric', 'Autenticación del Arrendatario'),
+        ('guarantor_biometric', 'Autenticación del Codeudor'),
+        ('landlord_biometric', 'Autenticación del Arrendador'),
+        ('biometric_completed', 'Autenticación Biométrica Completa'),
+
+        # FASE 3: PUBLICACIÓN Y EJECUCIÓN
+        ('ready_to_publish', 'Listo para Publicar'),
+        ('published', 'Publicado - Vida Jurídica'),
+        ('active', 'Contrato Activo'),
+
+        # ESTADOS FINALES
         ('expired', 'Vencido'),
         ('terminated', 'Terminado'),
         ('cancelled', 'Cancelado'),
@@ -135,6 +138,17 @@ class Contract(models.Model):
         help_text='Usuario que actúa como garante o codeudor del contrato'
     )
 
+    # ✅ VINCULACIÓN CON MATCH REQUEST (WORKFLOW UNIFICADO)
+    match_request = models.OneToOneField(
+        'matching.MatchRequest',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='unified_contract',
+        verbose_name='Solicitud de Match Original',
+        help_text='Match request del que se generó este contrato automáticamente'
+    )
+
     # Información del contrato
     title = models.CharField('Título del contrato', max_length=200)
     description = models.TextField('Descripción', max_length=1000, blank=True)
@@ -156,12 +170,18 @@ class Contract(models.Model):
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     
     # Estado y seguimiento
-    status = models.CharField('Estado', max_length=35, choices=STATUS_CHOICES, default='draft')
+    status = models.CharField('Estado', max_length=50, choices=STATUS_CHOICES, default='draft')
     is_renewable = models.BooleanField('Renovable automáticamente', default=False)
     auto_renewal_notice_days = models.PositiveIntegerField(
         'Días de aviso para renovación automática',
         default=30
     )
+
+    # ✅ WORKFLOW TRACKING - Control de aprobaciones y objeciones
+    tenant_approved = models.BooleanField('Arrendatario Aprobó', default=False)
+    tenant_approved_at = models.DateTimeField('Fecha de Aprobación del Arrendatario', null=True, blank=True)
+    has_objections = models.BooleanField('Tiene Objeciones', default=False)
+    objections_resolved = models.BooleanField('Objeciones Resueltas', default=False)
     
     # Información financiera (específica para contratos de arrendamiento)
     monthly_rent = models.DecimalField(
@@ -263,8 +283,40 @@ class Contract(models.Model):
                 created_at__year=year
             ).count() + 1
             self.contract_number = f"VH-{year}-{count:06d}"
-        
+
+        # Guardar contrato primero
         super().save(*args, **kwargs)
+
+        # ✅ SINCRONIZACIÓN AUTOMÁTICA CON MATCH REQUEST
+        if self.match_request:
+            from django.db import transaction
+            try:
+                with transaction.atomic():
+                    # Actualizar estado del match según estado del contrato
+                    if self.status in ['published', 'active']:
+                        self.match_request.status = 'completed' if self.status == 'active' else 'accepted'
+                        self.match_request.has_contract = True
+                        self.match_request.contract_generated_at = self.created_at
+                        self.match_request.workflow_stage = 3
+                        self.match_request.workflow_status = 'contract_signed' if self.status == 'active' else 'contract_ready'
+
+                        # Actualizar workflow_data con info del contrato
+                        if not self.match_request.workflow_data:
+                            self.match_request.workflow_data = {}
+
+                        self.match_request.workflow_data.update({
+                            'contract_id': str(self.id),
+                            'contract_number': self.contract_number,
+                            'contract_status': self.status,
+                            'contract_updated_at': self.updated_at.isoformat() if self.updated_at else None,
+                        })
+
+                        self.match_request.save()
+            except Exception as e:
+                # Log error pero no fallar el guardado del contrato
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error sincronizando con MatchRequest: {e}")
     
     def is_expired(self):
         """Verifica si el contrato ha expirado."""
@@ -381,19 +433,14 @@ class Contract(models.Model):
     def check_auto_transitions(self, user=None):
         """Verifica y ejecuta transiciones automáticas de estado."""
         transitions_made = []
-        
-        # Auto-transición de 'active' a 'en_ejecucion'
-        if self.status == 'active' and self.start_date <= timezone.now().date():
-            if self.transition_to_executing(user):
-                transitions_made.append('active -> en_ejecucion')
-        
-        # Auto-transición de 'en_ejecucion' a 'expired' 
-        if self.status == 'en_ejecucion' and self.is_expired():
+
+        # Auto-transición de 'active' a 'expired'
+        if self.status == 'active' and self.is_expired():
             old_status = self.status
             self.status = 'expired'
             self.save(update_fields=['status'])
-            transitions_made.append('en_ejecucion -> expired')
-            
+            transitions_made.append('active -> expired')
+
             # Log de la transición
             if user:
                 from users.models import UserActivityLog
@@ -409,8 +456,59 @@ class Contract(models.Model):
                         'reason': 'contract_expired'
                     }
                 )
-        
+
         return transitions_made
+
+    # ✅ NUEVOS MÉTODOS DE WORKFLOW LIMPIO
+    def get_current_phase(self):
+        """Retorna la fase actual del contrato (1, 2, 3)."""
+        if self.status in ['draft', 'tenant_review', 'tenant_approved', 'objections_pending']:
+            return 1  # Fase de Revisión
+        elif self.status in ['tenant_biometric', 'guarantor_biometric', 'landlord_biometric', 'biometric_completed']:
+            return 2  # Fase de Autenticación
+        elif self.status in ['ready_to_publish', 'published', 'active']:
+            return 3  # Fase de Publicación
+        else:
+            return 0  # Estados finales
+
+    def can_tenant_approve(self):
+        """Verifica si el arrendatario puede aprobar el contrato."""
+        return self.status == 'tenant_review' and not self.tenant_approved
+
+    def can_tenant_object(self):
+        """Verifica si el arrendatario puede objetar el contrato."""
+        return self.status == 'tenant_review' and not self.has_objections
+
+    def can_start_biometric(self):
+        """Verifica si se puede iniciar autenticación biométrica."""
+        return self.status == 'tenant_approved' and self.tenant_approved
+
+    def get_next_biometric_step(self):
+        """Retorna el siguiente paso de autenticación biométrica."""
+        if not self.tenant_auth_completed:
+            return 'tenant'
+        elif self.guarantor and not getattr(self, 'guarantor_auth_completed', False):
+            return 'guarantor'
+        elif not self.landlord_auth_completed:
+            return 'landlord'
+        return None
+
+    def get_workflow_progress(self):
+        """Retorna el progreso del workflow (0-100%)."""
+        status_weights = {
+            'draft': 10,
+            'tenant_review': 20,
+            'tenant_approved': 30,
+            'objections_pending': 25,
+            'tenant_biometric': 45,
+            'guarantor_biometric': 60,
+            'landlord_biometric': 75,
+            'biometric_completed': 85,
+            'ready_to_publish': 90,
+            'published': 95,
+            'active': 100,
+        }
+        return status_weights.get(self.status, 0)
 
 
 class ContractSignature(models.Model):

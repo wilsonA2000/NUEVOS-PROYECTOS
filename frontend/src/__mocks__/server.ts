@@ -1,7 +1,7 @@
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 
-const baseUrl = 'http://localhost:8001/api/v1';
+const baseUrl = 'http://localhost:8000/api/v1';
 
 export const handlers = [
   // Auth endpoints

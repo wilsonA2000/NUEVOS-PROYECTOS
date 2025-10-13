@@ -217,7 +217,7 @@ const Profile: React.FC = () => {
       setModifiedFields(new Set()); // Limpiar campos modificados
       
       if (userData.avatar) {
-        setAvatarPreview(`http://localhost:8001${userData.avatar}`);
+        setAvatarPreview(`http://localhost:8000${userData.avatar}`);
       }
     } catch (error) {
       console.error('Error loading profile:', error);

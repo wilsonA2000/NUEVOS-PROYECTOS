@@ -5,8 +5,31 @@ Serializers para el sistema de matching de VeriHome.
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import MatchRequest, MatchCriteria, MatchNotification, MatchAnalytics
+from requests.models import TenantDocument
 
 User = get_user_model()
+
+
+class TenantDocumentSerializer(serializers.ModelSerializer):
+    """Serializer para documentos del arrendatario vinculados al match."""
+
+    document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
+    category = serializers.CharField(source='get_category', read_only=True)
+    status_color = serializers.CharField(source='get_status_color', read_only=True)
+    uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
+    reviewed_by_name = serializers.CharField(source='reviewed_by.get_full_name', read_only=True, allow_null=True)
+
+    class Meta:
+        model = TenantDocument
+        fields = [
+            'id', 'document_type', 'document_type_display', 'category',
+            'document_file', 'original_filename', 'file_size',
+            'other_description', 'status', 'status_color',
+            'uploaded_by', 'uploaded_by_name',
+            'reviewed_by', 'reviewed_by_name', 'review_notes', 'reviewed_at',
+            'uploaded_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'uploaded_at', 'updated_at', 'uploaded_by']
 
 
 class MatchRequestSerializer(serializers.ModelSerializer):
@@ -83,23 +106,25 @@ class MatchRequestSerializer(serializers.ModelSerializer):
 
 class MatchRequestDetailSerializer(serializers.ModelSerializer):
     """Serializer detallado para solicitudes de match."""
-    
+
     property = serializers.SerializerMethodField()
     tenant = serializers.SerializerMethodField()
     landlord = serializers.SerializerMethodField()
     compatibility_analysis = serializers.SerializerMethodField()
-    
+    tenant_documents = TenantDocumentSerializer(many=True, read_only=True)
+
     class Meta:
         model = MatchRequest
         fields = [
-            'id', 'match_code', 'status', 'priority', 'tenant_message', 
+            'id', 'match_code', 'status', 'priority', 'tenant_message',
             'tenant_phone', 'tenant_email', 'monthly_income', 'employment_type',
             'preferred_move_in_date', 'lease_duration_months', 'has_rental_references',
             'has_employment_proof', 'has_credit_check', 'number_of_occupants',
             'has_pets', 'pet_details', 'smoking_allowed', 'landlord_response',
             'created_at', 'viewed_at', 'responded_at', 'expires_at',
             'follow_up_count', 'last_follow_up', 'property', 'tenant', 'landlord',
-            'compatibility_analysis', 'workflow_stage', 'workflow_status', 'workflow_data'
+            'compatibility_analysis', 'workflow_stage', 'workflow_status', 'workflow_data',
+            'tenant_documents'
         ]
         read_only_fields = [
             'id', 'match_code', 'created_at', 'viewed_at', 'responded_at',

@@ -7,10 +7,13 @@ app_name = 'contracts_api'
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
+from . import unified_contract_api
 
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r'contracts', api_views.ContractViewSet, basename='contract')
+# ✅ NUEVO: Router para API Unificada de Workflow Limpio
+router.register(r'unified-contracts', unified_contract_api.UnifiedContractViewSet, basename='unified-contract')
 router.register(r'templates', api_views.ContractTemplateViewSet, basename='contract-template')
 router.register(r'signatures', api_views.ContractSignatureViewSet, basename='contract-signature')
 router.register(r'amendments', api_views.ContractAmendmentViewSet, basename='contract-amendment')
@@ -19,40 +22,38 @@ router.register(r'terminations', api_views.ContractTerminationViewSet, basename=
 router.register(r'documents', api_views.ContractDocumentViewSet, basename='contract-document')
 
 urlpatterns = [
-    # Incluir rutas del router
-    path('', include(router.urls)),
-    
-    # ===================================================================
-    # SISTEMA DE CONTRATOS CONTROLADO POR ARRENDADOR (NUEVO)
-    # ===================================================================
-    path('', include('contracts.landlord_api_urls')),
-    
-    # ===================================================================
-    # SISTEMA DE CONTRATOS DESDE PERSPECTIVA DEL ARRENDATARIO (NUEVO)
-    # ===================================================================
-    path('', include('contracts.tenant_api_urls')),
-    
     # ===================================================================
     # FLUJO BIOMÉTRICO COMPLETO - NUEVAS APIS ESPECIALIZADAS
+    # IMPORTANTE: Estas deben ir ANTES del router para evitar conflictos
     # ===================================================================
-    
+
     # Generación y edición de PDF
     path('<uuid:contract_id>/generate-pdf/', api_views.GenerateContractPDFAPIView.as_view(), name='api_generate_contract_pdf'),
     path('<uuid:contract_id>/preview-pdf/', api_views.ContractPreviewPDFAPIView.as_view(), name='api_contract_preview_pdf'),
     path('<uuid:contract_id>/preview-with-clauses/', api_views.ContractPreviewWithClausesAPIView.as_view(), name='api_contract_preview_with_clauses'),
     path('<uuid:contract_id>/edit-before-auth/', api_views.EditContractBeforeAuthAPIView.as_view(), name='api_edit_contract_before_auth'),
-    
+
     # Gestión de cláusulas adicionales
     path('<uuid:contract_id>/additional-clauses/', api_views.ContractAdditionalClausesAPIView.as_view(), name='api_contract_additional_clauses'),
     path('<uuid:contract_id>/additional-clauses/<uuid:clause_id>/', api_views.ContractAdditionalClausesAPIView.as_view(), name='api_contract_additional_clause_detail'),
-    
-    # Autenticación biométrica completa
+
+    # 🔧 FIX CRÍTICO: Autenticación biométrica completa
     path('<uuid:contract_id>/start-biometric-authentication/', api_views.StartBiometricAuthenticationAPIView.as_view(), name='api_start_biometric_auth'),
     path('<uuid:contract_id>/auth/face-capture/', api_views.FaceCaptureAPIView.as_view(), name='api_face_capture'),
     path('<uuid:contract_id>/auth/document-capture/', api_views.DocumentCaptureAPIView.as_view(), name='api_document_capture'),
     path('<uuid:contract_id>/auth/combined-capture/', api_views.CombinedCaptureAPIView.as_view(), name='api_combined_capture'),
     path('<uuid:contract_id>/auth/voice-capture/', api_views.VoiceCaptureAPIView.as_view(), name='api_voice_capture'),
     path('<uuid:contract_id>/complete-auth/', api_views.CompleteAuthenticationAPIView.as_view(), name='api_complete_authentication'),
+
+    # ===================================================================
+    # SISTEMA DE CONTRATOS CONTROLADO POR ARRENDADOR (NUEVO)
+    # ===================================================================
+    path('', include('contracts.landlord_api_urls')),
+
+    # ===================================================================
+    # SISTEMA DE CONTRATOS DESDE PERSPECTIVA DEL ARRENDATARIO (NUEVO)
+    # ===================================================================
+    path('', include('contracts.tenant_api_urls')),
     
     # Consulta de estado biométrico
     path('<uuid:contract_id>/auth/status/', api_views.BiometricAuthenticationStatusAPIView.as_view(), name='api_biometric_auth_status'),
@@ -94,4 +95,12 @@ urlpatterns = [
     
     # Estadísticas
     path('stats/', api_views.ContractStatsAPIView.as_view(), name='api_contract_stats'),
+
+    # ===================================================================
+    # ROUTER DE VIEWSETS - AL FINAL PARA NO INTERCEPTAR RUTAS ESPECÍFICAS
+    # ===================================================================
+    # IMPORTANTE: Este include DEBE ir al final para que las rutas específicas
+    # definidas arriba (como complete-auth) se procesen ANTES que las rutas
+    # genéricas del ViewSet (contracts/<pk>/)
+    path('', include(router.urls)),
 ]

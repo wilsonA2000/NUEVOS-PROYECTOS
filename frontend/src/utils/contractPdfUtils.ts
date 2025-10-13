@@ -13,7 +13,7 @@ export const viewContractPDF = async (contractId: string): Promise<void> => {
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`http://localhost:8001/api/v1/contracts/${contractId}/preview-pdf/`, {
+    const response = await fetch(`http://localhost:8000/api/v1/contracts/${contractId}/preview-pdf/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -60,7 +60,7 @@ export const downloadContractPDF = async (contractId: string, filename?: string)
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`http://localhost:8001/api/v1/contracts/${contractId}/preview-pdf/`, {
+    const response = await fetch(`http://localhost:8000/api/v1/contracts/${contractId}/preview-pdf/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
