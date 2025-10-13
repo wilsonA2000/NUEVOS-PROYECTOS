@@ -100,4 +100,7 @@ test_env/
 
 # Backups
 backups/
-*.backuptests/frontend/e2e/node_modules/
+*.backup
+
+# Tests node_modules
+tests/**/node_modules/
