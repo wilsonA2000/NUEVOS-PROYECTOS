@@ -2962,33 +2962,66 @@ www.verihome.com | soporte@verihome.com
                     'last_action': 'contract_created_synchronized'
                 }
                 
-            elif action == 'reject':
-                # Rechazar candidato
+            elif action == 'reject' or action == 'cancel':
+                # Rechazar o cancelar candidato - ELIMINACIÓN COMPLETA
                 rejection_reason = request.data.get('rejection_reason', 'No especificado')
                 tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
-                
-                # Cambiar el estado del match
-                match_request.status = 'rejected'
-                if hasattr(match_request, 'responded_at'):
-                    match_request.responded_at = timezone.now()
-                if hasattr(match_request, 'landlord_response'):
-                    match_request.landlord_response = f"Rechazado: {rejection_reason}"
-                match_request.save()
-                
+                match_code = match_request.match_code
+                match_id = str(match_request.id)
+
+                # Registrar actividad ANTES de eliminar
                 from users.models import UserActivityLog
                 UserActivityLog.objects.create(
                     user=request.user,
-                    activity_type='workflow_candidate_rejected',
-                    description=f'Candidato {tenant.get_full_name() if tenant else "Unknown"} rechazado',
+                    activity_type='workflow_match_deleted',
+                    description=f'Match {match_code} eliminado completamente - {tenant.get_full_name() if tenant else "Unknown"}',
                     metadata={
-                        'match_id': str(match_request.id),
-                        'rejection_reason': rejection_reason
+                        'match_id': match_id,
+                        'match_code': match_code,
+                        'rejection_reason': rejection_reason,
+                        'action': action,
+                        'initiated_by': request.user.get_full_name()
                     },
                     ip_address=request.META.get('REMOTE_ADDR'),
                     user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
                 )
-                
-                result_message = "Candidato rechazado"
+
+                # ELIMINACIÓN EN CASCADE:
+                # 1. TenantDocuments (FK con CASCADE) - se eliminan automáticamente
+                # 2. Contracts relacionados - buscar y eliminar
+                # 3. LandlordControlledContracts relacionados - buscar y eliminar
+
+                # Buscar contratos relacionados en workflow_data
+                contract_id = None
+                if match_request.workflow_data and 'contract_created' in match_request.workflow_data:
+                    contract_id = match_request.workflow_data['contract_created'].get('contract_id')
+
+                if contract_id:
+                    try:
+                        from contracts.models import Contract, LandlordControlledContract
+                        # Eliminar Contract si existe
+                        Contract.objects.filter(id=contract_id).delete()
+                        print(f"🗑️  Contract {contract_id} eliminado")
+
+                        # Eliminar LandlordControlledContract si existe
+                        LandlordControlledContract.objects.filter(id=contract_id).delete()
+                        print(f"🗑️  LandlordControlledContract {contract_id} eliminado")
+                    except Exception as e:
+                        print(f"⚠️  Error eliminando contratos: {e}")
+
+                # Eliminar MatchRequest (esto eliminará automáticamente los TenantDocuments por CASCADE)
+                match_request.delete()
+                print(f"🗑️  MatchRequest {match_code} ({match_id}) eliminado completamente")
+
+                result_message = f"✅ Match {match_code} eliminado completamente. El arrendatario puede enviar una nueva solicitud."
+
+                return Response({
+                    'success': True,
+                    'message': result_message,
+                    'match_code': match_code,
+                    'deleted': True,
+                    'tenant_can_reapply': True
+                }, status=status.HTTP_200_OK)
                 
             elif action == 'advance_to_biometric':
                 # AVANZAR A ETAPA 4: AUTENTICACIÓN BIOMÉTRICA

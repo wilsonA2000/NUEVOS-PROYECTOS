@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -18,7 +17,14 @@ export const formatCurrencyForExcel = (amount: number): string => {
   }).format(amount);
 };
 
-export const exportToExcel = (data: any[], options: ExportOptions): void => {
+/**
+ * Exporta datos a Excel usando lazy loading de la librería XLSX.
+ * La librería (~800 KB) solo se carga cuando se llama esta función.
+ */
+export const exportToExcel = async (data: any[], options: ExportOptions): Promise<void> => {
+  // Lazy load XLSX solo cuando se necesita exportar
+  const XLSX = await import('xlsx');
+
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, options.sheetName);

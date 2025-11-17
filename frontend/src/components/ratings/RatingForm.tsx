@@ -1,121 +1,103 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Rating,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { useRatings } from '../../hooks/useRatings';
+import { Box, Button, Card, CardContent, TextField, Typography, Rating, Grid, Alert, CircularProgress, Chip, Divider } from '@mui/material';
+import { Star as StarIcon, Send as SendIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
+import api from '../../services/api';
 
-export const RatingForm: React.FC = () => {
-  const navigate = useNavigate();
-  const { createRating } = useRatings();
-  const [formData, setFormData] = useState({
-    overall_rating: 0,
-    comment: '',
-    rating_type: 'general',
-  });
-  const [error, setError] = useState<string>('');
+export interface RatingFormProps {
+  targetType: 'user' | 'property' | 'service';
+  targetId: string;
+  targetName?: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+const RatingForm: React.FC<RatingFormProps> = ({ targetType, targetId, targetName, onSuccess, onCancel }) => {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState({ overall: 0, communication: 0, serviceQuality: 0, cleanliness: 0, value: 0, location: 0 });
+  const [comment, setComment] = useState('');
 
-    // Validación de calificación
-    if (!formData.overall_rating || formData.overall_rating < 1 || formData.overall_rating > 10) {
-      setError('La calificación debe estar entre 1 y 10');
-      return;
-    }
-
+  const handleSubmit = async () => {
     try {
-      await createRating.mutateAsync(formData);
-      navigate('/app/ratings');
+      setLoading(true);
+      setError(null);
+      if (ratings.overall === 0) {
+        setError('Por favor califica al menos la puntuación general');
+        setLoading(false);
+        return;
+      }
+      const ratingData: any = { target_type: targetType, target_id: targetId, overall_rating: ratings.overall, comment: comment.trim() };
+      if (targetType === 'user') {
+        if (ratings.communication > 0) ratingData.communication_rating = ratings.communication;
+        if (ratings.serviceQuality > 0) ratingData.service_quality_rating = ratings.serviceQuality;
+      }
+      await api.post('/ratings/', ratingData);
+      setSuccess(true);
+      setTimeout(() => { onSuccess?.(); }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al crear la calificación');
+      setError(err.response?.data?.message || 'Error al enviar calificación.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Nueva Calificación
-      </Typography>
+  const getRatingLabel = (value: number): string => {
+    switch (value) {
+      case 1: return 'Muy malo';
+      case 2: return 'Malo';
+      case 3: return 'Regular';
+      case 4: return 'Bueno';
+      case 5: return 'Excelente';
+      default: return 'Sin calificar';
+    }
+  };
 
+  if (success) {
+    return (
       <Card>
         <CardContent>
-          <form onSubmit={handleSubmit}>
-            <Box mb={3}>
-              <Typography component="legend">Calificación General</Typography>
-              <Rating
-                name="overall_rating"
-                value={formData.overall_rating / 2}
-                onChange={(_, value) => setFormData({ ...formData, overall_rating: (value || 0) * 2 })}
-                size="large"
-                max={5}
-                precision={0.5}
-              />
-              <Typography variant="caption" color="textSecondary">
-                Escala: 1-10 (mostrada como 0.5-5 estrellas)
-              </Typography>
-            </Box>
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Tipo de Calificación</InputLabel>
-              <Select
-                value={formData.rating_type}
-                onChange={(e) => setFormData({ ...formData, rating_type: e.target.value })}
-                label="Tipo de Calificación"
-              >
-                <MenuItem value="general">General</MenuItem>
-                <MenuItem value="landlord_to_tenant">Propietario a Inquilino</MenuItem>
-                <MenuItem value="tenant_to_landlord">Inquilino a Propietario</MenuItem>
-                <MenuItem value="service_provider">Proveedor de Servicios</MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              margin="normal"
-              label="Comentario"
-              value={formData.comment}
-              onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-            />
-
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={createRating.isPending}
-              >
-                {createRating.isPending ? 'Creando...' : 'Crear Calificación'}
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/app/ratings')}
-              >
-                Cancelar
-              </Button>
-            </Box>
-          </form>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <CheckCircleIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
+            <Typography variant="h5" gutterBottom>¡Calificación Enviada!</Typography>
+            <Typography variant="body2" color="text.secondary">Gracias por tu opinión</Typography>
+          </Box>
         </CardContent>
       </Card>
-    </Box>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <StarIcon color="primary" />Nueva Calificación
+          </Typography>
+          {targetName && <Chip label={targetName} color="primary" variant="outlined" />}
+        </Box>
+        <Divider sx={{ mb: 3 }} />
+        {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="medium">Calificación General *</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Rating name="overall-rating" value={ratings.overall} onChange={(_, value) => setRatings({ ...ratings, overall: value || 0 })} size="large" disabled={loading} />
+              <Typography variant="body2" color="text.secondary">{getRatingLabel(ratings.overall)}</Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="medium">Comentario (opcional)</Typography>
+            <TextField fullWidth multiline rows={4} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Comparte tu experiencia..." disabled={loading} inputProps={{ maxLength: 1000 }} helperText={`${comment.length}/1000 caracteres`} />
+          </Grid>
+        </Grid>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+          {onCancel && <Button variant="outlined" onClick={onCancel} disabled={loading}>Cancelar</Button>}
+          <Button variant="contained" onClick={handleSubmit} disabled={loading || ratings.overall === 0} startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}>{loading ? 'Enviando...' : 'Enviar Calificación'}</Button>
+        </Box>
+      </CardContent>
+    </Card>
   );
-}; 
+};
+
+export default RatingForm;

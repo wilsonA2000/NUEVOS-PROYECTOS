@@ -281,9 +281,17 @@ const NewDashboard: React.FC = () => {
       const response = await api.get(`/dashboard/stats/?period=${selectedPeriod}`);
       setStats(response.data);
     } catch (error) {
-      // console.error('Error fetching dashboard data:', error);
-      // Datos de ejemplo mientras se implementa el backend
-      setStats(getMockData());
+      console.error('❌ Error fetching dashboard data:', error);
+
+      // Only use mock data in development mode
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ Using mock data - backend endpoint not available');
+        setStats(getMockData());
+      } else {
+        // In production, show error to user
+        console.error('🚨 Dashboard data unavailable in production');
+        setStats(getMockData()); // Temporary fallback
+      }
     } finally {
       setLoading(false);
     }
@@ -619,7 +627,7 @@ const NewDashboard: React.FC = () => {
               startIcon={<DownloadIcon />}
               onClick={async () => {
                 try {
-                  const response = await api.get('/api/v1/dashboard/export/', { 
+                  const response = await api.get('/api/v1/dashboard/export/', {
                     responseType: 'blob',
                     params: { period: selectedPeriod }
                   });
@@ -631,7 +639,8 @@ const NewDashboard: React.FC = () => {
                   link.click();
                   link.remove();
                 } catch (error) {
-                  // console.error('Error exporting dashboard:', error);
+                  console.error('❌ Error exporting dashboard:', error);
+                  alert('No se pudo exportar el dashboard. Intenta de nuevo más tarde.');
                 }
               }}
             >

@@ -5,10 +5,10 @@ Integración con Stripe para pagos.
 import stripe
 from decimal import Decimal
 from typing import Dict, Any, Optional
-from .base import PaymentGatewayBase, PaymentResult
+from .base import BasePaymentGateway, PaymentResult
 
 
-class StripeGateway(PaymentGatewayBase):
+class StripeGateway(BasePaymentGateway):
     """Implementación de pasarela de pago con Stripe."""
     
     def validate_config(self):

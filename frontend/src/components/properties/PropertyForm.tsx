@@ -44,8 +44,6 @@ import {
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import Autocomplete from '@mui/material/Autocomplete';
 import axios from 'axios';
 import { EnhancedPropertyImageUpload as PropertyImageUpload } from './EnhancedPropertyImageUpload';
@@ -58,17 +56,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../services/api';
 import { TransitionProps } from '@mui/material/transitions';
-
-// Fix for default marker icon in leaflet
-import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
 
 // Componente de transición para el modal de éxito
 const Transition = React.forwardRef(function Transition(

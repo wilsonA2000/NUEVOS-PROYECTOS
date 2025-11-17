@@ -1,71 +1,111 @@
 """
-Clase base para integración con pasarelas de pago.
+Base Payment Gateway class and shared utilities.
+All payment gateways should inherit from BasePaymentGateway.
 """
 
-from abc import ABC, abstractmethod
-from decimal import Decimal
 from typing import Dict, Any, Optional
+from decimal import Decimal
+from dataclasses import dataclass
+from abc import ABC, abstractmethod
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class PaymentGatewayBase(ABC):
-    """Clase base abstracta para pasarelas de pago."""
+@dataclass
+class PaymentResult:
+    """Standard result object for payment operations."""
+    success: bool
+    transaction_id: Optional[str] = None
+    gateway_reference: Optional[str] = None
+    amount: Optional[Decimal] = None
+    currency: str = 'COP'
+    status: str = 'pending'
+    error_message: Optional[str] = None
+    error_code: Optional[str] = None
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            'success': self.success,
+            'transaction_id': self.transaction_id,
+            'gateway_reference': self.gateway_reference,
+            'amount': str(self.amount) if self.amount else None,
+            'currency': self.currency,
+            'status': self.status,
+            'error_message': self.error_message,
+            'error_code': self.error_code,
+            'metadata': self.metadata
+        }
+
+
+class BasePaymentGateway(ABC):
+    """Base class for all payment gateway integrations."""
     
     def __init__(self, config: Dict[str, Any]):
         """
-        Inicializar pasarela con configuración.
+        Initialize payment gateway with configuration.
         
         Args:
-            config: Diccionario con configuración específica de la pasarela
+            config: Dictionary with gateway-specific configuration
         """
         self.config = config
-        self.name = self.__class__.__name__
+        self.sandbox_mode = config.get('sandbox_mode', True)
+        self.api_key = config.get('api_key')
+        self.secret_key = config.get('secret_key')
+        self.webhook_secret = config.get('webhook_secret')
+        
+        # Validate required configuration
         self.validate_config()
     
     @abstractmethod
     def validate_config(self):
-        """Validar que la configuración tenga todos los campos necesarios."""
+        """Validate that required configuration is present."""
         pass
     
     @abstractmethod
-    def process_payment(
+    def create_payment(
         self,
         amount: Decimal,
         currency: str,
-        payment_method: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        customer_email: str,
+        customer_name: str,
+        description: str,
+        reference: str,
+        **kwargs
+    ) -> PaymentResult:
         """
-        Procesar un pago.
+        Create a new payment.
         
         Args:
-            amount: Monto a cobrar
-            currency: Código de moneda (MXN, USD, etc.)
-            payment_method: Información del método de pago
-            metadata: Metadatos adicionales
-            
+            amount: Payment amount
+            currency: Currency code (e.g., 'COP')
+            customer_email: Customer email
+            customer_name: Customer name
+            description: Payment description
+            reference: Unique reference for this payment
+            **kwargs: Additional gateway-specific parameters
+        
         Returns:
-            Dict con resultado de la transacción
+            PaymentResult object
         """
         pass
     
     @abstractmethod
-    def create_payment_method(
-        self,
-        user_id: str,
-        payment_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def confirm_payment(self, transaction_id: str) -> PaymentResult:
         """
-        Crear/tokenizar un método de pago.
+        Confirm a payment status.
         
         Args:
-            user_id: ID del usuario
-            payment_data: Datos del método de pago
-            
+            transaction_id: Transaction ID to confirm
+        
         Returns:
-            Dict con información del método creado
+            PaymentResult object
         """
         pass
     
@@ -74,144 +114,70 @@ class PaymentGatewayBase(ABC):
         self,
         transaction_id: str,
         amount: Optional[Decimal] = None,
-        reason: Optional[str] = None
-    ) -> Dict[str, Any]:
+        reason: str = ''
+    ) -> PaymentResult:
         """
-        Reembolsar un pago.
+        Refund a payment.
         
         Args:
-            transaction_id: ID de la transacción original
-            amount: Monto a reembolsar (None para reembolso total)
-            reason: Razón del reembolso
-            
+            transaction_id: Transaction ID to refund
+            amount: Amount to refund (None = full refund)
+            reason: Reason for refund
+        
         Returns:
-            Dict con resultado del reembolso
+            PaymentResult object
         """
         pass
     
     @abstractmethod
-    def get_transaction_status(self, transaction_id: str) -> Dict[str, Any]:
+    def handle_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> PaymentResult:
         """
-        Obtener estado de una transacción.
+        Handle webhook callback from payment gateway.
         
         Args:
-            transaction_id: ID de la transacción
-            
+            payload: Webhook payload
+            headers: Request headers
+        
         Returns:
-            Dict con información de la transacción
+            PaymentResult object
         """
         pass
     
-    def handle_webhook(self, data: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
+    def get_payment_status(self, transaction_id: str) -> str:
         """
-        Procesar webhook de la pasarela.
+        Get current status of a payment.
         
         Args:
-            data: Datos del webhook
-            headers: Headers de la petición
-            
+            transaction_id: Transaction ID
+        
         Returns:
-            Dict con resultado del procesamiento
+            Status string ('pending', 'completed', 'failed', etc.)
         """
-        return {
-            'success': False,
-            'message': 'Webhook handling not implemented'
-        }
+        result = self.confirm_payment(transaction_id)
+        return result.status
     
-    def format_amount(self, amount: Decimal, currency: str) -> int:
+    def format_amount(self, amount: Decimal) -> int:
         """
-        Formatear monto según requerimientos de la pasarela.
-        La mayoría usa centavos.
+        Format amount for gateway (most require integers in cents).
+        
+        Args:
+            amount: Decimal amount
+        
+        Returns:
+            Amount in cents as integer
         """
-        if currency in ['MXN', 'USD', 'EUR']:
-            return int(amount * 100)
-        return int(amount)
+        return int(amount * 100)
     
-    def log_transaction(self, action: str, data: Dict[str, Any]):
-        """Registrar actividad de transacción."""
-        logger.info(f"[{self.name}] {action}: {data}")
-    
-    def handle_error(self, error: Exception, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Manejar errores de forma consistente."""
-        logger.error(f"[{self.name}] Error: {str(error)}, Context: {context}")
-        return {
-            'success': False,
-            'error': str(error),
-            'error_code': getattr(error, 'code', 'unknown'),
-            'context': context
-        }
-
-
-class PaymentResult:
-    """Resultado estandarizado de operaciones de pago."""
-    
-    def __init__(
-        self,
-        success: bool,
-        transaction_id: Optional[str] = None,
-        amount: Optional[Decimal] = None,
-        currency: Optional[str] = None,
-        status: Optional[str] = None,
-        message: Optional[str] = None,
-        raw_response: Optional[Dict[str, Any]] = None,
-        error_code: Optional[str] = None
-    ):
-        self.success = success
-        self.transaction_id = transaction_id
-        self.amount = amount
-        self.currency = currency
-        self.status = status
-        self.message = message
-        self.raw_response = raw_response or {}
-        self.error_code = error_code
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convertir a diccionario."""
-        return {
-            'success': self.success,
-            'transaction_id': self.transaction_id,
-            'amount': str(self.amount) if self.amount else None,
-            'currency': self.currency,
-            'status': self.status,
-            'message': self.message,
-            'error_code': self.error_code,
-            'raw_response': self.raw_response
-        }
-    
-    @classmethod
-    def from_gateway_response(cls, gateway_name: str, response: Dict[str, Any]) -> 'PaymentResult':
-        """Crear resultado desde respuesta de pasarela específica."""
-        # Implementar mapeo específico por pasarela
-        if gateway_name == 'stripe':
-            return cls._from_stripe_response(response)
-        elif gateway_name == 'paypal':
-            return cls._from_paypal_response(response)
-        else:
-            return cls(
-                success=response.get('success', False),
-                raw_response=response
-            )
-    
-    @classmethod
-    def _from_stripe_response(cls, response: Dict[str, Any]) -> 'PaymentResult':
-        """Mapear respuesta de Stripe."""
-        return cls(
-            success=response.get('status') == 'succeeded',
-            transaction_id=response.get('id'),
-            amount=Decimal(str(response.get('amount', 0))) / 100,
-            currency=response.get('currency', '').upper(),
-            status=response.get('status'),
-            raw_response=response
+    def log_error(self, message: str, extra: Dict[str, Any] = None):
+        """Log an error with contextual information."""
+        logger.error(
+            f"[{self.__class__.__name__}] {message}",
+            extra=extra or {}
         )
     
-    @classmethod
-    def _from_paypal_response(cls, response: Dict[str, Any]) -> 'PaymentResult':
-        """Mapear respuesta de PayPal."""
-        return cls(
-            success=response.get('state') == 'approved',
-            transaction_id=response.get('id'),
-            amount=Decimal(response.get('transactions', [{}])[0].get('amount', {}).get('total', 0)),
-            currency=response.get('transactions', [{}])[0].get('amount', {}).get('currency', ''),
-            status=response.get('state'),
-            raw_response=response
+    def log_info(self, message: str, extra: Dict[str, Any] = None):
+        """Log an info message."""
+        logger.info(
+            f"[{self.__class__.__name__}] {message}",
+            extra=extra or {}
         )

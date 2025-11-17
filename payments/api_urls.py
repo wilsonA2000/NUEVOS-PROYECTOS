@@ -60,4 +60,10 @@ urlpatterns = [
     # Webhooks
     path('webhooks/stripe/', api_views.PaymentWebhookView.as_view(), name='api_stripe_webhook'),
     path('webhooks/paypal/', api_views.PayPalWebhookAPIView.as_view(), name='api_paypal_webhook'),
+    path('webhooks/wompi/', api_views.WompiWebhookAPIView.as_view(), name='api_wompi_webhook'),
+
+    # Wompi / PSE Payments
+    path('wompi/initiate/', api_views.WompiInitiatePaymentAPIView.as_view(), name='api_wompi_initiate'),
+    path('wompi/status/<int:transaction_id>/', api_views.WompiPaymentStatusAPIView.as_view(), name='api_wompi_status'),
+    path('pse/banks/', api_views.PSEBanksListAPIView.as_view(), name='api_pse_banks'),
 ]

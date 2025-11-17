@@ -1,0 +1,190 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: verihome_db_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - verihome_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Celery Broker
+  redis:
+    image: redis:7-alpine
+    container_name: verihome_redis_prod
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data_prod:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - verihome_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_backend_prod
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn verihome.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - WOMPI_PUBLIC_KEY=${WOMPI_PUBLIC_KEY}
+      - WOMPI_PRIVATE_KEY=${WOMPI_PRIVATE_KEY}
+      - WOMPI_EVENTS_SECRET=${WOMPI_EVENTS_SECRET}
+      - WOMPI_SANDBOX_MODE=${WOMPI_SANDBOX_MODE}
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - verihome_network
+
+  # Daphne WebSocket Server
+  daphne:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_daphne_prod
+    restart: always
+    command: daphne -b 0.0.0.0 -p 8001 verihome.asgi:application
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - verihome_network
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_celery_worker_prod
+    restart: always
+    command: celery -A verihome worker -l info --concurrency=4
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - verihome_network
+
+  # Celery Beat Scheduler
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_celery_beat_prod
+    restart: always
+    command: celery -A verihome beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - verihome_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: verihome_nginx_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - static_volume:/usr/share/nginx/html/static:ro
+      - media_volume:/usr/share/nginx/html/media:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - daphne
+    networks:
+      - verihome_network
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+networks:
+  verihome_network:
+    driver: bridge

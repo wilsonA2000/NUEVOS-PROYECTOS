@@ -18,7 +18,7 @@ import { EmailVerification } from '../pages/auth/EmailVerification';
 import { ResendVerification } from '../pages/auth/ResendVerification';
 import { ReplyForm } from '../components/messages/ReplyForm';
 import { RatingList } from '../components/ratings/RatingList';
-import { RatingForm } from '../components/ratings/RatingForm';
+import RatingForm from '../components/ratings/RatingForm';
 import { RatingDetail } from '../components/ratings/RatingDetail';
 import Settings from '../pages/settings/Settings';
 import Resume from '../pages/Resume';

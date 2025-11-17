@@ -323,12 +323,42 @@ class PaymentViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def process_payment(self, request):
-        """Procesar un pago usando la pasarela configurada."""
+        """
+        Procesar un pago usando la pasarela configurada.
+
+        SECURITY: Validates that contract is signed before processing payment.
+        """
         serializer = CreateTransactionSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
+            # VALIDATION: Check if contract is provided and valid
+            contract_id = request.data.get('contract')
+            if contract_id:
+                from contracts.models import LandlordControlledContract
+                try:
+                    contract = LandlordControlledContract.objects.get(id=contract_id)
+
+                    # Validate contract is signed/active
+                    if contract.workflow_status not in ['active', 'completed_biometric']:
+                        return Response({
+                            'error': 'Cannot process payment for unsigned contract',
+                            'detail': f'Contract status is "{contract.workflow_status}". '
+                                      'All parties must complete biometric authentication first.'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Validate user is authorized (tenant, landlord, or guarantor)
+                    if request.user not in [contract.tenant, contract.landlord, contract.guarantor]:
+                        return Response({
+                            'error': 'You are not authorized to make payments for this contract'
+                        }, status=status.HTTP_403_FORBIDDEN)
+
+                except LandlordControlledContract.DoesNotExist:
+                    return Response({
+                        'error': 'Contract not found'
+                    }, status=status.HTTP_404_NOT_FOUND)
+
             with db_transaction.atomic():
                 # Crear el pago
                 payment = serializer.save(payer=request.user)
@@ -1060,11 +1090,21 @@ class TransactionReportAPIView(generics.ListAPIView):
         )
 
 class PaymentWebhookView(APIView):
-    """Vista mejorada para webhooks de pasarelas de pago."""
+    """
+    Vista mejorada para webhooks de pasarelas de pago (Stripe).
+
+    SECURITY: ✅ Validates webhook signatures using stripe.Webhook.construct_event()
+    This prevents replay attacks and unauthorized webhook submissions.
+    """
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request):
-        """Procesar webhook de Stripe."""
+        """
+        Procesar webhook de Stripe.
+
+        Signature validation is performed by StripeGateway.handle_webhook()
+        which uses stripe.Webhook.construct_event() to verify authenticity.
+        """
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
         
@@ -1124,12 +1164,33 @@ class PaymentWebhookView(APIView):
             pass
 
 class PayPalWebhookAPIView(APIView):
-    """Vista para webhook de PayPal."""
+    """
+    Vista para webhook de PayPal.
+
+    SECURITY: When implementing, MUST validate webhook signatures using PayPal's
+    webhook verification API or verify signature manually:
+    https://developer.paypal.com/api/rest/webhooks/rest/#link-verifysignature
+
+    Steps for future implementation:
+    1. Get webhook signature headers: PAYPAL-TRANSMISSION-ID, PAYPAL-TRANSMISSION-TIME,
+       PAYPAL-TRANSMISSION-SIG, PAYPAL-CERT-URL, PAYPAL-AUTH-ALGO
+    2. Call PayPal's verify-webhook-signature API
+    3. Only process webhook if signature is valid
+    4. Return 403 Forbidden if signature validation fails
+    """
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request):
-        # Implementar lógica para webhook
-        return Response({"detail": "Función no implementada"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """
+        PayPal webhook handler - NOT IMPLEMENTED YET.
+
+        Returns 501 to prevent unsigned webhook processing.
+        This is safer than accepting webhooks without signature validation.
+        """
+        return Response({
+            "detail": "PayPal webhook not implemented",
+            "security_note": "Signature validation required before implementation"
+        }, status=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 class RentPaymentScheduleViewSet(viewsets.ModelViewSet):
@@ -1426,6 +1487,336 @@ class LandlordFinancialDashboardAPIView(APIView):
             'upcoming_payments': upcoming_payments,
             'active_properties': len(schedules)
         })
+
+
+# ===== WOMPI / PSE PAYMENT GATEWAY INTEGRATION =====
+
+class WompiInitiatePaymentAPIView(APIView):
+    """
+    Iniciar pago PSE con Wompi.
+
+    Wompi es el procesador de pagos colombiano que soporta PSE, tarjetas, Nequi, etc.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        """
+        Iniciar transacción PSE/Wompi.
+
+        Body params:
+            - amount: Monto en COP
+            - payment_method: 'PSE', 'CARD', 'NEQUI' (default: PSE)
+            - description: Descripción del pago
+            - bank_code: Código del banco (requerido para PSE)
+            - document_type: Tipo de documento (CC, CE, etc.)
+            - document_number: Número de documento
+            - redirect_url: URL de retorno
+        """
+        try:
+            from .gateways.wompi_gateway import WompiGateway
+
+            # Extraer datos de la solicitud
+            amount = Decimal(str(request.data.get('amount', 0)))
+            payment_method = request.data.get('payment_method', 'PSE')
+            description = request.data.get('description', 'Pago VeriHome')
+            bank_code = request.data.get('bank_code')
+            document_type = request.data.get('document_type', 'CC')
+            document_number = request.data.get('document_number')
+            redirect_url = request.data.get('redirect_url')
+
+            # Validaciones
+            if amount <= 0:
+                return Response({
+                    'error': 'Amount must be greater than 0'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if payment_method == 'PSE' and not bank_code:
+                return Response({
+                    'error': 'bank_code is required for PSE payments'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # SECURITY: Validate contract if provided
+            contract_id = request.data.get('contract')
+            if contract_id:
+                from contracts.models import LandlordControlledContract
+                try:
+                    contract = LandlordControlledContract.objects.get(id=contract_id)
+
+                    # Validate contract is signed/active
+                    if contract.workflow_status not in ['active', 'completed_biometric']:
+                        return Response({
+                            'error': 'Cannot process payment for unsigned contract',
+                            'detail': f'Contract status is "{contract.workflow_status}". '
+                                      'All parties must complete biometric authentication first.'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Validate user is authorized
+                    if request.user not in [contract.tenant, contract.landlord, contract.guarantor]:
+                        return Response({
+                            'error': 'You are not authorized to make payments for this contract'
+                        }, status=status.HTTP_403_FORBIDDEN)
+
+                except LandlordControlledContract.DoesNotExist:
+                    return Response({
+                        'error': 'Contract not found'
+                    }, status=status.HTTP_404_NOT_FOUND)
+
+            # Inicializar gateway Wompi
+            wompi_config = {
+                'public_key': getattr(settings, 'WOMPI_PUBLIC_KEY', ''),
+                'private_key': getattr(settings, 'WOMPI_PRIVATE_KEY', ''),
+                'events_secret': getattr(settings, 'WOMPI_EVENTS_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'WOMPI_SANDBOX_MODE', True)
+            }
+
+            gateway = WompiGateway(wompi_config)
+
+            # Generar referencia única
+            import uuid
+            reference = f"VH-{request.user.id}-{uuid.uuid4().hex[:8]}"
+
+            # Crear pago
+            result = gateway.create_payment(
+                amount=amount,
+                currency='COP',
+                customer_email=request.user.email,
+                customer_name=request.user.get_full_name() or request.user.email,
+                description=description,
+                reference=reference,
+                payment_method=payment_method,
+                customer_phone=request.data.get('phone', ''),
+                return_url=redirect_url,
+                bank_code=bank_code,
+                document_type=document_type,
+                document_number=document_number,
+                user_type='0'  # 0 = Persona natural
+            )
+
+            if result.success:
+                # Crear registro de transacción
+                transaction = Transaction.objects.create(
+                    payer=request.user,
+                    amount=amount,
+                    currency='COP',
+                    payment_method=payment_method,
+                    status=result.status,
+                    gateway='wompi',
+                    gateway_transaction_id=result.gateway_reference,
+                    reference=reference,
+                    description=description,
+                    metadata=result.metadata
+                )
+
+                # Retornar datos de la transacción
+                return Response({
+                    'success': True,
+                    'transaction_id': transaction.id,
+                    'reference': reference,
+                    'status': result.status,
+                    'redirect_url': result.metadata.get('async_payment_url'),
+                    'wompi_transaction_id': result.gateway_reference,
+                    'metadata': result.metadata
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'success': False,
+                    'error': result.error_message,
+                    'error_code': result.error_code
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                'error': f'Error creating payment: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class WompiWebhookAPIView(APIView):
+    """
+    Webhook para recibir notificaciones de Wompi (Colombian payment processor).
+
+    Wompi envía eventos cuando cambia el estado de una transacción.
+
+    SECURITY: ✅ Validates webhook signatures using SHA256 + HMAC
+    WompiGateway.handle_webhook() verifies X-Event-Checksum header to prevent
+    replay attacks and unauthorized webhook submissions.
+    Returns 403 Forbidden if signature validation fails.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        """
+        Procesar webhook de Wompi.
+
+        Signature validation is performed by WompiGateway._verify_webhook_signature()
+        using timing-attack safe HMAC comparison.
+        """
+        try:
+            from .gateways.wompi_gateway import WompiGateway
+
+            # Inicializar gateway
+            wompi_config = {
+                'public_key': getattr(settings, 'WOMPI_PUBLIC_KEY', ''),
+                'private_key': getattr(settings, 'WOMPI_PRIVATE_KEY', ''),
+                'events_secret': getattr(settings, 'WOMPI_EVENTS_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'WOMPI_SANDBOX_MODE', True)
+            }
+
+            gateway = WompiGateway(wompi_config)
+
+            # Procesar webhook
+            payload = request.data
+            headers = {
+                'X-Event-Checksum': request.META.get('HTTP_X_EVENT_CHECKSUM', '')
+            }
+
+            result = gateway.handle_webhook(payload, headers)
+
+            if not result.success and result.error_code == 'INVALID_SIGNATURE':
+                return Response({
+                    'error': 'Invalid signature'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            # Buscar transacción en nuestra DB
+            try:
+                transaction = Transaction.objects.get(
+                    reference=result.transaction_id
+                )
+
+                # Actualizar estado
+                transaction.status = result.status
+                transaction.gateway_transaction_id = result.gateway_reference
+
+                if result.status == 'completed':
+                    transaction.processed_at = timezone.now()
+                elif result.status == 'failed':
+                    transaction.failure_reason = result.metadata.get('status_message', 'Payment failed')
+
+                # Actualizar metadata
+                transaction.metadata.update(result.metadata)
+                transaction.save()
+
+                # Log del evento
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Wompi webhook processed: {result.transaction_id} - {result.status}")
+
+                return Response({'status': 'success'}, status=status.HTTP_200_OK)
+
+            except Transaction.DoesNotExist:
+                # Transacción no encontrada, pero no fallar el webhook
+                return Response({
+                    'status': 'accepted',
+                    'message': 'Transaction not found'
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error processing Wompi webhook: {str(e)}")
+
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PSEBanksListAPIView(APIView):
+    """
+    Obtener lista de bancos disponibles para PSE.
+
+    Esta lista es necesaria para que el usuario seleccione su banco.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        """Obtener lista de bancos PSE."""
+        try:
+            from .gateways.wompi_gateway import WompiGateway
+
+            wompi_config = {
+                'public_key': getattr(settings, 'WOMPI_PUBLIC_KEY', ''),
+                'private_key': getattr(settings, 'WOMPI_PRIVATE_KEY', ''),
+                'events_secret': getattr(settings, 'WOMPI_EVENTS_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'WOMPI_SANDBOX_MODE', True)
+            }
+
+            gateway = WompiGateway(wompi_config)
+            banks = gateway.get_pse_banks()
+
+            return Response({
+                'banks': banks,
+                'count': len(banks)
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'Error fetching banks: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class WompiPaymentStatusAPIView(APIView):
+    """
+    Consultar estado de un pago Wompi.
+
+    Permite verificar el estado actual de una transacción.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, transaction_id):
+        """
+        Obtener estado de transacción.
+
+        Args:
+            transaction_id: ID de la transacción en nuestra DB
+        """
+        try:
+            # Buscar transacción
+            transaction = Transaction.objects.get(
+                id=transaction_id,
+                payer=request.user
+            )
+
+            from .gateways.wompi_gateway import WompiGateway
+
+            wompi_config = {
+                'public_key': getattr(settings, 'WOMPI_PUBLIC_KEY', ''),
+                'private_key': getattr(settings, 'WOMPI_PRIVATE_KEY', ''),
+                'events_secret': getattr(settings, 'WOMPI_EVENTS_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'WOMPI_SANDBOX_MODE', True)
+            }
+
+            gateway = WompiGateway(wompi_config)
+
+            # Consultar estado en Wompi
+            result = gateway.confirm_payment(transaction.gateway_transaction_id)
+
+            # Actualizar estado en nuestra DB
+            if result.success or result.status != transaction.status:
+                transaction.status = result.status
+                if result.status == 'completed':
+                    transaction.processed_at = timezone.now()
+                transaction.metadata.update(result.metadata)
+                transaction.save()
+
+            return Response({
+                'transaction_id': transaction.id,
+                'reference': transaction.reference,
+                'status': transaction.status,
+                'amount': str(transaction.amount),
+                'currency': transaction.currency,
+                'payment_method': transaction.payment_method,
+                'created_at': transaction.created_at,
+                'processed_at': transaction.processed_at,
+                'metadata': transaction.metadata
+            })
+
+        except Transaction.DoesNotExist:
+            return Response({
+                'error': 'Transaction not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'error': f'Error checking payment status: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ===== ADVANCED PAYMENT ANALYTICS IMPORTS =====

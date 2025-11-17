@@ -20,6 +20,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,tes
 
 # Definición de aplicaciones
 INSTALLED_APPS = [
+    'debug_toolbar',  # Django Debug Toolbar para monitoreo de queries
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # Debug Toolbar (debe estar arriba)
     # Security and performance middleware (orden importante)
     'core.middleware.BlockedIPMiddleware',
     'core.middleware.RateLimitMiddleware',
@@ -796,6 +798,24 @@ else:
     })
 
 # =============================================================================
+# PAYMENT GATEWAY CONFIGURATION - WOMPI (COLOMBIAN PSE PAYMENTS)
+# =============================================================================
+
+# Wompi Payment Gateway Settings
+# Wompi es el procesador de pagos colombiano que soporta PSE, tarjetas, Nequi, etc.
+# Documentación: https://docs.wompi.co
+
+WOMPI_PUBLIC_KEY = config('WOMPI_PUBLIC_KEY', default='pub_test_')
+WOMPI_PRIVATE_KEY = config('WOMPI_PRIVATE_KEY', default='prv_test_')
+WOMPI_EVENTS_SECRET = config('WOMPI_EVENTS_SECRET', default='')
+WOMPI_SANDBOX_MODE = config('WOMPI_SANDBOX_MODE', default=True, cast=bool)
+
+# Stripe Payment Gateway Settings (Legacy - Optional)
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+
+# =============================================================================
 # CONFIGURACIONES DE SEGURIDAD PARA PRODUCCIÓN
 # =============================================================================
 
@@ -842,3 +862,7 @@ else:
     CORS_ALLOW_ALL_ORIGINS = True
 # Frontend URL for invitation emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+
+
+# Django Debug Toolbar
+INTERNAL_IPS = ['127.0.0.1', 'localhost']

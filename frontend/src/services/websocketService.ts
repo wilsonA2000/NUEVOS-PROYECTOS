@@ -45,11 +45,9 @@ class WebSocketService {
   }
 
   /**
-   * Connect to a WebSocket endpoint with automatic authentication - DISABLED
+   * Connect to a WebSocket endpoint with automatic authentication
    */
   async connectAuthenticated(endpoint: string): Promise<void> {
-    console.log(`WebSocket connection disabled for endpoint: ${endpoint}`);
-    return Promise.resolve();
     const token = this.getAuthToken();
     if (!token) {
       throw new Error('User not authenticated');

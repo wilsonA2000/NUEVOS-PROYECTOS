@@ -90,12 +90,21 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
+        # OPTIMIZACIÓN: select_related para relaciones ForeignKey
+        # Elimina N+1 queries al acceder a tenant, property, landlord
+        base_queryset = MatchRequest.objects.select_related(
+            'tenant',           # Usuario arrendatario
+            'property',         # Propiedad relacionada
+            'landlord',         # Usuario arrendador
+            'property__landlord'  # Arrendador de la propiedad
+        )
+        
         if user.user_type == 'tenant':
             # Arrendatarios ven sus solicitudes enviadas
-            return MatchRequest.objects.filter(tenant=user)
+            return base_queryset.filter(tenant=user)
         elif user.user_type == 'landlord':
             # Arrendadores ven solicitudes recibidas
-            return MatchRequest.objects.filter(landlord=user)
+            return base_queryset.filter(landlord=user)
         else:
             return MatchRequest.objects.none()
     
@@ -456,7 +465,10 @@ class MatchCriteriaViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return MatchCriteria.objects.filter(tenant=self.request.user)
+        # OPTIMIZACIÓN: select_related para tenant
+        return MatchCriteria.objects.select_related('tenant').filter(
+            tenant=self.request.user
+        )
     
     def perform_create(self, serializer):
         if self.request.user.user_type != 'tenant':
@@ -639,7 +651,14 @@ class MatchNotificationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return MatchNotification.objects.filter(user=self.request.user)
+        # OPTIMIZACIÓN: select_related para user y match_request con sus relaciones
+        return MatchNotification.objects.select_related(
+            'user',
+            'match_request',
+            'match_request__tenant',
+            'match_request__property',
+            'match_request__landlord'
+        ).filter(user=self.request.user)
     
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
