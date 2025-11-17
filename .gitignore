@@ -97,6 +97,12 @@ archived-components/
 # Testing
 test_env/
 .pytest_cache/
+frontend/coverage/
+coverage/
+*.coverage
+
+# Frontend temp files
+frontend/temp/
 
 # Backups
 backups/
