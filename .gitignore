@@ -110,3 +110,15 @@ backups/
 
 # Tests node_modules
 tests/**/node_modules/
+
+# Python cache (adicional)
+__pycache__/
+*.pyc
+
+# Logs (adicional)
+logs/
+*.log
+frontend/logs/
+
+# Archived directories
+archived/
