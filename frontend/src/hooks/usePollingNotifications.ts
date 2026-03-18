@@ -59,7 +59,7 @@ export const usePollingNotifications = () => {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      return;
+      return undefined;
     }
 
     // Initial fetch
@@ -85,8 +85,8 @@ export const usePollingNotifications = () => {
       prev.map(n => 
         n.id === notificationId 
           ? { ...n, is_read: true }
-          : n
-      )
+          : n,
+      ),
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
@@ -102,6 +102,6 @@ export const usePollingNotifications = () => {
     isLoading,
     markAsRead,
     markAllAsRead,
-    refresh: fetchNotifications
+    refresh: fetchNotifications,
   };
 };

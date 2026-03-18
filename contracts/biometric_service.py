@@ -988,6 +988,31 @@ Tu participación es esencial para activar el contrato de arrendamiento.
                     landlord_contract.activation_date = timezone.now()
                     logger.info(f"🎉 LandlordContract: ACTIVADO - Nace a la vida jurídica")
 
+                    # =======================================================
+                    # 🔒 INMUTABILIDAD POST-BIOMÉTRICA (Plan Maestro V2.0)
+                    # Bloquear el contrato permanentemente después de que
+                    # todas las partes completen la autenticación biométrica
+                    # =======================================================
+                    try:
+                        landlord_contract.lock_contract(
+                            user=auth.user,
+                            reason='biometric_complete'
+                        )
+                        logger.info(f"🔒 LandlordContract {landlord_contract.id}: BLOQUEADO PERMANENTEMENTE - Post-biométrico")
+
+                        # Bloquear también los documentos del arrendatario asociados
+                        self._lock_tenant_documents(landlord_contract, auth.user)
+
+                        # Actualizar estado a PUBLISHED (nace a la vida jurídica)
+                        landlord_contract.current_state = 'PUBLISHED'
+                        landlord_contract.published = True
+                        landlord_contract.published_at = timezone.now()
+                        logger.info(f"📜 LandlordContract {landlord_contract.id}: Estado actualizado a PUBLISHED")
+
+                    except Exception as lock_error:
+                        logger.error(f"❌ Error al bloquear contrato post-biométrico: {lock_error}")
+                        # No fallar el proceso principal si hay error en el bloqueo
+
                 landlord_contract.save()
                 logger.info(f"✅ LandlordControlledContract sincronizado: {landlord_contract.workflow_status}")
 
@@ -1001,6 +1026,70 @@ Tu participación es esencial para activar el contrato de arrendamiento.
             # Fallback: actualizar contrato básico
             contract.status = 'authenticated_pending_signature'
             contract.save(update_fields=['status'])
+
+    def _lock_tenant_documents(self, landlord_contract, user):
+        """
+        🔒 INMUTABILIDAD POST-BIOMÉTRICA: Bloquea todos los documentos del arrendatario.
+
+        Este método bloquea permanentemente todos los documentos subidos por el
+        arrendatario que están asociados al contrato. Una vez bloqueados, estos
+        documentos no pueden ser editados ni eliminados.
+
+        Args:
+            landlord_contract: El contrato controlado por arrendador
+            user: Usuario que ejecuta el bloqueo (para auditoría)
+        """
+        try:
+            from requests.models import TenantDocument
+            from matching.models import MatchRequest
+
+            # Buscar el MatchRequest asociado al contrato
+            match_request = MatchRequest.objects.filter(
+                property=landlord_contract.property
+            ).first()
+
+            if not match_request:
+                logger.warning(f"⚠️ No se encontró MatchRequest para bloquear documentos del contrato {landlord_contract.id}")
+                return
+
+            # Bloquear todos los documentos del arrendatario asociados a este match
+            documents = TenantDocument.objects.filter(
+                match_request=match_request,
+                is_locked=False  # Solo los que aún no están bloqueados
+            )
+
+            documents_count = documents.count()
+            if documents_count == 0:
+                logger.info(f"ℹ️ No hay documentos por bloquear para el contrato {landlord_contract.id}")
+                return
+
+            # Bloquear cada documento
+            for document in documents:
+                document.is_locked = True
+                document.locked_at = timezone.now()
+                document.locked_by = user
+                document.locked_reason = 'biometric_complete'
+                document.save(update_fields=['is_locked', 'locked_at', 'locked_by', 'locked_reason'])
+
+            logger.info(f"🔒 {documents_count} documentos bloqueados permanentemente para contrato {landlord_contract.id}")
+
+            # Registrar en auditoría del contrato
+            if hasattr(landlord_contract, 'add_workflow_event'):
+                landlord_contract.add_workflow_event(
+                    event_type='DOCUMENTS_LOCKED_POST_BIOMETRIC',
+                    user=user,
+                    details={
+                        'documents_locked': documents_count,
+                        'lock_reason': 'biometric_complete',
+                        'locked_at': timezone.now().isoformat()
+                    }
+                )
+
+        except ImportError as import_error:
+            logger.warning(f"⚠️ Módulo de documentos no disponible: {import_error}")
+        except Exception as e:
+            logger.error(f"❌ Error al bloquear documentos del arrendatario: {e}")
+            # No fallar el proceso principal
 
 
 # Instancia global del servicio

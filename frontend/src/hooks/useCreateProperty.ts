@@ -36,10 +36,10 @@ export const useCreateProperty = () => {
         console.warn('⚠️ useCreateProperty: queryClient no disponible para invalidar caché');
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('❌ useCreateProperty: Error en mutation:', error);
       console.error('   Error details:', error.message);
       console.error('   Error response:', error.response?.data);
-    }
+    },
   });
 };

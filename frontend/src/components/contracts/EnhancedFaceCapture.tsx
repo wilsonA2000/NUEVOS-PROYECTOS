@@ -10,13 +10,13 @@ import {
   Paper,
   Button,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   ArrowForward as ArrowForwardIcon,
   PhotoCamera as PhotoCameraIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import SimpleProfessionalCamera from './SimpleProfessionalCamera';
 
@@ -37,7 +37,7 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
   totalSteps = 4,
   stepName = 'Captura Facial',
   onCancel,
-  loading = false
+  loading = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -47,7 +47,7 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
       height: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      bgcolor: 'grey.50'
+      bgcolor: 'grey.50',
     }}>
       {/* Header con contexto */}
       <Paper elevation={1} sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
@@ -97,12 +97,12 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
         flexDirection: 'column',
         alignItems: 'center', // Centrar horizontalmente
         p: 1,
-        height: '320px'
+        height: '320px',
       }}>
         <Box sx={{ 
           width: '100%',
           maxWidth: '400px', // Ancho máximo del área de cámara
-          height: '100%'
+          height: '100%',
         }}>
           <SimpleProfessionalCamera
             onCapture={onCapture}
@@ -116,7 +116,7 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
       <Paper elevation={2} sx={{ 
         borderRadius: '12px 12px 0 0',
         p: 2,
-        bgcolor: 'background.paper'
+        bgcolor: 'background.paper',
       }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box>

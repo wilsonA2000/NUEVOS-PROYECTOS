@@ -105,6 +105,7 @@ const GUARANTEE_TYPE_LABELS: Record<GuarantorType, string> = {
   'insurance': 'Póliza de Seguros',
   'deposit': 'Depósito en Efectivo',
   'mixed': 'Garantía Mixta',
+  'bank': 'Garantía Bancaria',
 };
 
 const GUARANTEE_TYPE_ICONS: Record<GuarantorType, React.ReactNode> = {
@@ -113,6 +114,7 @@ const GUARANTEE_TYPE_ICONS: Record<GuarantorType, React.ReactNode> = {
   'insurance': <SecurityIcon />,
   'deposit': <MoneyIcon />,
   'mixed': <AssessmentIcon />,
+  'bank': <BankIcon />,
 };
 
 const GUARANTEE_STATUS_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
@@ -172,7 +174,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
       const contractGuarantees = await LandlordContractService.getContractGuarantees(contract.id);
       setGuarantees(contractGuarantees);
     } catch (err: any) {
-      setError('Error al cargar garantías: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar garantías: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -257,10 +259,10 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
           // Actualizar garantía existente
           const updatedGuarantee = await LandlordContractService.updateGuarantee(
             selectedGuarantee.id,
-            values
+            values,
           );
           setGuarantees(prev =>
-            prev.map(g => g.id === updatedGuarantee.id ? updatedGuarantee : g)
+            prev.map(g => g.id === updatedGuarantee.id ? updatedGuarantee : g),
           );
           setSuccess('Garantía actualizada exitosamente');
           setEditGuaranteeDialog(false);
@@ -269,7 +271,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
           // Crear nueva garantía
           const newGuarantee = await LandlordContractService.createGuarantee(
             contract.id,
-            values
+            values,
           );
           setGuarantees(prev => [...prev, newGuarantee]);
           setSuccess('Garantía creada exitosamente');
@@ -279,7 +281,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
         guaranteeFormik.resetForm();
         setSelectedGuarantee(null);
       } catch (err: any) {
-        setError('Error al guardar garantía: ' + (err.message || 'Error desconocido'));
+        setError(`Error al guardar garantía: ${  err.message || 'Error desconocido'}`);
       } finally {
         setLoading(false);
       }
@@ -291,15 +293,15 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
       setLoading(true);
       const verifiedGuarantee = await LandlordContractService.verifyGuarantee(
         guaranteeId,
-        notes
+        notes,
       );
       setGuarantees(prev =>
-        prev.map(g => g.id === verifiedGuarantee.id ? verifiedGuarantee : g)
+        prev.map(g => g.id === verifiedGuarantee.id ? verifiedGuarantee : g),
       );
       setSuccess('Garantía verificada exitosamente');
       onGuaranteeUpdated?.(verifiedGuarantee);
     } catch (err: any) {
-      setError('Error al verificar garantía: ' + (err.message || 'Error desconocido'));
+      setError(`Error al verificar garantía: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -485,14 +487,14 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 sx={{
-                  borderLeft: `4px solid`,
+                  borderLeft: '4px solid',
                   borderLeftColor: `${GUARANTEE_STATUS_COLORS[guarantee.status]}.main`,
                 }}
               >
                 <Box display="flex" alignItems="center" sx={{ width: '100%' }}>
                   <Avatar sx={{ 
                     bgcolor: `${GUARANTEE_STATUS_COLORS[guarantee.status]}.main`,
-                    mr: 2
+                    mr: 2,
                   }}>
                     {GUARANTEE_TYPE_ICONS[guarantee.guarantee_type]}
                   </Avatar>
@@ -689,12 +691,12 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
                         )}
                       </Box>
 
-                      {guarantee.documents && guarantee.documents.length > 0 ? (
+                      {guarantee.documents && (guarantee.documents as any).length > 0 ? (
                         <List dense>
-                          {guarantee.documents.map((doc, index) => (
+                          {(guarantee.documents as any[]).map((doc: any, index: number) => (
                             <ListItem key={index} divider>
                               <ListItemIcon>
-                                <DocumentIcon color={doc.verified ? 'success' : 'default'} />
+                                <DocumentIcon color={((doc as any).verified ? 'success' : 'default') as any} />
                               </ListItemIcon>
                               <ListItemText
                                 primary={doc.file_name}
@@ -702,7 +704,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
                                   <>
                                     <Typography variant="caption" color="text.secondary">
                                       {DOCUMENT_TYPE_LABELS[doc.document_type]} - {' '}
-                                      {format(new Date(doc.uploaded_at), 'PPP', { locale: es })}
+                                      {new Date(doc.uploaded_at).toLocaleDateString('es-ES')}
                                     </Typography>
                                     {doc.description && (
                                       <Typography variant="caption" sx={{ display: 'block' }}>
@@ -714,7 +716,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
                               />
                               <ListItemSecondaryAction>
                                 <Box display="flex" gap={1}>
-                                  <IconButton size="small" onClick={() => window.open(doc.file_url, '_blank')}>
+                                  <IconButton size="small" onClick={() => window.open((doc as any).file_url || '', '_blank')}>
                                     <DownloadIcon />
                                   </IconButton>
                                   {doc.verified && (
@@ -1085,7 +1087,7 @@ export const ContractGuaranteesManager: React.FC<ContractGuaranteesManagerProps>
             Cancelar
           </Button>
           <LoadingButton
-            onClick={guaranteeFormik.handleSubmit}
+            onClick={(e: any) => guaranteeFormik.handleSubmit(e)}
             loading={loading}
             variant="contained"
             startIcon={selectedGuarantee ? <EditIcon /> : <AddIcon />}

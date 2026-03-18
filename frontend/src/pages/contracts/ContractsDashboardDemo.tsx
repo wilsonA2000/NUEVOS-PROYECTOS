@@ -41,7 +41,7 @@ import {
   TrendingUp as AnalyticsIcon,
   Security as SecurityIcon,
   Email as EmailIcon,
-  Mobile as MobileIcon,
+  Smartphone as MobileIcon,
   CloudDownload as DownloadIcon,
 } from '@mui/icons-material';
 
@@ -72,43 +72,43 @@ const ContractsDashboardDemo: React.FC = () => {
       description: 'Vista consolidada que funciona para ambos roles con adaptación automática',
       icon: <DashboardIcon />,
       color: 'primary',
-      implemented: true
+      implemented: true,
     },
     {
       title: 'Dashboard Especializado Arrendador',
       description: 'Vista avanzada con métricas financieras, análisis y gestión masiva de contratos',
       icon: <LandlordIcon />,
       color: 'success',
-      implemented: true
+      implemented: true,
     },
     {
       title: 'Dashboard Especializado Arrendatario',
       description: 'Vista optimizada con guías paso a paso y acciones pendientes prioritarias',
       icon: <TenantIcon />,
       color: 'info',
-      implemented: true
+      implemented: true,
     },
     {
       title: 'Sistema de Invitaciones Seguras',
       description: 'Tokens únicos, múltiples métodos de envío y landing pages personalizadas',
       icon: <EmailIcon />,
       color: 'warning',
-      implemented: true
+      implemented: true,
     },
     {
       title: 'Análisis y Estadísticas',
       description: 'Métricas en tiempo real, tendencias y reportes financieros avanzados',
       icon: <AnalyticsIcon />,
       color: 'primary',
-      implemented: true
+      implemented: true,
     },
     {
       title: 'Gestión de Estados Avanzada',
       description: 'Workflow completo con seguimiento de progreso y acciones contextuales',
       icon: <ContractIcon />,
       color: 'success',
-      implemented: true
-    }
+      implemented: true,
+    },
   ];
 
   // Funcionalidades técnicas destacadas
@@ -122,7 +122,7 @@ const ContractsDashboardDemo: React.FC = () => {
     'Carga lazy de componentes para mejor rendimiento',
     'Protección de rutas basada en roles',
     'Manejo de errores contextual por módulo',
-    'Internacionalización preparada (ES/EN)'
+    'Internacionalización preparada (ES/EN)',
   ];
 
   const handleRoleChange = (event: React.MouseEvent<HTMLElement>, newRole: DemoRole) => {
@@ -323,7 +323,7 @@ const ContractsDashboardDemo: React.FC = () => {
               top: 0,
               right: 0,
               zIndex: 10,
-              p: 1
+              p: 1,
             }}
           >
             <Chip

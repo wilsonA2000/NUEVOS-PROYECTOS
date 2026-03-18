@@ -64,7 +64,7 @@ interface ContractClausesEditorProps {
 
 const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   contractId,
-  onClausesChange
+  onClausesChange,
 }) => {
   const [clauses, setClauses] = useState<Clause[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,7 +75,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   // Form data
   const [formData, setFormData] = useState({
     title: '',
-    content: ''
+    content: '',
   });
 
   const [errors, setErrors] = useState<{title?: string, content?: string}>({});
@@ -91,7 +91,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       if (response.ok) {
@@ -119,7 +119,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
     setEditingClause(clause);
     setFormData({
       title: clause.title,
-      content: clause.content
+      content: clause.content,
     });
     setErrors({});
     setDialogOpen(true);
@@ -137,8 +137,8 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          }
-        }
+          },
+        },
       );
 
       if (response.ok) {
@@ -183,7 +183,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -213,7 +213,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
       '', 'PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 
       'SEXTA', 'SÉPTIMA', 'OCTAVA', 'NOVENA', 'DÉCIMA',
       'UNDÉCIMA', 'DUODÉCIMA', 'DECIMOTERCERA', 'DECIMOCUARTA', 'DECIMOQUINTA',
-      'DECIMOSEXTA', 'DECIMOSÉPTIMA', 'DECIMOCTAVA', 'DECIMONOVENA', 'VIGÉSIMA'
+      'DECIMOSEXTA', 'DECIMOSÉPTIMA', 'DECIMOCTAVA', 'DECIMONOVENA', 'VIGÉSIMA',
     ];
     
     return number <= ordinales.length ? ordinales[number] : `CLÁUSULA ${number}`;

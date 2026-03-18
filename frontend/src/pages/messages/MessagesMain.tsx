@@ -80,7 +80,7 @@ const MessagesMain: React.FC = () => {
     unreadCount, 
     messagingStats,
     isLoading,
-    error
+    error,
   } = useMessages();
 
   // Asegurar que los datos sean arrays
@@ -118,7 +118,7 @@ const MessagesMain: React.FC = () => {
     
     if (folderId) {
       return messagesArray.filter((msg: any) => 
-        msg.folder_id === folderId && !msg.read
+        msg.folder_id === folderId && !msg.read,
       ).length;
     }
     

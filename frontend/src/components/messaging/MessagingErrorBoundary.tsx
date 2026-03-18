@@ -155,8 +155,8 @@ const MessagingErrorBoundary: React.FC<MessagingErrorBoundaryProps> = ({ childre
               0: 'CONNECTING',
               1: 'OPEN', 
               2: 'CLOSING',
-              3: 'CLOSED'
-            }
+              3: 'CLOSED',
+            },
           });
         }
       }}

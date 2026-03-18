@@ -19,6 +19,7 @@ import {
   BugReport as BugIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
+import { Translation } from 'react-i18next';
 
 interface Props {
   children: ReactNode;
@@ -77,15 +78,24 @@ export class ErrorBoundary extends Component<Props, State> {
     };
 
     // Log to console for development
-    console.group('🚨 Error Boundary Report');
+    console.group('Error Boundary Report');
     console.error('Error:', error);
     console.error('Module:', this.props.module);
     console.error('Component Stack:', errorInfo.componentStack);
     console.error('Full Report:', errorReport);
     console.groupEnd();
 
-    // TODO: Send to external monitoring service
-    // Example: Sentry.captureException(error, { extra: errorReport });
+    // Send to Sentry if available
+    try {
+      const { captureException } = require('../services/sentryService');
+      captureException(error, {
+        module: this.props.module || 'unknown',
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+      });
+    } catch {
+      // sentryService not available - no-op
+    }
   };
 
   private handleRetry = () => {
@@ -109,89 +119,95 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <Box
-          sx={{
-            p: 3,
-            maxWidth: 800,
-            mx: 'auto',
-            mt: 4,
-          }}
-        >
-          <Paper elevation={2} sx={{ p: 4 }}>
-            <Alert severity="error" sx={{ mb: 3 }}>
-              <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BugIcon />
-                Algo salió mal
-              </AlertTitle>
-              {this.props.module && (
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Error en el módulo: <strong>{this.props.module}</strong>
-                </Typography>
-              )}
-            </Alert>
-
-            <Typography variant="h6" gutterBottom>
-              Se ha producido un error inesperado
-            </Typography>
-
-            <Typography variant="body1" color="text.secondary" paragraph>
-              Esto puede ser temporal. Intenta recargar la página o volver al inicio.
-            </Typography>
-
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" color="error" gutterBottom>
-                  Detalles del Error (Desarrollo):
-                </Typography>
-                <Box
-                  component="pre"
-                  sx={{
-                    backgroundColor: 'grey.100',
-                    p: 2,
-                    borderRadius: 1,
-                    overflow: 'auto',
-                    fontSize: '0.875rem',
-                    maxHeight: 200,
-                  }}
-                >
-                  {this.state.error.message}
-                  {this.state.error.stack && (
-                    <>
-                      {'\n\nStack Trace:\n'}
-                      {this.state.error.stack}
-                    </>
+        <Translation ns="common">
+          {(t) => (
+            <Box
+              sx={{
+                p: 3,
+                maxWidth: 800,
+                mx: 'auto',
+                mt: 4,
+              }}
+            >
+              <Paper elevation={2} sx={{ p: 4 }}>
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <BugIcon />
+                    {t('errors.somethingWentWrong')}
+                  </AlertTitle>
+                  {this.props.module && (
+                    <Typography variant="body2" sx={{ mt: 1 }}
+                      dangerouslySetInnerHTML={{
+                        __html: t('errors.errorInModule', { module: this.props.module }),
+                      }}
+                    />
                   )}
+                </Alert>
+
+                <Typography variant="h6" gutterBottom>
+                  {t('errors.unexpectedError')}
+                </Typography>
+
+                <Typography variant="body1" color="text.secondary" paragraph>
+                  {t('errors.tryReload')}
+                </Typography>
+
+                {process.env.NODE_ENV === 'development' && this.state.error && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="subtitle2" color="error" gutterBottom>
+                      {t('errors.devDetails')}
+                    </Typography>
+                    <Box
+                      component="pre"
+                      sx={{
+                        backgroundColor: 'grey.100',
+                        p: 2,
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        fontSize: '0.875rem',
+                        maxHeight: 200,
+                      }}
+                    >
+                      {this.state.error.message}
+                      {this.state.error.stack && (
+                        <>
+                          {'\n\nStack Trace:\n'}
+                          {this.state.error.stack}
+                        </>
+                      )}
+                    </Box>
+                  </>
+                )}
+
+                <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<RefreshIcon />}
+                    onClick={this.handleRetry}
+                  >
+                    {t('actions.tryAgain')}
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    startIcon={<HomeIcon />}
+                    onClick={this.handleGoHome}
+                  >
+                    {t('actions.goHome')}
+                  </Button>
+
+                  <Button
+                    variant="text"
+                    onClick={this.handleReload}
+                  >
+                    {t('actions.reloadPage')}
+                  </Button>
                 </Box>
-              </>
-            )}
-
-            <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                startIcon={<RefreshIcon />}
-                onClick={this.handleRetry}
-              >
-                Intentar de nuevo
-              </Button>
-
-              <Button
-                variant="outlined"
-                startIcon={<HomeIcon />}
-                onClick={this.handleGoHome}
-              >
-                Ir al inicio
-              </Button>
-
-              <Button
-                variant="text"
-                onClick={this.handleReload}
-              >
-                Recargar página
-              </Button>
+              </Paper>
             </Box>
-          </Paper>
-        </Box>
+          )}
+        </Translation>
       );
     }
 

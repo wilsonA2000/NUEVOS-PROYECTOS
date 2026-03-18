@@ -1,5 +1,6 @@
 import React from 'react';
 import { CircularProgress, Box } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -12,8 +13,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 40,
   color = 'primary',
   fullScreen = false,
-  message
+  message,
 }) => {
+  const { t } = useTranslation('common');
+  const displayMessage = message ?? t('common.loading');
   const content = (
     <Box
       display="flex"
@@ -23,9 +26,9 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       gap={2}
     >
       <CircularProgress size={size} color={color} />
-      {message && (
+      {displayMessage && (
         <Box component="span" sx={{ color: 'text.secondary' }}>
-          {message}
+          {displayMessage}
         </Box>
       )}
     </Box>
@@ -44,7 +47,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          zIndex: 9999
+          zIndex: 9999,
         }}
       >
         {content}

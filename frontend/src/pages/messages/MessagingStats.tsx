@@ -30,12 +30,12 @@ const MessagingStats: React.FC = () => {
     threads, 
     conversations, 
     messagingStats, 
-    unreadCount 
+    unreadCount, 
   } = useMessages();
 
-  const messagesArray = ensureArray(messages);
-  const threadsArray = ensureArray(threads);
-  const conversationsArray = ensureArray(conversations);
+  const messagesArray = ensureArray((messages as any)?.results || messages);
+  const threadsArray = ensureArray((threads as any)?.results || threads);
+  const conversationsArray = ensureArray((conversations as any)?.results || conversations);
 
   // Calcular estadísticas básicas
   const totalMessages = messagesArray.length;
@@ -207,7 +207,7 @@ const MessagingStats: React.FC = () => {
                   <React.Fragment key={message.id || index}>
                     <ListItem>
                       <ListItemIcon>
-                        <EmailIcon color={message.read ? "disabled" : "primary"} />
+                        <EmailIcon color={message.read ? 'disabled' : 'primary'} />
                       </ListItemIcon>
                       <ListItemText
                         primary={message.subject || 'Sin asunto'}

@@ -8,7 +8,6 @@ export const userService = {
       const response = await api.patch<User>('/users/profile/', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error updating profile:', error);
       throw error;
     }
   },
@@ -18,11 +17,10 @@ export const userService = {
       const formData = new FormData();
       formData.append('avatar', file);
       const response = await api.post<{ avatar_url: string }>('/users/avatar/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data;
     } catch (error: any) {
-      console.error('Error uploading avatar:', error);
       throw error;
     }
   },
@@ -33,7 +31,6 @@ export const userService = {
       const response = await api.get<UserResume>('/users/resume/');
       return response.data;
     } catch (error: any) {
-      console.error('Error getting resume:', error);
       throw error;
     }
   },
@@ -43,7 +40,6 @@ export const userService = {
       const response = await api.put<UserResume>('/users/resume/', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error updating resume:', error);
       throw error;
     }
   },
@@ -53,7 +49,6 @@ export const userService = {
       const response = await api.post<UserResume>('/users/resume/', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating resume:', error);
       throw error;
     }
   },
@@ -64,7 +59,6 @@ export const userService = {
       const response = await api.get<UserSettings>('/users/settings/');
       return response.data;
     } catch (error: any) {
-      console.error('Error getting settings:', error);
       throw error;
     }
   },
@@ -74,7 +68,6 @@ export const userService = {
       const response = await api.put<UserSettings>('/users/settings/', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error updating settings:', error);
       throw error;
     }
   },
@@ -85,7 +78,6 @@ export const userService = {
       const response = await api.post('/users/verify-interview-code/', { code, email });
       return response.data;
     } catch (error: any) {
-      console.error('Error verifying interview code:', error);
       throw error;
     }
   },
@@ -104,8 +96,7 @@ export const userService = {
       const response = await api.post<User>('/users/register/', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error registering user:', error);
       throw error;
     }
-  }
+  },
 }; 

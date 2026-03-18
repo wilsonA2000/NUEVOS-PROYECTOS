@@ -75,7 +75,7 @@ class LoggingService {
       userId,
       sessionId: this.sessionId,
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     });
   }
 
@@ -87,7 +87,7 @@ class LoggingService {
     category: LogCategory,
     message: string,
     details?: Record<string, any>,
-    component?: string
+    component?: string,
   ): void {
     if (!this.isEnabled) return;
 
@@ -103,7 +103,7 @@ class LoggingService {
       userAgent: navigator.userAgent,
       url: window.location.href,
       component,
-      metadata: this.getContextMetadata()
+      metadata: this.getContextMetadata(),
     };
 
     // Agregar a logs locales
@@ -146,8 +146,8 @@ class LoggingService {
       ...(error && {
         errorName: error.name,
         errorMessage: error.message,
-        stack: error.stack
-      })
+        stack: error.stack,
+      }),
     };
 
     this.log(LogLevel.ERROR, category, message, logDetails, component);
@@ -172,8 +172,8 @@ class LoggingService {
         description: activityData.description,
         success: activityData.success ?? true,
         duration: activityData.duration,
-        metadata: activityData.metadata
-      }
+        metadata: activityData.metadata,
+      },
     );
 
     // Enviar al backend para auditoría (con manejo mejorado de errores)
@@ -199,8 +199,8 @@ class LoggingService {
       {
         operation,
         duration,
-        ...metadata
-      }
+        ...metadata,
+      },
     );
 
     // Integrar con performanceMonitor existente
@@ -215,7 +215,7 @@ class LoggingService {
       LogLevel.WARN,
       LogCategory.SECURITY,
       `Security event: ${event}`,
-      details
+      details,
     );
 
     // Envío inmediato para eventos de seguridad
@@ -273,8 +273,8 @@ class LoggingService {
           log.category,
           `"${log.message.replace(/"/g, '""')}"`,
           log.component || '',
-          log.userId || ''
-        ].join(','))
+          log.userId || '',
+        ].join(',')),
       ].join('\n');
       return csv;
     }
@@ -310,7 +310,7 @@ class LoggingService {
       logsByLevel,
       logsByCategory,
       recentErrors,
-      performanceMetrics: performanceMonitor.getPerformanceReport()
+      performanceMetrics: performanceMonitor.getPerformanceReport(),
     };
   }
 
@@ -387,16 +387,16 @@ class LoggingService {
     return {
       viewport: {
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       },
       connection: (navigator as any).connection ? {
         effectiveType: (navigator as any).connection.effectiveType,
-        downlink: (navigator as any).connection.downlink
+        downlink: (navigator as any).connection.downlink,
       } : undefined,
       memory: (performance as any).memory ? {
         usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize
-      } : undefined
+        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
+      } : undefined,
     };
   }
 
@@ -418,10 +418,10 @@ class LoggingService {
           message: event.message,
           filename: event.filename,
           lineno: event.lineno,
-          colno: event.colno
+          colno: event.colno,
         },
         undefined,
-        event.error
+        event.error,
       );
     });
 
@@ -431,8 +431,8 @@ class LoggingService {
         LogCategory.SYSTEM,
         'Unhandled promise rejection',
         {
-          reason: event.reason
-        }
+          reason: event.reason,
+        },
       );
     });
   }
@@ -446,7 +446,7 @@ class LoggingService {
             if (entry.entryType === 'navigation') {
               this.logPerformance('page_load', entry.duration, {
                 entryType: entry.entryType,
-                loadEventEnd: (entry as PerformanceNavigationTiming).loadEventEnd
+                loadEventEnd: (entry as PerformanceNavigationTiming).loadEventEnd,
               });
             }
           });
@@ -481,7 +481,7 @@ class LoggingService {
     try {
       await api.post('/core/activity-logs/bulk/', {
         logs: logsToSend,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
       
       // Si el envío fue exitoso, marcar backend como disponible
@@ -526,7 +526,7 @@ class LoggingService {
       // Hacer una petición ligera al backend
       const response = await fetch('/api/v1/users/auth/login/', {
         method: 'HEAD',
-        timeout: 3000 // 3 segundos timeout
+        timeout: 3000, // 3 segundos timeout
       } as any);
       
       this.isBackendAvailable = response.status !== 0; // 0 significa no hay conexión
@@ -565,11 +565,11 @@ class LoggingService {
           success: activityData.success,
           duration: activityData.duration,
           category: activityData.category,
-          sessionId: this.sessionId
+          sessionId: this.sessionId,
         },
         ip_address: null, // Se obtiene en el backend
         user_agent: navigator.userAgent,
-        performed_by_admin: false
+        performed_by_admin: false,
       });
       
       // Si el envío fue exitoso, marcar backend como disponible
@@ -632,7 +632,7 @@ export const useLogging = (component: string) => {
     warn,
     error,
     logActivity,
-    logPerformance
+    logPerformance,
   };
 };
 

@@ -26,4 +26,11 @@ urlpatterns = [
     # Estadísticas generales
     path('stats/dashboard/', api_views.DashboardStatsAPIView.as_view(), name='api_dashboard_stats'),
     path('stats/overview/', api_views.SystemOverviewAPIView.as_view(), name='api_system_overview'),
-] 
+
+    # Mantenimiento del sistema (admin only)
+    path('maintenance/health/', api_views.maintenance_health_check, name='maintenance_health'),
+    path('maintenance/clear-logs/', api_views.maintenance_clear_logs, name='maintenance_clear_logs'),
+    path('maintenance/clear-cache/', api_views.maintenance_clear_cache, name='maintenance_clear_cache'),
+    path('maintenance/clear-sessions/', api_views.maintenance_clear_sessions, name='maintenance_clear_sessions'),
+    path('maintenance/optimize-db/', api_views.maintenance_optimize_db, name='maintenance_optimize_db'),
+]

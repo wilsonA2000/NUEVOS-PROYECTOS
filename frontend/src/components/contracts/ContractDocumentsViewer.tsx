@@ -22,7 +22,7 @@ import {
   Alert,
   Tooltip,
   Badge,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   Description as DocumentIcon,
@@ -37,7 +37,7 @@ import {
   Folder as FolderIcon,
   Close as CloseIcon,
   PictureAsPdf as PdfIcon,
-  CalendarToday as DateIcon
+  CalendarToday as DateIcon,
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../../config/api';
 
@@ -65,7 +65,7 @@ interface ContractDocumentsViewerProps {
 const ContractDocumentsViewer: React.FC<ContractDocumentsViewerProps> = ({
   contractId,
   contractStatus,
-  showTitle = true
+  showTitle = true,
 }) => {
   const [documents, setDocuments] = useState<TenantDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,14 +144,14 @@ const ContractDocumentsViewer: React.FC<ContractDocumentsViewerProps> = ({
 
   const categorizeDocuments = () => {
     const tomador = documents.filter(d => 
-      d.document_type.startsWith('tomador_') && !d.document_type.includes('legacy')
+      d.document_type.startsWith('tomador_') && !d.document_type.includes('legacy'),
     );
     const codeudor = documents.filter(d => 
-      d.document_type.startsWith('codeudor_') && !d.document_type.includes('legacy')
+      d.document_type.startsWith('codeudor_') && !d.document_type.includes('legacy'),
     );
     const otros = documents.filter(d => 
       d.document_type === 'otros' || 
-      (!d.document_type.startsWith('tomador_') && !d.document_type.startsWith('codeudor_'))
+      (!d.document_type.startsWith('tomador_') && !d.document_type.startsWith('codeudor_')),
     );
 
     return { tomador, codeudor, otros };

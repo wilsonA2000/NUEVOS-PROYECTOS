@@ -237,7 +237,7 @@ export const LandlordContractTemplate: React.FC<LandlordContractTemplateProps> =
     setExpandedSections(prev =>
       prev.includes(section)
         ? prev.filter(s => s !== section)
-        : [...prev, section]
+        : [...prev, section],
     );
   };
 

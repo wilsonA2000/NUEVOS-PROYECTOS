@@ -50,10 +50,10 @@ const GlobalSearch: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const { data: properties } = useProperties();
-  const { data: contracts } = useContracts();
-  const { data: payments } = usePayments();
-  const { data: messages } = useMessages();
+  const { properties } = useProperties();
+  const { contracts } = useContracts();
+  const { transactions: payments } = usePayments();
+  const { messages: messagesData } = useMessages();
 
   useEffect(() => {
     if (searchTerm.length < 2) {
@@ -66,7 +66,7 @@ const GlobalSearch: React.FC = () => {
     const searchResults: SearchResult[] = [];
 
     // Search in properties
-    properties?.forEach((property) => {
+    (properties as any)?.forEach((property: any) => {
       if (
         property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,15 +82,15 @@ const GlobalSearch: React.FC = () => {
     });
 
     // Search in contracts
-    contracts?.forEach((contract) => {
+    (contracts as any)?.forEach((contract: any) => {
       if (
-        contract.property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contract.tenantName.toLowerCase().includes(searchTerm.toLowerCase())
+        contract.property?.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contract.tenant_name?.toLowerCase().includes(searchTerm.toLowerCase())
       ) {
         searchResults.push({
           id: contract.id,
           type: 'contract',
-          title: `${contract.property.address} - ${contract.tenantName}`,
+          title: `${contract.property?.address || 'N/A'} - ${contract.tenant_name || 'N/A'}`,
           subtitle: 'Contrato',
           icon: <ContractIcon />,
         });
@@ -114,16 +114,15 @@ const GlobalSearch: React.FC = () => {
     });
 
     // Search in messages
-    messages?.forEach((message) => {
+    messagesData?.results?.forEach((message: any) => {
       if (
         message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        message.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        message.receiverName.toLowerCase().includes(searchTerm.toLowerCase())
+        message.sender_name?.toLowerCase().includes(searchTerm.toLowerCase())
       ) {
         searchResults.push({
           id: message.id,
           type: 'message',
-          title: `${message.senderName} - ${message.receiverName}`,
+          title: `${message.sender_name || 'Unknown'} - ${message.content.substring(0, 50)}`,
           subtitle: 'Mensaje',
           icon: <MessageIcon />,
         });
@@ -132,7 +131,7 @@ const GlobalSearch: React.FC = () => {
 
     setResults(searchResults);
     setIsLoading(false);
-  }, [searchTerm, properties, contracts, payments, messages]);
+  }, [searchTerm, properties, contracts, payments, messagesData]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);

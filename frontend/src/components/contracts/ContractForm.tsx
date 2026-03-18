@@ -34,13 +34,13 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   contract, 
   isEdit = false, 
   propertyId, 
-  tenantId 
+  tenantId, 
 }) => {
   const navigate = useNavigate();
   const { createContract, updateContract } = useContracts();
   const [useProfessionalMode, setUseProfessionalMode] = React.useState(true);
   const [formData, setFormData] = React.useState<CreateContractDto | UpdateContractDto>(
-    contract || {
+    (contract as any) || {
       contract_type: 'rental_urban',
       secondary_party: '',
       title: '',
@@ -52,10 +52,10 @@ export const ContractForm: React.FC<ContractFormProps> = ({
       security_deposit: 0,
       property: '',
       is_renewable: true,
-    }
+    } as CreateContractDto,
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -80,9 +80,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   // Show landlord contract form by default (new system)
   if (useProfessionalMode) {
     return (
-      <LandlordContractForm 
-        contract={contract}
-        isEdit={isEdit}
+      <LandlordContractForm
         propertyId={propertyId}
         contractId={contract?.id}
         onSuccess={() => navigate('/app/contracts')}
@@ -140,7 +138,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
                 <Select
                   name="contract_type"
                   value={formData.contract_type}
-                  onChange={handleChange}
+                  onChange={(e: any) => handleChange(e)}
                   label="Tipo de Contrato"
                 >
                   <MenuItem value="rental_urban">Arrendamiento de Vivienda Urbana</MenuItem>

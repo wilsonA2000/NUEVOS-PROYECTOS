@@ -41,6 +41,7 @@ export interface User {
   is_verified: boolean;
   verification_date?: string;
   is_superuser?: boolean;
+  is_staff?: boolean;
   created_at: string;
   updated_at: string;
   // Legacy fields for backward compatibility
@@ -49,6 +50,9 @@ export interface User {
   firstName?: string;
   lastName?: string;
   bio?: string;
+  // Documento de identidad (cédula, NIT, etc.)
+  document_type?: 'CC' | 'CE' | 'NIT' | 'TI' | 'PP';
+  document_number?: string;
 }
 
 export interface LoginDto {
@@ -103,6 +107,20 @@ export interface RegisterDto {
   marketing_consent?: boolean;
   terms_accepted?: boolean;
   privacy_policy_accepted?: boolean;
+  // Tenant-specific fields
+  occupants_count?: number;
+  reason_for_moving?: string;
+  location_preferences?: string;
+  // Landlord-specific fields
+  landlord_type?: string;
+  has_property_management?: boolean;
+  accepts_pets?: boolean;
+  // Service provider-specific fields
+  provider_type?: string;
+  service_availability?: string;
+  has_insurance?: boolean;
+  provides_equipment?: boolean;
+  coverage_area?: string;
 }
 
 export interface UpdateProfileDto {

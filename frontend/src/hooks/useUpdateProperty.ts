@@ -50,6 +50,6 @@ export const useUpdateProperty = () => {
       console.error('❌ useUpdateProperty: Error en mutation:', error);
       console.error('   Error details:', error.message);
       console.error('   Error response:', error.response?.data);
-    }
+    },
   });
 };

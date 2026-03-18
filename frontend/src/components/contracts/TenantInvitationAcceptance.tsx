@@ -182,16 +182,16 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
       // Obtener información de la invitación
       const invitationData = await LandlordContractService.getContractInvitationInfo(invitationToken);
-      setInvitationInfo(invitationData);
+      setInvitationInfo(invitationData as InvitationInfo);
 
       // Cargar contrato completo
       const contractData = await LandlordContractService.getTenantContract(invitationData.contract_id);
-      setContract(contractData);
+      setContract(contractData as any);
 
       setCurrentStep(1);
 
     } catch (error: any) {
-      onError('Error al verificar invitación: ' + (error.message || 'Error desconocido'));
+      onError(`Error al verificar invitación: ${  error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -240,7 +240,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
     // Validar que al menos tenga una referencia completa
     const validReferences = tenantData.references.filter(
-      ref => ref.name.trim() && ref.phone.trim()
+      ref => ref.name.trim() && ref.phone.trim(),
     );
     if (validReferences.length === 0) {
       errors.push('Debe proporcionar al menos una referencia personal');
@@ -263,7 +263,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       setCurrentStep(2);
 
     } catch (error: any) {
-      onError('Error al aceptar invitación: ' + (error.message || 'Error desconocido'));
+      onError(`Error al aceptar invitación: ${  error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -282,14 +282,14 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
       const payload: CompleteTenantDataPayload = {
         contract_id: contract!.id!,
-        tenant_data: tenantData,
+        tenant_data: tenantData as any,
       };
 
       const updatedContract = await LandlordContractService.completeTenantData(payload);
       onAcceptComplete(updatedContract);
 
     } catch (error: any) {
-      onError('Error al completar datos: ' + (error.message || 'Error desconocido'));
+      onError(`Error al completar datos: ${  error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -346,7 +346,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                   <Typography variant="body1" color="warning.main">
                     {formatDistanceToNow(new Date(invitationInfo.invitation_expires_at), { 
                       addSuffix: true, 
-                      locale: es 
+                      locale: es, 
                     })}
                   </Typography>
                 </Grid>

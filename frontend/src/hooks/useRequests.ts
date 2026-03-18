@@ -9,7 +9,7 @@ import requestService, {
   CreatePropertyInterestData,
   CreateServiceRequestData,
   CreateMaintenanceRequestData,
-  RequestActionData 
+  RequestActionData, 
 } from '../services/requestService';
 
 export const useRequests = () => {
@@ -19,7 +19,7 @@ export const useRequests = () => {
     data: requests = [],
     isLoading: requestsLoading,
     error: requestsError,
-    refetch: refetchRequests
+    refetch: refetchRequests,
   } = useQuery({
     queryKey: ['requests'],
     queryFn: async () => {
@@ -32,7 +32,7 @@ export const useRequests = () => {
   const {
     data: sentRequests = [],
     isLoading: sentRequestsLoading,
-    refetch: refetchSentRequests
+    refetch: refetchSentRequests,
   } = useQuery({
     queryKey: ['requests', 'sent'],
     queryFn: async () => {
@@ -45,7 +45,7 @@ export const useRequests = () => {
   const {
     data: receivedRequests = [],
     isLoading: receivedRequestsLoading,
-    refetch: refetchReceivedRequests
+    refetch: refetchReceivedRequests,
   } = useQuery({
     queryKey: ['requests', 'received'],
     queryFn: async () => {
@@ -58,7 +58,7 @@ export const useRequests = () => {
   const {
     data: stats,
     isLoading: statsLoading,
-    refetch: refetchStats
+    refetch: refetchStats,
   } = useQuery({
     queryKey: ['requests', 'stats'],
     queryFn: async () => {
@@ -82,7 +82,7 @@ export const useRequests = () => {
     stats,
     isLoading: requestsLoading || sentRequestsLoading || receivedRequestsLoading || statsLoading,
     error: requestsError,
-    refetch: refetchAll
+    refetch: refetchAll,
   };
 };
 
@@ -93,7 +93,7 @@ export const usePropertyInterestRequests = () => {
     data: propertyInterests = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', 'property-interest'],
     queryFn: async () => {
@@ -120,7 +120,7 @@ export const usePropertyInterestRequests = () => {
     error,
     refetch,
     createPropertyInterest: createPropertyInterestMutation.mutateAsync,
-    isCreating: createPropertyInterestMutation.isPending
+    isCreating: createPropertyInterestMutation.isPending,
   };
 };
 
@@ -131,7 +131,7 @@ export const useServiceRequests = () => {
     data: serviceRequests = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', 'services'],
     queryFn: async () => {
@@ -158,7 +158,7 @@ export const useServiceRequests = () => {
     error,
     refetch,
     createServiceRequest: createServiceRequestMutation.mutateAsync,
-    isCreating: createServiceRequestMutation.isPending
+    isCreating: createServiceRequestMutation.isPending,
   };
 };
 
@@ -169,7 +169,7 @@ export const useMaintenanceRequests = () => {
     data: maintenanceRequests = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', 'maintenance'],
     queryFn: async () => {
@@ -196,7 +196,7 @@ export const useMaintenanceRequests = () => {
     error,
     refetch,
     createMaintenanceRequest: createMaintenanceRequestMutation.mutateAsync,
-    isCreating: createMaintenanceRequestMutation.isPending
+    isCreating: createMaintenanceRequestMutation.isPending,
   };
 };
 
@@ -205,7 +205,7 @@ export const useContractRequests = () => {
     data: contractRequests = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', 'contracts'],
     queryFn: async () => {
@@ -219,7 +219,7 @@ export const useContractRequests = () => {
     contractRequests,
     isLoading,
     error,
-    refetch
+    refetch,
   };
 };
 
@@ -249,7 +249,7 @@ export const useRequestActions = () => {
     performAction: performActionMutation.mutateAsync,
     signContract: signContractMutation.mutateAsync,
     isPerformingAction: performActionMutation.isPending,
-    isSigningContract: signContractMutation.isPending
+    isSigningContract: signContractMutation.isPending,
   };
 };
 
@@ -260,7 +260,7 @@ export const useRequestComments = (requestId?: string) => {
     data: comments = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', requestId, 'comments'],
     queryFn: async () => {
@@ -288,7 +288,7 @@ export const useRequestComments = (requestId?: string) => {
     error,
     refetch,
     addComment: addCommentMutation.mutateAsync,
-    isAddingComment: addCommentMutation.isPending
+    isAddingComment: addCommentMutation.isPending,
   };
 };
 
@@ -299,7 +299,7 @@ export const useRequestNotifications = () => {
     data: notifications = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['request-notifications'],
     queryFn: async () => {
@@ -332,7 +332,7 @@ export const useRequestNotifications = () => {
     markAsRead: markAsReadMutation.mutateAsync,
     markAllAsRead: markAllAsReadMutation.mutateAsync,
     isMarkingAsRead: markAsReadMutation.isPending,
-    isMarkingAllAsRead: markAllAsReadMutation.isPending
+    isMarkingAllAsRead: markAllAsReadMutation.isPending,
   };
 };
 
@@ -341,7 +341,7 @@ export const useRequestDetail = (requestId: string, requestType?: string) => {
     data: request,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', requestType, requestId],
     queryFn: async () => {
@@ -372,7 +372,7 @@ export const useRequestDetail = (requestId: string, requestType?: string) => {
     request,
     isLoading,
     error,
-    refetch
+    refetch,
   };
 };
 
@@ -381,7 +381,7 @@ export const useRequestStats = () => {
     data: stats,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['requests', 'stats'],
     queryFn: async () => {
@@ -395,6 +395,6 @@ export const useRequestStats = () => {
     stats,
     isLoading,
     error,
-    refetch
+    refetch,
   };
 };

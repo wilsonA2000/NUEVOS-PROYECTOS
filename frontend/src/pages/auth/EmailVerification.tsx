@@ -4,7 +4,7 @@ import {
   Box, 
   Container, 
   Button,
-  Alert
+  Alert,
 } from '@mui/material';
 import { EmailVerificationMessage } from '../../components/EmailVerificationMessage';
 import { authService } from '../../services/authService';
@@ -61,8 +61,8 @@ export const EmailVerification: React.FC = () => {
     navigate('/login', {
       state: {
         message: 'Si ya verificaste tu email, puedes iniciar sesión aquí.',
-        email: email
-      }
+        email: email,
+      },
     });
   };
 

@@ -1,0 +1,55 @@
+{
+  "labels": {
+    "paymentMethod": "Payment Method",
+    "amount": "Amount",
+    "currency": "Currency",
+    "reference": "Reference",
+    "transactionId": "Transaction ID",
+    "paymentDate": "Payment Date",
+    "dueDate": "Due Date",
+    "invoiceNumber": "Invoice Number",
+    "payer": "Payer",
+    "receiver": "Receiver",
+    "concept": "Concept",
+    "period": "Period",
+    "balance": "Balance",
+    "totalPaid": "Total Paid",
+    "totalPending": "Total Pending"
+  },
+  "methods": {
+    "bankTransfer": "Bank Transfer",
+    "creditCard": "Credit Card",
+    "debitCard": "Debit Card",
+    "pse": "PSE",
+    "cash": "Cash",
+    "paypal": "PayPal",
+    "stripe": "Stripe",
+    "wompi": "Wompi"
+  },
+  "status": {
+    "paid": "Paid",
+    "pending": "Pending",
+    "overdue": "Overdue",
+    "failed": "Failed",
+    "refunded": "Refunded",
+    "processing": "Processing",
+    "cancelled": "Cancelled"
+  },
+  "actions": {
+    "makePayment": "Make Payment",
+    "viewReceipt": "View Receipt",
+    "downloadReceipt": "Download Receipt",
+    "payNow": "Pay Now",
+    "schedulePayment": "Schedule Payment",
+    "requestRefund": "Request Refund",
+    "viewHistory": "View History"
+  },
+  "messages": {
+    "paymentSuccessful": "Payment completed successfully",
+    "paymentFailed": "Payment failed. Please try again.",
+    "paymentPending": "Your payment is being processed",
+    "noPayments": "No payments recorded",
+    "overdueWarning": "You have overdue payments",
+    "refundProcessed": "Refund processed successfully"
+  }
+}

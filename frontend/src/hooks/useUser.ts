@@ -61,6 +61,6 @@ export const useUser = () => {
     error,
     fetchUser,
     updateUser,
-    refetch: fetchUser
+    refetch: fetchUser,
   };
 };

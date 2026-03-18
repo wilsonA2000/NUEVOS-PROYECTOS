@@ -46,7 +46,7 @@ export const MessageList: React.FC = () => {
   const handleView = () => {
     if (selectedMessage) {
       navigate(`/app/messages/${selectedMessage.id}`);
-      if (!selectedMessage.is_read) {
+      if (!selectedMessage.isRead) {
         markAsRead.mutate(selectedMessage.id);
       }
     }
@@ -67,11 +67,11 @@ export const MessageList: React.FC = () => {
     handleMenuClose();
   };
 
-  // Asegurar que messages sea un array
-  const messagesArray = ensureArray(messages);
-  const filteredMessages = messagesArray.filter(message =>
+  // Asegurar que messages sea un array (handle paginated response)
+  const messagesArray = Array.isArray(messages) ? messages : (messages as any)?.results || [];
+  const filteredMessages = messagesArray.filter((message: any) =>
     message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.content?.toLowerCase().includes(searchTerm.toLowerCase())
+    message.content?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (isLoading) {
@@ -133,7 +133,7 @@ export const MessageList: React.FC = () => {
             <Grid item xs={12} key={message.id}>
               <Card
                 sx={{
-                  bgcolor: message.is_read ? 'background.paper' : 'action.hover',
+                  bgcolor: message.isRead ? 'background.paper' : 'action.hover',
                   cursor: 'pointer',
                   '&:hover': {
                     bgcolor: 'action.hover',
@@ -144,21 +144,21 @@ export const MessageList: React.FC = () => {
                 <CardContent>
                   <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                     <Box display="flex" alignItems="center" gap={2} flex={1}>
-                      <Avatar>{message.sender?.name?.[0] || message.sender_id?.[0] || 'U'}</Avatar>
+                      <Avatar>{(message as any).sender?.name?.[0] || message.senderId?.[0] || 'U'}</Avatar>
                       <Box flex={1}>
                         <Typography variant="h6" component="div">
                           {message.subject || 'Sin asunto'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          De: {message.sender?.name || message.sender_id || 'Usuario'}
+                          De: {(message as any).sender?.name || message.senderId || 'Usuario'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Para: {message.recipient?.name || message.recipient_id || 'Usuario'}
+                          Para: {(message as any).recipient?.name || message.recipientId || 'Usuario'}
                         </Typography>
                       </Box>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {!message.is_read && (
+                      {!message.isRead && (
                         <Chip
                           label="Nuevo"
                           color="primary"
@@ -191,7 +191,7 @@ export const MessageList: React.FC = () => {
                     {message.content || 'Sin contenido'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    {message.created_at ? new Date(message.created_at).toLocaleString() : 'Fecha desconocida'}
+                    {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Fecha desconocida'}
                   </Typography>
                 </CardContent>
               </Card>

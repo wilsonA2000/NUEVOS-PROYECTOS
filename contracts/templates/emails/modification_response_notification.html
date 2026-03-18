@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respuesta a Solicitud de Modificación</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid {% if approved %}#4caf50{% else %}#f44336{% endif %};
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: {% if approved %}#4caf50{% else %}#f44336{% endif %};
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background-color: {% if approved %}#e8f5e9{% else %}#ffebee{% endif %};
+            border-left: 4px solid {% if approved %}#4caf50{% else %}#f44336{% endif %};
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .status-box strong {
+            color: {% if approved %}#4caf50{% else %}#f44336{% endif %};
+            font-size: 18px;
+        }
+        .info-box {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: {% if approved %}#4caf50{% else %}#2196f3{% endif %};
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: {% if approved %}#45a049{% else %}#1976d2{% endif %};
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{% if approved %}✅{% else %}❌{% endif %} Solicitud de Modificación {{ status_text }}</h1>
+        </div>
+
+        <div class="content">
+            <p>Hola <strong>{{ tenant_name }}</strong>,</p>
+
+            <p>El arrendador <strong>{{ landlord_name }}</strong> ha {% if approved %}aprobado{% else %}rechazado{% endif %} tu solicitud de modificación para el contrato de la propiedad ubicada en <strong>{{ property_address }}</strong>.</p>
+
+            <div class="status-box">
+                <strong>Estado: {{ status_text }}</strong><br>
+                Número de Contrato: <strong>{{ contract_number }}</strong><br>
+                Ciclo de Revisión: <strong>#{{ revision_number }}</strong>
+            </div>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #555;">Respuesta del Arrendador:</h3>
+                <p style="margin: 10px 0;">{{ landlord_response }}</p>
+            </div>
+
+            {% if approved %}
+            <div style="background-color: #e3f2fd; border-radius: 4px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>📋 Próximos Pasos:</strong></p>
+                <p style="margin: 10px 0;">El arrendador editará el contrato según tus solicitudes. Recibirás una notificación cuando el contrato actualizado esté listo para tu revisión.</p>
+            </div>
+            {% else %}
+            <div style="background-color: #fff3e0; border-radius: 4px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>🔍 ¿Qué puedes hacer?</strong></p>
+                <ul style="margin: 10px 0;">
+                    <li>Revisar la razón del rechazo del arrendador</li>
+                    <li>Si crees que es necesario, solicitar una segunda modificación (máximo 2 ciclos)</li>
+                    <li>Aprobar el contrato en su estado actual</li>
+                    <li>Rechazar el contrato si no estás de acuerdo</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <div style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="button">
+                    {% if approved %}Ver Contrato Actualizado{% else %}Ir a Mi Panel{% endif %}
+                </a>
+            </div>
+
+            <p style="color: #666; font-size: 14px;">
+                <strong>Nota:</strong> Puedes revisar todos los detalles de tu contrato en tu panel de control.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Este es un email automático de VeriHome</p>
+            <p>No respondas a este correo. Para cualquier consulta, accede a tu panel de control.</p>
+        </div>
+    </div>
+</body>
+</html>

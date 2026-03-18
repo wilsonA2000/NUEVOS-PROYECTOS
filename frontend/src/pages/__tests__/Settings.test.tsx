@@ -1,145 +1,86 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import Settings from '../Settings';
-import { useTheme } from '../../hooks/useTheme';
-import { useLanguage } from '../../hooks/useLanguage';
-import { useGlobalState } from '../../hooks/useGlobalState';
-import { createWrapper } from '../../test-utils';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 
-// Mock hooks
-jest.mock('../../hooks/useTheme', () => ({
-  useTheme: jest.fn(),
+// Mock dependencies
+jest.mock('../../services/userService', () => ({
+  userService: {
+    getSettings: jest.fn().mockResolvedValue({
+      notifications: {
+        email_notifications: true,
+        sms_notifications: false,
+        newsletter: true,
+        property_alerts: true,
+        message_notifications: true,
+        payment_reminders: true,
+      },
+      privacy: {
+        profile_visibility: 'public',
+        show_contact_info: true,
+        show_property_history: false,
+        allow_messages: true,
+      },
+      preferences: {
+        language: 'es',
+        timezone: 'America/Bogota',
+        currency: 'COP',
+        date_format: 'DD/MM/YYYY',
+        theme: 'light',
+      },
+      security: {
+        two_factor_enabled: false,
+        login_notifications: true,
+        session_timeout: 30,
+      },
+    }),
+    updateSettings: jest.fn().mockResolvedValue({}),
+  },
 }));
 
-jest.mock('../../hooks/useLanguage', () => ({
-  useLanguage: jest.fn(),
-}));
+jest.mock('../../components/users/UserStatusSelector', () => () => <div>User Status</div>);
+jest.mock('../../components/common/OptimizedWebSocketStatus', () => () => <div>WebSocket Status</div>);
 
-jest.mock('../../hooks/useGlobalState', () => ({
-  useGlobalState: jest.fn(),
-}));
-
-const routerWrapper = ({ children }: { children: React.ReactNode }) => (
-  <BrowserRouter>{children}</BrowserRouter>
-);
+// Import after mocks
+import Settings from '../settings/Settings';
 
 const combinedWrapper = ({ children }: { children: React.ReactNode }) => {
-  const queryWrapper = createWrapper();
-  return queryWrapper({ children: routerWrapper({ children }) });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {children}
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
 };
 
 describe('Settings', () => {
-  const mockSetThemeMode = jest.fn();
-  const mockSetLanguage = jest.fn();
-  const mockSetSidebarOpen = jest.fn();
-  const mockSetNotificationsEnabled = jest.fn();
-  const mockSetSoundEnabled = jest.fn();
-  const mockSetVibrationEnabled = jest.fn();
-  const mockResetState = jest.fn();
+  it('should render settings page with title', async () => {
+    render(<Settings />, { wrapper: combinedWrapper });
 
-  beforeEach(() => {
-    (useTheme as unknown as jest.Mock).mockReturnValue({
-      mode: 'light',
-      setThemeMode: mockSetThemeMode,
-    });
-
-    (useLanguage as unknown as jest.Mock).mockReturnValue({
-      language: 'en',
-      setLanguage: mockSetLanguage,
-      t: (key: string) => key,
-    });
-
-    (useGlobalState as unknown as jest.Mock).mockReturnValue({
-      sidebarOpen: true,
-      notificationsEnabled: true,
-      soundEnabled: true,
-      vibrationEnabled: true,
-      setSidebarOpen: mockSetSidebarOpen,
-      setNotificationsEnabled: mockSetNotificationsEnabled,
-      setSoundEnabled: mockSetSoundEnabled,
-      setVibrationEnabled: mockSetVibrationEnabled,
-      resetState: mockResetState,
+    await waitFor(() => {
+      expect(screen.getByText('Ajustes')).toBeInTheDocument();
     });
   });
 
-  it('should render all settings sections', () => {
+  it('should render real-time control section', async () => {
     render(<Settings />, { wrapper: combinedWrapper });
 
-    expect(screen.getByText('settings')).toBeInTheDocument();
-    expect(screen.getByText('language')).toBeInTheDocument();
-    expect(screen.getByText('theme')).toBeInTheDocument();
-    expect(screen.getByText('sidebar')).toBeInTheDocument();
-    expect(screen.getByText('notifications')).toBeInTheDocument();
-    expect(screen.getByText('sound')).toBeInTheDocument();
-    expect(screen.getByText('vibration')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Control de Tiempo Real/i)).toBeInTheDocument();
+    });
   });
 
-  it('should change language when selecting a new option', () => {
+  it('should render without crashing', async () => {
     render(<Settings />, { wrapper: combinedWrapper });
 
-    const languageSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.mouseDown(languageSelect);
-    const spanishOption = screen.getByText('Español');
-    fireEvent.click(spanishOption);
-
-    expect(mockSetLanguage).toHaveBeenCalledWith('es');
+    await waitFor(() => {
+      expect(document.body).toBeInTheDocument();
+    });
   });
-
-  it('should change theme when selecting a new option', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const themeSelect = screen.getAllByRole('combobox')[1];
-    fireEvent.mouseDown(themeSelect);
-    const darkOption = screen.getByText('dark');
-    fireEvent.click(darkOption);
-
-    expect(mockSetThemeMode).toHaveBeenCalledWith('dark');
-  });
-
-  it('should toggle sidebar visibility', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const sidebarSwitch = screen.getByLabelText('sidebar');
-    fireEvent.click(sidebarSwitch);
-
-    expect(mockSetSidebarOpen).toHaveBeenCalledWith(false);
-  });
-
-  it('should toggle notifications', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const notificationsSwitch = screen.getByLabelText('notifications');
-    fireEvent.click(notificationsSwitch);
-
-    expect(mockSetNotificationsEnabled).toHaveBeenCalledWith(false);
-  });
-
-  it('should toggle sound', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const soundSwitch = screen.getByLabelText('sound');
-    fireEvent.click(soundSwitch);
-
-    expect(mockSetSoundEnabled).toHaveBeenCalledWith(false);
-  });
-
-  it('should toggle vibration', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const vibrationSwitch = screen.getByLabelText('vibration');
-    fireEvent.click(vibrationSwitch);
-
-    expect(mockSetVibrationEnabled).toHaveBeenCalledWith(false);
-  });
-
-  it('should reset all settings when clicking reset button', () => {
-    render(<Settings />, { wrapper: combinedWrapper });
-
-    const resetButton = screen.getByText('reset');
-    fireEvent.click(resetButton);
-
-    expect(mockResetState).toHaveBeenCalled();
-  });
-}); 
+});

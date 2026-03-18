@@ -26,9 +26,9 @@ import { usePayments } from '../../hooks/usePayments';
 export const PaymentDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { payments, isLoading, error } = usePayments();
+  const { transactions, isLoading, error } = usePayments();
 
-  const payment = payments?.find((p) => p.id === id);
+  const payment = transactions?.find((p: any) => p.id === id);
 
   if (isLoading) {
     return <Typography>Cargando...</Typography>;

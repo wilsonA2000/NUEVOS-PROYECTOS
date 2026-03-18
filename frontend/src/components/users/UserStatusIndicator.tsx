@@ -169,7 +169,7 @@ const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
     try {
       return formatDistanceToNow(new Date(lastSeenString), { 
         addSuffix: true, 
-        locale: es 
+        locale: es, 
       });
     } catch (error) {
       return 'Fecha inválida';
@@ -405,7 +405,7 @@ const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
                 primary={config.label}
                 secondary={config.description}
                 secondaryTypographyProps={{
-                  sx: { fontSize: '0.75rem' }
+                  sx: { fontSize: '0.75rem' },
                 }}
               />
             </MenuItem>

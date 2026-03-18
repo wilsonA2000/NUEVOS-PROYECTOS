@@ -17,7 +17,7 @@ interface VirtualItem {
 
 export function useVirtualization<T>(
   items: T[],
-  options: VirtualizationOptions
+  options: VirtualizationOptions,
 ) {
   const {
     itemHeight,
@@ -48,7 +48,7 @@ export function useVirtualization<T>(
       containerHeight,
       itemCount,
       itemHeight,
-      getItemHeight
+      getItemHeight,
     );
 
     const start = Math.max(0, visibleRange.start - overscan);
@@ -127,7 +127,7 @@ function getVisibleRange(
   containerHeight: number,
   itemCount: number,
   itemHeight: number,
-  getItemHeight?: (index: number) => number
+  getItemHeight?: (index: number) => number,
 ): { start: number; end: number } {
   if (getItemHeight) {
     // Para alturas variables, buscar por aproximación
@@ -163,7 +163,7 @@ function getVisibleRange(
   const start = Math.floor(scrollTop / itemHeight);
   const end = Math.min(
     itemCount - 1,
-    Math.floor((scrollTop + containerHeight) / itemHeight)
+    Math.floor((scrollTop + containerHeight) / itemHeight),
   );
 
   return { start, end };
@@ -199,7 +199,7 @@ export function useInfiniteScroll(options: InfiniteScrollOptions) {
         }
       }
     },
-    [loadMore, hasNextPage, isLoading, isFetching, threshold]
+    [loadMore, hasNextPage, isLoading, isFetching, threshold],
   );
 
   return { handleScroll, isFetching };
@@ -258,7 +258,7 @@ export function VirtualizedList<T>({
       overscan,
       estimatedItemHeight,
       getItemHeight,
-    }
+    },
   );
 
   const onScroll = useCallback(
@@ -271,7 +271,7 @@ export function VirtualizedList<T>({
         onScrollEnd?.();
       }
     },
-    [handleScroll, onScrollEnd]
+    [handleScroll, onScrollEnd],
   );
 
   return (
@@ -309,7 +309,7 @@ export function VirtualizedList<T>({
 // Hook para memoización inteligente de items
 export function useSmartMemo<T>(
   items: T[],
-  dependencies: any[] = []
+  dependencies: any[] = [],
 ): T[] {
   return useMemo(() => items, [items.length, ...dependencies]);
 }

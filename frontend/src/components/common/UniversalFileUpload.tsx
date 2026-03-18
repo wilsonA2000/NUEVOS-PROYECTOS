@@ -24,7 +24,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -36,7 +36,7 @@ import {
   TextSnippet as TextIcon,
   Visibility as ViewIcon,
   Download as DownloadIcon,
-  DragIndicator as DragIcon
+  DragIndicator as DragIcon,
 } from '@mui/icons-material';
 
 // Configuración de validación
@@ -60,15 +60,15 @@ const FILE_VALIDATION = {
     // Comprimidos
     'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed',
     // Audio
-    'audio/mpeg', 'audio/wav', 'audio/ogg'
+    'audio/mpeg', 'audio/wav', 'audio/ogg',
   ],
   allowedExtensions: [
     '.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp',
     '.mp4', '.webm', '.mov', '.avi', '.mkv',
     '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
     '.txt', '.csv', '.rtf', '.zip', '.rar', '.7z',
-    '.mp3', '.wav', '.ogg'
-  ]
+    '.mp3', '.wav', '.ogg',
+  ],
 };
 
 interface FileData {
@@ -99,11 +99,11 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
   maxFiles = FILE_VALIDATION.maxCount,
   maxSize = FILE_VALIDATION.maxSize,
   acceptedTypes = FILE_VALIDATION.allowedTypes,
-  label = "Cargar Archivos",
-  helperText = "Arrastra archivos aquí o haz clic para seleccionar",
+  label = 'Cargar Archivos',
+  helperText = 'Arrastra archivos aquí o haz clic para seleccionar',
   disabled = false,
   showPreview = true,
-  allowReorder = true
+  allowReorder = true,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -150,7 +150,7 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
   // Validar archivos
@@ -189,7 +189,7 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
         preview,
         type: getFileType(file),
         size: formatFileSize(file.size),
-        uploaded: false
+        uploaded: false,
       };
 
       valid.push(fileData);
@@ -260,13 +260,13 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
         sx={{
           p: 3,
           border: `2px dashed ${isDragOver ? theme.palette.primary.main : theme.palette.grey[300]}`,
-          bgcolor: isDragOver ? theme.palette.primary.light + '10' : 'transparent',
+          bgcolor: isDragOver ? `${theme.palette.primary.light  }10` : 'transparent',
           cursor: disabled ? 'not-allowed' : 'pointer',
           transition: 'all 0.3s ease',
           '&:hover': {
             borderColor: disabled ? theme.palette.grey[300] : theme.palette.primary.main,
-            bgcolor: disabled ? 'transparent' : theme.palette.primary.light + '05'
-          }
+            bgcolor: disabled ? 'transparent' : `${theme.palette.primary.light  }05`,
+          },
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -338,7 +338,7 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
                   borderColor: 'divider',
                   borderRadius: 1,
                   mb: 1,
-                  bgcolor: 'background.paper'
+                  bgcolor: 'background.paper',
                 }}
               >
                 {allowReorder && (
@@ -405,7 +405,7 @@ const UniversalFileUpload: React.FC<UniversalFileUploadProps> = ({
                 style={{
                   maxWidth: '100%',
                   maxHeight: '70vh',
-                  objectFit: 'contain'
+                  objectFit: 'contain',
                 }}
               />
             </Box>

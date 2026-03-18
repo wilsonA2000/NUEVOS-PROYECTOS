@@ -114,7 +114,7 @@ setConnectionState('connected');
             if (newSocket.readyState === WebSocket.OPEN) {
               newSocket.send(JSON.stringify({ 
                 type: 'ping', 
-                timestamp: new Date().toISOString() 
+                timestamp: new Date().toISOString(), 
               }));
             }
           }, heartbeatInterval);

@@ -359,7 +359,12 @@ class TenantDocument(models.Model):
     )
     
     # Información del documento
-    document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
+    # ✅ FIX: Removido choices para permitir valores dinámicos como 'otros_1234567890'
+    # La validación se hace en el serializer en lugar del modelo
+    document_type = models.CharField(
+        max_length=100,  # Aumentado para acomodar 'otros_' + timestamp
+        help_text='Tipo de documento. Puede ser estático o dinámico (otros_timestamp)'
+    )
     document_file = models.FileField(
         upload_to='tenant_documents/%Y/%m/',
         max_length=255,
@@ -390,7 +395,31 @@ class TenantDocument(models.Model):
     # Fechas
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    # 🔒 INMUTABILIDAD POST-BIOMÉTRICA (Plan Maestro V2.0)
+    is_locked = models.BooleanField(
+        default=False,
+        help_text='Documento bloqueado post-autenticación biométrica'
+    )
+    locked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Fecha y hora del bloqueo'
+    )
+    locked_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='locked_documents',
+        help_text='Usuario que ejecutó el bloqueo (último en autenticar)'
+    )
+    locked_reason = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Razón del bloqueo (ej: biometric_complete)'
+    )
+
     class Meta:
         ordering = ['-uploaded_at']
         indexes = [
@@ -442,8 +471,104 @@ class TenantDocument(models.Model):
         """Obtiene el color para mostrar el estado."""
         colors = {
             'pending': 'warning',
-            'approved': 'success', 
+            'approved': 'success',
             'rejected': 'error',
             'requires_correction': 'info'
         }
         return colors.get(self.status, 'default')
+
+
+class DocumentAccessLog(models.Model):
+    """
+    📋 AUDITORÍA DE ACCESO A DOCUMENTOS (Plan Maestro V2.0)
+
+    Registra cada acceso a documentos para cumplimiento legal y auditoría.
+    Permite a autoridades verificar quién, cuándo y cómo se accedió a cada documento.
+    """
+
+    ACTION_CHOICES = [
+        ('view', 'Visualización'),
+        ('download', 'Descarga'),
+        ('preview', 'Vista Previa'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Documento accedido
+    document = models.ForeignKey(
+        TenantDocument,
+        on_delete=models.CASCADE,
+        related_name='access_logs'
+    )
+
+    # Usuario que accedió
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='document_access_logs'
+    )
+
+    # Detalles del acceso
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+
+    # Metadatos
+    timestamp = models.DateTimeField(auto_now_add=True)
+    extra_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Datos adicionales del acceso (dispositivo, ubicación, etc.)'
+    )
+
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['document', 'timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['action', 'timestamp']),
+        ]
+        verbose_name = 'Log de Acceso a Documento'
+        verbose_name_plural = 'Logs de Acceso a Documentos'
+
+    def __str__(self):
+        return f"{self.user.email} - {self.get_action_display()} - {self.document.document_type} - {self.timestamp}"
+
+    @classmethod
+    def log_access(cls, document, user, action, request=None):
+        """
+        Método helper para registrar accesos de forma conveniente.
+
+        Usage:
+            DocumentAccessLog.log_access(document, request.user, 'download', request)
+        """
+        ip_address = None
+        user_agent = ''
+        extra_data = {}
+
+        if request:
+            # Obtener IP real (considerando proxies)
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+            # Datos adicionales útiles para auditoría
+            extra_data = {
+                'http_method': request.method,
+                'path': request.path,
+                'referer': request.META.get('HTTP_REFERER', ''),
+                'accept_language': request.META.get('HTTP_ACCEPT_LANGUAGE', ''),
+            }
+
+        return cls.objects.create(
+            document=document,
+            user=user,
+            action=action,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            extra_data=extra_data
+        )

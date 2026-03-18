@@ -14,7 +14,7 @@ import {
   Box,
   IconButton,
   CircularProgress,
-  Typography
+  Typography,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
@@ -31,7 +31,7 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
   onClose,
   onConfirm,
   candidateName,
-  propertyTitle
+  propertyTitle,
 }) => {
   // Estados locales completamente independientes
   const [visitDate, setVisitDate] = useState('');
@@ -57,7 +57,7 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
       await onConfirm({
         date: visitDate,
         time: `${visitHour}:00`,
-        notes: visitNotes
+        notes: visitNotes,
       });
       onClose();
     } catch (error) {
@@ -85,8 +85,8 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          minHeight: '400px'
-        }
+          minHeight: '400px',
+        },
       }}
     >
       <DialogTitle>
@@ -117,7 +117,7 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
               InputLabelProps={{ shrink: true }}
               helperText="Selecciona la fecha para la visita"
               inputProps={{
-                min: new Date().toISOString().split('T')[0]
+                min: new Date().toISOString().split('T')[0],
               }}
               disabled={loading}
             />
@@ -147,7 +147,7 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
               placeholder="Agrega notas sobre la visita programada..."
               helperText="Información adicional sobre la visita"
               inputProps={{
-                maxLength: 500
+                maxLength: 500,
               }}
               disabled={loading}
             />

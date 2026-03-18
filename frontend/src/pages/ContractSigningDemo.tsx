@@ -9,12 +9,12 @@ import {
   Card,
   CardContent,
   Grid,
-  Chip
+  Chip,
 } from '@mui/material';
 import {
   Assignment as ContractIcon,
   Security as SecurityIcon,
-  CheckCircle as CheckIcon
+  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 import DigitalSignatureFlow from '../components/contracts/DigitalSignatureFlow';
 
@@ -28,7 +28,7 @@ const ContractSigningDemo: React.FC = () => {
     id: 'demo-contract-001',
     title: 'Contrato de Arrendamiento - Apartamento 101',
     signerName: 'Usuario VeriHome',
-    signerRole: 'tenant' as const
+    signerRole: 'tenant' as const,
   };
 
   const handleSigningComplete = (data: any) => {

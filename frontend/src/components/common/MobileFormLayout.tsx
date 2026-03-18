@@ -63,7 +63,7 @@ const MobileFormLayout: React.FC<MobileFormLayoutProps> = ({
 
   // Track scroll position for header styling
   React.useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile) return undefined;
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -210,7 +210,7 @@ const MobileFormLayout: React.FC<MobileFormLayoutProps> = ({
           <Fab
             onClick={onSave}
             disabled={isLoading}
-            size={isSmallMobile ? "medium" : "large"}
+            size={isSmallMobile ? 'medium' : 'large'}
             sx={{
               position: 'fixed',
               bottom: { xs: 16, sm: 24 },

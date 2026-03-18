@@ -29,7 +29,7 @@ import {
   Select,
   MenuItem,
   Fade,
-  Grow
+  Grow,
 } from '@mui/material';
 import { 
   Gavel,
@@ -48,7 +48,7 @@ import {
   Email,
   Schedule,
   Close,
-  CheckCircle
+  CheckCircle,
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -63,7 +63,7 @@ const iconMap: { [key: string]: React.ReactElement } = {
   Assessment: <Assessment />,
   LocalShipping: <LocalShipping />,
   Apartment: <Apartment />,
-  Verified: <Verified />
+  Verified: <Verified />,
 };
 
 interface ServiceCategory {
@@ -127,7 +127,7 @@ const ServicesOverviewPage: React.FC = () => {
     requester_phone: '',
     message: '',
     preferred_date: '',
-    budget_range: ''
+    budget_range: '',
   });
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState(false);
@@ -142,7 +142,7 @@ const ServicesOverviewPage: React.FC = () => {
       const [categoriesRes, featuredRes, mostRequestedRes] = await Promise.all([
         axios.get('/api/v1/services/categories/'),
         axios.get('/api/v1/services/services/featured/'),
-        axios.get('/api/v1/services/services/most_requested/')
+        axios.get('/api/v1/services/services/most_requested/'),
       ]);
 
       setCategories(categoriesRes.data);
@@ -176,7 +176,7 @@ const ServicesOverviewPage: React.FC = () => {
     setSelectedService(service);
     setRequestFormData({
       ...requestFormData,
-      service: service.id
+      service: service.id,
     });
     setRequestDialogOpen(true);
   };
@@ -199,7 +199,7 @@ const ServicesOverviewPage: React.FC = () => {
           requester_phone: '',
           message: '',
           preferred_date: '',
-          budget_range: ''
+          budget_range: '',
         });
       }, 2000);
     } catch (error) {
@@ -220,7 +220,7 @@ const ServicesOverviewPage: React.FC = () => {
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: `0 12px 24px ${alpha(service.category_color, 0.15)}`,
-        }
+        },
       }}
     >
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
@@ -234,7 +234,7 @@ const ServicesOverviewPage: React.FC = () => {
                 sx={{ 
                   bgcolor: theme.palette.warning.light,
                   color: theme.palette.warning.contrastText,
-                  fontWeight: 600
+                  fontWeight: 600,
                 }} 
               />
             )}
@@ -246,7 +246,7 @@ const ServicesOverviewPage: React.FC = () => {
                 sx={{ 
                   bgcolor: theme.palette.error.light,
                   color: theme.palette.error.contrastText,
-                  fontWeight: 600
+                  fontWeight: 600,
                 }} 
               />
             )}
@@ -270,7 +270,7 @@ const ServicesOverviewPage: React.FC = () => {
             size="small" 
             sx={{ 
               bgcolor: alpha(service.category_color, 0.1),
-              color: service.category_color
+              color: service.category_color,
             }} 
           />
           <Chip 
@@ -291,7 +291,7 @@ const ServicesOverviewPage: React.FC = () => {
               color: service.difficulty === 'easy' ? 'success.main' : 
                      service.difficulty === 'medium' ? 'warning.main' : 
                      service.difficulty === 'hard' ? 'error.main' : 'info.main',
-              fontWeight: 600
+              fontWeight: 600,
             }}
           >
             {service.difficulty === 'easy' ? 'Fácil' :
@@ -309,7 +309,7 @@ const ServicesOverviewPage: React.FC = () => {
             bgcolor: service.category_color,
             '&:hover': {
               bgcolor: alpha(service.category_color, 0.8),
-            }
+            },
           }}
         >
           Solicitar Servicio
@@ -335,7 +335,7 @@ const ServicesOverviewPage: React.FC = () => {
           pt: 8,
           pb: 8,
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <Container maxWidth="lg">
@@ -351,7 +351,7 @@ const ServicesOverviewPage: React.FC = () => {
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  mb: 3
+                  mb: 3,
                 }}
               >
                 Servicios Adicionales VeriHome
@@ -363,7 +363,7 @@ const ServicesOverviewPage: React.FC = () => {
                   maxWidth: 800, 
                   mx: 'auto',
                   lineHeight: 1.6,
-                  fontWeight: 400
+                  fontWeight: 400,
                 }}
               >
                 Conectamos con los mejores profesionales y servicios especializados 
@@ -454,7 +454,7 @@ const ServicesOverviewPage: React.FC = () => {
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: `0 8px 16px ${alpha(category.color, 0.2)}`,
-                        }
+                        },
                       }}
                     >
                       <CardContent sx={{ textAlign: 'center', p: 3 }}>
@@ -465,7 +465,7 @@ const ServicesOverviewPage: React.FC = () => {
                             width: 60,
                             height: 60,
                             mx: 'auto',
-                            mb: 2
+                            mb: 2,
                           }}
                         >
                           {iconMap[category.icon_name] || <Build />}
@@ -481,7 +481,7 @@ const ServicesOverviewPage: React.FC = () => {
                           size="small"
                           sx={{
                             bgcolor: alpha(category.color, 0.1),
-                            color: category.color
+                            color: category.color,
                           }}
                         />
                       </CardContent>
@@ -547,7 +547,7 @@ const ServicesOverviewPage: React.FC = () => {
                   fullWidth
                   label="Nombre Completo"
                   value={requestFormData.requester_name}
-                  onChange={(e) => setRequestFormData({...requestFormData, requester_name: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, requester_name: e.target.value })}
                   required
                 />
                 <TextField
@@ -555,14 +555,14 @@ const ServicesOverviewPage: React.FC = () => {
                   label="Email"
                   type="email"
                   value={requestFormData.requester_email}
-                  onChange={(e) => setRequestFormData({...requestFormData, requester_email: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, requester_email: e.target.value })}
                   required
                 />
                 <TextField
                   fullWidth
                   label="Teléfono"
                   value={requestFormData.requester_phone}
-                  onChange={(e) => setRequestFormData({...requestFormData, requester_phone: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, requester_phone: e.target.value })}
                   required
                 />
                 <TextField
@@ -571,7 +571,7 @@ const ServicesOverviewPage: React.FC = () => {
                   rows={4}
                   label="Describe tu necesidad"
                   value={requestFormData.message}
-                  onChange={(e) => setRequestFormData({...requestFormData, message: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, message: e.target.value })}
                   required
                 />
                 <TextField
@@ -579,14 +579,14 @@ const ServicesOverviewPage: React.FC = () => {
                   type="date"
                   label="Fecha Preferida"
                   value={requestFormData.preferred_date}
-                  onChange={(e) => setRequestFormData({...requestFormData, preferred_date: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, preferred_date: e.target.value })}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   fullWidth
                   label="Presupuesto Estimado (opcional)"
                   value={requestFormData.budget_range}
-                  onChange={(e) => setRequestFormData({...requestFormData, budget_range: e.target.value})}
+                  onChange={(e) => setRequestFormData({ ...requestFormData, budget_range: e.target.value })}
                 />
               </Stack>
             </DialogContent>

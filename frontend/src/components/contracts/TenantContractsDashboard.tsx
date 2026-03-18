@@ -62,6 +62,7 @@ import {
   Info as InfoIcon,
   PlayArrow as StartIcon,
   DocumentScanner as DocumentIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -70,12 +71,13 @@ import { LandlordContractService } from '../../services/landlordContractService'
 import { contractService } from '../../services/contractService';
 import { 
   LandlordControlledContractData, 
-  ContractWorkflowState 
+  ContractWorkflowState, 
 } from '../../types/landlordContract';
 import { Contract } from '../../types/contract';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import TenantContractReview from './TenantContractReview';
+import ModificationRequestModal from './ModificationRequestModal';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 import api from '../../services/api';
 
@@ -100,9 +102,12 @@ const TenantContractsDashboard: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [activeStep, setActiveStep] = useState(0);
   const [approvingContract, setApprovingContract] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{open: boolean, contractId: string | null}>({open: false, contractId: null});
-  const [successDialog, setSuccessDialog] = useState<{open: boolean, title: string, message: string}>({open: false, title: '', message: ''});
-  const [errorDialog, setErrorDialog] = useState<{open: boolean, title: string, message: string}>({open: false, title: '', message: ''}); // ID del contrato siendo aprobado
+  const [confirmDialog, setConfirmDialog] = useState<{open: boolean, contractId: string | null}>({ open: false, contractId: null });
+  const [successDialog, setSuccessDialog] = useState<{open: boolean, title: string, message: string}>({ open: false, title: '', message: '' });
+  const [errorDialog, setErrorDialog] = useState<{open: boolean, title: string, message: string}>({ open: false, title: '', message: '' }); // ID del contrato siendo aprobado
+  const [modificationModalOpen, setModificationModalOpen] = useState(false);
+  const [selectedContractForModification, setSelectedContractForModification] = useState<string | null>(null);
+  const [selectedContractData, setSelectedContractData] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     loadTenantContracts();
@@ -154,7 +159,7 @@ const TenantContractsDashboard: React.FC = () => {
       
     } catch (err: any) {
       console.error('Error loading tenant contracts:', err);
-      setError('Error al cargar contratos: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar contratos: ${  err.message || 'Error desconocido'}`);
       setContracts([]); // Asegurar array vacío en caso de error
       setPendingReviewContracts([]);
     } finally {
@@ -168,7 +173,7 @@ const TenantContractsDashboard: React.FC = () => {
       setErrorDialog({
         open: true,
         title: '❌ Error',
-        message: 'ID de contrato no encontrado'
+        message: 'ID de contrato no encontrado',
       });
       return;
     }
@@ -198,8 +203,8 @@ const TenantContractsDashboard: React.FC = () => {
         body: JSON.stringify({
           approved: true,
           tenant_notes: 'Aprobado desde el dashboard del arrendatario',
-          confirm_understanding: true
-        })
+          confirm_understanding: true,
+        }),
       });
 
       if (response.ok) {
@@ -209,7 +214,7 @@ const TenantContractsDashboard: React.FC = () => {
         setSuccessDialog({
           open: true,
           title: '🎉 ¡Contrato Aprobado Exitosamente!',
-          message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.'
+          message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.',
         });
 
         // Recargar los datos para reflejar el cambio
@@ -223,7 +228,7 @@ const TenantContractsDashboard: React.FC = () => {
       setErrorDialog({
         open: true,
         title: '❌ Error al Aprobar el Contrato',
-        message: error.message || 'Error desconocido'
+        message: error.message || 'Error desconocido',
       });
     } finally {
       setApprovingContract(null);
@@ -243,7 +248,7 @@ const TenantContractsDashboard: React.FC = () => {
           icon: <EmailIcon />,
           urgent: true,
           completed: false,
-          action: () => window.location.href = `/contracts/tenant/accept/${contract.invitation_token}`
+          action: () => window.location.href = `/contracts/tenant/accept/${contract.invitation_token}`,
         });
         break;
 
@@ -256,7 +261,7 @@ const TenantContractsDashboard: React.FC = () => {
             icon: <PersonIcon />,
             urgent: true,
             completed: false,
-            action: () => window.location.href = `/contracts/tenant/data/${contract.id}`
+            action: () => window.location.href = `/contracts/tenant/data/${contract.id}`,
           });
         }
 
@@ -267,7 +272,7 @@ const TenantContractsDashboard: React.FC = () => {
           icon: <DocumentIcon />,
           urgent: false,
           completed: contract.tenant_approved,
-          action: () => window.location.href = `/contracts/tenant/review/${contract.id}`
+          action: () => window.location.href = `/contracts/tenant/review/${contract.id}`,
         });
         break;
 
@@ -280,7 +285,7 @@ const TenantContractsDashboard: React.FC = () => {
             icon: <SignIcon />,
             urgent: true,
             completed: false,
-            action: () => window.location.href = `/contracts/sign/${contract.id}`
+            action: () => window.location.href = `/contracts/sign/${contract.id}`,
           });
         }
         break;
@@ -293,7 +298,7 @@ const TenantContractsDashboard: React.FC = () => {
           icon: <WarningIcon />,
           urgent: true,
           completed: false,
-          action: () => window.location.href = `/contracts/tenant/objections/${contract.id}`
+          action: () => window.location.href = `/contracts/tenant/objections/${contract.id}`,
         });
         break;
     }
@@ -311,7 +316,7 @@ const TenantContractsDashboard: React.FC = () => {
       'BOTH_REVIEWING': 60,
       'READY_TO_SIGN': 80,
       'FULLY_SIGNED': 90,
-      'PUBLISHED': 100
+      'PUBLISHED': 100,
     };
     return stateProgress[contract.current_state] || 0;
   };
@@ -322,33 +327,33 @@ const TenantContractsDashboard: React.FC = () => {
       {
         label: 'Invitación Recibida',
         completed: !['TENANT_INVITED'].includes(contract.current_state),
-        active: contract.current_state === 'TENANT_INVITED'
+        active: contract.current_state === 'TENANT_INVITED',
       },
       {
         label: 'Datos Completados',
         completed: contract.tenant_data?.full_name ? true : false,
-        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_data?.full_name
+        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_data?.full_name,
       },
       {
         label: 'Contrato Revisado',
         completed: contract.tenant_approved,
-        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_approved
+        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_approved,
       },
       {
         label: 'Aprobado por Arrendador',
         completed: contract.landlord_approved,
-        active: contract.current_state === 'LANDLORD_REVIEWING'
+        active: contract.current_state === 'LANDLORD_REVIEWING',
       },
       {
         label: 'Listo para Firmar',
         completed: contract.current_state === 'READY_TO_SIGN' || contract.tenant_signed,
-        active: contract.current_state === 'READY_TO_SIGN'
+        active: contract.current_state === 'READY_TO_SIGN',
       },
       {
         label: 'Contrato Firmado',
         completed: contract.tenant_signed && contract.landlord_signed,
-        active: false
-      }
+        active: false,
+      },
     ];
   };
 
@@ -387,7 +392,7 @@ const TenantContractsDashboard: React.FC = () => {
       'PUBLISHED': 'Contrato Activo',
       'EXPIRED': 'Expirado',
       'TERMINATED': 'Terminado',
-      'CANCELLED': 'Cancelado'
+      'CANCELLED': 'Cancelado',
     };
     return stateTexts[state] || state;
   };
@@ -459,7 +464,7 @@ const TenantContractsDashboard: React.FC = () => {
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
               👤 Arrendador
             </Typography>
-            <Box display="flex" align="center">
+            <Box display="flex" alignItems="center">
               <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
                 <LandlordIcon />
               </Avatar>
@@ -493,7 +498,7 @@ const TenantContractsDashboard: React.FC = () => {
                       secondary={action.description}
                       primaryTypographyProps={{
                         variant: 'body2',
-                        color: action.urgent ? 'error.main' : 'text.primary'
+                        color: action.urgent ? 'error.main' : 'text.primary',
                       }}
                     />
                   </ListItem>
@@ -512,7 +517,7 @@ const TenantContractsDashboard: React.FC = () => {
                 <Step key={index} active={step.active} completed={step.completed}>
                   <StepLabel
                     StepIconProps={{
-                      sx: { fontSize: 20 }
+                      sx: { fontSize: 20 },
                     }}
                   >
                     <Typography variant="body2" color={step.completed ? 'success.main' : step.active ? 'primary.main' : 'text.secondary'}>
@@ -825,6 +830,66 @@ const TenantContractsDashboard: React.FC = () => {
                                   : '✅ APROBAR Y CONTINUAR'
                                 }
                               </Button>
+
+                              <Button
+                                variant="outlined"
+                                color="warning"
+                                size="large"
+                                startIcon={<EditIcon />}
+                                onClick={() => {
+                                  setSelectedContractForModification(process.workflow_data?.contract_created?.contract_id);
+                                  // Pasar datos del contrato para mostrar valores actuales en el modal
+                                  setSelectedContractData({
+                                    landlord_data: process.workflow_data?.contract_created?.landlord_data || process.workflow_data?.landlord_data,
+                                    tenant_data: process.workflow_data?.contract_created?.tenant_data || process.workflow_data?.tenant_data,
+                                    property_data: process.workflow_data?.contract_created?.property_data || process.workflow_data?.property_data,
+                                    economic_terms: process.workflow_data?.contract_created?.economic_terms || process.workflow_data?.economic_terms,
+                                    contract_terms: process.workflow_data?.contract_created?.contract_terms || process.workflow_data?.contract_terms,
+                                  });
+                                  setModificationModalOpen(true);
+                                }}
+                                sx={{ py: 1.5, fontSize: '1rem' }}
+                                fullWidth
+                              >
+                                ✏️ SOLICITAR MODIFICACIÓN
+                              </Button>
+
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="medium"
+                                startIcon={<CloseIcon />}
+                                onClick={async () => {
+                                  const contractId = process.workflow_data?.contract_created?.contract_id;
+                                  if (!contractId) {
+                                    setErrorDialog({
+                                      open: true,
+                                      title: '❌ Error',
+                                      message: 'No se encontró el ID del contrato.',
+                                    });
+                                    return;
+                                  }
+                                  try {
+                                    await api.post(`/tenant/contracts/${contractId}/reject_contract/`);
+                                    setSuccessDialog({
+                                      open: true,
+                                      title: '❌ Contrato Rechazado',
+                                      message: 'El contrato ha sido rechazado exitosamente. El arrendador será notificado.',
+                                    });
+                                    await loadTenantContracts();
+                                  } catch (err: any) {
+                                    setErrorDialog({
+                                      open: true,
+                                      title: '❌ Error al Rechazar',
+                                      message: err?.response?.data?.error || err?.message || 'No se pudo rechazar el contrato. Intenta nuevamente.',
+                                    });
+                                  }
+                                }}
+                                sx={{ py: 1 }}
+                                fullWidth
+                              >
+                                ❌ RECHAZAR CONTRATO
+                              </Button>
                             </Box>
 
                             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mb: 2 }}>
@@ -970,9 +1035,9 @@ const TenantContractsDashboard: React.FC = () => {
               Tienes {pendingReviewContracts.length} contrato{pendingReviewContracts.length !== 1 ? 's' : ''} que requiere{pendingReviewContracts.length === 1 ? '' : 'n'} tu aprobación o solicitud de cambios.
             </Typography>
             {pendingReviewContracts.map(contract => (
-              <TenantContractReview 
+              <TenantContractReview
                 key={contract.id}
-                contract={contract}
+                contract={contract as any}
                 onReviewComplete={loadTenantContracts}
               />
             ))}
@@ -1144,6 +1209,37 @@ const TenantContractsDashboard: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Modal de Solicitud de Modificación */}
+      {selectedContractForModification && (
+        <ModificationRequestModal
+          open={modificationModalOpen}
+          onClose={() => {
+            setModificationModalOpen(false);
+            setSelectedContractForModification(null);
+            setSelectedContractData(null);
+          }}
+          contractId={selectedContractForModification}
+          contractData={selectedContractData ? {
+            landlord_data: selectedContractData.landlord_data as Record<string, unknown>,
+            tenant_data: selectedContractData.tenant_data as Record<string, unknown>,
+            property_data: selectedContractData.property_data as Record<string, unknown>,
+            economic_terms: selectedContractData.economic_terms as Record<string, unknown>,
+            contract_terms: selectedContractData.contract_terms as Record<string, unknown>,
+          } : undefined}
+          onSuccess={() => {
+            setSuccessDialog({
+              open: true,
+              title: '✅ Solicitud Enviada',
+              message: 'Tu solicitud de modificación ha sido enviada al arrendador. Te notificaremos cuando responda.',
+            });
+            setModificationModalOpen(false);
+            setSelectedContractForModification(null);
+            setSelectedContractData(null);
+            loadTenantContracts(); // Recargar contratos
+          }}
+        />
+      )}
     </Container>
   );
 };

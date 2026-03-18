@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import * as contractService from '../../services/contractService';
+import matchingService from '../../services/matchingService';
+import ContractModificationService from '../../services/contractModificationService';
 import {
   Box,
   Card,
@@ -35,7 +38,7 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import ContractClausesEditor from './ContractClausesEditor';
@@ -66,12 +69,13 @@ import {
   Fingerprint as BiometricIcon,
   OpenInNew as OpenIcon,
   PlayArrow as ContinueIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import VisitScheduleModal from './VisitScheduleModal';
 import VisitEvaluationModal from './VisitEvaluationModal';
 import LandlordDocumentReview from './LandlordDocumentReview';
+import ContractDraftEditor from './ContractDraftEditor';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 
 interface MatchedCandidate {
@@ -128,7 +132,7 @@ interface MatchedCandidate {
 }
 
 interface WorkflowAction {
-  type: 'visit_schedule' | 'visit_completed' | 'documents_request' | 'documents_approved' | 'contract_create' | 'reject';
+  type: 'visit_schedule' | 'visit_completed' | 'documents_request' | 'documents_approved' | 'contract_create' | 'reject' | 'advance_to_execution';
   data?: any;
 }
 
@@ -164,8 +168,14 @@ const MatchedCandidatesView: React.FC = () => {
   const [clausesEditorOpen, setClausesEditorOpen] = useState(false);
   const [selectedContractForClauses, setSelectedContractForClauses] = useState<string | null>(null);
 
+  // Estados para solicitudes de modificación
+  const [modificationRequests, setModificationRequests] = useState<{ [contractId: string]: any[] }>({});
+
+  // Estados para el editor de contrato
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [contractToEdit, setContractToEdit] = useState<string | null>(null);
+
   useEffect(() => {
-    console.log('🔍 MatchedCandidatesView component mounted');
     fetchMatchedCandidates();
   }, []);
 
@@ -197,23 +207,20 @@ const MatchedCandidatesView: React.FC = () => {
       const requestBody = {
         match_request_id: selectedCandidateForVisit.id,
         action: 'visit_schedule',
-        visit_data: visitData
+        visit_data: visitData,
       };
 
       const response = await api.post('/contracts/workflow-action/', requestBody);
       const result = response.data;
 
       // CRITICAL FIX: Reload all candidates from server to ensure synchronization
-      console.log('🔄 Recargando candidatos para sincronización después de programar visita...');
       await fetchMatchedCandidates();
 
       // Show success message
       setSuccess('✅ Visita programada exitosamente. El arrendatario ha sido notificado.');
-      console.log('✅ Visita programada exitosamente y datos sincronizados');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al programar visita';
       setError(errorMsg);
-      console.error('❌ Error al programar visita:', err);
       throw err; // Re-lanzar el error para que el modal lo maneje
     }
   }, [selectedCandidateForVisit]);
@@ -232,14 +239,13 @@ const MatchedCandidatesView: React.FC = () => {
       const requestBody = {
         match_request_id: selectedCandidateForEvaluation.id,
         action: approved ? 'visit_completed' : 'reject',
-        evaluation_notes: notes
+        evaluation_notes: notes,
       };
 
       const response = await api.post('/contracts/workflow-action/', requestBody);
       const result = response.data;
 
       // Recargar candidatos para sincronización
-      console.log('🔄 Recargando candidatos después de evaluar visita...');
       await fetchMatchedCandidates();
 
       // Show success message
@@ -248,14 +254,12 @@ const MatchedCandidatesView: React.FC = () => {
       } else {
         setSuccess(approved
           ? '✅ Visita aprobada exitosamente. El candidato avanzó a la etapa de revisión de documentos.'
-          : '✅ Candidato rechazado. El proceso ha sido eliminado completamente.'
+          : '✅ Candidato rechazado. El proceso ha sido eliminado completamente.',
         );
       }
-      console.log(`✅ Visita ${approved ? 'aprobada y avanzada a Etapa 2' : 'rechazada'} exitosamente`);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al evaluar visita';
       setError(errorMsg);
-      console.error('❌ Error al evaluar visita:', err);
       throw err;
     }
   }, [selectedCandidateForEvaluation]);
@@ -265,21 +269,40 @@ const MatchedCandidatesView: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🔍 Fetching matched candidates from /api/v1/contracts/matched-candidates/');
       const response = await api.get('/contracts/matched-candidates/');
 
-      console.log('🔍 Response status:', response.status);
       const data = response.data;
-      console.log('🔍 Received data:', data);
 
-      setCandidates(data.results || []);
-      console.log('🔍 Set candidates:', data.results?.length || 0);
+      const candidatesData = data.results || [];
+      setCandidates(candidatesData);
+
+      // Cargar solicitudes de modificación para cada contrato
+      fetchModificationRequests(candidatesData);
     } catch (err) {
-      console.error('🔍 Error response:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para cargar solicitudes de modificación de los contratos
+  const fetchModificationRequests = async (candidatesData: MatchedCandidate[]) => {
+    const modRequestsMap: { [contractId: string]: any[] } = {};
+
+    for (const candidate of candidatesData) {
+      const contractId = candidate.workflow_data?.contract_created?.contract_id;
+      if (contractId) {
+        try {
+          const requests = await ContractModificationService.getContractModificationRequests(contractId);
+          if (requests && requests.length > 0) {
+            modRequestsMap[contractId] = requests;
+          }
+        } catch (error) {
+        }
+      }
+    }
+
+    setModificationRequests(modRequestsMap);
   };
 
   const handleWorkflowAction = async (candidate: MatchedCandidate, action: WorkflowAction) => {
@@ -300,7 +323,7 @@ const MatchedCandidatesView: React.FC = () => {
       
       const requestBody: any = {
         match_request_id: selectedCandidate.id,
-        action: currentAction.type
+        action: currentAction.type,
       };
 
       // Add specific data based on action type
@@ -308,7 +331,7 @@ const MatchedCandidatesView: React.FC = () => {
         case 'documents_approved':
           requestBody.documents_data = {
             approved: true,
-            notes: documentsNotes
+            notes: documentsNotes,
           };
           break;
         case 'reject':
@@ -317,7 +340,7 @@ const MatchedCandidatesView: React.FC = () => {
         case 'advance_to_execution':
           requestBody.execution_data = {
             ready_for_execution: true,
-            advance_to_stage_5: true
+            advance_to_stage_5: true,
           };
           break;
       }
@@ -327,7 +350,6 @@ const MatchedCandidatesView: React.FC = () => {
       
       // CRITICAL FIX: Handle contract creation redirection
       if (currentAction.type === 'contract_create') {
-        console.log('🔄 Redirigiendo al flujo de contratos existente...');
         
         // Close dialog immediately to avoid UI blocking
         setWorkflowDialogOpen(false);
@@ -336,7 +358,6 @@ const MatchedCandidatesView: React.FC = () => {
         
         // Redirect to contract creation form with property and tenant data
         const contractUrl = `/app/contracts/new?property=${selectedCandidate.property.id}&tenant=${selectedCandidate.tenant.id}&match=${selectedCandidate.id}`;
-        console.log('📄 Navigating to contract form:', contractUrl);
         navigate(contractUrl);
         
         return; // Exit early for contract creation
@@ -344,7 +365,6 @@ const MatchedCandidatesView: React.FC = () => {
       
       // CRITICAL FIX: Reload all candidates from server to ensure synchronization
       // Don't rely on partial updates from the API response
-      console.log('🔄 Recargando candidatos desde el servidor para sincronización completa...');
       await fetchMatchedCandidates();
 
       setWorkflowDialogOpen(false);
@@ -357,7 +377,6 @@ const MatchedCandidatesView: React.FC = () => {
       } else {
         setSuccess(result.message || '✅ Acción ejecutada exitosamente');
       }
-      console.log('✅ Acción ejecutada y datos sincronizados:', result.message);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al procesar acción');
@@ -370,13 +389,11 @@ const MatchedCandidatesView: React.FC = () => {
     try {
       setActionLoading(true);
 
-      console.log('⚡ Generando contrato automáticamente desde match:', candidate.id);
 
       // Llamar al endpoint de generación automática
       const response = await api.post(`/matching/match-requests/${candidate.id}/generate-contract/`);
       const result = response.data;
 
-      console.log('✅ Contrato generado automáticamente:', result);
 
       // Mostrar mensaje de éxito
       alert(`✅ Contrato generado exitosamente!\n\nNúmero de contrato: ${result.contract.contract_number}\nEstado: ${result.contract.status}`);
@@ -385,7 +402,6 @@ const MatchedCandidatesView: React.FC = () => {
       await fetchMatchedCandidates();
 
     } catch (err: any) {
-      console.error('❌ Error al generar contrato automáticamente:', err);
       const errorMsg = err.response?.data?.error || err.message || 'Error desconocido';
       setError(`Error al generar contrato: ${errorMsg}`);
       alert(`❌ Error: ${errorMsg}`);
@@ -442,7 +458,7 @@ const MatchedCandidatesView: React.FC = () => {
       'pending_landlord_authentication',
       'authenticated_pending_signature',
       'partially_signed',
-      'fully_signed'
+      'fully_signed',
     ];
 
     return allowedBiometricStates.includes(contractInfo.status);
@@ -522,7 +538,6 @@ const MatchedCandidatesView: React.FC = () => {
     if (!candidate.workflow_data.contract_created) return;
     
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('🔐 Iniciando autenticación biométrica para contrato:', contractId);
     
     // Navegar a la página de autenticación biométrica
     navigate(`/app/contracts/${contractId}/authenticate`);
@@ -532,30 +547,30 @@ const MatchedCandidatesView: React.FC = () => {
     if (!candidate.workflow_data.contract_created) return;
     
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('▶️ Continuando autenticación biométrica para contrato:', contractId);
     
     // Navegar a la página de autenticación biométrica
     navigate(`/app/contracts/${contractId}/authenticate`);
   }, [navigate]);
 
-  const handleSendBiometricReminder = useCallback((candidate: MatchedCandidate) => {
+  const handleSendBiometricReminder = useCallback(async (candidate: MatchedCandidate) => {
     if (!candidate.workflow_data.contract_created) return;
-    
+
     const contractId = candidate.workflow_data.contract_created.contract_id;
     const tenantName = candidate.tenant.full_name;
-    
-    console.log('📬 Enviando recordatorio biométrico al arrendatario:', tenantName);
-    
-    // TODO: Implementar API para enviar recordatorio
-    // Por ahora simulamos el envío
-    alert(`📬 Recordatorio enviado a ${tenantName} para completar su autenticación biométrica`);
+
+
+    try {
+      const result = await contractService.sendBiometricReminder(contractId);
+      alert(`✅ ${result.message || `Recordatorio enviado exitosamente a ${tenantName}`}`);
+    } catch (error: any) {
+      alert(`❌ Error enviando recordatorio: ${error.response?.data?.error || error.message}`);
+    }
   }, []);
 
   const handleViewContract = useCallback((candidate: MatchedCandidate) => {
     if (!candidate.workflow_data.contract_created) return;
     
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('📄 Viendo contrato:', contractId);
     
     // Navegar a la vista del contrato
     navigate(`/app/contracts/${contractId}`);
@@ -565,7 +580,6 @@ const MatchedCandidatesView: React.FC = () => {
     if (!candidate.workflow_data.contract_created) return;
     
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('📊 Viendo estado del contrato:', contractId);
     
     // Navegar directamente al contrato específico
     navigate(`/app/contracts/${contractId}`);
@@ -575,16 +589,14 @@ const MatchedCandidatesView: React.FC = () => {
     try {
       setActionLoading(true);
 
-      console.log('✅ Arrendador aprobando contrato:', contractId);
 
-      const response = await api.post(`/api/v1/contracts/landlord/contracts/${contractId}/approve_contract/`, {
+      const response = await api.post(`/contracts/landlord/contracts/${contractId}/approve_contract/`, {
         approved: true,
         landlord_notes: 'Aprobado desde el dashboard del arrendador',
-        confirm_understanding: true
+        confirm_understanding: true,
       });
 
       if (response.status === 200) {
-        console.log('✅ Contract approved by landlord successfully:', response.data);
 
         // Recargar los datos para reflejar el cambio
         await fetchMatchedCandidates();
@@ -592,11 +604,9 @@ const MatchedCandidatesView: React.FC = () => {
         alert('🎉 ¡Contrato aprobado exitosamente! El proceso ahora avanzará a la autenticación biométrica.');
       } else {
         const errorData = response.data;
-        console.error('❌ Error approving contract:', errorData);
         alert(`Error al aprobar contrato: ${errorData.error || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('❌ Error approving contract:', error);
       alert('Error al aprobar el contrato. Por favor intenta nuevamente.');
     } finally {
       setActionLoading(false);
@@ -605,25 +615,33 @@ const MatchedCandidatesView: React.FC = () => {
 
   const handleDeliverKeys = useCallback(async (candidate: MatchedCandidate) => {
     if (!candidate.workflow_data.contract_created) return;
-    
+
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('🔑 Confirmando entrega de llaves para contrato:', contractId);
-    
-    // TODO: Implementar API para confirmar entrega de llaves
-    // navigate(`/app/contracts/${contractId}/deliver-keys`);
-    
-    alert('🔑 Funcionalidad de entrega de llaves en desarrollo');
-  }, []);
+
+    try {
+      const result = await contractService.confirmKeyDelivery(contractId);
+      alert(`✅ ${result.message || 'Entrega de llaves confirmada exitosamente'}`);
+      // Refrescar lista de candidatos para ver cambios actualizados
+      await fetchMatchedCandidates();
+    } catch (error: any) {
+      alert(`❌ Error confirmando entrega: ${error.response?.data?.error || error.message}`);
+    }
+  }, [fetchMatchedCandidates]);
 
   const handleStartExecution = useCallback(async (candidate: MatchedCandidate) => {
     if (!candidate.workflow_data.contract_created) return;
-    
+
     const contractId = candidate.workflow_data.contract_created.contract_id;
-    console.log('▶️ Iniciando ejecución del contrato:', contractId);
-    
-    // TODO: Implementar API para iniciar ejecución del contrato
-    alert('▶️ Funcionalidad de inicio de ejecución en desarrollo');
-  }, []);
+
+    try {
+      const result = await contractService.startContractExecution(contractId);
+      alert(`✅ ${result.message || 'Ejecución del contrato iniciada exitosamente'}`);
+      // Refrescar lista de candidatos para ver el nuevo estado
+      await fetchMatchedCandidates();
+    } catch (error: any) {
+      alert(`❌ Error iniciando ejecución: ${error.response?.data?.error || error.message}`);
+    }
+  }, [fetchMatchedCandidates]);
 
   // ETAPA 4: Botones para autenticación biométrica
   const renderBiometricActionButtons = useCallback((candidate: MatchedCandidate) => {
@@ -860,7 +878,7 @@ const MatchedCandidatesView: React.FC = () => {
       return new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
       }).format(amount);
     };
 
@@ -954,7 +972,7 @@ const MatchedCandidatesView: React.FC = () => {
                   <Step key={stage} active={active} completed={completed}>
                     <StepLabel
                       StepIconProps={{
-                        sx: { fontSize: 20 }
+                        sx: { fontSize: 20 },
                       }}
                     >
                       <Typography variant="body2" color={completed ? 'success.main' : active ? 'primary.main' : 'text.secondary'}>
@@ -1047,7 +1065,7 @@ const MatchedCandidatesView: React.FC = () => {
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                       </Typography>
                       <Typography variant="body2">
@@ -1120,6 +1138,29 @@ const MatchedCandidatesView: React.FC = () => {
                   Revisar Documentos
                 </Button>
                 <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<ContractIcon />}
+                  onClick={async () => {
+                    try {
+                      const response = await matchingService.advanceToContractStage(candidate.id);
+                      if (response.data.success) {
+                        await fetchMatchedCandidates();
+                        alert('✅ Proceso avanzado a Etapa 3: Creación del Contrato');
+                      } else {
+                        alert('❌ Error: Respuesta inesperada del servidor');
+                      }
+                    } catch (error: any) {
+                      const errorMessage = error.response?.data?.error || error.message || 'Error desconocido';
+                      alert(`❌ Error: ${  errorMessage}`);
+                    }
+                  }}
+                  disabled={false}
+                  size="small"
+                >
+                  Continuar a Creación de Contrato
+                </Button>
+                <Button
                   variant="outlined"
                   color="error"
                   startIcon={<RejectIcon />}
@@ -1148,7 +1189,12 @@ const MatchedCandidatesView: React.FC = () => {
                   variant="outlined"
                   color="primary"
                   startIcon={<EditIcon />}
-                  onClick={() => handleWorkflowAction(candidate, { type: 'contract_create' })}
+                  onClick={() => {
+                    // IMPORTANTE: NO llamar al backend - solo redirigir al formulario
+                    // El contrato se crea SOLO cuando el usuario hace clic en "Crear Borrador"
+                    const contractUrl = `/app/contracts/new?property=${candidate.property.id}&tenant=${candidate.tenant.id}&match=${candidate.id}`;
+                    navigate(contractUrl);
+                  }}
                   size="small"
                 >
                   ✏️ Crear Manualmente
@@ -1168,6 +1214,66 @@ const MatchedCandidatesView: React.FC = () => {
             {/* ETAPA 3: Contrato creado, esperando aprobaciones */}
             {candidate.workflow_stage === 3 && candidate.workflow_data.contract_created && (
               <>
+                {/* Alert de solicitudes de modificación pendientes */}
+                {modificationRequests[candidate.workflow_data.contract_created.contract_id]?.filter(req => req.status === 'PENDING').length > 0 && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    <AlertTitle>✏️ Solicitud de Modificación Pendiente</AlertTitle>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      El arrendatario ha solicitado modificaciones al contrato. Revisa y responde.
+                    </Typography>
+                    {modificationRequests[candidate.workflow_data.contract_created.contract_id]
+                      .filter(req => req.status === 'PENDING')
+                      .map((req: any) => (
+                        <Box key={req.id} sx={{ mt: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                          <Typography variant="subtitle2">Revisión #{req.revision_number}</Typography>
+                          <Typography variant="body2">{req.reason}</Typography>
+                          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={async () => {
+                                try {
+                                  await ContractModificationService.approveModificationRequest(req.id, 'Aprobado - Proceder a editar');
+                                  setSuccess('Modificación aprobada. Abriendo editor de contrato...');
+
+                                  // Abrir el editor de contrato
+                                  setContractToEdit(candidate.workflow_data.contract_created.contract_id);
+                                  setEditorOpen(true);
+
+                                  fetchMatchedCandidates();
+                                } catch (error) {
+                                  setError('Error al aprobar modificación');
+                                }
+                              }}
+                            >
+                              Aprobar y Editar
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={async () => {
+                                const reason = prompt('Razón del rechazo:');
+                                if (reason) {
+                                  try {
+                                    await ContractModificationService.rejectModificationRequest(req.id, reason);
+                                    setSuccess('Modificación rechazada.');
+                                    fetchMatchedCandidates();
+                                  } catch (error) {
+                                    setError('Error al rechazar modificación');
+                                  }
+                                }
+                              }}
+                            >
+                              Rechazar
+                            </Button>
+                          </Box>
+                        </Box>
+                      ))}
+                  </Alert>
+                )}
+
                 <Button
                   variant="outlined"
                   color="primary"
@@ -1463,7 +1569,7 @@ const MatchedCandidatesView: React.FC = () => {
         maxWidth="lg"
         fullWidth
         PaperProps={{
-          sx: { maxHeight: '90vh' }
+          sx: { maxHeight: '90vh' },
         }}
       >
         <DialogTitle>
@@ -1485,11 +1591,20 @@ const MatchedCandidatesView: React.FC = () => {
             <LandlordDocumentReview
               processId={selectedCandidateForDocuments.id}
               onDocumentReviewed={() => {
-                console.log('Documento revisado, actualizando vista...');
               }}
-              onAllApproved={() => {
-                console.log('Todos los documentos aprobados!');
-                // Opcional: cerrar modal automáticamente o mostrar mensaje
+              onAllApproved={async () => {
+
+                // Cerrar modal
+                handleCloseDocumentsModal();
+
+                // Recargar candidatos para actualizar el estado
+                await fetchMatchedCandidates();
+
+                // Mostrar mensaje
+                alert(
+                  '✅ ¡Todos los documentos aprobados!\n\n' +
+                  'Ahora puedes hacer clic en "Continuar a Creación de Contrato" para avanzar a la siguiente etapa.',
+                );
               }}
             />
           )}
@@ -1509,7 +1624,7 @@ const MatchedCandidatesView: React.FC = () => {
         maxWidth="lg"
         fullWidth
         PaperProps={{
-          sx: { maxHeight: '95vh' }
+          sx: { maxHeight: '95vh' },
         }}
       >
         <DialogTitle>
@@ -1533,7 +1648,6 @@ const MatchedCandidatesView: React.FC = () => {
               onClausesChange={() => {
                 // Refresh candidates when clauses are modified
                 fetchMatchedCandidates();
-                console.log('Cláusulas del contrato actualizadas');
               }}
             />
           )}
@@ -1548,6 +1662,52 @@ const MatchedCandidatesView: React.FC = () => {
             Cerrar Editor
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Contract Draft Editor Dialog */}
+      <Dialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '80vh',
+            maxHeight: '90vh',
+          },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EditIcon color="primary" />
+          <Typography variant="h6" component="span" sx={{ flexGrow: 1 }}>
+            Editor de Contrato
+          </Typography>
+          <IconButton edge="end" onClick={() => setEditorOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 3 }}>
+          {contractToEdit && (
+            <ContractDraftEditor
+              contractId={contractToEdit}
+              onSave={(updatedContract) => {
+                setSuccess('Contrato guardado exitosamente');
+                setEditorOpen(false);
+                setContractToEdit(null);
+                fetchMatchedCandidates();
+              }}
+              onCancel={() => {
+                setEditorOpen(false);
+                setContractToEdit(null);
+              }}
+              onClose={() => {
+                setEditorOpen(false);
+                setContractToEdit(null);
+              }}
+            />
+          )}
+        </DialogContent>
       </Dialog>
 
       {/* Notification Snackbars */}

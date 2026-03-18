@@ -6,6 +6,14 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  Timeline,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+} from '@mui/lab';
+import {
   Box,
   Card,
   CardContent,
@@ -34,12 +42,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
   Stepper,
   Step,
   StepLabel,
@@ -62,7 +64,7 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
-  Priority as PriorityIcon,
+  Flag as PriorityIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
   Business as BusinessIcon,
@@ -88,7 +90,7 @@ import {
   RespondObjectionPayload,
 } from '../../types/landlordContract';
 import { LoadingButton } from '../common/LoadingButton';
-import { CustomNotification } from '../common/CustomNotification';
+import CustomNotification from '../common/CustomNotification';
 
 interface ContractObjectionsManagerProps {
   contract: LandlordControlledContractData;
@@ -190,7 +192,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
       const contractObjections = await LandlordContractService.getContractObjections(contract.id);
       setObjections(contractObjections);
     } catch (err: any) {
-      setError('Error al cargar objeciones: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar objeciones: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -225,7 +227,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
         resetForm();
         onObjectionUpdated?.(newObjection);
       } catch (err: any) {
-        setError('Error al presentar objeción: ' + (err.message || 'Error desconocido'));
+        setError(`Error al presentar objeción: ${  err.message || 'Error desconocido'}`);
       } finally {
         setLoading(false);
       }
@@ -257,14 +259,14 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
         });
         
         setObjections(prev => 
-          prev.map(obj => obj.id === updatedObjection.id ? updatedObjection : obj)
+          prev.map(obj => obj.id === updatedObjection.id ? updatedObjection : obj),
         );
         setSuccess(`Objeción ${values.response.toLowerCase()} exitosamente`);
         setRespondObjectionDialog(false);
         setSelectedObjection(null);
         onObjectionUpdated?.(updatedObjection);
       } catch (err: any) {
-        setError('Error al responder objeción: ' + (err.message || 'Error desconocido'));
+        setError(`Error al responder objeción: ${  err.message || 'Error desconocido'}`);
       } finally {
         setLoading(false);
       }
@@ -276,12 +278,12 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
       setLoading(true);
       const updatedObjection = await LandlordContractService.withdrawObjection(objectionId);
       setObjections(prev => 
-        prev.map(obj => obj.id === updatedObjection.id ? updatedObjection : obj)
+        prev.map(obj => obj.id === updatedObjection.id ? updatedObjection : obj),
       );
       setSuccess('Objeción retirada exitosamente');
       onObjectionUpdated?.(updatedObjection);
     } catch (err: any) {
-      setError('Error al retirar objeción: ' + (err.message || 'Error desconocido'));
+      setError(`Error al retirar objeción: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -454,8 +456,8 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
                   variant="outlined"
                 />
                 <Chip
-                  label={showResolved ? "Mostrando resueltas" : "Solo pendientes"}
-                  color={showResolved ? "default" : "warning"}
+                  label={showResolved ? 'Mostrando resueltas' : 'Solo pendientes'}
+                  color={showResolved ? 'default' : 'warning'}
                   variant="outlined"
                   onClick={() => setShowResolved(!showResolved)}
                   clickable
@@ -478,9 +480,9 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
                 <Card 
                   variant="outlined"
                   sx={{ 
-                    borderLeft: `4px solid`,
+                    borderLeft: '4px solid',
                     borderLeftColor: `${PRIORITY_COLORS[objection.priority]}.main`,
-                    '&:hover': { elevation: 2 }
+                    '&:hover': { elevation: 2 },
                   }}
                 >
                   <CardContent>
@@ -492,7 +494,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
                             bgcolor: `${PRIORITY_COLORS[objection.priority]}.main`,
                             width: 32,
                             height: 32,
-                            mr: 2
+                            mr: 2,
                           }}>
                             {objection.priority === 'CRITICAL' ? <ErrorIcon fontSize="small" /> :
                              objection.priority === 'HIGH' ? <WarningIcon fontSize="small" /> :
@@ -561,7 +563,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
                               <Typography variant="caption" color="text.secondary">
                                 ({formatDistanceToNow(new Date(objection.created_at), { 
                                   addSuffix: true, 
-                                  locale: es 
+                                  locale: es, 
                                 })})
                               </Typography>
                             </Box>
@@ -655,14 +657,14 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
               </Avatar>
               <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                 {objections.length === 0 
-                  ? "No hay objeciones presentadas"
-                  : "No hay objeciones que coincidan con los filtros"
+                  ? 'No hay objeciones presentadas'
+                  : 'No hay objeciones que coincidan con los filtros'
                 }
               </Typography>
               <Typography color="text.secondary" sx={{ mb: 3 }}>
                 {objections.length === 0 
-                  ? "Las objeciones permiten negociar términos específicos del contrato"
-                  : "Ajusta los filtros para ver más objeciones"
+                  ? 'Las objeciones permiten negociar términos específicos del contrato'
+                  : 'Ajusta los filtros para ver más objeciones'
                 }
               </Typography>
               
@@ -809,7 +811,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
             Cancelar
           </Button>
           <LoadingButton
-            onClick={createObjectionFormik.handleSubmit}
+            onClick={() => createObjectionFormik.handleSubmit()}
             loading={loading}
             variant="contained"
             startIcon={<SendIcon />}
@@ -886,8 +888,8 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
                     helperText={respondObjectionFormik.touched.response_note && respondObjectionFormik.errors.response_note}
                     placeholder={
                       respondObjectionFormik.values.response === 'ACCEPTED' 
-                        ? "Explica los cambios que implementarás..."
-                        : "Explica por qué no puedes aceptar esta objeción..."
+                        ? 'Explica los cambios que implementarás...'
+                        : 'Explica por qué no puedes aceptar esta objeción...'
                     }
                   />
                 </Grid>
@@ -900,7 +902,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
             Cancelar
           </Button>
           <LoadingButton
-            onClick={respondObjectionFormik.handleSubmit}
+            onClick={() => respondObjectionFormik.handleSubmit()}
             loading={loading}
             variant="contained"
             color={respondObjectionFormik.values.response === 'ACCEPTED' ? 'success' : 'error'}

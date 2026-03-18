@@ -27,14 +27,14 @@ class WorkflowActionEndpointTests(APITestCase):
         self.landlord = User.objects.create_user(
             email='landlord@test.com',
             password='testpass123',
-            role='landlord',
+            user_type='landlord',
             first_name='Landlord',
             last_name='Test'
         )
         self.tenant = User.objects.create_user(
             email='tenant@test.com',
             password='testpass123',
-            role='tenant',
+            user_type='tenant',
             first_name='Tenant',
             last_name='Test'
         )
@@ -51,13 +51,14 @@ class WorkflowActionEndpointTests(APITestCase):
             country='Colombia',
             bedrooms=2,
             bathrooms=1,
-            area=50
+            total_area=50
         )
 
         # Crear MatchRequest
         self.match_request = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             status='accepted',
             workflow_stage=1,
             workflow_data={'visit_scheduled': None}
@@ -122,10 +123,11 @@ class WorkflowActionEndpointTests(APITestCase):
         """Test: Rechazar candidato elimina MatchRequest y cascades a TenantDocuments"""
         # Crear TenantDocument asociado
         document = TenantDocument.objects.create(
-            user=self.tenant,
+            uploaded_by=self.tenant,
             match_request=self.match_request,
             document_type='cedula',
-            file='test.pdf'
+            document_file='test.pdf',
+            file_size=1024
         )
 
         match_code = self.match_request.match_code
@@ -155,12 +157,12 @@ class WorkflowActionEndpointTests(APITestCase):
         # Crear contratos relacionados
         contract = Contract.objects.create(
             property=self.property,
-            landlord=self.landlord,
-            tenant=self.tenant,
+            primary_party=self.landlord,
+            secondary_party=self.tenant,
             start_date='2025-11-01',
             end_date='2026-11-01',
             monthly_rent=1000000,
-            deposit=1000000
+            security_deposit=1000000
         )
 
         landlord_contract = LandlordControlledContract.objects.create(
@@ -168,7 +170,9 @@ class WorkflowActionEndpointTests(APITestCase):
             property=self.property,
             landlord=self.landlord,
             tenant=self.tenant,
-            rent_amount=1000000
+            tenant_identifier=self.tenant.email,
+            contract_type='rental_urban',
+            title='Test Contract',
         )
 
         # Actualizar workflow_data con contract_id
@@ -267,12 +271,12 @@ class ContractCascadeDeletionTests(TransactionTestCase):
         self.landlord = User.objects.create_user(
             email='landlord2@test.com',
             password='testpass123',
-            role='landlord'
+            user_type='landlord'
         )
         self.tenant = User.objects.create_user(
             email='tenant2@test.com',
             password='testpass123',
-            role='tenant'
+            user_type='tenant'
         )
         self.property = Property.objects.create(
             title='Test Property 2',
@@ -285,30 +289,33 @@ class ContractCascadeDeletionTests(TransactionTestCase):
             country='Colombia',
             bedrooms=3,
             bathrooms=2,
-            area=80
+            total_area=80
         )
 
     def test_match_request_deletion_cascades_to_documents(self):
         """Test: Eliminar MatchRequest elimina automáticamente TenantDocuments"""
         match_request = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             status='accepted',
             workflow_stage=2
         )
 
         # Crear múltiples documentos
         doc1 = TenantDocument.objects.create(
-            user=self.tenant,
+            uploaded_by=self.tenant,
             match_request=match_request,
             document_type='cedula',
-            file='cedula.pdf'
+            document_file='cedula.pdf',
+            file_size=1024
         )
         doc2 = TenantDocument.objects.create(
-            user=self.tenant,
+            uploaded_by=self.tenant,
             match_request=match_request,
             document_type='recibo_servicios',
-            file='recibo.pdf'
+            document_file='recibo.pdf',
+            file_size=2048
         )
 
         doc1_id = doc1.id
@@ -329,12 +336,12 @@ class WorkflowStageProgressionTests(APITestCase):
         self.landlord = User.objects.create_user(
             email='landlord3@test.com',
             password='testpass123',
-            role='landlord'
+            user_type='landlord'
         )
         self.tenant = User.objects.create_user(
             email='tenant3@test.com',
             password='testpass123',
-            role='tenant'
+            user_type='tenant'
         )
         self.property = Property.objects.create(
             title='Workflow Test Property',
@@ -347,7 +354,7 @@ class WorkflowStageProgressionTests(APITestCase):
             country='Colombia',
             bedrooms=4,
             bathrooms=3,
-            area=120
+            total_area=120
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.landlord)
@@ -356,7 +363,8 @@ class WorkflowStageProgressionTests(APITestCase):
         """Test: Verificar progresión completa stage 1 → 2 → 3"""
         match = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             status='accepted',
             workflow_stage=1
         )
@@ -389,7 +397,8 @@ class WorkflowStageProgressionTests(APITestCase):
         # Test etapa 1
         match1 = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             workflow_stage=1
         )
         response = self.client.post(url, {
@@ -402,7 +411,8 @@ class WorkflowStageProgressionTests(APITestCase):
         # Test etapa 2
         match2 = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             workflow_stage=2
         )
         response = self.client.post(url, {
@@ -415,7 +425,8 @@ class WorkflowStageProgressionTests(APITestCase):
         # Test etapa 3
         match3 = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             workflow_stage=3
         )
         response = self.client.post(url, {
@@ -428,7 +439,8 @@ class WorkflowStageProgressionTests(APITestCase):
         # Test etapa 4
         match4 = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             workflow_stage=4
         )
         response = self.client.post(url, {
@@ -446,12 +458,12 @@ class ActivityLogTests(APITestCase):
         self.landlord = User.objects.create_user(
             email='landlord4@test.com',
             password='testpass123',
-            role='landlord'
+            user_type='landlord'
         )
         self.tenant = User.objects.create_user(
             email='tenant4@test.com',
             password='testpass123',
-            role='tenant'
+            user_type='tenant'
         )
         self.property = Property.objects.create(
             title='Log Test Property',
@@ -464,17 +476,18 @@ class ActivityLogTests(APITestCase):
             country='Colombia',
             bedrooms=2,
             bathrooms=1,
-            area=60
+            total_area=60
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.landlord)
 
-    @patch('contracts.api_views.UserActivityLog')
+    @patch('users.models.UserActivityLog')
     def test_rejection_logs_activity_before_deletion(self, mock_activity_log):
         """Test: Rechazo registra actividad ANTES de eliminar"""
         match = MatchRequest.objects.create(
             property=self.property,
-            requester=self.tenant,
+            tenant=self.tenant,
+            landlord=self.landlord,
             workflow_stage=2
         )
 

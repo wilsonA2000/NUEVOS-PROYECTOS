@@ -21,7 +21,6 @@ import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   AttachMoney as AttachMoneyIcon,
-  Description as DescriptionIcon,
   PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -98,7 +97,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Propiedad"
-                  secondary={contract.property?.title || contract.property?.address || contract.propertyId || 'No especificada'}
+                  secondary={contract.property?.title || contract.property?.address || 'No especificada'}
                 />
               </ListItem>
               <ListItem>
@@ -107,7 +106,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Inquilino"
-                  secondary={contract.tenant?.name || contract.tenant?.full_name || contract.tenantId || 'No especificado'}
+                  secondary={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'No especificado'}
                 />
               </ListItem>
             </List>
@@ -120,7 +119,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Fecha de Inicio"
-                  secondary={contract.startDate ? new Date(contract.startDate).toLocaleDateString() : contract.start_date ? new Date(contract.start_date).toLocaleDateString() : 'No especificada'}
+                  secondary={contract.start_date ? new Date(contract.start_date).toLocaleDateString() : 'No especificada'}
                 />
               </ListItem>
               <ListItem>
@@ -129,7 +128,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Fecha de Fin"
-                  secondary={contract.endDate ? new Date(contract.endDate).toLocaleDateString() : contract.end_date ? new Date(contract.end_date).toLocaleDateString() : 'No especificada'}
+                  secondary={contract.end_date ? new Date(contract.end_date).toLocaleDateString() : 'No especificada'}
                 />
               </ListItem>
             </List>
@@ -142,7 +141,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Monto de Renta"
-                  secondary={`$${contract.rentAmount?.toLocaleString() || '0'}`}
+                  secondary={`$${contract.monthly_rent?.toLocaleString() || contract.total_value?.toLocaleString() || '0'}`}
                 />
               </ListItem>
               <ListItem>
@@ -151,7 +150,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Monto de Depósito"
-                  secondary={`$${contract.depositAmount?.toLocaleString() || '0'}`}
+                  secondary={`$${contract.deposit_amount?.toLocaleString() || '0'}`}
                 />
               </ListItem>
             </List>
@@ -166,24 +165,7 @@ export const ContractDetail: React.FC = () => {
           {contract.terms}
         </Typography>
 
-        {contract.documents.length > 0 && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              Documentos
-            </Typography>
-            <List>
-              {contract.documents.map((document, index) => (
-                <ListItem key={index}>
-                  <ListItemIcon>
-                    <DescriptionIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={document} />
-                </ListItem>
-              ))}
-            </List>
-          </>
-        )}
+        {/* Documents section - Contract type doesn't have documents array in base interface */}
 
         <Box display="flex" gap={2} mt={3}>
           <Button

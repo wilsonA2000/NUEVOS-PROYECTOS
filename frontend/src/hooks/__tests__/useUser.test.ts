@@ -1,9 +1,22 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useUser } from '../useUser';
-import { createWrapper } from '../../test-utils';
-import mockAxios from '../../__mocks__/axios';
-import { User } from '../../types';
 
+// Mock the api module
+jest.mock('../../services/api', () => ({
+  api: {
+    get: jest.fn(),
+    patch: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn(), eject: jest.fn() },
+      response: { use: jest.fn(), eject: jest.fn() },
+    },
+  },
+}));
+
+// Mock useLanguage if needed
 jest.mock('../useLanguage', () => ({
   useLanguage: () => ({
     language: 'en',
@@ -12,54 +25,101 @@ jest.mock('../useLanguage', () => ({
   }),
 }));
 
+import { api } from '../../services/api';
+
+const mockApi = api as jest.Mocked<typeof api>;
+
 describe('useUser', () => {
-  const mockUser: User = {
-    id: 1,
+  const mockUser = {
+    id: '1',
     email: 'test@example.com',
     first_name: 'Test',
     last_name: 'User',
-    role: 'tenant',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    role: 'tenant' as const,
+    is_verified: true,
   };
 
-  const mockUpdatedUser: User = {
+  const mockUpdatedUser = {
     ...mockUser,
     first_name: 'Updated',
     last_name: 'Name',
   };
 
   beforeEach(() => {
-    mockAxios.__setMockData({
-      get: mockUser,
-      patch: mockUpdatedUser,
-    });
+    jest.clearAllMocks();
+    localStorage.clear();
   });
 
-  it('should fetch user data successfully', async () => {
-    const { result } = renderHook(() => useUser(), { wrapper: createWrapper() });
+  it('should fetch user data successfully when token exists', async () => {
+    localStorage.setItem('access_token', 'test-token');
+    mockApi.get.mockResolvedValueOnce({ data: mockUser });
 
-    expect(result.current.isLoading).toBe(true);
+    const { result } = renderHook(() => useUser());
+
+    // Initially loading
+    expect(result.current.loading).toBe(true);
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.loading).toBe(false);
     });
 
     expect(result.current.user).toEqual(mockUser);
+    expect(result.current.error).toBeNull();
+    expect(mockApi.get).toHaveBeenCalledWith('/users/me/');
+  });
+
+  it('should not fetch user when no token exists', async () => {
+    const { result } = renderHook(() => useUser());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(mockApi.get).not.toHaveBeenCalled();
+  });
+
+  it('should handle fetch error', async () => {
+    localStorage.setItem('access_token', 'test-token');
+    mockApi.get.mockRejectedValueOnce({
+      response: { data: { message: 'Unauthorized' } },
+    });
+
+    const { result } = renderHook(() => useUser());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.error).toBe('Unauthorized');
   });
 
   it('should update user data successfully', async () => {
-    const { result } = renderHook(() => useUser(), { wrapper: createWrapper() });
+    localStorage.setItem('access_token', 'test-token');
+    mockApi.get.mockResolvedValueOnce({ data: mockUser });
+    mockApi.patch.mockResolvedValueOnce({ data: mockUpdatedUser });
+
+    const { result } = renderHook(() => useUser());
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.user).toEqual(mockUser);
     });
 
-    const updateResult = await result.current.update.mutateAsync({
-      first_name: 'Updated',
-      last_name: 'Name',
+    let updateResult: any;
+    await act(async () => {
+      updateResult = await result.current.updateUser({
+        first_name: 'Updated',
+        last_name: 'Name',
+      });
     });
 
     expect(updateResult).toEqual(mockUpdatedUser);
+    expect(result.current.user).toEqual(mockUpdatedUser);
+    expect(mockApi.patch).toHaveBeenCalledWith('/users/me/', {
+      first_name: 'Updated',
+      last_name: 'Name',
+    });
   });
-}); 
+});

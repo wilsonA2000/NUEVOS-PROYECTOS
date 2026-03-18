@@ -69,6 +69,7 @@ import PropertyImage from '../common/PropertyImage';
 import { ModernImageGallery } from './ModernImageGallery';
 import MatchRequestForm from '../matching/MatchRequestForm';
 import { matchingService } from '../../services/matchingService';
+import { api } from '../../services/api';
 
 // Styled components for modern design
 const HeroSection = styled(Box)(({ theme }) => ({
@@ -220,7 +221,6 @@ const FloatingActions = styled(Box)(({ theme }) => ({
 
 // Enhanced Video Player Component
 const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) => {
-  console.log('🎥 VideoPlayer rendering video:', video.title, 'Full video object:', video);
   const getYouTubeEmbedUrl = (url: string) => {
     try {
       let videoId = '';
@@ -243,16 +243,13 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
       // Validate video ID (YouTube video IDs are typically 11 characters, can contain letters, numbers, _ and -)
       const validIdPattern = /^[a-zA-Z0-9_-]{10,12}$/;
       if (!videoId || !validIdPattern.test(videoId)) {
-        console.error('🎥 Invalid YouTube video ID:', videoId, 'from URL:', url);
         return '';
       }
       
       const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1`;
-      console.log('🎥 Generated embed URL:', embedUrl);
       return embedUrl;
       
     } catch (error) {
-      console.error('🎥 Error processing YouTube URL:', error, url);
       return '';
     }
   };
@@ -267,7 +264,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-        }
+        },
       }}
     >
       {(() => {
@@ -289,7 +286,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    borderRadius: '8px 8px 0 0'
+                    borderRadius: '8px 8px 0 0',
                   }}
                 />
               </Box>
@@ -306,7 +303,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
                   bgcolor: 'error.light',
                   color: 'error.contrastText',
                   flexDirection: 'column',
-                  gap: 1
+                  gap: 1,
                 }}
               >
                 <VideoIcon sx={{ fontSize: 48, opacity: 0.7 }} />
@@ -347,7 +344,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
                 bgcolor: 'grey.100',
                 color: 'text.secondary',
                 flexDirection: 'column',
-                gap: 1
+                gap: 1,
               }}
             >
               <VideoIcon sx={{ fontSize: 48, opacity: 0.5 }} />
@@ -371,7 +368,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}>
               {video.description}
             </Typography>
@@ -381,7 +378,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
               display: 'flex', 
               alignItems: 'center', 
               gap: 0.5,
-              mt: 1 
+              mt: 1, 
             }}>
               <VideoIcon sx={{ fontSize: 14 }} />
               Duración: {video.duration}
@@ -394,7 +391,6 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
 };
 
 export const PropertyDetail: React.FC = () => {
-  console.log('🔥 Using NAMED EXPORT PropertyDetail component');
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -420,6 +416,7 @@ export const PropertyDetail: React.FC = () => {
       const timer = setTimeout(() => setMapLoaded(true), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [property]);
 
   // Check for existing match request
@@ -436,7 +433,6 @@ export const PropertyDetail: React.FC = () => {
           setExistingMatchRequest(response.data.request);
         }
       } catch (error) {
-        console.error('Error checking existing request:', error);
       } finally {
         setCheckingExistingRequest(false);
       }
@@ -497,24 +493,27 @@ export const PropertyDetail: React.FC = () => {
     if (!property?.images) return;
     if (direction === 'prev') {
       setCurrentImageIndex(prev => 
-        prev === 0 ? property.images.length - 1 : prev - 1
+        prev === 0 ? property.images.length - 1 : prev - 1,
       );
     } else {
       setCurrentImageIndex(prev => 
-        prev === property.images.length - 1 ? 0 : prev + 1
+        prev === property.images.length - 1 ? 0 : prev + 1,
       );
     }
   };
 
   const toggleFavorite = async () => {
     if (!property || !isAuthenticated) return;
+    const previousState = isFavorited;
     try {
       setIsFavorited(!isFavorited);
-      // TODO: Implement favorite API call
-      console.log('Toggle favorite for property:', property.id);
+      if (isFavorited) {
+        await api.delete(`/properties/${property.id}/favorite/`);
+      } else {
+        await api.post(`/properties/${property.id}/favorite/`);
+      }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
-      setIsFavorited(!isFavorited); // Revert on error
+      setIsFavorited(previousState);
     }
   };
 
@@ -525,9 +524,7 @@ export const PropertyDetail: React.FC = () => {
       await matchingService.cancelMatchRequest(property.id);
       setExistingMatchRequest(null);
       // Mostrar notificación de éxito
-      console.log('✅ Solicitud cancelada exitosamente');
     } catch (error) {
-      console.error('❌ Error cancelando solicitud:', error);
     }
   };
 
@@ -552,10 +549,9 @@ export const PropertyDetail: React.FC = () => {
         has_pets: data.has_pets,
         pet_details: data.pet_details,
         smoking_allowed: data.smoking_allowed,
-        priority: data.priority || 'medium'
+        priority: data.priority || 'medium',
       });
 
-      console.log('✅ Match request enviado exitosamente:', response.data);
       
       // Cerrar modal y mostrar éxito
       setMatchRequestDialogOpen(false);
@@ -569,14 +565,13 @@ export const PropertyDetail: React.FC = () => {
         created_at: new Date().toISOString(),
         tenant_message: response.data.tenant_message,
         can_update: true,
-        can_cancel: true
+        can_cancel: true,
       });
       
       // Opcional: Redirigir a dashboard de matches
       // navigate('/app/requests');
       
     } catch (error: any) {
-      console.error('❌ Error enviando match request:', error);
       throw error; // Re-throw para que MatchRequestForm maneje el error
     } finally {
       setIsSubmittingMatch(false);
@@ -802,7 +797,7 @@ export const PropertyDetail: React.FC = () => {
                       background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%)',
                       borderRadius: 4,
                       zIndex: -1,
-                    }
+                    },
                   }}
                 >
                   <Typography 
@@ -987,7 +982,7 @@ export const PropertyDetail: React.FC = () => {
                     sx={{ 
                       lineHeight: 1.8,
                       color: 'text.secondary',
-                      fontSize: '1.1rem'
+                      fontSize: '1.1rem',
                     }}
                   >
                     {property.description}
@@ -1234,7 +1229,7 @@ export const PropertyDetail: React.FC = () => {
                     height: 60,
                     bgcolor: 'primary.main',
                     fontSize: '1.5rem',
-                    fontWeight: 700
+                    fontWeight: 700,
                   }}
                 >
                   {property.landlord.first_name?.[0]}{property.landlord.last_name?.[0]}
@@ -1305,13 +1300,12 @@ export const PropertyDetail: React.FC = () => {
                           <Typography variant="body2" sx={{ mb: 1 }}>
                             <strong>Código:</strong> {existingMatchRequest.match_code}
                           </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            <strong>Estado:</strong> 
-                            <Chip 
+                          <Typography variant="body2" component="div" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <strong>Estado:</strong>
+                            <Chip
                               label={existingMatchRequest.status === 'pending' ? 'Pendiente' : existingMatchRequest.status}
                               color={existingMatchRequest.status === 'pending' ? 'warning' : 'info'}
-                              size="small" 
-                              sx={{ ml: 1 }} 
+                              size="small"
                             />
                           </Typography>
                           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1349,7 +1343,7 @@ export const PropertyDetail: React.FC = () => {
                           color: 'white',
                           '&:hover': {
                             background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
-                          }
+                          },
                         }}
                       >
                         {isSubmittingMatch ? 'Enviando...' : 'Enviar Solicitud'}
@@ -1380,7 +1374,6 @@ export const PropertyDetail: React.FC = () => {
                             await deleteProperty.mutateAsync(property.id.toString());
                             navigate('/app/properties');
                           } catch (error) {
-                            console.error('Error al eliminar propiedad:', error);
                           }
                         }
                       }}
@@ -1447,7 +1440,7 @@ export const PropertyDetail: React.FC = () => {
                       justifyContent: 'center',
                       bgcolor: 'grey.100',
                       flexDirection: 'column',
-                      gap: 2
+                      gap: 2,
                     }}
                   >
                     <LocationIcon sx={{ fontSize: 48, color: 'primary.main' }} />
@@ -1481,7 +1474,7 @@ export const PropertyDetail: React.FC = () => {
                       height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
                     }}
                   >
                     <CircularProgress />
@@ -1504,7 +1497,7 @@ export const PropertyDetail: React.FC = () => {
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                 '&:hover': {
                   transform: 'scale(1.1)',
-                }
+                },
               }}
             >
               {isFavorited ? <FavoriteIcon /> : <FavoriteBorderIcon />}
@@ -1521,7 +1514,7 @@ export const PropertyDetail: React.FC = () => {
               '&:hover': {
                 transform: 'scale(1.1)',
                 bgcolor: 'grey.100',
-              }
+              },
             }}
           >
             <ArrowBackIcon />
@@ -1537,7 +1530,7 @@ export const PropertyDetail: React.FC = () => {
         BackdropComponent={Backdrop}
         BackdropProps={{
           timeout: 500,
-          sx: { bgcolor: 'rgba(0,0,0,0.9)' }
+          sx: { bgcolor: 'rgba(0,0,0,0.9)' },
         }}
       >
         <Fade in={imageModalOpen}>
@@ -1609,7 +1602,7 @@ export const PropertyDetail: React.FC = () => {
                       left: 16,
                       color: 'white',
                       bgcolor: 'rgba(0,0,0,0.5)',
-                      '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
                     }}
                   >
                     <ChevronLeftIcon fontSize="large" />
@@ -1621,7 +1614,7 @@ export const PropertyDetail: React.FC = () => {
                       right: 16,
                       color: 'white',
                       bgcolor: 'rgba(0,0,0,0.5)',
-                      '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
                     }}
                   >
                     <ChevronRightIcon fontSize="large" />
@@ -1657,7 +1650,7 @@ export const PropertyDetail: React.FC = () => {
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         opacity: 1,
-                      }
+                      },
                     }}
                   >
                     <Box
@@ -1693,9 +1686,9 @@ export const PropertyDetail: React.FC = () => {
             total_area: property.total_area,
             pets_allowed: property.pets_allowed,
             landlord: {
-              name: property.landlord?.first_name + ' ' + property.landlord?.last_name,
-              email: property.landlord?.email || ''
-            }
+              name: `${property.landlord?.first_name  } ${  property.landlord?.last_name}`,
+              email: property.landlord?.email || '',
+            },
           }}
           open={matchRequestDialogOpen}
           onSubmit={handleMatchRequestSubmit}

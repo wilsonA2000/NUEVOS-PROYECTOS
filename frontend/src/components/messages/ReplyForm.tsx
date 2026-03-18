@@ -20,7 +20,9 @@ export const ReplyForm: React.FC = () => {
 
   const originalMessage = React.useMemo(() => {
     if (!messages || !replyToId) return null;
-    return messages.find((m) => m.id === replyToId);
+    // Handle paginated response structure
+    const messagesList = (messages as any)?.results || messages;
+    return Array.isArray(messagesList) ? messagesList.find((m: any) => m.id === replyToId) : null;
   }, [messages, replyToId]);
 
   const [formData, setFormData] = React.useState<CreateMessageDto>({
@@ -40,7 +42,7 @@ export const ReplyForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createMessage.mutateAsync(formData);
+      await createMessage.mutateAsync(formData as any);
       navigate('/app/messages');
     } catch (error) {
       console.error('Error al enviar la respuesta:', error);

@@ -87,8 +87,8 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   const [objectionsDialog, setObjectionsDialog] = useState(false);
   const [objectionText, setObjectionText] = useState('');
 
-  const isLandlord = user?.userType === 'landlord';
-  const isTenant = user?.userType === 'tenant';
+  const isLandlord = user?.user_type === 'landlord';
+  const isTenant = user?.user_type === 'tenant';
 
   // ===================================================================
   // DEFINICIÓN DE PASOS DEL WORKFLOW
@@ -408,7 +408,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
             {/* ESTADOS BIOMÉTRICOS */}
             {['tenant_biometric', 'guarantor_biometric', 'landlord_biometric'].includes(
-              contract.status
+              contract.status,
             ) && (
               <Alert severity="warning">
                 🔐 Autenticación biométrica en progreso...

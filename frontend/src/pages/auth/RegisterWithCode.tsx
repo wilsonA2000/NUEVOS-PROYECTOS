@@ -49,6 +49,7 @@ import TermsModal from '../../components/modals/TermsModal';
 import PrivacyModal from '../../components/modals/PrivacyModal';
 
 interface InterviewCodeData {
+  code: string;
   interview_code: string;
   candidate_name: string;
   candidate_email: string;
@@ -57,6 +58,9 @@ interface InterviewCodeData {
   status: string;
   expires_at: string;
   is_approved: boolean;
+  email?: string;
+  user_type?: string;
+  valid_until?: string;
 }
 
 export const RegisterWithCode: React.FC = () => {
@@ -160,7 +164,7 @@ export const RegisterWithCode: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ interview_code: code })
+        body: JSON.stringify({ interview_code: code }),
       });
 
       const data = await response.json();
@@ -169,7 +173,7 @@ export const RegisterWithCode: React.FC = () => {
         setCodeValidation({
           isValid: true,
           message: 'Código válido',
-          codeData: data.code_data
+          codeData: data.code_data,
         });
 
         // Pre-llenar formulario con datos del código
@@ -421,8 +425,8 @@ export const RegisterWithCode: React.FC = () => {
                     textTransform: 'uppercase',
                     fontSize: '1.1rem',
                     fontFamily: 'monospace',
-                    letterSpacing: '0.1em'
-                  }
+                    letterSpacing: '0.1em',
+                  },
                 }}
                 InputProps={{
                   startAdornment: (
@@ -433,10 +437,10 @@ export const RegisterWithCode: React.FC = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <Tooltip title={
-                        codeValidating ? "Validando código..." :
-                        codeValidation.isValid ? "Código válido y verificado" :
-                        interviewCode.length >= 8 ? "Haga clic para validar el código" :
-                        "Ingrese el código completo para validar"
+                        codeValidating ? 'Validando código...' :
+                        codeValidation.isValid ? 'Código válido y verificado' :
+                        interviewCode.length >= 8 ? 'Haga clic para validar el código' :
+                        'Ingrese el código completo para validar'
                       }>
                         <IconButton
                           onClick={() => validateInterviewCode(interviewCode)}
@@ -446,8 +450,8 @@ export const RegisterWithCode: React.FC = () => {
                             color: codeValidation.isValid ? 'success.main' : 
                                    (interviewCode.length >= 8 ? 'primary.main' : 'action.disabled'),
                             '&:hover': {
-                              backgroundColor: codeValidation.isValid ? 'success.light' : 'primary.light'
-                            }
+                              backgroundColor: codeValidation.isValid ? 'success.light' : 'primary.light',
+                            },
                           }}
                         >
                           {codeValidating ? (
@@ -460,7 +464,7 @@ export const RegisterWithCode: React.FC = () => {
                         </IconButton>
                       </Tooltip>
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 sx={{ mb: 2 }}
               />
@@ -687,7 +691,7 @@ export const RegisterWithCode: React.FC = () => {
                         onChange={(e) => setPassword2(e.target.value)}
                         required
                         error={password2 !== '' && password2 !== formData.password}
-                        helperText={password2 !== '' && password2 !== formData.password ? "Las contraseñas no coinciden" : "Repite la contraseña"}
+                        helperText={password2 !== '' && password2 !== formData.password ? 'Las contraseñas no coinciden' : 'Repite la contraseña'}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -1124,8 +1128,11 @@ export const RegisterWithCode: React.FC = () => {
                           <Select
                             multiple
                             name="property_types"
-                            value={formData.property_types}
-                            onChange={handleSelectChange}
+                            value={formData.property_types as string[]}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setFormData(prev => ({ ...prev, property_types: typeof value === 'string' ? value.split(',') : value }));
+                            }}
                             input={<OutlinedInput label="Tipos de Propiedades que Maneja" />}
                             renderValue={(selected) => (
                               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -1282,8 +1289,11 @@ export const RegisterWithCode: React.FC = () => {
                           <Select
                             multiple
                             name="specialties"
-                            value={formData.specialties || []}
-                            onChange={handleSelectChange}
+                            value={(formData.specialties || []) as string[]}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setFormData(prev => ({ ...prev, specialties: typeof value === 'string' ? value.split(',') : value }));
+                            }}
                             input={<OutlinedInput label="Especialidades Adicionales" />}
                             renderValue={(selected) => (
                               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -1412,8 +1422,8 @@ export const RegisterWithCode: React.FC = () => {
           setShowSuccess(false);
           navigate('/login', {
             state: {
-              message: 'Cuenta creada exitosamente. Se ha enviado un correo de confirmación.'
-            }
+              message: 'Cuenta creada exitosamente. Se ha enviado un correo de confirmación.',
+            },
           });
         }}
         title="¡Cuenta creada exitosamente!"

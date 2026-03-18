@@ -41,7 +41,7 @@ whitenoise==6.6.0
 gunicorn==21.2.0
 
 # Monitoreo y logging
-sentry-sdk==1.40.0
+sentry-sdk[django]==1.40.0
 django-debug-toolbar==4.2.0
 
 # Pagos
@@ -85,4 +85,10 @@ openpyxl==3.1.2
 
 # Generación de PDFs
 reportlab==4.0.7
-weasyprint==60.2 
+weasyprint==60.2
+
+# =============================================================================
+# SISTEMA CONTROL MOLECULAR - Editor Rico y Versionado
+# =============================================================================
+django-ckeditor==6.7.0
+django-simple-history==3.4.0 

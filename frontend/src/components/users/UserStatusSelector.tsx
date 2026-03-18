@@ -42,16 +42,16 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
   // Sync with optimized user status
   useEffect(() => {
     if (myStatus?.status) {
-      setLocalStatus(myStatus.status);
+      setLocalStatus(myStatus.status as UserStatus);
     }
   }, [myStatus]);
 
   const handleStatusChange = (event: SelectChangeEvent<UserStatus>) => {
     const newStatus = event.target.value as UserStatus;
     setLocalStatus(newStatus);
-    
+
     // Update through optimized user status system
-    setMyStatus({ status: newStatus });
+    setMyStatus({ status: newStatus } as any);
     
     console.log(`User status changed to: ${newStatus}${isConnected ? ' (synced via WebSocket)' : ' (local only)'}`);
   };
@@ -128,7 +128,7 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
           labelId="user-status-select-label"
           value={localStatus}
           onChange={handleStatusChange}
-          label={showLabel ? "Estado de visibilidad" : undefined}
+          label={showLabel ? 'Estado de visibilidad' : undefined}
           startAdornment={getStatusIcon(localStatus)}
         >
           <MenuItem value="online">

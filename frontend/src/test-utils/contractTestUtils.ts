@@ -15,7 +15,7 @@ import {
   DocumentType,
   ContractObjection,
   LandlordContractGuarantee,
-  ContractWorkflowHistory
+  ContractWorkflowHistory,
 } from '../types/landlordContract';
 
 // =====================================================================
@@ -41,7 +41,7 @@ export const createMockLandlordData = (overrides: Partial<LandlordData> = {}): L
   bank_name: 'Banco de Bogotá',
   account_type: 'savings',
   profession: 'Arquitecto',
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -66,8 +66,8 @@ export const createMockTenantData = (overrides: Partial<TenantData> = {}): Tenan
       name: 'Carlos Silva',
       relationship: 'Amigo',
       phone: '+57 302 111 2222',
-      years_known: 5
-    }
+      years_known: 5,
+    },
   ],
   commercial_references: [
     {
@@ -75,13 +75,13 @@ export const createMockTenantData = (overrides: Partial<TenantData> = {}): Tenan
       institution_name: 'Bancolombia',
       phone: '+57 1 343 0000',
       relationship_duration_months: 24,
-      payment_behavior: 'excellent'
-    }
+      payment_behavior: 'excellent',
+    },
   ],
   emergency_contact: 'Luis González',
   emergency_phone: '+57 302 555 6666',
   emergency_relationship: 'Hermano',
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -89,13 +89,14 @@ export const createMockTenantData = (overrides: Partial<TenantData> = {}): Tenan
  */
 export const createMockContract = (
   state: ContractWorkflowState = 'DRAFT',
-  overrides: Partial<LandlordControlledContractData> = {}
-): LandlordControlledContractData => ({
+  overrides: Partial<LandlordControlledContractData> = {},
+): any => ({
   id: `contract-${Math.random().toString(36).substr(2, 9)}`,
   contract_number: `VH-2025-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
   current_state: state,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
+  // contract_template: 'rental_urban',
   property_id: `property-${Math.random().toString(36).substr(2, 9)}`,
   property_address: 'Apartamento 501, Torre Central, El Poblado',
   property_type: 'apartamento' as PropertyType,
@@ -108,10 +109,10 @@ export const createMockContract = (
   monthly_rent: 2500000,
   security_deposit: 2500000,
   contract_duration_months: 12,
-  rent_increase_type: 'ipc',
+  // rent_increase_type: 'ipc',
   payment_day: 5,
   utilities_included: false,
-  internet_included: true,
+  // internet_included: true,
   pets_allowed: false,
   smoking_allowed: false,
   guests_policy: 'limited',
@@ -129,7 +130,7 @@ export const createMockContract = (
   tenant_signed: false,
   published: false,
   workflow_history: [],
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -142,7 +143,7 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
     'TENANT_REVIEWING',
     'LANDLORD_REVIEWING',
     'READY_TO_SIGN',
-    'PUBLISHED'
+    'PUBLISHED',
   ];
 
   return Array.from({ length: count }, (_, index) => {
@@ -162,8 +163,8 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
       published: state === 'PUBLISHED',
       start_date: state === 'PUBLISHED' ? new Date(2025, 1, 1).toISOString() : undefined,
       end_date: state === 'PUBLISHED' ? new Date(2026, 0, 31).toISOString() : undefined,
-      published_at: state === 'PUBLISHED' ? new Date().toISOString() : undefined
-    });
+      published_at: state === 'PUBLISHED' ? new Date().toISOString() : undefined,
+    } as LandlordControlledContractData);
   });
 };
 
@@ -184,7 +185,7 @@ export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}
     'PUBLISHED': 3,
     'EXPIRED': 0,
     'TERMINATED': 0,
-    'CANCELLED': 0
+    'CANCELLED': 0,
   },
   by_property_type: {
     'apartamento': 15,
@@ -194,7 +195,7 @@ export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}
     'bodega': 0,
     'habitacion': 0,
     'finca': 0,
-    'lote': 0
+    'lote': 0,
   },
   average_rent: 2600000,
   total_rent_value: 65000000,
@@ -204,7 +205,7 @@ export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}
   fully_executed: 3,
   monthly_income: 7800000,
   occupancy_rate: 88.5,
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -212,7 +213,7 @@ export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}
  */
 export const createMockContractListResponse = (
   contracts: LandlordControlledContractData[] = createMockContractCollection(),
-  overrides: Partial<ContractListResponse> = {}
+  overrides: Partial<ContractListResponse> = {},
 ): ContractListResponse => ({
   contracts,
   total_count: contracts.length,
@@ -220,7 +221,7 @@ export const createMockContractListResponse = (
   page_size: 10,
   has_next: false,
   has_previous: false,
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -241,7 +242,7 @@ export const createMockObjection = (overrides: Partial<ContractObjection> = {}):
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   attachments: [],
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -265,7 +266,7 @@ export const createMockGuarantee = (overrides: Partial<LandlordContractGuarantee
   documents: [],
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -273,7 +274,7 @@ export const createMockGuarantee = (overrides: Partial<LandlordContractGuarantee
  */
 export const createMockWorkflowHistory = (
   action: string = 'contract_created',
-  overrides: Partial<ContractWorkflowHistory> = {}
+  overrides: Partial<ContractWorkflowHistory> = {},
 ): ContractWorkflowHistory => ({
   id: `history-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
@@ -287,7 +288,7 @@ export const createMockWorkflowHistory = (
   ip_address: '192.168.1.1',
   user_agent: 'Mozilla/5.0...',
   created_at: new Date().toISOString(),
-  ...overrides
+  ...overrides,
 });
 
 // =====================================================================
@@ -302,7 +303,7 @@ export const createMockUser = (userType: 'landlord' | 'tenant' = 'landlord', ove
   email: `${userType}@test.com`,
   user_type: userType,
   full_name: userType === 'landlord' ? 'Juan Carlos Pérez' : 'Ana María González',
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -313,7 +314,7 @@ export const createMockInvitationResponse = (overrides = {}) => ({
   invitation_token: `token-${Math.random().toString(36).substr(2, 16)}`,
   expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
   invitation_url: `https://verihome.com/contracts/invitation/token-${Math.random().toString(36).substr(2, 16)}`,
-  ...overrides
+  ...overrides,
 });
 
 /**
@@ -328,8 +329,8 @@ export const createMockInvitationsHistory = (count: number = 3) => ({
     status: ['pending', 'accepted', 'expired'][index % 3],
     created_at: new Date(Date.now() - (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
     expires_at: new Date(Date.now() + (7 - index) * 24 * 60 * 60 * 1000).toISOString(),
-    accepted_at: index === 1 ? new Date(Date.now() - index * 12 * 60 * 60 * 1000).toISOString() : undefined
-  }))
+    accepted_at: index === 1 ? new Date(Date.now() - index * 12 * 60 * 60 * 1000).toISOString() : undefined,
+  })),
 });
 
 /**
@@ -342,10 +343,10 @@ export const createMockApiError = (status: number = 400, message: string = 'API 
       error: message,
       details: status === 400 ? {
         field1: ['Este campo es requerido'],
-        field2: ['Formato inválido']
-      } : undefined
-    }
-  }
+        field2: ['Formato inválido'],
+      } : undefined,
+    },
+  },
 });
 
 /**
@@ -354,26 +355,26 @@ export const createMockApiError = (status: number = 400, message: string = 'API 
 export const createComplexWorkflowScenario = () => ({
   draft: createMockContract('DRAFT'),
   invited: createMockContract('TENANT_INVITED', {
-    tenant_email: 'invited@example.com'
+    tenant_email: 'invited@example.com',
   }),
   reviewing: createMockContract('TENANT_REVIEWING', {
-    tenant_data: createMockTenantData()
+    tenant_data: createMockTenantData(),
   }),
   pendingApproval: createMockContract('LANDLORD_REVIEWING', {
     tenant_data: createMockTenantData(),
-    tenant_approved: true
+    tenant_approved: true,
   }),
   readyToSign: createMockContract('READY_TO_SIGN', {
     tenant_data: createMockTenantData(),
     landlord_approved: true,
-    tenant_approved: true
+    tenant_approved: true,
   }),
   fullySigned: createMockContract('FULLY_SIGNED', {
     tenant_data: createMockTenantData(),
     landlord_approved: true,
     tenant_approved: true,
     landlord_signed: true,
-    tenant_signed: true
+    tenant_signed: true,
   }),
   published: createMockContract('PUBLISHED', {
     tenant_data: createMockTenantData(),
@@ -382,8 +383,8 @@ export const createComplexWorkflowScenario = () => ({
     landlord_signed: true,
     tenant_signed: true,
     published: true,
-    published_at: new Date().toISOString()
-  })
+    published_at: new Date().toISOString(),
+  }),
 });
 
 /**
@@ -394,25 +395,25 @@ export const createMockSignatureData = (userType: 'landlord' | 'tenant' = 'landl
   signature_metadata: {
     width: 300,
     height: 150,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   },
   biometric_data: {
     face_confidence: 0.95,
     document_confidence: 0.98,
     voice_confidence: 0.92,
-    overall_confidence: 0.95
+    overall_confidence: 0.95,
   },
   device_info: {
     user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     screen_resolution: '1920x1080',
-    device_type: 'desktop'
+    device_type: 'desktop',
   },
   location: {
     latitude: 4.5709,
     longitude: -74.2973,
-    accuracy: 10
+    accuracy: 10,
   },
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 
 /**
@@ -423,7 +424,7 @@ export const getTestConfig = () => ({
   mockDelayMs: 100,
   defaultPageSize: 10,
   maxRetries: 3,
-  timeoutMs: 5000
+  timeoutMs: 5000,
 });
 
 /**
@@ -433,7 +434,7 @@ export const createLoadingStates = () => ({
   idle: { loading: false, error: null },
   loading: { loading: true, error: null },
   success: { loading: false, error: null },
-  error: { loading: false, error: 'Something went wrong' }
+  error: { loading: false, error: 'Something went wrong' },
 });
 
 /**
@@ -466,7 +467,7 @@ export const createTestDates = () => {
     oneWeekAgo: oneWeekAgo.toISOString(),
     oneWeekFromNow: oneWeekFromNow.toISOString(),
     oneMonthFromNow: oneMonthFromNow.toISOString(),
-    oneYearFromNow: oneYearFromNow.toISOString()
+    oneYearFromNow: oneYearFromNow.toISOString(),
   };
 };
 
@@ -490,5 +491,5 @@ export const TEST_CONSTANTS = {
   SPECIAL_CHARS: '!@#$%^&*()[]{}|;:,.<>?',
   EMPTY_STRING: '',
   NULL_VALUE: null,
-  UNDEFINED_VALUE: undefined
+  UNDEFINED_VALUE: undefined,
 } as const;

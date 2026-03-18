@@ -18,11 +18,11 @@ export const useNotification = () => {
     open: false,
     message: '',
     type: 'info',
-    duration: 6000
+    duration: 6000,
   });
 
   const defaultOptions: ToastOptions = {
-    position: "top-right",
+    position: 'top-right',
     autoClose: 5000,
     hideProgressBar: false,
     closeOnClick: true,
@@ -52,21 +52,21 @@ export const useNotification = () => {
     message: string,
     type: 'success' | 'error' | 'warning' | 'info' = 'info',
     title?: string,
-    duration?: number
+    duration?: number,
   ) => {
     setCustomNotification({
       open: true,
       message: t(message),
       type,
       title: title ? t(title) : undefined,
-      duration: duration || 6000
+      duration: duration || 6000,
     });
   }, [t]);
 
   const hideCustomNotification = useCallback(() => {
     setCustomNotification(prev => ({
       ...prev,
-      open: false
+      open: false,
     }));
   }, []);
 
@@ -100,6 +100,6 @@ export const useNotification = () => {
     showCustomSuccess,
     showCustomError,
     showCustomWarning,
-    showCustomInfo
+    showCustomInfo,
   };
 }; 

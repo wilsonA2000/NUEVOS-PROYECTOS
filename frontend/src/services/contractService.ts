@@ -17,7 +17,6 @@ const getContracts = async (filters?: ContractFilters): Promise<Contract[]> => {
       return [];
     }
   } catch (error) {
-    console.error('Error fetching contracts:', error);
     throw error;
   }
 };
@@ -27,7 +26,6 @@ const getContract = async (id: string): Promise<Contract> => {
     const response = await api.get(`/contracts/contracts/${id}/`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract:', error);
     throw error;
   }
 };
@@ -37,7 +35,6 @@ const createContract = async (contractData: ContractFormData): Promise<Contract>
     const response = await api.post('/contracts/contracts/', contractData);
     return response.data;
   } catch (error) {
-    console.error('Error creating contract:', error);
     throw error;
   }
 };
@@ -47,7 +44,6 @@ const updateContract = async (id: string, contractData: Partial<ContractFormData
     const response = await api.patch(`/contracts/contracts/${id}/`, contractData);
     return response.data;
   } catch (error) {
-    console.error('Error updating contract:', error);
     throw error;
   }
 };
@@ -56,7 +52,6 @@ const deleteContract = async (id: string): Promise<void> => {
   try {
     await api.delete(`/contracts/contracts/${id}/`);
   } catch (error) {
-    console.error('Error deleting contract:', error);
     throw error;
   }
 };
@@ -68,7 +63,6 @@ const getTemplates = async (): Promise<ContractTemplate[]> => {
     const response = await api.get('/contracts/templates/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract templates:', error);
     throw error;
   }
 };
@@ -78,7 +72,6 @@ const getTemplate = async (id: string): Promise<ContractTemplate> => {
     const response = await api.get(`/contracts/templates/${id}/`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract template:', error);
     throw error;
   }
 };
@@ -88,7 +81,6 @@ const createTemplate = async (templateData: any): Promise<ContractTemplate> => {
     const response = await api.post('/contracts/templates/', templateData);
     return response.data;
   } catch (error) {
-    console.error('Error creating contract template:', error);
     throw error;
   }
 };
@@ -98,7 +90,6 @@ const updateTemplate = async (id: string, templateData: any): Promise<ContractTe
     const response = await api.patch(`/contracts/templates/${id}/`, templateData);
     return response.data;
   } catch (error) {
-    console.error('Error updating template:', error);
     throw error;
   }
 };
@@ -107,7 +98,6 @@ const deleteTemplate = async (id: string): Promise<void> => {
   try {
     await api.delete(`/contracts/templates/${id}/`);
   } catch (error) {
-    console.error('Error deleting template:', error);
     throw error;
   }
 };
@@ -120,7 +110,6 @@ const getSignatures = async (contractId?: string): Promise<ContractSignature[]> 
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching signatures:', error);
     throw error;
   }
 };
@@ -130,7 +119,6 @@ const createSignature = async (signatureData: any): Promise<ContractSignature> =
     const response = await api.post('/contracts/signatures/', signatureData);
     return response.data;
   } catch (error) {
-    console.error('Error creating signature:', error);
     throw error;
   }
 };
@@ -142,7 +130,7 @@ const signContract = async (
   contractId: string, 
   signatureData: SignatureData, 
   biometricData?: BiometricData,
-  verificationLevel: 'basic' | 'enhanced' | 'maximum' = 'basic'
+  verificationLevel: 'basic' | 'enhanced' | 'maximum' = 'basic',
 ): Promise<ContractSignature> => {
   try {
     const payload = {
@@ -150,7 +138,7 @@ const signContract = async (
         signature: signatureData.signature,
         timestamp: signatureData.timestamp,
         signerInfo: signatureData.signerInfo,
-        verification: signatureData.verification
+        verification: signatureData.verification,
       },
       biometric_data: biometricData || {},
       verification_level: verificationLevel,
@@ -159,14 +147,13 @@ const signContract = async (
         screenResolution: `${screen.width}x${screen.height}`,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: navigator.language,
-        platform: navigator.platform
-      }
+        platform: navigator.platform,
+      },
     };
 
     const response = await api.post(`/contracts/contracts/${contractId}/sign/`, payload);
     return response.data;
   } catch (error) {
-    console.error('Error signing contract:', error);
     throw error;
   }
 };
@@ -179,7 +166,6 @@ const verifySignature = async (contractId: string, verificationData: any): Promi
     const response = await api.post(`/contracts/contracts/${contractId}/verify-signature/`, verificationData);
     return response.data;
   } catch (error) {
-    console.error('Error verifying signature:', error);
     throw error;
   }
 };
@@ -194,7 +180,6 @@ const activateContract = async (contractId: string): Promise<Contract> => {
     const response = await api.post(`/contracts/contracts/${contractId}/activate/`);
     return response.data;
   } catch (error) {
-    console.error('Error activating contract:', error);
     throw error;
   }
 };
@@ -207,7 +192,6 @@ const suspendContract = async (contractId: string, reason?: string): Promise<Con
     const response = await api.post(`/contracts/contracts/${contractId}/suspend/`, { reason });
     return response.data;
   } catch (error) {
-    console.error('Error suspending contract:', error);
     throw error;
   }
 };
@@ -220,7 +204,6 @@ const getAmendments = async (contractId?: string): Promise<any[]> => {
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract amendments:', error);
     throw error;
   }
 };
@@ -230,7 +213,6 @@ const createAmendment = async (amendmentData: any): Promise<any> => {
     const response = await api.post('/contracts/amendments/', amendmentData);
     return response.data;
   } catch (error) {
-    console.error('Error creating contract amendment:', error);
     throw error;
   }
 };
@@ -243,7 +225,6 @@ const getRenewals = async (contractId?: string): Promise<any[]> => {
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching renewals:', error);
     throw error;
   }
 };
@@ -253,7 +234,6 @@ const createRenewal = async (renewalData: any): Promise<any> => {
     const response = await api.post('/contracts/renewals/', renewalData);
     return response.data;
   } catch (error) {
-    console.error('Error creating renewal:', error);
     throw error;
   }
 };
@@ -266,7 +246,6 @@ const getTerminations = async (contractId?: string): Promise<any[]> => {
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching terminations:', error);
     throw error;
   }
 };
@@ -276,7 +255,6 @@ const createTermination = async (terminationData: any): Promise<any> => {
     const response = await api.post('/contracts/terminations/', terminationData);
     return response.data;
   } catch (error) {
-    console.error('Error creating termination:', error);
     throw error;
   }
 };
@@ -289,7 +267,6 @@ const getDocuments = async (contractId?: string): Promise<ContractDocument[]> =>
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract documents:', error);
     throw error;
   }
 };
@@ -303,7 +280,6 @@ const uploadDocument = async (contractId: string, documentData: FormData): Promi
     });
     return response.data;
   } catch (error) {
-    console.error('Error uploading document:', error);
     throw error;
   }
 };
@@ -312,7 +288,6 @@ const deleteDocument = async (documentId: string): Promise<void> => {
   try {
     await api.delete(`/contracts/documents/${documentId}/`);
   } catch (error) {
-    console.error('Error deleting document:', error);
     throw error;
   }
 };
@@ -324,7 +299,6 @@ const getExpiringContracts = async (): Promise<Contract[]> => {
     const response = await api.get('/contracts/reports/expiring/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching expiring contracts:', error);
     throw error;
   }
 };
@@ -334,7 +308,6 @@ const getPendingSignatures = async (): Promise<Contract[]> => {
     const response = await api.get('/contracts/reports/pending-signatures/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching pending signatures:', error);
     throw error;
   }
 };
@@ -344,7 +317,6 @@ const getContractStats = async (): Promise<ContractStats> => {
     const response = await api.get('/contracts/stats/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching contract stats:', error);
     throw error;
   }
 };
@@ -359,7 +331,6 @@ const startBiometricAuthentication = async (contractId: string): Promise<any> =>
     const response = await api.post(`/contracts/${contractId}/start-authentication/`);
     return response.data;
   } catch (error) {
-    console.error('Error starting biometric authentication:', error);
     throw error;
   }
 };
@@ -371,11 +342,10 @@ const processFaceCapture = async (contractId: string, frontImage: string, sideIm
   try {
     const response = await api.post(`/contracts/${contractId}/auth/face-capture/`, {
       face_front_image: frontImage,
-      face_side_image: sideImage
+      face_side_image: sideImage,
     });
     return response.data;
   } catch (error) {
-    console.error('Error processing face capture:', error);
     throw error;
   }
 };
@@ -388,11 +358,10 @@ const processDocumentVerification = async (contractId: string, documentImage: st
     const response = await api.post(`/contracts/${contractId}/auth/document-capture/`, {
       document_image: documentImage,
       document_type: documentType,
-      document_number: documentNumber || ''
+      document_number: documentNumber || '',
     });
     return response.data;
   } catch (error) {
-    console.error('Error processing document verification:', error);
     throw error;
   }
 };
@@ -403,11 +372,10 @@ const processDocumentVerification = async (contractId: string, documentImage: st
 const processCombinedVerification = async (contractId: string, combinedImage: string): Promise<any> => {
   try {
     const response = await api.post(`/contracts/${contractId}/auth/combined-capture/`, {
-      combined_image: combinedImage
+      combined_image: combinedImage,
     });
     return response.data;
   } catch (error) {
-    console.error('Error processing combined verification:', error);
     throw error;
   }
 };
@@ -419,11 +387,10 @@ const processVoiceVerification = async (contractId: string, voiceRecording: stri
   try {
     const response = await api.post(`/contracts/${contractId}/auth/voice-capture/`, {
       voice_recording: voiceRecording,
-      expected_text: expectedText
+      expected_text: expectedText,
     });
     return response.data;
   } catch (error) {
-    console.error('Error processing voice verification:', error);
     throw error;
   }
 };
@@ -436,7 +403,6 @@ const completeAuthentication = async (contractId: string): Promise<any> => {
     const response = await api.post(`/contracts/${contractId}/complete-auth/`);
     return response.data;
   } catch (error) {
-    console.error('Error completing authentication:', error);
     throw error;
   }
 };
@@ -449,7 +415,6 @@ const getBiometricAuthenticationStatus = async (contractId: string): Promise<any
     const response = await api.get(`/contracts/${contractId}/auth/status/`);
     return response.data;
   } catch (error) {
-    console.error('Error getting biometric authentication status:', error);
     throw error;
   }
 };
@@ -462,7 +427,6 @@ const generateContractPDF = async (contractId: string): Promise<any> => {
     const response = await api.post(`/contracts/${contractId}/generate-pdf/`);
     return response.data;
   } catch (error) {
-    console.error('Error generating contract PDF:', error);
     throw error;
   }
 };
@@ -475,7 +439,6 @@ const editContractBeforeAuth = async (contractId: string, contractData: any): Pr
     const response = await api.patch(`/contracts/${contractId}/edit-before-auth/`, contractData);
     return response.data;
   } catch (error) {
-    console.error('Error editing contract before auth:', error);
     throw error;
   }
 };
@@ -493,10 +456,10 @@ const processBiometricVerification = async (biometricData: BiometricData): Promi
       resolve({
         success: true,
         confidence: 0.95,
-        verificationId: 'bio_' + Date.now(),
+        verificationId: `bio_${  Date.now()}`,
         facialRecognition: biometricData.facialRecognition,
         documentVerification: biometricData.documentVerification,
-        fingerprint: biometricData.fingerprint
+        fingerprint: biometricData.fingerprint,
       });
     }, 2000);
   });
@@ -518,8 +481,8 @@ const verifyIdentityDocument = async (documentImage: string): Promise<any> => {
           fullName: 'Juan Pérez García',
           dateOfBirth: '1990-05-15',
           expirationDate: '2030-05-15',
-          issuingAuthority: 'Registraduría Nacional'
-        }
+          issuingAuthority: 'Registraduría Nacional',
+        },
       });
     }, 3000);
   });
@@ -539,8 +502,8 @@ const verifyFacialRecognition = async (faceImage: string): Promise<any> => {
           leftEye: { x: 150, y: 120 },
           rightEye: { x: 200, y: 120 },
           nose: { x: 175, y: 150 },
-          mouth: { x: 175, y: 180 }
-        }
+          mouth: { x: 175, y: 180 },
+        },
       });
     }, 2000);
   });
@@ -553,7 +516,6 @@ const validateMatchForContract = async (matchId: string) => {
     const response = await api.post(`/matching/requests/${matchId}/validate-contract/`);
     return response.data;
   } catch (error) {
-    console.error('Error validating match for contract:', error);
     throw error;
   }
 };
@@ -563,7 +525,6 @@ const createContractFromMatch = async (matchId: string, contractData: any) => {
     const response = await api.post(`/matching/requests/${matchId}/create-contract/`, contractData);
     return response.data;
   } catch (error) {
-    console.error('Error creating contract from match:', error);
     throw error;
   }
 };
@@ -573,7 +534,6 @@ const verifyIdentityForContract = async (contractId: string, documents: any) => 
     const response = await api.post(`/matching/contracts/${contractId}/verify-identity/`, documents);
     return response.data;
   } catch (error) {
-    console.error('Error verifying identity for contract:', error);
     throw error;
   }
 };
@@ -583,7 +543,6 @@ const generateLegalClauses = async (contractId: string) => {
     const response = await api.post(`/matching/contracts/${contractId}/generate-clauses/`);
     return response.data;
   } catch (error) {
-    console.error('Error generating legal clauses:', error);
     throw error;
   }
 };
@@ -591,11 +550,10 @@ const generateLegalClauses = async (contractId: string) => {
 const downloadContractPDF = async (contractId: string) => {
   try {
     const response = await api.get(`/matching/contracts/${contractId}/download-pdf/`, {
-      responseType: 'blob'
+      responseType: 'blob',
     });
     return response.data;
   } catch (error) {
-    console.error('Error downloading contract PDF:', error);
     throw error;
   }
 };
@@ -605,7 +563,6 @@ const getContractMilestones = async (contractId: string) => {
     const response = await api.get(`/matching/contracts/${contractId}/milestones/`);
     return response.data;
   } catch (error) {
-    console.error('Error getting contract milestones:', error);
     throw error;
   }
 };
@@ -618,11 +575,10 @@ const getContractMilestones = async (contractId: string) => {
 const sendContractForReview = async (contractId: string): Promise<any> => {
   try {
     const response = await api.patch(`/contracts/contracts/${contractId}/`, {
-      status: 'pending_tenant_review'
+      status: 'pending_tenant_review',
     });
     return response.data;
   } catch (error) {
-    console.error('Error sending contract for review:', error);
     throw error;
   }
 };
@@ -635,11 +591,10 @@ const tenantContractReview = async (contractId: string, action: 'approve' | 'req
     const response = await api.post('/contracts/tenant-review/', {
       contract_id: contractId,
       action: action,
-      comments: comments || ''
+      comments: comments || '',
     });
     return response.data;
   } catch (error) {
-    console.error('Error processing tenant contract review:', error);
     throw error;
   }
 };
@@ -651,8 +606,8 @@ const getPendingTenantReviewContracts = async (): Promise<Contract[]> => {
   try {
     const response = await api.get('/contracts/contracts/', {
       params: {
-        status: 'pending_tenant_review'
-      }
+        status: 'pending_tenant_review',
+      },
     });
     // Handle both array and paginated response formats
     if (Array.isArray(response.data)) {
@@ -663,7 +618,46 @@ const getPendingTenantReviewContracts = async (): Promise<Contract[]> => {
       return [];
     }
   } catch (error) {
-    console.error('Error fetching pending tenant review contracts:', error);
+    throw error;
+  }
+};
+
+// ===================================================================
+// NUEVAS FUNCIONES PARA MATCHED CANDIDATES VIEW
+// ===================================================================
+
+/**
+ * Enviar recordatorio de autenticación biométrica al arrendatario
+ */
+export const sendBiometricReminder = async (contractId: string) => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/send-biometric-reminder/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Confirmar entrega de llaves de la propiedad
+ */
+export const confirmKeyDelivery = async (contractId: string) => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/confirm-key-delivery/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Iniciar ejecución del contrato
+ */
+export const startContractExecution = async (contractId: string) => {
+  try {
+    const response = await api.post(`/contracts/${contractId}/start-execution/`);
+    return response.data;
+  } catch (error) {
     throw error;
   }
 };
@@ -744,9 +738,15 @@ export const contractService = {
   
   // Contract Workflow Actions
   sendContractForReview,
+  
+  // New Matched Candidates APIs
+  sendBiometricReminder,
+  confirmKeyDelivery,
+  startContractExecution,
   tenantContractReview,
   getPendingTenantReviewContracts,
 };
 
 export default contractService;
 /* FORCE RELOAD 1754456937796 - CONTRACT_SERVICE - Nuclear fix applied */
+

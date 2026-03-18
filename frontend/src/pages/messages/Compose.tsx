@@ -63,6 +63,8 @@ const Compose: React.FC = () => {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchUsers = async () => {
     try {
@@ -91,6 +93,17 @@ const Compose: React.FC = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const createThreadMutation = useMutation({
     mutationFn: async (data: {
       recipients: string[];
@@ -100,19 +113,19 @@ const Compose: React.FC = () => {
       property?: string;
       contract?: string;
     }) => {
-      const response = await api.post('/messages/threads/', {
-        subject,
-        recipients,
-        content,
-        related_property: selectedProperty,
-        related_contract: selectedContract,
-        priority: 'medium',
-        attachments: [], // TODO: Implement file upload
+      const formData = new FormData();
+      formData.append('subject', subject);
+      formData.append('content', content);
+      formData.append('priority', 'medium');
+      recipients.forEach(r => formData.append('recipients', r));
+      if (selectedProperty) formData.append('related_property', selectedProperty);
+      if (selectedContract) formData.append('related_contract', selectedContract);
+      attachedFiles.forEach(file => formData.append('attachments', file));
+
+      const response = await api.post('/messages/threads/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      if (!response.ok) {
-        throw new Error('Error creating thread');
-      }
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       navigate('/messages');
@@ -237,6 +250,38 @@ const Compose: React.FC = () => {
           sx={{ mb: 2 }}
         />
 
+        {/* File attachments */}
+        <Box sx={{ mb: 2 }}>
+          <input
+            type="file"
+            multiple
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+          <Button
+            variant="outlined"
+            startIcon={<AttachFileIcon />}
+            onClick={() => fileInputRef.current?.click()}
+            size="small"
+            sx={{ mb: 1 }}
+          >
+            Adjuntar Archivos
+          </Button>
+          {attachedFiles.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {attachedFiles.map((file, index) => (
+                <Chip
+                  key={index}
+                  label={`${file.name} (${(file.size / 1024).toFixed(0)} KB)`}
+                  onDelete={() => handleRemoveFile(index)}
+                  size="small"
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
+
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
@@ -247,7 +292,7 @@ const Compose: React.FC = () => {
           <Button
             type="submit"
             variant="contained"
-            disabled={createThreadMutation.isLoading}
+            disabled={createThreadMutation.isPending}
           >
             Enviar
           </Button>

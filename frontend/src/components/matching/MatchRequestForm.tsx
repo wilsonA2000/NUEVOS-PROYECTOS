@@ -769,7 +769,7 @@ Puedes incluir:
         PaperProps={{
           sx: {
             borderRadius: 2,
-          }
+          },
         }}
       >
         <DialogContent sx={{ p: 4, textAlign: 'center' }}>
@@ -813,7 +813,7 @@ Puedes incluir:
         sx: {
           borderRadius: 2,
           maxHeight: '90vh',
-        }
+        },
       }}
     >
       <Box sx={{ position: 'relative' }}>

@@ -39,6 +39,7 @@ const ServiceWorkerUpdate: React.FC<ServiceWorkerUpdateProps> = ({ onUpdateCompl
     isInstalling,
     updateAvailable,
     skipWaiting,
+    updateApp,
     getCacheSize,
     clearCache,
     error,

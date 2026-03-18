@@ -134,7 +134,7 @@ export class VideoProcessor {
   static async compressVideo(
     file: File, 
     options: Partial<CompressionOptions> = {},
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<CompressionResult> {
     const startTime = Date.now();
     const config = { ...this.DEFAULT_COMPRESSION, ...options };
@@ -169,7 +169,7 @@ export class VideoProcessor {
         originalMetadata.width,
         originalMetadata.height,
         config.targetWidth,
-        config.targetHeight
+        config.targetHeight,
       );
       
       // Create compressed file simulation
@@ -342,7 +342,7 @@ export class VideoProcessor {
     originalWidth: number,
     originalHeight: number,
     targetWidth?: number,
-    targetHeight?: number
+    targetHeight?: number,
   ): { targetWidth: number; targetHeight: number } {
     // Default to 1080p max
     const maxWidth = targetWidth || 1920;
@@ -373,7 +373,7 @@ export class VideoProcessor {
   private static extractYouTubeId(url: string): string | null {
     const patterns = [
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
-      /^([a-zA-Z0-9_-]{11})$/
+      /^([a-zA-Z0-9_-]{11})$/,
     ];
     
     for (const pattern of patterns) {
@@ -392,7 +392,7 @@ export class VideoProcessor {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   }
 
   /**
@@ -473,7 +473,7 @@ export class VideoProcessor {
       height?: number;
       quality?: number;
       overlay?: string;
-    } = {}
+    } = {},
   ): Promise<string> {
     const { width = 320, height = 180, quality = 0.8, overlay } = style;
     

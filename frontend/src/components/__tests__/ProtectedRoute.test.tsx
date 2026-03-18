@@ -3,8 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '../auth/ProtectedRoute';
 import { useAuth } from '../../hooks/useAuth';
-import { createWrapper } from '../../test-utils';
-import { User } from '../../types';
+import '@testing-library/jest-dom';
 
 // Mock the useAuth hook
 jest.mock('../../hooks/useAuth');
@@ -14,37 +13,8 @@ const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 // Mock child component
 const MockChild = () => <div>Protected Content</div>;
 
-// Mock loading component
-const MockLoading = () => <div>Loading...</div>;
-
-const mockUser: User = {
-  id: 1,
-  email: 'test@example.com',
-  first_name: 'Test',
-  last_name: 'User',
-  user_type: 'tenant',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
-};
-
-const mockMutationResult = {
-  data: undefined,
-  error: null,
-  variables: undefined,
-  isError: false,
-  isIdle: false,
-  isLoading: false,
-  isPaused: false,
-  isSuccess: false,
-  mutate: jest.fn(),
-  mutateAsync: jest.fn(),
-  reset: jest.fn(),
-  status: 'idle',
-};
-
 describe('ProtectedRoute', () => {
-  const renderWithRouter = (ui: React.ReactElement, { route = '/' } = {}) => {
-    window.history.pushState({}, 'Test page', route);
+  const renderWithRouter = (route = '/dashboard') => {
     return render(
       <MemoryRouter initialEntries={[route]}>
         <Routes>
@@ -68,46 +38,60 @@ describe('ProtectedRoute', () => {
 
   it('should render children when authenticated', async () => {
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      user: {
+        id: 'user-1',
+        email: 'test@example.com',
+        first_name: 'Test',
+        last_name: 'User',
+        user_type: 'tenant',
+        is_verified: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      } as any,
       token: 'mock-token',
       isAuthenticated: true,
       isLoading: false,
-      login: mockMutationResult,
-      register: mockMutationResult,
+      login: {} as any,
+      register: {} as any,
       logout: jest.fn(),
       updateUser: jest.fn(),
       resetInactivityTimer: jest.fn(),
       extendSession: jest.fn(),
       showSessionWarning: false,
+      errorModal: { open: false, error: '', title: '' },
+      showErrorModal: jest.fn(),
+      hideErrorModal: jest.fn(),
     });
 
-    renderWithRouter(<ProtectedRoute><MockChild /></ProtectedRoute>, { route: '/dashboard' });
+    renderWithRouter('/dashboard');
 
     await waitFor(() => {
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
     });
   });
 
-  it('should show loading state while checking authentication', async () => {
+  it('should show loading state while checking authentication', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: true,
-      login: mockMutationResult,
-      register: mockMutationResult,
+      login: {} as any,
+      register: {} as any,
       logout: jest.fn(),
       updateUser: jest.fn(),
       resetInactivityTimer: jest.fn(),
       extendSession: jest.fn(),
       showSessionWarning: false,
+      errorModal: { open: false, error: '', title: '' },
+      showErrorModal: jest.fn(),
+      hideErrorModal: jest.fn(),
     });
 
-    renderWithRouter(<ProtectedRoute><MockChild /></ProtectedRoute>, { route: '/dashboard' });
+    renderWithRouter('/dashboard');
 
-    await waitFor(() => {
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
-    });
+    // The component shows "Cargando..." when loading
+    expect(screen.getByText('Cargando...')).toBeInTheDocument();
   });
 
   it('should redirect to landing page when not authenticated', async () => {
@@ -116,19 +100,22 @@ describe('ProtectedRoute', () => {
       token: null,
       isAuthenticated: false,
       isLoading: false,
-      login: mockMutationResult,
-      register: mockMutationResult,
+      login: {} as any,
+      register: {} as any,
       logout: jest.fn(),
       updateUser: jest.fn(),
       resetInactivityTimer: jest.fn(),
       extendSession: jest.fn(),
       showSessionWarning: false,
+      errorModal: { open: false, error: '', title: '' },
+      showErrorModal: jest.fn(),
+      hideErrorModal: jest.fn(),
     });
 
-    renderWithRouter(<ProtectedRoute><MockChild /></ProtectedRoute>, { route: '/dashboard' });
+    renderWithRouter('/dashboard');
 
     await waitFor(() => {
       expect(screen.getByText('Landing Page')).toBeInTheDocument();
     });
   });
-}); 
+});

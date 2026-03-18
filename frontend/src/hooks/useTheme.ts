@@ -38,7 +38,7 @@ export const useTheme = () => {
       setResolvedMode(
         window.matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
-          : 'light'
+          : 'light',
       );
     } else {
       setResolvedMode(newMode);

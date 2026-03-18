@@ -16,15 +16,15 @@ interface UsePropertyFiltersReturn {
 const initialFilters: PropertySearchFilters = {
   search: '',
   property_type: '',
-  min_price: '',
-  max_price: '',
+  min_price: undefined,
+  max_price: undefined,
   city: '',
-  min_bedrooms: '',
-  max_bedrooms: '',
-  min_bathrooms: '',
-  max_bathrooms: '',
-  min_area: '',
-  max_area: '',
+  min_bedrooms: undefined,
+  max_bedrooms: undefined,
+  min_bathrooms: undefined,
+  max_bathrooms: undefined,
+  min_area: undefined,
+  max_area: undefined,
   has_parking: undefined,
   has_pool: undefined,
   allows_pets: undefined,
@@ -38,7 +38,7 @@ export const usePropertyFilters = (): UsePropertyFiltersReturn => {
   const updateFilter = useCallback((key: keyof PropertySearchFilters, value: any) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   }, []);
 
@@ -51,7 +51,7 @@ export const usePropertyFilters = (): UsePropertyFiltersReturn => {
       if (key === 'search' || key === 'property_type' || key === 'city' || key === 'status') {
         return value !== '';
       }
-      return value !== '' && value !== undefined;
+      return value !== undefined;
     });
   }, [filters]);
 

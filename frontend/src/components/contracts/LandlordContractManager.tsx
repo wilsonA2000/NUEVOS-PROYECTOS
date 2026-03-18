@@ -79,7 +79,7 @@ import {
   ContractWorkflowHistory,
 } from '../../types/landlordContract';
 import { LoadingButton } from '../common/LoadingButton';
-import { CustomNotification } from '../common/CustomNotification';
+import CustomNotification from '../common/CustomNotification';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -179,7 +179,7 @@ export const LandlordContractManager: React.FC = () => {
       setDashboardData(dashboardResponse);
       setStatistics(statisticsResponse);
     } catch (err: any) {
-      setError('Error al cargar datos del dashboard: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar datos del dashboard: ${  err.message || 'Error desconocido'}`);
     }
   };
 
@@ -189,12 +189,12 @@ export const LandlordContractManager: React.FC = () => {
       const response = await LandlordContractService.getLandlordContracts(
         { ...filters, search_query: searchQuery || undefined },
         page,
-        10
+        10,
       );
       setContracts(response.contracts);
       setTotalCount(response.total_count);
     } catch (err: any) {
-      setError('Error al cargar contratos: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar contratos: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -279,7 +279,7 @@ export const LandlordContractManager: React.FC = () => {
       setActionMenuAnchor(null);
 
     } catch (err: any) {
-      setError('Error al ejecutar acción: ' + (err.message || 'Error desconocido'));
+      setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }

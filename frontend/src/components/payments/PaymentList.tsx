@@ -43,9 +43,9 @@ export const PaymentList: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (selectedTransaction) {
+    if (selectedTransaction && deleteTransaction) {
       try {
-        await deleteTransaction(selectedTransaction.id);
+        await deleteTransaction.mutateAsync(selectedTransaction.id);
       } catch (error) {
         console.error('Error deleting transaction:', error);
       }

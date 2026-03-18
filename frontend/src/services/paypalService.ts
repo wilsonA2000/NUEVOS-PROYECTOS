@@ -1,5 +1,5 @@
 import { api } from './api';
-import { loggingService } from './loggingService';
+import { loggingService, LogLevel, LogCategory } from './loggingService';
 
 export interface PayPalConfig {
   clientId: string;
@@ -85,7 +85,7 @@ class PayPalService {
       environment: config.environment || 'sandbox',
     };
 
-    loggingService.info('PayPal initialized successfully');
+    loggingService.log(LogLevel.INFO, LogCategory.SYSTEM, 'PayPal initialized successfully');
   }
 
   /**
@@ -105,10 +105,10 @@ class PayPalService {
         currency: orderData.currency || this.config?.currency || 'USD',
       });
 
-      loggingService.info('PayPal order created:', response.data.id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal order created', { orderId: response.data.id });
       return response.data;
     } catch (error) {
-      loggingService.error('Error creating PayPal order:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating PayPal order', { error });
       throw error;
     }
   }
@@ -121,7 +121,7 @@ class PayPalService {
       const response = await api.post(`/payments/paypal/capture-order/${orderId}/`);
 
       if (response.data.status === 'COMPLETED') {
-        loggingService.info('PayPal order captured:', orderId);
+        loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal order captured', { orderId });
         return {
           success: true,
           orderId,
@@ -136,7 +136,7 @@ class PayPalService {
         details: response.data,
       };
     } catch (error) {
-      loggingService.error('Error capturing PayPal order:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error capturing PayPal order', { error });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Capture failed',
@@ -152,7 +152,7 @@ class PayPalService {
       const response = await api.get(`/payments/paypal/orders/${orderId}/`);
       return response.data;
     } catch (error) {
-      loggingService.error('Error getting PayPal order details:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting PayPal order details', { error });
       throw error;
     }
   }
@@ -163,7 +163,7 @@ class PayPalService {
   async createRefund(
     captureId: string,
     amount?: { currency_code: string; value: string },
-    note?: string
+    note?: string,
   ): Promise<any> {
     try {
       const response = await api.post('/payments/paypal/refunds/', {
@@ -172,10 +172,10 @@ class PayPalService {
         note_to_payer: note,
       });
 
-      loggingService.info('PayPal refund created:', response.data.id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal refund created', { refundId: response.data.id });
       return response.data;
     } catch (error) {
-      loggingService.error('Error creating PayPal refund:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating PayPal refund', { error });
       throw error;
     }
   }
@@ -217,10 +217,10 @@ class PayPalService {
   }): Promise<any> {
     try {
       const response = await api.post('/payments/paypal/subscription-plans/', planData);
-      loggingService.info('PayPal subscription plan created:', response.data.id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal subscription plan created', { planId: response.data.id });
       return response.data;
     } catch (error) {
-      loggingService.error('Error creating PayPal subscription plan:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating PayPal subscription plan', { error });
       throw error;
     }
   }
@@ -231,10 +231,10 @@ class PayPalService {
   async createSubscription(subscriptionData: PayPalSubscriptionData): Promise<any> {
     try {
       const response = await api.post('/payments/paypal/subscriptions/', subscriptionData);
-      loggingService.info('PayPal subscription created:', response.data.id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal subscription created', { subscriptionId: response.data.id });
       return response.data;
     } catch (error) {
-      loggingService.error('Error creating PayPal subscription:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating PayPal subscription', { error });
       throw error;
     }
   }
@@ -247,9 +247,9 @@ class PayPalService {
       await api.post(`/payments/paypal/subscriptions/${subscriptionId}/cancel/`, {
         reason: reason || 'User requested cancellation',
       });
-      loggingService.info('PayPal subscription cancelled:', subscriptionId);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal subscription cancelled', { subscriptionId });
     } catch (error) {
-      loggingService.error('Error cancelling PayPal subscription:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error cancelling PayPal subscription', { error });
       throw error;
     }
   }
@@ -260,7 +260,7 @@ class PayPalService {
   async getTransactionHistory(
     startDate?: string,
     endDate?: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<any[]> {
     try {
       const params: any = { limit };
@@ -270,7 +270,7 @@ class PayPalService {
       const response = await api.get('/payments/paypal/transactions/', { params });
       return response.data;
     } catch (error) {
-      loggingService.error('Error getting PayPal transaction history:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting PayPal transaction history', { error });
       throw error;
     }
   }
@@ -284,7 +284,7 @@ class PayPalService {
     certId: string,
     authAlgo: string,
     transmission: string,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Promise<boolean> {
     try {
       const response = await api.post('/payments/paypal/verify-webhook/', {
@@ -298,7 +298,7 @@ class PayPalService {
 
       return response.data.verification_status === 'SUCCESS';
     } catch (error) {
-      loggingService.error('Error verifying PayPal webhook:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error verifying PayPal webhook', { error });
       return false;
     }
   }
@@ -309,9 +309,9 @@ class PayPalService {
   async processWebhook(webhookEvent: PayPalWebhookEvent): Promise<void> {
     try {
       await api.post('/payments/paypal/process-webhook/', webhookEvent);
-      loggingService.info('PayPal webhook processed:', webhookEvent.id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal webhook processed', { webhookId: webhookEvent.id });
     } catch (error) {
-      loggingService.error('Error processing PayPal webhook:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error processing PayPal webhook', { error });
       throw error;
     }
   }
@@ -324,7 +324,7 @@ class PayPalService {
       const response = await api.get('/payments/paypal/balance/');
       return response.data;
     } catch (error) {
-      loggingService.error('Error getting PayPal balance:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting PayPal balance', { error });
       throw error;
     }
   }
@@ -352,10 +352,10 @@ class PayPalService {
   }): Promise<any> {
     try {
       const response = await api.post('/payments/paypal/payouts/', payoutData);
-      loggingService.info('PayPal payout created:', response.data.batch_header.payout_batch_id);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal payout created', { batchId: response.data.batch_header.payout_batch_id });
       return response.data;
     } catch (error) {
-      loggingService.error('Error creating PayPal payout:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating PayPal payout', { error });
       throw error;
     }
   }
@@ -368,7 +368,7 @@ class PayPalService {
       const response = await api.get(`/payments/paypal/payouts/${payoutBatchId}/`);
       return response.data;
     } catch (error) {
-      loggingService.error('Error getting PayPal payout details:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting PayPal payout details', { error });
       throw error;
     }
   }
@@ -379,10 +379,10 @@ class PayPalService {
   async cancelPayoutItem(payoutItemId: string): Promise<any> {
     try {
       const response = await api.post(`/payments/paypal/payout-items/${payoutItemId}/cancel/`);
-      loggingService.info('PayPal payout item cancelled:', payoutItemId);
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'PayPal payout item cancelled', { payoutItemId });
       return response.data;
     } catch (error) {
-      loggingService.error('Error cancelling PayPal payout item:', error);
+      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error cancelling PayPal payout item', { error });
       throw error;
     }
   }

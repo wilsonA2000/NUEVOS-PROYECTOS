@@ -290,52 +290,103 @@ class TenantDocumentUploadSerializer(serializers.ModelSerializer):
         
         return value
     
+    def validate_document_type(self, value):
+        """
+        Validar document_type permitiendo valores dinámicos para 'otros_*'.
+        ✅ FIX: Permitir cualquier valor que empiece con 'otros_' para documentos personalizables.
+        """
+        # Lista de tipos válidos estáticos
+        valid_static_types = [
+            'tomador_cedula_ciudadania',
+            'tomador_pasaporte',
+            'tomador_cedula_extranjeria',
+            'tomador_certificado_laboral',
+            'tomador_carta_recomendacion',
+            'codeudor_cedula_ciudadania',
+            'codeudor_pasaporte',
+            'codeudor_cedula_extranjeria',
+            'codeudor_certificado_laboral',
+            'codeudor_libertad_tradicion',
+            'otros'  # Tipo base
+        ]
+
+        # Validar: o es un tipo estático válido, o empieza con 'otros_'
+        if value not in valid_static_types and not value.startswith('otros_'):
+            raise serializers.ValidationError(
+                f'"{value}" no es un tipo de documento válido. '
+                f'Debe ser uno de {valid_static_types} o empezar con "otros_"'
+            )
+
+        return value
+
     def validate(self, data):
         """Validaciones cruzadas."""
-        # Si el tipo es 'otros', debe haber descripción
-        if data.get('document_type') == 'otros' and not data.get('other_description'):
+        document_type = data.get('document_type', '')
+
+        # Si el tipo es 'otros' o empieza con 'otros_', debe haber descripción
+        if (document_type == 'otros' or document_type.startswith('otros_')) and not data.get('other_description'):
             raise serializers.ValidationError({
-                'other_description': 'La descripción es requerida para documentos tipo "otros".'
+                'other_description': 'La descripción es requerida para documentos personalizables.'
             })
-        
-        # Si no es 'otros', no debe haber descripción
-        if data.get('document_type') != 'otros' and data.get('other_description'):
+
+        # Si no es un documento 'otros*', no debe haber descripción
+        if not document_type.startswith('otros') and data.get('other_description'):
             raise serializers.ValidationError({
-                'other_description': 'La descripción solo se permite para documentos tipo "otros".'
+                'other_description': 'La descripción solo se permite para documentos personalizables.'
             })
-        
+
         return data
     
     def create(self, validated_data):
         """Crear documento con información adicional."""
         request = self.context['request']
         validated_data['uploaded_by'] = request.user
-        
+
         # Extraer información del archivo
         document_file = validated_data['document_file']
         validated_data['original_filename'] = document_file.name
         validated_data['file_size'] = document_file.size
-        
+
         # IMPORTANTE: Manejar reemplazo de documentos existentes
         property_request = validated_data['property_request']
         document_type = validated_data['document_type']
-        
-        # Verificar si ya existe un documento del mismo tipo
-        existing_document = TenantDocument.objects.filter(
-            property_request=property_request,
-            document_type=document_type
-        ).first()
-        
-        if existing_document:
-            # Eliminar el documento existente (reemplazo)
-            existing_document.delete()
-            print(f"🔄 Documento existente eliminado para reemplazo: {document_type}")
-        
+
+        # CRÍTICO: Buscar y asignar match_request_id (requerido por el modelo)
+        from matching.models import MatchRequest
+        try:
+            match_request = MatchRequest.objects.filter(
+                tenant=property_request.requester,
+                property=property_request.property
+            ).first()
+
+            if match_request:
+                validated_data['match_request'] = match_request
+                print(f"✅ SERIALIZER: Asignando match_request {match_request.id} al documento")
+            else:
+                print(f"⚠️ SERIALIZER: No se encontró MatchRequest para {property_request.id}")
+        except Exception as e:
+            print(f"❌ SERIALIZER: Error buscando MatchRequest: {e}")
+
+        # ✅ FIX: Solo verificar reemplazo para documentos NO personalizables
+        # Los documentos "otros_*" no deben sobreescribirse
+        if not document_type.startswith('otros_'):
+            existing_document = TenantDocument.objects.filter(
+                property_request=property_request,
+                document_type=document_type
+            ).first()
+
+            if existing_document:
+                # Eliminar el documento existente (reemplazo)
+                existing_document.delete()
+                print(f"🔄 Documento existente eliminado para reemplazo: {document_type}")
+        else:
+            print(f"📄 Documento personalizado - no hay reemplazo: {document_type}")
+
         # Crear el nuevo documento con status 'pending'
         validated_data['status'] = 'pending'
         new_document = super().create(validated_data)
         print(f"✅ Nuevo documento creado: {document_type} - Status: {new_document.status}")
-        
+
         return new_document
 
 

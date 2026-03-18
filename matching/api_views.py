@@ -135,19 +135,22 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         # Crear notificación para el arrendador
         create_match_notification(match_request, 'match_request_received')
         
-        # Crear actividad de usuario
-        # TODO: Implementar create_user_activity function
-        # from users.utils import create_user_activity
-        # create_user_activity(
-        #     user=self.request.user,
-        #     action='match_request_sent',
-        #     description=f'Solicitud de match enviada para {property.title}',
-        #     metadata={
-        #         'property_id': str(property.id),
-        #         'match_code': match_request.match_code,
-        #         'landlord_id': str(property.landlord.id)
-        #     }
-        # )
+        # Registrar actividad de usuario
+        try:
+            from users.models.activity import UserActivityLog
+            UserActivityLog.log_activity(
+                user=self.request.user,
+                activity_type='other',
+                description=f'Solicitud de match enviada para {property.title}',
+                metadata={
+                    'property_id': str(property.id),
+                    'match_code': match_request.match_code,
+                    'landlord_id': str(property.landlord.id)
+                },
+                request=self.request
+            )
+        except Exception as e:
+            logger.warning(f'Error logging match_request_sent activity: {e}')
     
     @action(detail=True, methods=['post'])
     def mark_viewed(self, request, pk=None):
@@ -187,18 +190,21 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         landlord_message = request.data.get('message', '')
         match_request.accept_match(landlord_message)
         
-        # Crear actividad de usuario
-        # TODO: Implementar create_user_activity function
-        # from users.utils import create_user_activity
-        # create_user_activity(
-        #     user=request.user,
-        #     action='match_request_accepted',
-        #     description=f'Solicitud de match aceptada para {match_request.property.title}',
-        #     metadata={
-        #         'match_code': match_request.match_code,
-        #         'tenant_id': str(match_request.tenant.id)
-        #     }
-        # )
+        # Registrar actividad de usuario
+        try:
+            from users.models.activity import UserActivityLog
+            UserActivityLog.log_activity(
+                user=request.user,
+                activity_type='other',
+                description=f'Solicitud de match aceptada para {match_request.property.title}',
+                metadata={
+                    'match_code': match_request.match_code,
+                    'tenant_id': str(match_request.tenant.id)
+                },
+                request=request
+            )
+        except Exception as e:
+            logger.warning(f'Error logging match_request_accepted activity: {e}')
         
         return Response({
             'message': 'Solicitud aceptada exitosamente',
@@ -226,18 +232,21 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         landlord_message = request.data.get('message', '')
         match_request.reject_match(landlord_message)
         
-        # Crear actividad de usuario
-        # TODO: Implementar create_user_activity function
-        # from users.utils import create_user_activity
-        # create_user_activity(
-        #     user=request.user,
-        #     action='match_request_rejected',
-        #     description=f'Solicitud de match rechazada para {match_request.property.title}',
-        #     metadata={
-        #         'match_code': match_request.match_code,
-        #         'tenant_id': str(match_request.tenant.id)
-        #     }
-        # )
+        # Registrar actividad de usuario
+        try:
+            from users.models.activity import UserActivityLog
+            UserActivityLog.log_activity(
+                user=request.user,
+                activity_type='other',
+                description=f'Solicitud de match rechazada para {match_request.property.title}',
+                metadata={
+                    'match_code': match_request.match_code,
+                    'tenant_id': str(match_request.tenant.id)
+                },
+                request=request
+            )
+        except Exception as e:
+            logger.warning(f'Error logging match_request_rejected activity: {e}')
         
         return Response({
             'message': 'Solicitud rechazada',
@@ -443,19 +452,117 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
     def compatibility(self, request, pk=None):
         """Obtiene el análisis de compatibilidad para un match."""
         match_request = self.get_object()
-        
+
         if request.user not in [match_request.tenant, match_request.landlord]:
             return Response(
                 {'error': 'No tienes permisos para ver esta información'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         compatibility = calculate_match_compatibility(match_request)
-        
+
         return Response({
             'match_code': match_request.match_code,
             'compatibility_analysis': compatibility,
             'tenant_score': match_request.get_compatibility_score()
+        })
+
+    @action(detail=True, methods=['post'], url_path='advance-to-contract-stage')
+    def advance_to_contract_stage(self, request, pk=None):
+        """Avanza el match de etapa 2 (Documentos) a etapa 3 (Creación de Contrato)."""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"🔥🔥🔥 ENDPOINT LLAMADO: advance_to_contract_stage")
+        logger.info(f"🔥 Match ID (pk): {pk}")
+        logger.info(f"🔥 User: {request.user.email}")
+
+        from requests.models import TenantDocument
+
+        try:
+            match_request = self.get_object()
+            logger.info(f"✅ Match encontrado: {match_request.match_code}")
+        except Exception as e:
+            logger.error(f"❌ Error obteniendo match: {e}")
+            raise
+
+        # Solo el landlord puede avanzar la etapa
+        logger.info(f"🔍 Verificando permisos: User={request.user.email}, Landlord={match_request.landlord.email}")
+        if request.user != match_request.landlord:
+            logger.warning(f"❌ PERMISO DENEGADO: Usuario no es el landlord")
+            return Response(
+                {'error': 'Solo el arrendador puede avanzar la etapa'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Verificar que esté en etapa 2
+        logger.info(f"🔍 Verificando etapa: Actual={match_request.workflow_stage}, Esperado=2")
+        if match_request.workflow_stage != 2:
+            logger.warning(f"❌ ETAPA INCORRECTA: {match_request.workflow_stage}")
+            return Response(
+                {'error': f'El match debe estar en etapa 2. Actualmente en etapa {match_request.workflow_stage}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verificar que todos los documentos requeridos estén aprobados
+        documents = TenantDocument.objects.filter(match_request=match_request)
+        logger.info(f"🔍 Documentos encontrados: {documents.count()}")
+
+        if not documents.exists():
+            logger.warning(f"❌ NO HAY DOCUMENTOS")
+            return Response(
+                {'error': 'No hay documentos subidos para este match'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pending_docs = documents.filter(status='pending').count()
+        rejected_docs = documents.filter(status='rejected').count()
+        logger.info(f"🔍 Documentos pendientes: {pending_docs}, rechazados: {rejected_docs}")
+
+        if pending_docs > 0:
+            logger.warning(f"❌ HAY DOCUMENTOS PENDIENTES: {pending_docs}")
+            return Response(
+                {'error': f'Hay {pending_docs} documento(s) pendiente(s) de revisión'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if rejected_docs > 0:
+            logger.warning(f"❌ HAY DOCUMENTOS RECHAZADOS: {rejected_docs}")
+            return Response(
+                {'error': f'Hay {rejected_docs} documento(s) rechazado(s)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Avanzar a etapa 3
+        logger.info(f"✅ AVANZANDO A ETAPA 3...")
+        match_request.workflow_stage = 3
+        match_request.workflow_status = 'documents_approved'
+        match_request.workflow_data['documents_approved_at'] = timezone.now().isoformat()
+        match_request.workflow_data['all_documents_approved'] = True
+        match_request.save()
+        logger.info(f"✅ Match actualizado a etapa 3")
+
+        # Notificar al arrendatario
+        try:
+            create_match_notification(
+                match_request,
+                'stage_advanced',
+                message=f"El arrendador ha aprobado todos tus documentos. El proceso avanza a Etapa 3: Creación del Contrato"
+            )
+            logger.info(f"✅ Notificación enviada")
+        except Exception as e:
+            logger.error(f"⚠️ Error enviando notificación: {e}")
+
+        logger.info(f"🎉 ÉXITO TOTAL - Retornando respuesta")
+        return Response({
+            'success': True,
+            'message': 'Workflow avanzado exitosamente a Etapa 3',
+            'match': {
+                'id': str(match_request.id),
+                'workflow_stage': match_request.workflow_stage,
+                'workflow_status': match_request.workflow_status,
+                'match_code': match_request.match_code
+            }
         })
 
 

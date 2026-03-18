@@ -193,7 +193,7 @@ export interface RequestActionData {
 }
 
 class RequestService {
-  private baseUrl = '/requests/api';
+  private baseUrl = '/requests';
 
   // Base Requests
   async getMyRequests() {
@@ -301,7 +301,7 @@ class RequestService {
   async addRequestComment(requestId: string, content: string, isInternal = false) {
     return api.post(`${this.baseUrl}/base/${requestId}/comments/`, {
       content,
-      is_internal: isInternal
+      is_internal: isInternal,
     });
   }
 

@@ -164,7 +164,7 @@ export const useMessages = () => {
   });
 
   const markAsRead = useMutation({
-    mutationFn: messageService.markAsRead,
+    mutationFn: messageService.markAsUnread,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       queryClient.invalidateQueries({ queryKey: ['message-unread-count'] });

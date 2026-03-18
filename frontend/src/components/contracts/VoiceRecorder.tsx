@@ -34,7 +34,7 @@ import {
   useMediaQuery,
   Card,
   CardContent,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   Mic,
@@ -50,7 +50,7 @@ import {
   Warning,
   RecordVoiceOver,
   Timer,
-  Waveform
+  GraphicEq as Waveform,
 } from '@mui/icons-material';
 
 interface VoiceRecorderProps {
@@ -82,7 +82,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   onRecord,
   expectedText,
   loading = false,
-  error = null
+  error = null,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -102,7 +102,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     duration: 0,
     audioBlob: null,
     audioUrl: null,
-    analysis: null
+    analysis: null,
   });
   
   const [isPlaying, setIsPlaying] = useState(false);
@@ -129,13 +129,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100
-        }
+          sampleRate: 44100,
+        },
       });
 
       // Configurar MediaRecorder
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: 'audio/webm;codecs=opus',
       });
       
       mediaRecorderRef.current = mediaRecorder;
@@ -165,7 +165,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           ...prev,
           audioBlob,
           audioUrl,
-          isRecording: false
+          isRecording: false,
         }));
         
         // Analizar audio grabado
@@ -193,7 +193,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       duration: 0,
       audioBlob: null,
       audioUrl: null,
-      analysis: null
+      analysis: null,
     }));
 
     setShowInstructions(false);
@@ -317,7 +317,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       quality,
       clarity: clarity / 100,
       speechDetected,
-      backgroundNoise: backgroundNoise / 255
+      backgroundNoise: backgroundNoise / 255,
     };
   };
 
@@ -342,7 +342,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       expectedText,
       expectedText.replace('digitalmente', 'digitalmente'),
       expectedText.replace('contrato número', 'contrato numero'),
-      expectedText.toLowerCase()
+      expectedText.toLowerCase(),
     ];
     
     const transcribedText = variations[Math.floor(Math.random() * variations.length)];
@@ -357,7 +357,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     return {
       text: transcribedText,
       confidence,
-      matchScore
+      matchScore,
     };
   };
 
@@ -386,7 +386,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       duration: 0,
       audioBlob: null,
       audioUrl: null,
-      analysis: null
+      analysis: null,
     });
     
     setTranscriptionResult(null);
@@ -433,18 +433,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   useEffect(() => {
     if (audioRef.current) {
       const audio = audioRef.current;
-      
+
       const updateTime = () => setPlaybackTime(audio.currentTime);
       const onEnded = () => setIsPlaying(false);
-      
+
       audio.addEventListener('timeupdate', updateTime);
       audio.addEventListener('ended', onEnded);
-      
+
       return () => {
         audio.removeEventListener('timeupdate', updateTime);
         audio.removeEventListener('ended', onEnded);
       };
     }
+    return undefined;
   }, [recordingState.audioUrl]);
 
   useEffect(() => {
@@ -465,7 +466,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         justifyContent: 'center',
         height: 60,
         gap: 0.5,
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       {Array.from({ length: 64 }, (_, i) => (
@@ -480,7 +481,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
               ? 'primary.main' 
               : 'grey.300',
             borderRadius: 1,
-            transition: 'all 0.1s ease'
+            transition: 'all 0.1s ease',
           }}
         />
       ))}
@@ -519,7 +520,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                     minWidth: 160,
                     height: 48,
                     borderRadius: 3,
-                    fontSize: '1.1rem'
+                    fontSize: '1.1rem',
                   }}
                 >
                   Iniciar Grabación

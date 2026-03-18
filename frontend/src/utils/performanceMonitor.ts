@@ -22,7 +22,7 @@ class PerformanceMonitor {
     this.metrics.set(name, {
       name,
       startTime: performance.now(),
-      metadata
+      metadata,
     });
   }
 
@@ -93,7 +93,7 @@ class PerformanceMonitor {
       startTime: 0,
       endTime: duration,
       duration,
-      metadata: { endpoint, method, status }
+      metadata: { endpoint, method, status },
     });
   }
 
@@ -113,7 +113,7 @@ class PerformanceMonitor {
       averageRenderTime: times.reduce((sum, time) => sum + time, 0) / times.length,
       maxRenderTime: Math.max(...times),
       minRenderTime: Math.min(...times),
-      totalRenders: times.length
+      totalRenders: times.length,
     };
   }
 
@@ -151,7 +151,7 @@ class PerformanceMonitor {
     return {
       slowOperations,
       componentStats,
-      totalMetrics: allMetrics.length
+      totalMetrics: allMetrics.length,
     };
   }
 }
@@ -178,7 +178,7 @@ export const usePerformanceTracking = (componentName: string) => {
   return {
     trackRender,
     startOperation,
-    endOperation
+    endOperation,
   };
 };
 
@@ -217,7 +217,7 @@ export const logPerformanceReport = () => {
 
   if (report.slowOperations.length > 0) {
     console.group('🐌 Slow Operations (>100ms)');
-    report.slowOperations.forEach(op => {
+    report.slowOperations.forEach((op: any) => {
       console.log(`${op.operation}: ${op.duration}ms`, op.metadata);
     });
     console.groupEnd();
@@ -230,7 +230,7 @@ export const logPerformanceReport = () => {
         console.log(`${component}:`, {
           avg: `${stats.avgRenderTime.toFixed(2)}ms`,
           max: `${stats.maxRenderTime.toFixed(2)}ms`,
-          renders: stats.totalRenders
+          renders: stats.totalRenders,
         });
       }
     });

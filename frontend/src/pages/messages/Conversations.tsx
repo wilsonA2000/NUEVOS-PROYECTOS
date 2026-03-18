@@ -46,7 +46,7 @@ const Conversations: React.FC = () => {
     updateConversation, 
     deleteConversation,
     archiveConversation,
-    markConversationRead
+    markConversationRead,
   } = useMessages();
   
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -58,9 +58,9 @@ const Conversations: React.FC = () => {
     description: '',
   });
 
-  const conversationsArray = ensureArray(conversations);
-  const threadsArray = ensureArray(threads);
-  const messagesArray = ensureArray(messages);
+  const conversationsArray = Array.isArray(conversations) ? conversations : (conversations as any)?.results || [];
+  const threadsArray = Array.isArray(threads) ? threads : (threads as any)?.results || [];
+  const messagesArray = Array.isArray(messages) ? messages : (messages as any)?.results || [];
 
   const handleOpenDialog = (conversation?: any) => {
     if (conversation) {
@@ -98,25 +98,25 @@ const Conversations: React.FC = () => {
     };
     
     if (editingConversation) {
-      updateConversation({ id: editingConversation.id, data });
+      updateConversation.mutate({ id: editingConversation.id, data });
     } else {
-      createConversation(data);
+      createConversation.mutate(data);
     }
     handleCloseDialog();
   };
 
   const handleDelete = (conversationId: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta conversación?')) {
-      deleteConversation(conversationId);
+      deleteConversation.mutate(conversationId);
     }
   };
 
   const handleArchive = (conversationId: string, archived: boolean) => {
-    archiveConversation(conversationId);
+    archiveConversation.mutate(conversationId);
   };
 
   const handleMarkRead = (conversationId: string) => {
-    markConversationRead(conversationId);
+    markConversationRead.mutate(conversationId);
   };
 
   const getMessageCount = (conversationId: string) => {
@@ -124,16 +124,16 @@ const Conversations: React.FC = () => {
   };
 
   const getUnreadCount = (conversationId: string) => {
-    return messagesArray.filter((msg: any) => 
-      msg.conversation_id === conversationId && !msg.read
+    return messagesArray.filter((msg: any) =>
+      msg.conversation_id === conversationId && !msg.isRead,
     ).length;
   };
 
   const getLastMessage = (conversationId: string) => {
     const conversationMessages = messagesArray
       .filter((msg: any) => msg.conversation_id === conversationId)
-      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
     return conversationMessages[0];
   };
 
@@ -184,7 +184,7 @@ const Conversations: React.FC = () => {
                   sx={{ 
                     cursor: 'pointer',
                     '&:hover': { boxShadow: 3 },
-                    border: unreadCount > 0 ? '2px solid #1976d2' : 'none'
+                    border: unreadCount > 0 ? '2px solid #1976d2' : 'none',
                   }}
                   onClick={() => setSelectedConversation(conversation)}
                 >
@@ -210,7 +210,7 @@ const Conversations: React.FC = () => {
                               sx={{ 
                                 mt: 1,
                                 fontStyle: unreadCount > 0 ? 'normal' : 'italic',
-                                fontWeight: unreadCount > 0 ? 'bold' : 'normal'
+                                fontWeight: unreadCount > 0 ? 'bold' : 'normal',
                               }}
                             >
                               {lastMessage.content?.substring(0, 100)}...
@@ -253,7 +253,7 @@ const Conversations: React.FC = () => {
                               e.stopPropagation();
                               handleArchive(conversation.id, conversation.archived);
                             }}
-                            title={conversation.archived ? "Desarchivar" : "Archivar"}
+                            title={conversation.archived ? 'Desarchivar' : 'Archivar'}
                           >
                             {conversation.archived ? <UnarchiveIcon /> : <ArchiveIcon />}
                           </IconButton>
@@ -291,9 +291,10 @@ const Conversations: React.FC = () => {
                         {conversation.description}
                       </Typography>
                     )}
-                    
+
+
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                      Última actividad: {lastMessage?.created_at ? new Date(lastMessage.created_at).toLocaleDateString() : 'Nunca'}
+                      Última actividad: {lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleDateString() : 'Nunca'}
                     </Typography>
                   </CardContent>
                 </Card>

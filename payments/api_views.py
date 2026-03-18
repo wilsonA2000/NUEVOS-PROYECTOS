@@ -1819,11 +1819,54 @@ class WompiPaymentStatusAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# ===== PAYMENT RECEIPT =====
+
+class PaymentReceiptAPIView(APIView):
+    """
+    Genera y devuelve un recibo de pago en formato PDF.
+
+    GET /api/v1/payments/transactions/{id}/receipt/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        from django.http import HttpResponse
+
+        try:
+            transaction = Transaction.objects.select_related(
+                'payer', 'payee', 'contract', 'property', 'payment_method'
+            ).get(
+                Q(payer=request.user) | Q(payee=request.user),
+                pk=pk,
+            )
+        except Transaction.DoesNotExist:
+            return Response(
+                {'error': 'Transacción no encontrada.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            from .receipt_generator import generate_payment_receipt
+
+            pdf_bytes = generate_payment_receipt(transaction)
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            filename = f"recibo_{transaction.transaction_number}.pdf"
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
+
+        except Exception as e:
+            return Response(
+                {'error': f'Error generando recibo: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 # ===== ADVANCED PAYMENT ANALYTICS IMPORTS =====
 
 # Import the advanced payment statistics API views from payment_stats_api module
 from .payment_stats_api import (
     PaymentStatsAPIView,
-    SystemPaymentStatsAPIView, 
+    SystemPaymentStatsAPIView,
     ExportPaymentStatsAPIView
 )

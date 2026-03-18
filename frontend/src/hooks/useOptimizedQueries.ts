@@ -9,7 +9,7 @@ export function useOptimizedQuery<TData = unknown, TError = Error>(
   queryKey: (string | number)[],
   queryFn: () => Promise<TData>,
   cacheStrategy: CacheStrategy = 'dynamic',
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   const strategy = CACHE_STRATEGIES[cacheStrategy];
   
@@ -22,14 +22,14 @@ export function useOptimizedQuery<TData = unknown, TError = Error>(
       cacheStrategy,
       ...options?.meta,
     },
-  });
+  } as any);
 }
 
 // Hook para datos en tiempo real (notificaciones, mensajes)
 export function useRealtimeQuery<TData = unknown, TError = Error>(
   queryKey: (string | number)[],
   queryFn: () => Promise<TData>,
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   return useOptimizedQuery(queryKey, queryFn, 'realtime', {
     ...options,
@@ -42,7 +42,7 @@ export function useRealtimeQuery<TData = unknown, TError = Error>(
 export function useDynamicQuery<TData = unknown, TError = Error>(
   queryKey: (string | number)[],
   queryFn: () => Promise<TData>,
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   return useOptimizedQuery(queryKey, queryFn, 'dynamic', options);
 }
@@ -51,7 +51,7 @@ export function useDynamicQuery<TData = unknown, TError = Error>(
 export function useStableQuery<TData = unknown, TError = Error>(
   queryKey: (string | number)[],
   queryFn: () => Promise<TData>,
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   return useOptimizedQuery(queryKey, queryFn, 'stable', options);
 }
@@ -60,7 +60,7 @@ export function useStableQuery<TData = unknown, TError = Error>(
 export function useStaticQuery<TData = unknown, TError = Error>(
   queryKey: (string | number)[],
   queryFn: () => Promise<TData>,
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   return useOptimizedQuery(queryKey, queryFn, 'static', options);
 }
@@ -78,11 +78,11 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
       queryKey: string[];
       updater: (oldData: any, variables: TVariables) => any;
     };
-  }
+  },
 ) {
   const queryClient = useQueryClient();
   
-  return useMutation({
+  return useMutation<TData, TError, TVariables>({
     mutationFn,
     ...options,
     onSuccess: (data, variables, context) => {
@@ -92,51 +92,62 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
           queryClient.invalidateQueries({ queryKey });
         });
       }
-      
+
       // Actualizar queries específicas
       if (options?.updateQueries) {
         options.updateQueries.forEach(({ queryKey, updater }) => {
-          queryClient.setQueryData(queryKey, (oldData: any) => 
-            updater(oldData, data)
+          queryClient.setQueryData(queryKey, (oldData: any) =>
+            updater(oldData, data),
           );
         });
       }
-      
+
       // Ejecutar callback original
-      options?.onSuccess?.(data, variables, context);
+      if (options?.onSuccess) {
+        (options.onSuccess as any)(data, variables, context);
+      }
     },
     onMutate: async (variables) => {
       // Actualización optimista
       if (options?.optimisticUpdate) {
         const { queryKey, updater } = options.optimisticUpdate;
-        
+
         // Cancelar queries en progreso
         await queryClient.cancelQueries({ queryKey });
-        
+
         // Obtener datos actuales
         const previousData = queryClient.getQueryData(queryKey);
-        
+
         // Aplicar actualización optimista
-        queryClient.setQueryData(queryKey, (oldData: any) => 
-          updater(oldData, variables)
+        queryClient.setQueryData(queryKey, (oldData: any) =>
+          updater(oldData, variables),
         );
-        
+
         // Retornar contexto para rollback
-        const context = { previousData };
-        options?.onMutate?.(variables);
+        const context: any = { previousData };
+        if (options?.onMutate) {
+          const mutateContext = await (options.onMutate as any)(variables);
+          return { ...context, ...(mutateContext || {}) };
+        }
         return context;
       }
-      
-      return options?.onMutate?.(variables);
+
+      if (options?.onMutate) {
+        const mutateContext = await (options.onMutate as any)(variables);
+        return mutateContext;
+      }
+      return undefined;
     },
     onError: (error, variables, context) => {
       // Rollback en caso de error con actualización optimista
-      if (options?.optimisticUpdate && context?.previousData) {
+      if (options?.optimisticUpdate && context && typeof context === 'object' && 'previousData' in context) {
         const { queryKey } = options.optimisticUpdate;
-        queryClient.setQueryData(queryKey, context.previousData);
+        queryClient.setQueryData(queryKey, (context as any).previousData);
       }
-      
-      options?.onError?.(error, variables, context);
+
+      if (options?.onError) {
+        (options.onError as any)(error, variables, context);
+      }
     },
   });
 }
@@ -150,7 +161,7 @@ export function usePaginatedQuery<TData = unknown, TError = Error>(
     pageSize?: number;
     cacheStrategy?: CacheStrategy;
     keepPreviousData?: boolean;
-  }
+  },
 ) {
   const {
     initialPage = 1,
@@ -182,12 +193,8 @@ export function usePaginatedQuery<TData = unknown, TError = Error>(
         () => queryFn(page, pageSize),
         cacheStrategy,
         {
-          keepPreviousData,
-          onSuccess: () => {
-            // Prefetch siguiente página cuando sea exitoso
-            prefetchNextPage(page);
-          },
-        }
+          placeholderData: keepPreviousData ? (previousData) => previousData : undefined,
+        },
       );
     },
   };
@@ -201,15 +208,15 @@ export function useOptimizedInfiniteQuery<TData = unknown, TError = Error>(
     cacheStrategy?: CacheStrategy;
     getNextPageParam?: (lastPage: TData, pages: TData[]) => number | undefined;
     getPreviousPageParam?: (firstPage: TData, pages: TData[]) => number | undefined;
-  }
+  },
 ) {
   const { cacheStrategy = 'dynamic', ...restOptions } = options || {};
   const strategy = CACHE_STRATEGIES[cacheStrategy];
   
   return useQuery({
     queryKey,
-    queryFn: async ({ pageParam = 1 }) => {
-      const data = await queryFn({ pageParam });
+    queryFn: async () => {
+      const data = await queryFn({ pageParam: 1 as number });
       return data;
     },
     ...strategy,
@@ -218,14 +225,14 @@ export function useOptimizedInfiniteQuery<TData = unknown, TError = Error>(
       cacheStrategy,
       type: 'infinite',
     },
-  });
+  } as any);
 }
 
 // Hooks específicos para entidades de VeriHome
 export const usePropertiesQuery = (filters?: Record<string, any>) => {
   return useDynamicQuery(
-    ['properties', 'list', filters],
-    () => import('../services/propertyService').then(m => m.getProperties(filters)),
+    ['properties', 'list', ...(filters ? [JSON.stringify(filters)] : [])],
+    () => import('../services/propertyService').then(m => m.propertyService.getProperties(filters)),
     {
       enabled: true,
       select: (data: any) => ({
@@ -239,47 +246,47 @@ export const usePropertiesQuery = (filters?: Record<string, any>) => {
           })),
         })),
       }),
-    }
+    },
   );
 };
 
 export const useContractsQuery = (userId?: number) => {
   return useDynamicQuery(
     ['contracts', 'list', userId],
-    () => import('../services/contractService').then(m => m.getContracts()),
+    () => import('../services/contractService').then(m => m.contractService.getContracts()),
     {
       enabled: !!userId,
-    }
+    },
   );
 };
 
 export const useMessagesQuery = (conversationId?: number) => {
   return useRealtimeQuery(
     ['messages', 'conversation', conversationId],
-    () => import('../services/messageService').then(m => m.getMessages(conversationId!)),
+    () => import('../services/messageService').then(m => m.messageService.getMessages(String(conversationId!))),
     {
       enabled: !!conversationId,
       refetchInterval: 10000, // Refresh cada 10 segundos
-    }
+    },
   );
 };
 
 export const useUserProfileQuery = (userId: number) => {
   return useStableQuery(
     ['user', 'profile', userId],
-    () => import('../services/userService').then(m => m.getUserProfile(userId)),
+    () => import('../services/authService').then(m => m.authService.getCurrentUser()),
     {
       enabled: !!userId,
-    }
+    },
   );
 };
 
 export const useNotificationsQuery = () => {
   return useRealtimeQuery(
     ['notifications', 'unread'],
-    () => import('../services/notificationService').then(m => m.getUnreadNotifications()),
+    () => import('../services/notificationService').then(m => m.notificationService?.getNotifications?.(1) || Promise.resolve([])),
     {
       refetchInterval: 30000, // Refresh cada 30 segundos
-    }
+    },
   );
 };

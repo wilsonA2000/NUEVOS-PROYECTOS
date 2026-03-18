@@ -8,7 +8,7 @@ import {
   Card, 
   CardContent,
   Stack,
-  Chip
+  Chip,
 } from '@mui/material';
 import { Email, CheckCircle, Schedule } from '@mui/icons-material';
 
@@ -21,7 +21,7 @@ interface EmailVerificationMessageProps {
 export const EmailVerificationMessage: React.FC<EmailVerificationMessageProps> = ({
   email,
   onResendEmail,
-  isResending = false
+  isResending = false,
 }) => {
   return (
     <Card 
@@ -31,7 +31,7 @@ export const EmailVerificationMessage: React.FC<EmailVerificationMessageProps> =
         mt: 3,
         border: '2px solid',
         borderColor: 'success.main',
-        boxShadow: 3
+        boxShadow: 3,
       }}
     >
       <CardContent sx={{ p: 4 }}>
@@ -46,7 +46,7 @@ export const EmailVerificationMessage: React.FC<EmailVerificationMessageProps> =
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'success.dark'
+              color: 'success.dark',
             }}
           >
             <Email sx={{ fontSize: 40 }} />
@@ -151,7 +151,7 @@ export const EmailVerificationMessage: React.FC<EmailVerificationMessageProps> =
             p: 2, 
             backgroundColor: 'grey.50', 
             borderRadius: 1, 
-            width: '100%' 
+            width: '100%', 
           }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               <strong>Estado de la cuenta:</strong>

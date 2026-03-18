@@ -26,7 +26,7 @@ interface WithErrorBoundaryProps {
 
 export const withErrorBoundary = (
   WrappedComponent: React.ComponentType<any>,
-  module?: string
+  module?: string,
 ) => {
   const WithErrorBoundaryComponent = (props: any) => (
     <ErrorBoundary module={module}>

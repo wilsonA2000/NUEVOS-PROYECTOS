@@ -197,8 +197,41 @@ VeriHome - {context['current_year']}"""
     @staticmethod
     def _send_push_notification(user: User, notification: Notification):
         """Envía notificación push al navegador."""
-        # TODO: Implementar push notifications
-        pass
+        try:
+            from pywebpush import webpush
+            from django.conf import settings
+
+            # Look for user push subscriptions if model exists
+            try:
+                from core.models import PushSubscription
+                subscriptions = PushSubscription.objects.filter(user=user, is_active=True)
+            except (ImportError, LookupError):
+                logger.debug(f'Push notification skipped (PushSubscription model not available): {notification.title} -> {user.email}')
+                return
+
+            for sub in subscriptions:
+                try:
+                    webpush(
+                        subscription_info={
+                            'endpoint': sub.endpoint,
+                            'keys': {'p256dh': sub.p256dh, 'auth': sub.auth}
+                        },
+                        data=json.dumps({
+                            'title': notification.title,
+                            'body': notification.message,
+                            'data': {
+                                'notification_id': str(notification.id),
+                                'type': notification.notification_type,
+                                'action_url': notification.action_url or '',
+                            }
+                        }),
+                        vapid_private_key=getattr(settings, 'WEBPUSH_PRIVATE_KEY', ''),
+                        vapid_claims={'sub': f'mailto:{settings.DEFAULT_FROM_EMAIL}'}
+                    )
+                except Exception as e:
+                    logger.warning(f'Push notification failed for subscription {sub.id}: {e}')
+        except ImportError:
+            logger.info(f'Push notification skipped (pywebpush not installed): {notification.title} -> {user.email}')
     
     # Métodos de conveniencia para tipos específicos de notificaciones
     

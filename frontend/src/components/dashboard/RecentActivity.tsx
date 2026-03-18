@@ -30,10 +30,10 @@ const RecentActivity: React.FC = () => {
 
   const recentActivity = React.useMemo(() => {
     // Asegurar que todos los datos sean arrays
-    const transactionsArray = ensureArray(transactions);
-    const propertiesArray = ensureArray(properties);
-    const contractsArray = ensureArray(contracts);
-    const messagesArray = ensureArray(messages);
+    const transactionsArray = Array.isArray(transactions) ? transactions : [];
+    const propertiesArray = Array.isArray(properties) ? properties : [];
+    const contractsArray = Array.isArray(contracts) ? contracts : [];
+    const messagesArray = Array.isArray(messages) ? (messages as any).results || messages : [];
 
     const activities = [
       ...transactionsArray.map((transaction: any) => ({
@@ -60,7 +60,7 @@ const RecentActivity: React.FC = () => {
       ...messagesArray.map((message: any) => ({
         type: 'message',
         title: `Nuevo mensaje de ${message.sender || 'Usuario'}`,
-        description: (message.content || '').substring(0, 50) + '...',
+        description: `${(message.content || '').substring(0, 50)  }...`,
         date: new Date(message.createdAt || Date.now()),
         icon: <MessageIcon color="warning" />,
       })),

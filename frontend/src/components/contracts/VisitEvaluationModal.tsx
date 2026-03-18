@@ -12,13 +12,13 @@ import {
   CircularProgress,
   Typography,
   Alert,
-  AlertTitle
+  AlertTitle,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 
 interface VisitEvaluationModalProps {
@@ -38,7 +38,7 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
   candidateName,
   propertyTitle,
   visitDate,
-  visitTime
+  visitTime,
 }) => {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -101,7 +101,7 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
               })} a las {visitTime}
             </Typography>
           </Alert>

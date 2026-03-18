@@ -8,6 +8,7 @@ import PropertyList from '../pages/properties/PropertyList';
 import PropertyFormPage from '../pages/properties/PropertyFormPage';
 import { PropertyDetail } from '../components/properties/PropertyDetail';
 import ContractRoutes from './contracts';
+import AdminRoutes from './admin';
 import { PaymentList } from '../components/payments/PaymentList';
 import { PaymentForm } from '../components/payments/PaymentForm';
 import { PaymentDetail } from '../components/payments/PaymentDetail';
@@ -130,13 +131,13 @@ return (
         <Route path="messages">
           <Route index element={<MessengerMain />} />
           <Route path="new" element={<MessageForm />} />
-          <Route path=":id" element={<MessageDetail />} />
+          {/* <Route path=":id" element={<MessageDetail />} /> */}
           <Route path="reply" element={<ReplyForm />} />
         </Route>
         {/* Ratings Routes */}
         <Route path="ratings">
           <Route index element={<RatingList />} />
-          <Route path="new" element={<RatingForm />} />
+          <Route path="new" element={<RatingForm targetType="property" targetId="" />} />
           <Route path=":id" element={<RatingDetail />} />
         </Route>
         {/* Requests Routes */}
@@ -158,6 +159,8 @@ return (
         <Route path="events" element={<CommunityPage />} />
         <Route path="partners" element={<CommunityPage />} />
         <Route path="careers" element={<CommunityPage />} />
+        {/* Admin Routes - Dashboard de Administración Legal */}
+        <Route path="admin/*" element={<AdminRoutes />} />
         {/* Catch all route para rutas protegidas */}
         <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
       </Route>

@@ -23,7 +23,7 @@ import {
   IconButton,
   Tooltip,
   Badge,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -46,7 +46,7 @@ import {
   ContactPhone as ContactIcon,
   EventAvailable as CalendarIcon,
   TaskAlt as ApproveIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
@@ -176,7 +176,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
   propertyId,
   matchRequestId,
   onClose,
-  onMatchDecision
+  onMatchDecision,
 }) => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
@@ -253,8 +253,8 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
         },
         body: JSON.stringify({
           match_request_id: matchRequestId,
-          action: action
-        })
+          action: action,
+        }),
       });
 
       if (!response.ok) {
@@ -276,8 +276,8 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
           match_request_info: {
             ...data.match_request_info,
             status: result.match_status,
-            status_display: action === 'accept' ? 'Aceptado' : 'Rechazado'
-          }
+            status_display: action === 'accept' ? 'Aceptado' : 'Rechazado',
+          },
         });
       }
 
@@ -285,7 +285,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
       setTimeout(() => {
         decisionSectionRef.current?.scrollIntoView({ 
           behavior: 'smooth', 
-          block: 'center' 
+          block: 'center', 
         });
       }, 100);
 
@@ -300,7 +300,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
     if (score >= 85) return theme.palette.success.main;
     if (score >= 70) return theme.palette.info.main;
     if (score >= 55) return theme.palette.warning.main;
-    if (score >= 40) return theme.palette.orange?.main || '#ff9800';
+    if (score >= 40) return (theme.palette as any).orange?.main || '#ff9800';
     return theme.palette.error.main;
   };
 
@@ -310,7 +310,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
       muy_bueno: 'MUY BUENO',
       bueno: 'BUENO',
       aceptable: 'ACEPTABLE',
-      requiere_revision: 'REQUIERE REVISIÓN'
+      requiere_revision: 'REQUIERE REVISIÓN',
     };
     return labels[rating] || rating.toUpperCase();
   };
@@ -320,13 +320,13 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const ScoreCircle: React.FC<{ score: number; size?: 'small' | 'medium' | 'large' }> = ({ 
     score, 
-    size = 'large' 
+    size = 'large', 
   }) => {
     const circleSize = size === 'large' ? 120 : size === 'medium' ? 80 : 60;
     const color = getScoreColor(score);
@@ -530,7 +530,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
               bgcolor: 'grey.50', 
               borderRadius: 1, 
               fontStyle: 'italic',
-              border: `1px solid ${theme.palette.grey[200]}`
+              border: `1px solid ${theme.palette.grey[200]}`,
             }}>
               "{data.match_request_info.tenant_message}"
             </Typography>
@@ -621,19 +621,19 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
                   <Chip
                     icon={data.match_request_info.has_employment_proof ? <CheckCircleIcon /> : <WarningIcon />}
                     label="Comprobante de Ingresos"
-                    color={data.match_request_info.has_employment_proof ? "success" : "warning"}
+                    color={data.match_request_info.has_employment_proof ? 'success' : 'warning'}
                     size="small"
                   />
                   <Chip
                     icon={data.match_request_info.has_rental_references ? <CheckCircleIcon /> : <WarningIcon />}
                     label="Referencias de Alquiler"
-                    color={data.match_request_info.has_rental_references ? "success" : "warning"}
+                    color={data.match_request_info.has_rental_references ? 'success' : 'warning'}
                     size="small"
                   />
                   <Chip
                     icon={data.match_request_info.has_credit_check ? <CheckCircleIcon /> : <WarningIcon />}
                     label="Autoriza Verificación Crediticia"
-                    color={data.match_request_info.has_credit_check ? "success" : "warning"}
+                    color={data.match_request_info.has_credit_check ? 'success' : 'warning'}
                     size="small"
                   />
                 </Stack>
@@ -748,8 +748,8 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
                     <Box>
                       <Typography variant="body2" color="text.secondary">Fumador</Typography>
                       <Chip 
-                        label={data.match_request_info.smoking_allowed ? "Sí fuma" : "No fuma"}
-                        color={data.match_request_info.smoking_allowed ? "warning" : "success"}
+                        label={data.match_request_info.smoking_allowed ? 'Sí fuma' : 'No fuma'}
+                        color={data.match_request_info.smoking_allowed ? 'warning' : 'success'}
                         size="small"
                       />
                     </Box>
@@ -833,15 +833,15 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
                     animation: 'pulse 1s ease-in-out',
                     '@keyframes pulse': {
                       '0%': {
-                        boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.4)'
+                        boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.4)',
                       },
                       '70%': {
-                        boxShadow: '0 0 0 10px rgba(46, 125, 50, 0)'
+                        boxShadow: '0 0 0 10px rgba(46, 125, 50, 0)',
                       },
                       '100%': {
-                        boxShadow: '0 0 0 0 rgba(46, 125, 50, 0)'
-                      }
-                    }
+                        boxShadow: '0 0 0 0 rgba(46, 125, 50, 0)',
+                      },
+                    },
                   }}
                 >
                   <AlertTitle>✅ Candidato Aprobado</AlertTitle>
@@ -857,15 +857,15 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
                     animation: 'pulse 1s ease-in-out',
                     '@keyframes pulse': {
                       '0%': {
-                        boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)'
+                        boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)',
                       },
                       '70%': {
-                        boxShadow: '0 0 0 10px rgba(211, 47, 47, 0)'
+                        boxShadow: '0 0 0 10px rgba(211, 47, 47, 0)',
                       },
                       '100%': {
-                        boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)'
-                      }
-                    }
+                        boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)',
+                      },
+                    },
                   }}
                 >
                   <AlertTitle>❌ Candidato Rechazado</AlertTitle>

@@ -8,13 +8,13 @@ import {
   Button,
   Paper,
   Chip,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
   SecurityOutlined as SecurityIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 
 interface WaitingForOtherUserProps {
@@ -30,7 +30,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
   userType,
   otherUserName,
   contractId,
-  onBack
+  onBack,
 }) => {
   const theme = useTheme();
 
@@ -67,7 +67,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        p: 3
+        p: 3,
       }}
     >
       <Paper
@@ -78,7 +78,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
           width: '100%',
           textAlign: 'center',
           borderRadius: 3,
-          background: `linear-gradient(135deg, ${theme.palette.primary.light}15, ${theme.palette.secondary.light}15)`
+          background: `linear-gradient(135deg, ${theme.palette.primary.light}15, ${theme.palette.secondary.light}15)`,
         }}
       >
         {/* Icono de progreso */}
@@ -88,7 +88,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
             thickness={4}
             sx={{
               color: theme.palette.warning.main,
-              animation: 'pulse 2s infinite ease-in-out'
+              animation: 'pulse 2s infinite ease-in-out',
             }}
           />
           <Box
@@ -101,7 +101,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '2rem'
+              fontSize: '2rem',
             }}
           >
             {waitingForIcon}
@@ -115,7 +115,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
           sx={{
             fontWeight: 600,
             color: theme.palette.text.primary,
-            mb: 2
+            mb: 2,
           }}
         >
           Esperando autenticación
@@ -137,8 +137,8 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
             mb: 3,
             textAlign: 'left',
             '& .MuiAlert-message': {
-              width: '100%'
-            }
+              width: '100%',
+            },
           }}
         >
           <AlertTitle>
@@ -201,8 +201,8 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
+                backgroundColor: theme.palette.action.hover,
+              },
             }}
           >
             Actualizar estado
@@ -216,7 +216,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
           sx={{
             mt: 3,
             display: 'block',
-            opacity: 0.7
+            opacity: 0.7,
           }}
         >
           Contrato ID: {contractId}
@@ -224,7 +224,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
       </Paper>
 
       {/* Animación CSS */}
-      <style jsx>{`
+      <style>{`
         @keyframes pulse {
           0% {
             opacity: 1;

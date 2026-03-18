@@ -1,0 +1,55 @@
+{
+  "labels": {
+    "paymentMethod": "M\u00e9todo de Pago",
+    "amount": "Monto",
+    "currency": "Moneda",
+    "reference": "Referencia",
+    "transactionId": "ID de Transacci\u00f3n",
+    "paymentDate": "Fecha de Pago",
+    "dueDate": "Fecha de Vencimiento",
+    "invoiceNumber": "N\u00famero de Factura",
+    "payer": "Pagador",
+    "receiver": "Receptor",
+    "concept": "Concepto",
+    "period": "Periodo",
+    "balance": "Saldo",
+    "totalPaid": "Total Pagado",
+    "totalPending": "Total Pendiente"
+  },
+  "methods": {
+    "bankTransfer": "Transferencia Bancaria",
+    "creditCard": "Tarjeta de Cr\u00e9dito",
+    "debitCard": "Tarjeta D\u00e9bito",
+    "pse": "PSE",
+    "cash": "Efectivo",
+    "paypal": "PayPal",
+    "stripe": "Stripe",
+    "wompi": "Wompi"
+  },
+  "status": {
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "overdue": "Vencido",
+    "failed": "Fallido",
+    "refunded": "Reembolsado",
+    "processing": "Procesando",
+    "cancelled": "Cancelado"
+  },
+  "actions": {
+    "makePayment": "Realizar Pago",
+    "viewReceipt": "Ver Recibo",
+    "downloadReceipt": "Descargar Recibo",
+    "payNow": "Pagar Ahora",
+    "schedulePayment": "Programar Pago",
+    "requestRefund": "Solicitar Reembolso",
+    "viewHistory": "Ver Historial"
+  },
+  "messages": {
+    "paymentSuccessful": "Pago realizado exitosamente",
+    "paymentFailed": "El pago ha fallado. Por favor, int\u00e9ntalo de nuevo.",
+    "paymentPending": "Tu pago est\u00e1 siendo procesado",
+    "noPayments": "No hay pagos registrados",
+    "overdueWarning": "Tienes pagos vencidos",
+    "refundProcessed": "Reembolso procesado exitosamente"
+  }
+}

@@ -108,7 +108,7 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
     
     case 'UPDATE_NOTIFICATION':
       const updatedNotifications = state.notifications.map(n =>
-        n.id === action.payload.id ? { ...n, ...action.payload.updates } : n
+        n.id === action.payload.id ? { ...n, ...action.payload.updates } : n,
       );
       return {
         ...state,
@@ -128,7 +128,7 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
       return {
         ...state,
         notifications: state.notifications.map(n =>
-          n.id === action.payload ? { ...n, read: true } : n
+          n.id === action.payload ? { ...n, read: true } : n,
         ),
         unreadCount: Math.max(0, state.unreadCount - 1),
       };
@@ -196,7 +196,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Handle real-time notifications
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected) return undefined;
 
     const unsubscribeNewNotification = subscribe('new_notification', (message) => {
       const notification: Notification = {
@@ -229,8 +229,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         type: 'UPDATE_NOTIFICATION', 
         payload: { 
           id: message.data.notification_id, 
-          updates: { read: true } 
-        } 
+          updates: { read: true }, 
+        }, 
       });
     });
 

@@ -4,12 +4,15 @@ OPTIMIZED with performance monitoring and intelligent caching.
 """
 
 from rest_framework import viewsets, generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils import timezone
 from datetime import timedelta
 # Import optimizations
 from core.optimizations import (
@@ -3412,3 +3415,225 @@ www.verihome.com
                 {'error': f'Error procesando revisión: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+# ===================================================================
+# NUEVAS APIS PARA MATCHED CANDIDATES VIEW
+# ===================================================================
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def send_biometric_reminder(request, contract_id):
+    """
+    Enviar recordatorio de autenticación biométrica al arrendatario.
+    Solo el arrendador puede enviar recordatorios.
+    """
+    try:
+        contract = get_object_or_404(Contract, id=contract_id)
+        
+        # Verificar que el usuario sea el arrendador
+        if contract.primary_party != request.user:
+            return Response(
+                {'error': 'Solo el arrendador puede enviar recordatorios'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Verificar que haya un arrendatario
+        if not contract.secondary_party:
+            return Response(
+                {'error': 'No hay arrendatario asignado al contrato'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        tenant = contract.secondary_party
+        
+        # Enviar notificación (email)
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            email_subject = f'Recordatorio: Autenticación Biométrica - Contrato {contract.contract_number}'
+            email_body = f"""
+Estimado/a {tenant.get_full_name()},
+
+Le recordamos que debe completar el proceso de autenticación biométrica para el contrato:
+
+Contrato: {contract.contract_number}
+Propiedad: {contract.property.title if contract.property else 'N/A'}
+Arrendador: {contract.primary_party.get_full_name()}
+
+Para completar su autenticación biométrica, por favor ingrese a su panel de control en VeriHome.
+
+Este proceso es necesario para dar validez legal al contrato.
+
+Cordialmente,
+El Equipo VeriHome
+            """
+            
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[tenant.email],
+                fail_silently=False,
+            )
+            
+        except Exception as email_error:
+            print(f"Error sending email: {str(email_error)}")
+        
+        # Registrar actividad
+        from users.models import UserActivityLog
+        UserActivityLog.objects.create(
+            user=request.user,
+            activity_type='biometric_reminder_sent',
+            description=f'Recordatorio biométrico enviado para contrato {contract.contract_number}',
+            metadata={
+                'contract_id': str(contract.id),
+                'tenant_id': str(tenant.id),
+                'tenant_email': tenant.email
+            },
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+        )
+        
+        return Response({
+            'success': True,
+            'message': f'Recordatorio enviado exitosamente a {tenant.get_full_name()}',
+            'tenant_email': tenant.email
+        }, status=status.HTTP_200_OK)
+        
+    except Contract.DoesNotExist:
+        return Response(
+            {'error': 'Contrato no encontrado'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error enviando recordatorio: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def confirm_key_delivery(request, contract_id):
+    """
+    Confirmar entrega de llaves de la propiedad.
+    Solo el arrendador puede confirmar la entrega.
+    """
+    try:
+        contract = get_object_or_404(Contract, id=contract_id)
+        
+        # Verificar que el usuario sea el arrendador
+        if contract.primary_party != request.user:
+            return Response(
+                {'error': 'Solo el arrendador puede confirmar la entrega de llaves'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Marcar llaves como entregadas
+        contract.keys_delivered = True
+        contract.keys_delivered_date = timezone.now()
+        contract.save()
+        
+        # Registrar actividad
+        from users.models import UserActivityLog
+        UserActivityLog.objects.create(
+            user=request.user,
+            activity_type='keys_delivered',
+            description=f'Llaves entregadas para contrato {contract.contract_number}',
+            metadata={
+                'contract_id': str(contract.id),
+                'property_id': str(contract.property.id) if contract.property else None,
+                'delivery_date': contract.keys_delivered_date.isoformat()
+            },
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Entrega de llaves confirmada exitosamente',
+            'keys_delivered': contract.keys_delivered,
+            'delivery_date': contract.keys_delivered_date.isoformat()
+        }, status=status.HTTP_200_OK)
+        
+    except Contract.DoesNotExist:
+        return Response(
+            {'error': 'Contrato no encontrado'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error confirmando entrega de llaves: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def start_contract_execution(request, contract_id):
+    """
+    Iniciar la ejecución del contrato.
+    Solo el arrendador puede iniciar la ejecución.
+    """
+    try:
+        contract = get_object_or_404(Contract, id=contract_id)
+        
+        # Verificar que el usuario sea el arrendador
+        if contract.primary_party != request.user:
+            return Response(
+                {'error': 'Solo el arrendador puede iniciar la ejecución del contrato'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Verificar que el contrato esté en estado apropiado
+        if contract.status not in ['completed_biometric', 'active']:
+            return Response(
+                {'error': f'El contrato debe estar en estado completed_biometric o active. Estado actual: {contract.status}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Marcar ejecución iniciada
+        contract.execution_started = True
+        contract.execution_start_date = timezone.now()
+        
+        # Actualizar estado a activo si aún no lo está
+        if contract.status != 'active':
+            contract.status = 'active'
+        
+        contract.save()
+        
+        # Registrar actividad
+        from users.models import UserActivityLog
+        UserActivityLog.objects.create(
+            user=request.user,
+            activity_type='contract_execution_started',
+            description=f'Ejecución iniciada para contrato {contract.contract_number}',
+            metadata={
+                'contract_id': str(contract.id),
+                'property_id': str(contract.property.id) if contract.property else None,
+                'start_date': contract.execution_start_date.isoformat(),
+                'new_status': contract.status
+            },
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Ejecución del contrato iniciada exitosamente',
+            'execution_started': contract.execution_started,
+            'execution_start_date': contract.execution_start_date.isoformat(),
+            'contract_status': contract.status
+        }, status=status.HTTP_200_OK)
+        
+    except Contract.DoesNotExist:
+        return Response(
+            {'error': 'Contrato no encontrado'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error iniciando ejecución del contrato: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

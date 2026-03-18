@@ -15,7 +15,7 @@ import {
   Grid,
   Alert,
   Divider,
-  Chip
+  Chip,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import requestService, { CreatePropertyInterestData } from '../../services/requestService';
@@ -32,7 +32,7 @@ interface PropertyInterestFormProps {
 const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
   property,
   onSuccess,
-  onCancel
+  onCancel,
 }) => {
   const { user } = useAuth();
   const { onPropertyInterest } = useBusinessNotifications();
@@ -47,7 +47,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
     smoking_allowed: false,
     has_rental_references: false,
     has_employment_proof: false,
-    has_credit_check: false
+    has_credit_check: false,
   });
 
   const [preferredMoveInDate, setPreferredMoveInDate] = useState<string>('');
@@ -62,14 +62,14 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
     { value: 'empresario', label: 'Empresario/Negocio Propio' },
     { value: 'estudiante', label: 'Estudiante' },
     { value: 'jubilado', label: 'Jubilado/Pensionado' },
-    { value: 'otro', label: 'Otro' }
+    { value: 'otro', label: 'Otro' },
   ];
 
   const leaseDurations = [
     { value: 6, label: '6 meses' },
     { value: 12, label: '1 año' },
     { value: 24, label: '2 años' },
-    { value: 36, label: '3 años' }
+    { value: 36, label: '3 años' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +81,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
       const submitData = {
         ...formData,
         preferred_move_in_date: preferredMoveInDate || undefined,
-        title: `Interés en: ${property.title}`
+        title: `Interés en: ${property.title}`,
       };
 
       await requestService.createPropertyInterestRequest(submitData);
@@ -113,7 +113,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
   const handleInputChange = (field: keyof CreatePropertyInterestData, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -202,7 +202,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
                   value={formData.monthly_income || ''}
                   onChange={(e) => handleInputChange('monthly_income', Number(e.target.value))}
                   InputProps={{
-                    inputProps: { min: 0 }
+                    inputProps: { min: 0 },
                   }}
                 />
               </Grid>
@@ -232,7 +232,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
                   value={formData.number_of_occupants}
                   onChange={(e) => handleInputChange('number_of_occupants', Number(e.target.value))}
                   InputProps={{
-                    inputProps: { min: 1, max: 10 }
+                    inputProps: { min: 1, max: 10 },
                   }}
                   required
                 />
@@ -249,7 +249,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
                     shrink: true,
                   }}
                   inputProps={{
-                    min: new Date().toISOString().split('T')[0]
+                    min: new Date().toISOString().split('T')[0],
                   }}
                 />
               </Grid>

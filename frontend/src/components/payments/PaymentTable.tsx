@@ -35,7 +35,7 @@ import { formatCurrency } from '../../utils/formatters';
 
 export const PaymentTable: React.FC = () => {
   const navigate = useNavigate();
-  const { payments, isLoading, error, deletePayment } = usePayments();
+  const { transactions: payments = [], isLoading, error, deleteTransaction: deletePayment } = usePayments();
   
   // Estados para filtros y paginación
   const [filterModel, setFilterModel] = useState<GridFilterModel>({

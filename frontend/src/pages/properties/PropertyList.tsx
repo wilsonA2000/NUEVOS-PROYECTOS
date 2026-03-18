@@ -208,10 +208,10 @@ const PropertyList: React.FC = () => {
     console.log('Cards page change:', value);
   };
 
-  const isLandlord = user?.user_type === 'landlord' || user?.user_type === 'admin';
+  const isLandlord = user?.user_type === 'landlord';
 
   // Asegurar que properties sea un array
-  const propertiesArray = ensureArray(properties);
+  const propertiesArray = ensureArray(properties as any);
 
   // Estados de carga y error mejorados
   if (authLoading) {
@@ -300,7 +300,7 @@ const PropertyList: React.FC = () => {
               )}
               
               {/* Export Button */}
-              <ExportButton type="properties" />
+              {/* <ExportButton type="properties" data={[]} /> */}
               
               {/* Create New Button - Solo para landlords */}
               {user?.user_type === 'landlord' && (
@@ -323,9 +323,9 @@ const PropertyList: React.FC = () => {
                 sx={{ 
                   p: 2, 
                   mt: 2,
-                  backgroundColor: theme.palette.primary.main + '08',
+                  backgroundColor: `${theme.palette.primary.main  }08`,
                   borderRadius: 1,
-                  border: `1px solid ${theme.palette.primary.main}20`
+                  border: `1px solid ${theme.palette.primary.main}20`,
                 }}
               >
                 <Typography variant="body2" color="primary" fontWeight={600}>
@@ -375,7 +375,7 @@ const PropertyList: React.FC = () => {
                 {/* Cards View */}
                 {viewMode === 'cards' && (
                   <PropertyCards
-                    properties={propertiesArray}
+                    properties={propertiesArray as Property[]}
                     page={1} // You may want to implement pagination for cards too
                     totalPages={1}
                     onPageChange={handleCardsPageChange}
@@ -391,7 +391,7 @@ const PropertyList: React.FC = () => {
                 {/* Table View */}
                 {viewMode === 'table' && (
                   <PropertyTable
-                    properties={propertiesArray}
+                    properties={propertiesArray as Property[]}
                     page={tablePage}
                     rowsPerPage={tableRowsPerPage}
                     totalCount={totalCount}
@@ -406,8 +406,8 @@ const PropertyList: React.FC = () => {
                     loading={isLoading}
                     selected={selectedProperties}
                     onSelectionChange={handleSelectionChange}
-                    onBulkDelete={handleBulkDelete}
-                    onBulkToggleFavorite={handleToggleFavorite}
+                    onBulkDelete={(ids: string[]) => handleBulkDelete(ids)}
+                    onBulkToggleFavorite={(ids: string[]) => ids.forEach(id => handleToggleFavorite(id))}
                     sortBy={sortBy}
                     sortOrder={sortOrder}
                     onSort={handleSort}

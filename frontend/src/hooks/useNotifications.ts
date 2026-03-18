@@ -51,8 +51,8 @@ export const useNotifications = () => {
       await api.patch(`/core/notifications/${notificationId}/`, { is_read: true });
       setNotifications(prev => 
         prev.map(notif => 
-          notif.id === notificationId ? { ...notif, is_read: true } : notif
-        )
+          notif.id === notificationId ? { ...notif, is_read: true } : notif,
+        ),
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -133,13 +133,13 @@ export const useNotifications = () => {
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(data.notification.title, {
               body: data.notification.message,
-              icon: '/logo192.png'
+              icon: '/logo192.png',
             });
           }
         } else if (data.type === 'notification.update') {
           // Actualizar notificación existente
           setNotifications(prev =>
-            prev.map(n => n.id === data.notification.id ? data.notification : n)
+            prev.map(n => n.id === data.notification.id ? data.notification : n),
           );
         }
       } catch (error) {
@@ -164,6 +164,7 @@ export const useNotifications = () => {
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isConnected, fetchNotifications]);
 
   return {

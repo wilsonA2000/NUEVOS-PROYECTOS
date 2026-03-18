@@ -38,7 +38,7 @@ import {
   Collapse,
   ToggleButton,
   ToggleButtonGroup,
-  Slide
+  Slide,
 } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import {
@@ -67,7 +67,7 @@ import {
   NoteAdd as NoteAddIcon,
   History as HistoryIcon,
   Dashboard as DashboardIcon,
-  SwapHoriz as SwapHorizIcon
+  SwapHoriz as SwapHorizIcon,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../contexts/AuthContext';
@@ -122,7 +122,7 @@ const GradientCard = styled(Card)(({ theme }) => ({
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 40px rgba(102, 126, 234, 0.2)',
     animation: `${glow} 2s infinite`,
-  }
+  },
 }));
 
 const StatCard = styled(Paper)(({ theme }) => ({
@@ -137,7 +137,7 @@ const StatCard = styled(Paper)(({ theme }) => ({
   '&:hover': {
     transform: 'translateY(-2px) scale(1.02)',
     boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
-  }
+  },
 }));
 
 const FloatingActionButton = styled(Button)(({ theme }) => ({
@@ -166,11 +166,11 @@ const FloatingActionButton = styled(Button)(({ theme }) => ({
     boxShadow: '0 8px 30px rgba(102, 126, 234, 0.4)',
     '&::before': {
       left: '100%',
-    }
+    },
   },
   '&:active': {
     transform: 'translateY(0px)',
-  }
+  },
 }));
 
 const ModernIconButton = styled(IconButton)(({ theme }) => ({
@@ -182,7 +182,7 @@ const ModernIconButton = styled(IconButton)(({ theme }) => ({
   '&:hover': {
     transform: 'scale(1.1)',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-  }
+  },
 }));
 
 const PulseAvatar = styled(Avatar)(({ theme }) => ({
@@ -191,7 +191,7 @@ const PulseAvatar = styled(Avatar)(({ theme }) => ({
   '&:hover': {
     animation: 'none',
     transform: 'scale(1.1)',
-  }
+  },
 }));
 
 // ============================================================================
@@ -256,7 +256,7 @@ const getStatusColor = (status: string): string => {
     pending: 'warning',
     approved: 'success',
     rejected: 'error',
-    requires_correction: 'info'
+    requires_correction: 'info',
   };
   return colors[status] || 'default';
 };
@@ -266,7 +266,7 @@ const getStatusGradient = (status: string): string => {
     pending: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
     approved: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
     rejected: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-    requires_correction: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)'
+    requires_correction: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
   };
   return gradients[status] || 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)';
 };
@@ -286,7 +286,7 @@ const getStatusLabel = (status: string): string => {
     pending: 'Pendiente de Revisión',
     approved: 'Aprobado ✓',
     rejected: 'Rechazado ✗',
-    requires_correction: 'Requiere Corrección ⚠'
+    requires_correction: 'Requiere Corrección ⚠',
   };
   return labels[status] || status;
 };
@@ -296,7 +296,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return `${Math.round(bytes / Math.pow(k, i) * 100) / 100  } ${  sizes[i]}`;
 };
 
 // ============================================================================
@@ -318,10 +318,10 @@ const EnhancedDocumentItem: React.FC<{
       }
     },
     accept: {
-      'application/pdf': ['.pdf']
+      'application/pdf': ['.pdf'],
     },
     disabled: isUploading || (document.uploaded && document.status === 'approved'),
-    multiple: false
+    multiple: false,
   });
 
   const borderColor = useMemo(() => {
@@ -364,27 +364,27 @@ const EnhancedDocumentItem: React.FC<{
             background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)',
             '&::after': {
               background: 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)',
-            }
+            },
           }),
           ...(document.status === 'rejected' && {
             background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
             '&::after': {
               background: 'linear-gradient(135deg, #F44336 0%, #EF5350 100%)',
-            }
+            },
           }),
           ...(document.status === 'requires_correction' && {
             background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%)',
             '&::after': {
               background: 'linear-gradient(135deg, #2196F3 0%, #42A5F5 100%)',
-            }
+            },
           }),
           ...(isDragActive && {
             background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
             transform: 'scale(1.02)',
             '&::after': {
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            }
-          })
+            },
+          }),
         }}
       >
         <Box {...(document.status !== 'approved' ? getRootProps() : {})}>
@@ -418,7 +418,7 @@ const EnhancedDocumentItem: React.FC<{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
+                    WebkitTextFillColor: 'transparent',
                   }}>
                     {document.display_name}
                   </Typography>
@@ -437,7 +437,7 @@ const EnhancedDocumentItem: React.FC<{
                         border: 'none',
                         '&:hover': {
                           transform: 'scale(1.05)',
-                        }
+                        },
                       }}
                     />
                   )}
@@ -457,7 +457,7 @@ const EnhancedDocumentItem: React.FC<{
                         border: 'none',
                         '&:hover': {
                           transform: 'scale(1.05)',
-                        }
+                        },
                       }}
                     />
                   )}
@@ -486,7 +486,7 @@ const EnhancedDocumentItem: React.FC<{
                       '&:hover': {
                         transform: 'translateY(-1px)',
                         boxShadow: '0 5px 16px rgba(0, 0, 0, 0.25)',
-                      }
+                      },
                     }}
                   />
 
@@ -549,7 +549,7 @@ const EnhancedDocumentItem: React.FC<{
                         background: 'rgba(255, 255, 255, 0.7)',
                         padding: '8px 12px',
                         borderRadius: '8px',
-                        fontStyle: 'italic'
+                        fontStyle: 'italic',
                       }}>
                         {document.review_notes}
                       </Typography>
@@ -558,7 +558,7 @@ const EnhancedDocumentItem: React.FC<{
                           mt: 1,
                           display: 'block',
                           opacity: 0.8,
-                          fontWeight: 500
+                          fontWeight: 500,
                         }}>
                           👤 Por: {document.reviewed_by.full_name} • 📅 {format(new Date(document.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </Typography>
@@ -585,16 +585,16 @@ const EnhancedDocumentItem: React.FC<{
                         borderColor: '#667eea',
                         background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
                         transform: 'scale(1.02)',
-                      })
+                      }),
                     }}>
                       <CloudUploadIcon sx={{
                         color: isDragActive ? '#667eea' : 'text.secondary',
-                        fontSize: '1.5rem'
+                        fontSize: '1.5rem',
                       }} />
                       <Typography variant="body2" sx={{
                         color: isDragActive ? '#667eea' : 'text.secondary',
                         fontWeight: isDragActive ? 600 : 400,
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
                       }}>
                         {isDragActive ? '🎯 ¡Suelta el archivo aquí!' : '📎 Arrastra un PDF o haz clic para seleccionar'}
                       </Typography>
@@ -621,7 +621,7 @@ const EnhancedDocumentItem: React.FC<{
                           '&:hover': {
                             background: 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
                             boxShadow: '0 8px 25px rgba(33, 150, 243, 0.4)',
-                          }
+                          },
                         }}
                       >
                         <VisibilityIcon />
@@ -641,7 +641,7 @@ const EnhancedDocumentItem: React.FC<{
                             '&:hover': {
                               background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
                               boxShadow: '0 8px 25px rgba(244, 67, 54, 0.4)',
-                            }
+                            },
                           }}
                         >
                           <DeleteIcon />
@@ -660,7 +660,7 @@ const EnhancedDocumentItem: React.FC<{
                               background: 'linear-gradient(135deg, #F57C00 0%, #EF6C00 100%)',
                               boxShadow: '0 8px 25px rgba(255, 152, 0, 0.4)',
                               animation: 'none',
-                            }
+                            },
                           }}
                         >
                           <SwapHorizIcon />
@@ -693,7 +693,7 @@ const EnhancedDocumentItem: React.FC<{
                     background: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
                     backgroundSize: '200% 100%',
                     animation: `${shimmer} 1.5s infinite linear`,
-                  }
+                  },
                 }}
               />
             </Box>
@@ -726,7 +726,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
           right: 0,
           bottom: 0,
           background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-        }
+        },
       }}>
         <CardContent sx={{ position: 'relative', zIndex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
@@ -735,7 +735,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5
+              gap: 1.5,
             }}>
               <DashboardIcon sx={{ fontSize: '2rem' }} />
               📊 Panel de Control Documental
@@ -748,7 +748,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
               background: 'rgba(255, 255, 255, 0.2)',
               padding: '8px 16px',
               borderRadius: '20px',
-              backdropFilter: 'blur(10px)'
+              backdropFilter: 'blur(10px)',
             }}>
               <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
                 {progressPercentage}%
@@ -766,7 +766,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.05)',
                   boxShadow: '0 12px 40px rgba(102, 126, 234, 0.3)',
-                }
+                },
               }}>
                 <Typography variant="h3" sx={{
                   fontWeight: 800,
@@ -774,7 +774,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  mb: 1
+                  mb: 1,
                 }}>
                   {stats.total}
                 </Typography>
@@ -790,12 +790,12 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.05)',
                   boxShadow: '0 12px 40px rgba(255, 152, 0, 0.3)',
-                }
+                },
               }}>
                 <Typography variant="h3" sx={{
                   fontWeight: 800,
                   color: '#FF9800',
-                  mb: 1
+                  mb: 1,
                 }}>
                   {stats.pending}
                 </Typography>
@@ -811,12 +811,12 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.05)',
                   boxShadow: '0 12px 40px rgba(76, 175, 80, 0.3)',
-                }
+                },
               }}>
                 <Typography variant="h3" sx={{
                   fontWeight: 800,
                   color: '#4CAF50',
-                  mb: 1
+                  mb: 1,
                 }}>
                   {stats.approved}
                 </Typography>
@@ -832,12 +832,12 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.05)',
                   boxShadow: '0 12px 40px rgba(244, 67, 54, 0.3)',
-                }
+                },
               }}>
                 <Typography variant="h3" sx={{
                   fontWeight: 800,
                   color: '#F44336',
-                  mb: 1
+                  mb: 1,
                 }}>
                   {stats.rejected + stats.requires_correction}
                 </Typography>
@@ -857,7 +857,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
               height: 8,
               borderRadius: 4,
               background: 'rgba(255, 255, 255, 0.2)',
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}>
               <Box sx={{
                 height: '100%',
@@ -875,7 +875,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                   bottom: 0,
                   background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
                   animation: `${shimmer} 2s infinite linear`,
-                }
+                },
               }} />
             </Box>
           </Box>
@@ -895,7 +895,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
   matchRequestData,
   guaranteeType = 'none',
   codeudorName = '',
-  isLandlord = false
+  isLandlord = false,
 }) => {
   const { user } = useAuth();
   const [checklist, setChecklist] = useState<DocumentSection | null>(null);
@@ -930,7 +930,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       ...checklist.tomador_documents,
       ...checklist.codeudor_documents,
       ...checklist.guarantee_documents,
-      ...checklist.otros_documents
+      ...checklist.otros_documents,
     ];
 
     return {
@@ -938,7 +938,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       pending: allDocs.filter(d => d.status === 'pending').length,
       approved: allDocs.filter(d => d.status === 'approved').length,
       rejected: allDocs.filter(d => d.status === 'rejected').length,
-      requires_correction: allDocs.filter(d => d.status === 'requires_correction').length
+      requires_correction: allDocs.filter(d => d.status === 'requires_correction').length,
     };
   }, [checklist]);
 
@@ -961,7 +961,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       if (!response.ok) {
@@ -976,12 +976,11 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         tomador_documents: Array.isArray(data.tomador_documents) ? data.tomador_documents : [],
         codeudor_documents: Array.isArray(data.codeudor_documents) ? data.codeudor_documents : [],
         guarantee_documents: Array.isArray(data.guarantee_documents) ? data.guarantee_documents : [],
-        otros_documents: Array.isArray(data.otros_documents) ? data.otros_documents : []
+        otros_documents: Array.isArray(data.otros_documents) ? data.otros_documents : [],
       };
 
       setChecklist(validatedData);
     } catch (err: any) {
-      console.error('Error loading checklist:', err);
       setError(err.message || 'Error al cargar el checklist de documentos');
     } finally {
       setLoading(false);
@@ -995,7 +994,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
-        }
+        },
       });
 
       if (!response.ok) {
@@ -1006,7 +1005,6 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       await fetchChecklist();
       onDocumentUploaded?.();
     } catch (err) {
-      console.error('Error deleting document:', err);
       setError('Error al eliminar el documento');
     }
   }, [fetchChecklist, onDocumentUploaded]);
@@ -1026,18 +1024,26 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       // Create a new File object with shorter name
       finalFile = new File([file], newName, { type: file.type });
 
-      console.log(`📝 File renamed from "${file.name}" to "${newName}" (original was ${file.name.length} chars)`);
 
       // Show alert to user
       alert(`⚠️ El nombre del archivo era muy largo (${file.name.length} caracteres). Se ha renombrado automáticamente a: ${newName}`);
     }
 
     setUploadFile(finalFile);
-    setSelectedDocumentType(documentType);
 
     // Check if it's "otros" type
     const isOtherDoc = documentType === 'otros';
     setIsOtherDocument(isOtherDoc);
+
+    // ✅ FIX: Para documentos "otros", generar un tipo único con timestamp
+    // Esto permite que se suban múltiples documentos personalizados sin sobreescribir
+    let finalDocumentType = documentType;
+    if (isOtherDoc) {
+      const timestamp = Date.now();
+      finalDocumentType = `otros_${timestamp}`;
+    }
+
+    setSelectedDocumentType(finalDocumentType);
 
     if (!isOtherDoc) {
       setOtherDocumentName('');
@@ -1063,14 +1069,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         formData.append('other_description', `${otherDocumentName}: ${otherDocumentDescription}`);
       }
 
-      // Debug logs
-      console.log('📤 Upload attempt with:', {
-        processId,
-        selectedDocumentType,
-        fileName: uploadFile.name,
-        fileSize: uploadFile.size,
-        fileType: uploadFile.type
-      });
+      // Upload file
 
       const token = localStorage.getItem('access_token');
       const response = await fetch('http://localhost:8000/api/v1/requests/api/documents/upload/', {
@@ -1078,17 +1077,14 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        body: formData
+        body: formData,
       });
 
-      console.log('📨 Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Upload error response:', errorText);
         try {
           const errorJson = JSON.parse(errorText);
-          console.error('❌ Upload error JSON:', errorJson);
           throw new Error(errorJson.error || errorJson.detail || 'Error al subir el documento');
         } catch (e) {
           throw new Error('Error al subir el documento');
@@ -1100,7 +1096,6 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       onDocumentUploaded?.();
 
     } catch (err: any) {
-      console.error('Error uploading document:', err);
       setError('Error al subir el documento');
     } finally {
       setUploadingDocuments(prev => {
@@ -1172,7 +1167,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
     'TOMADOR': checklist.tomador_documents,
     'CODEUDOR': checklist.codeudor_documents,
     'GARANTIA': checklist.guarantee_documents,
-    'OTROS': checklist.otros_documents
+    'OTROS': checklist.otros_documents,
   };
 
   return (
@@ -1199,7 +1194,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     mb: 1,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5
+                    gap: 1.5,
                   }}>
                     <AutoAwesomeIcon sx={{ color: '#667eea', fontSize: '2.5rem' }} />
                     Gestión Inteligente de Documentos
@@ -1235,9 +1230,9 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
                           '&:hover': {
                             background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                          }
-                        }
-                      }
+                          },
+                        },
+                      },
                     }}
                   >
                     <ToggleButton value="sections">
@@ -1275,11 +1270,11 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                   '&:hover': {
                     background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
                     transform: 'translateY(-2px)',
-                  }
+                  },
                 },
                 '& .MuiAccordionDetails-root': {
                   padding: '24px',
-                }
+                },
               }}>
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon sx={{ color: '#667eea', fontSize: '1.5rem' }} />}
@@ -1296,7 +1291,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                       <Typography variant="h6" sx={{
                         fontWeight: 700,
                         color: '#667eea',
-                        fontSize: '1.3rem'
+                        fontSize: '1.3rem',
                       }}>
                         👤 Documentos del Tomador (Inquilino)
                       </Typography>
@@ -1317,7 +1312,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           height: '24px',
                           borderRadius: '12px',
                           boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
-                        }
+                        },
                       }}
                     >
                       <FolderIcon sx={{ color: '#667eea', fontSize: '1.8rem' }} />
@@ -1359,11 +1354,11 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                   '&:hover': {
                     background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(245, 124, 0, 0.15) 100%)',
                     transform: 'translateY(-2px)',
-                  }
+                  },
                 },
                 '& .MuiAccordionDetails-root': {
                   padding: '24px',
-                }
+                },
               }}>
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon sx={{ color: '#FF9800', fontSize: '1.5rem' }} />}
@@ -1380,7 +1375,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                       <Typography variant="h6" sx={{
                         fontWeight: 700,
                         color: '#FF9800',
-                        fontSize: '1.3rem'
+                        fontSize: '1.3rem',
                       }}>
                         🤝 Documentos del Codeudor
                       </Typography>
@@ -1401,7 +1396,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           height: '24px',
                           borderRadius: '12px',
                           boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
-                        }
+                        },
                       }}
                     >
                       <FolderIcon sx={{ color: '#FF9800', fontSize: '1.8rem' }} />
@@ -1428,7 +1423,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             </GradientCard>
           </Fade>
 
-          {/* Otros Documentos Section */}
+          {/* Otros Documentos Section - MEJORADO CON LISTA DE DOCUMENTOS */}
           <Fade in timeout={1400}>
             <GradientCard sx={{
               border: '3px dashed rgba(33, 150, 243, 0.3)',
@@ -1445,7 +1440,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                 background: 'linear-gradient(90deg, #2196F3 0%, #03A9F4 50%, #2196F3 100%)',
                 backgroundSize: '200% 100%',
                 animation: `${shimmer} 3s infinite linear`,
-              }
+              },
             }}>
               <CardContent sx={{ pt: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -1464,7 +1459,8 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                       fontSize: '1.3rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1.5
+                      gap: 1.5,
+                      flexWrap: 'wrap',
                     }}>
                       📎 Otros Documentos (Personalizables)
                       <Chip
@@ -1478,6 +1474,19 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
                         }}
                       />
+                      {checklist.otros_documents && checklist.otros_documents.length > 0 && (
+                        <Chip
+                          label={`${checklist.otros_documents.length} documento${checklist.otros_documents.length !== 1 ? 's' : ''} subido${checklist.otros_documents.length !== 1 ? 's' : ''}`}
+                          size="small"
+                          sx={{
+                            background: 'linear-gradient(135deg, #2196F3 0%, #03A9F4 100%)',
+                            color: 'white',
+                            fontWeight: 600,
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
+                          }}
+                        />
+                      )}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mt: 0.5 }}>
                       🚀 Sube documentos adicionales que consideres importantes para fortalecer tu solicitud
@@ -1488,34 +1497,62 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                 {/* Show existing otros documents */}
                 {checklist.otros_documents && checklist.otros_documents.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{
-                      color: '#2196F3',
-                      fontWeight: 600,
+                    <Alert severity="success" sx={{
                       mb: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)',
+                      border: '2px solid rgba(76, 175, 80, 0.3)',
                     }}>
-                      📋 Documentos personalizados subidos:
-                    </Typography>
-                    {checklist.otros_documents.map(doc => (
-                      <EnhancedDocumentItem
-                        key={doc.type}
-                        document={doc}
-                        onFileSelect={handleFileSelect}
-                        onDelete={(id) => {
-                          setDocumentToDelete(id);
-                          setDeleteConfirmOpen(true);
-                        }}
-                        onPreview={handlePreview}
-                        isUploading={uploadingDocuments.has(doc.type)}
-                        canDelete={!isLandlord}
-                      />
+                      <Typography variant="subtitle2" sx={{
+                        color: '#4CAF50',
+                        fontWeight: 600,
+                        mb: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}>
+                        ✅ Documentos Personalizados Subidos ({checklist.otros_documents.length})
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Puedes seguir agregando más documentos con el botón de abajo
+                      </Typography>
+                    </Alert>
+                    {checklist.otros_documents.map((doc, index) => (
+                      <Box key={doc.id || doc.type || `otros_${index}`} sx={{ mb: 2 }}>
+                        <EnhancedDocumentItem
+                          document={doc}
+                          onFileSelect={handleFileSelect}
+                          onDelete={(id) => {
+                            setDocumentToDelete(id);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          onPreview={handlePreview}
+                          isUploading={uploadingDocuments.has(doc.type)}
+                          canDelete={!isLandlord}
+                        />
+                      </Box>
                     ))}
                   </Box>
                 )}
 
-                {/* Add new custom document button */}
+                {/* Empty state when no documents */}
+                {(!checklist.otros_documents || checklist.otros_documents.length === 0) && (
+                  <Alert severity="info" sx={{
+                    mb: 3,
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%)',
+                    border: '2px dashed rgba(33, 150, 243, 0.3)',
+                  }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      📄 Aún no has subido documentos personalizados
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Haz clic en el botón de abajo para agregar tu primer documento personalizado
+                    </Typography>
+                  </Alert>
+                )}
+
+                {/* Add new custom document button - MÁS VISIBLE */}
                 <input
                   type="file"
                   accept=".pdf"
@@ -1525,33 +1562,38 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     const file = e.target.files?.[0];
                     if (file) {
                       handleFileSelect(file, 'otros');
+                      // Reset input para permitir seleccionar el mismo archivo de nuevo
+                      e.target.value = '';
                     }
                   }}
                 />
                 <label htmlFor="other-document-upload" style={{ width: '100%', display: 'block' }}>
-                  <FloatingActionButton
+                  <Button
                     component="span"
                     fullWidth
-                    startIcon={<CloudUploadIcon />}
+                    startIcon={checklist.otros_documents && checklist.otros_documents.length > 0 ? <NoteAddIcon /> : <CloudUploadIcon />}
                     sx={{
                       background: 'linear-gradient(135deg, #2196F3 0%, #03A9F4 100%)',
                       borderRadius: '16px',
                       padding: '16px 24px',
-                      fontSize: '1rem',
+                      fontSize: '1.05rem',
                       fontWeight: 700,
                       textTransform: 'none',
                       border: '2px dashed rgba(33, 150, 243, 0.5)',
                       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
                       '&:hover': {
                         border: '2px solid #2196F3',
                         transform: 'translateY(-4px) scale(1.02)',
-                        boxShadow: '0 12px 40px rgba(33, 150, 243, 0.4)',
+                        boxShadow: '0 12px 40px rgba(33, 150, 243, 0.5)',
                         background: 'linear-gradient(135deg, #1976D2 0%, #0288D1 100%)',
-                      }
+                      },
                     }}
                   >
-                    🌟 Subir Documento Personalizado
-                  </FloatingActionButton>
+                    {checklist.otros_documents && checklist.otros_documents.length > 0
+                      ? '➕ Subir Otro Documento Personalizado'
+                      : '🌟 Subir Documento Personalizado'}
+                  </Button>
                 </label>
 
                 <Typography variant="caption" sx={{
@@ -1559,9 +1601,10 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                   textAlign: 'center',
                   mt: 2,
                   color: 'text.secondary',
-                  fontStyle: 'italic'
+                  fontStyle: 'italic',
+                  px: 2,
                 }}>
-                  💡 Tip: Puedes subir cartas de recomendación, referencias comerciales, certificados adicionales, etc.
+                  💡 Tip: Puedes subir cartas de recomendación, referencias comerciales, certificados adicionales, constancias laborales, etc.
                 </Typography>
               </CardContent>
             </GradientCard>
@@ -1575,7 +1618,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               'TOMADOR': { primary: '#667eea', secondary: '#764ba2', emoji: '👤' },
               'CODEUDOR': { primary: '#FF9800', secondary: '#F57C00', emoji: '🤝' },
               'GARANTIA': { primary: '#4CAF50', secondary: '#388E3C', emoji: '🏦' },
-              'OTROS': { primary: '#2196F3', secondary: '#1976D2', emoji: '📎' }
+              'OTROS': { primary: '#2196F3', secondary: '#1976D2', emoji: '📎' },
             };
             const colors = categoryColors[category] || categoryColors['OTROS'];
 
@@ -1596,7 +1639,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                       height: '4px',
                       background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
                       borderRadius: '20px 20px 0 0',
-                    }
+                    },
                   }}>
                     <CardContent sx={{ pt: 3 }}>
                       <Box sx={{
@@ -1605,7 +1648,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                         gap: 2,
                         mb: 3,
                         pb: 2,
-                        borderBottom: `2px solid rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.1)`
+                        borderBottom: `2px solid rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.1)`,
                       }}>
                         <PulseAvatar sx={{
                           background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
@@ -1620,7 +1663,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           <Typography variant="h6" sx={{
                             fontWeight: 700,
                             color: colors.primary,
-                            fontSize: '1.2rem'
+                            fontSize: '1.2rem',
                           }}>
                             {colors.emoji} {category}
                           </Typography>
@@ -1641,7 +1684,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                               height: '22px',
                               borderRadius: '11px',
                               boxShadow: `0 2px 8px rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.4)`,
-                            }
+                            },
                           }}
                         >
                           <CategoryIcon sx={{ color: colors.primary, fontSize: '1.5rem' }} />
@@ -1669,7 +1712,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                         <Box sx={{
                           textAlign: 'center',
                           py: 4,
-                          color: 'text.secondary'
+                          color: 'text.secondary',
                         }}>
                           <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
                             📄 No hay documentos en esta categoría
@@ -1703,7 +1746,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: '0 20px 60px rgba(102, 126, 234, 0.3)',
-          }
+          },
         }}
       >
         <DialogTitle sx={{
@@ -1721,7 +1764,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             right: 0,
             bottom: 0,
             background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          }
+          },
         }}>
           <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
             <CloudUploadIcon sx={{ fontSize: '1.8rem' }} />
@@ -1768,8 +1811,8 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#667eea',
                       borderWidth: '2px',
-                    }
-                  }
+                    },
+                  },
                 }}
               />
 
@@ -1792,8 +1835,8 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#667eea',
                       borderWidth: '2px',
-                    }
-                  }
+                    },
+                  },
                 }}
               />
             </Stack>
@@ -1817,7 +1860,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               '&:hover': {
                 border: '2px solid #667eea',
                 background: 'rgba(102, 126, 234, 0.1)',
-              }
+              },
             }}
           >
             ❌ Cancelar
@@ -1849,7 +1892,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             border: '1px solid rgba(244, 67, 54, 0.3)',
             boxShadow: '0 20px 60px rgba(244, 67, 54, 0.2)',
             maxWidth: '400px',
-          }
+          },
         }}
       >
         <DialogTitle sx={{
@@ -1867,7 +1910,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             right: 0,
             bottom: 0,
             background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          }
+          },
         }}>
           <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
             <WarningIcon sx={{ fontSize: '1.8rem' }} />
@@ -1881,7 +1924,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
           <GradientCard sx={{
             background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
             border: '2px solid rgba(244, 67, 54, 0.2)',
-            mb: 2
+            mb: 2,
           }}>
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -1917,7 +1960,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               '&:hover': {
                 border: '2px solid #667eea',
                 background: 'rgba(102, 126, 234, 0.1)',
-              }
+              },
             }}
           >
             ❌ Cancelar
@@ -1932,7 +1975,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               minWidth: '120px',
               '&:hover': {
                 background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
-              }
+              },
             }}
           >
             🗑️ Eliminar
@@ -1954,7 +1997,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: '0 25px 80px rgba(0, 0, 0, 0.15)',
             height: '90vh',
-          }
+          },
         }}
       >
         <DialogTitle sx={{
@@ -1971,7 +2014,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
             right: 0,
             bottom: 0,
             background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          }
+          },
         }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -1993,7 +2036,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                 '&:hover': {
                   background: 'rgba(255, 255, 255, 0.3)',
                   transform: 'scale(1.1)',
-                }
+                },
               }}
             >
               <CloseIcon />
@@ -2005,7 +2048,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
           height: 'calc(90vh - 120px)',
           p: 0,
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
         }}>
           {previewDocument?.file_url ? (
             <Box sx={{
@@ -2015,7 +2058,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               background: '#f5f5f5',
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center'
+              alignItems: 'center',
             }}>
               <iframe
                 src={previewDocument.file_url.startsWith('http')
@@ -2026,7 +2069,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                 style={{
                   border: 'none',
                   borderRadius: '0 0 20px 20px',
-                  background: 'white'
+                  background: 'white',
                 }}
                 title="Document Preview"
               />
@@ -2040,7 +2083,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                 borderRadius: '20px',
                 backdropFilter: 'blur(10px)',
                 fontSize: '0.85rem',
-                fontWeight: 500
+                fontWeight: 500,
               }}>
                 📊 Documento PDF
               </Box>
@@ -2051,12 +2094,12 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)'
+              background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
             }}>
               <GradientCard sx={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%)',
                 maxWidth: '400px',
-                textAlign: 'center'
+                textAlign: 'center',
               }}>
                 <CardContent>
                   <PulseAvatar sx={{

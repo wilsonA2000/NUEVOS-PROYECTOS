@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [errorModal, setErrorModal] = useState({
     open: false,
     error: '',
-    title: 'Acceso No Autorizado'
+    title: 'Acceso No Autorizado',
   });
 
   // Función para mostrar el modal de error
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setErrorModal({
       open: true,
       error,
-      title
+      title,
     });
   }, []);
 
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hideErrorModal = useCallback(() => {
     setErrorModal(prev => ({
       ...prev,
-      open: false
+      open: false,
     }));
   }, []);
 
@@ -134,7 +134,7 @@ clearAuthState();
           user: null, 
           token: null, 
           isAuthenticated: false, 
-          isLoading: false 
+          isLoading: false, 
         });
         return;
       }
@@ -152,7 +152,7 @@ clearAuthState();
             user: null, 
             token: null, 
             isAuthenticated: false, 
-            isLoading: false 
+            isLoading: false, 
           });
           return;
         }
@@ -173,7 +173,7 @@ clearAuthState();
           user: null, 
           token: null, 
           isAuthenticated: false, 
-          isLoading: false 
+          isLoading: false, 
         });
       }
     };
@@ -184,28 +184,28 @@ clearAuthState();
 
   // Efecto para manejar eventos de actividad del usuario
   useEffect(() => {
-    if (authState.isAuthenticated) {
-      const handleUserActivity = () => {
-        resetInactivityTimer();
-      };
+    if (!authState.isAuthenticated) return undefined;
 
-      // Eventos que indican actividad del usuario
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-      
-      events.forEach(event => {
-        document.addEventListener(event, handleUserActivity, true);
-      });
-
-      // Iniciar timer inicial
+    const handleUserActivity = () => {
       resetInactivityTimer();
+    };
 
-      // Cleanup
-      return () => {
-        events.forEach(event => {
-          document.removeEventListener(event, handleUserActivity, true);
-        });
-      };
-    }
+    // Eventos que indican actividad del usuario
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, true);
+    });
+
+    // Iniciar timer inicial
+    resetInactivityTimer();
+
+    // Cleanup
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity, true);
+      });
+    };
   }, [authState.isAuthenticated, resetInactivityTimer]);
 
   // Efecto para escuchar eventos de token inválido desde el interceptor de API
@@ -264,8 +264,8 @@ navigate('/email-verification', {
       replace: true,
       state: { 
         email: user.email,
-        message: 'Se ha enviado un email de verificación a tu correo electrónico.'
-      }
+        message: 'Se ha enviado un email de verificación a tu correo electrónico.',
+      },
     });
   };
 
@@ -275,7 +275,7 @@ navigate('/email-verification', {
     onError: (error: Error) => {
       console.error('❌ Error en login:', error);
       showErrorModal(error.message, 'Error de Inicio de Sesión');
-    }
+    },
   });
 
   const registerMutation = useMutation<User, Error, RegisterDto>({
@@ -284,7 +284,7 @@ navigate('/email-verification', {
     onError: (error: Error) => {
       console.error('❌ Error en registro:', error);
       showErrorModal(error.message, 'Error de Registro');
-    }
+    },
   });
 
   const updateUser = useCallback((userData: Partial<User>) => {

@@ -1,11 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getFiles,
-  getFile,
-  uploadFile,
-  deleteFile,
-  downloadFile,
-} from '../lib/api';
+
+// Placeholder API functions - to be implemented
+const getFiles = async (filters?: any) => {
+  return [] as File[];
+};
+const uploadFile = async (formData: FormData) => {
+  return {} as File;
+};
+const deleteFile = async (id: number) => {
+  return;
+};
+const downloadFile = async (id: number) => {
+  return new Response();
+};
 
 interface File {
   id: number;
@@ -31,8 +38,8 @@ export const useFiles = (filters?: FileFilters) => {
     queryFn: () => getFiles(filters),
   });
 
-  const upload = useMutation<File, Error, FormData>({
-    mutationFn: uploadFile,
+  const upload = useMutation<any, Error, FormData>({
+    mutationFn: (formData: FormData) => uploadFile(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['files'] });
     },

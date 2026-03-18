@@ -211,10 +211,9 @@ const InterviewCodeValidator: React.FC<InterviewCodeValidatorProps> = ({
 
         {validationResult.type && (
           <Fade in={true}>
-            <Alert 
+            <Alert
               severity={validationResult.type}
-              size="small"
-              sx={{ mt: 1, borderRadius: 'var(--border-radius-sm)' }}
+              sx={{ mt: 1, borderRadius: 'var(--border-radius-sm)', py: 0.5 }}
             >
               {validationResult.message}
             </Alert>

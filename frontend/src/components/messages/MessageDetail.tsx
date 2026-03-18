@@ -1,4 +1,4 @@
-export const MessageDetail: React.FC = () => {
+export const MessageDetail = () => {
   // ... existing code ...
 };
 

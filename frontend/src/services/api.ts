@@ -1,7 +1,20 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import { performanceMonitor } from '../utils/performanceMonitor';
 import { auditMiddleware } from '../utils/auditMiddleware';
 import { setupAxiosCache } from './apiCache';
+
+// Extend Axios types to include custom metadata
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    metadata?: {
+      requestId?: string;
+      startTime?: number;
+      cacheKey?: string;
+      cacheConfig?: any;
+    };
+  }
+  // AxiosError type extension removed to avoid duplicate declaration
+}
 
 const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:8000/api/v1';
 
@@ -72,13 +85,13 @@ api.interceptors.request.use(
       window.dispatchEvent(new CustomEvent('authRequired', { 
         detail: { 
           endpoint, 
-          message: 'Necesitas iniciar sesión para acceder a este recurso' 
-        } 
+          message: 'Necesitas iniciar sesión para acceder a este recurso', 
+        }, 
       }));
       
       return {
         ...config,
-        signal: controller.signal
+        signal: controller.signal,
       };
     }
     
@@ -96,7 +109,7 @@ api.interceptors.request.use(
   (error) => {
     // console.error('❌ API Interceptor: Error en request:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor to handle errors and track performance
@@ -114,17 +127,18 @@ api.interceptors.response.use(
     
     // Para códigos 4xx, rechazar como error para que sea manejado por el catch
     if (response.status >= 400 && response.status < 500) {
-      console.error('🔥 API ERROR DETAILS:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.config.url,
-        method: response.config.method,
-        data: response.data,
-        headers: response.headers
-      });
-      const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-      error.response = response;
-      error.config = response.config;
+      const error: AxiosError = Object.assign(
+        new Error(`HTTP ${response.status}: ${response.statusText}`),
+        {
+          name: 'AxiosError',
+          config: response.config,
+          code: response.status.toString(),
+          request: response.request,
+          response: response,
+          isAxiosError: true,
+          toJSON: () => ({}),
+        }
+      );
       return Promise.reject(error);
     }
     
@@ -182,14 +196,15 @@ localStorage.removeItem('token');
 
     // Return the audit-processed error
     return auditMiddleware.interceptAPIError(error);
-  }
+  },
 );
 
 // Configurar cache para endpoints específicos
-setupAxiosCache(api, {
+// Note: Type assertion needed due to axios instance vs static type mismatch
+setupAxiosCache(api as any, {
   ttl: 5 * 60 * 1000, // 5 minutos
   storage: 'sessionStorage', // Usar sessionStorage para que se limpie al cerrar el navegador
-  useEtag: true // Soportar ETags para revalidación
+  useEtag: true, // Soportar ETags para revalidación
 });
 
 // Exportar función para invalidar cache cuando sea necesario
@@ -201,4 +216,3 @@ export default api;
 
 /* FORCE RELOAD 1754456937872 - API_CONFIG - Nuclear fix applied */
 
-/* DEBUG ERROR LOGGING 1754468245892 - Enhanced error details for HTTP 400 debugging */

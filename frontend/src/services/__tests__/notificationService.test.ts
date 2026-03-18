@@ -17,7 +17,7 @@ describe('NotificationService', () => {
     message: 'You have received a new message from John Doe',
     type: 'message' as const,
     user_id: '1',
-    read: false,
+    is_read: false,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     data: {
@@ -26,40 +26,25 @@ describe('NotificationService', () => {
     }
   };
 
-  const mockCreateNotificationDto = {
-    title: 'Payment Due',
-    message: 'Your rent payment is due in 3 days',
-    type: 'payment' as const,
-    user_id: '1',
-    data: {
-      payment_id: 'pay_456',
-      due_date: '2024-01-04'
-    }
-  };
-
   describe('getNotifications', () => {
-    it('should fetch all notifications successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: [mockNotification] });
+    it('should fetch notifications successfully with default page', async () => {
+      const paginatedResponse = { results: [mockNotification], count: 1 };
+      mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await notificationService.getNotifications();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/notifications/');
-      expect(result).toEqual([mockNotification]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/notifications/?page=1');
+      expect(result).toEqual(paginatedResponse);
     });
 
-    it('should fetch notifications with filters', async () => {
-      const filters = {
-        type: 'message',
-        read: false,
-        limit: 10
-      };
+    it('should fetch notifications with specific page', async () => {
+      const paginatedResponse = { results: [mockNotification], count: 1 };
+      mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
-      mockedApi.get.mockResolvedValueOnce({ data: [mockNotification] });
+      const result = await notificationService.getNotifications(2);
 
-      const result = await notificationService.getNotifications(filters);
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/notifications/', { params: filters });
-      expect(result).toEqual([mockNotification]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/notifications/?page=2');
+      expect(result).toEqual(paginatedResponse);
     });
 
     it('should handle API errors', async () => {
@@ -75,67 +60,67 @@ describe('NotificationService', () => {
 
       const result = await notificationService.getNotification('1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/notifications/1/');
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/notifications/1/');
       expect(result).toEqual(mockNotification);
     });
   });
 
   describe('createNotification', () => {
     it('should create notification successfully', async () => {
+      const createData = {
+        title: 'Payment Due',
+        message: 'Your rent payment is due in 3 days',
+        type: 'payment',
+      };
+
       mockedApi.post.mockResolvedValueOnce({ data: mockNotification });
 
-      const result = await notificationService.createNotification(mockCreateNotificationDto);
+      const result = await notificationService.createNotification(createData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/notifications/', mockCreateNotificationDto);
+      expect(mockedApi.post).toHaveBeenCalledWith('/core/notifications/', createData);
       expect(result).toEqual(mockNotification);
     });
 
     it('should handle validation errors', async () => {
-      const mockError = {
-        response: {
-          status: 400,
-          data: { title: ['This field is required'] }
-        }
-      };
+      const mockError = new Error('Validation failed');
 
       mockedApi.post.mockRejectedValueOnce(mockError);
 
-      await expect(notificationService.createNotification(mockCreateNotificationDto)).rejects.toThrow();
+      await expect(notificationService.createNotification({})).rejects.toThrow('Validation failed');
+    });
+  });
+
+  describe('updateNotification', () => {
+    it('should update notification successfully', async () => {
+      const updatedNotification = { ...mockNotification, title: 'Updated' };
+      mockedApi.put.mockResolvedValueOnce({ data: updatedNotification });
+
+      const result = await notificationService.updateNotification('1', { title: 'Updated' });
+
+      expect(mockedApi.put).toHaveBeenCalledWith('/core/notifications/1/', { title: 'Updated' });
+      expect(result).toEqual(updatedNotification);
     });
   });
 
   describe('markAsRead', () => {
     it('should mark notification as read successfully', async () => {
-      const readNotification = { ...mockNotification, read: true };
+      const readNotification = { ...mockNotification, is_read: true };
       mockedApi.patch.mockResolvedValueOnce({ data: readNotification });
 
       const result = await notificationService.markAsRead('1');
 
-      expect(mockedApi.patch).toHaveBeenCalledWith('/notifications/notifications/1/', { read: true });
+      expect(mockedApi.patch).toHaveBeenCalledWith('/core/notifications/1/', { is_read: true });
       expect(result).toEqual(readNotification);
-    });
-  });
-
-  describe('markAsUnread', () => {
-    it('should mark notification as unread successfully', async () => {
-      const unreadNotification = { ...mockNotification, read: false };
-      mockedApi.patch.mockResolvedValueOnce({ data: unreadNotification });
-
-      const result = await notificationService.markAsUnread('1');
-
-      expect(mockedApi.patch).toHaveBeenCalledWith('/notifications/notifications/1/', { read: false });
-      expect(result).toEqual(unreadNotification);
     });
   });
 
   describe('markAllAsRead', () => {
     it('should mark all notifications as read successfully', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { marked_count: 5 } });
+      mockedApi.post.mockResolvedValueOnce({ data: {} });
 
-      const result = await notificationService.markAllAsRead();
+      await notificationService.markAllAsRead();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/mark-all-read/');
-      expect(result).toEqual({ marked_count: 5 });
+      expect(mockedApi.post).toHaveBeenCalledWith('/core/notifications/mark-all-read/');
     });
   });
 
@@ -145,250 +130,98 @@ describe('NotificationService', () => {
 
       await notificationService.deleteNotification('1');
 
-      expect(mockedApi.delete).toHaveBeenCalledWith('/notifications/notifications/1/');
-    });
-  });
-
-  describe('deleteAllRead', () => {
-    it('should delete all read notifications successfully', async () => {
-      mockedApi.delete.mockResolvedValueOnce({ data: { deleted_count: 10 } });
-
-      const result = await notificationService.deleteAllRead();
-
-      expect(mockedApi.delete).toHaveBeenCalledWith('/notifications/delete-all-read/');
-      expect(result).toEqual({ deleted_count: 10 });
+      expect(mockedApi.delete).toHaveBeenCalledWith('/core/notifications/1/');
     });
   });
 
   describe('getUnreadCount', () => {
     it('should fetch unread notification count successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: { unread_count: 7 } });
+      mockedApi.get.mockResolvedValueOnce({ data: { count: 7 } });
 
       const result = await notificationService.getUnreadCount();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/unread-count/');
-      expect(result).toEqual({ unread_count: 7 });
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/notifications/unread_count/');
+      expect(result).toEqual({ count: 7 });
+    });
+
+    it('should return default count on error', async () => {
+      mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
+
+      const result = await notificationService.getUnreadCount();
+
+      expect(result).toEqual({ count: 0 });
     });
   });
 
-  describe('getSettings', () => {
-    it('should fetch notification settings successfully', async () => {
-      const settings = {
-        email_notifications: true,
-        push_notifications: true,
-        sms_notifications: false,
-        message_notifications: true,
-        payment_notifications: true,
-        contract_notifications: true
-      };
+  describe('getActivityLogs', () => {
+    it('should fetch activity logs successfully', async () => {
+      const logs = [{ id: '1', action: 'login', timestamp: '2024-01-01T00:00:00Z' }];
+      mockedApi.get.mockResolvedValueOnce({ data: logs });
 
-      mockedApi.get.mockResolvedValueOnce({ data: settings });
+      const result = await notificationService.getActivityLogs();
 
-      const result = await notificationService.getSettings();
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/settings/');
-      expect(result).toEqual(settings);
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/activity-logs/');
+      expect(result).toEqual(logs);
     });
   });
 
-  describe('updateSettings', () => {
-    it('should update notification settings successfully', async () => {
-      const settingsUpdate = {
-        email_notifications: false,
-        push_notifications: true
-      };
+  describe('createActivityLog', () => {
+    it('should create activity log successfully', async () => {
+      const logData = { action: 'login', details: 'User logged in' };
+      mockedApi.post.mockResolvedValueOnce({ data: { id: '1', ...logData } });
 
-      const updatedSettings = {
-        email_notifications: false,
-        push_notifications: true,
-        sms_notifications: false,
-        message_notifications: true,
-        payment_notifications: true,
-        contract_notifications: true
-      };
+      const result = await notificationService.createActivityLog(logData);
 
-      mockedApi.patch.mockResolvedValueOnce({ data: updatedSettings });
-
-      const result = await notificationService.updateSettings(settingsUpdate);
-
-      expect(mockedApi.patch).toHaveBeenCalledWith('/notifications/settings/', settingsUpdate);
-      expect(result).toEqual(updatedSettings);
+      expect(mockedApi.post).toHaveBeenCalledWith('/core/activity-logs/', logData);
+      expect(result).toEqual({ id: '1', ...logData });
     });
   });
 
-  describe('subscribeToPush', () => {
-    it('should subscribe to push notifications successfully', async () => {
-      const subscription = {
-        endpoint: 'https://fcm.googleapis.com/fcm/send/...',
-        keys: {
-          p256dh: 'key1',
-          auth: 'key2'
-        }
-      };
+  describe('getSystemAlerts', () => {
+    it('should fetch system alerts successfully', async () => {
+      const alerts = [{ id: '1', message: 'System update scheduled', severity: 'info' }];
+      mockedApi.get.mockResolvedValueOnce({ data: alerts });
 
-      mockedApi.post.mockResolvedValueOnce({ data: { success: true } });
+      const result = await notificationService.getSystemAlerts();
 
-      const result = await notificationService.subscribeToPush(subscription);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/push/subscribe/', subscription);
-      expect(result).toEqual({ success: true });
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/system-alerts/');
+      expect(result).toEqual(alerts);
     });
   });
 
-  describe('unsubscribeFromPush', () => {
-    it('should unsubscribe from push notifications successfully', async () => {
-      const endpoint = 'https://fcm.googleapis.com/fcm/send/...';
+  describe('createSystemAlert', () => {
+    it('should create system alert successfully', async () => {
+      const alertData = { message: 'Maintenance window', severity: 'warning' };
+      mockedApi.post.mockResolvedValueOnce({ data: { id: '1', ...alertData } });
 
-      mockedApi.post.mockResolvedValueOnce({ data: { success: true } });
+      const result = await notificationService.createSystemAlert(alertData);
 
-      const result = await notificationService.unsubscribeFromPush(endpoint);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/push/unsubscribe/', { endpoint });
-      expect(result).toEqual({ success: true });
+      expect(mockedApi.post).toHaveBeenCalledWith('/core/system-alerts/', alertData);
+      expect(result).toEqual({ id: '1', ...alertData });
     });
   });
 
-  describe('sendTestNotification', () => {
-    it('should send test notification successfully', async () => {
-      const testData = {
-        type: 'push',
-        title: 'Test Notification',
-        message: 'This is a test notification'
-      };
-
-      mockedApi.post.mockResolvedValueOnce({ data: { sent: true } });
-
-      const result = await notificationService.sendTestNotification(testData);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/test/', testData);
-      expect(result).toEqual({ sent: true });
-    });
-  });
-
-  describe('getTemplates', () => {
-    it('should fetch notification templates successfully', async () => {
-      const templates = [
-        {
-          id: '1',
-          name: 'Welcome Message',
-          type: 'message',
-          title: 'Welcome to VeriHome',
-          content: 'Welcome to our platform!'
-        }
-      ];
-
-      mockedApi.get.mockResolvedValueOnce({ data: templates });
-
-      const result = await notificationService.getTemplates();
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/templates/');
-      expect(result).toEqual(templates);
-    });
-  });
-
-  describe('createTemplate', () => {
-    it('should create notification template successfully', async () => {
-      const templateData = {
-        name: 'Payment Reminder',
-        type: 'payment',
-        title: 'Payment Due',
-        content: 'Your payment is due in {{days}} days'
-      };
-
-      const template = { id: '2', ...templateData };
-      mockedApi.post.mockResolvedValueOnce({ data: template });
-
-      const result = await notificationService.createTemplate(templateData);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/notifications/templates/', templateData);
-      expect(result).toEqual(template);
-    });
-  });
-
-  describe('updateTemplate', () => {
-    it('should update notification template successfully', async () => {
-      const templateUpdate = {
-        title: 'Updated Payment Due',
-        content: 'Your payment is due today'
-      };
-
-      const updatedTemplate = {
-        id: '1',
-        name: 'Payment Reminder',
-        type: 'payment',
-        ...templateUpdate
-      };
-
-      mockedApi.put.mockResolvedValueOnce({ data: updatedTemplate });
-
-      const result = await notificationService.updateTemplate('1', templateUpdate);
-
-      expect(mockedApi.put).toHaveBeenCalledWith('/notifications/templates/1/', templateUpdate);
-      expect(result).toEqual(updatedTemplate);
-    });
-  });
-
-  describe('deleteTemplate', () => {
-    it('should delete notification template successfully', async () => {
-      mockedApi.delete.mockResolvedValueOnce({ data: {} });
-
-      await notificationService.deleteTemplate('1');
-
-      expect(mockedApi.delete).toHaveBeenCalledWith('/notifications/templates/1/');
-    });
-  });
-
-  describe('getDeliveryHistory', () => {
-    it('should fetch notification delivery history successfully', async () => {
-      const history = [
-        {
-          id: '1',
-          notification_id: '1',
-          delivery_method: 'push',
-          status: 'delivered',
-          delivered_at: '2024-01-01T12:00:00Z'
-        }
-      ];
-
-      mockedApi.get.mockResolvedValueOnce({ data: history });
-
-      const result = await notificationService.getDeliveryHistory();
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/delivery-history/');
-      expect(result).toEqual(history);
-    });
-
-    it('should fetch delivery history with filters', async () => {
-      const filters = {
-        notification_id: '1',
-        delivery_method: 'email',
-        status: 'failed'
-      };
-
-      mockedApi.get.mockResolvedValueOnce({ data: [] });
-
-      await notificationService.getDeliveryHistory(filters);
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/delivery-history/', { params: filters });
-    });
-  });
-
-  describe('getStats', () => {
-    it('should fetch notification statistics successfully', async () => {
-      const stats = {
-        total_notifications: 100,
-        unread_notifications: 15,
-        delivered_notifications: 85,
-        failed_notifications: 5,
-        click_through_rate: 0.65
-      };
-
+  describe('getDashboardStats', () => {
+    it('should fetch dashboard stats successfully', async () => {
+      const stats = { total_notifications: 100, unread: 15 };
       mockedApi.get.mockResolvedValueOnce({ data: stats });
 
-      const result = await notificationService.getStats();
+      const result = await notificationService.getDashboardStats();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/notifications/stats/');
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/stats/dashboard/');
       expect(result).toEqual(stats);
+    });
+  });
+
+  describe('getSystemOverview', () => {
+    it('should fetch system overview successfully', async () => {
+      const overview = { status: 'healthy', uptime: '99.9%' };
+      mockedApi.get.mockResolvedValueOnce({ data: overview });
+
+      const result = await notificationService.getSystemOverview();
+
+      expect(mockedApi.get).toHaveBeenCalledWith('/core/stats/overview/');
+      expect(result).toEqual(overview);
     });
   });
 });

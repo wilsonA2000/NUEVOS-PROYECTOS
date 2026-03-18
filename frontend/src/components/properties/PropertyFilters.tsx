@@ -86,7 +86,7 @@ const FEATURE_CHIPS = [
 const COLOMBIAN_CITIES = [
   'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 
   'Bucaramanga', 'Pereira', 'Manizales', 'Santa Marta', 'Ibagué',
-  'Pasto', 'Villavicencio', 'Montería', 'Valledupar', 'Neiva'
+  'Pasto', 'Villavicencio', 'Montería', 'Valledupar', 'Neiva',
 ];
 
 const PropertyFilters: React.FC<PropertyFiltersProps> = ({
@@ -175,7 +175,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               backgroundColor: 'grey.50',
-            }
+            },
           }}
         />
       </Grid>
@@ -258,7 +258,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
-                }
+                },
               }}
             />
           )}
@@ -457,7 +457,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
             size="small"
             onClick={() => handleFilterChange(
               feature.key as keyof PropertySearchFilters,
-              !filters[feature.key as keyof PropertySearchFilters] ? true : undefined
+              !filters[feature.key as keyof PropertySearchFilters] ? true : undefined,
             )}
             sx={{
               borderRadius: 2,

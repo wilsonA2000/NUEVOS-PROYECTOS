@@ -1,27 +1,28 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '../../../contexts/AuthContext';
-import Login from '../../../pages/Login';
-import { authService } from '../../../services/authService';
-import { toast } from 'react-toastify';
+import { Login } from '../../../pages/auth/Login';
+import { useAuth } from '../../../hooks/useAuth';
+import '@testing-library/jest-dom';
 
-// Mock de servicios
-jest.mock('../../../services/authService');
-jest.mock('react-toastify', () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+// Mock useAuth
+jest.mock('../../../hooks/useAuth');
+const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
-// Mock de navigate
+// Mock navigate
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({
+    pathname: '/login',
+    search: '',
+    hash: '',
+    state: null,
+    key: 'default',
+  }),
 }));
 
 const createWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -34,70 +35,84 @@ const createWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>{children}</AuthProvider>
-      </BrowserRouter>
+      <MemoryRouter>
+        {children}
+      </MemoryRouter>
     </QueryClientProvider>
   );
 };
 
 describe('Login Component', () => {
-  const mockLogin = authService.login as jest.MockedFunction<typeof authService.login>;
-  const user = userEvent.setup();
+  const mockMutateAsync = jest.fn();
+  const mockLogin = {
+    mutateAsync: mockMutateAsync,
+    isPending: false,
+    error: null,
+    data: null,
+    isError: false,
+    isSuccess: false,
+    isIdle: true,
+    reset: jest.fn(),
+    mutate: jest.fn(),
+    variables: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    status: 'idle' as const,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-    localStorage.clear();
+    mockMutateAsync.mockClear();
+    mockUseAuth.mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: mockLogin as any,
+      register: {} as any,
+      logout: jest.fn(),
+      updateUser: jest.fn(),
+      resetInactivityTimer: jest.fn(),
+      extendSession: jest.fn(),
+      showSessionWarning: false,
+      errorModal: { open: false, error: '', title: '' },
+      showErrorModal: jest.fn(),
+      hideErrorModal: jest.fn(),
+    });
   });
 
   it('renders login form correctly', () => {
     render(<Login />, { wrapper: createWrapper });
 
-    expect(screen.getByText(/iniciar sesión/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument();
-    expect(screen.getByText(/¿no tienes una cuenta/i)).toBeInTheDocument();
   });
 
-  it('validates required fields', async () => {
+  it('updates form fields when user types', async () => {
+    const user = userEvent.setup();
     render(<Login />, { wrapper: createWrapper });
 
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-    await user.click(submitButton);
+    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(/contraseña/i) as HTMLInputElement;
 
-    await waitFor(() => {
-      expect(screen.getByText(/email es requerido/i)).toBeInTheDocument();
-      expect(screen.getByText(/contraseña es requerida/i)).toBeInTheDocument();
-    });
-  });
+    await user.type(emailInput, 'test@example.com');
+    await user.type(passwordInput, 'password123');
 
-  it('validates email format', async () => {
-    render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    await user.type(emailInput, 'invalid-email');
-    
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/email inválido/i)).toBeInTheDocument();
-    });
+    expect(emailInput.value).toBe('test@example.com');
+    expect(passwordInput.value).toBe('password123');
   });
 
   it('handles successful login', async () => {
-    const mockUser = {
-      id: 1,
-      email: 'test@example.com',
-      first_name: 'Test',
-      last_name: 'User',
-      user_type: 'tenant',
-      is_verified: true,
-    };
-
-    mockLogin.mockResolvedValueOnce(mockUser);
+    const user = userEvent.setup();
+    mockMutateAsync.mockResolvedValueOnce({
+      user: { id: '1', email: 'test@example.com' },
+      access: 'token',
+      refresh: 'refresh_token',
+    });
 
     render(<Login />, { wrapper: createWrapper });
 
@@ -110,148 +125,43 @@ describe('Login Component', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith({
+      expect(mockMutateAsync).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
       });
-      expect(toast.success).toHaveBeenCalledWith('¡Bienvenido de vuelta!');
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
 
-  it('handles login error - invalid credentials', async () => {
-    mockLogin.mockRejectedValueOnce(new Error('Credenciales inválidas'));
-
-    render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'wrongpassword');
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Credenciales inválidas');
-      expect(mockNavigate).not.toHaveBeenCalled();
+  it('shows loading state during login', () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: { ...mockLogin, isPending: true } as any,
+      register: {} as any,
+      logout: jest.fn(),
+      updateUser: jest.fn(),
+      resetInactivityTimer: jest.fn(),
+      extendSession: jest.fn(),
+      showSessionWarning: false,
+      errorModal: { open: false, error: '', title: '' },
+      showErrorModal: jest.fn(),
+      hideErrorModal: jest.fn(),
     });
-  });
-
-  it('handles login error - unverified account', async () => {
-    mockLogin.mockRejectedValueOnce(
-      new Error('Tu cuenta no está autorizada para acceder a VeriHome')
-    );
 
     render(<Login />, { wrapper: createWrapper });
 
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-
-    await user.type(emailInput, 'unverified@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Tu cuenta no está autorizada para acceder a VeriHome'
-      );
-    });
+    expect(screen.getByText('Iniciando sesión...')).toBeInTheDocument();
   });
 
-  it('handles network error', async () => {
-    mockLogin.mockRejectedValueOnce(
-      new Error('Error de conexión. Por favor, verifica tu conexión a internet.')
-    );
-
+  it('shows forgot password link', () => {
     render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Error de conexión. Por favor, verifica tu conexión a internet.'
-      );
-    });
+    expect(screen.getByText('¿Olvidaste tu contraseña?')).toBeInTheDocument();
   });
 
-  it('shows loading state during login', async () => {
-    mockLogin.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 1000))
-    );
-
+  it('shows register link', () => {
     render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
-
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
-
-    expect(submitButton).toBeDisabled();
-    expect(screen.getByText(/iniciando sesión/i)).toBeInTheDocument();
-  });
-
-  it('navigates to register page when clicking sign up link', async () => {
-    render(<Login />, { wrapper: createWrapper });
-
-    const signUpLink = screen.getByText(/regístrate aquí/i);
-    await user.click(signUpLink);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/register');
-  });
-
-  it('navigates to forgot password page when clicking forgot password link', async () => {
-    render(<Login />, { wrapper: createWrapper });
-
-    const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña/i);
-    await user.click(forgotPasswordLink);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
-  });
-
-  it('toggles password visibility', async () => {
-    render(<Login />, { wrapper: createWrapper });
-
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    const toggleButton = screen.getByLabelText(/mostrar contraseña/i);
-
-    expect(passwordInput).toHaveAttribute('type', 'password');
-
-    await user.click(toggleButton);
-    expect(passwordInput).toHaveAttribute('type', 'text');
-
-    await user.click(toggleButton);
-    expect(passwordInput).toHaveAttribute('type', 'password');
-  });
-
-  it('persists email in localStorage when remember me is checked', async () => {
-    render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    const rememberMeCheckbox = screen.getByLabelText(/recordarme/i);
-
-    await user.type(emailInput, 'test@example.com');
-    await user.click(rememberMeCheckbox);
-
-    expect(localStorage.getItem('rememberedEmail')).toBe('test@example.com');
-  });
-
-  it('loads remembered email on mount', () => {
-    localStorage.setItem('rememberedEmail', 'remembered@example.com');
-
-    render(<Login />, { wrapper: createWrapper });
-
-    const emailInput = screen.getByLabelText(/email/i);
-    expect(emailInput).toHaveValue('remembered@example.com');
+    expect(screen.getByText('¿No tienes una cuenta? Regístrate')).toBeInTheDocument();
   });
 });

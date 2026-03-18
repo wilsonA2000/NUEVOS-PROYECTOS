@@ -140,7 +140,7 @@ export const useContracts = () => {
   });
 
   const suspendContract = useMutation({
-    mutationFn: contractService.suspendContract,
+    mutationFn: (contractId: string) => contractService.suspendContract(contractId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['contract-stats'] });

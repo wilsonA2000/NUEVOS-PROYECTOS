@@ -13,7 +13,7 @@ export const useAriaFix = () => {
       elementsWithAriaHidden.forEach((element) => {
         // Buscar elementos enfocables dentro
         const focusableElements = element.querySelectorAll(
-          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
         );
         
         if (focusableElements.length > 0) {
@@ -48,7 +48,7 @@ export const useAriaFix = () => {
     observer.observe(document.body, {
       attributes: true,
       subtree: true,
-      attributeFilter: ['aria-hidden']
+      attributeFilter: ['aria-hidden'],
     });
 
     return () => {
@@ -62,7 +62,7 @@ export const useAriaFix = () => {
  */
 export const useAccessibleModal = (isOpen: boolean, modalRef: React.RefObject<HTMLElement>) => {
   useEffect(() => {
-    if (!modalRef.current) return;
+    if (!modalRef.current) return undefined;
 
     if (isOpen) {
       // Guardar el elemento que tenía el foco
@@ -76,7 +76,7 @@ export const useAccessibleModal = (isOpen: boolean, modalRef: React.RefObject<HT
       
       // Enfocar el modal
       const firstFocusable = modalRef.current.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       firstFocusable?.focus();
       
@@ -88,5 +88,7 @@ export const useAccessibleModal = (isOpen: boolean, modalRef: React.RefObject<HT
         previouslyFocused?.focus();
       };
     }
+
+    return undefined;
   }, [isOpen, modalRef]);
 };

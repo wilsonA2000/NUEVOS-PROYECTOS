@@ -9,13 +9,13 @@ import {
   Box,
   Alert,
   AlertTitle,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   Close as CloseIcon,
   ContactSupport as ContactSupportIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon
+  Phone as PhoneIcon,
 } from '@mui/icons-material';
 
 interface AuthErrorModalProps {
@@ -29,7 +29,7 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
   open,
   onClose,
   error,
-  title = "Acceso No Autorizado"
+  title = 'Acceso No Autorizado',
 }) => {
   const isVerificationError = error.includes('autorizada') || error.includes('verificada');
   
@@ -42,8 +42,8 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
-        }
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        },
       }}
     >
       <DialogTitle sx={{ 
@@ -51,11 +51,11 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: isVerificationError ? '#fff3e0' : '#ffebee'
+        backgroundColor: isVerificationError ? '#fff3e0' : '#ffebee',
       }}>
         <Box display="flex" alignItems="center" gap={1}>
           <ContactSupportIcon 
-            color={isVerificationError ? "warning" : "error"}
+            color={isVerificationError ? 'warning' : 'error'}
             sx={{ fontSize: 28 }}
           />
           <Typography variant="h6" component="div" fontWeight={600}>
@@ -73,14 +73,14 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
 
       <DialogContent sx={{ pt: 2 }}>
         <Alert 
-          severity={isVerificationError ? "warning" : "error"}
+          severity={isVerificationError ? 'warning' : 'error'}
           sx={{ 
             mb: 3,
-            '& .MuiAlert-message': { width: '100%' }
+            '& .MuiAlert-message': { width: '100%' },
           }}
         >
           <AlertTitle sx={{ fontWeight: 600, mb: 1 }}>
-            {isVerificationError ? "Cuenta en Proceso de Verificación" : "Error de Autenticación"}
+            {isVerificationError ? 'Cuenta en Proceso de Verificación' : 'Error de Autenticación'}
           </AlertTitle>
           <Typography variant="body1" sx={{ mb: 2 }}>
             {error}
@@ -92,7 +92,7 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
             backgroundColor: '#f8f9fa', 
             borderRadius: 2, 
             p: 3,
-            border: '1px solid #e9ecef'
+            border: '1px solid #e9ecef',
           }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2c3e50' }}>
               ¿Cómo puedo unirme a VeriHome?
@@ -123,7 +123,7 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
               backgroundColor: '#e3f2fd', 
               borderRadius: 2, 
               p: 2,
-              border: '1px solid #bbdefb'
+              border: '1px solid #bbdefb',
             }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1976d2' }}>
                 Contacto Directo:
@@ -154,7 +154,7 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
           sx={{ 
             borderRadius: 2,
             textTransform: 'none',
-            fontWeight: 500
+            fontWeight: 500,
           }}
         >
           Entendido
@@ -170,8 +170,8 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
               fontWeight: 500,
               backgroundColor: '#1976d2',
               '&:hover': {
-                backgroundColor: '#1565c0'
-              }
+                backgroundColor: '#1565c0',
+              },
             }}
           >
             Ir a Página Principal

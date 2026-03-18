@@ -635,9 +635,176 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
             current_state='TENANT_INVITED',
             invitation_expires_at__gt=timezone.now()
         ).select_related('landlord', 'property')
-        
+
         serializer = TenantContractListSerializer(pending_contracts, many=True)
         return Response(serializer.data)
+
+    # =======================================================================
+    # 🔄 FLUJO CIRCULAR: Devolución de contrato al arrendador (Plan Maestro V2.0)
+    # =======================================================================
+
+    @action(detail=True, methods=['post'], url_path='return_to_landlord')
+    def return_to_landlord(self, request, pk=None):
+        """
+        🔄 FLUJO CIRCULAR: Arrendatario devuelve el contrato al arrendador para correcciones.
+
+        Este endpoint permite al arrendatario devolver un contrato que está en revisión,
+        enviándolo de vuelta al arrendador con notas explicativas sobre las correcciones
+        requeridas. El ciclo de revisión se incrementa automáticamente.
+
+        Estados permitidos: TENANT_REVIEWING, BOTH_REVIEWING, DRAFT
+        Estado resultante: TENANT_RETURNED
+
+        Request Body:
+            {
+                "notes": "Razón detallada de la devolución (obligatorio)",
+                "specific_concerns": ["clausula_1", "deposito", "fecha_inicio"]  // opcional
+            }
+
+        Returns:
+            - 200: Contrato devuelto exitosamente
+            - 400: Estado no permite devolución o notas vacías
+            - 403: Usuario no es el arrendatario del contrato
+            - 404: Contrato no encontrado
+        """
+        contract = self.get_object()
+
+        # Verificar que el usuario sea el arrendatario
+        if contract.tenant != request.user:
+            return Response(
+                {
+                    'error': 'No tienes permisos para devolver este contrato',
+                    'code': 'NOT_TENANT'
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Verificar que el contrato no esté bloqueado
+        if contract.is_locked:
+            return Response(
+                {
+                    'error': '🔒 El contrato está bloqueado y no puede ser modificado',
+                    'code': 'CONTRACT_LOCKED',
+                    'locked_at': contract.locked_at.isoformat() if contract.locked_at else None,
+                    'locked_reason': contract.locked_reason
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verificar estado actual
+        allowed_states = ['TENANT_REVIEWING', 'BOTH_REVIEWING', 'DRAFT']
+        if contract.current_state not in allowed_states:
+            return Response(
+                {
+                    'error': f'No se puede devolver el contrato en estado {contract.current_state}',
+                    'code': 'INVALID_STATE',
+                    'current_state': contract.current_state,
+                    'allowed_states': allowed_states
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validar notas de devolución (obligatorias)
+        notes = request.data.get('notes', '').strip()
+        if not notes:
+            return Response(
+                {
+                    'error': 'Las notas de devolución son obligatorias',
+                    'code': 'NOTES_REQUIRED',
+                    'hint': 'Proporciona una explicación detallada de los cambios requeridos'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(notes) < 20:
+            return Response(
+                {
+                    'error': 'Las notas deben tener al menos 20 caracteres',
+                    'code': 'NOTES_TOO_SHORT',
+                    'min_length': 20,
+                    'current_length': len(notes)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Obtener preocupaciones específicas (opcional)
+            specific_concerns = request.data.get('specific_concerns', [])
+
+            # Ejecutar la devolución usando el método del modelo
+            success = contract.return_to_landlord(
+                tenant_user=request.user,
+                notes=notes
+            )
+
+            if not success:
+                return Response(
+                    {
+                        'error': 'No se pudo devolver el contrato',
+                        'code': 'RETURN_FAILED'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Agregar evento adicional si hay preocupaciones específicas
+            if specific_concerns:
+                contract.add_workflow_event(
+                    event_type='SPECIFIC_CONCERNS_ADDED',
+                    user=request.user,
+                    details={
+                        'concerns': specific_concerns,
+                        'concerns_count': len(specific_concerns)
+                    }
+                )
+
+            # Sincronizar con MatchRequest si existe
+            try:
+                from matching.models import MatchRequest
+                match_request = MatchRequest.objects.filter(
+                    tenant=request.user,
+                    property=contract.property
+                ).first()
+
+                if match_request:
+                    match_request.workflow_status = 'contract_returned_by_tenant'
+                    if 'contract_created' in match_request.workflow_data:
+                        match_request.workflow_data['contract_created']['tenant_returned'] = True
+                        match_request.workflow_data['contract_created']['tenant_return_notes'] = notes
+                        match_request.workflow_data['contract_created']['tenant_return_date'] = timezone.now().isoformat()
+                        match_request.workflow_data['contract_created']['review_cycle'] = contract.review_cycle_count
+                    match_request.save()
+                    logger.info(f"✅ MatchRequest {match_request.id} updated - contract returned by tenant")
+            except Exception as e:
+                logger.warning(f"⚠️ Error updating MatchRequest: {e}")
+
+            # Refrescar contrato
+            contract.refresh_from_db()
+
+            return Response({
+                'message': '✅ Contrato devuelto al arrendador exitosamente',
+                'contract_id': str(contract.id),
+                'new_state': contract.current_state,
+                'review_cycle': contract.review_cycle_count,
+                'return_notes': contract.tenant_return_notes,
+                'return_date': contract.last_return_date.isoformat() if contract.last_return_date else None,
+                'next_step': 'El arrendador debe revisar tus comentarios y re-enviar el contrato para aprobación del administrador'
+            }, status=status.HTTP_200_OK)
+
+        except ValidationError as e:
+            return Response(
+                {'error': str(e), 'code': 'VALIDATION_ERROR'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Error returning contract to landlord: {e}")
+            return Response(
+                {
+                    'error': 'Error interno al devolver el contrato',
+                    'code': 'INTERNAL_ERROR',
+                    'details': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class TenantDashboardView(viewsets.GenericViewSet):

@@ -143,13 +143,13 @@ const FILE_VALIDATION = {
     maxSize: 5 * 1024 * 1024, // 5MB
     maxCount: 10,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp']
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
   },
   videos: {
     maxSize: 50 * 1024 * 1024, // 50MB
     allowedTypes: ['video/mp4', 'video/webm', 'video/quicktime'],
-    allowedExtensions: ['.mp4', '.webm', '.mov']
-  }
+    allowedExtensions: ['.mp4', '.webm', '.mov'],
+  },
 };
 
 // Funciones de validación de archivos
@@ -215,7 +215,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   isLoading = false, 
   error, 
   initialData, 
-  isEditMode = false 
+  isEditMode = false, 
 }) => {
   const navigate = useNavigate();
   const [videoMode, setVideoMode] = useState<'url' | 'file'>('url');
@@ -353,16 +353,16 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
             url: video.youtube_url,
             title: video.title,
             thumbnail: `https://img.youtube.com/vi/${video.youtube_url.split('v=')[1]?.split('&')[0]}/maxresdefault.jpg`,
-          }
+          },
         } : {
           metadata: {
             id: `existing-${video.id || index}`,
             preview: video.video_url,
             thumbnail: video.thumbnail_url || '',
             duration: 0,
-            resolution: 'Unknown'
-          }
-        })
+            resolution: 'Unknown',
+          },
+        }),
       }));
       setPropertyVideos(existingVideos);
     }
@@ -406,6 +406,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   const [addressLoading, setAddressLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [showMapOverlay, setShowMapOverlay] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   
   // Estado para mensajes de confirmación
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -416,31 +418,129 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   // Estado para errores de imágenes y videos
   const [imageErrors, setImageErrors] = useState<string[]>([]);
   const [videoError, setVideoError] = useState<string>('');
+  const [geocodingProvider, setGeocodingProvider] = useState<'nominatim' | 'mapbox'>('nominatim');
 
-  // Buscar sugerencias de dirección
-  const handleAddressSearch = useCallback(async (addressInput: string) => {
-    if (!addressInput || addressInput.length < 3) return;
-    
+  // 🌍 NUEVO: Buscar con Nominatim (OpenStreetMap) - GRATIS y mejor cobertura en Colombia
+  const searchWithNominatim = useCallback(async (addressInput: string) => {
     try {
-      setAddressLoading(true);
+      const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+        params: {
+          q: addressInput,
+          format: 'json',
+          addressdetails: 1,
+          limit: 5,
+          countrycodes: 'co', // Colombia
+          'accept-language': 'es',
+        },
+        headers: {
+          'User-Agent': 'VeriHome-RealEstate-App', // Requerido por Nominatim
+        },
+      });
+
+      if (response.data && response.data.length > 0) {
+
+        // Convertir formato Nominatim a formato Mapbox para compatibilidad
+        const suggestions = response.data.map((item: any) => ({
+          id: `nominatim-${item.place_id}`,
+          place_name: item.display_name,
+          place_type: ['address'],
+          center: [parseFloat(item.lon), parseFloat(item.lat)],
+          context: [
+            { id: 'place', text: item.address?.city || item.address?.town || '' },
+            { id: 'region', text: item.address?.state || '' },
+            { id: 'country', text: item.address?.country || 'Colombia' },
+            { id: 'postcode', text: item.address?.postcode || '' },
+          ],
+          properties: {
+            provider: 'nominatim',
+            osm_type: item.osm_type,
+            osm_id: item.osm_id,
+          },
+          text: item.address?.road || addressInput,
+          address: item.address,
+        }));
+
+        return suggestions;
+      }
+
+      return [];
+    } catch (error) {
+      return [];
+    }
+  }, []);
+
+  // 🗺️ Buscar con Mapbox (fallback)
+  const searchWithMapbox = useCallback(async (addressInput: string) => {
+    try {
       const res = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addressInput)}.json`, {
         params: {
           access_token: MAPBOX_TOKEN,
           country: DEFAULT_COUNTRY,
-          types: 'address,poi',
+          types: 'address,poi,place',
           limit: 5,
+          autocomplete: true,
+          language: 'es',
         },
       });
-      
-      if (res.data.features) {
-        setAddressSuggestions(res.data.features);
+
+      if (res.data.features && res.data.features.length > 0) {
+        return res.data.features.map((f: any) => ({
+          ...f,
+          properties: { ...f.properties, provider: 'mapbox' },
+        }));
       }
+
+      return [];
     } catch (error) {
-      console.error('Error searching addresses:', error);
+      return [];
+    }
+  }, []);
+
+  // 🚀 SISTEMA HÍBRIDO: Intenta Nominatim primero, luego Mapbox como fallback
+  const handleAddressSearch = useCallback(async (addressInput: string) => {
+    if (!addressInput || addressInput.length < 3) return;
+
+    try {
+      setAddressLoading(true);
+
+      // 1️⃣ Intentar con Nominatim primero (mejor para direcciones colombianas exactas)
+      let suggestions = await searchWithNominatim(addressInput);
+
+      // 2️⃣ Si Nominatim no encuentra nada, usar Mapbox como fallback
+      if (suggestions.length === 0) {
+        suggestions = await searchWithMapbox(addressInput);
+        setGeocodingProvider('mapbox');
+      } else {
+        setGeocodingProvider('nominatim');
+      }
+
+      // 3️⃣ Si aún no hay resultados, agregar opción de dirección exacta
+      if (suggestions.length === 0 && addressInput.length >= 10) {
+        suggestions = [{
+          id: 'exact-address',
+          place_name: `📍 ${addressInput} (usar dirección exacta)`,
+          place_type: ['address'],
+          center: [DEFAULT_LNG, DEFAULT_LAT],
+          context: [],
+          properties: { exact_match: true, provider: 'manual' },
+          text: addressInput,
+        }];
+      }
+
+      // 4️⃣ Agregar indicador de proveedor a cada sugerencia
+      const suggestionsWithProvider = suggestions.map((s: any) => ({
+        ...s,
+        place_name: `${s.place_name} ${s.properties?.provider === 'nominatim' ? '🌍' : s.properties?.provider === 'mapbox' ? '🗺️' : ''}`.trim(),
+      }));
+
+      setAddressSuggestions(suggestionsWithProvider);
+
+    } catch (error) {
+      setAddressSuggestions([]);
     } finally {
       setAddressLoading(false);
     }
-  }, []);
+  }, [searchWithNominatim, searchWithMapbox]);
 
   // Inicializar Mapbox
   useEffect(() => {
@@ -467,7 +567,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   // Efecto para búsqueda automática de direcciones
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (addressInput.length >= 3) {
+      if (addressInput.length >= 3 && showSuggestions) {
         handleAddressSearch(addressInput);
       } else {
         setAddressSuggestions([]);
@@ -475,35 +575,36 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [addressInput, handleAddressSearch]);
+  }, [addressInput, handleAddressSearch, showSuggestions]);
 
   // Cuando el usuario selecciona una sugerencia
   const handleSuggestionSelect = (suggestion: any) => {
     setSelectedSuggestion(suggestion);
     setAddressInput(suggestion.place_name);
     setAddressSuggestions([]);
-    
+    setShowSuggestions(false); // Ocultar sugerencias permanentemente
+
     // Centrar el mapa en la ubicación seleccionada
     if (map.current) {
-      map.current.flyTo({ 
-        center: suggestion.center, 
-        zoom: 16, 
+      map.current.flyTo({
+        center: suggestion.center,
+        zoom: 16,
         speed: 1.5,
-        essential: true
+        essential: true,
       });
       marker.current?.setLngLat(suggestion.center);
-      
+
       // Actualizar los valores del formulario
       setValue('address', suggestion.place_name);
       setValue('latitude', suggestion.center[1]);
       setValue('longitude', suggestion.center[0]);
-      
+
       // Extraer información adicional de la dirección
       const context = suggestion.context || [];
       const city = context.find((c: any) => c.id.startsWith('place'))?.text || '';
       const state = context.find((c: any) => c.id.startsWith('region'))?.text || '';
       const country = context.find((c: any) => c.id.startsWith('country'))?.text || '';
-      
+
       if (city) setValue('city', city);
       if (state) setValue('state', state);
       if (country) setValue('country', country);
@@ -531,8 +632,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           params: {
             access_token: MAPBOX_TOKEN,
             language: 'es',
-          }
-        }
+          },
+        },
       );
 
       if (response.data.features && response.data.features.length > 0) {
@@ -546,8 +647,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         setCapturedAddress(fullAddress);
         
         // Actualizar coordenadas
-        setValue('latitude', lat.toFixed(6));
-        setValue('longitude', lng.toFixed(6));
+        setValue('latitude', parseFloat(lat.toFixed(6)));
+        setValue('longitude', parseFloat(lng.toFixed(6)));
         setCapturedCoords([lng, lat]);
         
         // Extraer y actualizar ciudad
@@ -575,17 +676,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         setLocationCaptured(true);
         setSuccessMessage('✅ Ubicación capturada y campos actualizados exitosamente');
         setShowSuccessMessage(true);
-        
+        setShowSuggestions(false); // Ocultar sugerencias permanentemente
+        setAddressSuggestions([]); // Limpiar sugerencias
+
         // Desactivar el mapa después de capturar
         if (mapContainer.current) {
           mapContainer.current.style.pointerEvents = 'none';
         }
       }
     } catch (error) {
-      console.error('Error capturando ubicación:', error);
       // Fallback: usar solo las coordenadas sin geocoding
-      setValue('latitude', lat.toFixed(6));
-      setValue('longitude', lng.toFixed(6));
+      setValue('latitude', parseFloat(lat.toFixed(6)));
+      setValue('longitude', parseFloat(lng.toFixed(6)));
       setValue('address', addressInput || 'Ubicación seleccionada');
       setCapturedCoords([lng, lat]);
       setLocationCaptured(true);
@@ -620,7 +722,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         setLocationSuggestions(res.data.features);
       }
     } catch (error) {
-      console.error('Error searching locations:', error);
     } finally {
       setLocationLoading(false);
     }
@@ -753,21 +854,21 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     videoFiles.forEach(file => {
       formData.append('video_files', file);
     });
-    
+
     // Agregar metadatos de videos
     Object.entries(videoMetadata).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, String(value));
     });
-    
+
     // Agregar URLs de YouTube como un array (sin duplicados)
     const uniqueYoutubeUrls = [...new Set(youtubeUrls)]; // Eliminar duplicados
     uniqueYoutubeUrls.forEach(url => {
       formData.append('youtube_urls', url);
     });
-    
+
     // Agregar metadatos de YouTube
     Object.entries(youtubeMetadata).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, String(value));
     });
     
     // FormData created with images
@@ -783,14 +884,13 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         property_type: data.property_type,
         listing_type: data.listing_type,
         city: data.city,
-        result: result
+        result: result,
       });
       
       // Mostrar modal de éxito profesional
       setShowSuccessModal(true);
       
     } catch (error: any) {
-      console.error('❌ PropertyForm: Error al crear la propiedad:', error);
       
       // Mostrar errores específicos del servidor
       let errorMessage = 'Error al crear la propiedad.';
@@ -975,7 +1075,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                 </Button>
               </Box>
               {/* Sugerencias de autocompletado */}
-              {addressSuggestions.length > 0 && (
+              {addressSuggestions.length > 0 && showSuggestions && (
                 <Paper sx={{ position: 'absolute', zIndex: 10, width: '100%' }}>
                   {addressSuggestions.map(sug => (
                     <Box
@@ -1031,55 +1131,54 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
             <Grid item xs={12}>
               <Box sx={{ my: 2, position: 'relative' }}>
                 {/* Map Overlay for better interaction */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1,
-                    pointerEvents: 'none',
-                  }}
-                  onClick={(e) => {
-                    // Enable map interaction on click
-                    const mapDiv = mapContainer.current;
-                    if (mapDiv) {
-                      mapDiv.style.pointerEvents = 'auto';
-                      // Auto-disable after interaction
-                      setTimeout(() => {
-                        if (mapDiv) mapDiv.style.pointerEvents = 'none';
-                      }, 10000); // 10 seconds of interaction
-                    }
-                  }}
-                >
+                {showMapOverlay && (
                   <Box
                     sx={{
                       position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      px: 3,
-                      py: 2,
-                      borderRadius: 2,
-                      boxShadow: 2,
-                      cursor: 'pointer',
-                      pointerEvents: 'auto',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        boxShadow: 3,
-                      }
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 1,
+                      pointerEvents: 'none',
                     }}
                   >
-                    <Typography variant="subtitle2" align="center">
-                      📍 Haz clic aquí para interactuar con el mapa
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" align="center" display="block">
-                      Podrás mover el marcador y seleccionar la ubicación exacta
-                    </Typography>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        px: 3,
+                        py: 2,
+                        borderRadius: 2,
+                        boxShadow: 2,
+                        cursor: 'pointer',
+                        pointerEvents: 'auto',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                          boxShadow: 3,
+                        },
+                      }}
+                      onClick={(e) => {
+                        // Enable map interaction and hide overlay
+                        setShowMapOverlay(false);
+                        const mapDiv = mapContainer.current;
+                        if (mapDiv) {
+                          mapDiv.style.pointerEvents = 'auto';
+                        }
+                      }}
+                    >
+                      <Typography variant="subtitle2" align="center">
+                        📍 Haz clic aquí para interactuar con el mapa
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" align="center" display="block">
+                        Podrás mover el marcador y seleccionar la ubicación exacta
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
+                )}
                 
                 <div
                   ref={mapContainer}
@@ -1129,7 +1228,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                   control={control}
                   rules={{ 
                     required: 'El área total es requerida',
-                    min: { value: 1, message: 'El área total debe ser mayor a 0' }
+                    min: { value: 1, message: 'El área total debe ser mayor a 0' },
                   }}
                   render={({ field }) => (
                     <TextField
@@ -1261,7 +1360,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                     control={control}
                     rules={{ 
                       required: 'El precio de renta es requerido',
-                      min: { value: 1, message: 'El precio debe ser mayor a 0' }
+                      min: { value: 1, message: 'El precio debe ser mayor a 0' },
                     }}
                     render={({ field }) => (
                       <TextField
@@ -1278,7 +1377,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         }}
                         required
                         error={!!errors.rent_price}
-                        helperText={errors.rent_price?.message || "Obligatorio. Solo números."}
+                        helperText={errors.rent_price?.message || 'Obligatorio. Solo números.'}
                         inputProps={{ minLength: 3, maxLength: 10 }}
                         id={`propertyform-${field.name}`}
                       />
@@ -1295,7 +1394,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                     control={control}
                     rules={{ 
                       required: 'El precio de venta es requerido',
-                      min: { value: 1, message: 'El precio debe ser mayor a 0' }
+                      min: { value: 1, message: 'El precio debe ser mayor a 0' },
                     }}
                     render={({ field }) => (
                       <TextField
@@ -1312,7 +1411,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         }}
                         required
                         error={!!errors.sale_price}
-                        helperText={errors.sale_price?.message || "Obligatorio. Solo números."}
+                        helperText={errors.sale_price?.message || 'Obligatorio. Solo números.'}
                         inputProps={{ minLength: 3, maxLength: 10 }}
                         id={`propertyform-${field.name}`}
                       />
@@ -1540,7 +1639,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
             sx: {
               borderRadius: 3,
               p: 1,
-            }
+            },
           }}
         >
           <DialogContent sx={{ textAlign: 'center', py: 4 }}>
@@ -1550,7 +1649,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                   fontSize: 80, 
                   color: 'success.main',
                   mb: 2,
-                  animation: 'pulse 2s infinite'
+                  animation: 'pulse 2s infinite',
                 }} 
               />
               <Typography variant="h4" component="h2" gutterBottom sx={{ color: 'success.main', fontWeight: 'bold' }}>

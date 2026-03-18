@@ -262,7 +262,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
             }
           },
           'image/jpeg',
-          targetQuality
+          targetQuality,
         );
       };
       
@@ -362,7 +362,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       // Add all new images immediately
       onImagesChange([...images, ...newImages]);
     },
-    [images, onImagesChange, maxImages, maxSize, disabled, autoCompress, compressImage]
+    [images, onImagesChange, maxImages, maxSize, disabled, autoCompress, compressImage],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -385,7 +385,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
         handleFileSelect(files);
       }
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleFileInputChange = useCallback(
@@ -397,7 +397,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       // Reset input
       e.target.value = '';
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleImageDelete = useCallback(
@@ -414,7 +414,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       
       onImagesChange(updatedImages);
     },
-    [images, onImagesChange]
+    [images, onImagesChange],
   );
 
   const handleSetMainImage = useCallback(
@@ -425,7 +425,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       }));
       onImagesChange(updatedImages);
     },
-    [images, onImagesChange]
+    [images, onImagesChange],
   );
 
   const handleDragEnd = useCallback(
@@ -438,7 +438,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
 
       onImagesChange(reorderedImages);
     },
-    [images, onImagesChange]
+    [images, onImagesChange],
   );
 
   const getSavingsPercentage = (original?: number, compressed?: number) => {
@@ -451,7 +451,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))  } ${  sizes[i]}`;
   };
 
   return (
@@ -622,7 +622,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                                         '&:hover': { 
                                           backgroundColor: image.isMain 
                                             ? 'rgba(255,193,7,1)' 
-                                            : 'white' 
+                                            : 'white', 
                                         },
                                       }}
                                     >

@@ -1,10 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  getPropertyAnalytics,
-  getPaymentAnalytics,
-  getMaintenanceAnalytics,
-  getOccupancyAnalytics,
-} from '../lib/api';
+
+// Placeholder API functions - to be implemented
+const getPropertyAnalytics = async () => {
+  return {} as PropertyAnalytics;
+};
+const getPaymentAnalytics = async () => {
+  return {} as PaymentAnalytics;
+};
+const getMaintenanceAnalytics = async () => {
+  return {} as MaintenanceAnalytics;
+};
+const getOccupancyAnalytics = async () => {
+  return {} as OccupancyAnalytics;
+};
 
 interface PropertyAnalytics {
   total_properties: number;

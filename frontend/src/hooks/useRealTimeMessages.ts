@@ -8,10 +8,20 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useWebSocket, WebSocketMessage } from './useWebSocket';
 import { useAuth } from './useAuth';
 import { useNotification } from './useNotification';
-import { Message, MessageThread } from '../types/message';
+import { Message } from '../types/message';
 
-export interface RealTimeMessage extends Message {
+export interface RealTimeMessage {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  subject: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
   isRealTime?: boolean;
+  threadId?: string;
+  senderName?: string;
 }
 
 export interface TypingUser {
@@ -62,7 +72,16 @@ export interface UseRealTimeMessagesReturn {
 export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotification();
+  const notification = useNotification();
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' | 'warning', options?: any) => {
+    if (type === 'error') {
+      notification.error(message, options);
+    } else if (type === 'info') {
+      notification.info(message, options);
+    } else if (type === 'success') {
+      notification.success(message, options);
+    }
+  };
   
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(new Map());
@@ -101,8 +120,8 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   function handleWebSocketMessage(message: WebSocketMessage) {
     switch (message.type) {
       case 'connection_established':
-
-break;
+        // Connection established
+        break;
 
       case 'pending_notifications':
         handlePendingNotifications(message);
@@ -130,8 +149,9 @@ break;
         break;
 
       default:
-
-}
+        // Unknown message type
+        break;
+    }
   }
 
   // Manejar mensajes de estado de usuario
@@ -146,20 +166,20 @@ break;
         break;
 
       default:
-
-}
+        // Unknown message type
+        break;
+    }
   }
 
   // Manejar conexión abierta
   function handleWebSocketOpen() {
-
-setHasNewMessages(false);
+    setHasNewMessages(false);
   }
 
   // Manejar cierre de conexión
   function handleWebSocketClose() {
-
-}
+    // Handle connection close
+  }
 
   // Manejar notificaciones pendientes
   function handlePendingNotifications(message: WebSocketMessage) {
@@ -175,16 +195,19 @@ setHasNewMessages(false);
   // Manejar nuevo mensaje
   function handleNewMessage(message: WebSocketMessage) {
     const newMessage: RealTimeMessage = {
-      ...message.message,
+      ...(message.message || {}),
       isRealTime: true,
-    };
+      threadId: message.thread_id,
+      senderName: message.sender_name,
+      senderId: message.sender_id,
+    } as RealTimeMessage;
 
     // Actualizar cache de React Query
     queryClient.setQueryData(
-      ['messages', newMessage.thread_id],
+      ['messages', newMessage.threadId],
       (oldData: any) => {
         if (!oldData) return oldData;
-        
+
         const exists = oldData.results?.some((msg: Message) => msg.id === newMessage.id);
         if (exists) return oldData;
 
@@ -192,29 +215,29 @@ setHasNewMessages(false);
           ...oldData,
           results: [...(oldData.results || []), newMessage],
         };
-      }
+      },
     );
 
     // Actualizar lista de conversaciones
     queryClient.invalidateQueries({ queryKey: ['threads'] });
 
     // Incrementar contador de no leídos si no es del usuario actual
-    if (newMessage.sender_id !== user?.id) {
+    if (newMessage.senderId !== user?.id) {
       setUnreadCount(prev => prev + 1);
       setHasNewMessages(true);
 
       // Mostrar notificación si no está en la conversación actual
-      if (currentThreadId !== newMessage.thread_id) {
+      if (currentThreadId !== String(newMessage.threadId)) {
         showNotification(
-          `Nuevo mensaje de ${newMessage.sender_name}`,
+          `Nuevo mensaje de ${newMessage.senderName || 'Usuario'}`,
           'info',
           {
             autoClose: 5000,
             onClick: () => {
               // Navegar a la conversación
-              window.location.href = `/messages/thread/${newMessage.thread_id}`;
-            }
-          }
+              window.location.href = `/messages/thread/${newMessage.threadId}`;
+            },
+          },
         );
       }
     }
@@ -235,10 +258,10 @@ setHasNewMessages(false);
           results: oldData.results?.map((msg: Message) =>
             msg.id === message_id
               ? { ...msg, is_read: true, read_at }
-              : msg
+              : msg,
           ),
         };
-      }
+      },
     );
   }
 
@@ -249,7 +272,7 @@ setHasNewMessages(false);
     if (is_typing) {
       setTypingUsers(prev => {
         const filtered = prev.filter(
-          user => !(user.userId === user_id && user.threadId === thread_id)
+          user => !(user.userId === user_id && user.threadId === thread_id),
         );
         
         return [
@@ -259,7 +282,7 @@ setHasNewMessages(false);
             userName: user_name,
             threadId: thread_id,
             timestamp: new Date().toISOString(),
-          }
+          },
         ];
       });
 
@@ -271,7 +294,7 @@ setHasNewMessages(false);
 
       const timeout = setTimeout(() => {
         setTypingUsers(prev =>
-          prev.filter(user => !(user.userId === user_id && user.threadId === thread_id))
+          prev.filter(user => !(user.userId === user_id && user.threadId === thread_id)),
         );
         typingTimeoutRef.current.delete(timeoutKey);
       }, 5000);
@@ -279,7 +302,7 @@ setHasNewMessages(false);
       typingTimeoutRef.current.set(timeoutKey, timeout);
     } else {
       setTypingUsers(prev =>
-        prev.filter(user => !(user.userId === user_id && user.threadId === thread_id))
+        prev.filter(user => !(user.userId === user_id && user.threadId === thread_id)),
       );
     }
   }
@@ -382,7 +405,9 @@ setHasNewMessages(false);
 
   // Enviar heartbeat para estado de usuario
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected) {
+      return undefined;
+    }
 
     const heartbeatInterval = setInterval(() => {
       sendStatusMessage({

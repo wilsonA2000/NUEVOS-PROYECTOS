@@ -32,7 +32,7 @@ class WebSocketService {
   private connectionStatus: Map<string, ConnectionStatus> = new Map();
   private reconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private pingIntervals: Map<string, NodeJS.Timeout> = new Map();
-  
+
   private readonly BASE_WS_URL = this.getWebSocketBaseUrl();
   private readonly RECONNECT_DELAY = 15000; // Increased to 15 seconds
   private readonly MAX_RECONNECT_ATTEMPTS = 2; // Reduced to 2 attempts
@@ -88,9 +88,8 @@ class WebSocketService {
       const ws = new WebSocket(authenticatedUrl);
 
       ws.onopen = () => {
-        console.log(`WebSocket connected to ${endpoint}`);
         this.connections.set(endpoint, ws);
-        
+
         this.updateConnectionStatus(endpoint, {
           connected: true,
           connecting: false,
@@ -100,7 +99,7 @@ class WebSocketService {
 
         // Start ping interval
         this.startPingInterval(endpoint);
-        
+
         resolve();
       };
 
@@ -109,18 +108,16 @@ class WebSocketService {
       };
 
       ws.onclose = (event) => {
-        // DEV: Reduced logging - console.log(`WebSocket disconnected from ${endpoint}:`, event.code, event.reason);
         this.handleDisconnection(endpoint, event.code);
       };
 
-      ws.onerror = (error) => {
-        console.error(`WebSocket error on ${endpoint}:`, error);
+      ws.onerror = () => {
         this.updateConnectionStatus(endpoint, {
           connected: false,
           connecting: false,
           reconnectAttempts: this.getConnectionStatus(endpoint).reconnectAttempts,
         });
-        reject(error);
+        reject(new Error(`WebSocket error on ${endpoint}`));
       };
     });
   }
@@ -147,7 +144,7 @@ class WebSocketService {
 
       ws.close(1000, 'Client disconnecting');
       this.connections.delete(endpoint);
-      
+
       this.updateConnectionStatus(endpoint, {
         connected: false,
         connecting: false,
@@ -165,8 +162,7 @@ class WebSocketService {
       ws.send(JSON.stringify(message));
       return true;
     }
-    
-    console.warn(`Cannot send message to ${endpoint}: WebSocket not connected`);
+
     return false;
   }
 
@@ -177,9 +173,9 @@ class WebSocketService {
     if (!this.eventCallbacks.has(eventType)) {
       this.eventCallbacks.set(eventType, new Set());
     }
-    
+
     this.eventCallbacks.get(eventType)?.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       this.eventCallbacks.get(eventType)?.delete(callback);
@@ -191,7 +187,7 @@ class WebSocketService {
    */
   onConnectionStatusChange(callback: ConnectionStatusCallback): () => void {
     this.statusCallbacks.add(callback);
-    
+
     return () => {
       this.statusCallbacks.delete(callback);
     };
@@ -220,8 +216,8 @@ class WebSocketService {
    * Get all connected endpoints
    */
   getConnectedEndpoints(): string[] {
-    return Array.from(this.connections.keys()).filter(endpoint => 
-      this.isConnected(endpoint)
+    return Array.from(this.connections.keys()).filter(endpoint =>
+      this.isConnected(endpoint),
     );
   }
 
@@ -234,7 +230,7 @@ class WebSocketService {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
     const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
-    
+
     if (process.env.NODE_ENV === 'development') {
       return `${protocol}//${host}:${port}/ws`;
     } else {
@@ -248,13 +244,8 @@ class WebSocketService {
   private getAuthToken(): string | null {
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) {
-        console.warn('No authentication token found in localStorage');
-        return null;
-      }
       return token;
-    } catch (error) {
-      console.error('Error retrieving auth token:', error);
+    } catch {
       return null;
     }
   }
@@ -262,7 +253,7 @@ class WebSocketService {
   private handleMessage(endpoint: string, data: string): void {
     try {
       const message: WebSocketMessage = JSON.parse(data);
-      
+
       // Handle system messages
       if (message.type === 'pong') {
         // Pong received, connection is alive
@@ -270,7 +261,6 @@ class WebSocketService {
       }
 
       if (message.type === 'connection_established') {
-        console.log(`Connection established to ${endpoint}:`, message.message);
         return;
       }
 
@@ -280,8 +270,8 @@ class WebSocketService {
         callbacks.forEach(callback => {
           try {
             callback(message);
-          } catch (error) {
-            console.error('Error in WebSocket callback:', error);
+          } catch {
+            // Silently handle callback errors
           }
         });
       }
@@ -292,20 +282,20 @@ class WebSocketService {
         globalCallbacks.forEach(callback => {
           try {
             callback(message);
-          } catch (error) {
-            console.error('Error in global WebSocket callback:', error);
+          } catch {
+            // Silently handle callback errors
           }
         });
       }
 
-    } catch (error) {
-      console.error('Error parsing WebSocket message:', error, data);
+    } catch {
+      // Silently handle parse errors
     }
   }
 
   private handleDisconnection(endpoint: string, code: number): void {
     this.connections.delete(endpoint);
-    
+
     // Clear ping interval
     const pingInterval = this.pingIntervals.get(endpoint);
     if (pingInterval) {
@@ -314,7 +304,7 @@ class WebSocketService {
     }
 
     const status = this.getConnectionStatus(endpoint);
-    
+
     this.updateConnectionStatus(endpoint, {
       connected: false,
       connecting: false,
@@ -329,17 +319,14 @@ class WebSocketService {
 
   private attemptReconnection(endpoint: string): void {
     const status = this.getConnectionStatus(endpoint);
-    
+
     if (status.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-      console.error(`Max reconnection attempts reached for ${endpoint}`);
       toast.error('Connection lost. Please refresh the page.');
       return;
     }
 
     const reconnectDelay = this.RECONNECT_DELAY * Math.pow(2, status.reconnectAttempts);
-    
-    // DEV: Reduced logging - console.log(`Attempting to reconnect to ${endpoint} in ${reconnectDelay}ms (attempt ${status.reconnectAttempts + 1})`);
-    
+
     const timeout = setTimeout(async () => {
       this.updateConnectionStatus(endpoint, {
         ...status,
@@ -351,8 +338,7 @@ class WebSocketService {
         const freshToken = this.getAuthToken();
         await this.connect(endpoint, freshToken || undefined);
         toast.success('Connection restored');
-      } catch (error) {
-        console.error(`Reconnection failed for ${endpoint}:`, error);
+      } catch {
         this.attemptReconnection(endpoint);
       }
     }, reconnectDelay);
@@ -373,36 +359,32 @@ class WebSocketService {
 
   private updateConnectionStatus(endpoint: string, status: ConnectionStatus): void {
     this.connectionStatus.set(endpoint, status);
-    
+
     // Notify status callbacks
     this.statusCallbacks.forEach(callback => {
       try {
         callback(status);
-      } catch (error) {
-        console.error('Error in connection status callback:', error);
+      } catch {
+        // Silently handle callback errors
       }
     });
   }
 
   private handleOnline(): void {
-    console.log('Network connection restored');
     // Attempt to reconnect all disconnected endpoints
     const freshToken = this.getAuthToken();
     if (freshToken) {
       this.connectionStatus.forEach((status, endpoint) => {
         if (!status.connected && !status.connecting) {
-          this.connect(endpoint, freshToken).catch(error => {
-            console.error(`Failed to reconnect ${endpoint} after going online:`, error);
+          this.connect(endpoint, freshToken).catch(() => {
+            // Reconnection failed, will be retried
           });
         }
       });
-    } else {
-      console.warn('Cannot reconnect: No auth token available');
     }
   }
 
   private handleOffline(): void {
-    console.log('Network connection lost');
     toast.warn('Network connection lost. Reconnecting when online...');
   }
 
@@ -436,5 +418,5 @@ const DEV_WEBSOCKET_CONFIG = {
     maxReconnectAttempts: isDevelopment ? 2 : 5,
     baseReconnectInterval: isDevelopment ? 10000 : 3000,
     maxReconnectInterval: isDevelopment ? 30000 : 60000,
-    enableVerboseLogging: isDevelopment ? false : true
+    enableVerboseLogging: isDevelopment ? false : true,
 };

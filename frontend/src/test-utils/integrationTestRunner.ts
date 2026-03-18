@@ -58,7 +58,7 @@ const INTEGRATION_TEST_SUITES = [
     description: 'Tests del flujo completo de contratos desde creación hasta publicación',
     category: 'workflow',
     priority: 'high',
-    timeout: 60000 // 1 minuto
+    timeout: 60000, // 1 minuto
   },
   {
     name: 'Biometric Flow Integration',
@@ -66,7 +66,7 @@ const INTEGRATION_TEST_SUITES = [
     description: 'Tests del sistema biométrico completo con 5 pasos de verificación',
     category: 'biometric',
     priority: 'high',
-    timeout: 90000 // 1.5 minutos
+    timeout: 90000, // 1.5 minutos
   },
   {
     name: 'API Integration Tests',
@@ -74,8 +74,8 @@ const INTEGRATION_TEST_SUITES = [
     description: 'Tests de comunicación frontend-backend y manejo de errores',
     category: 'api',
     priority: 'high',
-    timeout: 45000 // 45 segundos
-  }
+    timeout: 45000, // 45 segundos
+  },
 ];
 
 /**
@@ -93,15 +93,15 @@ const INTEGRATION_JEST_CONFIG = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
     '!src/test-utils/**/*',
-    '!src/__mocks__/**/*'
+    '!src/__mocks__/**/*',
   ],
   coverageThreshold: {
     global: {
       branches: 70,
       functions: 75,
       lines: 80,
-      statements: 80
-    }
+      statements: 80,
+    },
   },
   reporters: [
     'default',
@@ -110,9 +110,9 @@ const INTEGRATION_JEST_CONFIG = {
       filename: 'integration-report.html',
       expand: true,
       hideIcon: false,
-      pageTitle: 'VeriHome - Integration Tests Report'
-    }]
-  ]
+      pageTitle: 'VeriHome - Integration Tests Report',
+    }],
+  ],
 };
 
 /**
@@ -145,7 +145,7 @@ export async function runIntegrationTestSuite(suiteName: string): Promise<Integr
       '--forceExit',
       `--testTimeout=${suite.timeout}`,
       '--maxWorkers=1', // Un solo worker para tests de integración
-      '--runInBand' // Ejecutar secuencialmente
+      '--runInBand', // Ejecutar secuencialmente
     ].join(' ');
 
     console.log(`🔧 Comando: ${jestCommand}\n`);
@@ -156,8 +156,8 @@ export async function runIntegrationTestSuite(suiteName: string): Promise<Integr
       env: {
         ...process.env,
         NODE_ENV: 'test',
-        CI: 'true'
-      }
+        CI: 'true',
+      },
     });
 
     const duration = Date.now() - startTime;
@@ -192,7 +192,7 @@ export async function runIntegrationTestSuite(suiteName: string): Promise<Integr
         failed: 1,
         duration,
         coverage: { lines: 0, functions: 0, branches: 0, statements: 0 },
-        performance: { averageTestTime: 0, slowestTest: 'unknown', fastestTest: 'unknown' }
+        performance: { averageTestTime: 0, slowestTest: 'unknown', fastestTest: 'unknown' },
       };
     }
   }
@@ -230,7 +230,7 @@ export async function runAllIntegrationTests(): Promise<IntegrationTestSummary> 
         failed: 1,
         duration: 0,
         coverage: { lines: 0, functions: 0, branches: 0, statements: 0 },
-        performance: { averageTestTime: 0, slowestTest: 'error', fastestTest: 'error' }
+        performance: { averageTestTime: 0, slowestTest: 'error', fastestTest: 'error' },
       });
     }
   }
@@ -240,9 +240,10 @@ export async function runAllIntegrationTests(): Promise<IntegrationTestSummary> 
   const totalMemoryUsed = endMemory - startMemory;
 
   // Calcular resumen
+  const totalTests = results.reduce((sum, r) => sum + r.passed + r.failed, 0);
   const summary: IntegrationTestSummary = {
     totalSuites: results.length,
-    totalTests: results.reduce((sum, r) => sum + r.passed + r.failed, 0),
+    totalTests,
     totalPassed: results.reduce((sum, r) => sum + r.passed, 0),
     totalFailed: results.reduce((sum, r) => sum + r.failed, 0),
     overallDuration: totalDuration,
@@ -250,15 +251,15 @@ export async function runAllIntegrationTests(): Promise<IntegrationTestSummary> 
       lines: Math.round(results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length),
       functions: Math.round(results.reduce((sum, r) => sum + r.coverage.functions, 0) / results.length),
       branches: Math.round(results.reduce((sum, r) => sum + r.coverage.branches, 0) / results.length),
-      statements: Math.round(results.reduce((sum, r) => sum + r.coverage.statements, 0) / results.length)
+      statements: Math.round(results.reduce((sum, r) => sum + r.coverage.statements, 0) / results.length),
     },
     performance: {
       totalTime: totalDuration,
-      averageTestTime: Math.round(totalDuration / Math.max(1, summary.totalTests || 1)),
+      averageTestTime: Math.round(totalDuration / Math.max(1, totalTests || 1)),
       memoryUsage: formatBytes(totalMemoryUsed),
-      cpuUsage: 'N/A' // Placeholder para futuras métricas
+      cpuUsage: 'N/A', // Placeholder para futuras métricas
     },
-    results
+    results,
   };
 
   // Mostrar resumen
@@ -274,7 +275,7 @@ export async function runAllIntegrationTests(): Promise<IntegrationTestSummary> 
  * Ejecuta tests por categoría
  */
 export async function runIntegrationTestsByCategory(
-  category: 'workflow' | 'biometric' | 'api'
+  category: 'workflow' | 'biometric' | 'api',
 ): Promise<IntegrationTestSummary> {
   console.log(`🎯 Ejecutando tests de integración - Categoría: ${category}\n`);
 
@@ -289,9 +290,10 @@ export async function runIntegrationTestsByCategory(
 
   const totalDuration = Date.now() - startTime;
 
+  const totalTestsCategory = results.reduce((sum, r) => sum + r.passed + r.failed, 0);
   const summary: IntegrationTestSummary = {
     totalSuites: results.length,
-    totalTests: results.reduce((sum, r) => sum + r.passed + r.failed, 0),
+    totalTests: totalTestsCategory,
     totalPassed: results.reduce((sum, r) => sum + r.passed, 0),
     totalFailed: results.reduce((sum, r) => sum + r.failed, 0),
     overallDuration: totalDuration,
@@ -299,15 +301,15 @@ export async function runIntegrationTestsByCategory(
       lines: Math.round(results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length),
       functions: Math.round(results.reduce((sum, r) => sum + r.coverage.functions, 0) / results.length),
       branches: Math.round(results.reduce((sum, r) => sum + r.coverage.branches, 0) / results.length),
-      statements: Math.round(results.reduce((sum, r) => sum + r.coverage.statements, 0) / results.length)
+      statements: Math.round(results.reduce((sum, r) => sum + r.coverage.statements, 0) / results.length),
     },
     performance: {
       totalTime: totalDuration,
-      averageTestTime: Math.round(totalDuration / Math.max(1, summary.totalTests || 1)),
+      averageTestTime: Math.round(totalDuration / Math.max(1, totalTestsCategory || 1)),
       memoryUsage: formatBytes(process.memoryUsage().heapUsed),
-      cpuUsage: 'N/A'
+      cpuUsage: 'N/A',
     },
-    results
+    results,
   };
 
   displayIntegrationTestSummary(summary);
@@ -321,7 +323,7 @@ function parseIntegrationTestOutput(
   output: string, 
   suiteName: string, 
   fileName: string, 
-  duration: number
+  duration: number,
 ): IntegrationTestResult {
   // Extraer tests pasados/fallados
   const passedMatch = output.match(/(\\d+) passed/);
@@ -343,7 +345,7 @@ function parseIntegrationTestOutput(
   const testTimeMatches = output.matchAll(/(\\w+.*?) \\((\\d+) ms\\)/g);
   const testTimes = Array.from(testTimeMatches).map(match => ({
     name: match[1],
-    time: parseInt(match[2])
+    time: parseInt(match[2]),
   }));
 
   const performance = {
@@ -355,7 +357,7 @@ function parseIntegrationTestOutput(
       : 'unknown',
     fastestTest: testTimes.length > 0 
       ? testTimes.reduce((prev, curr) => prev.time < curr.time ? prev : curr).name
-      : 'unknown'
+      : 'unknown',
   };
 
   // Intentar leer cobertura
@@ -371,7 +373,7 @@ function parseIntegrationTestOutput(
         lines: Math.round(total.lines.pct || 0),
         functions: Math.round(total.functions.pct || 0),
         branches: Math.round(total.branches.pct || 0),
-        statements: Math.round(total.statements.pct || 0)
+        statements: Math.round(total.statements.pct || 0),
       };
     }
   } catch (error) {
@@ -385,7 +387,7 @@ function parseIntegrationTestOutput(
     failed,
     duration,
     coverage,
-    performance
+    performance,
   };
 }
 
@@ -393,29 +395,29 @@ function parseIntegrationTestOutput(
  * Muestra el resumen de tests de integración
  */
 function displayIntegrationTestSummary(summary: IntegrationTestSummary) {
-  console.log('\\n' + '='.repeat(80));
+  console.log(`\\n${  '='.repeat(80)}`);
   console.log('🔬 RESUMEN DE TESTS DE INTEGRACIÓN - SISTEMA DE CONTRATOS');
   console.log('='.repeat(80));
 
-  console.log(`\\n📊 ESTADÍSTICAS GENERALES:`);
+  console.log('\\n📊 ESTADÍSTICAS GENERALES:');
   console.log(`   Total de Test Suites: ${summary.totalSuites}`);
   console.log(`   Total de Tests: ${summary.totalTests}`);
   console.log(`   Tests Pasados: ${summary.totalPassed} ✅`);
   console.log(`   Tests Fallados: ${summary.totalFailed} ${summary.totalFailed > 0 ? '❌' : '✅'}`);
   console.log(`   Duración Total: ${(summary.overallDuration / 1000).toFixed(2)}s`);
 
-  console.log(`\\n📈 COBERTURA PROMEDIO:`);
+  console.log('\\n📈 COBERTURA PROMEDIO:');
   console.log(`   Líneas: ${summary.overallCoverage.lines}%`);
   console.log(`   Funciones: ${summary.overallCoverage.functions}%`);
   console.log(`   Branches: ${summary.overallCoverage.branches}%`);
   console.log(`   Statements: ${summary.overallCoverage.statements}%`);
 
-  console.log(`\\n⚡ RENDIMIENTO:`);
+  console.log('\\n⚡ RENDIMIENTO:');
   console.log(`   Tiempo Total: ${(summary.performance.totalTime / 1000).toFixed(2)}s`);
   console.log(`   Tiempo Promedio por Test: ${summary.performance.averageTestTime}ms`);
   console.log(`   Uso de Memoria: ${summary.performance.memoryUsage}`);
 
-  console.log(`\\n📋 RESULTADOS POR SUITE:`);
+  console.log('\\n📋 RESULTADOS POR SUITE:');
   summary.results.forEach(result => {
     const status = result.failed === 0 ? '✅' : '❌';
     const duration = (result.duration / 1000).toFixed(2);
@@ -432,30 +434,30 @@ function displayIntegrationTestSummary(summary: IntegrationTestSummary) {
   const successRate = summary.totalTests > 0 ? (summary.totalPassed / summary.totalTests) * 100 : 0;
   const avgCoverage = summary.overallCoverage.lines;
 
-  console.log(`\\n🎖️  EVALUACIÓN GENERAL:`);
+  console.log('\\n🎖️  EVALUACIÓN GENERAL:');
   
   if (successRate === 100 && avgCoverage >= 80) {
     console.log(`   🌟 EXCELENTE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
-    console.log(`   🚀 Sistema de contratos completamente integrado y verificado`);
+    console.log('   🚀 Sistema de contratos completamente integrado y verificado');
   } else if (successRate >= 90 && avgCoverage >= 70) {
     console.log(`   ⭐ BUENO: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
-    console.log(`   📈 Sistema mayormente estable con algunas mejoras posibles`);
+    console.log('   📈 Sistema mayormente estable con algunas mejoras posibles');
   } else if (successRate >= 80) {
     console.log(`   ⚠️  ACEPTABLE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
-    console.log(`   🔧 Requiere atención en áreas específicas`);
+    console.log('   🔧 Requiere atención en áreas específicas');
   } else {
     console.log(`   🚨 NECESITA MEJORAS: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
-    console.log(`   ⛑️  Intervención urgente requerida`);
+    console.log('   ⛑️  Intervención urgente requerida');
   }
 
   if (summary.totalFailed === 0) {
-    console.log(`\\n🎉 ¡TODOS LOS TESTS DE INTEGRACIÓN PASARON!`);
-    console.log(`   ✨ El sistema de contratos está completamente integrado`);
-    console.log(`   🔒 Flujo biométrico validado y seguro`);
-    console.log(`   📡 APIs funcionando correctamente`);
+    console.log('\\n🎉 ¡TODOS LOS TESTS DE INTEGRACIÓN PASARON!');
+    console.log('   ✨ El sistema de contratos está completamente integrado');
+    console.log('   🔒 Flujo biométrico validado y seguro');
+    console.log('   📡 APIs funcionando correctamente');
   }
 
-  console.log('\\n' + '='.repeat(80));
+  console.log(`\\n${  '='.repeat(80)}`);
 }
 
 /**
@@ -764,7 +766,7 @@ function formatBytes(bytes: number): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
 }
 
 // CLI interface

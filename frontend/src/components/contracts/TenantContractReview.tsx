@@ -21,14 +21,14 @@ import {
   Alert,
   CircularProgress,
   Divider,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   CheckCircle as ApproveIcon,
   Edit as RequestChangesIcon,
   Visibility as ViewIcon,
   Description as ContractIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { contractService } from '../../services/contractService';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
@@ -56,7 +56,7 @@ interface TenantContractReviewProps {
 
 const TenantContractReview: React.FC<TenantContractReviewProps> = ({ 
   contract, 
-  onReviewComplete 
+  onReviewComplete, 
 }) => {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [changesDialogOpen, setChangesDialogOpen] = useState(false);
@@ -104,7 +104,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 

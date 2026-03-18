@@ -46,7 +46,8 @@ interface OptimizedWebSocketProviderProps {
 
 export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProps> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
-  const { showNotification } = useNotification();
+  const notification = useNotification();
+  const showNotification = notification?.success || (() => {});
   
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Desconectado');
@@ -59,7 +60,7 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   const coreEndpoints = [
     'messaging',        // Real-time chat
     'notifications',    // Push notifications
-    'user-status'       // User presence
+    'user-status',       // User presence
   ];
 
   // Enable real-time features
@@ -77,14 +78,18 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
       setIsConnected(true);
       setConnectionStatus('Conectado - Tiempo real activo');
       setConnectedEndpoints(optimizedWebSocketService.getConnectedEndpoints());
-      
-      showNotification('Tiempo real activado', 'success');
+
+      if (typeof showNotification === 'function') {
+        showNotification('Tiempo real activado');
+      }
       
     } catch (error) {
       console.error('Error enabling real-time features:', error);
       setIsConnected(false);
       setConnectionStatus('Error de conexión');
-      showNotification('Error al activar tiempo real', 'error');
+      if (typeof showNotification === 'function') {
+        showNotification('Error al activar tiempo real');
+      }
       throw error;
     }
   }, [isAuthenticated, user, realTimeEnabled, showNotification]);
@@ -103,52 +108,47 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
     setConnectedEndpoints([]);
     setOnlineUsers(new Map());
     setUnreadMessagesCount(0);
-    
-    showNotification('Tiempo real desactivado', 'info');
+
+    if (typeof showNotification === 'function') {
+      showNotification('Tiempo real desactivado');
+    }
   }, [realTimeEnabled, showNotification]);
 
   // Monitor overall connection health
   useEffect(() => {
-    if (!realTimeEnabled) return;
-    
+    if (!realTimeEnabled) return undefined;
+
     const interval = setInterval(() => {
       const health = optimizedWebSocketService.getHealthStatus();
       const activeConnections = health.activeConnections;
       const hasConnections = activeConnections > 0;
-      
+
       if (hasConnections !== isConnected) {
         setIsConnected(hasConnections);
         setConnectionStatus(
-          hasConnections 
-            ? `Conectado (${activeConnections}/${coreEndpoints.length})` 
-            : 'Desconectado'
+          hasConnections
+            ? `Conectado (${activeConnections}/${coreEndpoints.length})`
+            : 'Desconectado',
         );
         setConnectedEndpoints(optimizedWebSocketService.getConnectedEndpoints());
       }
     }, 5000); // Check every 5 seconds
-    
+
     return () => clearInterval(interval);
   }, [realTimeEnabled, isConnected]);
 
   // Handle incoming messages when connected
   useEffect(() => {
-    if (!realTimeEnabled || !isConnected) return;
+    if (!realTimeEnabled || !isConnected) return undefined;
 
     const unsubscribers = [
       // New messages
       optimizedWebSocketService.subscribe('new_message', (message) => {
         if (message.data?.sender_id !== user?.id) {
           setUnreadMessagesCount(prev => prev + 1);
-          showNotification(
-            `Nuevo mensaje de ${message.data?.sender_name || 'Usuario'}`,
-            'info',
-            {
-              autoClose: 5000,
-              onClick: () => {
-                window.location.href = `/app/messages/thread/${message.data?.thread_id}`;
-              }
-            }
-          );
+          if (typeof showNotification === 'function') {
+            showNotification(`Nuevo mensaje de ${message.data?.sender_name || 'Usuario'}`);
+          }
         }
       }),
 
@@ -162,7 +162,7 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
             id: user_id,
             name: user_name,
             isOnline: is_online,
-            lastSeen: last_seen
+            lastSeen: last_seen,
           });
           return newMap;
         });
@@ -170,17 +170,16 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
 
       // System notifications
       optimizedWebSocketService.subscribe('system_notification', (message) => {
-        showNotification(
-          message.data?.message || 'Notificación del sistema',
-          message.data?.type || 'info'
-        );
+        if (typeof showNotification === 'function') {
+          showNotification(message.data?.message || 'Notificación del sistema');
+        }
       }),
 
       // Connection errors
       optimizedWebSocketService.subscribe('error', (message) => {
         console.error('WebSocket error:', message);
         // Don't spam user with error notifications
-      })
+      }),
     ];
 
     return () => {

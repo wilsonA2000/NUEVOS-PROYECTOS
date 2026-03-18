@@ -1,6 +1,8 @@
 """
 URLs para las APIs del sistema de contratos controlado por arrendador.
 Rutas organizadas para el workflow paso a paso.
+
+Incluye: Sistema Control Molecular - APIs de Aprobación Admin
 """
 
 from django.urls import path, include
@@ -9,7 +11,17 @@ from .landlord_api_views import (
     LandlordContractViewSet,
     ContractObjectionViewSet,
     ContractGuaranteeViewSet,
-    ContractWorkflowHistoryViewSet
+    ContractWorkflowHistoryViewSet,
+    ContractModificationRequestViewSet
+)
+
+# Importar APIs de aprobación admin (Sistema Control Molecular)
+from .admin_approval_api import (
+    AdminPendingContractsView,
+    AdminContractDetailView,
+    AdminContractApprovalView,
+    AdminContractRejectionView,
+    AdminContractStatsView,
 )
 
 # Router para ViewSets
@@ -18,15 +30,34 @@ router.register(r'contracts', LandlordContractViewSet, basename='landlord-contra
 router.register(r'objections', ContractObjectionViewSet, basename='contract-objections')
 router.register(r'guarantees', ContractGuaranteeViewSet, basename='contract-guarantees')
 router.register(r'history', ContractWorkflowHistoryViewSet, basename='contract-history')
+router.register(r'modification-requests', ContractModificationRequestViewSet, basename='modification-requests')
 
 app_name = 'landlord_contracts'
 
 urlpatterns = [
     # APIs principales del workflow
     path('landlord/', include(router.urls)),
-    
-    # URLs específicas del workflow (si se necesitan rutas adicionales)
-    # path('landlord/contracts/<uuid:pk>/custom-action/', view_name, name='custom-action'),
+
+    # ==========================================================================
+    # SISTEMA CONTROL MOLECULAR - APIs de Aprobación Admin
+    # ==========================================================================
+    # Estas rutas permiten al administrador (Wilson) revisar y aprobar contratos
+    # antes de que pasen a estado DRAFT.
+
+    # Listar contratos pendientes de revisión
+    path('admin/pending/', AdminPendingContractsView.as_view(), name='admin-pending-contracts'),
+
+    # Estadísticas de contratos para dashboard admin
+    path('admin/stats/', AdminContractStatsView.as_view(), name='admin-contract-stats'),
+
+    # Ver detalles de un contrato específico para revisión
+    path('admin/contracts/<uuid:contract_id>/', AdminContractDetailView.as_view(), name='admin-contract-detail'),
+
+    # Aprobar un contrato (moverlo a DRAFT)
+    path('admin/contracts/<uuid:contract_id>/approve/', AdminContractApprovalView.as_view(), name='admin-contract-approve'),
+
+    # Rechazar un contrato (devolver para correcciones)
+    path('admin/contracts/<uuid:contract_id>/reject/', AdminContractRejectionView.as_view(), name='admin-contract-reject'),
 ]
 
 # Documentación de endpoints disponibles:

@@ -90,7 +90,7 @@ const LandingPage: React.FC = () => {
                 fontWeight: 700,
                 boxShadow: 3,
                 mt: 3,
-                '&:hover': { bgcolor: 'primary.dark' }
+                '&:hover': { bgcolor: 'primary.dark' },
               }}
             >
               Comenzar

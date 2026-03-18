@@ -85,7 +85,9 @@ export function useInfiniteScroll<T>({
   // Intersection Observer para detectar cuando se necesita cargar más datos
   useEffect(() => {
     const trigger = triggerRef.current;
-    if (!trigger || !enabled) return;
+    if (!trigger || !enabled) {
+      return undefined;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -97,7 +99,7 @@ export function useInfiniteScroll<T>({
       {
         rootMargin,
         threshold: 0.1,
-      }
+      },
     );
 
     observer.observe(trigger);
@@ -125,7 +127,9 @@ export function useInfiniteScroll<T>({
   // Agregar scroll listener
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !enabled) return;
+    if (!container || !enabled) {
+      return undefined;
+    }
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
@@ -171,19 +175,19 @@ export function useInfiniteProperties(filters?: Record<string, any>) {
     try {
       // Importar dinámicamente para evitar dependencias circulares
       const { propertyService } = await import('../services/propertyService');
-      
+
       const response = await propertyService.getProperties({
         ...filters,
         page,
         page_size: 12,
-      });
+      }) as any;
 
-      const newProperties = response.results || response;
-      const hasNextPage = response.next ? true : newProperties.length === 12;
-      
+      const newProperties = Array.isArray(response) ? response : ((response as any)?.results || []);
+      const hasNextPage = Array.isArray(response) ? newProperties.length === 12 : ((response as any)?.next ? true : false);
+
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
-      
+
       return newProperties;
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -222,23 +226,22 @@ export function useInfiniteMessages(conversationId?: number) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchNextPage = useCallback(async () => {
+  const fetchNextPage = useCallback(async (): Promise<any[]> => {
     if (!conversationId) return [];
 
     try {
       const { messageService } = await import('../services/messageService');
-      
-      const response = await messageService.getMessages(conversationId, {
-        page,
-        page_size: 20,
-      });
 
-      const newMessages = response.results || response;
-      const hasNextPage = response.next ? true : newMessages.length === 20;
-      
+      const response = await messageService.getMessages(String(conversationId), page, 20) as any;
+
+      const newMessages = Array.isArray(response) ? response : ((response as any)?.results || []);
+      const hasNextPage = Array.isArray(response)
+        ? newMessages.length === 20
+        : ((response as any)?.next ? true : false);
+
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
-      
+
       return newMessages;
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -274,19 +277,15 @@ export function useInfiniteContracts(filters?: Record<string, any>) {
   const fetchNextPage = useCallback(async () => {
     try {
       const { contractService } = await import('../services/contractService');
-      
-      const response = await contractService.getContracts({
-        ...filters,
-        page,
-        page_size: 15,
-      });
 
-      const newContracts = response.results || response;
-      const hasNextPage = response.next ? true : newContracts.length === 15;
-      
+      const response = await contractService.getContracts(filters) as any;
+
+      const newContracts = Array.isArray(response) ? response : ((response as any)?.results || []);
+      const hasNextPage = Array.isArray(response) ? newContracts.length === 15 : ((response as any)?.next ? true : false);
+
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
-      
+
       return newContracts;
     } catch (error) {
       console.error('Error fetching contracts:', error);

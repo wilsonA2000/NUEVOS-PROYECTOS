@@ -55,7 +55,7 @@ export interface UseRealTimeNotificationsReturn {
 
 export const useRealTimeNotifications = (): UseRealTimeNotificationsReturn => {
   const { user } = useAuth();
-  const { showNotification } = useNotification();
+  const notification = useNotification();
   
   const [notifications, setNotifications] = useState<RealTimeNotification[]>([]);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
@@ -118,8 +118,7 @@ export const useRealTimeNotifications = (): UseRealTimeNotificationsReturn => {
 
   // Manejar conexión establecida
   function handleConnectionOpen() {
-
-showNotification('Notificaciones en tiempo real activadas', 'success');
+    notification.success('Notificaciones en tiempo real activadas');
   }
 
   // Manejar notificación general
@@ -314,21 +313,20 @@ showNotification('Notificaciones en tiempo real activadas', 'success');
   }, []);
 
   // Mostrar notificación en la app
-  const showInAppNotification = useCallback((notification: RealTimeNotification, isUrgent = false) => {
-    const severity = notification.priority === 'urgent' ? 'error' : 
-                    notification.priority === 'high' ? 'warning' : 'info';
-    
-    showNotification(
-      notification.title,
-      severity,
-      {
-        autoClose: isUrgent ? false : 5000,
-        onClick: notification.actionUrl ? () => {
-          window.location.href = notification.actionUrl!;
-        } : undefined,
-      }
-    );
-  }, [showNotification]);
+  const showInAppNotification = useCallback((notif: RealTimeNotification, isUrgent = false) => {
+    const options: any = {
+      autoClose: isUrgent ? false : 5000,
+      onClick: notif.actionUrl ? () => {
+        window.location.href = notif.actionUrl!;
+      } : undefined,
+    };
+
+    if (notif.priority === 'urgent' || notif.priority === 'high') {
+      notification.error(notif.title, options);
+    } else {
+      notification.info(notif.title, options);
+    }
+  }, [notification]);
 
   // Mostrar notificación del navegador
   const showBrowserNotification = useCallback((notification: RealTimeNotification) => {
@@ -337,12 +335,11 @@ showNotification('Notificaciones en tiempo real activadas', 'success');
     const browserNotification = new Notification(notification.title, {
       body: notification.message,
       icon: notification.icon ? `/icons/${notification.icon}.png` : '/icons/default.png',
-      image: notification.image,
       badge: '/icons/badge.png',
       tag: notification.id,
       requireInteraction: notification.priority === 'urgent',
       silent: notification.priority === 'low',
-    });
+    } as NotificationOptions);
 
     browserNotification.onclick = () => {
       window.focus();
@@ -363,7 +360,7 @@ showNotification('Notificaciones en tiempo real activadas', 'success');
   // Habilitar notificaciones push
   const enablePushNotifications = useCallback(async (): Promise<boolean> => {
     if (!('Notification' in window)) {
-      showNotification('Tu navegador no soporta notificaciones', 'error');
+      notification.error('Tu navegador no soporta notificaciones');
       return false;
     }
 
@@ -371,26 +368,26 @@ showNotification('Notificaciones en tiempo real activadas', 'success');
       const permission = await Notification.requestPermission();
       const enabled = permission === 'granted';
       setIsPushEnabled(enabled);
-      
+
       if (enabled) {
-        showNotification('Notificaciones push habilitadas', 'success');
+        notification.success('Notificaciones push habilitadas');
       } else {
-        showNotification('Notificaciones push denegadas', 'warning');
+        notification.warning('Notificaciones push denegadas');
       }
-      
+
       return enabled;
     } catch (error) {
       console.error('Error enabling push notifications:', error);
-      showNotification('Error al habilitar notificaciones', 'error');
+      notification.error('Error al habilitar notificaciones');
       return false;
     }
-  }, [showNotification]);
+  }, [notification]);
 
   // Deshabilitar notificaciones push
   const disablePushNotifications = useCallback(() => {
     setIsPushEnabled(false);
-    showNotification('Notificaciones push deshabilitadas', 'info');
-  }, [showNotification]);
+    notification.info('Notificaciones push deshabilitadas');
+  }, [notification]);
 
   // Marcar notificación como leída
   const markAsRead = useCallback((notificationId: string) => {
@@ -398,22 +395,22 @@ showNotification('Notificaciones en tiempo real activadas', 'success');
       prev.map(notification =>
         notification.id === notificationId
           ? { ...notification, isRead: true }
-          : notification
-      )
+          : notification,
+      ),
     );
   }, []);
 
   // Marcar todas como leídas
   const markAllAsRead = useCallback(() => {
     setNotifications(prev =>
-      prev.map(notification => ({ ...notification, isRead: true }))
+      prev.map(notification => ({ ...notification, isRead: true })),
     );
   }, []);
 
   // Limpiar notificación
   const clearNotification = useCallback((notificationId: string) => {
     setNotifications(prev =>
-      prev.filter(notification => notification.id !== notificationId)
+      prev.filter(notification => notification.id !== notificationId),
     );
   }, []);
 

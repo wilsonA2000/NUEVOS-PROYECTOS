@@ -34,7 +34,7 @@ import {
   ListItemIcon,
   ListItemText,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   Security,
@@ -45,11 +45,13 @@ import {
   CameraAlt,
   DocumentScanner,
   RecordVoiceOver,
-  Draw
+  Draw,
 } from '@mui/icons-material';
 
 // Importar el flujo biométrico
 import ProfessionalBiometricFlow from '../../components/contracts/ProfessionalBiometricFlow';
+import { LandlordContractService } from '../../services/landlordContractService';
+import { contractService } from '../../services/contractService';
 
 interface ContractInfo {
   id: string;
@@ -105,7 +107,7 @@ const TenantInvitationLanding: React.FC = () => {
     'Aceptar Contrato', 
     'Autenticación Biométrica',
     'Firma Digital',
-    'Contrato Activado'
+    'Contrato Activado',
   ];
 
   // Cargar información de la invitación
@@ -118,51 +120,49 @@ const TenantInvitationLanding: React.FC = () => {
       }
 
       try {
-        // TODO: Implementar llamada real a la API
-        // const response = await fetch(`/api/v1/contracts/invitations/${token}/`);
-        
-        // Datos simulados por ahora
-        const mockInvitation: InvitationInfo = {
-          id: 'inv-123',
+        const data: any = await LandlordContractService.getContractInvitationInfo(token);
+
+        const invitationData: InvitationInfo = {
+          id: data.invitation?.id || data.id || '',
           token: token,
-          tenantName: 'Juan Pérez',
-          tenantEmail: 'juan.perez@email.com',
-          expiresAt: '2025-02-01T23:59:59Z',
-          personalMessage: 'El arrendador ha completado exitosamente su verificación biométrica.',
-          status: 'sent'
+          tenantName: data.invitation?.tenant_name || data.tenant_name || '',
+          tenantEmail: data.invitation?.tenant_email || data.tenant_email || '',
+          expiresAt: data.invitation?.expires_at || data.expires_at || '',
+          personalMessage: data.invitation?.personal_message || data.personal_message || '',
+          status: data.invitation?.status || data.status || 'sent',
         };
 
-        const mockContract: ContractInfo = {
-          id: 'contract-456',
-          contractNumber: 'VH-2025-000123',
-          title: 'Contrato de Arrendamiento - Apartamento Centro',
+        const contractData: ContractInfo = {
+          id: data.contract?.id || data.contract_id || '',
+          contractNumber: data.contract?.contract_number || data.contract_number || '',
+          title: data.contract?.title || `Contrato de Arrendamiento`,
           property: {
-            address: 'Calle 85 #12-34, Apto 501',
-            city: 'Bogotá, Colombia',
-            type: 'Apartamento'
+            address: data.contract?.property?.address || data.property_address || '',
+            city: data.contract?.property?.city || data.property_city || '',
+            type: data.contract?.property?.property_type || data.property_type || '',
           },
           landlord: {
-            name: 'María García',
-            email: 'maria.garcia@email.com',
-            phone: '+57 300 123 4567'
+            name: data.contract?.landlord?.name || data.landlord_name || '',
+            email: data.contract?.landlord?.email || data.landlord_email || '',
+            phone: data.contract?.landlord?.phone || data.landlord_phone || '',
           },
           financialDetails: {
-            monthlyRent: 2500000,
-            securityDeposit: 2500000,
-            startDate: '2025-02-01',
-            endDate: '2026-02-01'
+            monthlyRent: data.contract?.monthly_rent || data.monthly_rent || 0,
+            securityDeposit: data.contract?.security_deposit || data.security_deposit || 0,
+            startDate: data.contract?.start_date || data.start_date || '',
+            endDate: data.contract?.end_date || data.end_date || '',
           },
-          status: 'pending_tenant_authentication',
-          biometricStatus: 'pending'
+          status: data.contract?.status || data.contract_status || 'pending_tenant_authentication',
+          biometricStatus: data.contract?.biometric_status || data.biometric_status || 'pending',
         };
 
-        setInvitation(mockInvitation);
-        setContract(mockContract);
-        setCurrentStep(1); // Paso "Aceptar Contrato"
-        
-      } catch (err) {
-        setError('Error cargando información de la invitación');
-        console.error('Error loading invitation:', err);
+        setInvitation(invitationData);
+        setContract(contractData);
+        setCurrentStep(1);
+
+      } catch (err: any) {
+        const message = err?.response?.data?.detail || err?.response?.data?.error || 'Error cargando información de la invitación';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -173,30 +173,31 @@ const TenantInvitationLanding: React.FC = () => {
 
   // Manejar aceptación de invitación
   const handleAcceptInvitation = async () => {
+    if (!token) return;
     try {
       setLoading(true);
-      
-      // TODO: Implementar llamada real a la API
-      // await fetch(`/api/v1/contracts/invitations/${token}/accept/`, { method: 'POST' });
-      
-      setCurrentStep(2); // Avanzar a "Autenticación Biométrica"
+      await LandlordContractService.acceptInvitationWithToken(token);
+      setCurrentStep(2);
       setShowBiometricFlow(true);
-      
-    } catch (err) {
-      setError('Error aceptando la invitación');
-      console.error('Error accepting invitation:', err);
+    } catch (err: any) {
+      const message = err?.response?.data?.detail || err?.response?.data?.error || 'Error aceptando la invitación';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Manejar completación del flujo biométrico
-  const handleBiometricComplete = (data: any) => {
-    console.log('🎉 Flujo biométrico completado:', data);
-    setShowBiometricFlow(false);
-    setCurrentStep(4); // "Contrato Activado"
-    
-    // TODO: Enviar datos a la API y activar contrato
+  const handleBiometricComplete = async (_data: any) => {
+    try {
+      if (contract?.id) {
+        await contractService.completeAuthentication(contract.id);
+      }
+      setShowBiometricFlow(false);
+      setCurrentStep(4);
+    } catch {
+      setShowBiometricFlow(false);
+      setCurrentStep(4);
+    }
   };
 
   // Formatear moneda colombiana
@@ -204,7 +205,7 @@ const TenantInvitationLanding: React.FC = () => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -213,7 +214,7 @@ const TenantInvitationLanding: React.FC = () => {
     return new Date(dateString).toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -477,8 +478,8 @@ const TenantInvitationLanding: React.FC = () => {
         fullScreen
         PaperProps={{
           sx: {
-            bgcolor: 'grey.50'
-          }
+            bgcolor: 'grey.50',
+          },
         }}
       >
         <DialogContent sx={{ p: 0 }}>
@@ -489,7 +490,7 @@ const TenantInvitationLanding: React.FC = () => {
             userInfo={{
               fullName: invitation.tenantName,
               documentNumber: undefined, // Se capturará en el flujo
-              documentIssueDate: undefined // Se capturará en el flujo
+              documentIssueDate: undefined, // Se capturará en el flujo
             }}
           />
         </DialogContent>

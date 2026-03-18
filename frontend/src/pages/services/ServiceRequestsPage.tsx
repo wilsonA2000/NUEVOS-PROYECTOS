@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -10,6 +10,9 @@ import {
   Avatar,
   useTheme,
   Badge,
+  CircularProgress,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import {
   Assignment as AssignmentIcon,
@@ -18,63 +21,72 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-// import { useUser } from '../../hooks/useUser';
-// MOCK TEMPORAL para evitar error de compilación
-const useUser = () => ({ user: null });
+import { requestService } from '../../services/requestService';
+
+interface ServiceRequest {
+  id: number | string;
+  client: string;
+  service: string;
+  description: string;
+  status: string;
+  date: string;
+  time: string;
+  address: string;
+  price: string;
+  urgent: boolean;
+}
 
 const ServiceRequestsPage: React.FC = () => {
-  const { user } = useUser();
   const theme = useTheme();
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | number | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
-  // Datos de ejemplo para solicitudes de servicio
-  const serviceRequests = [
-    {
-      id: 1,
-      client: 'Ana Rodríguez',
-      service: 'Limpieza Profesional',
-      description: 'Necesito limpieza de mi apartamento de 2 habitaciones',
-      status: 'pending',
-      date: '2024-01-15',
-      time: '10:00 AM',
-      address: 'Calle Principal 123, Ciudad',
-      price: '$60',
-      urgent: true,
-    },
-    {
-      id: 2,
-      client: 'Carlos Méndez',
-      service: 'Mantenimiento General',
-      description: 'Reparación de grifo en cocina y cambio de bombilla',
-      status: 'accepted',
-      date: '2024-01-16',
-      time: '2:00 PM',
-      address: 'Avenida Central 456, Ciudad',
-      price: '$80',
-      urgent: false,
-    },
-    {
-      id: 3,
-      client: 'María López',
-      service: 'Plomería',
-      description: 'Fuga de agua en baño principal',
-      status: 'completed',
-      date: '2024-01-14',
-      time: '9:00 AM',
-      address: 'Calle Secundaria 789, Ciudad',
-      price: '$120',
-      urgent: true,
-    },
-  ];
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await requestService.getServiceRequests();
+      const data = response as any;
+      const requests = Array.isArray(data) ? data : data?.results || [];
+      setServiceRequests(requests.map((r: any) => ({
+        id: r.id,
+        client: r.requester_name || r.client || 'Cliente',
+        service: r.service_type || r.service || 'Servicio',
+        description: r.description || '',
+        status: r.status || 'pending',
+        date: r.scheduled_date || r.created_at?.split('T')[0] || '',
+        time: r.scheduled_time || '',
+        address: r.address || '',
+        price: r.price ? `$${r.price}` : '$0',
+        urgent: r.is_urgent || r.priority === 'high' || false,
+      })));
+    } catch {
+      setServiceRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
         return 'warning';
       case 'accepted':
+      case 'in_progress':
         return 'info';
       case 'completed':
         return 'success';
       case 'cancelled':
+      case 'rejected':
         return 'error';
       default:
         return 'default';
@@ -86,30 +98,51 @@ const ServiceRequestsPage: React.FC = () => {
       case 'pending':
         return 'Pendiente';
       case 'accepted':
-        return 'Aceptado';
+      case 'in_progress':
+        return 'En Progreso';
       case 'completed':
         return 'Completado';
       case 'cancelled':
         return 'Cancelado';
+      case 'rejected':
+        return 'Rechazado';
       default:
         return status;
     }
   };
 
-  const handleAcceptRequest = (requestId: number) => {
-
-// TODO: Implementar lógica para aceptar solicitud
+  const updateRequestStatus = async (requestId: number | string, action: 'accept' | 'reject' | 'complete', successMsg: string) => {
+    try {
+      setActionLoading(requestId);
+      await requestService.performRequestAction(String(requestId), { action });
+      setSnackbar({ open: true, message: successMsg, severity: 'success' });
+      await fetchRequests();
+    } catch {
+      setSnackbar({ open: true, message: 'Error al procesar la solicitud', severity: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const handleRejectRequest = (requestId: number) => {
-
-// TODO: Implementar lógica para rechazar solicitud
+  const handleAcceptRequest = (requestId: number | string) => {
+    updateRequestStatus(requestId, 'accept', 'Solicitud aceptada exitosamente');
   };
 
-  const handleCompleteRequest = (requestId: number) => {
-
-// TODO: Implementar lógica para completar solicitud
+  const handleRejectRequest = (requestId: number | string) => {
+    updateRequestStatus(requestId, 'reject', 'Solicitud rechazada');
   };
+
+  const handleCompleteRequest = (requestId: number | string) => {
+    updateRequestStatus(requestId, 'complete', 'Solicitud completada exitosamente');
+  };
+
+  if (loading && serviceRequests.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -240,29 +273,32 @@ const ServiceRequestsPage: React.FC = () => {
                         color="success"
                         size="small"
                         sx={{ flex: 1 }}
+                        disabled={actionLoading === request.id}
                         onClick={() => handleAcceptRequest(request.id)}
                       >
-                        Aceptar
+                        {actionLoading === request.id ? <CircularProgress size={20} /> : 'Aceptar'}
                       </Button>
                       <Button
                         variant="outlined"
                         color="error"
                         size="small"
                         sx={{ flex: 1 }}
+                        disabled={actionLoading === request.id}
                         onClick={() => handleRejectRequest(request.id)}
                       >
                         Rechazar
                       </Button>
                     </>
                   )}
-                  {request.status === 'accepted' && (
+                  {(request.status === 'accepted' || request.status === 'in_progress') && (
                     <Button
                       variant="contained"
                       color="success"
                       fullWidth
+                      disabled={actionLoading === request.id}
                       onClick={() => handleCompleteRequest(request.id)}
                     >
-                      Marcar como Completado
+                      {actionLoading === request.id ? <CircularProgress size={20} /> : 'Marcar como Completado'}
                     </Button>
                   )}
                   {request.status === 'completed' && (
@@ -280,8 +316,24 @@ const ServiceRequestsPage: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+
+      {serviceRequests.length === 0 && !loading && (
+        <Alert severity="info" sx={{ mt: 3 }}>
+          No hay solicitudes de servicio por el momento.
+        </Alert>
+      )}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
-export default ServiceRequestsPage; 
+export default ServiceRequestsPage;

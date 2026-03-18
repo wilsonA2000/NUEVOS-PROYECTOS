@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 // import { visualizer } from 'rollup-plugin-visualizer';
 import { splitVendorChunkPlugin } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,6 +14,146 @@ export default defineConfig({
     }),
     // Split vendor chunks automatically
     splitVendorChunkPlugin(),
+    // PWA Support
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['images/**/*', 'placeholder-property.jpg', 'placeholder-property.svg'],
+      manifest: {
+        name: 'VeriHome - Plataforma Inmobiliaria',
+        short_name: 'VeriHome',
+        description: 'Plataforma integral para conectar arrendadores, arrendatarios y prestadores de servicios inmobiliarios en Colombia',
+        theme_color: '#1976d2',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        lang: 'es-CO',
+        orientation: 'portrait-primary',
+        categories: ['business', 'productivity'],
+        icons: [
+          {
+            src: '/images/icon-48x48.svg',
+            sizes: '48x48',
+            type: 'image/svg+xml',
+          },
+          {
+            src: '/images/icon-72x72.svg',
+            sizes: '72x72',
+            type: 'image/svg+xml',
+          },
+          {
+            src: '/images/icon-96x96.svg',
+            sizes: '96x96',
+            type: 'image/svg+xml',
+          },
+          {
+            src: '/images/icon-144x144.svg',
+            sizes: '144x144',
+            type: 'image/svg+xml',
+          },
+          {
+            src: '/images/icon-192x192.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+          {
+            src: '/images/icon-512x512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+        ],
+        shortcuts: [
+          {
+            name: 'Dashboard',
+            short_name: 'Dashboard',
+            description: 'Acceso directo al dashboard principal',
+            url: '/app/dashboard',
+          },
+          {
+            name: 'Propiedades',
+            short_name: 'Propiedades',
+            description: 'Ver y gestionar propiedades',
+            url: '/app/properties',
+          },
+          {
+            name: 'Mensajes',
+            short_name: 'Mensajes',
+            description: 'Centro de mensajes y comunicación',
+            url: '/app/messages',
+          },
+        ],
+      },
+      workbox: {
+        // Pre-cache app shell
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff,woff2}'],
+        // Runtime caching strategies
+        runtimeCaching: [
+          {
+            // API calls: NetworkFirst with 24h cache
+            urlPattern: /^https?:\/\/.*\/api\/v1\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 10,
+            },
+          },
+          {
+            // Static assets: CacheFirst with 30d cache
+            urlPattern: /\.(?:js|css|woff|woff2|ttf|eot)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Images: CacheFirst with 7d cache
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|avif|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Google Fonts
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
+    }),
     // Bundle analyzer (solo en build)
     // process.env.ANALYZE && visualizer({
     //   filename: 'dist/stats.html',
@@ -33,7 +174,7 @@ export default defineConfig({
   build: {
     outDir: '../staticfiles/frontend',
     emptyOutDir: true,
-    target: 'es2015',
+    target: 'es2020',
     minify: 'terser',
     sourcemap: process.env.NODE_ENV === 'development',
     // Increase chunk size limit for better optimization
@@ -161,9 +302,8 @@ export default defineConfig({
         },
       },
       treeshake: {
-        // Enable aggressive tree shaking
-        moduleSideEffects: false,
-        propertyReadSideEffects: false,
+        moduleSideEffects: true,
+        propertyReadSideEffects: true,
         tryCatchDeoptimization: false,
       },
     },

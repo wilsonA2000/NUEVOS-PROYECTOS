@@ -86,7 +86,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
     request.sender.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     request.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (request.property?.title && request.property.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (request.service?.title && request.service.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    (request.service?.title && request.service.title.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   if (filteredRequests.length === 0) {
@@ -167,7 +167,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       mb: 1,
-                      fontWeight: request.is_read ? 400 : 500
+                      fontWeight: request.is_read ? 400 : 500,
                     }}
                   >
                     {request.message}
@@ -179,7 +179,7 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       })}
                     </Typography>
                     

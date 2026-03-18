@@ -108,8 +108,8 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
       const now = Date.now();
       setNotifications(prev => 
         prev.filter(notif => 
-          now - new Date(notif.timestamp).getTime() < autoClearAfter
-        )
+          now - new Date(notif.timestamp).getTime() < autoClearAfter,
+        ),
       );
     }, 60000); // Check every minute
 
@@ -182,23 +182,24 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
     }
 
     // Show toast notification
+    const autoCloseValue = notification.priority === 'urgent' ? false : 5000;
     const toastOptions = {
-      autoClose: notification.priority === 'urgent' ? false : 5000,
+      autoClose: autoCloseValue,
       onClick: () => handleNotificationClick(notification),
     };
 
     switch (notification.priority) {
       case 'urgent':
-        toast.error(notification.body, toastOptions);
+        toast.error(notification.body, toastOptions as any);
         break;
       case 'high':
-        toast.warning(notification.body, toastOptions);
+        toast.warning(notification.body, toastOptions as any);
         break;
       case 'medium':
-        toast.info(notification.body, toastOptions);
+        toast.info(notification.body, toastOptions as any);
         break;
       default:
-        toast.success(notification.body, toastOptions);
+        toast.success(notification.body, toastOptions as any);
     }
 
     // Play sound if enabled
@@ -298,14 +299,14 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
   const markAsRead = (id: string) => {
     setNotifications(prev => 
       prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
+        notif.id === id ? { ...notif, read: true } : notif,
+      ),
     );
   };
 
   const markAllAsRead = () => {
     setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
+      prev.map(notif => ({ ...notif, read: true })),
     );
   };
 
@@ -529,7 +530,7 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                             <Typography variant="caption" color="text.secondary">
                               {formatDistanceToNow(
                                 new Date(notification.timestamp),
-                                { addSuffix: true, locale: es }
+                                { addSuffix: true, locale: es },
                               )}
                             </Typography>
                           </Box>

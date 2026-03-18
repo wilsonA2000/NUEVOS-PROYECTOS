@@ -32,7 +32,7 @@ const LandlordOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 const TenantOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   
-  if (user?.user_type !== 'tenant' && user?.user_type !== 'candidate') {
+  if (user?.user_type !== 'tenant') {
     return (
       <Box p={3}>
         <Alert severity="warning">

@@ -86,7 +86,7 @@ import {
   LandlordControlledContractData, 
   ContractWorkflowState, 
   ContractFilters,
-  ContractStatistics 
+  ContractStatistics, 
 } from '../../types/landlordContract';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../common/LoadingSpinner';
@@ -142,18 +142,18 @@ const LandlordContractsDashboard: React.FC = () => {
         ...filters,
         landlord_id: user?.id,
         ...(stateFilter && { state: [stateFilter] }),
-        ...(searchQuery && { search_query: searchQuery })
+        ...(searchQuery && { search_query: searchQuery }),
       };
       
       const [contractsResponse, statsResponse] = await Promise.all([
         LandlordContractService.getContracts(searchFilters),
-        LandlordContractService.getContractStatistics()
+        LandlordContractService.getContractStatistics(),
       ]);
       
       setContracts(contractsResponse.contracts);
       setStatistics(statsResponse);
     } catch (err: any) {
-      setError('Error al cargar dashboard: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar dashboard: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -178,7 +178,7 @@ const LandlordContractsDashboard: React.FC = () => {
       pending: sorted.filter(c => ['TENANT_INVITED', 'TENANT_REVIEWING', 'LANDLORD_REVIEWING', 'OBJECTIONS_PENDING', 'BOTH_REVIEWING'].includes(c.current_state)),
       ready: sorted.filter(c => c.current_state === 'READY_TO_SIGN' || c.current_state === 'FULLY_SIGNED'),
       active: sorted.filter(c => c.current_state === 'PUBLISHED'),
-      all: sorted
+      all: sorted,
     };
   }, [contracts, sortBy]);
 
@@ -197,21 +197,21 @@ const LandlordContractsDashboard: React.FC = () => {
         subtitle: 'COP/mes',
         icon: <MoneyIcon />,
         color: 'success',
-        trend: { value: 12.5, direction: 'up' }
+        trend: { value: 12.5, direction: 'up' },
       },
       {
         title: 'Contratos Activos',
         value: statistics.by_state.PUBLISHED || 0,
         subtitle: `de ${statistics.total_contracts} total`,
         icon: <CompleteIcon />,
-        color: 'primary'
+        color: 'primary',
       },
       {
         title: 'Canon Promedio',
         value: `$${avgRent.toLocaleString('es-CO')}`,
         subtitle: 'COP/mes',
         icon: <AnalyticsIcon />,
-        color: 'info'
+        color: 'info',
       },
       {
         title: 'Tasa de Ocupación',
@@ -219,22 +219,22 @@ const LandlordContractsDashboard: React.FC = () => {
         subtitle: 'de propiedades',
         icon: <PieChartIcon />,
         color: occupancyRate >= 80 ? 'success' : occupancyRate >= 60 ? 'warning' : 'error',
-        trend: { value: 5.2, direction: 'up' }
+        trend: { value: 5.2, direction: 'up' },
       },
       {
         title: 'Pendientes de Firma',
         value: statistics.pending_signatures,
         subtitle: 'requieren atención',
         icon: <SignIcon />,
-        color: 'warning'
+        color: 'warning',
       },
       {
         title: 'Objeciones Activas',
         value: statistics.objections_pending,
         subtitle: 'por resolver',
         icon: <WarningIcon />,
-        color: statistics.objections_pending > 0 ? 'error' : 'success'
-      }
+        color: statistics.objections_pending > 0 ? 'error' : 'success',
+      },
     ];
   }, [statistics]);
 
@@ -244,7 +244,7 @@ const LandlordContractsDashboard: React.FC = () => {
     { label: 'Borradores', count: contractsByCategory.draft.length, color: 'default' },
     { label: 'En Proceso', count: contractsByCategory.pending.length, color: 'warning' },
     { label: 'Listos/Firmados', count: contractsByCategory.ready.length, color: 'info' },
-    { label: 'Activos', count: contractsByCategory.active.length, color: 'success' }
+    { label: 'Activos', count: contractsByCategory.active.length, color: 'success' },
   ];
 
   // Obtener contratos de la pestaña actual
@@ -288,7 +288,7 @@ const LandlordContractsDashboard: React.FC = () => {
       'PUBLISHED': 'Activo',
       'EXPIRED': 'Expirado',
       'TERMINATED': 'Terminado',
-      'CANCELLED': 'Cancelado'
+      'CANCELLED': 'Cancelado',
     };
     return stateTexts[state] || state;
   };
@@ -368,13 +368,16 @@ const LandlordContractsDashboard: React.FC = () => {
           setAnalyticsDialogOpen(true);
           break;
         case 'download':
-          // TODO: Implementar descarga de PDF
+          window.open(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contract.id}/download-pdf/`,
+            '_blank',
+          );
           break;
         default:
           console.log(`Acción ${actionId} no implementada`);
       }
     } catch (err: any) {
-      setError('Error al ejecutar acción: ' + (err.message || 'Error desconocido'));
+      setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);
     }
   };
 

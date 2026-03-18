@@ -1,0 +1,64 @@
+{
+  "labels": {
+    "title": "T\u00edtulo",
+    "description": "Descripci\u00f3n",
+    "priority": "Prioridad",
+    "category": "Categor\u00eda",
+    "assignedTo": "Asignado A",
+    "reportedBy": "Reportado Por",
+    "reportDate": "Fecha de Reporte",
+    "completionDate": "Fecha de Completado",
+    "estimatedCost": "Costo Estimado",
+    "actualCost": "Costo Real",
+    "property": "Propiedad",
+    "unit": "Unidad",
+    "photos": "Fotos"
+  },
+  "priorities": {
+    "low": "Baja",
+    "medium": "Media",
+    "high": "Alta",
+    "urgent": "Urgente",
+    "emergency": "Emergencia"
+  },
+  "categories": {
+    "plumbing": "Plomer\u00eda",
+    "electrical": "El\u00e9ctrico",
+    "structural": "Estructural",
+    "painting": "Pintura",
+    "appliances": "Electrodom\u00e9sticos",
+    "locksmith": "Cerrajer\u00eda",
+    "cleaning": "Limpieza",
+    "pest": "Control de Plagas",
+    "hvac": "Aire Acondicionado / Calefacci\u00f3n",
+    "general": "General",
+    "other": "Otro"
+  },
+  "status": {
+    "reported": "Reportado",
+    "acknowledged": "Recibido",
+    "inProgress": "En Progreso",
+    "waitingParts": "Esperando Repuestos",
+    "completed": "Completado",
+    "cancelled": "Cancelado",
+    "closed": "Cerrado"
+  },
+  "actions": {
+    "createRequest": "Crear Solicitud",
+    "assignTechnician": "Asignar T\u00e9cnico",
+    "updateStatus": "Actualizar Estado",
+    "addComment": "Agregar Comentario",
+    "uploadPhoto": "Subir Foto",
+    "markCompleted": "Marcar como Completado",
+    "closeRequest": "Cerrar Solicitud",
+    "requestQuote": "Solicitar Cotizaci\u00f3n"
+  },
+  "messages": {
+    "requestCreated": "Solicitud de mantenimiento creada exitosamente",
+    "requestUpdated": "Solicitud actualizada exitosamente",
+    "technicianAssigned": "T\u00e9cnico asignado exitosamente",
+    "requestCompleted": "Solicitud de mantenimiento completada",
+    "noRequests": "No hay solicitudes de mantenimiento",
+    "urgentNotice": "Esta solicitud requiere atenci\u00f3n inmediata"
+  }
+}

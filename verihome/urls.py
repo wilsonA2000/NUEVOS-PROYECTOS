@@ -10,6 +10,7 @@ from django.views.generic import TemplateView
 from users.views import ResendVerificationEmailView
 from rest_framework_simplejwt.views import TokenRefreshView
 from core.views import index, ReactAppView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 # Personalizar la información del admin
 admin.site.site_header = "VeriHome Administración"
@@ -39,6 +40,11 @@ urlpatterns = [
     # Ruta para reenviar correo de verificación
     path('reenviar-verificacion/', ResendVerificationEmailView.as_view(), name='account_email_verification_resend'),
     
+    # API Documentation (OpenAPI/Swagger)
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/v1/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
     # API REST
     path('api/v1/', include([
         path('users/', include('users.api_urls')),

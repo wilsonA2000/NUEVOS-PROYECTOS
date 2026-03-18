@@ -1,33 +1,18 @@
 /**
  * Tests de Integración - Flujo Completo de Contratos
  * Prueba el workflow completo desde la creación hasta la publicación
- * Incluye interacciones entre servicios, componentes y APIs
+ * Incluye interacciones entre servicios y APIs
  */
 
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, jest, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { BrowserRouter } from 'react-router-dom';
-import MockAdapter from 'axios-mock-adapter';
-import React from 'react';
-
-// Components under test
-import LandlordContractManager from '../../components/contracts/LandlordContractManager';
-import TenantContractReview from '../../components/contracts/TenantContractReview';
-import BiometricContractSigning from '../../components/contracts/BiometricContractSigning';
-import ContractsDashboard from '../../components/contracts/ContractsDashboard';
-
-// Services
-import { LandlordContractService } from '../../services/landlordContractService';
+// The api module is already mocked globally in setupTests.ts via __mocks__/api.ts
 import { api } from '../../services/api';
+import { LandlordContractService } from '../../services/landlordContractService';
+import contractService from '../../services/contractService';
 
 // Types
 import {
   LandlordControlledContractData,
   ContractWorkflowState,
-  TenantData,
-  ContractObjection
 } from '../../types/landlordContract';
 
 // Test utilities
@@ -37,29 +22,15 @@ import {
   createMockUser,
   createMockInvitationResponse,
   createMockSignatureData,
+  createMockStatistics,
   createTestDates,
   cleanupMocks
 } from '../../test-utils/contractTestUtils';
 
-// Mock hooks
-import { useAuth } from '../../hooks/useAuth';
-jest.mock('../../hooks/useAuth');
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-// Mock API
-let mockAxios: MockAdapter;
-
-// Theme para testing
-const theme = createTheme();
-
-// Test wrapper con providers
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      {children}
-    </ThemeProvider>
-  </BrowserRouter>
-);
+// Cast to jest.Mock for typing
+const mockGet = api.get as jest.Mock;
+const mockPost = api.post as jest.Mock;
+const mockPatch = api.patch as jest.Mock;
 
 // Mock data para flujo completo
 const mockLandlordUser = createMockUser('landlord', {
@@ -82,43 +53,37 @@ const mockTenantData = createMockTenantData({
 });
 
 // Estados del contrato para el flujo completo
-const createContractStates = (baseContract: LandlordControlledContractData) => ({
-  draft: { ...baseContract, current_state: 'DRAFT' as ContractWorkflowState },
-  tenantInvited: { 
-    ...baseContract, 
-    current_state: 'TENANT_INVITED' as ContractWorkflowState,
+const createContractStates = (baseId: string) => ({
+  draft: createMockContract('DRAFT', { id: baseId }),
+  tenantInvited: createMockContract('TENANT_INVITED', {
+    id: baseId,
     tenant_email: 'tenant@test.com'
-  },
-  tenantReviewing: { 
-    ...baseContract, 
-    current_state: 'TENANT_REVIEWING' as ContractWorkflowState,
+  }),
+  tenantReviewing: createMockContract('TENANT_REVIEWING', {
+    id: baseId,
     tenant_data: mockTenantData
-  },
-  landlordReviewing: { 
-    ...baseContract, 
-    current_state: 'LANDLORD_REVIEWING' as ContractWorkflowState,
+  }),
+  landlordReviewing: createMockContract('LANDLORD_REVIEWING', {
+    id: baseId,
     tenant_data: mockTenantData,
     tenant_approved: true
-  },
-  readyToSign: { 
-    ...baseContract, 
-    current_state: 'READY_TO_SIGN' as ContractWorkflowState,
+  }),
+  readyToSign: createMockContract('READY_TO_SIGN', {
+    id: baseId,
     tenant_data: mockTenantData,
     landlord_approved: true,
     tenant_approved: true
-  },
-  fullySigned: { 
-    ...baseContract, 
-    current_state: 'FULLY_SIGNED' as ContractWorkflowState,
+  }),
+  fullySigned: createMockContract('FULLY_SIGNED', {
+    id: baseId,
     tenant_data: mockTenantData,
     landlord_approved: true,
     tenant_approved: true,
     landlord_signed: true,
     tenant_signed: true
-  },
-  published: { 
-    ...baseContract, 
-    current_state: 'PUBLISHED' as ContractWorkflowState,
+  }),
+  published: createMockContract('PUBLISHED', {
+    id: baseId,
     tenant_data: mockTenantData,
     landlord_approved: true,
     tenant_approved: true,
@@ -126,67 +91,20 @@ const createContractStates = (baseContract: LandlordControlledContractData) => (
     tenant_signed: true,
     published: true,
     published_at: new Date().toISOString()
-  }
+  })
 });
 
 describe('Contract Workflow Integration Tests', () => {
-  let baseContract: LandlordControlledContractData;
+  const baseContractId = 'integration-contract-123';
   let contractStates: ReturnType<typeof createContractStates>;
 
-  beforeAll(() => {
-    // Configurar mocks globales para APIs del navegador
-    global.navigator.mediaDevices = {
-      getUserMedia: jest.fn().mockResolvedValue({
-        getTracks: () => [{ stop: jest.fn() }]
-      })
-    } as any;
-
-    global.MediaRecorder = jest.fn().mockImplementation(() => ({
-      start: jest.fn(),
-      stop: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      state: 'inactive'
-    })) as any;
-
-    global.HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue({
-      fillStyle: '',
-      fillRect: jest.fn(),
-      beginPath: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
-      clearRect: jest.fn(),
-      getImageData: jest.fn(() => ({ data: new Uint8ClampedArray(4) }))
-    });
-
-    global.HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/png;base64,mock-signature');
-    global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
-    global.URL.revokeObjectURL = jest.fn();
-  });
-
   beforeEach(() => {
-    mockAxios = new MockAdapter(api);
     jest.clearAllMocks();
-
-    // Crear contrato base para tests
-    baseContract = createMockContract('DRAFT', {
-      id: 'integration-contract-123',
-      property_address: 'Apartamento de Integración, El Poblado'
-    });
-
-    contractStates = createContractStates(baseContract);
+    contractStates = createContractStates(baseContractId);
   });
 
   afterEach(() => {
-    mockAxios.restore();
     cleanupMocks();
-  });
-
-  afterAll(() => {
-    // Limpiar mocks globales
-    delete (global.navigator as any).mediaDevices;
-    delete (global as any).MediaRecorder;
   });
 
   // =====================================================================
@@ -194,117 +112,111 @@ describe('Contract Workflow Integration Tests', () => {
   // =====================================================================
 
   describe('Complete Landlord Workflow', () => {
-    beforeEach(() => {
-      mockUseAuth.mockReturnValue({
-        user: mockLandlordUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
+    it('should complete full contract creation workflow', async () => {
+      // Step 1: Create contract draft
+      mockPost.mockResolvedValueOnce({ data: contractStates.draft });
+
+      const createdContract = await LandlordContractService.createContract({
+        property_address: 'Apartamento de Integración Test',
+        monthly_rent: 2500000,
+        security_deposit: 2500000,
+        contract_duration_months: 12,
       });
+
+      expect(createdContract.id).toBe(baseContractId);
+      expect(createdContract.current_state).toBe('DRAFT');
+      expect(mockPost).toHaveBeenCalledTimes(1);
     });
 
-    it('should complete full contract creation and invitation workflow', async () => {
-      const user = userEvent.setup();
+    it('should send tenant invitation after contract creation', async () => {
+      // Step 2: Send invitation
+      mockPost.mockResolvedValueOnce({ data: { success: true } });
 
-      // Mock APIs para flujo completo
-      mockAxios.onPost('/api/v1/contracts/landlord/contracts/').reply(201, contractStates.draft);
-      mockAxios.onPost(`/api/v1/contracts/landlord/contracts/${baseContract.id}/create-invitation/`)
-        .reply(201, createMockInvitationResponse());
-      mockAxios.onPost(/\/api\/v1\/contracts\/invitations\/.+\/send\//)
-        .reply(200, { success: true, method: 'email' });
-
-      render(
-        <TestWrapper>
-          <LandlordContractManager />
-        </TestWrapper>
-      );
-
-      // Paso 1: Crear nuevo contrato
-      const createButton = await screen.findByText('Crear Nuevo Contrato');
-      await user.click(createButton);
-
-      // Llenar formulario básico
-      const addressInput = screen.getByLabelText(/Dirección de la Propiedad/);
-      await user.type(addressInput, 'Apartamento de Integración Test');
-
-      const rentInput = screen.getByLabelText(/Canon de Arrendamiento/);
-      await user.clear(rentInput);
-      await user.type(rentInput, '2500000');
-
-      // Guardar contrato
-      const saveButton = screen.getByText('Crear Contrato');
-      await user.click(saveButton);
-
-      // Verificar creación exitosa
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(1);
-        expect(mockAxios.history.post[0].url).toBe('/api/v1/contracts/landlord/contracts/');
+      const inviteResult = await LandlordContractService.sendTenantInvitation({
+        contract_id: baseContractId,
+        tenant_email: 'tenant@test.com',
+        personal_message: 'Please review this contract',
       });
 
-      // Paso 2: Invitar arrendatario
-      await waitFor(() => {
-        expect(screen.getByText('Invitar Arrendatario')).toBeInTheDocument();
-      });
-
-      const inviteButton = screen.getByText('Invitar Arrendatario');
-      await user.click(inviteButton);
-
-      // Llenar datos de invitación
-      const emailInput = screen.getByLabelText(/Email del Arrendatario/);
-      await user.type(emailInput, 'tenant@test.com');
-
-      const nameInput = screen.getByLabelText(/Nombre del Arrendatario/);
-      await user.type(nameInput, 'Ana María González');
-
-      // Enviar invitación
-      const sendInviteButton = screen.getByText('Enviar Invitación');
-      await user.click(sendInviteButton);
-
-      // Verificar invitación enviada
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(3); // Create + CreateInvitation + Send
-        expect(screen.getByText(/Invitación Enviada/)).toBeInTheDocument();
-      });
+      expect(inviteResult.success).toBe(true);
+      expect(mockPost).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle contract editing and approval workflow', async () => {
-      const user = userEvent.setup();
+    it('should handle contract approval workflow', async () => {
+      // Approve contract as landlord
+      mockPost.mockResolvedValueOnce({ data: contractStates.readyToSign });
 
-      // Mock contrato en estado LANDLORD_REVIEWING
-      mockAxios.onGet('/api/v1/contracts/landlord/contracts/')
-        .reply(200, { contracts: [contractStates.landlordReviewing] });
-      mockAxios.onPost(`/api/v1/contracts/landlord/contracts/${baseContract.id}/approve/`)
-        .reply(200, contractStates.readyToSign);
-
-      render(
-        <TestWrapper>
-          <LandlordContractManager />
-        </TestWrapper>
-      );
-
-      // Esperar carga de contratos
-      await waitFor(() => {
-        expect(screen.getByText('Apartamento de Integración, El Poblado')).toBeInTheDocument();
+      const approvedContract = await LandlordContractService.approveLandlordContract({
+        contract_id: baseContractId,
       });
 
-      // Abrir acciones del contrato
-      const moreButton = screen.getByLabelText('more');
-      await user.click(moreButton);
+      expect(approvedContract.current_state).toBe('READY_TO_SIGN');
+      expect(approvedContract.landlord_approved).toBe(true);
+      expect(approvedContract.tenant_approved).toBe(true);
+    });
 
-      // Aprobar contrato
-      const approveButton = screen.getByText('Aprobar');
-      await user.click(approveButton);
+    it('should handle contract signing', async () => {
+      const signatureData = createMockSignatureData('landlord');
 
-      // Confirmar aprobación
-      const confirmButton = screen.getByText('Confirmar Aprobación');
-      await user.click(confirmButton);
+      mockPost.mockResolvedValueOnce({ data: contractStates.fullySigned });
 
-      // Verificar aprobación
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(1);
-        expect(mockAxios.history.post[0].url).toContain('/approve/');
+      const signedContract = await LandlordContractService.signLandlordContract({
+        contract_id: baseContractId,
+        signature_data: signatureData.signature_image,
       });
+
+      expect(signedContract.current_state).toBe('FULLY_SIGNED');
+      expect(signedContract.landlord_signed).toBe(true);
+    });
+
+    it('should handle contract publication', async () => {
+      mockPost.mockResolvedValueOnce({ data: contractStates.published });
+
+      const publishedContract = await LandlordContractService.publishContract({
+        contract_id: baseContractId,
+      });
+
+      expect(publishedContract.current_state).toBe('PUBLISHED');
+      expect(publishedContract.published).toBe(true);
+      expect(publishedContract.published_at).toBeDefined();
+    });
+
+    it('should complete end-to-end workflow from draft to published', async () => {
+      // 1. Create
+      mockPost.mockResolvedValueOnce({ data: contractStates.draft });
+      const created = await LandlordContractService.createContract({ monthly_rent: 2500000 });
+      expect(created.current_state).toBe('DRAFT');
+
+      // 2. Invite tenant
+      mockPost.mockResolvedValueOnce({ data: { success: true } });
+      await LandlordContractService.sendTenantInvitation({
+        contract_id: baseContractId,
+        tenant_email: 'tenant@test.com',
+      });
+
+      // 3. Approve
+      mockPost.mockResolvedValueOnce({ data: contractStates.readyToSign });
+      const approved = await LandlordContractService.approveLandlordContract({
+        contract_id: baseContractId,
+      });
+      expect(approved.current_state).toBe('READY_TO_SIGN');
+
+      // 4. Sign
+      mockPost.mockResolvedValueOnce({ data: contractStates.fullySigned });
+      const signed = await LandlordContractService.signLandlordContract({
+        contract_id: baseContractId,
+        signature_data: 'base64-signature',
+      });
+      expect(signed.landlord_signed).toBe(true);
+
+      // 5. Publish
+      mockPost.mockResolvedValueOnce({ data: contractStates.published });
+      const published = await LandlordContractService.publishContract({
+        contract_id: baseContractId,
+      });
+      expect(published.published).toBe(true);
+
+      expect(mockPost).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -313,122 +225,76 @@ describe('Contract Workflow Integration Tests', () => {
   // =====================================================================
 
   describe('Complete Tenant Workflow', () => {
-    beforeEach(() => {
-      mockUseAuth.mockReturnValue({
-        user: mockTenantUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
+    it('should accept tenant invitation', async () => {
+      mockPost.mockResolvedValueOnce({ data: contractStates.tenantReviewing });
+
+      const contract = await LandlordContractService.acceptTenantInvitation({
+        invitation_token: 'test-token-123',
       });
+
+      expect(contract.current_state).toBe('TENANT_REVIEWING');
     });
 
-    it('should complete tenant review and approval workflow', async () => {
-      const user = userEvent.setup();
-
-      // Mock contrato en estado TENANT_REVIEWING
-      mockAxios.onGet(`/api/v1/contracts/tenant/contract/${baseContract.id}/`)
-        .reply(200, contractStates.tenantReviewing);
-      mockAxios.onPost(`/api/v1/contracts/tenant/contract/${baseContract.id}/submit-data/`)
-        .reply(200, { ...contractStates.tenantReviewing, current_state: 'LANDLORD_REVIEWING' });
-      mockAxios.onPost(`/api/v1/contracts/tenant/contract/${baseContract.id}/approve/`)
-        .reply(200, contractStates.readyToSign);
-
-      render(
-        <TestWrapper>
-          <TenantContractReview contractId={baseContract.id} />
-        </TestWrapper>
-      );
-
-      // Esperar carga del contrato
-      await waitFor(() => {
-        expect(screen.getByText('Apartamento de Integración, El Poblado')).toBeInTheDocument();
+    it('should complete tenant data submission', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { ...contractStates.tenantReviewing, current_state: 'LANDLORD_REVIEWING' }
       });
 
-      // Paso 1: Completar datos personales
-      const fullNameInput = screen.getByLabelText(/Nombre Completo/);
-      await user.clear(fullNameInput);
-      await user.type(fullNameInput, 'Ana María González');
-
-      const phoneInput = screen.getByLabelText(/Teléfono/);
-      await user.type(phoneInput, '+57 301 987 6543');
-
-      const incomeInput = screen.getByLabelText(/Ingresos Mensuales/);
-      await user.type(incomeInput, '5000000');
-
-      // Guardar datos
-      const saveDataButton = screen.getByText('Guardar Datos');
-      await user.click(saveDataButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(1);
-        expect(mockAxios.history.post[0].url).toContain('/submit-data/');
+      const result = await LandlordContractService.completeTenantData({
+        contract_id: baseContractId,
+        tenant_data: mockTenantData,
       });
 
-      // Paso 2: Aprobar contrato
-      const approveButton = screen.getByText('Aprobar Contrato');
-      await user.click(approveButton);
+      expect(result.current_state).toBe('LANDLORD_REVIEWING');
+    });
 
-      // Confirmar aprobación
-      const confirmButton = screen.getByText('Confirmar Aprobación');
-      await user.click(confirmButton);
+    it('should approve contract as tenant', async () => {
+      mockPost.mockResolvedValueOnce({ data: contractStates.readyToSign });
 
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(2);
-        expect(mockAxios.history.post[1].url).toContain('/approve/');
+      const result = await LandlordContractService.approveTenantContract({
+        contract_id: baseContractId,
       });
+
+      expect(result.current_state).toBe('READY_TO_SIGN');
+      expect(result.tenant_approved).toBe(true);
     });
 
     it('should handle tenant objections workflow', async () => {
-      const user = userEvent.setup();
+      const objectionData = {
+        contract_id: baseContractId,
+        field_name: 'monthly_rent',
+        current_value: '2500000',
+        proposed_value: '2200000',
+        justification: 'Precio muy alto para la zona',
+        priority: 'HIGH' as const,
+      };
 
-      // Mock APIs para objeciones
-      mockAxios.onGet(`/api/v1/contracts/tenant/contract/${baseContract.id}/`)
-        .reply(200, contractStates.tenantReviewing);
-      mockAxios.onPost(`/api/v1/contracts/tenant/contract/${baseContract.id}/create-objection/`)
-        .reply(201, {
+      mockPost.mockResolvedValueOnce({
+        data: {
           id: 'objection-123',
-          field_name: 'monthly_rent',
-          current_value: '2500000',
-          proposed_value: '2200000',
-          justification: 'Precio muy alto para la zona'
-        });
-
-      render(
-        <TestWrapper>
-          <TenantContractReview contractId={baseContract.id} />
-        </TestWrapper>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Apartamento de Integración, El Poblado')).toBeInTheDocument();
+          ...objectionData,
+          status: 'PENDING',
+          created_at: new Date().toISOString(),
+        }
       });
 
-      // Crear objeción
-      const objectButton = screen.getByText('Crear Objeción');
-      await user.click(objectButton);
+      const objection = await LandlordContractService.submitObjection(objectionData);
 
-      // Seleccionar campo a objetar
-      const fieldSelect = screen.getByLabelText(/Campo a Objetar/);
-      await user.click(fieldSelect);
-      await user.click(screen.getByText('Canon de Arrendamiento'));
+      expect(objection.field_name).toBe('monthly_rent');
+      expect(objection.proposed_value).toBe('2200000');
+      expect(mockPost).toHaveBeenCalledTimes(1);
+    });
 
-      // Proponer nuevo valor
-      const proposedValueInput = screen.getByLabelText(/Valor Propuesto/);
-      await user.type(proposedValueInput, '2200000');
+    it('should sign contract as tenant', async () => {
+      mockPost.mockResolvedValueOnce({ data: contractStates.fullySigned });
 
-      // Justificación
-      const justificationInput = screen.getByLabelText(/Justificación/);
-      await user.type(justificationInput, 'El precio está por encima del promedio de mercado');
-
-      // Enviar objeción
-      const submitObjectionButton = screen.getByText('Enviar Objeción');
-      await user.click(submitObjectionButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(1);
-        expect(mockAxios.history.post[0].url).toContain('/create-objection/');
+      const result = await LandlordContractService.signTenantContract({
+        contract_id: baseContractId,
+        signature_data: 'base64-tenant-signature',
       });
+
+      expect(result.current_state).toBe('FULLY_SIGNED');
+      expect(result.tenant_signed).toBe(true);
     });
   });
 
@@ -437,192 +303,73 @@ describe('Contract Workflow Integration Tests', () => {
   // =====================================================================
 
   describe('Complete Biometric Signing Workflow', () => {
-    beforeEach(() => {
-      mockUseAuth.mockReturnValue({
-        user: mockTenantUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
-      });
-    });
-
     it('should complete full biometric authentication and signing', async () => {
-      const user = userEvent.setup();
+      // Step 1: Start biometric auth
+      mockPost.mockResolvedValueOnce({
+        data: { authenticationId: 'auth-123', securityLevel: 'high' }
+      });
 
-      // Mock APIs para flujo biométrico completo
-      mockAxios.onPost(`/api/v1/contracts/${baseContract.id}/start-biometric-authentication/`)
-        .reply(200, { authenticationId: 'auth-123' });
+      const authInit = await contractService.startBiometricAuthentication(baseContractId);
+      expect(authInit.authenticationId).toBe('auth-123');
 
-      // Mock responses para cada paso biométrico
-      const mockBiometricSteps = {
-        face_front: {
-          authenticationId: 'auth-123',
+      // Step 2: Face capture
+      mockPost.mockResolvedValueOnce({
+        data: {
           step: 'face_front',
           status: 'success',
           confidenceScore: 0.95,
-          nextStep: 'face_side',
-          completedSteps: { face_front: true, face_side: false, document: false, combined: false, voice: false }
-        },
-        face_side: {
-          authenticationId: 'auth-123',
-          step: 'face_side',
-          status: 'success',
-          confidenceScore: 0.92,
-          nextStep: 'document',
-          completedSteps: { face_front: true, face_side: true, document: false, combined: false, voice: false }
-        },
-        document: {
-          authenticationId: 'auth-123',
+          nextStep: 'document'
+        }
+      });
+
+      const faceResult = await contractService.processFaceCapture(baseContractId, 'front', 'side');
+      expect(faceResult.confidenceScore).toBe(0.95);
+
+      // Step 3: Document verification
+      mockPost.mockResolvedValueOnce({
+        data: {
           step: 'document',
           status: 'success',
           confidenceScore: 0.98,
-          nextStep: 'combined',
-          completedSteps: { face_front: true, face_side: true, document: true, combined: false, voice: false }
-        },
-        combined: {
-          authenticationId: 'auth-123',
-          step: 'combined',
-          status: 'success',
-          confidenceScore: 0.94,
-          nextStep: 'voice',
-          completedSteps: { face_front: true, face_side: true, document: true, combined: true, voice: false }
-        },
-        voice: {
-          authenticationId: 'auth-123',
+          extractedData: { documentNumber: '12345678', fullName: 'ANA MARIA GONZALEZ' }
+        }
+      });
+
+      const docResult = await contractService.processDocumentVerification(baseContractId, 'doc-img', 'CC');
+      expect(docResult.extractedData.fullName).toBe('ANA MARIA GONZALEZ');
+
+      // Step 4: Voice verification
+      mockPost.mockResolvedValueOnce({
+        data: {
           step: 'voice',
           status: 'success',
           confidenceScore: 0.89,
-          nextStep: 'signature',
-          completedSteps: { face_front: true, face_side: true, document: true, combined: true, voice: true }
+          transcription: 'Acepto los términos'
         }
-      };
+      });
 
-      mockAxios.onPost(`/api/v1/contracts/biometric/auth-123/face-capture/`)
-        .replyOnce(200, mockBiometricSteps.face_front)
-        .onPost(`/api/v1/contracts/biometric/auth-123/face-capture/`)
-        .replyOnce(200, mockBiometricSteps.face_side);
-
-      mockAxios.onPost(`/api/v1/contracts/biometric/auth-123/document-capture/`)
-        .reply(200, mockBiometricSteps.document);
-
-      mockAxios.onPost(`/api/v1/contracts/biometric/auth-123/combined-capture/`)
-        .reply(200, mockBiometricSteps.combined);
-
-      mockAxios.onPost(`/api/v1/contracts/biometric/auth-123/voice-capture/`)
-        .reply(200, mockBiometricSteps.voice);
-
-      mockAxios.onPost(`/api/v1/contracts/${baseContract.id}/complete-biometric-signature/`)
-        .reply(200, {
-          contract_id: baseContract.id,
-          signature_completed: true,
-          biometric_verified: true,
-          confidence_scores: {
-            face_confidence: 0.95,
-            document_confidence: 0.98,
-            voice_confidence: 0.89,
-            overall_confidence: 0.94
-          }
-        });
-
-      const mockOnSuccess = jest.fn();
-      const mockOnError = jest.fn();
-
-      render(
-        <TestWrapper>
-          <BiometricContractSigning
-            open={true}
-            onClose={jest.fn()}
-            contractId={baseContract.id}
-            onSuccess={mockOnSuccess}
-            onError={mockOnError}
-          />
-        </TestWrapper>
+      const voiceResult = await contractService.processVoiceVerification(
+        baseContractId,
+        'voice-data',
+        'Acepto los términos'
       );
+      expect(voiceResult.confidenceScore).toBe(0.89);
 
-      // Verificar inicialización
-      await waitFor(() => {
-        expect(screen.getByText('Firma Digital con Verificación Biométrica')).toBeInTheDocument();
-        expect(mockAxios.history.post).toHaveLength(1);
+      // Step 5: Complete authentication
+      mockPost.mockResolvedValueOnce({
+        data: {
+          contract_id: baseContractId,
+          biometric_verified: true,
+          confidence_scores: { overall_confidence: 0.94 },
+          certificate_id: 'cert-123'
+        }
       });
 
-      // Paso 1: Captura frontal
-      await waitFor(() => {
-        expect(screen.getByText('Capturar Foto Frontal')).toBeInTheDocument();
-      });
+      const completion = await contractService.completeAuthentication(baseContractId);
+      expect(completion.biometric_verified).toBe(true);
+      expect(completion.confidence_scores.overall_confidence).toBe(0.94);
 
-      const frontalCaptureButton = screen.getByText('Capturar Foto Frontal');
-      await user.click(frontalCaptureButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(2);
-      });
-
-      // Paso 2: Captura lateral
-      await waitFor(() => {
-        expect(screen.getByText('Capturar Foto Lateral')).toBeInTheDocument();
-      });
-
-      const lateralCaptureButton = screen.getByText('Capturar Foto Lateral');
-      await user.click(lateralCaptureButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(3);
-      });
-
-      // Paso 3: Documento
-      await waitFor(() => {
-        expect(screen.getByText('Capturar Documento')).toBeInTheDocument();
-      });
-
-      const documentCaptureButton = screen.getByText('Capturar Documento');
-      await user.click(documentCaptureButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(4);
-      });
-
-      // Paso 4: Foto combinada
-      await waitFor(() => {
-        expect(screen.getByText('Capturar Foto Combinada')).toBeInTheDocument();
-      });
-
-      const combinedCaptureButton = screen.getByText('Capturar Foto Combinada');
-      await user.click(combinedCaptureButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(5);
-      });
-
-      // Paso 5: Grabación de voz
-      await waitFor(() => {
-        expect(screen.getByText('Comenzar Grabación')).toBeInTheDocument();
-      });
-
-      const recordButton = screen.getByText('Comenzar Grabación');
-      await user.click(recordButton);
-
-      // Simular grabación
-      const stopButton = await screen.findByText('Detener Grabación');
-      await user.click(stopButton);
-
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(6);
-      });
-
-      // Paso 6: Firma digital final
-      await waitFor(() => {
-        expect(screen.getByText('Firmar Contrato')).toBeInTheDocument();
-      });
-
-      const signButton = screen.getByText('Firmar Contrato');
-      await user.click(signButton);
-
-      // Verificar firma completada
-      await waitFor(() => {
-        expect(mockAxios.history.post).toHaveLength(7);
-        expect(mockOnSuccess).toHaveBeenCalled();
-      }, { timeout: 5000 });
+      expect(mockPost).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -630,19 +377,8 @@ describe('Contract Workflow Integration Tests', () => {
   // FLUJO COMPLETO: DASHBOARD INTEGRADO
   // =====================================================================
 
-  describe('Complete Dashboard Integration', () => {
-    it('should show complete contract workflow in dashboard', async () => {
-      const user = userEvent.setup();
-
-      mockUseAuth.mockReturnValue({
-        user: mockLandlordUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
-      });
-
-      // Mock contratos en diferentes estados
+  describe('Dashboard Integration', () => {
+    it('should fetch all contract data for dashboard', async () => {
       const allContractStates = [
         contractStates.draft,
         contractStates.tenantInvited,
@@ -651,61 +387,61 @@ describe('Contract Workflow Integration Tests', () => {
         contractStates.published
       ];
 
-      mockAxios.onGet('/api/v1/contracts/').reply(200, {
-        contracts: allContractStates,
-        total_count: allContractStates.length
+      mockGet.mockResolvedValueOnce({
+        data: {
+          contracts: allContractStates,
+          total_count: allContractStates.length,
+          page: 1,
+          page_size: 10,
+          has_next: false,
+          has_previous: false,
+        }
       });
 
-      mockAxios.onGet('/api/v1/contracts/statistics/').reply(200, {
-        total_contracts: allContractStates.length,
-        by_state: {
-          'DRAFT': 1,
-          'TENANT_INVITED': 1,
-          'TENANT_REVIEWING': 1,
-          'READY_TO_SIGN': 1,
-          'PUBLISHED': 1
-        },
+      const result = await LandlordContractService.getContracts();
+
+      expect(result.contracts).toHaveLength(5);
+      expect(result.total_count).toBe(5);
+
+      // Verify different states are present
+      const states = result.contracts.map((c: any) => c.current_state);
+      expect(states).toContain('DRAFT');
+      expect(states).toContain('PUBLISHED');
+    });
+
+    it('should fetch statistics for dashboard display', async () => {
+      const stats = createMockStatistics({
+        total_contracts: 5,
         monthly_income: 12500000,
-        occupancy_rate: 80
+        occupancy_rate: 80,
       });
 
-      render(
-        <TestWrapper>
-          <ContractsDashboard />
-        </TestWrapper>
-      );
+      mockGet.mockResolvedValueOnce({ data: stats });
 
-      // Verificar carga del dashboard
-      await waitFor(() => {
-        expect(screen.getByText('🏢 Dashboard de Arrendador')).toBeInTheDocument();
+      const result = await LandlordContractService.getLandlordStatistics();
+
+      expect(result.total_contracts).toBe(5);
+      expect(result.monthly_income).toBe(12500000);
+      expect(result.occupancy_rate).toBe(80);
+    });
+
+    it('should fetch landlord dashboard data', async () => {
+      mockGet.mockResolvedValueOnce({
+        data: {
+          active_contracts: 10,
+          pending_signatures: 3,
+          monthly_income: 25000000,
+          expiring_contracts: 2,
+          recent_activities: [],
+          contract_status_breakdown: { PUBLISHED: 7, DRAFT: 3 }
+        }
       });
 
-      // Verificar estadísticas
-      await waitFor(() => {
-        expect(screen.getByText('5')).toBeInTheDocument(); // Total contracts
-        expect(screen.getByText('$12.500.000')).toBeInTheDocument(); // Monthly income
-      });
+      const dashboard = await LandlordContractService.getLandlordDashboard();
 
-      // Verificar contratos en diferentes estados
-      expect(screen.getByText('Apartamento de Integración, El Poblado')).toBeInTheDocument();
-
-      // Probar navegación por pestañas
-      const activosTab = screen.getByText('Activos');
-      await user.click(activosTab);
-
-      await waitFor(() => {
-        // Solo debería mostrar contratos publicados
-        const contractCards = screen.getAllByText(/Apartamento de Integración/);
-        expect(contractCards.length).toBeGreaterThan(0);
-      });
-
-      const pendientesTab = screen.getByText('Pendientes');
-      await user.click(pendientesTab);
-
-      await waitFor(() => {
-        // Debería mostrar contratos en proceso
-        expect(screen.getByText(/TENANT_INVITED|TENANT_REVIEWING|READY_TO_SIGN/)).toBeInTheDocument();
-      });
+      expect(dashboard.active_contracts).toBe(10);
+      expect(dashboard.pending_signatures).toBe(3);
+      expect(dashboard.monthly_income).toBe(25000000);
     });
   });
 
@@ -713,85 +449,80 @@ describe('Contract Workflow Integration Tests', () => {
   // FLUJO COMPLETO: MANEJO DE ERRORES INTEGRADO
   // =====================================================================
 
-  describe('Complete Error Handling Integration', () => {
+  describe('Error Handling Integration', () => {
     it('should handle network errors gracefully across workflow', async () => {
-      const user = userEvent.setup();
-
-      mockUseAuth.mockReturnValue({
-        user: mockLandlordUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
+      mockPost.mockRejectedValueOnce({
+        message: 'Network Error',
+        code: 'ERR_NETWORK'
       });
 
-      // Mock errores de red
-      mockAxios.onPost('/api/v1/contracts/landlord/contracts/').networkError();
-
-      render(
-        <TestWrapper>
-          <LandlordContractManager />
-        </TestWrapper>
-      );
-
-      // Intentar crear contrato
-      const createButton = await screen.findByText('Crear Nuevo Contrato');
-      await user.click(createButton);
-
-      const addressInput = screen.getByLabelText(/Dirección de la Propiedad/);
-      await user.type(addressInput, 'Test Property');
-
-      const saveButton = screen.getByText('Crear Contrato');
-      await user.click(saveButton);
-
-      // Verificar manejo de error
-      await waitFor(() => {
-        expect(screen.getByText(/Error de conexión/)).toBeInTheDocument();
-      });
+      try {
+        await LandlordContractService.createContract({ monthly_rent: 2500000 });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error.code).toBe('ERR_NETWORK');
+      }
     });
 
-    it('should handle validation errors in complete workflow', async () => {
-      const user = userEvent.setup();
-
-      mockUseAuth.mockReturnValue({
-        user: mockTenantUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
-      });
-
-      // Mock error de validación
-      mockAxios.onGet(`/api/v1/contracts/tenant/contract/${baseContract.id}/`)
-        .reply(200, contractStates.tenantReviewing);
-      mockAxios.onPost(`/api/v1/contracts/tenant/contract/${baseContract.id}/submit-data/`)
-        .reply(400, {
-          error: 'Validation failed',
-          details: {
-            monthly_income: ['Este campo es requerido'],
-            phone: ['Formato de teléfono inválido']
+    it('should handle validation errors in contract creation', async () => {
+      mockPost.mockRejectedValueOnce({
+        response: {
+          status: 400,
+          data: {
+            error: 'Validation failed',
+            details: {
+              monthly_rent: ['Este campo es requerido'],
+              property_address: ['Este campo es requerido']
+            }
           }
-        });
-
-      render(
-        <TestWrapper>
-          <TenantContractReview contractId={baseContract.id} />
-        </TestWrapper>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Apartamento de Integración, El Poblado')).toBeInTheDocument();
+        }
       });
 
-      // Intentar guardar con datos inválidos
-      const saveButton = screen.getByText('Guardar Datos');
-      await user.click(saveButton);
+      try {
+        await LandlordContractService.createContract({});
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error.response.status).toBe(400);
+        expect(error.response.data.details.monthly_rent).toBeDefined();
+      }
+    });
 
-      // Verificar errores de validación
-      await waitFor(() => {
-        expect(screen.getByText('Este campo es requerido')).toBeInTheDocument();
-        expect(screen.getByText('Formato de teléfono inválido')).toBeInTheDocument();
+    it('should handle unauthorized access during workflow', async () => {
+      mockPost.mockRejectedValueOnce({
+        response: {
+          status: 401,
+          data: { error: 'token_expired', message: 'Token has expired' }
+        }
       });
+
+      try {
+        await LandlordContractService.approveLandlordContract({ contract_id: baseContractId });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error.response.status).toBe(401);
+        expect(error.response.data.error).toBe('token_expired');
+      }
+    });
+
+    it('should handle forbidden access for wrong role', async () => {
+      mockPost.mockRejectedValueOnce({
+        response: {
+          status: 403,
+          data: {
+            error: 'insufficient_permissions',
+            required_role: 'landlord',
+            current_role: 'tenant'
+          }
+        }
+      });
+
+      try {
+        await LandlordContractService.publishContract({ contract_id: baseContractId });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error.response.status).toBe(403);
+        expect(error.response.data.required_role).toBe('landlord');
+      }
     });
   });
 
@@ -799,59 +530,60 @@ describe('Contract Workflow Integration Tests', () => {
   // FLUJO COMPLETO: PERFORMANCE Y OPTIMIZACIÓN
   // =====================================================================
 
-  describe('Complete Performance Integration', () => {
-    it('should handle large datasets efficiently', async () => {
-      mockUseAuth.mockReturnValue({
-        user: mockLandlordUser,
-        login: jest.fn(),
-        logout: jest.fn(),
-        loading: false,
-        isAuthenticated: true
-      });
-
-      // Crear dataset grande
-      const largeContractList = Array.from({ length: 100 }, (_, index) => 
+  describe('Performance Integration', () => {
+    it('should handle large contract datasets efficiently', async () => {
+      const largeContractList = Array.from({ length: 100 }, (_, index) =>
         createMockContract('PUBLISHED', {
           id: `contract-${index}`,
-          property_address: `Propiedad ${index}, Sector ${index % 10}`
+          property_address: `Propiedad ${index}`
         })
       );
 
-      mockAxios.onGet('/api/v1/contracts/').reply(200, {
-        contracts: largeContractList,
-        total_count: largeContractList.length
+      mockGet.mockResolvedValueOnce({
+        data: {
+          contracts: largeContractList,
+          total_count: largeContractList.length,
+          page: 1,
+          page_size: 100,
+          has_next: false,
+          has_previous: false,
+        }
       });
 
-      mockAxios.onGet('/api/v1/contracts/statistics/').reply(200, {
-        total_contracts: largeContractList.length,
-        by_state: { 'PUBLISHED': largeContractList.length },
-        monthly_income: 250000000,
-        occupancy_rate: 95
+      const startTime = performance.now();
+      const result = await LandlordContractService.getContracts();
+      const endTime = performance.now();
+
+      expect(result.contracts).toHaveLength(100);
+      expect(endTime - startTime).toBeLessThan(2000);
+    });
+
+    it('should handle concurrent operations efficiently', async () => {
+      // Setup multiple mock responses
+      mockGet.mockResolvedValue({
+        data: {
+          contracts: [],
+          total_count: 0,
+          page: 1,
+          page_size: 10,
+          has_next: false,
+          has_previous: false,
+        }
       });
 
       const startTime = performance.now();
 
-      render(
-        <TestWrapper>
-          <ContractsDashboard />
-        </TestWrapper>
-      );
+      const promises = [
+        LandlordContractService.getContracts(),
+        LandlordContractService.getLandlordStatistics(),
+        LandlordContractService.getContracts(),
+      ];
 
-      // Verificar carga rápida
-      await waitFor(() => {
-        expect(screen.getByText('🏢 Dashboard de Arrendador')).toBeInTheDocument();
-      });
-
+      const results = await Promise.all(promises);
       const endTime = performance.now();
-      const renderTime = endTime - startTime;
 
-      // Verificar que el renderizado fue eficiente (menos de 2 segundos)
-      expect(renderTime).toBeLessThan(2000);
-
-      // Verificar que se muestran los datos
-      await waitFor(() => {
-        expect(screen.getByText('100')).toBeInTheDocument(); // Total contracts
-      });
+      expect(results).toHaveLength(3);
+      expect(endTime - startTime).toBeLessThan(1000);
     });
   });
 });

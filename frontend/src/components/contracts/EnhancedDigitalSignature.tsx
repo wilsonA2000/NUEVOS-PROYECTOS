@@ -12,7 +12,7 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -21,7 +21,7 @@ import {
   Info as InfoIcon,
   Security as SecurityIcon,
   CheckCircle as CheckCircleIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import DigitalSignaturePad from './DigitalSignaturePad';
 
@@ -44,7 +44,7 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
   stepName = 'Firma Digital',
   onBack,
   loading = false,
-  contractData
+  contractData,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -54,7 +54,7 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
       height: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      bgcolor: 'grey.50'
+      bgcolor: 'grey.50',
     }}>
       {/* Header con contexto */}
       <Paper elevation={1} sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
@@ -123,14 +123,14 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        p: 2
+        p: 2,
       }}>
         <Paper elevation={2} sx={{ 
           height: '100%',
           borderRadius: 2,
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}>
           {/* Componente de firma digital */}
           <Box sx={{ flex: 1, p: 2 }}>
@@ -143,7 +143,7 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
                 authenticationId: contractData?.authenticationId,
                 confidenceScores: contractData?.confidenceScores,
                 voiceText: contractData?.voiceText,
-                progress: 100
+                progress: 100,
               }}
             />
           </Box>
@@ -154,7 +154,7 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
       <Paper elevation={2} sx={{ 
         borderRadius: '12px 12px 0 0',
         p: 2,
-        bgcolor: 'background.paper'
+        bgcolor: 'background.paper',
       }}>
         <Box>
           {/* Información legal */}

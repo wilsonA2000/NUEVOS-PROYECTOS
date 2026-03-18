@@ -191,7 +191,7 @@ const ResumeEdit: React.FC = () => {
         console.log('No existe resume, mostrando formulario vacío');
         setError(null);
       } else {
-        setError('Error al cargar la hoja de vida: ' + (err.response?.data?.error || err.message));
+        setError(`Error al cargar la hoja de vida: ${  err.response?.data?.error || err.message}`);
       }
     } finally {
       setLoading(false);
@@ -202,7 +202,7 @@ const ResumeEdit: React.FC = () => {
     const requiredFields = [
       'dateOfBirth', 'nationality', 'educationLevel', 'currentEmployer',
       'currentPosition', 'monthlySalary', 'emergencyContactName',
-      'emergencyContactPhone', 'reference1Name', 'reference1Phone'
+      'emergencyContactPhone', 'reference1Name', 'reference1Phone',
     ];
 
     const completed = requiredFields.filter(field => {
@@ -218,7 +218,7 @@ const ResumeEdit: React.FC = () => {
   const handleChange = (field: keyof ResumeFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -291,7 +291,7 @@ const ResumeEdit: React.FC = () => {
       
     } catch (err: any) {
       console.error('Error saving resume:', err);
-      showNotification('Error al guardar la hoja de vida: ' + (err.response?.data?.error || err.message), 'error');
+      showNotification(`Error al guardar la hoja de vida: ${  err.response?.data?.error || err.message}`, 'error');
     } finally {
       setSaving(false);
     }

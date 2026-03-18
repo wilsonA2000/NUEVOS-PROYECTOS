@@ -7,13 +7,13 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem,
   Accordion, AccordionSummary, AccordionDetails,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, IconButton, Tooltip, Divider, Stack
+  Paper, IconButton, Tooltip, Divider, Stack,
 } from '@mui/material';
 import {
   CheckCircle, Warning, Error as ErrorIcon, CloudUpload,
   Description, Gavel, Payment, Home, ExpandMore,
   Security, AssignmentTurnedIn, Schedule, AttachMoney,
-  VerifiedUser, Article, Fingerprint, CameraAlt
+  VerifiedUser, Article, Fingerprint, CameraAlt,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -54,7 +54,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
   const [contractDraft, setContractDraft] = useState<ContractDraft | null>(null);
   const [verificationStatus, setVerificationStatus] = useState({
     tenant: false,
-    landlord: false
+    landlord: false,
   });
   const [documents, setDocuments] = useState<{[key: string]: File}>({});
 
@@ -64,7 +64,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
     'Generación del Contrato',
     'Revisión de Términos',
     'Firma Digital',
-    'Activación'
+    'Activación',
   ];
 
   useEffect(() => {
@@ -95,15 +95,15 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
       formData.append('selfie', documents[`${userType}_selfie`]);
 
       const response = await axios.post(
-        `/api/v1/contracts/verify-identity/`,
+        '/api/v1/contracts/verify-identity/',
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
 
       if (response.data.verified) {
         setVerificationStatus(prev => ({
           ...prev,
-          [userType]: true
+          [userType]: true,
         }));
       }
     } catch (error) {
@@ -118,8 +118,8 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
         additional_data: {
           payment_day: 5,
           include_utilities: false,
-          guarantee_type: 'CODEUDOR'
-        }
+          guarantee_type: 'CODEUDOR',
+        },
       });
       
       setContractDraft(response.data);
@@ -281,7 +281,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              landlord_id: e.target.files![0]
+                              landlord_id: e.target.files![0],
                             }));
                           }
                         }}
@@ -304,7 +304,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              landlord_selfie: e.target.files![0]
+                              landlord_selfie: e.target.files![0],
                             }));
                           }
                         }}
@@ -355,7 +355,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              tenant_id: e.target.files![0]
+                              tenant_id: e.target.files![0],
                             }));
                           }
                         }}
@@ -378,7 +378,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              tenant_selfie: e.target.files![0]
+                              tenant_selfie: e.target.files![0],
                             }));
                           }
                         }}

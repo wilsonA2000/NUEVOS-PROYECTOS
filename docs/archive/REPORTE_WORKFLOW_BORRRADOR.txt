@@ -1,0 +1,29 @@
+# ✅ HALLAZGOS CONFIRMADOS - Sistema de BORRADOR
+
+## 1. ¿EXISTE sistema de BORRADOR?
+**✅ SÍ EXISTE**
+
+Evidencia encontrada:
+- Modelo `LandlordControlledContract` tiene estado `status='draft'` (Borrador del Arrendador)
+- Estados del workflow: 'draft' → 'tenant_review' → 'tenant_approved' → 'ready_for_authentication'
+
+## 2. Endpoints de BORRADOR encontrados:
+
+VISUALIZACIÓN DE BORRADORES:
+✅ `/api/v1/contracts/landlord/contracts/{id}/preview_pdf/` - Preview del borrador en PDF
+✅ `/api/v1/contracts/tenant/contracts/{id}/contract_preview/` - Preview para arrendatario
+✅ `/api/v1/contracts/{id}/preview-pdf/` - Preview genérico
+
+CREACIÓN:
+✅ `POST /api/v1/contracts/landlord/contracts/` - Crea el contrato en estado 'draft'
+   Ubicación: contracts/landlord_api_views.py:94
+
+## 3. ¿Existe el botón "Continuar a la Siguiente Etapa"?
+
+Necesito verificar en el código frontend si existe algún botón específico que:
+1. El arrendador pueda usar después de aprobar documentos
+2. Que active la creación del borrador de contrato
+3. Que esté en MatchedCandidatesView o LandlordDocumentReview
+
+BÚSQUEDA PENDIENTE: Revisar el código frontend para confirmar
+

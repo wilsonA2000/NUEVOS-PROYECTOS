@@ -244,7 +244,6 @@ class PaymentStatsService {
       const response = await api.get(url);
       return response.data;
     } catch (error) {
-      console.error('Error fetching payment stats:', error);
       throw error;
     }
   }
@@ -269,7 +268,6 @@ class PaymentStatsService {
       const response = await api.get(url);
       return response.data;
     } catch (error) {
-      console.error('Error fetching system payment stats:', error);
       throw error;
     }
   }
@@ -280,11 +278,10 @@ class PaymentStatsService {
   async exportPaymentStats(options: ExportOptions): Promise<Blob> {
     try {
       const response = await api.post(`${this.baseUrl}/export/`, options, {
-        responseType: 'blob'
+        responseType: 'blob',
       });
       return response.data;
     } catch (error) {
-      console.error('Error exporting payment stats:', error);
       throw error;
     }
   }
@@ -306,10 +303,9 @@ class PaymentStatsService {
         total_volume: stats.transaction_summary.total_amount,
         success_rate: stats.transaction_summary.by_status['completed'] ? 
           (stats.transaction_summary.by_status['completed'].count / stats.transaction_summary.total_transactions * 100) : 0,
-        trend_direction: stats.trends.trend_direction
+        trend_direction: stats.trends.trend_direction,
       };
     } catch (error) {
-      console.error('Error fetching quick overview:', error);
       throw error;
     }
   }
@@ -329,10 +325,9 @@ class PaymentStatsService {
       const stats = await this.getPaymentStats({ date_range: '90d' });
       return {
         usage_stats: stats.payment_methods.usage_stats,
-        preferred_method: stats.payment_methods.preferred_method
+        preferred_method: stats.payment_methods.preferred_method,
       };
     } catch (error) {
-      console.error('Error fetching payment method analytics:', error);
       throw error;
     }
   }
@@ -356,10 +351,9 @@ class PaymentStatsService {
       return {
         daily_cash_flow: stats.cash_flow.daily_cash_flow,
         net_cash_flow: stats.cash_flow.net_cash_flow,
-        trend_direction: stats.trends.trend_direction
+        trend_direction: stats.trends.trend_direction,
       };
     } catch (error) {
-      console.error('Error fetching cash flow analysis:', error);
       throw error;
     }
   }
@@ -391,7 +385,7 @@ class PaymentStatsService {
     try {
       const stats = await this.getPaymentStats({ 
         date_range: '90d', 
-        predictions: true 
+        predictions: true, 
       });
       
       return {
@@ -399,13 +393,12 @@ class PaymentStatsService {
           total_income: stats.revenue_analytics.total_income,
           total_expenses: stats.revenue_analytics.total_expenses,
           net_income: stats.revenue_analytics.net_income,
-          profit_margin: stats.revenue_analytics.profit_margin
+          profit_margin: stats.revenue_analytics.profit_margin,
         },
         predictions: stats.predictions,
-        growth_rate: stats.trends.average_growth_rate
+        growth_rate: stats.trends.average_growth_rate,
       };
     } catch (error) {
-      console.error('Error fetching revenue analytics with predictions:', error);
       throw error;
     }
   }
@@ -443,10 +436,9 @@ class PaymentStatsService {
         risk_level: stats.risk_analytics.risk_level,
         failure_rate: stats.risk_analytics.failure_rate,
         dispute_rate: stats.risk_analytics.dispute_rate,
-        recommendations
+        recommendations,
       };
     } catch (error) {
-      console.error('Error fetching risk analytics:', error);
       throw error;
     }
   }
@@ -464,26 +456,25 @@ class PaymentStatsService {
       if (stats.landlord_analytics) {
         return {
           role: 'landlord',
-          analytics: stats.landlord_analytics
+          analytics: stats.landlord_analytics,
         };
       } else if (stats.tenant_analytics) {
         return {
           role: 'tenant',
-          analytics: stats.tenant_analytics
+          analytics: stats.tenant_analytics,
         };
       } else if (stats.service_provider_analytics) {
         return {
           role: 'service_provider',
-          analytics: stats.service_provider_analytics
+          analytics: stats.service_provider_analytics,
         };
       }
       
       return {
         role: 'unknown',
-        analytics: {}
+        analytics: {},
       };
     } catch (error) {
-      console.error('Error fetching role-specific analytics:', error);
       throw error;
     }
   }
@@ -510,7 +501,7 @@ class PaymentStatsService {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   }
 
@@ -533,7 +524,7 @@ class PaymentStatsService {
       return {
         rate: current > 0 ? 100 : 0,
         direction: current > 0 ? 'up' : 'stable',
-        formatted: current > 0 ? '+100%' : '0%'
+        formatted: current > 0 ? '+100%' : '0%',
       };
     }
     

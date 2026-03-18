@@ -44,7 +44,7 @@ import {
   LinearProgress,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
 } from '@mui/material';
 import {
   Assignment as ContractIcon,
@@ -52,6 +52,7 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Person as PersonIcon,
+  PersonOutline as TenantIcon,
   Home as PropertyIcon,
   AttachMoney as MoneyIcon,
   DateRange as DateIcon,
@@ -66,7 +67,8 @@ import {
   AccountBalance as BankIcon,
   Business as BusinessIcon,
   Visibility as VisibilityIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  AutoFixHigh as AutoFillIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { LoadingButton } from '@mui/lab';
@@ -81,12 +83,16 @@ import { viewContractPDF } from '../../utils/contractPdfUtils';
 // Types del nuevo sistema
 import {
   LandlordControlledContractData,
-  ContractWorkflowState, 
+  ContractWorkflowState,
   PropertyType,
   DocumentType,
   LandlordData,
-  CreateContractPayload
+  TenantData,
+  CreateContractPayload,
 } from '../../types/landlordContract';
+
+// Servicio de matching para auto-fill desde candidatos
+import { matchingService } from '../../services/matchingService';
 
 // Utilidades
 import { format, addMonths, differenceInMonths } from 'date-fns';
@@ -115,8 +121,8 @@ const PROFESSIONAL_CONTRACT_TEMPLATES = {
       'Servicios públicos domiciliarios',
       'Causales de terminación',
       'Cláusula de permanencia mínima',
-      'Reformas y mejoras al inmueble'
-    ]
+      'Reformas y mejoras al inmueble',
+    ],
   },
   commercial_premises: {
     title: 'Local Comercial - Código de Comercio',
@@ -135,8 +141,8 @@ const PROFESSIONAL_CONTRACT_TEMPLATES = {
       'Adecuaciones y mejoras locativas',
       'Administración y gastos comunes',
       'Horarios de funcionamiento',
-      'Transferencia y cesión del contrato'
-    ]
+      'Transferencia y cesión del contrato',
+    ],
   },
   warehouse_storage: {
     title: 'Bodega y Almacenamiento',
@@ -153,8 +159,8 @@ const PROFESSIONAL_CONTRACT_TEMPLATES = {
       'Seguros obligatorios especializados',
       'Acceso de vehículos pesados',
       'Mantenimiento de instalaciones',
-      'Responsabilidad por daños'
-    ]
+      'Responsabilidad por daños',
+    ],
   },
   rural_farm: {
     title: 'Finca Rural - Código Rural',
@@ -171,9 +177,9 @@ const PROFESSIONAL_CONTRACT_TEMPLATES = {
       'Seguridad rural y vigilancia',
       'Mantenimiento de cercas y caminos',
       'Derechos de agua y riego',
-      'Cultivos existentes y nuevos'
-    ]
-  }
+      'Cultivos existentes y nuevos',
+    ],
+  },
 };
 
 // Configuraciones por tipo de propiedad
@@ -182,26 +188,26 @@ const PROPERTY_CONFIGURATIONS = {
     deposit_months: [1, 2],
     typical_duration: [6, 12, 24],
     included_services: ['agua', 'luz', 'gas', 'internet', 'tv_cable', 'administracion'],
-    common_clauses: ['no_mascotas', 'no_fiestas', 'horario_visitas']
+    common_clauses: ['no_mascotas', 'no_fiestas', 'horario_visitas'],
   },
   casa: {
     deposit_months: [1, 2, 3],
     typical_duration: [12, 24, 36],
     included_services: ['agua', 'luz', 'gas', 'internet', 'jardineria', 'vigilancia'],
-    common_clauses: ['mantenimiento_jardin', 'uso_piscina', 'mascotas_permitidas']
+    common_clauses: ['mantenimiento_jardin', 'uso_piscina', 'mascotas_permitidas'],
   },
   local_comercial: {
     deposit_months: [2, 3, 6],
     typical_duration: [12, 24, 36, 60],
     included_services: ['agua', 'luz', 'gas', 'internet', 'administracion', 'seguridad'],
-    common_clauses: ['horario_comercial', 'publicidad_exterior', 'adecuaciones_permitidas']
+    common_clauses: ['horario_comercial', 'publicidad_exterior', 'adecuaciones_permitidas'],
   },
   oficina: {
     deposit_months: [1, 2, 3],
     typical_duration: [12, 24, 36],
     included_services: ['agua', 'luz', 'internet', 'administracion', 'seguridad', 'parqueadero'],
-    common_clauses: ['horario_oficina', 'reunion_clientes', 'equipos_oficina']
-  }
+    common_clauses: ['horario_oficina', 'reunion_clientes', 'equipos_oficina'],
+  },
 };
 
 interface LandlordContractFormProps {
@@ -217,7 +223,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   isEdit = false,
   contractId,
   onSuccess,
-  onCancel
+  onCancel,
 }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
@@ -225,52 +231,46 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   const [searchParams] = React.useState(() => new URLSearchParams(window.location.search));
   const queryPropertyId = searchParams.get('property');
   
-  const { data: allProperties = [], isLoading: propertiesLoading, error: propertiesError } = useProperties();
+  const { properties: allProperties = [], isLoading: propertiesLoading, error: propertiesError } = useProperties();
   
   // Hook adicional para cargar propiedad específica si viene del workflow
   const { data: specificProperty, isLoading: specificPropertyLoading } = useQuery({
     queryKey: ['property', queryPropertyId],
     queryFn: async () => {
       if (!queryPropertyId) return null;
-      console.log('🔍 Cargando propiedad específica:', queryPropertyId);
       // Usar el propertyService para mantener consistencia con el resto de la app
       const data = await propertyService.getProperty(queryPropertyId);
-      console.log('✅ Propiedad específica cargada:', data);
       return data;
     },
-    enabled: !!queryPropertyId && allProperties.length === 0,
+    enabled: !!queryPropertyId && (allProperties as any)?.length === 0,
   });
   const queryTenantId = searchParams.get('tenant');
-  
+
   // Usar propertyId del prop o del query string
   const effectivePropertyId = propertyId || queryPropertyId;
-  
+
   // Filtrar solo propiedades del usuario actual que estén disponibles
   const properties = React.useMemo(() => {
     // Combinar allProperties con specificProperty si está disponible
-    let combinedProperties = [...(allProperties || [])];
-    
+    let combinedProperties = [...((allProperties as any) || [])];
+
     // Si tenemos una propiedad específica del workflow y no está en allProperties, agregarla
-    if (specificProperty && !combinedProperties.find(p => p.id === specificProperty.id)) {
+    if (specificProperty && Array.isArray(combinedProperties) && !(combinedProperties as any[]).find((p: any) => p.id === specificProperty.id)) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 Agregando propiedad específica del workflow:', specificProperty.title || specificProperty.id);
       }
       combinedProperties = [specificProperty, ...combinedProperties];
     }
-    
+
     // Early returns si no tenemos datos necesarios
     if (!combinedProperties || !Array.isArray(combinedProperties)) {
-      console.log('⚠️ useProperties: combinedProperties no disponible o no es array', combinedProperties);
       return [];
     }
     
     if (!user || !user.id) {
-      console.log('⚠️ useProperties: user no disponible', user);
       return [];
     }
     
     if (combinedProperties.length === 0) {
-      console.log('⚠️ useProperties: combinedProperties está vacío');
       return [];
     }
     
@@ -319,16 +319,34 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     
     // Only log summary once when there are significant changes
     if (shouldLogDebug && filteredProperties.length === 0 && combinedProperties.length > 0) {
-      console.log(`⚠️ No properties available after filtering: ${combinedProperties.length} total properties`);
     }
     
     // Si no hay propiedades después del filtro, mostrar advertencia
     if (filteredProperties.length === 0 && combinedProperties.length > 0) {
-      console.warn('⚠️ ADVERTENCIA: No hay propiedades disponibles después del filtro. Revise los criterios de filtrado.');
     }
     
     return filteredProperties;
   }, [allProperties, specificProperty, user]);
+
+  // Función para mapear employment_type del backend al frontend
+  const mapEmploymentType = (backendType: string | undefined): TenantData['employment_type'] => {
+    const mapping: Record<string, TenantData['employment_type']> = {
+      'employed': 'employee',
+      'self_employed': 'independent',
+      'freelancer': 'independent',
+      'employee': 'employee',
+      'independent': 'independent',
+      'business_owner': 'business_owner',
+      'retired': 'retired',
+      'pensionado': 'retired',
+      'student': 'student',
+      'estudiante': 'student',
+      'unemployed': 'unemployed',
+      'desempleado': 'unemployed',
+      'other': 'employee',
+    };
+    return mapping[backendType?.toLowerCase() || ''] || 'employee';
+  };
 
   // Form state
   const [activeStep, setActiveStep] = useState(0);
@@ -339,6 +357,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   const [contractHasBeenPreviewed, setContractHasBeenPreviewed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [createdContractId, setCreatedContractId] = useState<string | null>(null);
 
   // Contract data state
   const [contractData, setContractData] = useState<Partial<LandlordControlledContractData>>({
@@ -367,15 +386,17 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     landlord_signed: false,
     tenant_signed: false,
     published: false,
-    workflow_history: []
+    workflow_history: [],
   });
 
   // Landlord data state
   const [landlordData, setLandlordData] = useState<LandlordData>({
-    full_name: user?.full_name || '',
+    full_name: user ? `${user.first_name} ${user.last_name}`.trim() : '',
     document_type: 'CC',
     document_number: '',
-    phone: user?.phone || '',
+    document_expedition_date: '',
+    document_expedition_place: '',
+    phone: user?.phone_number || user?.phone || '',
     email: user?.email || '',
     address: '',
     city: 'Medellín',
@@ -386,8 +407,37 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     bank_account: '',
     bank_name: '',
     account_type: 'savings',
-    profession: ''
+    profession: '',
   });
+
+  // Tenant data state - NEW: Datos del arrendatario editables manualmente o auto-llenados desde matching
+  const [tenantData, setTenantData] = useState<Partial<TenantData>>({
+    full_name: '',
+    document_type: 'CC',
+    document_number: '',
+    document_expedition_date: '',
+    document_expedition_place: '',
+    phone: '',
+    email: '',
+    current_address: '',
+    city: '',
+    department: '',
+    country: 'Colombia',
+    employment_type: 'employee',
+    company_name: '',
+    position: '',
+    monthly_income: 0,
+    emergency_contact: '',
+    emergency_phone: '',
+    emergency_relationship: '',
+    personal_references: [],
+    commercial_references: [],
+  });
+
+  // Matching candidates state for auto-fill
+  const [matchingCandidates, setMatchingCandidates] = useState<any[]>([]);
+  const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
 
   // Property details state
   const [propertyData, setPropertyData] = useState({
@@ -398,7 +448,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     property_rooms: 2,
     property_bathrooms: 2,
     property_parking_spaces: 1,
-    property_furnished: false
+    property_furnished: false,
   });
 
   // Guarantee system state - 3 options
@@ -426,7 +476,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     property_department_guarantee: '',
     property_city_guarantee: '',
     // Document requirement flags
-    requires_biometric_codeudor: false
+    requires_biometric_codeudor: false,
   });
 
   // Codeudor biometric flow states
@@ -438,29 +488,27 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   const steps = [
     'Información del Arrendador',
-    'Detalles de la Propiedad', 
+    'Información del Arrendatario',  // NEW: Paso para datos del arrendatario
+    'Detalles de la Propiedad',
     'Condiciones Económicas',
     'Términos del Contrato',
     'Garantías del Contrato',
     'Cláusulas Especiales',
-    'Revisión y Creación'
+    'Revisión y Creación',
   ];
 
   // Actualizar propertyId en propertyData cuando cambie el prop
   useEffect(() => {
     if (effectivePropertyId && effectivePropertyId !== propertyData.property_id) {
-      console.log('🏠 Estableciendo propiedad desde parámetros:', effectivePropertyId);
       
       // Auto-seleccionar la propiedad si está disponible
       const selectedProperty = properties.find(p => p.id === effectivePropertyId) || 
                               (specificProperty?.id === effectivePropertyId ? specificProperty : null);
       
       if (selectedProperty) {
-        console.log('🎯 Auto-llenando datos de propiedad:', selectedProperty.title || selectedProperty.id);
         handlePropertySelect(effectivePropertyId);
       } else {
         // Si no se encuentra en properties, solo actualizar el ID
-        console.log('🔄 Propiedad no encontrada en lista, esperando carga...');
         setPropertyData(prev => ({ ...prev, property_id: effectivePropertyId }));
       }
     }
@@ -469,7 +517,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   // Trigger auto-population when specificProperty loads
   useEffect(() => {
     if (specificProperty && effectivePropertyId === specificProperty.id && !propertyData.property_address) {
-      console.log('🎯 Auto-llenando desde propiedad específica cargada:', specificProperty.title);
       handlePropertySelect(specificProperty.id);
     }
   }, [specificProperty, effectivePropertyId, propertyData.property_address]);
@@ -481,14 +528,13 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
                             specificProperty?.id === selectedPropertyId ? specificProperty : null;
     
     if (selectedProperty) {
-      console.log('🎯 Auto-llenando datos de propiedad completos:', selectedProperty);
       
       // Build complete address string with all available location data
       const fullAddress = [
         selectedProperty.address,
         selectedProperty.city,
         selectedProperty.state,
-        selectedProperty.country
+        selectedProperty.country,
       ].filter(Boolean).join(', ');
       
       // Map property type from English to Spanish
@@ -502,19 +548,19 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         'office': 'oficina',
         'warehouse': 'bodega',
         'land': 'lote',
-        'room': 'habitacion'
+        'room': 'habitacion',
       };
       
       // Update property data with comprehensive mapping from Property model
       const newPropertyData = {
         property_id: selectedProperty.id,
         property_address: fullAddress || selectedProperty.address || '',
-        property_area: Number(selectedProperty.total_area) || Number(selectedProperty.area) || 0,
-        property_stratum: selectedProperty.stratum || selectedProperty.floor_number || 3,
+        property_area: Number(selectedProperty.total_area) || Number((selectedProperty as any).area) || 0,
+        property_stratum: (selectedProperty as any).stratum || selectedProperty.floor_number || 3,
         property_rooms: Number(selectedProperty.bedrooms) || 0,
         property_bathrooms: Number(selectedProperty.bathrooms) || 0,
         property_parking_spaces: Number(selectedProperty.parking_spaces) || 0,
-        property_furnished: Boolean(selectedProperty.furnished)
+        property_furnished: Boolean(selectedProperty.furnished),
       };
       
       setPropertyData(newPropertyData);
@@ -522,7 +568,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
       // Update contract data with comprehensive auto-filled values
       setContractData(prev => ({
         ...prev,
-        property_type: propertyTypeMapping[selectedProperty.property_type] || selectedProperty.property_type || 'apartamento',
+        property_type: (propertyTypeMapping[selectedProperty.property_type] || selectedProperty.property_type || 'apartamento') as PropertyType,
         property_id: selectedProperty.id,
         // Auto-fill financial data
         monthly_rent: prev.monthly_rent || Number(selectedProperty.rent_price) || 0,
@@ -537,29 +583,9 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         max_occupants: Number(selectedProperty.bedrooms) || 2,
         // Auto-fill additional details
         utilities_responsibility: selectedProperty.utilities_included?.length > 0 ? 'landlord' : 'tenant',
-        internet_included: selectedProperty.utilities_included?.includes('internet') || false
+        internet_included: selectedProperty.utilities_included?.includes('internet') || false,
       }));
-      
-      console.log('✅ Datos completos auto-llenados desde propiedad:', {
-        id: selectedProperty.id,
-        title: selectedProperty.title,
-        address: fullAddress,
-        area: selectedProperty.total_area,
-        bedrooms: selectedProperty.bedrooms,
-        bathrooms: selectedProperty.bathrooms,
-        parking: selectedProperty.parking_spaces,
-        furnished: selectedProperty.furnished,
-        pets: selectedProperty.pets_allowed,
-        smoking: selectedProperty.smoking_allowed,
-        lease_term: selectedProperty.minimum_lease_term,
-        rent_price: selectedProperty.rent_price,
-        security_deposit: selectedProperty.security_deposit,
-        utilities: selectedProperty.utilities_included,
-        features: selectedProperty.property_features,
-        amenities: selectedProperty.nearby_amenities
-      });
     } else {
-      console.warn('⚠️ No se encontró la propiedad con ID:', selectedPropertyId);
     }
   };
 
@@ -572,16 +598,20 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   const loadContractData = async () => {
     if (!contractId) return;
-    
+
     try {
       setLoading(true);
-      const contract = await LandlordContractService.getContract(contractId);
-      setContractData(contract);
-      if (contract.landlord_data) {
-        setLandlordData(contract.landlord_data);
+      const contractsResponse = await LandlordContractService.getContracts();
+      // Find the specific contract from the list
+      const specificContract = (contractsResponse as any).results?.find((c: any) => c.id === contractId) ||
+        (Array.isArray(contractsResponse) ? (contractsResponse as any[]).find((c: any) => c.id === contractId) : null);
+      if (specificContract) {
+        setContractData(specificContract);
+        if (specificContract.landlord_data) {
+          setLandlordData(specificContract.landlord_data);
+        }
       }
     } catch (error) {
-      console.error('Error al cargar contrato:', error);
     } finally {
       setLoading(false);
     }
@@ -613,56 +643,236 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
           ...propertyData,
           landlord_data: landlordData,
           // Incluir datos de garantías en la edición
-          contract_terms: {
-            ...contractData.contract_terms,
-            guarantee_data: guaranteeData
-          }
+          ...(contractData as any).contract_terms && {
+            contract_terms: {
+              ...(contractData as any).contract_terms,
+              guarantee_data: guaranteeData,
+            },
+          },
         };
         result = await LandlordContractService.updateContractDraft(contractId, completeContractData);
       } else {
-        // Para crear, usar el payload mejorado con garantías
-        const createPayload: CreateContractPayload = {
+        // Para crear, usar el payload mejorado con garantías y TODOS los datos del formulario
+        // ============================================================================
+        // PAYLOAD COMPLETO - Incluye TODOS los campos de los 7 pasos del formulario
+        // ============================================================================
+        const createPayload: any = {
           property_id: propertyData.property_id || '',
-          contract_template: contractData.contract_template || 'rental_urban',
+          contract_template: (contractData as any).contract_template || 'rental_urban',
+
+          // ============================================================================
+          // PASO 3: CONDICIONES ECONÓMICAS (basic_terms)
+          // ============================================================================
           basic_terms: {
+            // Condiciones económicas principales
             monthly_rent: contractData.monthly_rent || 0,
             security_deposit: contractData.security_deposit || 0,
             duration_months: contractData.contract_duration_months || 12,
+            payment_day: (contractData as any).payment_day || 5,
+            rent_increase_type: (contractData as any).rent_increase_type || 'ipc',
+
+            // PASO 4: TÉRMINOS DEL CONTRATO - Servicios incluidos
             utilities_included: contractData.utilities_included || false,
+            internet_included: (contractData as any).internet_included || false,
+
+            // PASO 4: TÉRMINOS DEL CONTRATO - Políticas de uso
             pets_allowed: contractData.pets_allowed || false,
             smoking_allowed: contractData.smoking_allowed || false,
-            // Incluir información de garantías
-            guarantee_type: guaranteeData.guarantee_type,
-            guarantee_data: guaranteeData,
-            requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor
+            guests_policy: (contractData as any).guests_policy || 'limited',
+            max_occupants: (contractData as any).max_occupants || 4,
+
+            // PASO 4: TÉRMINOS DEL CONTRATO - Garantías y responsabilidades
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            maintenance_responsibility: (contractData as any).maintenance_responsibility || 'tenant',
+
+            // Información de garantía si aplica
+            ...(guaranteeData.guarantee_type !== 'none' && {
+              guarantee_type: guaranteeData.guarantee_type as any,
+              requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor,
+            }),
           },
-          // Incluir datos adicionales
-          landlord_data: landlordData,
-          property_data: propertyData,
+
+          // ============================================================================
+          // PASO 1: INFORMACIÓN DEL ARRENDADOR (landlord_data)
+          // ============================================================================
+          landlord_data: {
+            // Datos de identificación
+            full_name: landlordData.full_name || '',
+            document_type: landlordData.document_type || 'CC',
+            document_type_display: landlordData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   landlordData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   landlordData.document_type === 'NIT' ? 'NIT' :
+                                   landlordData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: landlordData.document_number || '',
+            document_expedition_date: landlordData.document_expedition_date || '',
+            document_expedition_place: landlordData.document_expedition_place || '',
+
+            // Datos de contacto
+            email: landlordData.email || '',
+            phone: landlordData.phone || '',
+            profession: landlordData.profession || '',
+
+            // Dirección completa
+            address: landlordData.address || '',
+            city: landlordData.city || '',
+            department: landlordData.department || '',
+            country: landlordData.country || 'Colombia',
+            full_address: `${landlordData.address || ''}, ${landlordData.city || ''}, ${landlordData.department || ''}`.trim().replace(/^,\s*|,\s*$/g, ''),
+
+            // Contacto de emergencia
+            emergency_contact_name: landlordData.emergency_contact || '',
+            emergency_contact_phone: landlordData.emergency_phone || '',
+
+            // Datos bancarios (opcional)
+            bank_name: landlordData.bank_name || '',
+            bank_account_type: landlordData.account_type || '',
+            bank_account_number: landlordData.bank_account || '',
+          },
+
+          // ============================================================================
+          // PASO 2: INFORMACIÓN DEL ARRENDATARIO (tenant_data) - NEW
+          // ============================================================================
+          tenant_data: {
+            // Datos de identificación del arrendatario
+            full_name: tenantData.full_name || '',
+            document_type: tenantData.document_type || 'CC',
+            document_type_display: tenantData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   tenantData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   tenantData.document_type === 'NIT' ? 'NIT' :
+                                   tenantData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: tenantData.document_number || '',
+            document_expedition_date: tenantData.document_expedition_date || '',
+            document_expedition_place: tenantData.document_expedition_place || '',
+
+            // Datos de contacto del arrendatario
+            email: tenantData.email || '',
+            phone: tenantData.phone || '',
+
+            // Dirección actual del arrendatario
+            current_address: tenantData.current_address || '',
+            city: tenantData.city || '',
+            department: tenantData.department || '',
+            country: tenantData.country || 'Colombia',
+
+            // Información laboral del arrendatario
+            employment_type: tenantData.employment_type || 'employee',
+            company_name: tenantData.company_name || '',
+            position: tenantData.position || '',
+            monthly_income: tenantData.monthly_income || 0,
+
+            // Contacto de emergencia del arrendatario
+            emergency_contact_name: tenantData.emergency_contact || '',
+            emergency_contact_phone: tenantData.emergency_phone || '',
+            emergency_contact_relationship: tenantData.emergency_relationship || '',
+          },
+
+          // ============================================================================
+          // PASO 3: DETALLES DE LA PROPIEDAD (property_data)
+          // ============================================================================
+          property_data: {
+            // Identificación de la propiedad
+            property_id: propertyData.property_id || '',
+            property_address: propertyData.property_address || '',
+            property_type: contractData.property_type || 'house',
+
+            // Características físicas
+            property_area: propertyData.property_area || 0,
+            property_rooms: propertyData.property_rooms || 0,
+            property_bathrooms: propertyData.property_bathrooms || 0,
+            property_parking_spaces: propertyData.property_parking_spaces || 0,
+            property_floors: (propertyData as any).property_floors || 1,
+            property_year: (propertyData as any).property_year || null,
+
+            // Estado y categorización
+            property_furnished: propertyData.property_furnished || false,
+            property_stratum: propertyData.property_stratum || 0,
+
+            // Políticas de la propiedad (de paso 2)
+            mascotas_permitidas: (propertyData as any).mascotas_permitidas || false,
+            fumadores_permitidos: (propertyData as any).fumadores_permitidos || false,
+            minimo_meses: (propertyData as any).minimo_meses || 12,
+          },
+
+          // ============================================================================
+          // PASO 5: GARANTÍAS DEL CONTRATO (guarantee_terms)
+          // ============================================================================
+          guarantee_terms: {
+            // Configuración general de garantía
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            guarantee_type: guaranteeData.guarantee_type || 'none',
+            requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor || false,
+
+            // Datos del codeudor (si aplica)
+            codeudor_data: guaranteeData.guarantee_type !== 'none' ? {
+              // Datos de identificación del codeudor
+              codeudor_full_name: guaranteeData.codeudor_full_name || '',
+              codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
+              codeudor_document_type_display: guaranteeData.codeudor_document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                              guaranteeData.codeudor_document_type === 'CE' ? 'Cédula de Extranjería' :
+                                              guaranteeData.codeudor_document_type === 'NIT' ? 'NIT' :
+                                              guaranteeData.codeudor_document_type === 'TI' ? 'Tarjeta de Identidad' : 'Cédula de Ciudadanía',
+              codeudor_document_number: guaranteeData.codeudor_document_number || '',
+
+              // Datos de contacto del codeudor
+              codeudor_phone: guaranteeData.codeudor_phone || '',
+              codeudor_email: guaranteeData.codeudor_email || '',
+              codeudor_address: guaranteeData.codeudor_address || '',
+              codeudor_city: guaranteeData.codeudor_city || '',
+
+              // ============================================================
+              // DATOS ESPECÍFICOS PARA CODEUDOR CON SALARIO
+              // ============================================================
+              ...(guaranteeData.guarantee_type === 'codeudor_salario' && {
+                codeudor_employer: guaranteeData.codeudor_employer || '',
+                codeudor_position: guaranteeData.codeudor_position || '',
+                codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
+                codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
+              }),
+
+              // ============================================================
+              // DATOS ESPECÍFICOS PARA CODEUDOR CON FINCA RAÍZ (GARANTÍA REAL)
+              // ============================================================
+              ...(guaranteeData.guarantee_type === 'codeudor_finca_raiz' && {
+                // Identificación del inmueble de garantía
+                property_matricula: guaranteeData.property_matricula || '',
+                property_area_guarantee: guaranteeData.property_area_guarantee || 0,
+
+                // Dirección completa del inmueble de garantía
+                property_address_guarantee: guaranteeData.property_address_guarantee || '',
+                property_city_guarantee: guaranteeData.property_city_guarantee || '',
+                property_department_guarantee: guaranteeData.property_department_guarantee || '',
+
+                // Datos catastrales y legales
+                property_predial_number: guaranteeData.property_predial_number || '',
+                property_catastral_number: guaranteeData.property_catastral_number || '',
+                property_linderos: guaranteeData.property_linderos || '',
+              }),
+            } : undefined,
+          },
+
+          // ============================================================================
+          // PASO 6: CLÁUSULAS ESPECIALES (special_clauses)
+          // ============================================================================
           special_clauses: contractData.special_clauses || [],
-          // Incluir el contenido del contrato editado si está disponible
-          contract_content: contractDraftContent || generateContractPreview()
+
+          // ============================================================================
+          // CONTENIDO DEL CONTRATO GENERADO
+          // Este contenido se usa como respaldo y para el preview del borrador
+          // ============================================================================
+          contract_content: contractDraftContent || generateContractPreview(),
         };
-        
-        console.log('📝 FORM DATA DEBUG con garantías:', {
-          propertyData,
-          contractData,
-          guaranteeData,
-          createPayload,
-          user
-        });
         
         result = await LandlordContractService.createContractDraft(createPayload);
       }
 
-      console.log('✅ Contrato creado exitosamente:', result);
       
       // SINCRONIZACIÓN WORKFLOW: Actualizar PropertyInterestRequest si viene del workflow
       const queryMatchId = searchParams.get('match');
       if (queryMatchId && result?.id) {
         try {
-          console.log('🔄 Sincronizando workflow - Match ID:', queryMatchId);
-          
+
           // Llamar endpoint para actualizar el workflow
           const workflowResponse = await fetch('/api/v1/contracts/workflow-action/', {
             method: 'POST',
@@ -675,19 +885,64 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
               action: 'contract_created',
               contract_data: {
                 contract_id: result.id,
-                created_at: new Date().toISOString()
-              }
-            })
+                created_at: new Date().toISOString(),
+              },
+            }),
           });
-          
+
           if (workflowResponse.ok) {
             const workflowResult = await workflowResponse.json();
-            console.log('✅ Workflow sincronizado correctamente:', workflowResult);
           } else {
-            console.warn('⚠️ Advertencia: No se pudo sincronizar el workflow');
           }
         } catch (error) {
-          console.warn('⚠️ Error en sincronización del workflow:', error);
+        }
+      }
+
+      // ========================================================================
+      // AVANZAR ESTADO A TENANT_INVITED AUTOMÁTICAMENTE
+      // Después de crear el borrador, completamos los datos del arrendador
+      // para avanzar el estado de DRAFT → TENANT_INVITED
+      // Esto permite que el arrendatario pueda ver y revisar el borrador
+      // ========================================================================
+      if (result?.id && user) {
+        try {
+
+          // Construir landlord_data usando los datos del usuario autenticado
+          const landlordDataPayload: any = {
+            full_name: user.first_name && user.last_name
+              ? `${user.first_name} ${user.last_name}`
+              : user.email.split('@')[0],
+            document_type: (user.document_type || 'CC') as 'CC' | 'CE' | 'NIT' | 'PP' | 'TI',
+            document_number: user.document_number || '0000000000',
+            phone: user.phone || user.phone_number || '',
+            email: user.email,
+            address: propertyData.property_address || '',
+            city: user.city || '',
+            department: user.state || '',
+            country: user.country || 'Colombia',
+            emergency_contact: user.first_name || 'No especificado',
+          };
+
+          await LandlordContractService.completeLandlordData({
+            contract_id: result.id,
+            landlord_data: landlordDataPayload,
+          });
+
+
+          // Opcionalmente enviar invitación por email si el arrendatario tiene email
+          if (tenantData.email) {
+            try {
+              await LandlordContractService.sendTenantInvitation({
+                contract_id: result.id,
+                tenant_email: tenantData.email,
+                personal_message: `Hola ${tenantData.full_name || 'Estimado arrendatario'}, te invito a revisar el borrador del contrato de arrendamiento.`,
+              });
+            } catch (emailError) {
+              // No bloqueamos - el estado ya avanzó correctamente
+            }
+          }
+        } catch (advanceError) {
+          // No bloqueamos el flujo - el usuario puede hacerlo manualmente desde el dashboard
         }
       }
 
@@ -703,9 +958,15 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         }
       }
 
-    } catch (error) {
-      console.error('Error al guardar contrato:', error);
-      setValidationErrors(['Error al guardar el contrato. Por favor intenta nuevamente.']);
+    } catch (error: any) {
+
+      const errorMessage = error.response?.data?.error
+        || error.response?.data?.detail
+        || error.response?.data?.message
+        || error.message
+        || 'Error desconocido al guardar el contrato';
+
+      setValidationErrors([`Error al guardar el contrato: ${errorMessage}`]);
     } finally {
       setLoading(false);
     }
@@ -721,7 +982,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 
   // Codeudor biometric flow handlers
   const handleCodeudorBiometricSuccess = (biometricData: any) => {
-    console.log('✅ Codeudor biometric authentication completed:', biometricData);
     setCodeudorBiometricData(biometricData);
     setCodeudorBiometricOpen(false);
     
@@ -729,7 +989,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     setGuaranteeData(prev => ({
       ...prev,
       biometric_completed: true,
-      biometric_data: biometricData
+      biometric_data: biometricData,
     }));
     
     // Show success message
@@ -742,7 +1002,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
   };
 
   const handleCodeudorBiometricError = (error: string) => {
-    console.error('❌ Codeudor biometric authentication error:', error);
     setCodeudorBiometricOpen(false);
     setValidationErrors([`Error en verificación biométrica del codeudor: ${error}`]);
   };
@@ -757,7 +1016,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     const currentDate = new Date().toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
 
     // Template base legal profesional para vivienda urbana
@@ -898,126 +1157,375 @@ _____________________________
       setValidationErrors(['Complete todos los campos requeridos antes de ver la previsualización del contrato']);
       return;
     }
-    
-    // Si ya tenemos un contractId, mostrar la vista previa profesional
-    if (contractId) {
-      viewContractPDF(contractId);
-      setContractHasBeenPreviewed(true);
-      return;
-    }
-    
-    // Si no hay contractId, necesitamos crear/guardar primero el contrato
+
+    // ============================================================================
+    // PREVISUALIZACIÓN PDF PROFESIONAL
+    // Si ya existe contractId, actualizamos y mostramos el PDF
+    // Si NO existe, creamos el borrador primero y luego mostramos el PDF
+    // ============================================================================
+
     try {
       setLoading(true);
-      
-      // Preparar los datos para crear el contrato con TODOS los campos incluyendo codeudor
-      const createPayload: CreateContractPayload = {
-        property_id: propertyData.property_id || '',
-        contract_template: contractData.contract_template || 'rental_urban',
 
-        // Información de la propiedad
-        property_data: {
-          property_address: propertyData.property_address || '',
-          property_area: propertyData.property_area || 0,
-          property_rooms: propertyData.property_rooms || 0,
-          property_bathrooms: propertyData.property_bathrooms || 0,
-          property_parking_spaces: propertyData.property_parking_spaces || 0,
-          property_furnished: propertyData.property_furnished || false,
-          property_stratum: propertyData.property_stratum || 0,
-          property_type: contractData.property_type || 'house',
-        },
+      // Usar el contractId del prop O el que se creó durante esta sesión
+      const activeContractId = contractId || createdContractId;
 
-        // Información del arrendador
-        landlord_data: {
-          full_name: landlordData.full_name || '',
-          document_type: landlordData.document_type || '',
-          document_number: landlordData.document_number || '',
-          email: landlordData.email || '',
-          phone: landlordData.phone || '',
-        },
+      if (activeContractId) {
+        // Ya existe el contrato - actualizar y mostrar PDF
+        // ============================================================================
+        // PAYLOAD COMPLETO PARA ACTUALIZACIÓN - IDÉNTICO AL DE CREAR BORRADOR
+        // Incluye TODOS los campos: garantías, políticas, codeudor, etc.
+        // ============================================================================
+        const updatePayload: any = {
+          property_id: propertyData.property_id || '',
+          contract_template: (contractData as any).contract_template || 'rental_urban',
 
-        // Términos básicos del contrato
-        basic_terms: {
-          monthly_rent: contractData.monthly_rent || 0,
-          security_deposit: contractData.security_deposit || 0,
-          duration_months: contractData.contract_duration_months || 12,
-          payment_day: contractData.payment_day || 5,
-          rent_increase_type: contractData.rent_increase_type || 'ipc',
-          utilities_included: contractData.utilities_included || false,
-          internet_included: contractData.internet_included || false,
-          pets_allowed: contractData.pets_allowed || false,
-          smoking_allowed: contractData.smoking_allowed || false,
-          guests_policy: contractData.guests_policy || 'limited',
-          max_occupants: contractData.max_occupants || 4,
-          maintenance_responsibility: contractData.maintenance_responsibility || 'tenant',
-        },
+          // ============================================================================
+          // CONDICIONES ECONÓMICAS (basic_terms)
+          // ============================================================================
+          basic_terms: {
+            monthly_rent: contractData.monthly_rent || 0,
+            security_deposit: contractData.security_deposit || 0,
+            duration_months: contractData.contract_duration_months || 12,
+            payment_day: (contractData as any).payment_day || 5,
+            rent_increase_type: (contractData as any).rent_increase_type || 'ipc',
 
-        // Información de garantías y codeudor
-        guarantee_terms: {
-          guarantor_required: contractData.guarantor_required || false,
-          guarantor_type: contractData.guarantor_type || 'personal',
-          guarantee_type: guaranteeData.guarantee_type || 'none',
+            // Servicios incluidos
+            utilities_included: contractData.utilities_included || false,
+            internet_included: (contractData as any).internet_included || false,
 
-          // Datos del codeudor (si aplica)
-          codeudor_data: guaranteeData.guarantee_type !== 'none' ? {
-            codeudor_full_name: guaranteeData.codeudor_full_name || '',
-            codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
-            codeudor_document_number: guaranteeData.codeudor_document_number || '',
-            codeudor_phone: guaranteeData.codeudor_phone || '',
-            codeudor_email: guaranteeData.codeudor_email || '',
-            codeudor_address: guaranteeData.codeudor_address || '',
-            codeudor_city: guaranteeData.codeudor_city || '',
+            // Políticas de uso
+            pets_allowed: contractData.pets_allowed || false,
+            smoking_allowed: contractData.smoking_allowed || false,
+            guests_policy: (contractData as any).guests_policy || 'limited',
+            max_occupants: (contractData as any).max_occupants || 4,
 
-            // Datos adicionales para codeudor con salario
-            ...(guaranteeData.guarantee_type === 'codeudor_salario' && {
-              codeudor_employer: guaranteeData.codeudor_employer || '',
-              codeudor_position: guaranteeData.codeudor_position || '',
-              codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
-              codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
+            // Garantías y responsabilidades
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            maintenance_responsibility: (contractData as any).maintenance_responsibility || 'tenant',
+
+            // Información de garantía si aplica
+            ...(guaranteeData.guarantee_type !== 'none' && {
+              guarantee_type: guaranteeData.guarantee_type as any,
+              requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor,
             }),
+          },
 
-            // Datos adicionales para codeudor con finca raíz
-            ...(guaranteeData.guarantee_type === 'codeudor_finca_raiz' && {
-              property_matricula: guaranteeData.property_matricula || '',
-              property_address_guarantee: guaranteeData.property_address_guarantee || '',
-              property_predial_number: guaranteeData.property_predial_number || '',
-            }),
-          } : undefined,
-        },
+          // ============================================================================
+          // INFORMACIÓN DEL ARRENDADOR (landlord_data)
+          // ============================================================================
+          landlord_data: {
+            full_name: landlordData.full_name || '',
+            document_type: landlordData.document_type || 'CC',
+            document_type_display: landlordData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   landlordData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   landlordData.document_type === 'NIT' ? 'NIT' :
+                                   landlordData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: landlordData.document_number || '',
+            document_expedition_date: landlordData.document_expedition_date || '',
+            document_expedition_place: landlordData.document_expedition_place || '',
+            email: landlordData.email || '',
+            phone: landlordData.phone || '',
+            profession: landlordData.profession || '',
+            address: landlordData.address || '',
+            city: landlordData.city || '',
+            department: landlordData.department || '',
+            country: landlordData.country || 'Colombia',
+            full_address: `${landlordData.address || ''}, ${landlordData.city || ''}, ${landlordData.department || ''}`.trim().replace(/^,\s*|,\s*$/g, ''),
+            emergency_contact_name: landlordData.emergency_contact || '',
+            emergency_contact_phone: landlordData.emergency_phone || '',
+            bank_name: landlordData.bank_name || '',
+            bank_account_type: landlordData.account_type || '',
+            bank_account_number: landlordData.bank_account || '',
+          },
 
-        // Cláusulas especiales
-        special_clauses: contractData.special_clauses || [],
+          // ============================================================================
+          // INFORMACIÓN DEL ARRENDATARIO (tenant_data)
+          // ============================================================================
+          tenant_data: {
+            full_name: tenantData.full_name || '',
+            document_type: tenantData.document_type || 'CC',
+            document_type_display: tenantData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   tenantData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   tenantData.document_type === 'NIT' ? 'NIT' :
+                                   tenantData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: tenantData.document_number || '',
+            document_expedition_date: tenantData.document_expedition_date || '',
+            document_expedition_place: tenantData.document_expedition_place || '',
+            email: tenantData.email || '',
+            phone: tenantData.phone || '',
+            current_address: tenantData.current_address || '',
+            city: tenantData.city || '',
+            department: tenantData.department || '',
+            country: tenantData.country || 'Colombia',
+            employment_type: tenantData.employment_type || 'employee',
+            company_name: tenantData.company_name || '',
+            position: tenantData.position || '',
+            monthly_income: tenantData.monthly_income || 0,
+            emergency_contact_name: tenantData.emergency_contact || '',
+            emergency_contact_phone: tenantData.emergency_phone || '',
+            emergency_contact_relationship: tenantData.emergency_relationship || '',
+          },
 
-        // Contenido del contrato generado
-        contract_content: generateContractPreview()
-      };
-      
-      // Crear el contrato y obtener el ID
-      const result = await LandlordContractService.createContractDraft(createPayload);
-      
-      if (result?.id) {
-        // Abrir la vista previa profesional con el nuevo ID
-        viewContractPDF(result.id);
+          // ============================================================================
+          // DETALLES DE LA PROPIEDAD (property_data)
+          // ============================================================================
+          property_data: {
+            property_id: propertyData.property_id || '',
+            property_address: propertyData.property_address || '',
+            property_type: contractData.property_type || 'house',
+            property_area: propertyData.property_area || 0,
+            property_rooms: propertyData.property_rooms || 0,
+            property_bathrooms: propertyData.property_bathrooms || 0,
+            property_parking_spaces: propertyData.property_parking_spaces || 0,
+            property_floors: (propertyData as any).property_floors || 1,
+            property_year: (propertyData as any).property_year || null,
+            property_furnished: propertyData.property_furnished || false,
+            property_stratum: propertyData.property_stratum || 0,
+            mascotas_permitidas: (propertyData as any).mascotas_permitidas || false,
+            fumadores_permitidos: (propertyData as any).fumadores_permitidos || false,
+            minimo_meses: (propertyData as any).minimo_meses || 12,
+          },
+
+          // ============================================================================
+          // GARANTÍAS DEL CONTRATO (guarantee_terms) - INCLUYE CODEUDOR
+          // ============================================================================
+          guarantee_terms: {
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            guarantee_type: guaranteeData.guarantee_type || 'none',
+            requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor || false,
+
+            // Datos del codeudor (si aplica)
+            codeudor_data: guaranteeData.guarantee_type !== 'none' ? {
+              codeudor_full_name: guaranteeData.codeudor_full_name || '',
+              codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
+              codeudor_document_type_display: guaranteeData.codeudor_document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                              guaranteeData.codeudor_document_type === 'CE' ? 'Cédula de Extranjería' :
+                                              guaranteeData.codeudor_document_type === 'NIT' ? 'NIT' :
+                                              guaranteeData.codeudor_document_type === 'TI' ? 'Tarjeta de Identidad' : 'Cédula de Ciudadanía',
+              codeudor_document_number: guaranteeData.codeudor_document_number || '',
+              codeudor_phone: guaranteeData.codeudor_phone || '',
+              codeudor_email: guaranteeData.codeudor_email || '',
+              codeudor_address: guaranteeData.codeudor_address || '',
+              codeudor_city: guaranteeData.codeudor_city || '',
+
+              // Datos específicos para codeudor con salario
+              ...(guaranteeData.guarantee_type === 'codeudor_salario' && {
+                codeudor_employer: guaranteeData.codeudor_employer || '',
+                codeudor_position: guaranteeData.codeudor_position || '',
+                codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
+                codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
+              }),
+
+              // Datos específicos para codeudor con finca raíz
+              ...(guaranteeData.guarantee_type === 'codeudor_finca_raiz' && {
+                property_matricula: guaranteeData.property_matricula || '',
+                property_area_guarantee: guaranteeData.property_area_guarantee || 0,
+                property_address_guarantee: guaranteeData.property_address_guarantee || '',
+                property_city_guarantee: guaranteeData.property_city_guarantee || '',
+                property_department_guarantee: guaranteeData.property_department_guarantee || '',
+                property_predial_number: guaranteeData.property_predial_number || '',
+                property_catastral_number: guaranteeData.property_catastral_number || '',
+                property_linderos: guaranteeData.property_linderos || '',
+              }),
+            } : undefined,
+          },
+
+          // ============================================================================
+          // CLÁUSULAS ESPECIALES
+          // ============================================================================
+          special_clauses: contractData.special_clauses || [],
+          contract_content: contractDraftContent || generateContractPreview(),
+        };
+
+        await LandlordContractService.updateContractDraft(activeContractId, updatePayload);
+        viewContractPDF(activeContractId);
         setContractHasBeenPreviewed(true);
-        
-        // Mostrar mensaje de éxito
-        setTimeout(() => {
-          alert('✅ Contrato creado exitosamente. La vista previa se ha abierto en una nueva pestaña.');
-        }, 500);
       } else {
-        // Fallback: generar contenido básico si no se puede crear el contrato
-        const content = generateContractPreview();
-        setContractDraftContent(content);
-        setContractHasBeenPreviewed(true);
-        setContractPreviewMode(true);
+        // NO existe el contrato - crear primero como borrador y luego mostrar PDF
+
+        // ============================================================================
+        // PAYLOAD COMPLETO PARA PREVISUALIZACIÓN - IDÉNTICO AL DE CREAR BORRADOR
+        // Incluye TODOS los campos: garantías, políticas, codeudor, etc.
+        // ============================================================================
+        const createPayload: any = {
+          property_id: propertyData.property_id || '',
+          contract_template: (contractData as any).contract_template || 'rental_urban',
+
+          // ============================================================================
+          // CONDICIONES ECONÓMICAS (basic_terms)
+          // ============================================================================
+          basic_terms: {
+            monthly_rent: contractData.monthly_rent || 0,
+            security_deposit: contractData.security_deposit || 0,
+            duration_months: contractData.contract_duration_months || 12,
+            payment_day: (contractData as any).payment_day || 5,
+            rent_increase_type: (contractData as any).rent_increase_type || 'ipc',
+
+            // Servicios incluidos
+            utilities_included: contractData.utilities_included || false,
+            internet_included: (contractData as any).internet_included || false,
+
+            // Políticas de uso
+            pets_allowed: contractData.pets_allowed || false,
+            smoking_allowed: contractData.smoking_allowed || false,
+            guests_policy: (contractData as any).guests_policy || 'limited',
+            max_occupants: (contractData as any).max_occupants || 4,
+
+            // Garantías y responsabilidades
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            maintenance_responsibility: (contractData as any).maintenance_responsibility || 'tenant',
+
+            // Información de garantía si aplica
+            ...(guaranteeData.guarantee_type !== 'none' && {
+              guarantee_type: guaranteeData.guarantee_type as any,
+              requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor,
+            }),
+          },
+
+          // ============================================================================
+          // INFORMACIÓN DEL ARRENDADOR (landlord_data)
+          // ============================================================================
+          landlord_data: {
+            full_name: landlordData.full_name || '',
+            document_type: landlordData.document_type || 'CC',
+            document_type_display: landlordData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   landlordData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   landlordData.document_type === 'NIT' ? 'NIT' :
+                                   landlordData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: landlordData.document_number || '',
+            document_expedition_date: landlordData.document_expedition_date || '',
+            document_expedition_place: landlordData.document_expedition_place || '',
+            email: landlordData.email || '',
+            phone: landlordData.phone || '',
+            profession: landlordData.profession || '',
+            address: landlordData.address || '',
+            city: landlordData.city || '',
+            department: landlordData.department || '',
+            country: landlordData.country || 'Colombia',
+            full_address: `${landlordData.address || ''}, ${landlordData.city || ''}, ${landlordData.department || ''}`.trim().replace(/^,\s*|,\s*$/g, ''),
+            emergency_contact_name: landlordData.emergency_contact || '',
+            emergency_contact_phone: landlordData.emergency_phone || '',
+            bank_name: landlordData.bank_name || '',
+            bank_account_type: landlordData.account_type || '',
+            bank_account_number: landlordData.bank_account || '',
+          },
+
+          // ============================================================================
+          // INFORMACIÓN DEL ARRENDATARIO (tenant_data)
+          // ============================================================================
+          tenant_data: {
+            full_name: tenantData.full_name || '',
+            document_type: tenantData.document_type || 'CC',
+            document_type_display: tenantData.document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                   tenantData.document_type === 'CE' ? 'Cédula de Extranjería' :
+                                   tenantData.document_type === 'NIT' ? 'NIT' :
+                                   tenantData.document_type === 'PP' ? 'Pasaporte' : 'Cédula de Ciudadanía',
+            document_number: tenantData.document_number || '',
+            document_expedition_date: tenantData.document_expedition_date || '',
+            document_expedition_place: tenantData.document_expedition_place || '',
+            email: tenantData.email || '',
+            phone: tenantData.phone || '',
+            current_address: tenantData.current_address || '',
+            city: tenantData.city || '',
+            department: tenantData.department || '',
+            country: tenantData.country || 'Colombia',
+            employment_type: tenantData.employment_type || 'employee',
+            company_name: tenantData.company_name || '',
+            position: tenantData.position || '',
+            monthly_income: tenantData.monthly_income || 0,
+            emergency_contact_name: tenantData.emergency_contact || '',
+            emergency_contact_phone: tenantData.emergency_phone || '',
+            emergency_contact_relationship: tenantData.emergency_relationship || '',
+          },
+
+          // ============================================================================
+          // DETALLES DE LA PROPIEDAD (property_data)
+          // ============================================================================
+          property_data: {
+            property_id: propertyData.property_id || '',
+            property_address: propertyData.property_address || '',
+            property_type: contractData.property_type || 'house',
+            property_area: propertyData.property_area || 0,
+            property_rooms: propertyData.property_rooms || 0,
+            property_bathrooms: propertyData.property_bathrooms || 0,
+            property_parking_spaces: propertyData.property_parking_spaces || 0,
+            property_floors: (propertyData as any).property_floors || 1,
+            property_year: (propertyData as any).property_year || null,
+            property_furnished: propertyData.property_furnished || false,
+            property_stratum: propertyData.property_stratum || 0,
+            mascotas_permitidas: (propertyData as any).mascotas_permitidas || false,
+            fumadores_permitidos: (propertyData as any).fumadores_permitidos || false,
+            minimo_meses: (propertyData as any).minimo_meses || 12,
+          },
+
+          // ============================================================================
+          // GARANTÍAS DEL CONTRATO (guarantee_terms) - INCLUYE CODEUDOR
+          // ============================================================================
+          guarantee_terms: {
+            guarantor_required: contractData.guarantor_required || false,
+            guarantor_type: contractData.guarantor_type || 'personal',
+            guarantee_type: guaranteeData.guarantee_type || 'none',
+            requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor || false,
+
+            // Datos del codeudor (si aplica)
+            codeudor_data: guaranteeData.guarantee_type !== 'none' ? {
+              codeudor_full_name: guaranteeData.codeudor_full_name || '',
+              codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
+              codeudor_document_type_display: guaranteeData.codeudor_document_type === 'CC' ? 'Cédula de Ciudadanía' :
+                                              guaranteeData.codeudor_document_type === 'CE' ? 'Cédula de Extranjería' :
+                                              guaranteeData.codeudor_document_type === 'NIT' ? 'NIT' :
+                                              guaranteeData.codeudor_document_type === 'TI' ? 'Tarjeta de Identidad' : 'Cédula de Ciudadanía',
+              codeudor_document_number: guaranteeData.codeudor_document_number || '',
+              codeudor_phone: guaranteeData.codeudor_phone || '',
+              codeudor_email: guaranteeData.codeudor_email || '',
+              codeudor_address: guaranteeData.codeudor_address || '',
+              codeudor_city: guaranteeData.codeudor_city || '',
+
+              // Datos específicos para codeudor con salario
+              ...(guaranteeData.guarantee_type === 'codeudor_salario' && {
+                codeudor_employer: guaranteeData.codeudor_employer || '',
+                codeudor_position: guaranteeData.codeudor_position || '',
+                codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
+                codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
+              }),
+
+              // Datos específicos para codeudor con finca raíz
+              ...(guaranteeData.guarantee_type === 'codeudor_finca_raiz' && {
+                property_matricula: guaranteeData.property_matricula || '',
+                property_area_guarantee: guaranteeData.property_area_guarantee || 0,
+                property_address_guarantee: guaranteeData.property_address_guarantee || '',
+                property_city_guarantee: guaranteeData.property_city_guarantee || '',
+                property_department_guarantee: guaranteeData.property_department_guarantee || '',
+                property_predial_number: guaranteeData.property_predial_number || '',
+                property_catastral_number: guaranteeData.property_catastral_number || '',
+                property_linderos: guaranteeData.property_linderos || '',
+              }),
+            } : undefined,
+          },
+
+          // ============================================================================
+          // CLÁUSULAS ESPECIALES
+          // ============================================================================
+          special_clauses: contractData.special_clauses || [],
+          contract_content: contractDraftContent || generateContractPreview(),
+        };
+
+        const result = await LandlordContractService.createContractDraft(createPayload);
+
+        if (result?.id) {
+          setCreatedContractId(result.id);
+          viewContractPDF(result.id);
+          setContractHasBeenPreviewed(true);
+        } else {
+          throw new Error('No se pudo crear el borrador');
+        }
       }
     } catch (error) {
-      console.error('Error al generar vista previa:', error);
-      // Fallback: mostrar contenido básico
-      const content = generateContractPreview();
-      setContractDraftContent(content);
-      setContractHasBeenPreviewed(true);
-      setContractPreviewMode(true);
+      setValidationErrors(['Error al generar la previsualización del contrato. Intente nuevamente.']);
     } finally {
       setLoading(false);
     }
@@ -1057,12 +1565,21 @@ _____________________________
         if (!landlordData.city.trim()) errors.push('La ciudad es requerida');
         break;
 
-      case 1: // Detalles de la Propiedad
+      case 1: // Información del Arrendatario (NEW)
+        if (!tenantData.full_name?.trim()) errors.push('El nombre completo del arrendatario es requerido');
+        if (!tenantData.document_number?.trim()) errors.push('El número de documento del arrendatario es requerido');
+        if (!tenantData.phone?.trim()) errors.push('El teléfono del arrendatario es requerido');
+        if (!tenantData.email?.trim()) errors.push('El email del arrendatario es requerido');
+        if (!tenantData.current_address?.trim()) errors.push('La dirección actual del arrendatario es requerida');
+        if (!tenantData.city?.trim()) errors.push('La ciudad del arrendatario es requerida');
+        break;
+
+      case 2: // Detalles de la Propiedad (was case 1)
         if (!propertyData.property_id) errors.push('Debe seleccionar una propiedad');
         if (!propertyData.property_address.trim()) errors.push('La dirección de la propiedad es requerida');
         break;
 
-      case 2: // Condiciones Económicas
+      case 3: // Condiciones Económicas (was case 2)
         if (!contractData.monthly_rent || contractData.monthly_rent <= 0) {
           errors.push('El canon mensual debe ser mayor a $0');
         }
@@ -1071,13 +1588,13 @@ _____________________________
         }
         break;
 
-      case 3: // Términos del Contrato
+      case 4: // Términos del Contrato (was case 3)
         if (!contractData.contract_duration_months || contractData.contract_duration_months < 1) {
           errors.push('La duración del contrato debe ser de al menos 1 mes');
         }
         break;
 
-      case 4: // Garantías del Contrato
+      case 5: // Garantías del Contrato (was case 4)
         if (guaranteeData.guarantee_type !== 'none') {
           // Validar campos comunes del codeudor
           if (!guaranteeData.codeudor_full_name.trim()) errors.push('El nombre del codeudor es requerido');
@@ -1112,20 +1629,23 @@ _____________________________
 
           // NOTA: Validación de documentos de garantía removida
           // Los documentos ahora son subidos por el arrendatario en la etapa 2 del workflow
-          if (guaranteeData.guarantee_type !== 'none') {
-            console.log('ℹ️ Documentos de garantía serán validados en el perfil del arrendatario');
+          if ((guaranteeData.guarantee_type as string) !== 'none') {
           }
         }
         break;
 
-      case 5: // Cláusulas Especiales
+      case 6: // Cláusulas Especiales (was case 5)
         // Las cláusulas especiales son opcionales, no hay validaciones requeridas
         break;
 
-      case 6: // Revisión y Creación
+      case 7: // Revisión y Creación (was case 6)
         // Validación final de todos los datos
         if (!landlordData.full_name.trim() || !contractData.monthly_rent || !propertyData.property_id) {
           errors.push('Revise que todos los campos requeridos estén completos');
+        }
+        // También validar datos del arrendatario
+        if (!tenantData.full_name?.trim() || !tenantData.document_number?.trim()) {
+          errors.push('Revise que los datos del arrendatario estén completos');
         }
         break;
     }
@@ -1187,6 +1707,27 @@ _____________________________
                 value={landlordData.document_number}
                 onChange={(e) => setLandlordData(prev => ({ ...prev, document_number: e.target.value }))}
                 error={validationErrors.some(err => err.includes('documento'))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Lugar de Expedición *"
+                value={landlordData.document_expedition_place}
+                onChange={(e) => setLandlordData(prev => ({ ...prev, document_expedition_place: e.target.value }))}
+                placeholder="Ej: Medellín, Bogotá, Cali"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Fecha de Expedición *"
+                type="date"
+                value={landlordData.document_expedition_date}
+                onChange={(e) => setLandlordData(prev => ({ ...prev, document_expedition_date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
               />
             </Grid>
 
@@ -1278,7 +1819,350 @@ _____________________________
           </Grid>
         );
 
-      case 1: // Detalles de la Propiedad
+      case 1: // Información del Arrendatario (NEW)
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom color="primary">
+                <TenantIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Información del Arrendatario
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Proporciona la información del arrendatario. Puedes llenar los campos manualmente o auto-completar desde candidatos de matching.
+              </Typography>
+            </Grid>
+
+            {/* Botón de Auto-llenado desde Matching */}
+            {propertyData.property_id && (
+              <Grid item xs={12}>
+                <Alert
+                  severity="info"
+                  icon={<AutoFillIcon />}
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={async () => {
+                        setLoadingCandidates(true);
+                        try {
+                          const response = await matchingService.getMyMatchRequests();
+                          const queryMatchId = searchParams.get('match');
+
+                          // Manejar tanto respuestas paginadas como arrays directos
+                          // API puede retornar: { results: [...] } o directamente [...]
+                          const rawData = response.data;
+                          const matchRequests = Array.isArray(rawData)
+                            ? rawData
+                            : (rawData?.results || rawData?.data || []);
+
+
+                          // Filtrar candidatos elegibles para crear contrato:
+                          // - Candidatos en stage 3 del workflow (listos para contrato)
+                          // - O candidatos aceptados
+                          // - Para esta propiedad específica
+                          // - O el match específico de la URL
+                          const eligibleRequests = matchRequests.filter((r: any) => {
+                            // Si hay un match específico en la URL, priorizarlo
+                            if (queryMatchId && r.id === queryMatchId) {
+                              return true;
+                            }
+
+                            // Verificar property_id (puede venir como string o como objeto)
+                            const matchPropertyId = r.property?.id || r.property;
+                            const isMatchingProperty = matchPropertyId === propertyData.property_id;
+
+                            // Aceptar candidatos en stage 3 del workflow (etapa de contrato)
+                            const isInContractStage = r.workflow_stage === 3;
+
+                            // O candidatos con status accepted
+                            const isAccepted = r.status === 'accepted';
+
+                            return isMatchingProperty && (isInContractStage || isAccepted);
+                          });
+
+                          setMatchingCandidates(eligibleRequests);
+
+                          if (eligibleRequests.length === 0) {
+                          }
+                        } catch (error) {
+                        } finally {
+                          setLoadingCandidates(false);
+                        }
+                      }}
+                      disabled={loadingCandidates}
+                    >
+                      {loadingCandidates ? 'Cargando...' : 'Cargar Candidatos'}
+                    </Button>
+                  }
+                >
+                  Puedes auto-llenar los datos desde candidatos de matching aceptados para esta propiedad.
+                </Alert>
+              </Grid>
+            )}
+
+            {/* Selector de candidatos de matching */}
+            {matchingCandidates.length > 0 && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Seleccionar Candidato de Matching</InputLabel>
+                  <Select
+                    value={selectedCandidate?.id || ''}
+                    onChange={(e) => {
+                      const candidate = matchingCandidates.find(c => c.id === e.target.value);
+                      if (candidate) {
+                        setSelectedCandidate(candidate);
+
+                        // Extraer datos del tenant - puede ser un objeto o string ID
+                        const tenantObj = typeof candidate.tenant === 'object' ? candidate.tenant : null;
+
+                        // Auto-llenar datos del arrendatario desde el candidato
+                        // Priorizar campos de nivel raíz del MatchRequest (tenant_name, tenant_email, etc.)
+                        // Luego usar datos del objeto tenant si existen
+                        const newTenantData = {
+                          full_name: candidate.tenant_name || tenantObj?.name || tenantObj?.full_name ||
+                                     (tenantObj?.first_name ? `${tenantObj.first_name} ${tenantObj.last_name || ''}`.trim() : '') || '',
+                          document_type: tenantObj?.document_type || 'CC',
+                          document_number: tenantObj?.document_number || '',
+                          phone: candidate.tenant_phone || tenantObj?.phone || tenantObj?.phone_number || '',
+                          email: candidate.tenant_email || tenantObj?.email || '',
+                          current_address: tenantObj?.address || tenantObj?.current_address || '',
+                          city: tenantObj?.city || '',
+                          employment_type: mapEmploymentType(candidate.employment_type),
+                          company_name: candidate.company_name || '',
+                          position: candidate.position || '',
+                          monthly_income: candidate.monthly_income || 0,
+                          occupation: candidate.position || candidate.employment_type || '',
+                        };
+
+                        setTenantData(prev => ({
+                          ...prev,
+                          ...newTenantData,
+                        }));
+                      }
+                    }}
+                    label="Seleccionar Candidato de Matching"
+                  >
+                    {matchingCandidates.map((candidate) => (
+                      <MenuItem key={candidate.id} value={candidate.id}>
+                        {candidate.tenant_name || candidate.tenant?.email || `Candidato ${candidate.id.slice(0, 8)}`}
+                        {candidate.monthly_income && ` - Ingresos: $${candidate.monthly_income.toLocaleString()}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                Datos Personales del Arrendatario
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={8}>
+              <TextField
+                fullWidth
+                label="Nombre Completo *"
+                value={tenantData.full_name || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, full_name: e.target.value }))}
+                error={validationErrors.some(err => err.includes('nombre') && err.includes('arrendatario'))}
+                helperText="Nombre completo como aparece en el documento de identidad"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Documento</InputLabel>
+                <Select
+                  value={tenantData.document_type || 'CC'}
+                  onChange={(e) => setTenantData(prev => ({ ...prev, document_type: e.target.value as DocumentType }))}
+                  label="Tipo de Documento"
+                >
+                  <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                  <MenuItem value="PP">Pasaporte</MenuItem>
+                  <MenuItem value="NIT">NIT</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Número de Documento *"
+                value={tenantData.document_number || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, document_number: e.target.value }))}
+                error={validationErrors.some(err => err.includes('documento') && err.includes('arrendatario'))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Lugar de Expedición *"
+                value={tenantData.document_expedition_place || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, document_expedition_place: e.target.value }))}
+                placeholder="Ej: Medellín, Bogotá, Cali"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Fecha de Expedición *"
+                type="date"
+                value={tenantData.document_expedition_date || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, document_expedition_date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Teléfono *"
+                value={tenantData.phone || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, phone: e.target.value }))}
+                error={validationErrors.some(err => err.includes('teléfono') && err.includes('arrendatario'))}
+                placeholder="+57 300 123 4567"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email *"
+                type="email"
+                value={tenantData.email || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, email: e.target.value }))}
+                error={validationErrors.some(err => err.includes('email') && err.includes('arrendatario'))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Empleo</InputLabel>
+                <Select
+                  value={tenantData.employment_type || 'employee'}
+                  onChange={(e) => setTenantData(prev => ({ ...prev, employment_type: e.target.value as TenantData['employment_type'] }))}
+                  label="Tipo de Empleo"
+                >
+                  <MenuItem value="employee">Empleado</MenuItem>
+                  <MenuItem value="independent">Independiente</MenuItem>
+                  <MenuItem value="business_owner">Empresario</MenuItem>
+                  <MenuItem value="retired">Pensionado</MenuItem>
+                  <MenuItem value="student">Estudiante</MenuItem>
+                  <MenuItem value="unemployed">Desempleado</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Dirección Actual *"
+                value={tenantData.current_address || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, current_address: e.target.value }))}
+                error={validationErrors.some(err => err.includes('dirección') && err.includes('arrendatario'))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Ciudad *"
+                value={tenantData.city || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, city: e.target.value }))}
+                error={validationErrors.some(err => err.includes('ciudad') && err.includes('arrendatario'))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Departamento"
+                value={tenantData.department || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, department: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                Información Laboral
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Empresa / Empleador"
+                value={tenantData.company_name || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, company_name: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Cargo / Posición"
+                value={tenantData.position || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, position: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Ingresos Mensuales"
+                type="number"
+                value={tenantData.monthly_income || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, monthly_income: parseFloat(e.target.value) || 0 }))}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                Contacto de Emergencia del Arrendatario
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Nombre del Contacto"
+                value={tenantData.emergency_contact || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, emergency_contact: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Teléfono de Emergencia"
+                value={tenantData.emergency_phone || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, emergency_phone: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Relación"
+                value={tenantData.emergency_relationship || ''}
+                onChange={(e) => setTenantData(prev => ({ ...prev, emergency_relationship: e.target.value }))}
+                placeholder="Ej: Padre, Madre, Hermano"
+              />
+            </Grid>
+          </Grid>
+        );
+
+      case 2: // Detalles de la Propiedad (was case 1)
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -1595,20 +2479,20 @@ _____________________________
                 value={propertyData.property_address}
                 onChange={(e) => setPropertyData(prev => ({ ...prev, property_address: e.target.value }))}
                 error={validationErrors.some(err => err.includes('dirección de la propiedad'))}
-                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad seleccionada. Puedes editarlo si es necesario." : "Dirección exacta incluida nomenclatura y referencias"}
+                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad seleccionada. Puedes editarlo si es necesario.' : 'Dirección exacta incluida nomenclatura y referencias'}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
                       <CheckIcon color="success" fontSize="small" />
                     </InputAdornment>
-                  ) : undefined
+                  ) : undefined,
                 }}
                 sx={effectivePropertyId ? { 
                   '& .MuiOutlinedInput-root': { 
                     bgcolor: 'success.50',
                     '&:hover': { bgcolor: 'success.100' },
-                    '&.Mui-focused': { bgcolor: 'background.paper' }
-                  } 
+                    '&.Mui-focused': { bgcolor: 'background.paper' },
+                  }, 
                 } : undefined}
               />
             </Grid>
@@ -1618,8 +2502,8 @@ _____________________________
                 '& .MuiOutlinedInput-root': { 
                   bgcolor: 'success.50',
                   '&:hover': { bgcolor: 'success.100' },
-                  '&.Mui-focused': { bgcolor: 'background.paper' }
-                } 
+                  '&.Mui-focused': { bgcolor: 'background.paper' },
+                }, 
               } : undefined}>
                 <InputLabel>Tipo de Propiedad * {effectivePropertyId && '✅'}</InputLabel>
                 <Select
@@ -1652,10 +2536,10 @@ _____________________________
                 value={propertyData.property_area === 0 ? '' : propertyData.property_area}
                 onChange={(e) => setPropertyData(prev => ({ 
                   ...prev, 
-                  property_area: e.target.value === '' ? 0 : Number(e.target.value) 
+                  property_area: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 error={validationErrors.some(err => err.includes('área'))}
-                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad seleccionada" : ""}
+                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad seleccionada' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -1668,8 +2552,8 @@ _____________________________
                   '& .MuiOutlinedInput-root': { 
                     bgcolor: 'success.50',
                     '&:hover': { bgcolor: 'success.100' },
-                    '&.Mui-focused': { bgcolor: 'background.paper' }
-                  } 
+                    '&.Mui-focused': { bgcolor: 'background.paper' },
+                  }, 
                 } : undefined}
               />
             </Grid>
@@ -1682,7 +2566,7 @@ _____________________________
                 value={propertyData.property_stratum === 0 ? '' : propertyData.property_stratum}
                 onChange={(e) => setPropertyData(prev => ({ 
                   ...prev, 
-                  property_stratum: e.target.value === '' ? 0 : Number(e.target.value) 
+                  property_stratum: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 1, max: 6 }}
               />
@@ -1696,10 +2580,10 @@ _____________________________
                 value={propertyData.property_rooms === 0 ? '' : propertyData.property_rooms}
                 onChange={(e) => setPropertyData(prev => ({ 
                   ...prev, 
-                  property_rooms: e.target.value === '' ? 0 : Number(e.target.value) 
+                  property_rooms: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -1711,8 +2595,8 @@ _____________________________
                   '& .MuiOutlinedInput-root': { 
                     bgcolor: 'success.50',
                     '&:hover': { bgcolor: 'success.100' },
-                    '&.Mui-focused': { bgcolor: 'background.paper' }
-                  } 
+                    '&.Mui-focused': { bgcolor: 'background.paper' },
+                  }, 
                 } : undefined}
               />
             </Grid>
@@ -1725,10 +2609,10 @@ _____________________________
                 value={propertyData.property_bathrooms === 0 ? '' : propertyData.property_bathrooms}
                 onChange={(e) => setPropertyData(prev => ({ 
                   ...prev, 
-                  property_bathrooms: e.target.value === '' ? 0 : Number(e.target.value) 
+                  property_bathrooms: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -1740,8 +2624,8 @@ _____________________________
                   '& .MuiOutlinedInput-root': { 
                     bgcolor: 'success.50',
                     '&:hover': { bgcolor: 'success.100' },
-                    '&.Mui-focused': { bgcolor: 'background.paper' }
-                  } 
+                    '&.Mui-focused': { bgcolor: 'background.paper' },
+                  }, 
                 } : undefined}
               />
             </Grid>
@@ -1754,10 +2638,10 @@ _____________________________
                 value={propertyData.property_parking_spaces === 0 ? '' : propertyData.property_parking_spaces}
                 onChange={(e) => setPropertyData(prev => ({ 
                   ...prev, 
-                  property_parking_spaces: e.target.value === '' ? 0 : Number(e.target.value) 
+                  property_parking_spaces: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? "✅ Auto-llenado desde la propiedad" : ""}
+                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -1769,8 +2653,8 @@ _____________________________
                   '& .MuiOutlinedInput-root': { 
                     bgcolor: 'success.50',
                     '&:hover': { bgcolor: 'success.100' },
-                    '&.Mui-focused': { bgcolor: 'background.paper' }
-                  } 
+                    '&.Mui-focused': { bgcolor: 'background.paper' },
+                  }, 
                 } : undefined}
               />
             </Grid>
@@ -1782,7 +2666,7 @@ _____________________________
                     <Switch
                       checked={propertyData.property_furnished}
                       onChange={(e) => setPropertyData(prev => ({ ...prev, property_furnished: e.target.checked }))}
-                      color={effectivePropertyId ? "success" : "primary"}
+                      color={effectivePropertyId ? 'success' : 'primary'}
                     />
                   }
                   label={
@@ -1818,7 +2702,7 @@ _____________________________
                           border: selectedTemplate === key ? 2 : 1,
                           borderColor: selectedTemplate === key ? 'primary.main' : 'divider',
                           opacity: isRecommended ? 1 : 0.7,
-                          '&:hover': { borderColor: 'primary.main' }
+                          '&:hover': { borderColor: 'primary.main' },
                         }}
                         onClick={() => setSelectedTemplate(key as keyof typeof PROFESSIONAL_CONTRACT_TEMPLATES)}
                       >
@@ -1850,7 +2734,7 @@ _____________________________
           </Grid>
         );
 
-      case 2: // Condiciones Económicas
+      case 3: // Condiciones Económicas
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -1871,7 +2755,7 @@ _____________________________
                 value={contractData.monthly_rent === 0 ? '' : contractData.monthly_rent}
                 onChange={(e) => setContractData(prev => ({ 
                   ...prev, 
-                  monthly_rent: e.target.value === '' ? 0 : Number(e.target.value) 
+                  monthly_rent: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 error={validationErrors.some(err => err.includes('canon mensual'))}
                 InputProps={{
@@ -1889,7 +2773,7 @@ _____________________________
                 value={contractData.security_deposit === 0 ? '' : contractData.security_deposit}
                 onChange={(e) => setContractData(prev => ({ 
                   ...prev, 
-                  security_deposit: e.target.value === '' ? 0 : Number(e.target.value) 
+                  security_deposit: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 InputProps={{
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
@@ -1906,7 +2790,7 @@ _____________________________
                 value={contractData.contract_duration_months === 0 ? '' : contractData.contract_duration_months}
                 onChange={(e) => setContractData(prev => ({ 
                   ...prev, 
-                  contract_duration_months: e.target.value === '' ? 0 : Number(e.target.value) 
+                  contract_duration_months: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 error={validationErrors.some(err => err.includes('duración'))}
                 inputProps={{ min: 1 }}
@@ -1937,7 +2821,7 @@ _____________________________
                 value={contractData.payment_day === 0 ? '' : contractData.payment_day}
                 onChange={(e) => setContractData(prev => ({ 
                   ...prev, 
-                  payment_day: e.target.value === '' ? 0 : Number(e.target.value) 
+                  payment_day: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 1, max: 31 }}
                 helperText="Día del mes para el pago (1-31)"
@@ -1958,7 +2842,7 @@ _____________________________
           </Grid>
         );
 
-      case 3: // Términos del Contrato
+      case 4: // Términos del Contrato
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -2043,7 +2927,7 @@ _____________________________
                 value={contractData.max_occupants === 0 ? '' : contractData.max_occupants}
                 onChange={(e) => setContractData(prev => ({ 
                   ...prev, 
-                  max_occupants: e.target.value === '' ? 0 : Number(e.target.value) 
+                  max_occupants: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 1 }}
               />
@@ -2099,7 +2983,7 @@ _____________________________
           </Grid>
         );
 
-      case 4: // Garantías del Contrato
+      case 5: // Garantías del Contrato
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -2125,13 +3009,12 @@ _____________________________
                     setGuaranteeData(prev => ({ 
                       ...prev, 
                       guarantee_type: newType,
-                      requires_biometric_codeudor: requiresBiometric
+                      requires_biometric_codeudor: requiresBiometric,
                     }));
                     
                     // Update codeudor biometric requirement state
                     setRequiresCodeudorBiometric(requiresBiometric);
                     
-                    console.log(`🔐 Guarantee type changed to: ${newType}, requires biometric: ${requiresBiometric}`);
                   }}
                   label="Tipo de Garantía"
                 >
@@ -2169,7 +3052,7 @@ _____________________________
                       </Button>
                       {codeudorBiometricData && (
                         <Chip
-                          icon={<CheckCircle />}
+                          icon={<CheckIcon />}
                           label="Verificación Biométrica Completada"
                           color="success"
                           size="small"
@@ -2289,7 +3172,7 @@ _____________________________
                     value={guaranteeData.codeudor_monthly_income === 0 ? '' : guaranteeData.codeudor_monthly_income}
                     onChange={(e) => setGuaranteeData(prev => ({ 
                       ...prev, 
-                      codeudor_monthly_income: e.target.value === '' ? 0 : Number(e.target.value) 
+                      codeudor_monthly_income: e.target.value === '' ? 0 : Number(e.target.value), 
                     }))}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">$</InputAdornment>,
@@ -2339,7 +3222,7 @@ _____________________________
                     value={guaranteeData.property_area_guarantee === 0 ? '' : guaranteeData.property_area_guarantee}
                     onChange={(e) => setGuaranteeData(prev => ({ 
                       ...prev, 
-                      property_area_guarantee: e.target.value === '' ? 0 : Number(e.target.value) 
+                      property_area_guarantee: e.target.value === '' ? 0 : Number(e.target.value), 
                     }))}
                   />
                 </Grid>
@@ -2418,7 +3301,7 @@ _____________________________
                     <br />
                     Codeudor: {guaranteeData.codeudor_full_name} ({guaranteeData.codeudor_document_type} {guaranteeData.codeudor_document_number})
                     <br />
-                    Documentos: {guaranteeData.documents_uploaded || 0} de {guaranteeData.documents_total || 0} subidos
+                    Documentos: {(guaranteeData as any).documents_uploaded || 0} de {(guaranteeData as any).documents_total || 0} subidos
                     <br />
                     El codeudor deberá completar el proceso biométrico al momento de la firma del contrato.
                   </Typography>
@@ -2428,7 +3311,7 @@ _____________________________
           </Grid>
         );
 
-      case 5: // Cláusulas Especiales
+      case 6: // Cláusulas Especiales
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -2493,7 +3376,7 @@ _____________________________
           </Grid>
         );
 
-      case 6: // Revisión y Creación
+      case 7: // Revisión y Creación
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -2704,6 +3587,20 @@ _____________________________
                 <StepContent>
                   {renderStepContent(index)}
                   <Box sx={{ mb: 2, mt: 4 }}>
+                    {/* Botón de previsualización solo en el paso final */}
+                    {index === steps.length - 1 && (
+                      <LoadingButton
+                        variant="outlined"
+                        color="info"
+                        onClick={handleContractPreview}
+                        loading={loading}
+                        sx={{ mr: 1 }}
+                        size="large"
+                        startIcon={<VisibilityIcon />}
+                      >
+                        Previsualizar Contrato
+                      </LoadingButton>
+                    )}
                     <LoadingButton
                       variant="contained"
                       onClick={index === steps.length - 1 ? handleSubmit : handleNext}
@@ -2743,7 +3640,7 @@ _____________________________
         maxWidth="lg"
         fullWidth
         PaperProps={{
-          sx: { height: '90vh' }
+          sx: { height: '90vh' },
         }}
       >
         <DialogTitle>
@@ -2790,7 +3687,7 @@ _____________________________
               '& .MuiInputBase-input': {
                 padding: '20px',
                 minHeight: 'calc(90vh - 240px) !important',
-              }
+              },
             }}
             placeholder="El contenido del contrato aparecerá aquí una vez que complete todos los campos requeridos..."
           />
@@ -2897,7 +3794,7 @@ _____________________________
             document_number: guaranteeData.codeudor_document_number,
             email: guaranteeData.codeudor_email,
             phone: guaranteeData.codeudor_phone,
-            guarantee_type: guaranteeData.guarantee_type
+            guarantee_type: guaranteeData.guarantee_type,
           }}
           onSuccess={handleCodeudorBiometricSuccess}
           onError={handleCodeudorBiometricError}

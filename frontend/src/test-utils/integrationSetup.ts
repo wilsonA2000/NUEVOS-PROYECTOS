@@ -12,7 +12,7 @@ import { server } from '../__mocks__/server';
 configure({
   testIdAttribute: 'data-testid',
   asyncUtilTimeout: 10000, // 10 segundos para tests de integración
-  computedStyleSupportsPseudoElements: false
+  computedStyleSupportsPseudoElements: false,
 });
 
 // =====================================================================
@@ -40,17 +40,17 @@ const localStorageMock = (() => {
     },
     get length() {
       return Object.keys(store).length;
-    }
+    },
   };
 })();
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 });
 
 // Mock de sessionStorage
 Object.defineProperty(window, 'sessionStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 });
 
 // Mock de window.location
@@ -68,7 +68,7 @@ window.location = {
   port: '3000',
   pathname: '/',
   search: '',
-  hash: ''
+  hash: '',
 } as any;
 
 // Mock de window.history
@@ -80,9 +80,9 @@ Object.defineProperty(window, 'history', {
     forward: jest.fn(),
     go: jest.fn(),
     length: 1,
-    state: null
+    state: null,
   },
-  writable: true
+  writable: true,
 });
 
 // Mock de console para tests más limpios
@@ -93,7 +93,7 @@ global.console = {
   debug: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
-  error: jest.fn()
+  error: jest.fn(),
 };
 
 // Restaurar console en modo debug
@@ -112,16 +112,16 @@ Object.defineProperty(navigator, 'mediaDevices', {
     getUserMedia: jest.fn().mockResolvedValue({
       getTracks: () => [{ stop: jest.fn() }],
       getVideoTracks: () => [{ getSettings: () => ({ width: 640, height: 480 }) }],
-      getAudioTracks: () => [{ stop: jest.fn() }]
+      getAudioTracks: () => [{ stop: jest.fn() }],
     }),
     enumerateDevices: jest.fn().mockResolvedValue([
       { deviceId: 'camera1', kind: 'videoinput', label: 'Front Camera' },
-      { deviceId: 'microphone1', kind: 'audioinput', label: 'Default Microphone' }
+      { deviceId: 'microphone1', kind: 'audioinput', label: 'Default Microphone' },
     ]),
     getDisplayMedia: jest.fn().mockResolvedValue({
-      getTracks: () => [{ stop: jest.fn() }]
-    })
-  }
+      getTracks: () => [{ stop: jest.fn() }],
+    }),
+  },
 });
 
 // Mock de Geolocation API
@@ -137,14 +137,14 @@ Object.defineProperty(navigator, 'geolocation', {
           altitude: null,
           altitudeAccuracy: null,
           heading: null,
-          speed: null
+          speed: null,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }),
     watchPosition: jest.fn(),
-    clearWatch: jest.fn()
-  }
+    clearWatch: jest.fn(),
+  },
 });
 
 // Mock de MediaRecorder
@@ -159,7 +159,7 @@ global.MediaRecorder = jest.fn().mockImplementation(() => ({
   onerror: null,
   onstart: null,
   onpause: null,
-  onresume: null
+  onresume: null,
 })) as any;
 
 (MediaRecorder as any).isTypeSupported = jest.fn().mockReturnValue(true);
@@ -171,21 +171,21 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
   root: null,
   rootMargin: '',
-  thresholds: []
+  thresholds: [],
 }));
 
 // Mock de ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
-  disconnect: jest.fn()
+  disconnect: jest.fn(),
 }));
 
 // Mock de MutationObserver
 global.MutationObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   disconnect: jest.fn(),
-  takeRecords: jest.fn().mockReturnValue([])
+  takeRecords: jest.fn().mockReturnValue([]),
 }));
 
 // =====================================================================
@@ -208,7 +208,7 @@ const mockCanvas = {
     getImageData: jest.fn(() => ({
       data: new Uint8ClampedArray(4),
       width: 1,
-      height: 1
+      height: 1,
     })),
     putImageData: jest.fn(),
     createImageData: jest.fn(),
@@ -220,17 +220,17 @@ const mockCanvas = {
     translate: jest.fn(),
     rotate: jest.fn(),
     measureText: jest.fn(() => ({ width: 100 })),
-    font: '12px Arial'
+    font: '12px Arial',
   })),
   toDataURL: jest.fn(() => 'data:image/png;base64,mock-canvas-data'),
   toBlob: jest.fn((callback) => {
     callback(new Blob(['mock-canvas-blob'], { type: 'image/png' }));
   }),
   width: 640,
-  height: 480
+  height: 480,
 };
 
-HTMLCanvasElement.prototype.getContext = mockCanvas.getContext;
+HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as any;
 HTMLCanvasElement.prototype.toDataURL = mockCanvas.toDataURL;
 HTMLCanvasElement.prototype.toBlob = mockCanvas.toBlob;
 
@@ -267,7 +267,7 @@ global.FileReader = jest.fn().mockImplementation(() => ({
   onabort: null,
   onloadstart: null,
   onloadend: null,
-  onprogress: null
+  onprogress: null,
 })) as any;
 
 // Mock de File y Blob
@@ -279,11 +279,11 @@ global.File = jest.fn().mockImplementation((chunks, filename, options) => ({
   stream: jest.fn(),
   text: jest.fn().mockResolvedValue('mock-file-content'),
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
-  slice: jest.fn()
+  slice: jest.fn(),
 })) as any;
 
 // Mock de URL API
-global.URL.createObjectURL = jest.fn(() => 'blob:mock-object-url-' + Math.random());
+global.URL.createObjectURL = jest.fn(() => `blob:mock-object-url-${  Math.random()}`);
 global.URL.revokeObjectURL = jest.fn();
 
 // =====================================================================
@@ -303,7 +303,7 @@ if ('memory' in performance) {
   (performance as any).memory = {
     usedJSHeapSize: 10000000,
     totalJSHeapSize: 50000000,
-    jsHeapSizeLimit: 100000000
+    jsHeapSizeLimit: 100000000,
   };
 }
 
@@ -315,7 +315,7 @@ if ('memory' in performance) {
 beforeAll(() => {
   // Iniciar servidor de mocks
   server.listen({
-    onUnhandledRequest: 'warn'
+    onUnhandledRequest: 'warn',
   });
 });
 
@@ -349,7 +349,7 @@ jest.setTimeout(30000); // 30 segundos para tests de integración
 beforeEach(() => {
   jest.useFakeTimers({
     advanceTimers: false,
-    doNotFake: ['performance', 'Date']
+    doNotFake: ['performance', 'Date'],
   });
 });
 
@@ -402,9 +402,6 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Mock de error reporting
-global.reportError = jest.fn();
-
 // Configurar error boundaries para tests
 const originalError = console.error;
 beforeAll(() => {
@@ -429,7 +426,6 @@ declare global {
   var simulateDelay: (ms: number) => Promise<void>;
   var createMockEvent: (type: string, properties?: any) => Event;
   var cleanupAllMocks: () => void;
-  var reportError: jest.Mock;
   
   namespace jest {
     interface Matchers<R> {

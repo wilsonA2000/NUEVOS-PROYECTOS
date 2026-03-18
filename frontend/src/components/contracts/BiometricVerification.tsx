@@ -17,7 +17,7 @@ import {
   StepLabel,
   StepContent,
   Card,
-  CardContent
+  CardContent,
 } from '@mui/material';
 import {
   CameraAlt as CameraIcon,
@@ -26,7 +26,7 @@ import {
   Security as SecurityIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 
 interface BiometricVerificationProps {
@@ -82,7 +82,7 @@ interface DocumentData {
 const BiometricVerification: React.FC<BiometricVerificationProps> = ({
   onVerificationComplete,
   onCancel,
-  isLoading = false
+  isLoading = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -98,25 +98,25 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
   }>({
     facial: null,
     document: null,
-    fingerprint: null
+    fingerprint: null,
   });
 
   const steps = [
     {
       label: 'Verificación Facial',
       description: 'Capture una foto clara de su rostro',
-      icon: <CameraIcon />
+      icon: <CameraIcon />,
     },
     {
       label: 'Verificación de Documento',
       description: 'Escanee su documento de identidad',
-      icon: <DocumentIcon />
+      icon: <DocumentIcon />,
     },
     {
       label: 'Huella Digital (Opcional)',
       description: 'Capture su huella digital',
-      icon: <FingerprintIcon />
-    }
+      icon: <FingerprintIcon />,
+    },
   ];
 
   const startCamera = async () => {
@@ -125,9 +125,9 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'user'
+          facingMode: 'user',
         },
-        audio: false
+        audio: false,
       });
       
       if (videoRef.current) {
@@ -182,7 +182,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         leftEye: { x: 145 + Math.random() * 10, y: 115 + Math.random() * 10 },
         rightEye: { x: 195 + Math.random() * 10, y: 115 + Math.random() * 10 },
         nose: { x: 170 + Math.random() * 10, y: 145 + Math.random() * 10 },
-        mouth: { x: 170 + Math.random() * 10, y: 175 + Math.random() * 10 }
+        mouth: { x: 170 + Math.random() * 10, y: 175 + Math.random() * 10 },
       };
 
       const facialData = {
@@ -194,13 +194,13 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         deviceInfo: {
           camera: 'front-facing',
           resolution: '1280x720',
-          lighting: 'adequate'
-        }
+          lighting: 'adequate',
+        },
       };
 
       setCapturedData(prev => ({
         ...prev,
-        facialRecognition: facialData
+        facialRecognition: facialData,
       }));
 
       setVerificationResults(prev => ({ ...prev, facial: true }));
@@ -240,19 +240,19 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         fullName: 'Usuario VeriHome', // En producción sería extraído del documento
         dateOfBirth: '1990-05-15',
         expirationDate: '2030-05-15',
-        issuingAuthority: selectedType === 'Pasaporte' ? 'Ministerio de Relaciones Exteriores' : 'Registraduría Nacional'
+        issuingAuthority: selectedType === 'Pasaporte' ? 'Ministerio de Relaciones Exteriores' : 'Registraduría Nacional',
       };
 
       const documentVerification = {
         frontImage: imageData,
         extractedData: mockDocumentData,
         confidence: 0.92,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       setCapturedData(prev => ({
         ...prev,
-        documentVerification
+        documentVerification,
       }));
 
       setVerificationResults(prev => ({ ...prev, document: true }));
@@ -276,14 +276,14 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
       // Mock fingerprint data
       const fingerprintData = {
-        template: 'FINGERPRINT_TEMPLATE_HASH_' + Date.now(),
+        template: `FINGERPRINT_TEMPLATE_HASH_${  Date.now()}`,
         quality: 0.88,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       setCapturedData(prev => ({
         ...prev,
-        fingerprint: fingerprintData
+        fingerprint: fingerprintData,
       }));
 
       setVerificationResults(prev => ({ ...prev, fingerprint: true }));
@@ -302,12 +302,12 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       screenResolution: `${screen.width}x${screen.height}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       language: navigator.language,
-      platform: navigator.platform
+      platform: navigator.platform,
     };
 
     const finalData: BiometricData = {
       ...capturedData,
-      deviceFingerprint
+      deviceFingerprint,
     } as BiometricData;
 
     onVerificationComplete(finalData);
@@ -371,7 +371,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                   width: '100%',
                                   maxWidth: '400px',
                                   borderRadius: '8px',
-                                  border: '2px solid #ddd'
+                                  border: '2px solid #ddd',
                                 }}
                               />
                               <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -385,7 +385,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                     bgcolor: 'rgba(0,0,0,0.7)',
                                     color: 'white',
                                     p: 2,
-                                    borderRadius: 1
+                                    borderRadius: 1,
                                   }}
                                 >
                                   <CircularProgress size={24} sx={{ mr: 1 }} />
@@ -495,7 +495,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                   width: '100%',
                                   maxWidth: '400px',
                                   borderRadius: '8px',
-                                  border: '2px solid #ddd'
+                                  border: '2px solid #ddd',
                                 }}
                               />
                               {isProcessing && (
@@ -508,7 +508,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                     bgcolor: 'rgba(0,0,0,0.7)',
                                     color: 'white',
                                     p: 2,
-                                    borderRadius: 1
+                                    borderRadius: 1,
                                   }}
                                 >
                                   <CircularProgress size={24} sx={{ mr: 1 }} />

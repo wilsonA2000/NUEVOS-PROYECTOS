@@ -31,6 +31,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  CircularProgress,
 } from '@mui/material';
 import {
   Business as LandlordIcon,
@@ -41,6 +43,7 @@ import {
   Schedule as ScheduleIcon,
   Assignment as ContractIcon,
   CheckCircle as CompleteIcon,
+  CheckCircle,
   Warning as WarningIcon,
   Error as ErrorIcon,
   Visibility as ViewIcon,
@@ -60,11 +63,12 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { LandlordContractService } from '../../services/landlordContractService';
-import { 
-  LandlordControlledContractData, 
-  ContractWorkflowState, 
+import { api } from '../../services/api';
+import {
+  LandlordControlledContractData,
+  ContractWorkflowState,
   ContractFilters,
-  ContractStatistics 
+  ContractStatistics,
 } from '../../types/landlordContract';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../common/LoadingSpinner';
@@ -112,6 +116,9 @@ const ContractsDashboard: React.FC = () => {
   // Estados de diálogos
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<LandlordControlledContractData | null>(null);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -124,13 +131,13 @@ const ContractsDashboard: React.FC = () => {
       
       const [contractsResponse, statsResponse] = await Promise.all([
         LandlordContractService.getContracts(filters),
-        LandlordContractService.getContractStatistics()
+        LandlordContractService.getContractStatistics(),
       ]);
       
       setContracts(contractsResponse.contracts);
       setStatistics(statsResponse);
     } catch (err: any) {
-      setError('Error al cargar el dashboard: ' + (err.message || 'Error desconocido'));
+      setError(`Error al cargar el dashboard: ${  err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -146,7 +153,7 @@ const ContractsDashboard: React.FC = () => {
       active: contracts.filter(c => c.current_state === 'PUBLISHED'),
       pending: contracts.filter(c => ['DRAFT', 'TENANT_INVITED', 'TENANT_REVIEWING', 'LANDLORD_REVIEWING', 'OBJECTIONS_PENDING', 'BOTH_REVIEWING', 'READY_TO_SIGN'].includes(c.current_state)),
       completed: contracts.filter(c => c.current_state === 'FULLY_SIGNED'),
-      all: contracts
+      all: contracts,
     };
   }, [contracts]);
 
@@ -155,7 +162,7 @@ const ContractsDashboard: React.FC = () => {
     { label: 'Todos', count: contractsByState.all.length, icon: <ContractIcon /> },
     { label: 'Activos', count: contractsByState.active.length, icon: <CompleteIcon /> },
     { label: 'Pendientes', count: contractsByState.pending.length, icon: <ScheduleIcon /> },
-    { label: 'Completados', count: contractsByState.completed.length, icon: <CheckCircle /> }
+    { label: 'Completados', count: contractsByState.completed.length, icon: <CheckCircle /> },
   ];
 
   // Función para obtener el color del estado
@@ -194,7 +201,7 @@ const ContractsDashboard: React.FC = () => {
       'PUBLISHED': 'Publicado (Activo)',
       'EXPIRED': 'Expirado',
       'TERMINATED': 'Terminado',
-      'CANCELLED': 'Cancelado'
+      'CANCELLED': 'Cancelado',
     };
     return stateTexts[state] || state;
   };
@@ -281,8 +288,9 @@ const ContractsDashboard: React.FC = () => {
           window.location.href = `/contracts/landlord/edit/${contract.id}`;
           break;
         case 'invite':
-          // Abrir modal de invitación
-          // TODO: Implementar modal de invitación
+          setSelectedContractId(contract.id!);
+          setInviteEmail('');
+          setInviteDialogOpen(true);
           break;
         case 'sign':
           // Redirigir a firma biométrica
@@ -300,7 +308,7 @@ const ContractsDashboard: React.FC = () => {
           console.log(`Acción ${actionId} no implementada aún`);
       }
     } catch (err: any) {
-      setError('Error al ejecutar acción: ' + (err.message || 'Error desconocido'));
+      setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);
     }
   };
 
@@ -461,26 +469,26 @@ const ContractsDashboard: React.FC = () => {
         title: 'Total Contratos',
         value: statistics.total_contracts,
         icon: <ContractIcon />,
-        color: 'primary'
+        color: 'primary',
       },
       {
         title: 'Contratos Activos',
         value: statistics.by_state.PUBLISHED || 0,
         icon: <CompleteIcon />,
-        color: 'success'
+        color: 'success',
       },
       {
         title: 'Pendientes de Firma',
         value: statistics.pending_signatures,
         icon: <SignIcon />,
-        color: 'warning'
+        color: 'warning',
       },
       {
         title: 'Ingresos Mensuales',
         value: `$${statistics.monthly_income.toLocaleString('es-CO')}`,
         icon: <MoneyIcon />,
-        color: 'info'
-      }
+        color: 'info',
+      },
     ];
 
     return (
@@ -697,6 +705,57 @@ const ContractsDashboard: React.FC = () => {
           <DialogActions>
             <Button onClick={() => setViewDialogOpen(false)}>
               Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Invitation Dialog */}
+        <Dialog
+          open={inviteDialogOpen}
+          onClose={() => setInviteDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Invitar Arrendatario</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Ingresa el correo electrónico del arrendatario para enviarle una invitación a revisar el contrato.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Correo electrónico del arrendatario"
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="arrendatario@email.com"
+              autoFocus
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setInviteDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!inviteEmail || inviteSending}
+              startIcon={inviteSending ? <CircularProgress size={16} /> : <SendIcon />}
+              onClick={async () => {
+                try {
+                  setInviteSending(true);
+                  await api.post(`/landlord/contracts/${selectedContractId}/invite-tenant/`, {
+                    tenant_email: inviteEmail,
+                  });
+                  setInviteDialogOpen(false);
+                  setInviteEmail('');
+                  await loadDashboardData();
+                } catch (err: any) {
+                  setError(`Error al enviar invitación: ${err.message || 'Error desconocido'}`);
+                } finally {
+                  setInviteSending(false);
+                }
+              }}
+            >
+              Enviar Invitación
             </Button>
           </DialogActions>
         </Dialog>

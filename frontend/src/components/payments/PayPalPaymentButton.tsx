@@ -25,7 +25,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { paypalService, PayPalPaymentResult } from '../../services/paypalService';
-import { loggingService } from '../../services/loggingService';
+import { loggingService, LogCategory } from '../../services/loggingService';
 
 export interface PayPalPaymentButtonProps {
   amount: number;
@@ -109,11 +109,11 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
 
       const order = await paypalService.createOrder(orderData);
       setOrderCreated(true);
-      loggingService.info('PayPal order created:', order.id);
-      
+      loggingService.info(LogCategory.BUSINESS, 'PayPal order created', { orderId: order.id });
+
       return order.id;
     } catch (error) {
-      loggingService.error('Error creating PayPal order:', error);
+      loggingService.error(LogCategory.BUSINESS, 'Error creating PayPal order', { error });
       onError('Error al crear la orden de PayPal');
       throw error;
     } finally {
@@ -128,14 +128,14 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
       const result = await paypalService.captureOrder(data.orderID);
 
       if (result.success) {
-        loggingService.info('PayPal payment captured:', data.orderID);
+        loggingService.info(LogCategory.BUSINESS, 'PayPal payment captured', { orderId: data.orderID });
         onSuccess(result);
       } else {
-        loggingService.error('PayPal capture failed:', result.error);
+        loggingService.error(LogCategory.BUSINESS, 'PayPal capture failed', { error: result.error });
         onError(result.error || 'Error al capturar el pago');
       }
     } catch (error) {
-      loggingService.error('Error capturing PayPal payment:', error);
+      loggingService.error(LogCategory.BUSINESS, 'Error capturing PayPal payment', { error });
       const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
       onError(paypalService.handlePayPalError({ message: errorMessage }));
     } finally {
@@ -144,13 +144,13 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
   };
 
   const onErrorHandler = (error: any) => {
-    loggingService.error('PayPal button error:', error);
+    loggingService.error(LogCategory.BUSINESS, 'PayPal button error', { error });
     onError(paypalService.handlePayPalError(error));
     setIsProcessing(false);
   };
 
   const onCancelHandler = () => {
-    loggingService.info('PayPal payment cancelled');
+    loggingService.info(LogCategory.USER_ACTION, 'PayPal payment cancelled', {});
     setIsProcessing(false);
     if (onCancel) {
       onCancel();
@@ -165,8 +165,8 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
 
       setIsProcessing(true);
 
-      const subscriptionData = {
-        planId: subscriptionPlanId,
+      const subscriptionData: any = {
+        plan_id: subscriptionPlanId,
         subscriber: {
           email_address: 'customer@example.com', // Debería venir de props
         },
@@ -181,11 +181,11 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
       };
 
       const subscription = await paypalService.createSubscription(subscriptionData);
-      loggingService.info('PayPal subscription created:', subscription.id);
-      
+      loggingService.info(LogCategory.BUSINESS, 'PayPal subscription created', { subscriptionId: subscription.id });
+
       return subscription.id;
     } catch (error) {
-      loggingService.error('Error creating PayPal subscription:', error);
+      loggingService.error(LogCategory.BUSINESS, 'Error creating PayPal subscription', { error });
       onError('Error al crear la suscripción');
       throw error;
     } finally {
@@ -297,7 +297,7 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
         <Box sx={{ mb: 3 }}>
           {enableSubscription && subscriptionPlanId ? (
             <PayPalButtons
-              style={buttonStyle}
+              style={buttonStyle as any}
               disabled={disabled || isProcessing}
               createSubscription={createSubscription}
               onApprove={onApprove}
@@ -306,7 +306,7 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
             />
           ) : (
             <PayPalButtons
-              style={buttonStyle}
+              style={buttonStyle as any}
               disabled={disabled || isProcessing}
               createOrder={createOrder}
               onApprove={onApprove}
@@ -375,7 +375,8 @@ export const PayPalPaymentButton: React.FC<PayPalPaymentButtonProps> = ({
   environment = 'sandbox',
   ...props
 }) => {
-  const [scriptOptions, setScriptOptions] = useState({
+  const [scriptOptions, setScriptOptions] = useState<any>({
+    clientId: clientId,
     'client-id': clientId,
     currency: props.currency || 'USD',
     intent: props.showSubscriptions ? 'subscription' : 'capture',

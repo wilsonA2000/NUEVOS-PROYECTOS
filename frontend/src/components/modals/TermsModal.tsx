@@ -67,7 +67,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose, onAccept }) => {
         justifyContent: 'space-between', 
         alignItems: 'center',
         borderBottom: '1px solid #e0e0e0',
-        bgcolor: '#f8f9fa'
+        bgcolor: '#f8f9fa',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <CheckCircleIcon sx={{ color: 'primary.main' }} />
@@ -315,7 +315,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose, onAccept }) => {
         p: 3, 
         borderTop: '1px solid #e0e0e0',
         bgcolor: '#f8f9fa',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!hasScrolledToBottom && (

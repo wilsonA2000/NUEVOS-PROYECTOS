@@ -87,7 +87,7 @@ ChartJS.register(
   Title,
   ChartTooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface DashboardStats {
@@ -173,41 +173,41 @@ const NewDashboard: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           {getStatCard(
             'Propiedades Arrendadas',
-            0, // TODO: Obtener propiedades del usuario
+            stats?.properties?.occupied || 0,
             0,
             <HomeIcon />,
             theme.palette.primary.main,
-            'Propiedades que tienes en arriendo actualmente'
+            'Propiedades que tienes en arriendo actualmente',
           )}
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           {getStatCard(
             'Contratos Activos',
-            0, // TODO: Obtener contratos activos
+            stats?.contracts?.active || 0,
             0,
             <DescriptionIcon />,
             theme.palette.info.main,
-            'Contratos firmados y en vigor'
+            'Contratos firmados y en vigor',
           )}
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           {getStatCard(
             'Pagos del Mes',
-            formatCurrency(0), // TODO: Obtener pagos pendientes
+            formatCurrency(stats?.finances?.pendingPayments || 0),
             0,
             <MoneyIcon />,
             theme.palette.warning.main,
-            'Pagos de arriendo del mes actual'
+            'Pagos de arriendo del mes actual',
           )}
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           {getStatCard(
             'Días hasta Vencimiento',
-            '-- días', // TODO: Calcular días hasta próximo pago
+            stats?.contracts?.expiringSoon ? `${stats.contracts.expiringSoon} días` : '-- días',
             0,
             <CalendarTodayIcon />,
             theme.palette.error.main,
-            'Tiempo restante para el próximo pago'
+            'Tiempo restante para el próximo pago',
           )}
         </Grid>
       </Grid>
@@ -245,7 +245,7 @@ const NewDashboard: React.FC = () => {
             0,
             <BuildIcon />,
             theme.palette.primary.main,
-            'Servicios que estás prestando'
+            'Servicios que estás prestando',
           )}
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -255,7 +255,7 @@ const NewDashboard: React.FC = () => {
             0,
             <PendingActionsIcon />,
             theme.palette.warning.main,
-            'Nuevas solicitudes de servicio'
+            'Nuevas solicitudes de servicio',
           )}
         </Grid>
       </Grid>
@@ -378,7 +378,7 @@ const NewDashboard: React.FC = () => {
   const toggleChartExpansion = (chartId: string) => {
     setExpandedCharts(prev => ({
       ...prev,
-      [chartId]: !prev[chartId]
+      [chartId]: !prev[chartId],
     }));
   };
 
@@ -388,14 +388,14 @@ const NewDashboard: React.FC = () => {
     trend: number,
     icon: React.ReactNode,
     color: string,
-    subtitle?: string
+    subtitle?: string,
   ) => (
     <Card
       sx={{
         height: '100%',
         background: `linear-gradient(135deg, ${alpha(color, 0.1)} 0%, ${alpha(
           color,
-          0.05
+          0.05,
         )} 100%)`,
         border: `1px solid ${alpha(color, 0.2)}`,
         transition: 'all 0.3s ease',
@@ -419,7 +419,7 @@ const NewDashboard: React.FC = () => {
               sx={{ 
                 fontSize: { xs: '0.65rem', sm: '0.75rem' },
                 fontWeight: 600,
-                letterSpacing: 1.2
+                letterSpacing: 1.2,
               }}
             >
               {title}
@@ -433,7 +433,7 @@ const NewDashboard: React.FC = () => {
                 lineHeight: 1.2,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
               }}
             >
               {loading ? <Skeleton width={100} /> : value}
@@ -447,7 +447,7 @@ const NewDashboard: React.FC = () => {
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {subtitle}
@@ -461,7 +461,7 @@ const NewDashboard: React.FC = () => {
               width: { xs: 40, sm: 48, md: 56 },
               height: { xs: 40, sm: 48, md: 56 },
               flexShrink: 0,
-              ml: 1
+              ml: 1,
             }}
           >
             {icon}
@@ -488,7 +488,7 @@ const NewDashboard: React.FC = () => {
               sx={{ 
                 ml: 1,
                 fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                display: { xs: 'none', sm: 'block' }
+                display: { xs: 'none', sm: 'block' },
               }}
             >
               vs mes anterior
@@ -499,7 +499,7 @@ const NewDashboard: React.FC = () => {
               sx={{ 
                 ml: 1,
                 fontSize: '0.7rem',
-                display: { xs: 'block', sm: 'none' }
+                display: { xs: 'block', sm: 'none' },
               }}
             >
               vs anterior
@@ -618,7 +618,7 @@ const NewDashboard: React.FC = () => {
               Dashboard
             </Typography>
             <Typography variant="body1" color="textSecondary">
-              Bienvenido, {user?.first_name} - {format(new Date(), "EEEE dd 'de' MMMM", { locale: es })}
+              Bienvenido, {user?.first_name} - {format(new Date(), 'EEEE dd \'de\' MMMM', { locale: es })}
             </Typography>
           </Box>
           <Box display="flex" gap={2}>
@@ -629,7 +629,7 @@ const NewDashboard: React.FC = () => {
                 try {
                   const response = await api.get('/api/v1/dashboard/export/', {
                     responseType: 'blob',
-                    params: { period: selectedPeriod }
+                    params: { period: selectedPeriod },
                   });
                   const url = window.URL.createObjectURL(new Blob([response.data]));
                   const link = document.createElement('a');
@@ -682,7 +682,7 @@ const NewDashboard: React.FC = () => {
             stats?.properties?.trend || 0,
             <HomeIcon />,
             theme.palette.primary.main,
-            `${stats?.properties?.occupied || 0} ocupadas`
+            `${stats?.properties?.occupied || 0} ocupadas`,
           )}
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
@@ -692,7 +692,7 @@ const NewDashboard: React.FC = () => {
             stats?.finances.trend || 0,
             <MoneyIcon />,
             theme.palette.success.main,
-            `${formatCurrency(stats?.finances.profit || 0)} ganancia`
+            `${formatCurrency(stats?.finances.profit || 0)} ganancia`,
           )}
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
@@ -702,7 +702,7 @@ const NewDashboard: React.FC = () => {
             stats?.contracts.trend || 0,
             <ContractIcon />,
             theme.palette.info.main,
-            `${stats?.contracts.expiringSoon || 0} por vencer`
+            `${stats?.contracts.expiringSoon || 0} por vencer`,
           )}
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
@@ -712,7 +712,7 @@ const NewDashboard: React.FC = () => {
             0,
             <StarIcon />,
             theme.palette.warning.main,
-            `${stats?.ratings.total || 0} reseñas`
+            `${stats?.ratings.total || 0} reseñas`,
           )}
         </Grid>
       </Grid>
@@ -731,8 +731,8 @@ const NewDashboard: React.FC = () => {
               sx={{ 
                 backgroundColor: alpha(theme.palette.primary.main, 0.04),
                 '&.Mui-expanded': {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.08)
-                }
+                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                },
               }}
             >
               <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ width: '100%', mr: 2 }}>
@@ -767,10 +767,12 @@ const NewDashboard: React.FC = () => {
                         ticks: {
                           maxRotation: 45,
                           minRotation: 0,
-                          fontSize: 10
-                        }
-                      }
-                    }
+                          font: {
+                            size: 10,
+                          },
+                        },
+                      },
+                    },
                   }} />
                 )}
               </Box>
@@ -787,8 +789,8 @@ const NewDashboard: React.FC = () => {
               sx={{ 
                 backgroundColor: alpha(theme.palette.success.main, 0.04),
                 '&.Mui-expanded': {
-                  backgroundColor: alpha(theme.palette.success.main, 0.08)
-                }
+                  backgroundColor: alpha(theme.palette.success.main, 0.08),
+                },
               }}
             >
               <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ width: '100%', mr: 2 }}>
@@ -832,9 +834,9 @@ const NewDashboard: React.FC = () => {
                             boxWidth: 12,
                             padding: 15,
                             font: {
-                              size: 11
-                            }
-                          }
+                              size: 11,
+                            },
+                          },
                         },
                       },
                     }}
@@ -866,7 +868,7 @@ const NewDashboard: React.FC = () => {
               </Box>
             </Paper>
           </Grid>
-          {user?.userType !== 'service_provider' && (
+          {user?.user_type !== 'service_provider' && (
             <Grid item xs={12} lg={4}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -933,7 +935,7 @@ const NewDashboard: React.FC = () => {
                 endIcon={!isSmallMobile ? <TimelineIcon /> : undefined}
                 sx={{ 
                   alignSelf: { xs: 'flex-end', sm: 'auto' },
-                  minWidth: { xs: 'auto', sm: 'unset' }
+                  minWidth: { xs: 'auto', sm: 'unset' },
                 }}
               >
                 {isSmallMobile ? <TimelineIcon /> : 'Ver todo'}
@@ -966,7 +968,7 @@ const NewDashboard: React.FC = () => {
                               : activity.status === 'error'
                               ? theme.palette.error.main
                               : theme.palette.info.main,
-                            0.2
+                            0.2,
                           ),
                           color:
                             activity.status === 'success'
@@ -978,7 +980,7 @@ const NewDashboard: React.FC = () => {
                               : theme.palette.info.main,
                           width: { xs: 32, sm: 40 },
                           height: { xs: 32, sm: 40 },
-                          flexShrink: 0
+                          flexShrink: 0,
                         }}
                       >
                         {activity.type === 'payment' ? (
@@ -1000,7 +1002,7 @@ const NewDashboard: React.FC = () => {
                             fontSize: { xs: '0.875rem', sm: '1rem' },
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {activity.title}
@@ -1015,7 +1017,7 @@ const NewDashboard: React.FC = () => {
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
-                            whiteSpace: 'normal'
+                            whiteSpace: 'normal',
                           }}
                         >
                           {activity.description}
@@ -1026,7 +1028,7 @@ const NewDashboard: React.FC = () => {
                             color="textSecondary"
                             sx={{ 
                               fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                              display: { xs: 'none', sm: 'block' }
+                              display: { xs: 'none', sm: 'block' },
                             }}
                           >
                             {activity.user.name} • {format(new Date(activity.timestamp), 'HH:mm')}
@@ -1060,8 +1062,8 @@ const NewDashboard: React.FC = () => {
                             minWidth: { xs: 28, sm: 'auto' },
                             '& .MuiChip-label': {
                               px: { xs: 0.5, sm: 1 },
-                              fontSize: { xs: '0.65rem', sm: '0.75rem' }
-                            }
+                              fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                            },
                           }}
                         />
                         {activity.user && isMobile && (
@@ -1072,7 +1074,7 @@ const NewDashboard: React.FC = () => {
                               fontSize: '0.6rem',
                               display: 'block',
                               textAlign: 'right',
-                              mt: 0.5
+                              mt: 0.5,
                             }}
                           >
                             {format(new Date(activity.timestamp), 'HH:mm')}
@@ -1097,7 +1099,7 @@ const NewDashboard: React.FC = () => {
                 fontSize: { xs: '1.1rem', sm: '1.25rem' },
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1
+                gap: 1,
               }}
             >
               👥 Distribución de Usuarios
@@ -1111,7 +1113,7 @@ const NewDashboard: React.FC = () => {
                 sx={{ 
                   flexDirection: { xs: 'column', sm: 'row' },
                   gap: { xs: 1, sm: 0 },
-                  alignItems: { xs: 'stretch', sm: 'center' }
+                  alignItems: { xs: 'stretch', sm: 'center' },
                 }}
               >
                 <Box display="flex" alignItems="center" sx={{ flex: 1 }}>
@@ -1120,7 +1122,7 @@ const NewDashboard: React.FC = () => {
                       bgcolor: theme.palette.primary.main, 
                       mr: { xs: 1.5, sm: 2 },
                       width: { xs: 32, sm: 40 },
-                      height: { xs: 32, sm: 40 }
+                      height: { xs: 32, sm: 40 },
                     }}
                   >
                     <PeopleIcon fontSize={isMobile ? 'small' : 'medium'} />
@@ -1147,7 +1149,7 @@ const NewDashboard: React.FC = () => {
                   size="small"
                   sx={{ 
                     alignSelf: { xs: 'flex-end', sm: 'center' },
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                   }}
                 />
               </Box>
@@ -1160,7 +1162,7 @@ const NewDashboard: React.FC = () => {
                 sx={{ 
                   flexDirection: { xs: 'column', sm: 'row' },
                   gap: { xs: 1, sm: 0 },
-                  alignItems: { xs: 'stretch', sm: 'center' }
+                  alignItems: { xs: 'stretch', sm: 'center' },
                 }}
               >
                 <Box display="flex" alignItems="center" sx={{ flex: 1 }}>
@@ -1169,7 +1171,7 @@ const NewDashboard: React.FC = () => {
                       bgcolor: theme.palette.secondary.main, 
                       mr: { xs: 1.5, sm: 2 },
                       width: { xs: 32, sm: 40 },
-                      height: { xs: 32, sm: 40 }
+                      height: { xs: 32, sm: 40 },
                     }}
                   >
                     <HomeIcon fontSize={isMobile ? 'small' : 'medium'} />
@@ -1196,7 +1198,7 @@ const NewDashboard: React.FC = () => {
                   size="small"
                   sx={{ 
                     alignSelf: { xs: 'flex-end', sm: 'center' },
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                   }}
                 />
               </Box>
@@ -1208,7 +1210,7 @@ const NewDashboard: React.FC = () => {
                 sx={{ 
                   flexDirection: { xs: 'column', sm: 'row' },
                   gap: { xs: 1, sm: 0 },
-                  alignItems: { xs: 'stretch', sm: 'center' }
+                  alignItems: { xs: 'stretch', sm: 'center' },
                 }}
               >
                 <Box display="flex" alignItems="center" sx={{ flex: 1 }}>
@@ -1217,7 +1219,7 @@ const NewDashboard: React.FC = () => {
                       bgcolor: theme.palette.info.main, 
                       mr: { xs: 1.5, sm: 2 },
                       width: { xs: 32, sm: 40 },
-                      height: { xs: 32, sm: 40 }
+                      height: { xs: 32, sm: 40 },
                     }}
                   >
                     <ServiceIcon fontSize={isMobile ? 'small' : 'medium'} />
@@ -1244,7 +1246,7 @@ const NewDashboard: React.FC = () => {
                   size="small"
                   sx={{ 
                     alignSelf: { xs: 'flex-end', sm: 'center' },
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                   }}
                 />
               </Box>
@@ -1262,8 +1264,8 @@ const NewDashboard: React.FC = () => {
                 sx={{ 
                   backgroundColor: alpha(theme.palette.warning.main, 0.04),
                   '&.Mui-expanded': {
-                    backgroundColor: alpha(theme.palette.warning.main, 0.08)
-                  }
+                    backgroundColor: alpha(theme.palette.warning.main, 0.08),
+                  },
                 }}
               >
                 <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ width: '100%', mr: 2 }}>
@@ -1287,18 +1289,20 @@ const NewDashboard: React.FC = () => {
                         plugins: {
                           ...chartOptions.plugins,
                           legend: {
-                            display: false
-                          }
+                            display: false,
+                          },
                         },
                         scales: {
                           ...chartOptions.scales,
                           x: {
                             ...chartOptions.scales.x,
                             ticks: {
-                              fontSize: 10
-                            }
-                          }
-                        }
+                              font: {
+                                size: 10,
+                              },
+                            },
+                          },
+                        },
                       }} 
                     />
                   )}
@@ -1337,20 +1341,20 @@ const NewDashboard: React.FC = () => {
         TransitionComponent={Slide}
         TransitionProps={{
           direction: 'up',
-        }}
+        } as any}
         PaperProps={{
           sx: {
             bgcolor: 'background.paper',
             backgroundImage: 'none',
-            minHeight: { xs: '100vh', md: '70vh' }
-          }
+            minHeight: { xs: '100vh', md: '70vh' },
+          },
         }}
       >
         <DialogTitle sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          pb: 1
+          pb: 1,
         }}>
           <Typography variant="h6" fontWeight="bold">
             {selectedChart === 'income' ? '💰 Flujo de Caja Detallado' :
@@ -1363,7 +1367,7 @@ const NewDashboard: React.FC = () => {
             size="small"
             sx={{ 
               bgcolor: alpha(theme.palette.error.main, 0.1),
-              '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
+              '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) },
             }}
           >
             <CloseIcon />
@@ -1383,13 +1387,13 @@ const NewDashboard: React.FC = () => {
                     ...chartOptions.plugins,
                     legend: {
                       display: true,
-                      position: 'top'
+                      position: 'top',
                     },
                     title: {
                       display: true,
-                      text: 'Flujo de Caja - Últimos 30 días'
-                    }
-                  }
+                      text: 'Flujo de Caja - Últimos 30 días',
+                    },
+                  },
                 }} 
               />
             )}
@@ -1399,14 +1403,14 @@ const NewDashboard: React.FC = () => {
                 flexDirection: { xs: 'column', md: 'row' },
                 alignItems: 'center',
                 gap: 3,
-                height: '100%'
+                height: '100%',
               }}>
                 <Box sx={{ 
                   flex: 1, 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  minHeight: { xs: 300, md: '100%' }
+                  minHeight: { xs: 300, md: '100%' },
                 }}>
                   <Doughnut
                     data={getOccupancyChart()}
@@ -1419,14 +1423,14 @@ const NewDashboard: React.FC = () => {
                           position: 'right',
                           labels: {
                             usePointStyle: true,
-                            padding: 20
-                          }
+                            padding: 20,
+                          },
                         },
                         title: {
                           display: true,
-                          text: 'Estado de Propiedades'
-                        }
-                      }
+                          text: 'Estado de Propiedades',
+                        },
+                      },
                     }}
                   />
                 </Box>
@@ -1475,12 +1479,12 @@ const NewDashboard: React.FC = () => {
                   plugins: {
                     ...chartOptions.plugins,
                     legend: {
-                      display: false
+                      display: false,
                     },
                     title: {
                       display: true,
-                      text: 'Distribución de Calificaciones'
-                    }
+                      text: 'Distribución de Calificaciones',
+                    },
                   },
                   scales: {
                     ...chartOptions.scales,
@@ -1488,17 +1492,17 @@ const NewDashboard: React.FC = () => {
                       ...chartOptions.scales.y,
                       title: {
                         display: true,
-                        text: 'Número de Calificaciones'
-                      }
+                        text: 'Número de Calificaciones',
+                      },
                     },
                     x: {
                       ...chartOptions.scales.x,
                       title: {
                         display: true,
-                        text: 'Estrellas'
-                      }
-                    }
-                  }
+                        text: 'Estrellas',
+                      },
+                    },
+                  },
                 }} 
               />
             )}
@@ -1511,7 +1515,7 @@ const NewDashboard: React.FC = () => {
               display: 'flex', 
               alignItems: 'center', 
               gap: 1,
-              opacity: 0.6
+              opacity: 0.6,
             }}>
               <SwipeUpIcon fontSize="small" />
               <Typography variant="caption">

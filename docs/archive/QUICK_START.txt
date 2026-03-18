@@ -1,0 +1,60 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                   VERIHOME - QUICK START                      ║
+║               Testing Automatizado con Playwright             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🚀 INICIO RÁPIDO (3 Terminales):
+
+┌─────────────────────────────────────────────────────────────┐
+│ Terminal 1: BACKEND                                         │
+├─────────────────────────────────────────────────────────────┤
+│ python manage.py runserver                                  │
+│ ✅ Backend listo en: http://localhost:8000                  │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Terminal 2: FRONTEND                                        │
+├─────────────────────────────────────────────────────────────┤
+│ cd frontend                                                 │
+│ npm run dev                                                 │
+│ ✅ Frontend listo en: http://localhost:5173                 │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Terminal 3: TESTS (Elige uno)                              │
+├─────────────────────────────────────────────────────────────┤
+│ Opción 1: Script automático                                │
+│ ./run_tests.sh                                              │
+│                                                             │
+│ Opción 2: Tests con UI visible (recomendado)               │
+│ cd frontend                                                 │
+│ npx playwright test contract-workflow --headed             │
+│                                                             │
+│ Opción 3: Ver reporte HTML                                 │
+│ cd frontend                                                 │
+│ npx playwright show-report                                 │
+└─────────────────────────────────────────────────────────────┘
+
+📸 SCREENSHOTS GENERADOS: 17 automáticos
+📹 VIDEOS: Grabados en caso de fallos
+📊 REPORTE HTML: Interactivo con timeline
+
+📋 CREDENCIALES DE TESTING:
+   Landlord: admin@verihome.com / admin123
+   Tenant: letefon100@gmail.com / admin123
+
+📚 DOCUMENTACIÓN COMPLETA:
+   - START_SERVERS.md (guía de inicio)
+   - frontend/playwright/TESTING_GUIDE.md (guía de tests)
+   - SESION_RESUMEN_2025-12-02.md (resumen completo)
+
+🎯 TESTS IMPLEMENTADOS:
+   ✅ Stage 1: Match Request Creation (5 screenshots)
+   ✅ Stage 2: Document Upload & Approval (4 screenshots)
+   ✅ Stage 3: Contract Creation (5 screenshots)
+   ✅ Contract Editor (2 screenshots)
+
+💡 TIP: Ejecuta los tests con --headed para ver el navegador
+         y observar cómo se ejecuta todo automáticamente.
+
+🎉 ¡Disfruta del testing visual automatizado!

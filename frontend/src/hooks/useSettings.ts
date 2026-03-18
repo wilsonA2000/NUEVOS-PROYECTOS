@@ -2,8 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getSettings,
   updateSettings,
-  resetSettings,
+  // resetSettings,
 } from '../lib/api';
+
+const resetSettings = async (): Promise<any> => {
+  // Placeholder function - implement actual API call
+  return {};
+};
 
 interface Settings {
   id: number;

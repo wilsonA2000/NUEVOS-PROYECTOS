@@ -164,7 +164,7 @@ const Resume: React.FC = () => {
         console.log('No existe resume, usuario debe crear uno');
         setResume(null);
       } else {
-        error('Error al cargar la hoja de vida: ' + (err.response?.data?.error || err.message));
+        error(`Error al cargar la hoja de vida: ${  err.response?.data?.error || err.message}`);
       }
     } finally {
       setLoading(false);

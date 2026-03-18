@@ -13,7 +13,7 @@ import {
   useMediaQuery,
   Chip,
   LinearProgress,
-  Grid
+  Grid,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -21,7 +21,7 @@ import {
   Mic as MicIcon,
   Info as InfoIcon,
   VolumeUp as VolumeUpIcon,
-  Security as SecurityIcon
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import VoiceRecorder from './VoiceRecorder';
 
@@ -50,9 +50,9 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
   stepName = 'Grabación de Voz',
   onBack,
   loading = false,
-  voiceText = "Acepto los términos y condiciones de este contrato",
-  educationalPhrase = "La educación es la llave dorada que abre todas las puertas del conocimiento",
-  userInfo
+  voiceText = 'Acepto los términos y condiciones de este contrato',
+  educationalPhrase = 'La educación es la llave dorada que abre todas las puertas del conocimiento',
+  userInfo,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -64,20 +64,14 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
 
   // Manejar la primera grabación (identificación)
   const handleIdentificationRecording = (audioData: any) => {
-    console.log('🎤 FASE 1: Grabación de identificación completada', audioData ? 'CON DATOS' : 'SIN DATOS');
-    console.log('🎤 FASE 1: audioData length:', audioData?.length || 'undefined');
-    console.log('🎤 FASE 1: Avanzando a fase cultural...');
     
     setIdentificationRecording(audioData);
     setRecordingPhase('cultural');
     
-    console.log('🎤 FASE 1: Cambio de fase ejecutado, nueva fase: cultural');
   };
 
   // Manejar la segunda grabación (cultural)
   const handleCulturalRecording = (audioData: any) => {
-    console.log('🎤 FASE 2: Grabación cultural completada', audioData ? 'CON DATOS' : 'SIN DATOS');
-    console.log('🎤 FASE 2: identificationRecording disponible?', !!identificationRecording);
     
     setCulturalRecording(audioData);
     setRecordingPhase('completed');
@@ -87,17 +81,9 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
       identificationRecording: identificationRecording,
       culturalRecording: audioData,
       educationalPhrase: educationalPhrase,
-      userInfo: userInfo
+      userInfo: userInfo,
     };
-    
-    console.log('🎤 ENVIANDO DATOS COMPLETOS AL PADRE:', completeData);
-    console.log('🎤 DATOS DETALLADOS:', {
-      hasIdentification: !!identificationRecording,
-      hasCultural: !!audioData,
-      hasUserInfo: !!userInfo,
-      hasPhrase: !!educationalPhrase
-    });
-    
+
     onSuccess(completeData);
   };
 
@@ -126,19 +112,12 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
     }
   };
 
-  // Debug log para verificar qué fase está activa
-  console.log('🎤 ENHANCED VOICE: Renderizando fase actual:', recordingPhase);
-  console.log('🎤 ENHANCED VOICE: Estado grabaciones:', {
-    identification: !!identificationRecording,
-    cultural: !!culturalRecording
-  });
-
   return (
     <Box sx={{ 
       height: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      bgcolor: 'grey.50'
+      bgcolor: 'grey.50',
     }}>
       {/* Header compacto */}
       <Paper elevation={1} sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
@@ -233,7 +212,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                   mt: 1, 
                   mb: 2,
                   bgcolor: 'success.50',
-                  borderColor: 'success.200'
+                  borderColor: 'success.200',
                 }}
               >
                 <Typography variant="caption" color="success.main" fontWeight="600" sx={{ mb: 1, display: 'block' }}>
@@ -268,7 +247,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                   mt: 1, 
                   mb: 2,
                   bgcolor: 'success.50',
-                  borderColor: 'success.200'
+                  borderColor: 'success.200',
                 }}
               >
                 <Typography variant="caption" color="success.main" fontWeight="600" sx={{ mb: 1, display: 'block' }}>
@@ -289,7 +268,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                     p: 2, 
                     mt: 1, 
                     bgcolor: recordingPhase === 'identification' ? 'primary.50' : 'warning.50',
-                    borderColor: recordingPhase === 'identification' ? 'primary.200' : 'warning.200'
+                    borderColor: recordingPhase === 'identification' ? 'primary.200' : 'warning.200',
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
@@ -309,7 +288,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                       fontStyle: 'italic',
                       fontWeight: 500,
                       color: 'text.primary',
-                      lineHeight: 1.4
+                      lineHeight: 1.4,
                     }}
                   >
                     "{getCurrentText()}"
@@ -343,7 +322,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                   p: 2, 
                   mt: 1, 
                   bgcolor: 'success.50',
-                  borderColor: 'success.200'
+                  borderColor: 'success.200',
                 }}
               >
                 <Typography variant="body2" sx={{ mb: 1 }}>
@@ -365,14 +344,14 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        p: 2
+        p: 2,
       }}>
         <Paper elevation={2} sx={{ 
           height: '100%',
           borderRadius: 2,
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}>
           {/* Componente de grabación */}
           <Box sx={{ flex: 1, p: 2 }}>
@@ -400,7 +379,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 justifyContent: 'center',
                 height: '100%',
                 textAlign: 'center',
-                gap: 3
+                gap: 3,
               }}>
                 <Box sx={{ fontSize: '4rem' }}>🎉</Box>
                 <Typography variant="h5" fontWeight="600" color="success.main">
@@ -431,7 +410,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
         p: 1,
         bgcolor: 'background.paper',
         borderTop: 1,
-        borderColor: 'divider'
+        borderColor: 'divider',
       }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="caption" color="text.secondary">

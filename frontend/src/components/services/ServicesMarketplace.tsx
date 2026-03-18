@@ -170,7 +170,7 @@ const ServicesMarketplace: React.FC = () => {
         (s) =>
           s.name.toLowerCase().includes(query) ||
           s.short_description.toLowerCase().includes(query) ||
-          s.full_description.toLowerCase().includes(query)
+          s.full_description.toLowerCase().includes(query),
       );
     }
 
@@ -234,7 +234,7 @@ const ServicesMarketplace: React.FC = () => {
 
   const toggleFavorite = (serviceId: string) => {
     setFavorites((prev) =>
-      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId],
     );
   };
 
@@ -245,7 +245,7 @@ const ServicesMarketplace: React.FC = () => {
       return `$${parseFloat(service.base_price).toLocaleString('es-CO')} COP/hora`;
     } else if (service.price_range_min && service.price_range_max) {
       return `$${parseFloat(service.price_range_min).toLocaleString('es-CO')} - $${parseFloat(
-        service.price_range_max
+        service.price_range_max,
       ).toLocaleString('es-CO')} COP`;
     } else if (service.pricing_type === 'consultation') {
       return 'Consulta disponible';

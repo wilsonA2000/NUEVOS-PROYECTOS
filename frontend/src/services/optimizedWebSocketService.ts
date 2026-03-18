@@ -43,9 +43,9 @@ class OptimizedWebSocketService {
   private reconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private pingIntervals: Map<string, NodeJS.Timeout> = new Map();
   private connectionAttempts: Map<string, number[]> = new Map(); // Track connection attempts per endpoint
-  
+
   private readonly BASE_WS_URL = this.getWebSocketBaseUrl();
-  
+
   // Optimized configuration to prevent spam
   private readonly config: ConnectionConfig = {
     maxReconnectAttempts: 3,        // Reduced from 5
@@ -60,7 +60,7 @@ class OptimizedWebSocketService {
     // Listen for online/offline events
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
-    
+
     // Cleanup intervals on page unload
     window.addEventListener('beforeunload', () => this.cleanup());
   }
@@ -71,21 +71,20 @@ class OptimizedWebSocketService {
   private canAttemptConnection(endpoint: string): boolean {
     const now = Date.now();
     const attempts = this.connectionAttempts.get(endpoint) || [];
-    
+
     // Remove old attempts outside the window
     const recentAttempts = attempts.filter(
-      attempt => now - attempt < this.config.rateLimitWindow
+      attempt => now - attempt < this.config.rateLimitWindow,
     );
-    
+
     // Update the attempts array
     this.connectionAttempts.set(endpoint, recentAttempts);
-    
+
     // Check if we're under the limit
     if (recentAttempts.length >= this.config.maxConnectionsPerWindow) {
-      console.warn(`Rate limit exceeded for WebSocket endpoint: ${endpoint}. Max ${this.config.maxConnectionsPerWindow} attempts per ${this.config.rateLimitWindow/1000}s`);
       return false;
     }
-    
+
     // Record this attempt
     recentAttempts.push(now);
     this.connectionAttempts.set(endpoint, recentAttempts);
@@ -98,39 +97,37 @@ class OptimizedWebSocketService {
   async connectAuthenticated(endpoint: string): Promise<void> {
     // Check if already connected
     if (this.isConnected(endpoint)) {
-      console.log(`Already connected to ${endpoint}`);
       return Promise.resolve();
     }
-    
+
     // Check if currently connecting
     const status = this.getConnectionStatus(endpoint);
     if (status.connecting) {
-      console.log(`Already connecting to ${endpoint}`);
       return Promise.resolve();
     }
-    
+
     // Rate limiting check
     if (!this.canAttemptConnection(endpoint)) {
       return Promise.reject(new Error(`Rate limit exceeded for ${endpoint}`));
     }
-    
+
     const token = this.getAuthToken();
     if (!token) {
       throw new Error('User not authenticated');
     }
-    
+
     return new Promise((resolve, reject) => {
       try {
-        this.setConnectionStatus(endpoint, { 
-          connected: false, 
-          connecting: true, 
+        this.setConnectionStatus(endpoint, {
+          connected: false,
+          connecting: true,
           reconnectAttempts: status.reconnectAttempts,
-          error: null 
+          error: null,
         });
-        
+
         const wsUrl = `${this.BASE_WS_URL}/ws/${endpoint}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
-        
+
         // Connection timeout
         const timeoutId = setTimeout(() => {
           if (ws.readyState === WebSocket.CONNECTING) {
@@ -138,56 +135,54 @@ class OptimizedWebSocketService {
             reject(new Error(`Connection timeout for ${endpoint}`));
           }
         }, this.config.connectionTimeout);
-        
+
         ws.onopen = () => {
           clearTimeout(timeoutId);
-          console.log(`✅ WebSocket connected: ${endpoint}`);
-          
+
           this.connections.set(endpoint, ws);
-          this.setConnectionStatus(endpoint, { 
-            connected: true, 
-            connecting: false, 
+          this.setConnectionStatus(endpoint, {
+            connected: true,
+            connecting: false,
             lastConnected: new Date(),
             reconnectAttempts: 0,
-            error: null 
+            error: null,
           });
-          
+
           this.startPing(endpoint);
           resolve();
         };
-        
+
         ws.onmessage = (event) => {
           try {
             const message: WebSocketMessage = JSON.parse(event.data);
             this.handleMessage(endpoint, message);
           } catch (error) {
-            console.error(`Error parsing WebSocket message from ${endpoint}:`, error);
+            // Silently handle parse errors
           }
         };
-        
+
         ws.onclose = (event) => {
           clearTimeout(timeoutId);
           this.handleDisconnection(endpoint, event.code, event.reason);
         };
-        
-        ws.onerror = (error) => {
+
+        ws.onerror = () => {
           clearTimeout(timeoutId);
-          console.error(`WebSocket error on ${endpoint}:`, error);
-          this.setConnectionStatus(endpoint, { 
-            connected: false, 
-            connecting: false, 
+          this.setConnectionStatus(endpoint, {
+            connected: false,
+            connecting: false,
             error: 'Connection error',
-            reconnectAttempts: status.reconnectAttempts + 1 
+            reconnectAttempts: status.reconnectAttempts + 1,
           });
-          reject(error);
+          reject(new Error(`WebSocket error on ${endpoint}`));
         };
-        
+
       } catch (error) {
-        this.setConnectionStatus(endpoint, { 
-          connected: false, 
-          connecting: false, 
+        this.setConnectionStatus(endpoint, {
+          connected: false,
+          connecting: false,
           error: 'Connection failed',
-          reconnectAttempts: status.reconnectAttempts + 1 
+          reconnectAttempts: status.reconnectAttempts + 1,
         });
         reject(error);
       }
@@ -198,19 +193,17 @@ class OptimizedWebSocketService {
    * Smart reconnection with exponential backoff
    */
   private handleDisconnection(endpoint: string, code: number, reason: string) {
-    console.log(`WebSocket disconnected: ${endpoint} (${code}: ${reason})`);
-    
     this.connections.delete(endpoint);
     this.stopPing(endpoint);
-    
+
     const status = this.getConnectionStatus(endpoint);
-    this.setConnectionStatus(endpoint, { 
-      connected: false, 
+    this.setConnectionStatus(endpoint, {
+      connected: false,
       connecting: false,
       reconnectAttempts: status.reconnectAttempts,
-      error: reason || 'Disconnected'
+      error: reason || 'Disconnected',
     });
-    
+
     // Only auto-reconnect for unexpected disconnections (not manual close)
     if (code !== 1000 && code !== 1001) {
       this.scheduleReconnect(endpoint);
@@ -222,30 +215,27 @@ class OptimizedWebSocketService {
    */
   private scheduleReconnect(endpoint: string) {
     const status = this.getConnectionStatus(endpoint);
-    
+
     // Stop if max attempts reached
     if (status.reconnectAttempts >= this.config.maxReconnectAttempts) {
-      console.warn(`Max reconnect attempts reached for ${endpoint}`);
-      this.setConnectionStatus(endpoint, { 
-        ...status, 
-        error: 'Max reconnect attempts reached' 
+      this.setConnectionStatus(endpoint, {
+        ...status,
+        error: 'Max reconnect attempts reached',
       });
       return;
     }
-    
+
     // Exponential backoff: 30s, 60s, 120s
     const delay = this.config.reconnectDelay * Math.pow(2, status.reconnectAttempts);
-    
-    console.log(`Scheduling reconnect for ${endpoint} in ${delay/1000}s (attempt ${status.reconnectAttempts + 1}/${this.config.maxReconnectAttempts})`);
-    
+
     const timeoutId = setTimeout(async () => {
       try {
         await this.connectAuthenticated(endpoint);
-      } catch (error) {
-        console.error(`Reconnect failed for ${endpoint}:`, error);
+      } catch {
+        // Reconnect failed, will be retried by handleDisconnection
       }
     }, delay);
-    
+
     this.reconnectTimeouts.set(endpoint, timeoutId);
   }
 
@@ -254,22 +244,20 @@ class OptimizedWebSocketService {
    */
   send(endpoint: string, message: WebSocketMessage): boolean {
     const ws = this.connections.get(endpoint);
-    
+
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.warn(`WebSocket not connected for ${endpoint}`);
       return false;
     }
-    
+
     try {
       const messageWithTimestamp = {
         ...message,
         timestamp: message.timestamp || new Date().toISOString(),
       };
-      
+
       ws.send(JSON.stringify(messageWithTimestamp));
       return true;
-    } catch (error) {
-      console.error(`Error sending message to ${endpoint}:`, error);
+    } catch {
       return false;
     }
   }
@@ -281,9 +269,9 @@ class OptimizedWebSocketService {
     if (!this.eventCallbacks.has(eventType)) {
       this.eventCallbacks.set(eventType, new Set());
     }
-    
+
     this.eventCallbacks.get(eventType)!.add(callback);
-    
+
     return () => {
       const callbacks = this.eventCallbacks.get(eventType);
       if (callbacks) {
@@ -300,26 +288,26 @@ class OptimizedWebSocketService {
    */
   disconnect(endpoint: string): void {
     const ws = this.connections.get(endpoint);
-    
+
     if (ws) {
       ws.close(1000, 'Manual disconnect');
       this.connections.delete(endpoint);
     }
-    
+
     // Clear reconnection timer
     const timeoutId = this.reconnectTimeouts.get(endpoint);
     if (timeoutId) {
       clearTimeout(timeoutId);
       this.reconnectTimeouts.delete(endpoint);
     }
-    
+
     this.stopPing(endpoint);
-    
-    this.setConnectionStatus(endpoint, { 
-      connected: false, 
-      connecting: false, 
+
+    this.setConnectionStatus(endpoint, {
+      connected: false,
+      connecting: false,
       reconnectAttempts: 0,
-      error: null 
+      error: null,
     });
   }
 
@@ -329,20 +317,19 @@ class OptimizedWebSocketService {
   private startPing(endpoint: string): void {
     const ws = this.connections.get(endpoint);
     if (!ws) return;
-    
+
     const intervalId = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
           ws.send(JSON.stringify({ type: 'ping', timestamp: new Date().toISOString() }));
-        } catch (error) {
-          console.error(`Ping failed for ${endpoint}:`, error);
+        } catch {
           this.stopPing(endpoint);
         }
       } else {
         this.stopPing(endpoint);
       }
     }, this.config.pingInterval);
-    
+
     this.pingIntervals.set(endpoint, intervalId);
   }
 
@@ -359,27 +346,27 @@ class OptimizedWebSocketService {
     if (message.type === 'pong') {
       return;
     }
-    
+
     // Emit to specific event listeners
     const callbacks = this.eventCallbacks.get(message.type);
     if (callbacks) {
       callbacks.forEach(callback => {
         try {
           callback(message);
-        } catch (error) {
-          console.error(`Error in WebSocket callback for ${message.type}:`, error);
+        } catch {
+          // Silently handle callback errors
         }
       });
     }
-    
+
     // Emit to wildcard listeners
     const wildcardCallbacks = this.eventCallbacks.get('*');
     if (wildcardCallbacks) {
       wildcardCallbacks.forEach(callback => {
         try {
           callback(message);
-        } catch (error) {
-          console.error(`Error in WebSocket wildcard callback:`, error);
+        } catch {
+          // Silently handle callback errors
         }
       });
     }
@@ -403,16 +390,16 @@ class OptimizedWebSocketService {
       connecting: false,
       reconnectAttempts: 0,
     };
-    
+
     const newStatus = { ...currentStatus, ...status };
     this.connectionStatus.set(endpoint, newStatus);
-    
+
     // Notify status callbacks
     this.statusCallbacks.forEach(callback => {
       try {
         callback(newStatus);
-      } catch (error) {
-        console.error('Error in status callback:', error);
+      } catch {
+        // Silently handle callback errors
       }
     });
   }
@@ -442,7 +429,6 @@ class OptimizedWebSocketService {
 
   // Network event handlers
   private handleOnline(): void {
-    console.log('Network online - checking WebSocket connections');
     // Only reconnect to previously connected endpoints
     for (const [endpoint, status] of this.connectionStatus.entries()) {
       if (!status.connected && status.lastConnected) {
@@ -452,34 +438,31 @@ class OptimizedWebSocketService {
   }
 
   private handleOffline(): void {
-    console.log('Network offline - pausing WebSocket connections');
     // Mark all as disconnected but don't attempt reconnection
     this.connections.forEach((ws, endpoint) => {
-      this.setConnectionStatus(endpoint, { 
-        connected: false, 
+      this.setConnectionStatus(endpoint, {
+        connected: false,
         connecting: false,
-        error: 'Network offline' 
+        error: 'Network offline',
       });
     });
   }
 
   // Cleanup method
   private cleanup(): void {
-    console.log('Cleaning up WebSocket connections');
-    
     // Close all connections gracefully
     this.connections.forEach((ws, endpoint) => {
       try {
         ws.close(1000, 'Page unload');
-      } catch (error) {
-        console.error(`Error closing WebSocket ${endpoint}:`, error);
+      } catch {
+        // Silently handle close errors during cleanup
       }
     });
-    
+
     // Clear all timeouts
     this.reconnectTimeouts.forEach(timeout => clearTimeout(timeout));
     this.pingIntervals.forEach(interval => clearInterval(interval));
-    
+
     // Clear maps
     this.connections.clear();
     this.reconnectTimeouts.clear();
@@ -494,35 +477,29 @@ class OptimizedWebSocketService {
       try {
         await this.connectAuthenticated(endpoint);
         return { endpoint, success: true };
-      } catch (error) {
-        console.error(`Failed to connect to ${endpoint}:`, error);
-        return { endpoint, success: false, error };
+      } catch {
+        return { endpoint, success: false };
       }
     });
-    
-    const results = await Promise.allSettled(connectionPromises);
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    
-    console.log(`WebSocket batch connection: ${successful}/${endpoints.length} successful`);
+
+    await Promise.allSettled(connectionPromises);
   }
 
   /**
    * Graceful shutdown - disconnect all with cleanup
    */
   disconnectAll(): void {
-    console.log('Disconnecting all WebSocket connections');
-    
     this.connections.forEach((_, endpoint) => {
       this.disconnect(endpoint);
     });
-    
+
     this.cleanup();
   }
 
   /**
    * Get connection health status
    */
-  getHealthStatus(): { 
+  getHealthStatus(): {
     totalConnections: number;
     activeConnections: number;
     failedConnections: number;
@@ -532,7 +509,7 @@ class OptimizedWebSocketService {
       endpoint,
       status,
     }));
-    
+
     return {
       totalConnections: this.connections.size,
       activeConnections: this.getConnectedEndpoints().length,

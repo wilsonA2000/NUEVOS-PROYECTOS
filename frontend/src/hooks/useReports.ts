@@ -1,10 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  getReports,
-  getReport,
-  generateReport,
-  downloadReport,
-} from '../lib/api';
+import { api } from '../services/api';
 
 interface Report {
   id: number;
@@ -27,7 +22,10 @@ interface ReportFilters {
 export const useReports = (filters?: ReportFilters) => {
   const reports = useQuery<Report[]>({
     queryKey: ['reports', filters],
-    queryFn: () => getReports(filters),
+    queryFn: async () => {
+      const response = await api.get('/reports/', { params: filters });
+      return response.data;
+    },
   });
 
   const generate = useMutation<
@@ -35,16 +33,19 @@ export const useReports = (filters?: ReportFilters) => {
     Error,
     { name: string; type: string; parameters: Record<string, any> }
   >({
-    mutationFn: generateReport,
+    mutationFn: async (data) => {
+      const response = await api.post('/reports/generate/', data);
+      return response.data;
+    },
   });
 
   const download = async (id: number) => {
-    const response = await downloadReport(id);
-    const blob = await response.blob();
+    const response = await api.get(`/reports/${id}/download/`, { responseType: 'blob' });
+    const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = response.headers.get('content-disposition')?.split('filename=')[1] || 'report';
+    a.download = response.headers['content-disposition']?.split('filename=')[1] || 'report';
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);

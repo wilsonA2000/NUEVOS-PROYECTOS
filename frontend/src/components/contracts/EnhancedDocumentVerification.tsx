@@ -33,7 +33,7 @@ import {
   Chip,
   LinearProgress,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
@@ -47,7 +47,7 @@ import {
   Close as CloseIcon,
   Replay as ReplayIcon,
   PictureAsPdf as PdfIcon,
-  PhotoCamera as PhotoCameraIcon
+  PhotoCamera as PhotoCameraIcon,
 } from '@mui/icons-material';
 import SimpleProfessionalCamera from './SimpleProfessionalCamera';
 
@@ -73,7 +73,7 @@ const DOCUMENT_TYPES = [
   { value: 'cedula_ciudadania', label: 'Cédula de Ciudadanía', pattern: /^\d{6,10}$/ },
   { value: 'cedula_extranjeria', label: 'Cédula de Extranjería', pattern: /^\d{6,10}$/ },
   { value: 'pasaporte', label: 'Pasaporte', pattern: /^[A-Z0-9]{6,20}$/ },
-  { value: 'licencia_conducir', label: 'Licencia de Conducir', pattern: /^\d{6,15}$/ }
+  { value: 'licencia_conducir', label: 'Licencia de Conducir', pattern: /^\d{6,15}$/ },
 ];
 
 const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> = ({
@@ -83,7 +83,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
   currentStep = 2,
   totalSteps = 4,
   stepName = 'Verificación de Documento',
-  onBack
+  onBack,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -95,7 +95,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
     documentNumber: '',
     pdfFile: null,
     frontPhotoWithFace: null,
-    backPhotoWithFace: null
+    backPhotoWithFace: null,
   });
 
   // Estados de UI
@@ -292,7 +292,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
             bgcolor: 'grey.100',
             borderRadius: 1,
             border: '2px dashed',
-            borderColor: 'grey.400'
+            borderColor: 'grey.400',
           }}
         >
           <CameraAltIcon sx={{ fontSize: 48, color: 'grey.500', mb: 1 }} />
@@ -420,7 +420,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
                 value={documentData.documentType}
                 onChange={(e) => setDocumentData(prev => ({ 
                   ...prev, 
-                  documentType: e.target.value 
+                  documentType: e.target.value, 
                 }))}
                 label="Tipo de Documento"
               >
@@ -438,7 +438,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
               value={documentData.documentNumber}
               onChange={(e) => setDocumentData(prev => ({ 
                 ...prev, 
-                documentNumber: e.target.value 
+                documentNumber: e.target.value, 
               }))}
               onBlur={validateDocumentNumber}
               sx={{ mb: 2 }}
@@ -531,7 +531,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
               p: 2, 
               mt: 2,
               borderRadius: 2,
-              bgcolor: 'background.paper'
+              bgcolor: 'background.paper',
             }}
           >
             <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -563,7 +563,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
                 size="large"
                 onClick={handleSubmit}
                 disabled={!isComplete() || loading}
-                endIcon={loading ? <LinearProgress size={20} /> : <CheckIcon />}
+                endIcon={loading ? <CheckIcon /> : <CheckIcon />}
               >
                 {loading ? 'Procesando...' : 'Siguiente: Grabación de Voz'}
               </Button>

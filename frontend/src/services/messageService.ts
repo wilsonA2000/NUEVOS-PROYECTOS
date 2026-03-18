@@ -106,7 +106,7 @@ class MessageService {
   // === CONVERSACIONES/THREADS ===
   async getThreads(page = 1, limit = 20): Promise<{ results: MessageThread[], count: number, next: string | null, previous: string | null }> {
     const response = await api.get('/messages/threads/', { 
-      params: { page, limit } 
+      params: { page, limit }, 
     });
     return response.data;
   }

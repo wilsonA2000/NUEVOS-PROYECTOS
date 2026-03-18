@@ -38,7 +38,7 @@ import {
   IconButton,
   Tooltip,
   Fade,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import {
   CameraAlt,
@@ -52,7 +52,7 @@ import {
   Refresh,
   Security,
   Timer,
-  Verified
+  Verified,
 } from '@mui/icons-material';
 
 import CameraCaptureSimple from './CameraCaptureSimple';
@@ -105,7 +105,7 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
   onClose,
   contractId,
   onSuccess,
-  onError
+  onError,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -131,36 +131,36 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
       label: 'Captura Facial',
       description: 'Tome una foto frontal y lateral de su rostro',
       icon: <CameraAlt />,
-      completed: biometricData.completedSteps?.face_front && biometricData.completedSteps?.face_side || false
+      completed: biometricData.completedSteps?.face_front && biometricData.completedSteps?.face_side || false,
     },
     {
       id: 1,
       label: 'Documento de Identidad',
       description: 'Fotografíe su documento de identidad',
       icon: <DocumentScanner />,
-      completed: biometricData.completedSteps?.document || false
+      completed: biometricData.completedSteps?.document || false,
     },
     {
       id: 2,
       label: 'Verificación Combinada',
       description: 'Foto del documento junto a su rostro',
       icon: <Security />,
-      completed: biometricData.completedSteps?.combined || false
+      completed: biometricData.completedSteps?.combined || false,
     },
     {
       id: 3,
       label: 'Grabación de Voz',
       description: 'Grabe la frase de verificación',
       icon: <RecordVoiceOver />,
-      completed: biometricData.completedSteps?.voice || false
+      completed: biometricData.completedSteps?.voice || false,
     },
     {
       id: 4,
       label: 'Firma Digital',
       description: 'Firme digitalmente el contrato',
       icon: <Draw />,
-      completed: false // Se completa al finalizar todo el proceso
-    }
+      completed: false, // Se completa al finalizar todo el proceso
+    },
   ];
 
   // Timer para la expiración
@@ -171,16 +171,17 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         const now = Date.now();
         const remaining = Math.max(0, expiryTime - now);
         setTimeRemaining(remaining);
-        
+
         if (remaining === 0) {
           setError('La sesión de autenticación ha expirado. Inicie el proceso nuevamente.');
         }
       };
-      
+
       updateTimer();
       const interval = setInterval(updateTimer, 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [biometricData.expiresAt]);
 
   // Inicializar autenticación biométrica
@@ -196,7 +197,7 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         contractStatus: response.contract_status,
         voiceText: response.voice_text,
         expiresAt: response.expires_at,
-        progress: response.progress || 0
+        progress: response.progress || 0,
       });
       
       setActiveStep(0);
@@ -231,12 +232,12 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         completedSteps: {
           ...prev.completedSteps,
           face_front: true,
-          face_side: true
+          face_side: true,
         },
         confidenceScores: {
           ...prev.confidenceScores,
-          face_confidence: response.face_confidence_score
-        }
+          face_confidence: response.face_confidence_score,
+        },
       }));
       
       setActiveStep(1);
@@ -269,12 +270,12 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         progress: response.overall_progress,
         completedSteps: {
           ...prev.completedSteps,
-          document: true
+          document: true,
         },
         confidenceScores: {
           ...prev.confidenceScores,
-          document_confidence: response.document_confidence_score
-        }
+          document_confidence: response.document_confidence_score,
+        },
       }));
       
       setActiveStep(2);
@@ -300,8 +301,8 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         progress: response.overall_progress,
         completedSteps: {
           ...prev.completedSteps,
-          combined: true
-        }
+          combined: true,
+        },
       }));
       
       setActiveStep(3);
@@ -327,12 +328,12 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         progress: response.overall_progress,
         completedSteps: {
           ...prev.completedSteps,
-          voice: true
+          voice: true,
         },
         confidenceScores: {
           ...prev.confidenceScores,
-          voice_confidence: response.voice_confidence_score
-        }
+          voice_confidence: response.voice_confidence_score,
+        },
       }));
       
       setActiveStep(4);
@@ -349,23 +350,23 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await contractService.completeAuthentication(contractId);
-      
+
       if (response.success) {
         setBiometricData(prev => ({
           ...prev,
           contractStatus: response.contract_status,
           confidenceScores: {
             ...prev.confidenceScores,
-            overall_confidence: response.overall_confidence
-          }
+            overall_confidence: response.overall_confidence,
+          } as any,
         }));
-        
+
         // Completar autenticación exitosamente
         onSuccess();
       } else {
-        throw new Error(response.reason || 'Autenticación fallida');
+        throw Error(response.reason || 'Autenticación fallida');
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Error completando autenticación';
@@ -383,9 +384,9 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
       
       // Primero completar la autenticación biométrica
       await handleCompleteAuthentication();
-      
+
       // Luego procesar la firma digital
-      await contractService.signContract(contractId, signatureImage);
+      await contractService.signContract(contractId, { signature: signatureImage } as any);
       
       setSignatureData(signatureImage);
       onSuccess();
@@ -450,7 +451,7 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
                 data.frontPhotoWithFace || '',
                 data.documentType,
                 data.documentNumber,
-                data.pdfFile || undefined
+                data.pdfFile || undefined,
               );
             }}
             loading={loading}
@@ -508,8 +509,8 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
           height: isMobile ? '100vh' : '90vh',
           maxHeight: isMobile ? '100vh' : '90vh',
           display: 'flex',
-          flexDirection: 'column'
-        }
+          flexDirection: 'column',
+        },
       }}
     >
       <DialogTitle
@@ -517,7 +518,7 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: 'white',
           position: 'relative',
-          pb: 2
+          pb: 2,
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -572,8 +573,8 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
               borderRadius: 2,
               bgcolor: 'rgba(255,255,255,0.2)',
               '& .MuiLinearProgress-bar': {
-                bgcolor: theme.palette.secondary.main
-              }
+                bgcolor: theme.palette.secondary.main,
+              },
             }}
           />
         )}
@@ -585,7 +586,7 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
           overflow: 'auto',
           flex: 1,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
       >
         {error && (

@@ -76,16 +76,16 @@ const Templates: React.FC = () => {
 
   const handleSubmit = () => {
     if (editingTemplate) {
-      updateTemplate({ id: editingTemplate.id, data: formData });
+      updateTemplate.mutate({ id: editingTemplate.id, data: formData });
     } else {
-      createTemplate(formData);
+      createTemplate.mutate(formData);
     }
     handleCloseDialog();
   };
 
   const handleDelete = (templateId: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta plantilla?')) {
-      deleteTemplate(templateId);
+      deleteTemplate.mutate(templateId);
     }
   };
 

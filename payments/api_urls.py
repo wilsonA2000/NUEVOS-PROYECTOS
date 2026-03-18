@@ -66,4 +66,7 @@ urlpatterns = [
     path('wompi/initiate/', api_views.WompiInitiatePaymentAPIView.as_view(), name='api_wompi_initiate'),
     path('wompi/status/<int:transaction_id>/', api_views.WompiPaymentStatusAPIView.as_view(), name='api_wompi_status'),
     path('pse/banks/', api_views.PSEBanksListAPIView.as_view(), name='api_pse_banks'),
+
+    # Recibo de pago PDF
+    path('transactions/<uuid:pk>/receipt/', api_views.PaymentReceiptAPIView.as_view(), name='api_payment_receipt'),
 ]

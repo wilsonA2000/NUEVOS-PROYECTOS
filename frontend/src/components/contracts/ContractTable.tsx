@@ -57,9 +57,9 @@ export const ContractTable: React.FC = () => {
 
     return contracts.filter((contract) => {
       // Filtro de búsqueda
-      const matchesSearch = searchTerm === '' || 
-        contract.property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contract.tenant.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = searchTerm === '' ||
+        (contract.property?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ((contract.secondary_party as any)?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase());
 
       // Filtro de estado
       const matchesStatus = statusFilter === 'all' || contract.status === statusFilter;

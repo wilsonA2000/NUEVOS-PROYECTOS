@@ -44,7 +44,7 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
-  const { showNotification } = useNotification();
+  const notification = useNotification();
   
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Desconectado');
@@ -57,7 +57,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const autoConnectEndpoints = [
     'messaging',
     'notifications', 
-    'user-status'
+    'user-status',
   ];
 
   // WebSocket completely disabled
@@ -78,13 +78,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       setIsConnected(true);
       setConnectionStatus('Conectado - Tiempo real activo');
       setConnectedEndpoints(websocketService.getConnectedEndpoints());
-      
-      showNotification('Conexión en tiempo real establecida', 'success');
+
+      if (notification?.success) notification.success('Conexión en tiempo real establecida');
     } catch (error) {
       console.error('Error connecting to WebSocket:', error);
       setIsConnected(false);
       setConnectionStatus('Error de conexión');
-      showNotification('Error al conectar tiempo real', 'error');
+      if (notification?.error) notification.error('Error al conectar tiempo real');
     }
   };
 

@@ -14,9 +14,9 @@ jest.mock('./services/api', () => require('./__mocks__/api'));
       VITE_DEFAULT_COUNTRY: 'CO',
       VITE_DEFAULT_LAT: '4.5709',
       VITE_DEFAULT_LNG: '-74.2973',
-      VITE_DEFAULT_ZOOM: '6'
-    }
-  }
+      VITE_DEFAULT_ZOOM: '6',
+    },
+  },
 };
 
 // Configure testing-library

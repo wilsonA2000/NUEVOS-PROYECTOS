@@ -17,8 +17,8 @@ export const viewContractPDF = async (contractId: string): Promise<void> => {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': '*/*'
-      }
+        'Accept': '*/*',
+      },
     });
 
     if (!response.ok) {
@@ -64,8 +64,8 @@ export const downloadContractPDF = async (contractId: string, filename?: string)
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': '*/*'
-      }
+        'Accept': '*/*',
+      },
     });
 
     if (!response.ok) {

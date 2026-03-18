@@ -264,7 +264,7 @@ const SupportPage: React.FC = () => {
                 sx={{ 
                   bgcolor: 'white', 
                   color: 'primary.main',
-                  '&:hover': { bgcolor: 'grey.100' }
+                  '&:hover': { bgcolor: 'grey.100' },
                 }}
               >
                 Registrarse Ahora
@@ -276,7 +276,7 @@ const SupportPage: React.FC = () => {
                 sx={{ 
                   borderColor: 'white', 
                   color: 'white',
-                  '&:hover': { borderColor: 'grey.100', bgcolor: 'rgba(255,255,255,0.1)' }
+                  '&:hover': { borderColor: 'grey.100', bgcolor: 'rgba(255,255,255,0.1)' },
                 }}
               >
                 Contactar Soporte

@@ -11,15 +11,15 @@ console.log('🔧 MatchingService FIXED cargado correctamente con api:', typeof 
 export interface MatchRequest {
   id: string;
   match_code: string;
-  property: string;
+  property: string | { id: string; title: string; [key: string]: any } | null;
   property_title?: string;
   property_city?: string;
   property_rent_price?: number;
-  tenant: string;
+  tenant: string | { id: string; name: string; [key: string]: any } | null;
   tenant_name?: string;
   landlord: string;
   landlord_name?: string;
-  status: 'pending' | 'viewed' | 'accepted' | 'rejected' | 'expired';
+  status: 'pending' | 'viewed' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   tenant_message: string;
   tenant_phone: string;
@@ -193,13 +193,13 @@ class MatchingServiceFixed {
 
   async checkExistingMatchRequest(propertyId: string) {
     return api.get(`${this.baseUrl}/check-existing/`, {
-      params: { property_id: propertyId }
+      params: { property_id: propertyId },
     });
   }
 
   async cancelMatchRequest(propertyId: string) {
     return api.delete(`${this.baseUrl}/check-existing/`, {
-      params: { property_id: propertyId }
+      params: { property_id: propertyId },
     });
   }
 
@@ -248,13 +248,13 @@ class MatchingServiceFixed {
   // Potential Matches
   async getPotentialMatches(limit = 10) {
     return api.get(`${this.baseUrl}/potential-matches/`, {
-      params: { limit }
+      params: { limit },
     });
   }
 
   async getLandlordRecommendations(limit = 10) {
     return api.get(`${this.baseUrl}/landlord-recommendations/`, {
-      params: { limit }
+      params: { limit },
     });
   }
 
@@ -297,6 +297,10 @@ class MatchingServiceFixed {
     return api.post(`${this.baseUrl}/requests/${matchId}/create-contract/`, contractData);
   }
 
+  async advanceToContractStage(matchId: string) {
+    return api.post(`${this.baseUrl}/requests/${matchId}/advance-to-contract-stage/`);
+  }
+
   async verifyIdentityForContract(contractId: string, documents: any) {
     return api.post(`${this.baseUrl}/contracts/${contractId}/verify-identity/`, documents);
   }
@@ -311,7 +315,7 @@ class MatchingServiceFixed {
 
   async downloadMatchContractPDF(contractId: string) {
     return api.get(`${this.baseUrl}/contracts/${contractId}/download-pdf/`, {
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 

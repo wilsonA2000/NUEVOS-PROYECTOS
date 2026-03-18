@@ -136,7 +136,7 @@ const DeletePropertyModal: React.FC<DeletePropertyModalProps> = ({
             backgroundColor: 'warning.light',
             '& .MuiAlert-message': {
               width: '100%',
-            }
+            },
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>

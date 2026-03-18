@@ -5,14 +5,14 @@ import {
   AlertTitle,
   Box,
   Typography,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
   Warning as WarningIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
 } from '@mui/icons-material';
 
 interface CustomNotificationProps {
@@ -32,7 +32,7 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
   type,
   title,
   duration = 6000,
-  showCloseButton = true
+  showCloseButton = true,
 }) => {
   const getIcon = () => {
     switch (type) {
@@ -88,8 +88,8 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
       sx={{
         '& .MuiSnackbar-root': {
           top: 24,
-          right: 24
-        }
+          right: 24,
+        },
       }}
     >
       <Alert
@@ -103,11 +103,11 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
           borderRadius: 2,
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           '& .MuiAlert-icon': {
-            color: getBorderColor()
+            color: getBorderColor(),
           },
           '& .MuiAlert-message': {
-            width: '100%'
-          }
+            width: '100%',
+          },
         }}
         action={
           showCloseButton ? (
@@ -128,7 +128,7 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
             <AlertTitle sx={{ 
               fontWeight: 600, 
               mb: 1,
-              color: getBorderColor()
+              color: getBorderColor(),
             }}>
               {title}
             </AlertTitle>
@@ -137,7 +137,7 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
             variant="body2" 
             sx={{ 
               color: '#2c3e50',
-              lineHeight: 1.5
+              lineHeight: 1.5,
             }}
           >
             {message}

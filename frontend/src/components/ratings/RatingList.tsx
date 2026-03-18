@@ -45,14 +45,14 @@ export const RatingList: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (selectedRating) {
-      deleteRating(selectedRating.id);
+    if (selectedRating && deleteRating) {
+      await deleteRating.mutateAsync(selectedRating.id.toString());
     }
     handleMenuClose();
   };
 
   // Asegurar que ratings sea un array
-  const ratingsArray = ensureArray(ratings) as Rating[];
+  const ratingsArray = Array.isArray(ratings) ? ratings : [];
 
   if (isLoading) {
     return (

@@ -34,7 +34,7 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  LinearProgress
+  LinearProgress,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 
@@ -63,7 +63,7 @@ import {
   PlayArrow as ContinueIcon,
   Edit as EditIcon,
   ThumbUp as ThumbUpIcon,
-  ThumbDown as ThumbDownIcon
+  ThumbDown as ThumbDownIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import EnhancedTenantDocumentUpload from './EnhancedTenantDocumentUpload';
@@ -134,7 +134,6 @@ const TenantContractView: React.FC = () => {
   const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 TenantContractView component mounted');
     fetchTenantProcesses();
   }, []);
 
@@ -143,29 +142,13 @@ const TenantContractView: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 TenantContractView - Current user:', user);
-      console.log('🔍 TenantContractView - User type:', user?.user_type);
-      console.log('🔍 TenantContractView - User email:', user?.email);
-      console.log('🔍 Fetching tenant contract processes...');
       const response = await api.get('/contracts/tenant-processes/');
 
-      console.log('🔍 Response status:', response.status);
       const data = response.data;
-      console.log('🔍 Received tenant processes:', data);
-      console.log('🔍 Processes with workflow_stage debug:');
       data.results?.forEach((process: any, index: number) => {
-        console.log(`🔍 Process ${index + 1} DETAILED ANALYSIS:`);
-        console.log(`   📝 ID: ${process.id}`);
-        console.log(`   📝 Match Code: ${process.match_code}`);
-        console.log(`   📝 Workflow Stage: ${process.workflow_stage} (type: ${typeof process.workflow_stage})`);
-        console.log(`   📝 Status: ${process.status}`);
-        console.log(`   📝 All Object Keys:`, Object.keys(process));
-        console.log(`   📝 JSON String:`, JSON.stringify(process, null, 2));
       });
       setProcesses(data.results || []);
-      console.log('🔍 Set processes:', data.results?.length || 0);
     } catch (err) {
-      console.error('🔍 Error response:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
@@ -187,7 +170,6 @@ const TenantContractView: React.FC = () => {
   const getProcessStage = (process: any): number => {
     // Check if process exists and is not null
     if (!process) {
-      console.warn('🐛 TenantContractView - getProcessStage: process is null/undefined');
       return 1;
     }
     
@@ -196,12 +178,6 @@ const TenantContractView: React.FC = () => {
     const currentStage = process.current_stage;
     const workflowStage = process.workflow_stage;
     
-    console.log('🔍 TenantContractView - getProcessStage debug:', {
-      currentStage,
-      workflowStage,
-      processId: process.id,
-      matchCode: process.match_code
-    });
     
     if (typeof currentStage === 'number' && currentStage >= 1 && currentStage <= 5) {
       return currentStage;
@@ -211,7 +187,6 @@ const TenantContractView: React.FC = () => {
       return workflowStage;
     }
     
-    console.warn('🐛 TenantContractView - getProcessStage: using default stage 1, process data:', process);
     return 1; // Default to stage 1
   };
 
@@ -289,7 +264,6 @@ const TenantContractView: React.FC = () => {
     if (!process.workflow_data.contract_created) return;
     
     const contractId = process.workflow_data.contract_created.contract_id;
-    console.log('🔐 Arrendatario iniciando autenticación biométrica:', contractId);
     
     // Navegar a la página de autenticación biométrica
     navigate(`/app/contracts/${contractId}/authenticate`);
@@ -299,7 +273,6 @@ const TenantContractView: React.FC = () => {
     if (!process.workflow_data.contract_created) return;
     
     const contractId = process.workflow_data.contract_created.contract_id;
-    console.log('📄 Viendo contrato PDF:', contractId);
     
     // Abrir directamente el PDF del contrato
     // El arrendatario puede ver el PDF pero no necesariamente puede acceder a todos los detalles del contrato
@@ -315,7 +288,7 @@ const TenantContractView: React.FC = () => {
       const requestBody = {
         contract_id: selectedProcess.workflow_data.contract_created.contract_id,
         action: reviewAction,
-        comments: reviewComments
+        comments: reviewComments,
       };
 
       const response = await api.post('/contracts/tenant-review/', requestBody);
@@ -326,7 +299,6 @@ const TenantContractView: React.FC = () => {
       setReviewDialogOpen(false);
       setSelectedProcess(null);
       
-      console.log('✅ Revisión del contrato enviada:', response.data.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al enviar revisión');
     } finally {
@@ -510,7 +482,7 @@ const TenantContractView: React.FC = () => {
       return new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
       }).format(amount);
     };
 
@@ -560,7 +532,7 @@ const TenantContractView: React.FC = () => {
 
           {/* Status Alert */}
           <Alert 
-            severity={getProcessStage(process) === 5 ? "success" : "info"} 
+            severity={getProcessStage(process) === 5 ? 'success' : 'info'} 
             sx={{ mb: 2 }}
             icon={getProcessStage(process) === 5 ? <ApproveIcon /> : <InfoIcon />}
           >
@@ -904,14 +876,14 @@ const TenantContractView: React.FC = () => {
                   {getStageLabel(getProcessStage(selectedProcess))}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Chip 
+                  <Chip
                     label={`Etapa ${getProcessStage(selectedProcess)} de 5`}
-                    color={getStageColor(getProcessStage(selectedProcess)) as any}
+                    color="primary"
                     variant="filled"
-                    size="large"
+                    size="medium"
                   />
-                  <LinearProgress 
-                    variant="determinate" 
+                  <LinearProgress
+                    variant="determinate"
                     value={(getProcessStage(selectedProcess) / 5) * 100}
                     sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
                   />
@@ -963,7 +935,7 @@ const TenantContractView: React.FC = () => {
                               bgcolor: 'grey.50', 
                               borderRadius: 1, 
                               border: '1px solid #e0e0e0',
-                              fontStyle: 'italic'
+                              fontStyle: 'italic',
                             }}>
                               💬 "{selectedProcess.workflow_data.visit_scheduled.notes}"
                             </Typography>
@@ -1059,7 +1031,7 @@ const TenantContractView: React.FC = () => {
                             💰 {new Intl.NumberFormat('es-CO', {
                               style: 'currency',
                               currency: 'COP',
-                              minimumFractionDigits: 0
+                              minimumFractionDigits: 0,
                             }).format(selectedProcess.monthly_income)}
                           </Typography>
                         </Grid>

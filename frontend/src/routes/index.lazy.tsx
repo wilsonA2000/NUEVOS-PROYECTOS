@@ -6,14 +6,15 @@ import {
   LazyLoadingSpinner,
   SkeletonLoader,
   useIntelligentPreload,
-  preloadBasedOnRoute
+  preloadBasedOnRoute,
 } from '../components/common/LazyComponents';
 
 // Componentes cargados inmediatamente (críticos para UX)
 import Layout from '../components/layout/Layout';
 import LandingPage from '../pages/LandingPage';
 import { Login } from '../pages/auth/Login';
-import { Register } from '../pages/auth/Register';
+import { RegisterWithCode } from '../pages/auth/RegisterWithCode';
+import AdminProtectedRoute from '../components/auth/AdminProtectedRoute';
 
 // Lazy loading para componentes secundarios
 const Dashboard = lazy(() => import('../pages/dashboard/NewDashboard'));
@@ -28,23 +29,37 @@ const PaymentForm = lazy(() => import('../components/payments/PaymentForm').then
 const PaymentDetail = lazy(() => import('../components/payments/PaymentDetail').then(m => ({ default: m.PaymentDetail })));
 const MessagesMain = lazy(() => import('../pages/messages/MessagesMain'));
 const MessageForm = lazy(() => import('../components/messages/MessageForm').then(m => ({ default: m.MessageForm })));
-const MessageDetail = lazy(() => import('../components/messages/MessageDetail').then(m => ({ default: m.MessageDetail })));
+const MessageDetail = lazy(() => import('../components/messages/MessageDetail').then((m: any) => ({ default: m.MessageDetail || m.default })));
 const ReplyForm = lazy(() => import('../components/messages/ReplyForm').then(m => ({ default: m.ReplyForm })));
 const RatingList = lazy(() => import('../components/ratings/RatingList').then(m => ({ default: m.RatingList })));
-const RatingForm = lazy(() => import('../components/ratings/RatingForm').then(m => ({ default: m.RatingForm })));
+const RatingForm = lazy(() => import('../components/ratings/RatingForm').then((m: any) => ({ default: m.RatingForm || m.default || (() => null) })));
 const RatingDetail = lazy(() => import('../components/ratings/RatingDetail').then(m => ({ default: m.RatingDetail })));
 const Settings = lazy(() => import('../pages/settings/Settings'));
-const Profile = lazy(() => import('../pages/Profile'));
+const Profile = lazy(() => import('../pages/profile/Profile'));
 const Resume = lazy(() => import('../pages/Resume'));
 const ResumeEdit = lazy(() => import('../pages/ResumeEdit'));
 const ServicesPage = lazy(() => import('../pages/services/ServicesPage'));
 const ServiceRequestsPage = lazy(() => import('../pages/services/ServiceRequestsPage'));
+const MaintenancePage = lazy(() => import('../pages/maintenance/MaintenancePage'));
 const AboutPage = lazy(() => import('../pages/AboutPage'));
 const ContactPage = lazy(() => import('../pages/ContactPage'));
 const ServicesOverviewPage = lazy(() => import('../pages/ServicesOverviewPage'));
 const SupportPage = lazy(() => import('../pages/SupportPage'));
 const CommunityPage = lazy(() => import('../pages/CommunityPage'));
 const ConfirmEmail = lazy(() => import('../pages/ConfirmEmail'));
+
+// Página pública de autenticación de codeudor (SIN login requerido)
+const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
+
+// 🔐 ADMIN ROUTES (Plan Maestro V2.0)
+const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
+const AdminContractsList = lazy(() => import('../pages/admin/AdminContractsList'));
+const AdminContractReview = lazy(() => import('../pages/admin/AdminContractReview'));
+const AdminAuditDashboard = lazy(() => import('../pages/admin/AdminAuditDashboard'));
+const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'));
+const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
+const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 
 // Componentes de loading especializados
 const PageLoader: React.FC = () => (
@@ -117,7 +132,7 @@ return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<RegisterWithCode />} />
         <Route path="/confirm-email/:key" element={<LazyRoute><ConfirmEmail /></LazyRoute>} />
         <Route path="/forgot-password" element={<LandingPage />} />
         <Route path="/reset-password" element={<LandingPage />} />
@@ -130,12 +145,14 @@ return (
         <Route path="/events" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="/partners" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="/careers" element={<LazyRoute><CommunityPage /></LazyRoute>} />
+        {/* Ruta pública de autenticación de codeudor (SIN login) */}
+        <Route path="/codeudor-auth/:token" element={<LazyRoute><CodeudorAuthPage /></LazyRoute>} />
         {/* Redirigir cualquier otra ruta a la landing */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
-  
+
   // Si está autenticado, mostrar rutas protegidas
 
 return (
@@ -190,7 +207,6 @@ return (
         {/* Ratings Routes */}
         <Route path="ratings">
           <Route index element={<LazyRoute type="table"><RatingList /></LazyRoute>} />
-          <Route path="new" element={<LazyRoute type="form"><RatingForm /></LazyRoute>} />
           <Route path=":id" element={<LazyRoute type="page"><RatingDetail /></LazyRoute>} />
         </Route>
         {/* Profile Route */}
@@ -203,6 +219,8 @@ return (
         {/* Services Routes */}
         <Route path="services" element={<LazyRoute><ServicesOverviewPage /></LazyRoute>} />
         <Route path="service-requests" element={<LazyRoute><ServiceRequestsPage /></LazyRoute>} />
+        {/* Maintenance Routes */}
+        <Route path="maintenance" element={<LazyRoute type="list"><MaintenancePage /></LazyRoute>} />
         <Route path="help" element={<LazyRoute><SupportPage /></LazyRoute>} />
         <Route path="blog" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="events" element={<LazyRoute><CommunityPage /></LazyRoute>} />
@@ -210,6 +228,28 @@ return (
         <Route path="careers" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         {/* Catch all route para rutas protegidas */}
         <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+      </Route>
+
+      {/* 🔐 RUTAS DE ADMINISTRACIÓN LEGAL (Plan Maestro V2.0) */}
+      <Route
+        path="/app/admin"
+        element={
+          <ProtectedRoute>
+            <AdminProtectedRoute>
+              <LazyRoute type="dashboard">
+                <AdminLayout />
+              </LazyRoute>
+            </AdminProtectedRoute>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<LazyRoute type="dashboard"><AdminDashboard /></LazyRoute>} />
+        <Route path="contracts" element={<LazyRoute type="table"><AdminContractsList /></LazyRoute>} />
+        <Route path="contracts/:contractId" element={<LazyRoute type="page"><AdminContractReview /></LazyRoute>} />
+        <Route path="audit" element={<LazyRoute type="page"><AdminAuditDashboard /></LazyRoute>} />
+        <Route path="security" element={<LazyRoute type="page"><AdminSecurityPanel /></LazyRoute>} />
+        <Route path="logs" element={<LazyRoute type="table"><AdminLogsViewer /></LazyRoute>} />
+        <Route path="settings" element={<LazyRoute type="form"><AdminSettings /></LazyRoute>} />
       </Route>
 
       {/* Redirecciones para rutas legacy */}
@@ -221,6 +261,10 @@ return (
       <Route path="/ratings" element={<Navigate to="/app/ratings" replace />} />
       <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
       <Route path="/services" element={<Navigate to="/app/services" replace />} />
+      <Route path="/maintenance" element={<Navigate to="/app/maintenance" replace />} />
+
+      {/* Ruta pública de autenticación de codeudor - accesible incluso para usuarios autenticados */}
+      <Route path="/codeudor-auth/:token" element={<LazyRoute><CodeudorAuthPage /></LazyRoute>} />
 
       {/* Catch all route para usuarios autenticados */}
       <Route path="*" element={<Navigate to="/app/dashboard" replace />} />

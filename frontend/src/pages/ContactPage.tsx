@@ -296,7 +296,7 @@ setSubmitStatus('success');
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              borderRadius: 1
+              borderRadius: 1,
             }}>
               <Typography variant="h6" color="text.secondary">
                 Mapa Interactivo

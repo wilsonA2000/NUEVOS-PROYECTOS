@@ -47,27 +47,12 @@ class PropertyVideoService {
     try {
       // Get property details which includes videos
       const response = await api.get(`/properties/${propertyId}/`);
-      
+
       // Extract videos from property response
       const videos = response.data.videos || [];
-      
-      console.log('🔍 API Response videos:', videos);
-      console.log('🔍 Total videos count:', videos.length);
-      
-      videos.forEach((video, index) => {
-        console.log(`🔍 Video ${index + 1}:`, {
-          id: video.id,
-          title: video.title,
-          youtube_url: video.youtube_url,
-          video_url: video.video_url,
-          video: video.video,
-          created_at: video.created_at,
-          allFields: Object.keys(video)
-        });
-      });
+
       return videos;
     } catch (error) {
-      console.error('❌ Error obteniendo videos:', error);
       throw error;
     }
   }
@@ -78,7 +63,7 @@ class PropertyVideoService {
   async addVideoToProperty(
     propertyId: string,
     videoData: CreateVideoDto,
-    onProgress?: (progress: VideoUploadProgress) => void
+    onProgress?: (progress: VideoUploadProgress) => void,
   ): Promise<{
     message: string;
     video: PropertyVideo;
@@ -86,19 +71,17 @@ class PropertyVideoService {
   }> {
     try {
       const formData = new FormData();
-      
+
       // Campos básicos
       formData.append('title', videoData.title);
       formData.append('description', videoData.description);
       formData.append('property', propertyId);
-      
+
       // Determinar tipo de video
       if (videoData.youtube_url) {
         formData.append('youtube_url', videoData.youtube_url);
-        console.log('🎬 Enviando video URL:', videoData.youtube_url);
       } else if (videoData.video) {
         formData.append('video', videoData.video);
-        console.log('🎬 Enviando video archivo:', videoData.video.name);
       } else {
         throw new Error('Debe proporcionar youtube_url o archivo de video');
       }
@@ -113,31 +96,29 @@ class PropertyVideoService {
               const progress: VideoUploadProgress = {
                 loaded: progressEvent.loaded,
                 total: progressEvent.total,
-                percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total),
               };
               onProgress(progress);
             }
-          }
-        }
+          },
+        },
       );
 
-      console.log('✅ Video agregado exitosamente:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error agregando video:', error);
       throw error;
     }
   }
 
   /**
-   * Cambiar fuente de video existente (URL ↔ archivo) 
+   * Cambiar fuente de video existente (URL <-> archivo)
    * TODO: Implementar endpoint en backend
    */
   async updateVideoSource(
     propertyId: string,
     videoId: number,
     updateData: UpdateVideoDto,
-    onProgress?: (progress: VideoUploadProgress) => void
+    onProgress?: (progress: VideoUploadProgress) => void,
   ): Promise<{
     message: string;
     video: PropertyVideo;
@@ -154,7 +135,7 @@ class PropertyVideoService {
   async reorderVideo(
     propertyId: string,
     videoId: number,
-    newOrder: number
+    newOrder: number,
   ): Promise<{
     message: string;
     video: PropertyVideo;
@@ -169,11 +150,9 @@ class PropertyVideoService {
   async deleteVideo(propertyId: string, videoId: number): Promise<void> {
     try {
       await api.delete(
-        `/properties/property-videos/${videoId}/`
+        `/properties/property-videos/${videoId}/`,
       );
-      console.log('✅ Video eliminado exitosamente');
     } catch (error) {
-      console.error('❌ Error eliminando video:', error);
       throw error;
     }
   }
@@ -197,7 +176,7 @@ class PropertyVideoService {
           description: '',
           thumbnail: '',
           duration: '',
-          isValid: false
+          isValid: false,
         };
       }
 
@@ -208,16 +187,15 @@ class PropertyVideoService {
         description: 'Descripción extraída de YouTube',
         thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
         duration: '5:30',
-        isValid: true
+        isValid: true,
       };
-    } catch (error) {
-      console.error('❌ Error obteniendo info de YouTube:', error);
+    } catch {
       return {
         title: '',
         description: '',
         thumbnail: '',
         duration: '',
-        isValid: false
+        isValid: false,
       };
     }
   }
@@ -228,7 +206,7 @@ class PropertyVideoService {
   private extractYouTubeVideoId(url: string): string | null {
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
     ];
 
     for (const pattern of patterns) {
@@ -249,19 +227,19 @@ class PropertyVideoService {
     errors: string[];
   } {
     const errors: string[] = [];
-    
+
     // Validar tipo de archivo
     const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/avi'];
     if (!allowedTypes.includes(file.type)) {
       errors.push(`Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes.join(', ')}`);
     }
-    
+
     // Validar tamaño (50MB máximo)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       errors.push(`Archivo muy grande. Tamaño máximo: ${maxSize / (1024 * 1024)}MB`);
     }
-    
+
     // Validar duración mínima del nombre
     if (file.name.length < 3) {
       errors.push('Nombre de archivo muy corto');
@@ -269,7 +247,7 @@ class PropertyVideoService {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -282,21 +260,21 @@ class PropertyVideoService {
     videoId?: string;
   } {
     const errors: string[] = [];
-    
+
     if (!url) {
       errors.push('URL es requerida');
       return { valid: false, errors };
     }
-    
+
     const videoId = this.extractYouTubeVideoId(url);
     if (!videoId) {
       errors.push('URL de YouTube inválida');
     }
-    
+
     return {
       valid: errors.length === 0,
       errors,
-      videoId: videoId || undefined
+      videoId: videoId || undefined,
     };
   }
 
@@ -308,31 +286,31 @@ class PropertyVideoService {
       const video = document.createElement('video');
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
-      
+
       if (!context) {
         reject(new Error('No se puede crear contexto de canvas'));
         return;
       }
-      
+
       video.onloadedmetadata = () => {
         // Ir al segundo 1 del video
         video.currentTime = 1;
       };
-      
+
       video.onseeked = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0);
-        
+
         // Convertir a base64
         const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
         resolve(thumbnail);
       };
-      
+
       video.onerror = () => {
         reject(new Error('Error cargando video para generar thumbnail'));
       };
-      
+
       // Crear URL del archivo
       video.src = URL.createObjectURL(file);
     });

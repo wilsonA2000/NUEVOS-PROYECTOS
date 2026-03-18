@@ -145,8 +145,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
             Object.values(item).map(value => 
               typeof value === 'string' && value.includes(',') 
                 ? `"${value}"` 
-                : String(value)
-            ).join(',')
+                : String(value),
+            ).join(','),
           );
           const csvContent = [headers, ...rows].join('\n');
           return new Blob([csvContent], { type: 'text/csv' });
@@ -354,7 +354,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
               primary={option.label}
               secondary={option.description}
               secondaryTypographyProps={{
-                sx: { fontSize: '0.75rem', color: 'var(--color-text-secondary)' }
+                sx: { fontSize: '0.75rem', color: 'var(--color-text-secondary)' },
               }}
             />
           </MenuItem>
@@ -382,7 +382,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
           <ListItemText
             primary="Opciones avanzadas"
             primaryTypographyProps={{
-              sx: { fontSize: '0.875rem', color: 'var(--color-text-secondary)' }
+              sx: { fontSize: '0.875rem', color: 'var(--color-text-secondary)' },
             }}
           />
         </MenuItem>

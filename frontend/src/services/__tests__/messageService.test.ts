@@ -34,36 +34,25 @@ describe('MessageService', () => {
     updated_at: '2024-01-01T00:00:00Z'
   };
 
-  const mockCreateMessageDto = {
-    subject: 'New Inquiry',
-    content: 'Hello, I have a question about the property',
-    recipient_id: '1',
-    thread_id: 'thread_1'
-  };
-
   describe('getMessages', () => {
-    it('should fetch all messages successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: [mockMessage] });
+    it('should fetch messages successfully with defaults', async () => {
+      const paginatedResponse = { results: [mockMessage], count: 1, next: null, previous: null };
+      mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await messageService.getMessages();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/');
-      expect(result).toEqual([mockMessage]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', { params: { page: 1, limit: 20 } });
+      expect(result).toEqual(paginatedResponse);
     });
 
-    it('should fetch messages with filters', async () => {
-      const filters = {
-        thread_id: 'thread_1',
-        read: false,
-        sender_id: '2'
-      };
+    it('should fetch messages with threadId filter', async () => {
+      const paginatedResponse = { results: [mockMessage], count: 1, next: null, previous: null };
+      mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
-      mockedApi.get.mockResolvedValueOnce({ data: [mockMessage] });
+      const result = await messageService.getMessages('thread_1');
 
-      const result = await messageService.getMessages(filters);
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', { params: filters });
-      expect(result).toEqual([mockMessage]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', { params: { page: 1, limit: 20, thread: 'thread_1' } });
+      expect(result).toEqual(paginatedResponse);
     });
 
     it('should handle API errors', async () => {
@@ -85,67 +74,30 @@ describe('MessageService', () => {
   });
 
   describe('sendMessage', () => {
-    it('should send message successfully', async () => {
+    it('should send message successfully using createMessage', async () => {
+      const sendData = {
+        thread_id: 'thread_1',
+        content: 'Hello, I have a question about the property',
+      };
+
       mockedApi.post.mockResolvedValueOnce({ data: mockMessage });
 
-      const result = await messageService.sendMessage(mockCreateMessageDto);
+      const result = await messageService.sendMessage(sendData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/messages/', mockCreateMessageDto);
+      expect(mockedApi.post).toHaveBeenCalled();
       expect(result).toEqual(mockMessage);
     });
-
-    it('should handle validation errors', async () => {
-      const mockError = {
-        response: {
-          status: 400,
-          data: { content: ['This field is required'] }
-        }
-      };
-
-      mockedApi.post.mockRejectedValueOnceOnce(mockError);
-
-      await expect(messageService.sendMessage(mockCreateMessageDto)).rejects.toThrow();
-    });
   });
 
-  describe('replyToMessage', () => {
-    it('should reply to message successfully', async () => {
-      const replyData = {
-        content: 'Thank you for your inquiry',
-        thread_id: 'thread_1'
-      };
+  describe('updateMessage', () => {
+    it('should update message successfully', async () => {
+      const updatedMessage = { ...mockMessage, content: 'Updated content' };
+      mockedApi.put.mockResolvedValueOnce({ data: updatedMessage });
 
-      const replyMessage = { ...mockMessage, id: '2', content: replyData.content };
-      mockedApi.post.mockResolvedValueOnce({ data: replyMessage });
+      const result = await messageService.updateMessage('1', { content: 'Updated content' } as any);
 
-      const result = await messageService.replyToMessage('1', replyData);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/messages/1/reply/', replyData);
-      expect(result).toEqual(replyMessage);
-    });
-  });
-
-  describe('markAsRead', () => {
-    it('should mark message as read successfully', async () => {
-      const readMessage = { ...mockMessage, read: true };
-      mockedApi.patch.mockResolvedValueOnce({ data: readMessage });
-
-      const result = await messageService.markAsRead('1');
-
-      expect(mockedApi.patch).toHaveBeenCalledWith('/messages/messages/1/', { read: true });
-      expect(result).toEqual(readMessage);
-    });
-  });
-
-  describe('markAsUnread', () => {
-    it('should mark message as unread successfully', async () => {
-      const unreadMessage = { ...mockMessage, read: false };
-      mockedApi.patch.mockResolvedValueOnce({ data: unreadMessage });
-
-      const result = await messageService.markAsUnread('1');
-
-      expect(mockedApi.patch).toHaveBeenCalledWith('/messages/messages/1/', { read: false });
-      expect(result).toEqual(unreadMessage);
+      expect(mockedApi.put).toHaveBeenCalledWith('/messages/messages/1/', { content: 'Updated content' });
+      expect(result).toEqual(updatedMessage);
     });
   });
 
@@ -159,14 +111,45 @@ describe('MessageService', () => {
     });
   });
 
+  describe('markMessageAsRead', () => {
+    it('should mark message as read successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: {} });
+
+      await messageService.markMessageAsRead('1');
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-read/1/');
+    });
+  });
+
+  describe('markMessagesAsRead', () => {
+    it('should mark multiple messages as read successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: {} });
+
+      await messageService.markMessagesAsRead(['1', '2']);
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-multiple-read/', { message_ids: ['1', '2'] });
+    });
+  });
+
+  describe('markAsUnread', () => {
+    it('should mark messages as unread successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: {} });
+
+      await messageService.markAsUnread(['1', '2']);
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-unread/', { ids: ['1', '2'] });
+    });
+  });
+
   describe('getThreads', () => {
     it('should fetch all threads successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: [mockThread] });
+      const paginatedResponse = { results: [mockThread], count: 1, next: null, previous: null };
+      mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await messageService.getThreads();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/threads/');
-      expect(result).toEqual([mockThread]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/threads/', { params: { page: 1, limit: 20 } });
+      expect(result).toEqual(paginatedResponse);
     });
   });
 
@@ -220,67 +203,57 @@ describe('MessageService', () => {
     });
   });
 
-  describe('uploadAttachment', () => {
-    it('should upload attachment successfully', async () => {
-      const formData = new FormData();
-      formData.append('file', new File(['test'], 'document.pdf'));
-
-      mockedApi.post.mockResolvedValueOnce({ data: { attachment_id: 'att_123', filename: 'document.pdf' } });
-
-      const result = await messageService.uploadAttachment('1', formData);
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/messages/1/attachments/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      expect(result).toEqual({ attachment_id: 'att_123', filename: 'document.pdf' });
-    });
-  });
-
   describe('getUnreadCount', () => {
     it('should fetch unread message count successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: { unread_count: 5 } });
+      mockedApi.get.mockResolvedValueOnce({ data: { count: 5 } });
 
       const result = await messageService.getUnreadCount();
 
       expect(mockedApi.get).toHaveBeenCalledWith('/messages/unread-count/');
-      expect(result).toEqual({ unread_count: 5 });
+      expect(result).toBe(5);
+    });
+
+    it('should return 0 on error', async () => {
+      mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
+
+      const result = await messageService.getUnreadCount();
+
+      expect(result).toBe(0);
     });
   });
 
-  describe('markAllAsRead', () => {
-    it('should mark all messages as read successfully', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { marked_count: 5 } });
+  describe('markThreadAsRead', () => {
+    it('should mark thread as read successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: {} });
 
-      const result = await messageService.markAllAsRead();
+      await messageService.markThreadAsRead('thread_1');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-all-read/');
-      expect(result).toEqual({ marked_count: 5 });
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/threads/thread_1/mark-read/');
     });
   });
 
   describe('searchMessages', () => {
     it('should search messages successfully', async () => {
-      const searchQuery = 'property inquiry';
-      mockedApi.get.mockResolvedValueOnce({ data: [mockMessage] });
+      const searchParams = { query: 'property inquiry' };
+      const searchResult = { results: [mockMessage], count: 1 };
+      mockedApi.get.mockResolvedValueOnce({ data: searchResult });
 
-      const result = await messageService.searchMessages(searchQuery);
+      const result = await messageService.searchMessages(searchParams);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { params: { q: searchQuery } });
-      expect(result).toEqual([mockMessage]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { params: searchParams });
+      expect(result).toEqual(searchResult);
     });
 
     it('should search with filters', async () => {
-      const searchQuery = 'property';
-      const filters = { sender_id: '2', read: false };
+      const searchParams = { query: 'property', sender: '2', date_from: '2024-01-01' };
 
-      mockedApi.get.mockResolvedValueOnce({ data: [mockMessage] });
+      const searchResult = { results: [mockMessage], count: 1 };
+      mockedApi.get.mockResolvedValueOnce({ data: searchResult });
 
-      const result = await messageService.searchMessages(searchQuery, filters);
+      const result = await messageService.searchMessages(searchParams);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { 
-        params: { q: searchQuery, ...filters } 
-      });
-      expect(result).toEqual([mockMessage]);
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { params: searchParams });
+      expect(result).toEqual(searchResult);
     });
   });
 
@@ -317,21 +290,70 @@ describe('MessageService', () => {
     });
   });
 
-  describe('getMessageStats', () => {
-    it('should fetch message statistics successfully', async () => {
+  describe('getMessagingStats', () => {
+    it('should fetch messaging statistics successfully', async () => {
       const stats = {
         total_messages: 100,
         unread_messages: 5,
         total_threads: 25,
-        active_threads: 10
+        active_threads: 10,
+        messages_today: 3,
+        messages_this_week: 15,
       };
 
       mockedApi.get.mockResolvedValueOnce({ data: stats });
 
-      const result = await messageService.getMessageStats();
+      const result = await messageService.getMessagingStats();
 
       expect(mockedApi.get).toHaveBeenCalledWith('/messages/stats/');
       expect(result).toEqual(stats);
+    });
+  });
+
+  describe('quickReply', () => {
+    it('should send quick reply successfully', async () => {
+      const replyData = { original_message_id: '1', content: 'Thank you!' };
+      mockedApi.post.mockResolvedValueOnce({ data: mockMessage });
+
+      const result = await messageService.quickReply(replyData);
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/quick-reply/', replyData);
+      expect(result).toEqual(mockMessage);
+    });
+  });
+
+  describe('starMessage', () => {
+    it('should star message successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: mockMessage });
+
+      const result = await messageService.starMessage('1');
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/star/1/');
+      expect(result).toEqual(mockMessage);
+    });
+  });
+
+  describe('canCommunicate', () => {
+    it('should check communication ability', async () => {
+      const response = { can_communicate: true };
+      mockedApi.get.mockResolvedValueOnce({ data: response });
+
+      const result = await messageService.canCommunicate('user_1');
+
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/can-communicate/user_1/');
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('getFolders', () => {
+    it('should fetch folders successfully', async () => {
+      const folders = [{ id: '1', name: 'Important' }];
+      mockedApi.get.mockResolvedValueOnce({ data: folders });
+
+      const result = await messageService.getFolders();
+
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/folders/');
+      expect(result).toEqual(folders);
     });
   });
 });

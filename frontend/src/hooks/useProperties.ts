@@ -9,47 +9,39 @@ import { cacheUtils } from '../lib/queryClient';
 export const useProperties = (filters?: PropertySearchFilters) => {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
-  
-  // Verificación robusta del queryClient - solo log en desarrollo
-  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_QUERIES) {
-    console.log('🔍 useProperties: queryClient inicializado:', !!queryClient);
-    console.log('🔍 useProperties: typeof queryClient:', typeof queryClient);
-  }
-  
+
   if (!queryClient) {
-    console.error('❌ useProperties: queryClient es null/undefined');
     throw new Error('QueryClient no está disponible. Verifica que QueryClientProvider esté configurado.');
   }
 
   // Apply role-based filtering
   const roleBasedFilters = React.useMemo(() => {
     const combinedFilters = { ...filters };
-    
+
     // For tenants, only show available properties
     if (user?.user_type === 'tenant') {
       combinedFilters.status = 'available';
     }
-    
+
     return combinedFilters;
   }, [filters, user?.user_type]);
 
   const { data: properties, isLoading, error } = useDynamicQuery<Property[]>(
-    ['properties', 'list', roleBasedFilters, user?.user_type],
+    ['properties', 'list', JSON.stringify(roleBasedFilters), user?.user_type],
     () => {
-
-return propertyService.getProperties(roleBasedFilters);
+      return propertyService.getProperties(roleBasedFilters);
     },
     {
       enabled: isAuthenticated,
       select: (data) => {
         // Apply additional client-side filtering for enhanced security
         let filteredData = data;
-        
+
         // For tenants, ensure only available properties are shown
         if (user?.user_type === 'tenant') {
           filteredData = data?.filter(property => property.status === 'available') || [];
         }
-        
+
         // Optimizar datos de propiedades
         return filteredData?.map(property => ({
           ...property,
@@ -67,41 +59,21 @@ return propertyService.getProperties(roleBasedFilters);
           }),
           // Calcular métricas de rendimiento
           performance: {
-            pricePerSqm: property.price && property.area ? property.price / property.area : null,
+            pricePerSqm: null,
             isNew: property.created_at ? new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) : false,
           },
         }));
       },
-      onSuccess: (data) => {
-
-// Prefetch propiedades relacionadas
-        data?.slice(0, 3).forEach(property => {
-          cacheUtils.prefetchQuery(
-            ['property', 'detail', property.id],
-            () => propertyService.getProperty(property.id.toString())
-          );
-        });
-      },
-      onError: (error) => {
-        console.error('❌ useProperties: Error loading properties:', error);
-      }
-    }
+    } as any,
   );
 
   const createProperty = useMutation<Property, Error, FormData | CreatePropertyDto>({
     mutationFn: propertyService.createProperty,
-    onSuccess: (data) => {
-      console.log('✅ Propiedad creada exitosamente, invalidando caché:', data);
-      console.log('🔍 onSuccess: queryClient tipo:', typeof queryClient);
-      console.log('🔍 onSuccess: queryClient existe:', !!queryClient);
-      
-      // Verificación más robusta
+    onSuccess: () => {
       if (!queryClient) {
-        console.error('❌ onSuccess: queryClient es null/undefined!');
-        console.error('❌ onSuccess: No se puede invalidar caché');
         return;
       }
-      
+
       try {
         // Invalidar todas las queries que empiecen con 'properties'
         queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -109,30 +81,23 @@ return propertyService.getProperties(roleBasedFilters);
         queryClient.invalidateQueries({ queryKey: ['property-stats'] });
         queryClient.invalidateQueries({ queryKey: ['featured-properties'] });
         queryClient.invalidateQueries({ queryKey: ['trending-properties'] });
-        
-        console.log('✅ Caché invalidado correctamente');
-        
+
         // Forzar refetch de properties
         setTimeout(() => {
           if (queryClient) {
             queryClient.refetchQueries({ queryKey: ['properties'] });
           }
         }, 100);
-      } catch (error) {
-        console.error('❌ Error invalidando caché:', error);
+      } catch {
+        // Cache invalidation failed silently
       }
     },
-    onError: (error) => {
-      console.error('❌ Error en createProperty mutation:', error);
-      console.error('   Error details:', error.message);
-      console.error('   Error response:', error.response?.data);
-    }
   });
 
   const updateProperty = useMutation<Property, Error, { id: string; data: UpdatePropertyDto }>({
     mutationFn: ({ id, data }: { id: string; data: UpdatePropertyDto }) =>
       propertyService.updateProperty(id, data),
-    onSuccess: (data) => {
+    onSuccess: () => {
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['properties'] });
         queryClient.invalidateQueries({ queryKey: ['property-stats'] });
@@ -142,7 +107,7 @@ return propertyService.getProperties(roleBasedFilters);
 
   const deleteProperty = useMutation<void, Error, string>({
     mutationFn: propertyService.deleteProperty,
-    onSuccess: (data) => {
+    onSuccess: () => {
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['properties'] });
         queryClient.invalidateQueries({ queryKey: ['property-stats'] });
@@ -154,8 +119,8 @@ return propertyService.getProperties(roleBasedFilters);
     mutationFn: propertyService.searchProperties,
   });
 
-  const toggleFavorite = useMutation<void, Error, string>({
-    mutationFn: propertyService.toggleFavorite,
+  const toggleFavorite = useMutation<{ message: string }, Error, string>({
+    mutationFn: (propertyId: string) => propertyService.toggleFavorite(propertyId),
     onSuccess: () => {
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -253,4 +218,4 @@ export const useFavorites = () => {
     isLoading,
     error,
   };
-}; 
+};

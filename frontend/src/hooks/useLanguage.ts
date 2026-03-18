@@ -40,7 +40,7 @@ export const useLanguage = () => {
 
       return translation;
     },
-    [translations]
+    [translations],
   );
 
   return {

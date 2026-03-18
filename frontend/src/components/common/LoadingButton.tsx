@@ -12,12 +12,11 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-interface LoadingButtonProps extends Omit<ButtonProps, 'disabled'> {
+interface LoadingButtonProps extends ButtonProps {
   loading?: boolean;
   loadingText?: string;
   loadingIndicator?: React.ReactNode;
   disableOnLoading?: boolean;
-  fullWidth?: boolean;
 }
 
 const StyledButton = styled(Button, {
@@ -167,5 +166,8 @@ export const useLoadingButton = (initialLoading = false) => {
     withLoading,
   };
 };
+
+// Named export for compatibility
+export { LoadingButton };
 
 export default LoadingButton;

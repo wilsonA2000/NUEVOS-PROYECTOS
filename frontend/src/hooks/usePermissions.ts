@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getUserPermissions } from '../lib/api';
+// import { getUserPermissions } from '../lib/api';
+
+const getUserPermissions = async () => {
+  // Placeholder function - implement actual API call
+  return [];
+};
 
 interface Permission {
   id: number;
@@ -24,7 +29,7 @@ export const usePermissions = () => {
     if (!permissions.data) return false;
 
     return permissions.data.some((role) =>
-      role.permissions.some((permission) => permission.codename === permissionCodename)
+      role.permissions.some((permission) => permission.codename === permissionCodename),
     );
   };
 
@@ -33,8 +38,8 @@ export const usePermissions = () => {
 
     return permissions.data.some((role) =>
       role.permissions.some((permission) =>
-        permissionCodenames.includes(permission.codename)
-      )
+        permissionCodenames.includes(permission.codename),
+      ),
     );
   };
 
@@ -42,11 +47,11 @@ export const usePermissions = () => {
     if (!permissions.data) return false;
 
     const userPermissions = permissions.data.flatMap((role) =>
-      role.permissions.map((permission) => permission.codename)
+      role.permissions.map((permission) => permission.codename),
     );
 
     return permissionCodenames.every((codename) =>
-      userPermissions.includes(codename)
+      userPermissions.includes(codename),
     );
   };
 

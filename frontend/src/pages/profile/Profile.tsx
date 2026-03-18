@@ -87,19 +87,19 @@ const Profile: React.FC = () => {
     const requiredFields = [
       'first_name', 'last_name', 'phone_number', 'date_of_birth', 'gender',
       'nationality', 'marital_status', 'country', 'state', 'city', 
-      'current_address', 'employment_status', 'monthly_income'
+      'current_address', 'employment_status', 'monthly_income',
     ];
     
     const roleSpecificFields: { [key: string]: string[] } = {
       landlord: ['total_properties', 'years_experience'],
       tenant: ['budget_range', 'family_size'],
-      service_provider: ['service_category', 'hourly_rate', 'business_name']
+      service_provider: ['service_category', 'hourly_rate', 'business_name'],
     };
     
     const userType = user?.user_type || 'tenant';
     const allRequiredFields = [
       ...requiredFields, 
-      ...(roleSpecificFields[userType] || [])
+      ...(roleSpecificFields[userType] || []),
     ];
     
     const completedFields = allRequiredFields.filter(field => {
@@ -316,7 +316,7 @@ const Profile: React.FC = () => {
         // Campos que aceptan strings vacíos (blank=True en el modelo)
         const blankStringFields = [
           'postal_code', 'current_address', 'employer_name', 'job_title', 
-          'company_name', 'business_name', 'service_category'
+          'company_name', 'business_name', 'service_category',
         ];
         
         // Convertir null a string vacío para campos que solo aceptan blank=True
@@ -474,14 +474,14 @@ const Profile: React.FC = () => {
                         ? '#4caf50' 
                         : calculateCompletionPercentage(formData) >= 70 
                         ? '#ff9800' 
-                        : '#f44336'
-                    }
+                        : '#f44336',
+                    },
                   }}
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                   {calculateCompletionPercentage(formData) === 100 
                     ? '¡Perfil completo! 🎉' 
-                    : `Completa tu perfil para mejorar tu visibilidad`
+                    : 'Completa tu perfil para mejorar tu visibilidad'
                   }
                 </Typography>
               </Box>

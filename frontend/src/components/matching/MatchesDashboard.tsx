@@ -51,7 +51,7 @@ import {
   Refresh,
   Assignment,
   Business,
-  Description as DocumentIcon
+  Description as DocumentIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -84,12 +84,10 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const MatchesDashboard: React.FC = () => {
-  // console.log('🔥 MatchesDashboard renderizando...');
   
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // console.log('🔥 MatchesDashboard: Llamando useMatchRequests...');
   const {
     sentRequests,
     receivedRequests,
@@ -111,11 +109,6 @@ const MatchesDashboard: React.FC = () => {
     isExpiringSoon,
   } = useMatchRequests();
   
-  // console.log('🔥 MatchesDashboard: useMatchRequests completado');
-  // console.log('🔥 MatchesDashboard: error =', error);
-  // console.log('🔥 MatchesDashboard: statistics =', statistics);
-  // console.log('🔥 MatchesDashboard: sentRequests =', sentRequests);
-  // console.log('🔥 MatchesDashboard: receivedRequests =', receivedRequests);
 
   const [tabValue, setTabValue] = useState(0);
   const [contractDialogOpen, setContractDialogOpen] = useState(false);
@@ -127,7 +120,6 @@ const MatchesDashboard: React.FC = () => {
   // Auto-refresh when component receives focus (e.g., returning from visit scheduling)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('🔄 Window focused - refreshing match requests');
       refetchMatchRequests();
     };
     
@@ -145,11 +137,10 @@ const MatchesDashboard: React.FC = () => {
     isTenant,
     sentRequests: sentRequests || [],
     receivedRequests: receivedRequests || [],
-    statistics
+    statistics,
   }), [isLandlord, isTenant, sentRequests, receivedRequests, statistics]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    console.log('🔁🔁🔁 TAB CHANGE EVENT FIRED! newValue:', newValue, 'current:', tabValue);
     setTabValue(newValue);
   };
 
@@ -157,16 +148,13 @@ const MatchesDashboard: React.FC = () => {
 
   const handleAcceptRequest = async (requestId: string) => {
     try {
-      console.log('✅ Aceptando solicitud:', requestId);
       const result = await matchingService.acceptMatchRequest(requestId);
-      console.log('✅ Solicitud aceptada exitosamente:', result);
       
       // Refrescar los datos
       refetchMatchRequests();
       
       alert('¡Solicitud aceptada exitosamente! El proceso de arrendamiento puede continuar.');
     } catch (error) {
-      console.error('❌ Error aceptando solicitud:', error);
       alert('Error al aceptar la solicitud. Por favor, intenta de nuevo.');
     }
   };
@@ -176,22 +164,18 @@ const MatchesDashboard: React.FC = () => {
     if (!confirmReject) return;
     
     try {
-      console.log('❌ Rechazando solicitud:', requestId);
       const result = await matchingService.rejectMatchRequest(requestId);
-      console.log('❌ Solicitud rechazada exitosamente:', result);
       
       // Refrescar los datos
       refetchMatchRequests();
       
       alert('Solicitud rechazada.');
     } catch (error) {
-      console.error('❌ Error rechazando solicitud:', error);
       alert('Error al rechazar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
   const handleViewCandidateDetails = (request: MatchRequest) => {
-    console.log('👀 Viendo detalles del candidato:', request);
     setSelectedCandidate(request);
     setCandidateDetailsModalOpen(true);
   };
@@ -199,10 +183,11 @@ const MatchesDashboard: React.FC = () => {
   const handleCreateContract = async (request: MatchRequest) => {
     try {
       // First validate the match for contract creation
-      const validationResult = await matchingService.validateMatchForContract(request.id);
-      
+      const response = await matchingService.validateMatchForContract(request.id);
+      const validationResult = response.data;
+
       if (!validationResult.is_valid) {
-        const errorMessage = validationResult.errors && Array.isArray(validationResult.errors) 
+        const errorMessage = validationResult.errors && Array.isArray(validationResult.errors)
           ? validationResult.errors.join(', ')
           : 'Error de validación desconocido';
         alert(`No se puede crear el contrato: ${errorMessage}`);
@@ -212,7 +197,6 @@ const MatchesDashboard: React.FC = () => {
       setSelectedRequestForContract(request);
       setContractDialogOpen(true);
     } catch (error) {
-      console.error('Error validating match for contract:', error);
       alert('Error validando el match para crear contrato');
     }
   };
@@ -230,16 +214,15 @@ const MatchesDashboard: React.FC = () => {
             income: selectedRequestForContract.monthly_income,
             employment_type: selectedRequestForContract.employment_type,
             lease_duration: selectedRequestForContract.lease_duration_months,
-          }
-        }
+          },
+        },
       };
 
       const response = await matchingService.createContractFromMatch(
         selectedRequestForContract.id,
-        contractData
+        contractData,
       );
 
-      console.log('✅ Contrato creado exitosamente:', response.data);
       
       // Close dialog and navigate to contracts
       setContractDialogOpen(false);
@@ -255,7 +238,6 @@ const MatchesDashboard: React.FC = () => {
       alert('¡Contrato creado exitosamente! Redirigiendo...');
 
     } catch (error: any) {
-      console.error('❌ Error creando contrato:', error);
       alert(`Error creando contrato: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsCreatingContract(false);
@@ -267,7 +249,7 @@ const MatchesDashboard: React.FC = () => {
     value: number | string,
     icon: React.ReactNode,
     color: string,
-    trend?: number
+    trend?: number,
   ) => (
     <Card elevation={2} sx={{ height: '100%' }}>
       <CardContent>
@@ -306,7 +288,7 @@ const MatchesDashboard: React.FC = () => {
         sx={{ 
           mb: 2, 
           border: ['pending', 'viewed'].includes(request.status) && isLandlord ? '2px solid #2196F3' : '1px solid #e0e0e0',
-          opacity: isExpiredRequest ? 0.7 : 1
+          opacity: isExpiredRequest ? 0.7 : 1,
         }}
       >
         <CardContent>
@@ -323,12 +305,12 @@ const MatchesDashboard: React.FC = () => {
               <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
                 <Chip
                   label={getStatusText(request.status)}
-                  color={getStatusColor(request.status)}
+                  color={getStatusColor(request.status) as any}
                   size="small"
                 />
                 <Chip
                   label={getPriorityText(request.priority)}
-                  color={getPriorityColor(request.priority)}
+                  color={getPriorityColor(request.priority) as any}
                   size="small"
                   variant="outlined"
                 />
@@ -367,7 +349,7 @@ const MatchesDashboard: React.FC = () => {
               <Typography variant="caption" color="textSecondary">
                 {formatDistanceToNow(new Date(request.created_at), { 
                   addSuffix: true,
-                  locale: es 
+                  locale: es, 
                 })}
               </Typography>
               {request.compatibility_score && (
@@ -435,7 +417,7 @@ const MatchesDashboard: React.FC = () => {
                           borderRadius: '50%',
                           bgcolor: request.workflow_stage >= step ? 'primary.main' : 'grey.300',
                           border: request.workflow_stage === step ? '2px solid' : 'none',
-                          borderColor: 'primary.dark'
+                          borderColor: 'primary.dark',
                         }}
                       />
                     ))}
@@ -456,34 +438,34 @@ const MatchesDashboard: React.FC = () => {
                     borderColor: request.workflow_stage === 1 ? 'info.200' :
                                 request.workflow_stage === 2 ? 'warning.200' :
                                 request.workflow_stage === 3 ? 'primary.200' :
-                                request.workflow_stage === 4 ? 'secondary.200' : 'success.200'
+                                request.workflow_stage === 4 ? 'secondary.200' : 'success.200',
                   }}>
                     <Typography variant="body2" fontWeight={600} gutterBottom>
-                      {request.workflow_stage === 1 && "🏠 Programación de Visita"}
-                      {request.workflow_stage === 2 && "📄 Revisión de Documentos"}
-                      {request.workflow_stage === 3 && "📋 Creación del Contrato"}
-                      {request.workflow_stage === 4 && "🔐 Autenticación Biométrica"}
-                      {request.workflow_stage === 5 && "🔑 Proceso Completado"}
+                      {request.workflow_stage === 1 && '🏠 Programación de Visita'}
+                      {request.workflow_stage === 2 && '📄 Revisión de Documentos'}
+                      {request.workflow_stage === 3 && '📋 Creación del Contrato'}
+                      {request.workflow_stage === 4 && '🔐 Autenticación Biométrica'}
+                      {request.workflow_stage === 5 && '🔑 Proceso Completado'}
                     </Typography>
                     
                     <Typography variant="caption" color="text.secondary">
                       {request.workflow_stage === 1 && (
-                        isTenant ? "El arrendador coordinará la visita a la propiedad contigo." 
-                        : "Coordina la visita a la propiedad con el candidato."
+                        isTenant ? 'El arrendador coordinará la visita a la propiedad contigo.' 
+                        : 'Coordina la visita a la propiedad con el candidato.'
                       )}
                       {request.workflow_stage === 2 && (
-                        isTenant ? "Debes subir los documentos requeridos para continuar." 
-                        : "El candidato está subiendo documentos para revisión."
+                        isTenant ? 'Debes subir los documentos requeridos para continuar.' 
+                        : 'El candidato está subiendo documentos para revisión.'
                       )}
                       {request.workflow_stage === 3 && (
-                        isTenant ? "Los documentos fueron aprobados. Se está creando el contrato." 
-                        : "Documentos aprobados. Puedes crear el contrato de arrendamiento."
+                        isTenant ? 'Los documentos fueron aprobados. Se está creando el contrato.' 
+                        : 'Documentos aprobados. Puedes crear el contrato de arrendamiento.'
                       )}
                       {request.workflow_stage === 4 && (
-                        isTenant ? "Realiza la verificación biométrica para firmar el contrato." 
-                        : "El candidato completará la verificación biométrica."
+                        isTenant ? 'Realiza la verificación biométrica para firmar el contrato.' 
+                        : 'El candidato completará la verificación biométrica.'
                       )}
-                      {request.workflow_stage === 5 && "¡Felicitaciones! Proceso completado exitosamente."}
+                      {request.workflow_stage === 5 && '¡Felicitaciones! Proceso completado exitosamente.'}
                     </Typography>
 
                     {/* Información específica de visita */}
@@ -733,7 +715,6 @@ const MatchesDashboard: React.FC = () => {
             variant="outlined"
             startIcon={<Refresh />}
             onClick={() => {
-              console.log('🔄 Manual refresh - refreshing match requests');
               refetchMatchRequests();
             }}
             disabled={isLoading}
@@ -749,7 +730,7 @@ const MatchesDashboard: React.FC = () => {
               isLandlord ? 'Solicitudes Recibidas' : 'Solicitudes Enviadas',
               statistics?.total_received || statistics?.total_sent || 0,
               <Assignment />,
-              '#2196F3'
+              '#2196F3',
             )}
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -757,7 +738,7 @@ const MatchesDashboard: React.FC = () => {
               'Pendientes',
               statistics?.pending || 0,
               <Schedule />,
-              '#FF9800'
+              '#FF9800',
             )}
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -765,7 +746,7 @@ const MatchesDashboard: React.FC = () => {
               'Aceptadas',
               statistics?.accepted || 0,
               <CheckCircle />,
-              '#4CAF50'
+              '#4CAF50',
             )}
           </Grid>
         </Grid>
@@ -777,36 +758,32 @@ const MatchesDashboard: React.FC = () => {
           {isLandlord ? (
             <>
               <Button 
-                variant={tabValue === 0 ? "contained" : "outlined"}
+                variant={tabValue === 0 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 0 CLICKED');
                   setTabValue(0);
                 }}
               >
                 Pendientes
               </Button>
               <Button 
-                variant={tabValue === 1 ? "contained" : "outlined"}
+                variant={tabValue === 1 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 1 CLICKED');
                   setTabValue(1);
                 }}
               >
                 Aceptadas
               </Button>
               <Button 
-                variant={tabValue === 2 ? "contained" : "outlined"}
+                variant={tabValue === 2 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 2 CLICKED');
                   setTabValue(2);
                 }}
               >
                 Rechazadas
               </Button>
               <Button 
-                variant={tabValue === 3 ? "contained" : "outlined"}
+                variant={tabValue === 3 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 3 CLICKED');
                   setTabValue(3);
                 }}
               >
@@ -816,27 +793,24 @@ const MatchesDashboard: React.FC = () => {
           ) : (
             <>
               <Button 
-                variant={tabValue === 0 ? "contained" : "outlined"}
+                variant={tabValue === 0 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 0 CLICKED');
                   setTabValue(0);
                 }}
               >
                 Enviadas
               </Button>
               <Button 
-                variant={tabValue === 1 ? "contained" : "outlined"}
+                variant={tabValue === 1 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 1 CLICKED');
                   setTabValue(1);
                 }}
               >
                 En Proceso
               </Button>
               <Button 
-                variant={tabValue === 2 ? "contained" : "outlined"}
+                variant={tabValue === 2 ? 'contained' : 'outlined'}
                 onClick={() => {
-                  console.log('🔥🔥🔥 BUTTON TAB 2 CLICKED');
                   setTabValue(2);
                 }}
               >
@@ -1012,22 +986,22 @@ const MatchesDashboard: React.FC = () => {
               <List dense>
                 <ListItem>
                   <ListItemIcon><Person /></ListItemIcon>
-                  <ListItemText 
-                    primary="Arrendatario" 
+                  <ListItemText
+                    primary="Arrendatario"
                     secondary={
-                      typeof selectedRequestForContract.tenant === 'object'
-                        ? selectedRequestForContract.tenant.name || selectedRequestForContract.tenant_name
+                      typeof selectedRequestForContract.tenant === 'object' && selectedRequestForContract.tenant !== null
+                        ? (selectedRequestForContract.tenant as any).name || selectedRequestForContract.tenant_name
                         : selectedRequestForContract.tenant || selectedRequestForContract.tenant_name
                     }
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemIcon><Home /></ListItemIcon>
-                  <ListItemText 
-                    primary="Propiedad" 
+                  <ListItemText
+                    primary="Propiedad"
                     secondary={
-                      typeof selectedRequestForContract.property === 'object'
-                        ? selectedRequestForContract.property.title || selectedRequestForContract.property_title
+                      typeof selectedRequestForContract.property === 'object' && selectedRequestForContract.property !== null
+                        ? (selectedRequestForContract.property as any).title || selectedRequestForContract.property_title
                         : selectedRequestForContract.property || selectedRequestForContract.property_title
                     }
                   />
@@ -1250,17 +1224,17 @@ const MatchesDashboard: React.FC = () => {
                 <Stack direction="row" spacing={2} flexWrap="wrap">
                   <Chip 
                     label="Referencias de Arrendamiento" 
-                    color={selectedCandidate.has_rental_references ? "success" : "default"}
+                    color={selectedCandidate.has_rental_references ? 'success' : 'default'}
                     icon={selectedCandidate.has_rental_references ? <CheckCircle /> : <Cancel />}
                   />
                   <Chip 
                     label="Prueba de Empleo" 
-                    color={selectedCandidate.has_employment_proof ? "success" : "default"}
+                    color={selectedCandidate.has_employment_proof ? 'success' : 'default'}
                     icon={selectedCandidate.has_employment_proof ? <CheckCircle /> : <Cancel />}
                   />
                   <Chip 
                     label="Verificación Crediticia" 
-                    color={selectedCandidate.has_credit_check ? "success" : "default"}
+                    color={selectedCandidate.has_credit_check ? 'success' : 'default'}
                     icon={selectedCandidate.has_credit_check ? <CheckCircle /> : <Cancel />}
                   />
                 </Stack>
@@ -1310,7 +1284,7 @@ const MatchesDashboard: React.FC = () => {
                               bgcolor: (selectedCandidate.workflow_stage || 1) >= step ? 'primary.main' : 'grey.300',
                               color: (selectedCandidate.workflow_stage || 1) >= step ? 'white' : 'grey.600',
                               border: (selectedCandidate.workflow_stage || 1) === step ? '3px solid' : 'none',
-                              borderColor: 'primary.light'
+                              borderColor: 'primary.light',
                             }}
                           >
                             {step}
@@ -1321,7 +1295,7 @@ const MatchesDashboard: React.FC = () => {
                                 flex: 1,
                                 height: 4,
                                 bgcolor: (selectedCandidate.workflow_stage || 1) > step ? 'primary.main' : 'grey.300',
-                                borderRadius: 2
+                                borderRadius: 2,
                               }}
                             />
                           )}
@@ -1332,18 +1306,18 @@ const MatchesDashboard: React.FC = () => {
                     {/* Descripción de la etapa actual */}
                     <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.200' }}>
                       <Typography variant="body2" fontWeight={600} color="primary.dark">
-                        {(selectedCandidate.workflow_stage || 1) === 1 && "🏠 Etapa 1: Programación de Visita"}
-                        {(selectedCandidate.workflow_stage || 1) === 2 && "📄 Etapa 2: Revisión de Documentos"}
-                        {(selectedCandidate.workflow_stage || 1) === 3 && "📋 Etapa 3: Creación del Contrato"}
-                        {(selectedCandidate.workflow_stage || 1) === 4 && "🔐 Etapa 4: Autenticación Biométrica"}
-                        {(selectedCandidate.workflow_stage || 1) === 5 && "🔑 Etapa 5: Entrega de Llaves"}
+                        {(selectedCandidate.workflow_stage || 1) === 1 && '🏠 Etapa 1: Programación de Visita'}
+                        {(selectedCandidate.workflow_stage || 1) === 2 && '📄 Etapa 2: Revisión de Documentos'}
+                        {(selectedCandidate.workflow_stage || 1) === 3 && '📋 Etapa 3: Creación del Contrato'}
+                        {(selectedCandidate.workflow_stage || 1) === 4 && '🔐 Etapa 4: Autenticación Biométrica'}
+                        {(selectedCandidate.workflow_stage || 1) === 5 && '🔑 Etapa 5: Entrega de Llaves'}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                        {(selectedCandidate.workflow_stage || 1) === 1 && "Se coordinará la visita a la propiedad con el candidato seleccionado."}
-                        {(selectedCandidate.workflow_stage || 1) === 2 && "El candidato debe subir los documentos requeridos para verificación."}
-                        {(selectedCandidate.workflow_stage || 1) === 3 && "Se está preparando el contrato de arrendamiento basado en los términos acordados."}
-                        {(selectedCandidate.workflow_stage || 1) === 4 && "Verificación biométrica y firma digital del contrato."}
-                        {(selectedCandidate.workflow_stage || 1) === 5 && "Proceso completado. Entrega de llaves y ejecución del contrato."}
+                        {(selectedCandidate.workflow_stage || 1) === 1 && 'Se coordinará la visita a la propiedad con el candidato seleccionado.'}
+                        {(selectedCandidate.workflow_stage || 1) === 2 && 'El candidato debe subir los documentos requeridos para verificación.'}
+                        {(selectedCandidate.workflow_stage || 1) === 3 && 'Se está preparando el contrato de arrendamiento basado en los términos acordados.'}
+                        {(selectedCandidate.workflow_stage || 1) === 4 && 'Verificación biométrica y firma digital del contrato.'}
+                        {(selectedCandidate.workflow_stage || 1) === 5 && 'Proceso completado. Entrega de llaves y ejecución del contrato.'}
                       </Typography>
                     </Box>
                   </Box>
@@ -1385,8 +1359,8 @@ const MatchesDashboard: React.FC = () => {
                             InputProps={{ 
                               readOnly: true,
                               style: {
-                                color: selectedCandidate.workflow_data.visit_scheduled.completed ? 'green' : 'orange'
-                              }
+                                color: selectedCandidate.workflow_data.visit_scheduled.completed ? 'green' : 'orange',
+                              },
                             }}
                             variant="outlined"
                             size="small"

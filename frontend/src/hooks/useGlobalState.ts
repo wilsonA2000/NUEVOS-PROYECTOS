@@ -46,6 +46,6 @@ export const useGlobalState = create<GlobalState>()(
     }),
     {
       name: 'global-state',
-    }
-  )
+    },
+  ),
 ); 

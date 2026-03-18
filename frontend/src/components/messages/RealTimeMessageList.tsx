@@ -39,7 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
 import { useOptimizedWebSocketContext } from '../../contexts/OptimizedWebSocketContext';
 import { ensureArray } from '../../utils/arrayUtils';
-import { Message, MessageThread } from '../../types/message';
+import { Message } from '../../types/message';
 
 interface RealTimeMessageListProps {
   threadId?: string;
@@ -48,7 +48,7 @@ interface RealTimeMessageListProps {
 
 export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({ 
   threadId, 
-  showOnlyUnread = false 
+  showOnlyUnread = false, 
 }) => {
   const navigate = useNavigate();
   const { messages, threads, isLoading, error, deleteMessage, markAsRead } = useMessages();
@@ -72,29 +72,35 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
   // Manejar mensajes en tiempo real
   useEffect(() => {
     if (messages) {
-      setRealTimeMessages(ensureArray(messages));
+      const messagesArray = Array.isArray(messages) ? messages : (messages as any)?.results || [];
+      setRealTimeMessages(messagesArray);
     }
   }, [messages]);
 
   // Manejar conversación específica con WebSocket
   useEffect(() => {
-    if (!threadId || !isConnected) return;
+    if (!threadId || !isConnected) return undefined;
 
     // Unirse a la conversación
-    const success = send('messaging/thread/' + threadId, {
-      type: 'join_conversation',
-      thread_id: threadId,
-    });
-
-    if (success) {
+    try {
+      send(`messaging/thread/${threadId}`, {
+        type: 'join_conversation',
+        thread_id: threadId,
+      });
       console.log(`Joined thread ${threadId}`);
+    } catch (error) {
+      console.error('Error joining thread:', error);
     }
 
     return () => {
-      send('messaging/thread/' + threadId, {
-        type: 'leave_conversation',
-        thread_id: threadId,
-      });
+      try {
+        send(`messaging/thread/${threadId}`, {
+          type: 'leave_conversation',
+          thread_id: threadId,
+        });
+      } catch (error) {
+        console.error('Error leaving thread:', error);
+      }
     };
   }, [threadId, isConnected, send]);
 
@@ -111,16 +117,16 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
   const handleView = useCallback(() => {
     if (selectedMessage) {
       navigate(`/app/messages/${selectedMessage.id}`);
-      
+
       // Marcar como leído usando WebSocket si está disponible
-      if (isConnected && !selectedMessage.is_read) {
+      if (isConnected && !selectedMessage.isRead) {
         send('messaging', {
           type: 'mark_as_read',
-          message_id: selectedMessage.id,
-          thread_id: selectedMessage.thread_id,
-        });
-      } else if (!selectedMessage.is_read) {
-        markAsRead.mutate(selectedMessage.id);
+          message: selectedMessage.id,
+          thread_id: (selectedMessage as any).thread_id,
+        } as any);
+      } else if (!selectedMessage.isRead) {
+        markAsRead.mutate(selectedMessage.id as any);
       }
     }
     handleMenuClose();
@@ -128,7 +134,7 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
 
   const handleReply = useCallback(() => {
     if (selectedMessage) {
-      navigate(`/app/messages/reply?replyTo=${selectedMessage.id}&threadId=${selectedMessage.thread_id}`);
+      navigate(`/app/messages/reply?replyTo=${selectedMessage.id}&threadId=${(selectedMessage as any).thread_id}`);
     }
     handleMenuClose();
   }, [selectedMessage, navigate]);
@@ -148,9 +154,9 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
   const filteredMessages = realTimeMessages.filter(message => {
     const matchesSearch = message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          message.content?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesUnreadFilter = showOnlyUnread ? !message.is_read : true;
-    const matchesThread = threadId ? message.thread_id === threadId : true;
-    
+    const matchesUnreadFilter = showOnlyUnread ? !message.isRead : true;
+    const matchesThread = threadId ? (message as any).thread_id === threadId : true;
+
     return matchesSearch && matchesUnreadFilter && matchesThread;
   });
 
@@ -246,14 +252,14 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
       ) : (
         <Grid container spacing={3}>
           {filteredMessages.map((message) => {
-            const typingInThread = getTypingUsersForThread(message.thread_id);
-            const senderStatus = getUserStatus(message.sender_id);
-            
+            const typingInThread = getTypingUsersForThread((message as any).thread_id);
+            const senderStatus = getUserStatus(message.senderId);
+
             return (
               <Grid item xs={12} key={message.id}>
                 <Card
                   sx={{
-                    bgcolor: message.is_read ? 'background.paper' : 'action.hover',
+                    bgcolor: message.isRead ? 'background.paper' : 'action.hover',
                     cursor: 'pointer',
                     position: 'relative',
                     '&:hover': {
@@ -262,7 +268,7 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
                       boxShadow: 3,
                     },
                     transition: 'all 0.3s ease',
-                    ...(message.isRealTime && {
+                    ...((message as any).isRealTime && {
                       borderLeft: '4px solid',
                       borderLeftColor: 'primary.main',
                     }),
@@ -285,45 +291,45 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
                           }
                         >
                           <Avatar>
-                            {message.sender_name?.[0] || message.sender_id?.[0] || 'U'}
+                            {(message as any).sender_name?.[0] || message.senderId?.[0] || 'U'}
                           </Avatar>
                         </Badge>
-                        
+
                         <Box flex={1}>
                           <Box display="flex" alignItems="center" gap={1}>
                             <Typography variant="h6" component="div">
                               {message.subject || 'Sin asunto'}
                             </Typography>
-                            {message.isRealTime && (
-                              <Chip 
-                                label="Tiempo real" 
-                                color="primary" 
-                                size="small" 
+                            {(message as any).isRealTime && (
+                              <Chip
+                                label="Tiempo real"
+                                color="primary"
+                                size="small"
                                 variant="outlined"
                               />
                             )}
                           </Box>
-                          
+
                           <Typography variant="body2" color="text.secondary">
-                            De: {message.sender_name || message.sender_id || 'Usuario'}
+                            De: {(message as any).sender_name || message.senderId || 'Usuario'}
                             {senderStatus?.isOnline && (
-                              <Chip 
-                                label="En línea" 
-                                color="success" 
-                                size="small" 
+                              <Chip
+                                label="En línea"
+                                color="success"
+                                size="small"
                                 sx={{ ml: 1, height: 16 }}
                               />
                             )}
                           </Typography>
-                          
+
                           <Typography variant="body2" color="text.secondary">
-                            Para: {message.recipient_name || message.recipient_id || 'Usuario'}
+                            Para: {(message as any).recipient_name || message.recipientId || 'Usuario'}
                           </Typography>
                         </Box>
                       </Box>
-                      
+
                       <Box display="flex" alignItems="center" gap={1}>
-                        {!message.is_read && (
+                        {!message.isRead && (
                           <Tooltip title="Mensaje no leído">
                             <Chip
                               label="Nuevo"
@@ -332,8 +338,8 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
                             />
                           </Tooltip>
                         )}
-                        
-                        {message.is_read && (
+
+                        {message.isRead && (
                           <Tooltip title="Mensaje leído">
                             <CheckCircleIcon color="success" fontSize="small" />
                           </Tooltip>
@@ -381,15 +387,15 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
                     {/* Metadatos */}
                     <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
                       <Typography variant="caption" color="text.secondary">
-                        {message.sent_at ? new Date(message.sent_at).toLocaleString() : 'Fecha desconocida'}
+                        {message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Fecha desconocida'}
                       </Typography>
-                      
+
                       <Button
                         size="small"
                         startIcon={<VisibilityIcon />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleViewThread(message.thread_id);
+                          handleViewThread((message as any).thread_id);
                         }}
                       >
                         Ver conversación

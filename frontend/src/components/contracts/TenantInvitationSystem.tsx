@@ -181,7 +181,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
           email: contract.tenant_email || '',
           method: 'email',
           status: 'pending',
-          token: 'inv_' + Date.now(),
+          token: `inv_${  Date.now()}`,
           sent_at: new Date().toISOString(),
           expires_at: addDays(new Date(), 7).toISOString(),
           attempts: 1,
@@ -255,7 +255,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
   const handleSendInvitation = async () => {
     const validationErrors = validateInvitationData();
     if (validationErrors.length > 0) {
-      onError('Errores de validación: ' + validationErrors.join(', '));
+      onError(`Errores de validación: ${  validationErrors.join(', ')}`);
       return;
     }
 
@@ -282,7 +282,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
           phone: invitationMethod !== 'email' ? tenantPhone : undefined,
           method: invitationMethod,
           status: 'sent',
-          token: 'inv_' + Date.now(),
+          token: `inv_${  Date.now()}`,
           sent_at: new Date().toISOString(),
           expires_at: addDays(new Date(), 7).toISOString(),
           personal_message: previewMessage,
@@ -298,7 +298,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
         onClose();
       }
     } catch (error: any) {
-      onError('Error al enviar invitación: ' + (error.message || 'Error desconocido'));
+      onError(`Error al enviar invitación: ${  error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -322,12 +322,12 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
         prev.map(inv => 
           inv.id === invitation.id 
             ? { ...inv, attempts: inv.attempts + 1, last_reminder: new Date().toISOString() }
-            : inv
-        )
+            : inv,
+        ),
       );
 
     } catch (error: any) {
-      onError('Error al reenviar invitación: ' + (error.message || 'Error desconocido'));
+      onError(`Error al reenviar invitación: ${  error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -596,7 +596,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
               <React.Fragment key={invitation.id}>
                 <ListItem>
                   <ListItemIcon>
-                    <Avatar sx={{ bgcolor: getInvitationStatusColor(invitation.status) + '.main' }}>
+                    <Avatar sx={{ bgcolor: `${getInvitationStatusColor(invitation.status)  }.main` }}>
                       {invitation.method === 'email' ? <EmailIcon /> :
                        invitation.method === 'sms' ? <SmsIcon /> : <WhatsAppIcon />}
                     </Avatar>
@@ -621,7 +621,7 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
                         <Typography variant="caption" color="text.secondary">
                           Expira: {formatDistanceToNow(new Date(invitation.expires_at), { 
                             addSuffix: true, 
-                            locale: es 
+                            locale: es, 
                           })}
                         </Typography>
                         {invitation.attempts > 1 && (

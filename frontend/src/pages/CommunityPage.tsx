@@ -324,7 +324,7 @@ const CommunityPage: React.FC = () => {
                   sx={{ 
                     bgcolor: 'white', 
                     color: 'primary.main',
-                    '&:hover': { bgcolor: 'grey.100' }
+                    '&:hover': { bgcolor: 'grey.100' },
                   }}
                 >
                   Solicitar Información

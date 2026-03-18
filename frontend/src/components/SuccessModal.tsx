@@ -10,19 +10,23 @@ import {
 } from '@mui/material';
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
-interface SuccessModalProps {
+export interface SuccessModalProps {
   open: boolean;
   onClose: () => void;
-  onRedirect: () => void;
+  onRedirect?: () => void;
+  title?: string;
+  message?: string;
 }
 
 export const SuccessModal: React.FC<SuccessModalProps> = ({
   open,
   onClose,
   onRedirect,
+  title = '¡Usuario Creado con Éxito!',
+  message = 'Tu cuenta ha sido registrada correctamente en VeriHome.',
 }) => {
   useEffect(() => {
-    if (open) {
+    if (open && onRedirect) {
       // Redirigir automáticamente después de 2 segundos
       const timer = setTimeout(() => {
         onRedirect();
@@ -30,6 +34,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [open, onRedirect]);
 
   return (
@@ -64,11 +69,11 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           />
           
           <Typography variant="h5" component="h2" gutterBottom color="success.main">
-            ¡Usuario Creado con Éxito!
+            {title}
           </Typography>
-          
+
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Tu cuenta ha sido registrada correctamente en VeriHome.
+            {message}
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -87,7 +92,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
       
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
         <Button
-          onClick={onRedirect}
+          onClick={onRedirect || onClose}
           variant="contained"
           color="primary"
           size="large"

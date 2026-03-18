@@ -1,0 +1,86 @@
+[
+  {
+    "timestamp": "2025-11-16T23:18:43.752426",
+    "status": "\u274c",
+    "endpoint": "LOGIN landlord",
+    "message": "Exception: module 'requests' has no attribute 'post'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752437",
+    "status": "\u274c",
+    "endpoint": "LOGIN tenant",
+    "message": "Exception: module 'requests' has no attribute 'post'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752439",
+    "status": "\u274c",
+    "endpoint": "LOGIN service_provider",
+    "message": "Exception: module 'requests' has no attribute 'post'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752443",
+    "status": "\u274c",
+    "endpoint": "GET /properties/",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752446",
+    "status": "\u274c",
+    "endpoint": "GET /users/auth/me/ (landlord)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752449",
+    "status": "\u274c",
+    "endpoint": "GET /properties/ (landlord)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752451",
+    "status": "\u274c",
+    "endpoint": "GET /contracts/ (landlord)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752453",
+    "status": "\u274c",
+    "endpoint": "GET /payments/transactions/ (landlord)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752455",
+    "status": "\u274c",
+    "endpoint": "GET /users/auth/me/ (tenant)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752457",
+    "status": "\u274c",
+    "endpoint": "GET /matching/requests/ (tenant)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752461",
+    "status": "\u274c",
+    "endpoint": "GET /messages/threads/ (tenant)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  },
+  {
+    "timestamp": "2025-11-16T23:18:43.752463",
+    "status": "\u274c",
+    "endpoint": "GET /users/auth/me/ (service_provider)",
+    "message": "Exception: module 'requests' has no attribute 'get'",
+    "details": null
+  }
+]

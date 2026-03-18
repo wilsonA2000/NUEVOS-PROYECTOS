@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 interface CacheItem {
   data: any;
@@ -19,7 +19,7 @@ class ApiCache {
   /**
    * Genera una clave única para la cache basada en la configuración de la petición
    */
-  private getCacheKey(config: AxiosRequestConfig): string {
+  private getCacheKey(config: AxiosRequestConfig | InternalAxiosRequestConfig): string {
     const { method = 'GET', url, params, data } = config;
     const paramString = params ? JSON.stringify(params) : '';
     const dataString = data ? JSON.stringify(data) : '';
@@ -109,7 +109,7 @@ class ApiCache {
     const { ttl = this.defaultTTL, useEtag = false, storage = 'memory' } = cacheConfig;
     
     return {
-      request: (config: AxiosRequestConfig) => {
+      request: (config: InternalAxiosRequestConfig) => {
         // Solo cachear métodos GET
         if (config.method?.toUpperCase() !== 'GET') {
           return config;
@@ -134,15 +134,15 @@ class ApiCache {
               data: cached.data,
               status: 200,
               statusText: 'OK (from cache)',
-              headers: { 'x-cache': 'HIT' },
-              config: config,
+              headers: { 'x-cache': 'HIT' } as any,
+              config: config as InternalAxiosRequestConfig,
             };
-            
+
             // Resolver la promesa inmediatamente con los datos cacheados
-            return Promise.reject({ 
-              __cached: true, 
-              response: cachedResponse 
-            });
+            return Promise.reject({
+              __cached: true,
+              response: cachedResponse,
+            }) as any;
           }
           
           // Si usamos ETags y tenemos uno, agregarlo a los headers
@@ -150,7 +150,7 @@ class ApiCache {
             config.headers = {
               ...config.headers,
               'If-None-Match': cached.etag,
-            };
+            } as any;
           }
         }
         
@@ -181,9 +181,8 @@ class ApiCache {
           };
           
           this.setInCache(cacheKey, cacheItem, cacheConfig.storage);
+        }
 
-}
-        
         return response;
       },
       
@@ -199,8 +198,7 @@ class ApiCache {
           if (cacheKey) {
             const cached = this.getFromCache(cacheKey, error.config.metadata?.cacheConfig?.storage);
             if (cached) {
-
-return Promise.resolve({
+              return Promise.resolve({
                 ...error.response,
                 data: cached.data,
                 headers: { ...error.response.headers, 'x-cache': 'REVALIDATED' },
@@ -224,18 +222,17 @@ return Promise.resolve({
     ['localStorage', 'sessionStorage'].forEach(storageType => {
       const storage = storageType === 'localStorage' ? localStorage : sessionStorage;
       const keysToRemove: string[] = [];
-      
+
       for (let i = 0; i < storage.length; i++) {
         const key = storage.key(i);
         if (key?.startsWith('api-cache:')) {
           keysToRemove.push(key);
         }
       }
-      
+
       keysToRemove.forEach(key => storage.removeItem(key));
     });
-
-}
+  }
   
   /**
    * Invalida una entrada específica de la cache
@@ -265,8 +262,7 @@ return Promise.resolve({
       
       keysToRemove.forEach(key => storage.removeItem(key));
     });
-
-}
+  }
 }
 
 // Exportar instancia singleton
@@ -289,12 +285,12 @@ export const setupAxiosCache = (axiosInstance: typeof axios, config?: CacheConfi
         throw error;
       }
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
   
   // Response interceptor
   axiosInstance.interceptors.response.use(
     (response) => interceptor.response(response),
-    (error) => interceptor.responseError(error)
+    (error) => interceptor.responseError(error),
   );
 };

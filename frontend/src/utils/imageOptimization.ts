@@ -78,14 +78,14 @@ class ImageOptimizer {
    */
   async compressImage(
     file: File | Blob,
-    options: ImageOptimizationOptions = {}
+    options: ImageOptimizationOptions = {},
   ): Promise<Blob> {
     const {
       quality = 0.8,
       maxWidth = 1920,
       maxHeight = 1080,
       format = 'auto',
-      progressive = true
+      progressive = true,
     } = options;
 
     return new Promise((resolve, reject) => {
@@ -97,7 +97,7 @@ class ImageOptimizer {
             img.width,
             img.height,
             maxWidth,
-            maxHeight
+            maxHeight,
           );
 
           this.canvas.width = width;
@@ -123,7 +123,7 @@ class ImageOptimizer {
               }
             },
             outputFormat,
-            quality
+            quality,
           );
         } catch (error) {
           reject(error);
@@ -140,7 +140,7 @@ class ImageOptimizer {
    */
   async generateResponsiveSizes(
     file: File | Blob,
-    sizes: Partial<ResponsiveImageSizes> = DEFAULT_SIZES
+    sizes: Partial<ResponsiveImageSizes> = DEFAULT_SIZES,
   ): Promise<Record<string, Blob>> {
     const results: Record<string, Blob> = {};
     
@@ -150,7 +150,7 @@ class ImageOptimizer {
           maxWidth: dimensions.width,
           maxHeight: dimensions.height,
           quality: this.getQualityForSize(sizeName),
-          format: 'webp'
+          format: 'webp',
         });
         
         results[sizeName] = compressed;
@@ -167,7 +167,7 @@ class ImageOptimizer {
    */
   async generateBlurPlaceholder(
     file: File | Blob,
-    size = 20
+    size = 20,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -198,7 +198,7 @@ class ImageOptimizer {
     originalWidth: number,
     originalHeight: number,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
   ): { width: number; height: number } {
     let { width, height } = { width: originalWidth, height: originalHeight };
     
@@ -250,7 +250,7 @@ export function useImageOptimization() {
 
   const optimizeImage = async (
     file: File,
-    options?: ImageOptimizationOptions
+    options?: ImageOptimizationOptions,
   ): Promise<Blob> => {
     setIsProcessing(true);
     setProgress(0);
@@ -272,7 +272,7 @@ export function useImageOptimization() {
 
   const generateResponsive = async (
     file: File,
-    sizes?: Partial<ResponsiveImageSizes>
+    sizes?: Partial<ResponsiveImageSizes>,
   ): Promise<Record<string, Blob>> => {
     setIsProcessing(true);
     setProgress(0);
@@ -384,7 +384,7 @@ export function useLazyImage(src: string, options: { threshold?: number; rootMar
 
   React.useEffect(() => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img) return undefined;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -393,7 +393,7 @@ export function useLazyImage(src: string, options: { threshold?: number; rootMar
           observer.disconnect();
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     observer.observe(img);

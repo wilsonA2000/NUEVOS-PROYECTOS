@@ -8,7 +8,7 @@ from rest_framework import permissions, status
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
-from properties.models import Property
+from properties.models import Property, PropertyFavorite, PropertyView
 from contracts.models import Contract
 from payments.models import Transaction
 from ratings.models import Rating
@@ -138,14 +138,20 @@ class DashboardStatsView(APIView):
                 'expiringSoon': expiring_soon,
                 'pending': pending_contracts,
                 'total': contracts.count(),
-                'trend': 0  # TODO: Calcular tendencia real
+                'trend': self.calculate_trend(
+                    contracts.filter(created_at__gte=start_date).count(),
+                    contracts.filter(created_at__gte=previous_start, created_at__lt=start_date).count()
+                )
             },
             'users': {
                 'tenants': User.objects.filter(user_type='tenant').count(),
                 'landlords': User.objects.filter(user_type='landlord').count(),
                 'serviceProviders': User.objects.filter(user_type='service_provider').count(),
                 'newThisMonth': User.objects.filter(date_joined__gte=start_date).count(),
-                'trend': 0  # TODO: Calcular tendencia real
+                'trend': self.calculate_trend(
+                    User.objects.filter(date_joined__gte=start_date).count(),
+                    User.objects.filter(date_joined__gte=previous_start, date_joined__lt=start_date).count()
+                )
             },
             'ratings': {
                 'average': round(avg_rating, 1),
@@ -172,9 +178,9 @@ class DashboardStatsView(APIView):
             status='pending'
         ).aggregate(total=Sum('amount'))['total'] or 0
         
-        # Propiedades vistas/favoritas (simulado)
-        viewed_properties = 15  # TODO: Implementar tracking real
-        favorite_properties = 3  # TODO: Implementar favoritos
+        # Propiedades vistas/favoritas (datos reales)
+        viewed_properties = PropertyView.objects.filter(user=user).values('property').distinct().count()
+        favorite_properties = PropertyFavorite.objects.filter(user=user).count()
         
         return {
             'properties': {
@@ -199,7 +205,7 @@ class DashboardStatsView(APIView):
                 'trend': 0
             },
             'services': {
-                'requested': 0,  # TODO: Implementar servicios
+                'requested': 0,
                 'completed': 0,
                 'pending': 0,
                 'total': 0,
@@ -214,33 +220,53 @@ class DashboardStatsView(APIView):
     
     def get_service_provider_stats(self, user, start_date, end_date, previous_start):
         """Estadísticas para proveedores de servicios."""
-        # TODO: Implementar cuando se cree el modelo de servicios
+        # Calificaciones reales del proveedor
+        ratings = Rating.objects.filter(reviewee=user)
+        avg_rating = ratings.aggregate(avg=Avg('overall_rating'))['avg'] or 0
+        total_ratings = ratings.count()
+        rating_distribution = {}
+        for i in range(1, 6):
+            rating_distribution[i] = ratings.filter(overall_rating=i).count()
+
+        # Pagos reales
+        payments_received = Transaction.objects.filter(
+            property__landlord=user,
+            status='completed',
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        )
+        monthly_income = payments_received.aggregate(total=Sum('amount'))['total'] or 0
+        pending_payments = Transaction.objects.filter(
+            property__landlord=user,
+            status='pending'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
         return {
             'services': {
-                'requested': 12,
-                'completed': 8,
-                'pending': 4,
-                'cancelled': 1,
-                'trend': 15.0
+                'requested': 0,
+                'completed': 0,
+                'pending': 0,
+                'cancelled': 0,
+                'trend': 0
             },
             'finances': {
-                'monthlyIncome': 45000.0,
-                'pendingPayments': 8000.0,
-                'completedPayments': 37000.0,
-                'averagePerService': 5625.0,
-                'trend': 12.5
+                'monthlyIncome': float(monthly_income),
+                'pendingPayments': float(pending_payments),
+                'completedPayments': float(monthly_income),
+                'averagePerService': 0,
+                'trend': 0
             },
             'ratings': {
-                'average': 4.7,
-                'total': 28,
-                'distribution': {5: 20, 4: 6, 3: 2, 2: 0, 1: 0}
+                'average': round(avg_rating, 1),
+                'total': total_ratings,
+                'distribution': rating_distribution
             },
             'clients': {
-                'total': 25,
-                'new': 5,
-                'recurring': 20,
-                'satisfaction': 94,
-                'trend': 8.0
+                'total': 0,
+                'new': 0,
+                'recurring': 0,
+                'satisfaction': 0,
+                'trend': 0
             }
         }
     
@@ -503,7 +529,6 @@ class DashboardExportView(APIView):
             'Fecha', 'Tipo', 'Descripción', 'Cliente', 'Monto', 'Estado'
         ])
         
-        # TODO: Implementar cuando se cree el modelo de servicios
         writer.writerow([
             timezone.now().strftime('%Y-%m-%d %H:%M'),
             'Información',

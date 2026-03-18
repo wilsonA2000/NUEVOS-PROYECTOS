@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { stripeService, StripePaymentResult } from '../services/stripeService';
 import { paypalService, PayPalPaymentResult } from '../services/paypalService';
 import { paymentService } from '../services/paymentService';
-import { loggingService } from '../services/loggingService';
+import { loggingService, LogCategory } from '../services/loggingService';
 
 export type PaymentProvider = 'stripe' | 'paypal';
 
@@ -167,7 +167,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
         return await stripeService.createRefund(paymentId, amount);
       } else {
         return await paypalService.createRefund(paymentId, 
-          amount ? { currency_code: 'USD', value: amount.toString() } : undefined
+          amount ? { currency_code: 'USD', value: amount.toString() } : undefined,
         );
       }
     },
@@ -181,9 +181,9 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
     try {
       await stripeService.initialize({ publishableKey });
       setIsStripeInitialized(true);
-      loggingService.info('Stripe initialized in usePaymentProcessing');
+      loggingService.info(LogCategory.API, 'Stripe initialized in usePaymentProcessing');
     } catch (error) {
-      loggingService.error('Error initializing Stripe:', error);
+      loggingService.error(LogCategory.API, 'Error initializing Stripe', undefined, undefined, error as Error);
       throw error;
     }
   }, []);
@@ -193,9 +193,9 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
     try {
       paypalService.initialize({ clientId, environment });
       setIsPayPalInitialized(true);
-      loggingService.info('PayPal initialized in usePaymentProcessing');
+      loggingService.info(LogCategory.API, 'PayPal initialized in usePaymentProcessing');
     } catch (error) {
-      loggingService.error('Error initializing PayPal:', error);
+      loggingService.error(LogCategory.API, 'Error initializing PayPal', undefined, undefined, error as Error);
       throw error;
     }
   }, []);
@@ -225,7 +225,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
 
       setPaymentState(prev => ({ 
         ...prev, 
-        clientSecret: paymentIntent.client_secret 
+        clientSecret: paymentIntent.client_secret, 
       }));
 
       // El pago se completará en el componente StripePaymentForm
@@ -238,7 +238,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
       setPaymentState(prev => ({ 
         ...prev, 
         isProcessing: false, 
-        error: errorMessage 
+        error: errorMessage, 
       }));
       throw error;
     }
@@ -269,7 +269,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
       setPaymentState(prev => ({ 
         ...prev, 
         paymentId: order.id,
-        isProcessing: false 
+        isProcessing: false, 
       }));
 
       return {
@@ -281,7 +281,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
       setPaymentState(prev => ({ 
         ...prev, 
         isProcessing: false, 
-        error: errorMessage 
+        error: errorMessage, 
       }));
       throw error;
     }
@@ -301,7 +301,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
       // PayPal no permite eliminar métodos guardados directamente
       queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
     } catch (error) {
-      loggingService.error('Error removing payment method:', error);
+      loggingService.error(LogCategory.API, 'Error removing payment method', undefined, undefined, error as Error);
       throw error;
     }
   }, [queryClient]);
@@ -314,7 +314,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
       }
       queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
     } catch (error) {
-      loggingService.error('Error setting default payment method:', error);
+      loggingService.error(LogCategory.API, 'Error setting default payment method', undefined, undefined, error as Error);
       throw error;
     }
   }, [queryClient]);
@@ -324,7 +324,7 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
     try {
       await refundMutation.mutateAsync({ paymentId, provider, amount });
     } catch (error) {
-      loggingService.error('Error creating refund:', error);
+      loggingService.error(LogCategory.API, 'Error creating refund', undefined, undefined, error as Error);
       throw error;
     }
   }, [refundMutation]);

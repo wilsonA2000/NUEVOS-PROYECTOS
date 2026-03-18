@@ -162,13 +162,13 @@ class MatchingService {
 
   async checkExistingMatchRequest(propertyId: string) {
     return api.get(`${this.baseUrl}/check-existing/`, {
-      params: { property_id: propertyId }
+      params: { property_id: propertyId },
     });
   }
 
   async cancelMatchRequest(propertyId: string) {
     return api.delete(`${this.baseUrl}/check-existing/`, {
-      params: { property_id: propertyId }
+      params: { property_id: propertyId },
     });
   }
 
@@ -212,13 +212,13 @@ class MatchingService {
   // Potential Matches
   async getPotentialMatches(limit = 10) {
     return api.get(`${this.baseUrl}/potential-matches/`, {
-      params: { limit }
+      params: { limit },
     });
   }
 
   async getLandlordRecommendations(limit = 10) {
     return api.get(`${this.baseUrl}/landlord-recommendations/`, {
-      params: { limit }
+      params: { limit },
     });
   }
 
@@ -273,7 +273,7 @@ class MatchingService {
 
   async downloadMatchContractPDF(contractId: string) {
     return api.get(`${this.baseUrl}/contracts/${contractId}/download-pdf/`, {
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 

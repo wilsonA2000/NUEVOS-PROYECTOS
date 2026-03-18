@@ -11,6 +11,12 @@ import { clearAuthState } from './utils/clearAuthState';
 import CustomNotification from './components/common/CustomNotification';
 import { useNotification } from './hooks/useNotification';
 import OptimizedWebSocketProvider from './contexts/OptimizedWebSocketContext';
+import { initSentry, SentryErrorBoundary } from './services/sentryService';
+import OfflineIndicator from './components/common/OfflineIndicator';
+import UpdatePrompt from './components/common/UpdatePrompt';
+
+// Initialize Sentry as early as possible
+initSentry();
 
 // Componente wrapper para las notificaciones
 const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -39,21 +45,30 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <BrowserRouter>
-            <AuthProvider>
-              <OptimizedWebSocketProvider>
-                <NotificationWrapper>
-                  <AppRoutes />
-                </NotificationWrapper>
-              </OptimizedWebSocketProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <SentryErrorBoundary fallback={<ErrorBoundary><></></ErrorBoundary>}>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider theme={theme}>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <AuthProvider>
+                <OptimizedWebSocketProvider>
+                  <NotificationWrapper>
+                    <OfflineIndicator />
+                    <UpdatePrompt />
+                    <AppRoutes />
+                  </NotificationWrapper>
+                </OptimizedWebSocketProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </SentryErrorBoundary>
   );
 }
 

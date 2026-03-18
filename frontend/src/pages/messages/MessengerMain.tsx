@@ -36,9 +36,9 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { useOptimizedWebSocketContext } from '../../contexts/OptimizedWebSocketContext';
-import { useAuth } from '../../hooks/useAuth';
-import { useMessages } from '../../hooks/useMessages';
-import { useUserStatus } from '../../hooks/useUserStatus';
+import { useAuth } from '../../contexts/AuthContext';
+// import { useMessages } from '../../hooks/useMessages';
+// import { useUserStatus } from '../../hooks/useUserStatus';
 import { OnlineUsersCounter } from '../../components/users/UserStatusIndicator';
 import { PendingRequestsList, PendingRequest } from '../../components/requests/PendingRequestsList';
 import { ConversationsList, Conversation } from '../../components/messages/ConversationsList';
@@ -72,14 +72,15 @@ const MessengerMain: React.FC = () => {
     unreadMessagesCount, 
     onlineUsers,
     send,
-    subscribe
+    subscribe,
   } = useOptimizedWebSocketContext();
   
   // Estado local para usuarios escribiendo
   const [typingUsers, setTypingUsers] = useState<Map<string, any>>(new Map());
   
-  // Hook para estado de usuarios online
-  const { onlineCount, totalUsersCount, getOnlineUsers } = useUserStatus();
+  // Hook para estado de usuarios online (placeholder)
+  const onlineCount = 0;
+  const totalUsersCount = 0;
   
   const [activeTab, setActiveTab] = useState(0); // 0: Solicitudes, 1: Conversaciones
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -108,7 +109,7 @@ const MessengerMain: React.FC = () => {
         title: 'Apartamento en El Poblado',
         address: 'Calle 10 # 43-87, El Poblado',
         rent: 2800000,
-      },
+      } as any,
       message: 'Hola, me interesa mucho su propiedad. Tengo ingresos estables y excelentes referencias. ¿Podríamos coordinar una visita?',
       sent_at: '2024-01-15T10:30:00Z',
       is_read: false,
@@ -133,11 +134,11 @@ const MessengerMain: React.FC = () => {
         title: 'Reparación de tubería',
         description: 'Necesito reparar una fuga en la cocina',
         budget: 200000,
-      },
+      } as any,
       message: 'Soy plomero certificado con 8 años de experiencia. Puedo solucionar su problema de plomería de manera rápida y eficiente.',
       sent_at: '2024-01-15T09:15:00Z',
       is_read: false,
-    }
+    },
   ]);
 
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -150,7 +151,7 @@ const MessengerMain: React.FC = () => {
           avatar: '',
           user_type: 'tenant',
           is_online: true,
-        }
+        },
       ],
       last_message: {
         content: '¿A qué hora podemos hacer la visita mañana?',
@@ -161,10 +162,11 @@ const MessengerMain: React.FC = () => {
       context: {
         type: 'property',
         property: {
+          id: 'prop2',
           title: 'Casa en Rionegro',
           address: 'Cra 25 # 12-34, Rionegro',
-        }
-      }
+        },
+      } as any,
     },
     {
       id: 'conv2',
@@ -175,7 +177,7 @@ const MessengerMain: React.FC = () => {
           avatar: '',
           user_type: 'service_provider',
           is_online: false,
-        }
+        },
       ],
       last_message: {
         content: 'Perfecto, quedamos entonces el viernes a las 2 PM',
@@ -186,10 +188,11 @@ const MessengerMain: React.FC = () => {
       context: {
         type: 'service',
         service: {
+          id: 'serv2',
           title: 'Instalación aire acondicionado',
-        }
-      }
-    }
+        },
+      } as any,
+    },
   ]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -203,7 +206,7 @@ const MessengerMain: React.FC = () => {
 
     if (action === 'accept') {
       // Crear nueva conversación
-      const newConversation = {
+      const newConversation: any = {
         id: `conv_${Date.now()}`,
         participants: [request.sender],
         last_message: {
@@ -212,9 +215,9 @@ const MessengerMain: React.FC = () => {
           sender_id: request.sender.id,
         },
         unread_count: 1,
-        context: request.property ? 
+        context: request.property ?
           { type: 'property', property: request.property } :
-          { type: 'service', service: request.service }
+          { type: 'service', service: request.service },
       };
 
       setConversations(prev => [newConversation, ...prev]);
@@ -241,8 +244,8 @@ const MessengerMain: React.FC = () => {
         prev.map(conv =>
           conv.id === conversation.id
             ? { ...conv, unread_count: 0 }
-            : conv
-        )
+            : conv,
+        ),
       );
     }
   };
@@ -362,7 +365,7 @@ const MessengerMain: React.FC = () => {
                 conversations={conversations}
                 selectedConversation={selectedConversation}
                 onlineUsers={onlineUsers}
-                typingUsers={typingUsers}
+                typingUsers={Array.from(typingUsers.values()) as any}
                 searchTerm={searchTerm}
                 onConversationSelect={handleConversationSelect}
               />
@@ -381,7 +384,7 @@ const MessengerMain: React.FC = () => {
                 borderColor: 'divider',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
               }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Badge
@@ -435,7 +438,7 @@ const MessengerMain: React.FC = () => {
                 contextInfo={selectedConversation.context ? {
                   type: selectedConversation.context.type,
                   title: selectedConversation.context.property?.title || selectedConversation.context.service?.title || '',
-                  details: selectedConversation.context.property?.address || selectedConversation.context.service?.description
+                  details: selectedConversation.context.property?.address || selectedConversation.context.service?.description,
                 } : undefined}
               />
             </>
@@ -446,7 +449,7 @@ const MessengerMain: React.FC = () => {
               flexDirection: 'column',
               alignItems: 'center', 
               justifyContent: 'center',
-              bgcolor: 'grey.50'
+              bgcolor: 'grey.50',
             }}>
               <ChatIcon sx={{ fontSize: 72, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -468,14 +471,14 @@ const MessengerMain: React.FC = () => {
             width: 320, 
             borderLeft: 1, 
             borderColor: 'divider',
-            bgcolor: 'background.default'
+            bgcolor: 'background.default',
           }}>
             <ProfileSidebar
               profile={selectedProfile}
               contextInfo={selectedConversation ? {
                 type: selectedConversation.context?.type || 'property',
                 title: selectedConversation.context?.property?.title || selectedConversation.context?.service?.title || '',
-                details: selectedConversation.context
+                details: selectedConversation.context,
               } : undefined}
               onClose={() => setShowProfileSidebar(false)}
               onBlock={(userId) => {

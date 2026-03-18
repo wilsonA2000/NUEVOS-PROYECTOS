@@ -32,7 +32,7 @@ import { usePaymentProcessing } from '../../hooks/usePaymentProcessing';
 import { Payment, CreatePaymentDto, UpdatePaymentDto } from '../../types/payment';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PayPalPaymentButton } from './PayPalPaymentButton';
-import { loggingService } from '../../services/loggingService';
+import { loggingService, LogCategory } from '../../services/loggingService';
 
 interface PaymentFormProps {
   payment?: Payment;
@@ -68,19 +68,44 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-// Configuración de las pasarelas (en producción estas deberían venir del backend)
+// Helper functions to safely get payment config from environment variables
+const getStripePublishableKey = (): string => {
+  const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    throw new Error(
+      'VITE_STRIPE_PUBLISHABLE_KEY is not configured. ' +
+      'Please add it to your .env file. ' +
+      'For testing, use a test key starting with "pk_test_"',
+    );
+  }
+  return key;
+};
+
+const getPayPalClientId = (): string => {
+  const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+  if (!clientId) {
+    throw new Error(
+      'VITE_PAYPAL_CLIENT_ID is not configured. ' +
+      'Please add it to your .env file. ' +
+      'For testing, use a sandbox client ID',
+    );
+  }
+  return clientId;
+};
+
+// Configuración de las pasarelas (variables de entorno requeridas)
 const PAYMENT_CONFIG = {
   stripe: {
-    publishableKey: process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_example',
+    publishableKey: getStripePublishableKey(),
   },
   paypal: {
-    clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || 'sb-example',
-    environment: (process.env.NODE_ENV === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production',
+    clientId: getPayPalClientId(),
+    environment: (import.meta.env.MODE === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production',
   },
 };
 
-export const PaymentForm: React.FC<PaymentFormProps> = ({ 
-  payment, 
+export const PaymentForm: React.FC<PaymentFormProps> = ({
+  payment,
   isEdit = false,
   amount: propAmount,
   currency = 'USD',
@@ -91,14 +116,15 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   enableRealPayments = false,
 }) => {
   const navigate = useNavigate();
-  const { createPayment, updatePayment } = usePayments();
-  const [formData, setFormData] = useState<CreatePaymentDto | UpdatePaymentDto>(
+  const { createTransaction, updateTransaction } = usePayments();
+  const [formData, setFormData] = useState<any>(
     payment || {
-      contractId: propContractId || '',
+      contract_id: propContractId ? parseInt(propContractId) : 0,
       amount: propAmount || 0,
-      dueDate: '',
+      due_date: '',
       notes: '',
-    }
+      payment_method: 'stripe',
+    },
   );
   
   // Estados para las pasarelas de pago reales
@@ -123,7 +149,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       setStripePromise(promise);
       
       initializeStripe(PAYMENT_CONFIG.stripe.publishableKey).catch((error) => {
-        loggingService.error('Error initializing Stripe:', error);
+        loggingService.error(LogCategory.SYSTEM, 'Error initializing Stripe', { error });
       });
     }
   }, [showRealPayments, initializeStripe]);
@@ -147,9 +173,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     e.preventDefault();
     try {
       if (isEdit && payment) {
-        await updatePayment.mutateAsync({ id: payment.id, data: formData as UpdatePaymentDto });
+        await updateTransaction.mutateAsync({ id: payment.id.toString(), data: formData });
       } else {
-        await createPayment.mutateAsync(formData as CreatePaymentDto);
+        await createTransaction.mutateAsync(formData);
       }
       navigate('/app/payments');
     } catch (error) {
@@ -158,7 +184,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   const handleStripePaymentSuccess = (result: any) => {
-    loggingService.info('Stripe payment successful:', result);
+    loggingService.info(LogCategory.BUSINESS, 'Stripe payment successful', { result });
     resetPaymentState();
     if (onPaymentSuccess) {
       onPaymentSuccess(result);
@@ -168,14 +194,14 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   const handleStripePaymentError = (error: string) => {
-    loggingService.error('Stripe payment error:', error);
+    loggingService.error(LogCategory.BUSINESS, 'Stripe payment error', { error });
     if (onPaymentError) {
       onPaymentError(error);
     }
   };
 
   const handlePayPalPaymentSuccess = (result: any) => {
-    loggingService.info('PayPal payment successful:', result);
+    loggingService.info(LogCategory.BUSINESS, 'PayPal payment successful', { result });
     resetPaymentState();
     if (onPaymentSuccess) {
       onPaymentSuccess(result);
@@ -185,7 +211,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   const handlePayPalPaymentError = (error: string) => {
-    loggingService.error('PayPal payment error:', error);
+    loggingService.error(LogCategory.BUSINESS, 'PayPal payment error', { error });
     if (onPaymentError) {
       onPaymentError(error);
     }
@@ -209,8 +235,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             <TextField
               fullWidth
               label="ID de Contrato"
-              name="contractId"
-              value={formData.contractId}
+              name="contract_id"
+              value={formData.contract_id}
               onChange={handleChange}
               required
               disabled={!!propContractId}
@@ -223,7 +249,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
               label="Monto"
               name="amount"
               type="number"
-              value={formData.amount}
+              value={formData.amount || 0}
               onChange={handleChange}
               required
               disabled={!!propAmount}
@@ -240,7 +266,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                   <strong>Información del Pago Real:</strong>
                 </Typography>
                 <Box sx={{ mt: 1 }}>
-                  <Chip size="small" label={`Monto: ${currency} ${paymentAmount.toFixed(2)}`} sx={{ mr: 1 }} />
+                  <Chip size="small" label={`Monto: ${currency} ${(paymentAmount || 0).toFixed(2)}`} sx={{ mr: 1 }} />
                   <Chip size="small" label={`Contrato: ${propContractId || 'N/A'}`} sx={{ mr: 1 }} />
                   {description && <Chip size="small" label={`Desc: ${description}`} />}
                 </Box>
@@ -251,9 +277,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             <TextField
               fullWidth
               label="Fecha de Vencimiento"
-              name="dueDate"
+              name="due_date"
               type="date"
-              value={formData.dueDate}
+              value={formData.due_date || ''}
               onChange={handleChange}
               required
               InputLabelProps={{
@@ -267,9 +293,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                 <TextField
                   fullWidth
                   label="Fecha de Pago"
-                  name="paymentDate"
+                  name="payment_date"
                   type="date"
-                  value={(formData as UpdatePaymentDto).paymentDate || ''}
+                  value={formData.payment_date || ''}
                   onChange={handleChange}
                   InputLabelProps={{
                     shrink: true,
@@ -280,9 +306,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                 <FormControl fullWidth>
                   <InputLabel>Método de Pago</InputLabel>
                   <Select
-                    name="paymentMethod"
-                    value={(formData as UpdatePaymentDto).paymentMethod || ''}
-                    onChange={handleChange}
+                    name="payment_method"
+                    value={formData.payment_method || ''}
+                    onChange={(e) => handleChange(e as any)}
                     label="Método de Pago"
                   >
                     <MenuItem value="cash">Efectivo</MenuItem>
@@ -338,7 +364,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                 type="submit"
                 variant="contained"
                 color="primary"
-                disabled={createPayment.isPending || updatePayment.isPending}
+                disabled={createTransaction.isPending || updateTransaction.isPending}
               >
                 {isEdit ? 'Actualizar' : 'Crear'}
               </Button>

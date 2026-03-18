@@ -31,7 +31,7 @@ import {
   Error as ErrorIcon,
 } from '@mui/icons-material';
 import { stripeService, StripePaymentResult } from '../../services/stripeService';
-import { loggingService } from '../../services/loggingService';
+import { loggingService, LogCategory } from '../../services/loggingService';
 
 export interface StripePaymentFormProps {
   amount: number;
@@ -154,7 +154,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
 
         setClientSecret(paymentIntent.client_secret);
       } catch (error) {
-        loggingService.error('Error creating payment intent:', error);
+        loggingService.error(LogCategory.BUSINESS, 'Error creating payment intent', { error });
         onError('Error al inicializar el pago');
       }
     };
@@ -196,7 +196,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
       setBillingDetails((prev) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof BillingDetails],
+          ...(prev[parent as keyof BillingDetails] as any),
           [child]: value,
         },
       }));
@@ -229,9 +229,9 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
     setIsProcessing(true);
 
     try {
-      const cardElement = enableSeparateFields
+      const cardElement = (enableSeparateFields
         ? elements.getElement(CardNumberElement)
-        : elements.getElement(CardElement);
+        : elements.getElement(CardElement)) as any;
 
       if (!cardElement) {
         throw new Error('Card element not found');
@@ -263,7 +263,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
         onError(result.error || 'Error al procesar el pago');
       }
     } catch (error) {
-      loggingService.error('Error processing payment:', error);
+      loggingService.error(LogCategory.BUSINESS, 'Error processing payment', { error });
       const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
       onError(stripeService.handleStripeError({ message: errorMessage }));
     } finally {

@@ -270,7 +270,7 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
         background: theme.palette.background.paper,
         '& .MuiTableContainer-root': {
           maxHeight: compactMode ? 400 : 600,
-        }
+        },
       }}
     >
       {/* Bulk Actions Toolbar */}
@@ -282,7 +282,7 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
               alignItems: 'center',
               justifyContent: 'space-between',
               p: 2,
-              backgroundColor: theme.palette.primary.main + '08',
+              backgroundColor: `${theme.palette.primary.main  }08`,
               borderBottom: `1px solid ${theme.palette.divider}`,
             }}
           >
@@ -445,18 +445,18 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     '&:hover': {
-                      backgroundColor: theme.palette.action.hover + '40',
+                      backgroundColor: `${theme.palette.action.hover  }40`,
                     },
                     '&.Mui-selected': {
-                      backgroundColor: theme.palette.primary.main + '08',
+                      backgroundColor: `${theme.palette.primary.main  }08`,
                       '&:hover': {
-                        backgroundColor: theme.palette.primary.main + '12',
+                        backgroundColor: `${theme.palette.primary.main  }12`,
                       },
                     },
                     // Zebra striping
                     '&:nth-of-type(even)': {
-                      backgroundColor: theme.palette.action.hover + '20',
-                    }
+                      backgroundColor: `${theme.palette.action.hover  }20`,
+                    },
                   }}
                 >
                   {/* Checkbox */}
@@ -484,7 +484,7 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                             transition: 'transform 0.2s ease',
                             '&:hover': {
                               transform: 'scale(1.05)',
-                            }
+                            },
                           }}
                           onClick={() => onView(propertyId)}
                         >
@@ -500,9 +500,9 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                                 first_image: property.images?.[0],
                                 first_image_url: property.images?.[0]?.image_url,
                                 final_src: imageSrc,
-                                full_property: property
+                                full_property: property,
                               });
-                              console.log(`🔍 Image URL being used:`, imageSrc);
+                              console.log('🔍 Image URL being used:', imageSrc);
                               return imageSrc;
                             })()}
                             alt={property.title}
@@ -532,7 +532,7 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                           cursor: 'pointer',
                           '&:hover': {
                             color: theme.palette.primary.main,
-                          }
+                          },
                         }}
                       >
                         {property.title}
@@ -644,9 +644,9 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                           sx={{
                             color: theme.palette.primary.main,
                             '&:hover': {
-                              backgroundColor: theme.palette.primary.main + '10',
+                              backgroundColor: `${theme.palette.primary.main  }10`,
                               transform: 'scale(1.1)',
-                            }
+                            },
                           }}
                         >
                           <ViewIcon fontSize="small" />
@@ -661,9 +661,9 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                             sx={{
                               color: property.is_favorited ? theme.palette.error.main : theme.palette.action.active,
                               '&:hover': {
-                                backgroundColor: theme.palette.error.main + '10',
+                                backgroundColor: `${theme.palette.error.main  }10`,
                                 transform: 'scale(1.1)',
-                              }
+                              },
                             }}
                           >
                             {property.is_favorited ? (
@@ -684,9 +684,9 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                               sx={{
                                 color: theme.palette.warning.main,
                                 '&:hover': {
-                                  backgroundColor: theme.palette.warning.main + '10',
+                                  backgroundColor: `${theme.palette.warning.main  }10`,
                                   transform: 'scale(1.1)',
-                                }
+                                },
                               }}
                             >
                               <EditIcon fontSize="small" />
@@ -699,9 +699,9 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                               sx={{
                                 color: theme.palette.error.main,
                                 '&:hover': {
-                                  backgroundColor: theme.palette.error.main + '10',
+                                  backgroundColor: `${theme.palette.error.main  }10`,
                                   transform: 'scale(1.1)',
-                                }
+                                },
                               }}
                             >
                               <DeleteIcon fontSize="small" />

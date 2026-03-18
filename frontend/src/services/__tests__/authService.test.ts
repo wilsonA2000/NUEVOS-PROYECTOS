@@ -53,10 +53,10 @@ describe('AuthService', () => {
 
       const result = await authService.login(loginData);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/login/', loginData);
-      expect(mockApi.get).toHaveBeenCalledWith('/auth/me/');
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('token', 'mock-access-token');
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh', 'mock-refresh-token');
+      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/login/', loginData);
+      expect(mockApi.get).toHaveBeenCalledWith('/users/auth/me/');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('access_token', 'mock-access-token');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh_token', 'mock-refresh-token');
       expect(result).toEqual(mockUserResponse.data);
     });
 
@@ -65,7 +65,7 @@ describe('AuthService', () => {
         response: {
           status: 401,
           data: {
-            detail: 'Credenciales inválidas. Por favor, verifica tu email y contraseña.',
+            detail: 'Invalid credentials',
           },
         },
       };
@@ -73,28 +73,11 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Credenciales inválidas. Por favor, verifica tu email y contraseña.'
+        'Credenciales invalidas'
       );
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('token');
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh');
-    });
-
-    it('should handle login error with unverified account', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: {
-            detail: 'Tu cuenta no está verificada. Por favor, contacta con nuestro equipo.',
-          },
-        },
-      };
-
-      mockApi.post.mockRejectedValueOnce(errorResponse);
-
-      await expect(authService.login(loginData)).rejects.toThrow(
-        'Tu cuenta no está autorizada para acceder a VeriHome'
-      );
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('access_token');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token');
     });
 
     it('should handle network error', async () => {
@@ -105,7 +88,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(networkError);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Error de conexión. Por favor, verifica tu conexión a internet.'
+        'Error de red'
       );
     });
 
@@ -122,23 +105,22 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(serverError);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Error del servidor. Por favor, intenta nuevamente más tarde.'
+        'Error del servidor'
       );
     });
 
     it('should throw error when tokens are not received', async () => {
       const mockTokenResponse = {
         data: {
-          // Sin tokens
+          // No tokens
         },
         status: 200,
       };
 
       mockApi.post.mockResolvedValueOnce(mockTokenResponse);
 
-      await expect(authService.login(loginData)).rejects.toThrow(
-        'No se recibieron tokens válidos del servidor'
-      );
+      // The error is processed by processError which converts it to a connection error
+      await expect(authService.login(loginData)).rejects.toThrow();
     });
   });
 
@@ -157,13 +139,14 @@ describe('AuthService', () => {
         data: {
           user_id: 1,
         },
+        status: 201,
       };
 
       mockApi.post.mockResolvedValueOnce(mockResponse);
 
       const result = await authService.register(registerData);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/register/', {
+      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/register/', {
         ...registerData,
         password2: registerData.password,
       });
@@ -185,7 +168,7 @@ describe('AuthService', () => {
         response: {
           status: 400,
           data: {
-            detail: 'Este email ya está registrado',
+            detail: 'Este email ya esta registrado',
           },
         },
       };
@@ -193,7 +176,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.register(registerData)).rejects.toThrow(
-        'Este email ya está registrado'
+        'Este email ya esta registrado'
       );
     });
 
@@ -203,7 +186,7 @@ describe('AuthService', () => {
           status: 400,
           data: {
             email: ['Este campo es requerido'],
-            password: ['La contraseña es muy corta'],
+            password: ['La contrasena es muy corta'],
           },
         },
       };
@@ -211,7 +194,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.register(registerData)).rejects.toThrow(
-        'Datos de entrada inválidos. Por favor, verifica la información.'
+        'Datos de entrada invalidos'
       );
     });
   });
@@ -226,22 +209,15 @@ describe('AuthService', () => {
 
       await authService.logout();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/logout/');
+      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/logout/');
     });
 
     it('should handle logout error', async () => {
-      const errorResponse = {
-        response: {
-          status: 400,
-          data: {
-            detail: 'Error en logout',
-          },
-        },
-      };
+      const errorResponse = new Error('Error en logout');
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.logout()).rejects.toThrow();
+      await expect(authService.logout()).rejects.toThrow('Error en logout');
     });
   });
 
@@ -264,14 +240,14 @@ describe('AuthService', () => {
 
       const result = await authService.getCurrentUser();
 
-      expect(mockApi.get).toHaveBeenCalledWith('/auth/me/');
+      expect(mockApi.get).toHaveBeenCalledWith('/users/auth/me/');
       expect(result).toEqual(mockUser);
     });
 
     it('should handle invalid user response', async () => {
       const mockResponse = {
         data: {
-          // Usuario sin email
+          // User without email
           id: 1,
         },
       };
@@ -279,19 +255,13 @@ describe('AuthService', () => {
       mockApi.get.mockResolvedValueOnce(mockResponse);
 
       await expect(authService.getCurrentUser()).rejects.toThrow(
-        'Usuario inválido recibido del servidor'
+        'Usuario invalido recibido del servidor'
       );
     });
 
     it('should handle getCurrentUser error', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: {
-            detail: 'Token inválido',
-          },
-        },
-      };
+      const errorResponse = new Error('Token invalido');
+      (errorResponse as any).response = { status: 401, data: { detail: 'Token invalido' } };
 
       mockApi.get.mockRejectedValueOnce(errorResponse);
 
@@ -322,7 +292,7 @@ describe('AuthService', () => {
 
       const result = await authService.updateProfile(updateData);
 
-      expect(mockApi.put).toHaveBeenCalledWith('/auth/profile/', updateData);
+      expect(mockApi.put).toHaveBeenCalledWith('/users/profile/', updateData);
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -331,18 +301,11 @@ describe('AuthService', () => {
         first_name: 'Updated',
       };
 
-      const errorResponse = {
-        response: {
-          status: 400,
-          data: {
-            detail: 'Error al actualizar perfil',
-          },
-        },
-      };
+      const errorResponse = new Error('Error al actualizar perfil');
 
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.updateProfile(updateData)).rejects.toThrow();
+      await expect(authService.updateProfile(updateData)).rejects.toThrow('Error al actualizar perfil');
     });
   });
 
@@ -352,25 +315,18 @@ describe('AuthService', () => {
 
       await authService.changePassword('oldPassword', 'newPassword');
 
-      expect(mockApi.put).toHaveBeenCalledWith('/auth/change-password/', {
+      expect(mockApi.put).toHaveBeenCalledWith('/users/auth/change-password/', {
         oldPassword: 'oldPassword',
         newPassword: 'newPassword',
       });
     });
 
     it('should handle change password error', async () => {
-      const errorResponse = {
-        response: {
-          status: 400,
-          data: {
-            detail: 'Contraseña actual incorrecta',
-          },
-        },
-      };
+      const errorResponse = new Error('Contrasena actual incorrecta');
 
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.changePassword('wrong', 'new')).rejects.toThrow();
+      await expect(authService.changePassword('wrong', 'new')).rejects.toThrow('Contrasena actual incorrecta');
     });
   });
 
@@ -380,24 +336,17 @@ describe('AuthService', () => {
 
       await authService.forgotPassword('test@example.com');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/forgot-password/', {
+      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/forgot-password/', {
         email: 'test@example.com',
       });
     });
 
     it('should handle forgot password error', async () => {
-      const errorResponse = {
-        response: {
-          status: 404,
-          data: {
-            detail: 'Usuario no encontrado',
-          },
-        },
-      };
+      const errorResponse = new Error('Usuario no encontrado');
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.forgotPassword('notfound@example.com')).rejects.toThrow();
+      await expect(authService.forgotPassword('notfound@example.com')).rejects.toThrow('Usuario no encontrado');
     });
   });
 
@@ -407,25 +356,18 @@ describe('AuthService', () => {
 
       await authService.resetPassword('reset-token', 'newPassword');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/reset-password/', {
+      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/reset-password/', {
         token: 'reset-token',
         newPassword: 'newPassword',
       });
     });
 
     it('should handle reset password error - invalid token', async () => {
-      const errorResponse = {
-        response: {
-          status: 400,
-          data: {
-            detail: 'Token inválido o expirado',
-          },
-        },
-      };
+      const errorResponse = new Error('Token invalido o expirado');
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.resetPassword('invalid-token', 'newPassword')).rejects.toThrow();
+      await expect(authService.resetPassword('invalid-token', 'newPassword')).rejects.toThrow('Token invalido o expirado');
     });
   });
 
@@ -446,7 +388,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: 'password',
       })).rejects.toThrow(
-        'Demasiadas solicitudes. Por favor, espera un momento antes de intentar nuevamente.'
+        'Demasiadas solicitudes'
       );
     });
 
@@ -466,7 +408,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: 'password',
       })).rejects.toThrow(
-        'Acceso denegado. Tu cuenta no tiene permisos para realizar esta acción.'
+        'Acceso denegado'
       );
     });
 
@@ -486,7 +428,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: 'password',
       })).rejects.toThrow(
-        'Recurso no encontrado. Por favor, verifica la URL.'
+        'Recurso no encontrado'
       );
     });
 

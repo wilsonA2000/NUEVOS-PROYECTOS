@@ -285,7 +285,7 @@ const AboutPage: React.FC = () => {
                         height: 120, 
                         mx: 'auto', 
                         mb: 2,
-                        bgcolor: 'primary.main'
+                        bgcolor: 'primary.main',
                       }}
                     >
                       {member.name.charAt(0)}

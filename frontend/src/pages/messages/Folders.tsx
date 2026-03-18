@@ -42,8 +42,8 @@ const Folders: React.FC = () => {
     color: '#1976d2',
   });
 
-  const foldersArray = ensureArray(folders);
-  const messagesArray = ensureArray(messages);
+  const foldersArray = Array.isArray(folders) ? folders : (folders as any)?.results || [];
+  const messagesArray = Array.isArray(messages) ? messages : (messages as any)?.results || [];
 
   const handleOpenDialog = (folder?: any) => {
     if (folder) {
@@ -76,23 +76,23 @@ const Folders: React.FC = () => {
 
   const handleSubmit = () => {
     if (editingFolder) {
-      updateFolder({ id: editingFolder.id, data: formData });
+      updateFolder.mutate({ id: editingFolder.id, data: formData });
     } else {
-      createFolder(formData);
+      createFolder.mutate(formData);
     }
     handleCloseDialog();
   };
 
   const handleDelete = (folderId: string) => {
     const messageCount = messagesArray.filter((msg: any) => msg.folder_id === folderId).length;
-    
+
     if (messageCount > 0) {
       alert(`No puedes eliminar esta carpeta porque contiene ${messageCount} mensajes. Mueve los mensajes a otra carpeta primero.`);
       return;
     }
 
     if (window.confirm('¿Estás seguro de que deseas eliminar esta carpeta?')) {
-      deleteFolder(folderId);
+      deleteFolder.mutate(folderId);
     }
   };
 
@@ -101,8 +101,8 @@ const Folders: React.FC = () => {
   };
 
   const getUnreadCount = (folderId: string) => {
-    return messagesArray.filter((msg: any) => 
-      msg.folder_id === folderId && !msg.read
+    return messagesArray.filter((msg: any) =>
+      msg.folder_id === folderId && !msg.isRead,
     ).length;
   };
 
@@ -206,7 +206,7 @@ const Folders: React.FC = () => {
                   </Box>
 
                   <Typography variant="caption" color="text.secondary">
-                    Creada: {folder.created_at ? new Date(folder.created_at).toLocaleDateString() : 'Fecha desconocida'}
+                    Creada: {folder.createdAt ? new Date(folder.createdAt).toLocaleDateString() : 'Fecha desconocida'}
                   </Typography>
                 </CardContent>
               </Card>

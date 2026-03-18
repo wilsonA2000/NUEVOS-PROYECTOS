@@ -15,14 +15,11 @@ import {
   CircularProgress,
   Stack,
 } from '@mui/material';
-import { 
-  MoreVert as MoreVertIcon, 
+import {
+  MoreVert as MoreVertIcon,
   People as PeopleIcon,
-  Edit as EditIcon,
-  Security as SecurityIcon,
-  Send as SendIcon,
+  Send as SendIcon, // Reservado para handleSendForReview (Sistema Molecular Admin)
   CheckCircle as CheckCircleIcon,
-  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useContracts } from '../../hooks/useContracts';
@@ -200,30 +197,9 @@ export const ContractList: React.FC = () => {
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       📍 {contract.property.address}
                     </Typography>
-                    {contract.property.main_image && (
-                      <Box
-                        component="img"
-                        sx={{
-                          width: '100%',
-                          height: 120,
-                          objectFit: 'cover',
-                          borderRadius: 1,
-                          mb: 1
-                        }}
-                        src={contract.property.main_image}
-                        alt={contract.property.title}
-                      />
-                    )}
-                    <Box display="flex" gap={1} flexWrap="wrap">
-                      {contract.property.bedrooms && (
-                        <Chip size="small" label={`${contract.property.bedrooms} hab`} />
-                      )}
-                      {contract.property.bathrooms && (
-                        <Chip size="small" label={`${contract.property.bathrooms} baños`} />
-                      )}
-                      {contract.property.area && (
-                        <Chip size="small" label={`${contract.property.area} m²`} />
-                      )}
+                    {/* Property details - using minimal Contract.property interface */}
+                    <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                      <Chip size="small" label={contract.property.address || 'Sin dirección'} />
                     </Box>
                   </Box>
                 ) : (
@@ -234,38 +210,37 @@ export const ContractList: React.FC = () => {
                 <Box sx={{ mt: 2, mb: 2 }}>
                   <Chip
                     label={
-                      contract.status === 'draft' ? 'Borrador' :
-                      contract.status === 'ready_for_authentication' ? 'Listo para Autenticación' :
-                      contract.status === 'pdf_generated' ? 'PDF Generado' :
-                      contract.status === 'pending_authentication' ? 'Pendiente Autenticación' :
-                      contract.status === 'authenticated_pending_signature' ? 'Pendiente Firma' :
-                      contract.status === 'fully_signed' ? 'Firmado' :
                       contract.status === 'active' ? 'Activo' :
+                      contract.status === 'fully_signed' ? 'Firmado' :
+                      contract.status === 'pending_signature' ? 'Pendiente Firma' :
+                      contract.status === 'partially_signed' ? 'Parcialmente Firmado' :
+                      contract.status === 'suspended' ? 'Suspendido' :
+                      contract.status === 'terminated' ? 'Terminado' :
+                      contract.status === 'expired' ? 'Expirado' :
                       contract.status || 'Sin estado'
                     }
                     color={
                       contract.status === 'active' || contract.status === 'fully_signed' ? 'success' :
-                      contract.status === 'draft' ? 'default' :
-                      contract.status === 'ready_for_authentication' ? 'warning' :
-                      contract.status === 'pdf_generated' ? 'info' :
-                      contract.status === 'pending_authentication' ? 'warning' :
-                      contract.status === 'authenticated_pending_signature' ? 'info' :
+                      contract.status === 'pending_signature' || contract.status === 'partially_signed' ? 'warning' :
+                      contract.status === 'suspended' || contract.status === 'terminated' || contract.status === 'expired' ? 'error' :
                       'default'
                     }
                     size="small"
                   />
                 </Box>
                 {/* Información del inquilino */}
-                {contract.tenant ? (
+                {contract.secondary_party ? (
                   <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                     <Typography variant="body2" color="primary" gutterBottom>
                       👤 <strong>Inquilino</strong>
                     </Typography>
                     <Typography variant="body2">
-                      {contract.tenant.name}
+                      {contract.secondary_party.first_name && contract.secondary_party.last_name
+                        ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`
+                        : contract.secondary_party.email}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {contract.tenant.email}
+                      {contract.secondary_party.email}
                     </Typography>
                   </Box>
                 ) : (
@@ -273,85 +248,29 @@ export const ContractList: React.FC = () => {
                     <strong>Inquilino:</strong> No especificado
                   </Typography>
                 )}
-                
+
                 {/* Información del contrato */}
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2">
                     <strong>Fecha inicio:</strong> {contract.start_date || 'No especificada'}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Renta:</strong> ${contract.monthly_rent?.toLocaleString() || contract.property?.rent_price?.toLocaleString() || '0'}
+                    <strong>Renta:</strong> ${contract.monthly_rent?.toLocaleString() || contract.total_value?.toLocaleString() || '0'}
                   </Typography>
                 </Box>
               </CardContent>
               {/* Botones de acción según el estado del contrato */}
-              {(contract.status === 'draft' || contract.status === 'ready_for_authentication' || contract.status === 'pdf_generated') && (
+              {contract.status === 'pending_signature' && (
                 <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                  {contract.status === 'draft' && (
-                    <>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<EditIcon />}
-                        onClick={() => navigate(`/app/contracts/${contract.id}/edit`)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<SendIcon />}
-                        onClick={() => handleSendForReview(contract.id)}
-                      >
-                        Enviar
-                      </Button>
-                    </>
-                  )}
-                  
-                  {contract.status === 'pdf_generated' && (
-                    <>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<DescriptionIcon />}
-                        onClick={() => {
-                          // TODO: Ver PDF generado
-                          console.log('Ver PDF:', contract.id);
-                        }}
-                      >
-                        Ver PDF
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="primary"
-                        startIcon={<CheckCircleIcon />}
-                        onClick={() => {
-                          // TODO: Aprobar y continuar
-                          console.log('Aprobar PDF:', contract.id);
-                        }}
-                      >
-                        Aprobar
-                      </Button>
-                    </>
-                  )}
-                  
-                  {contract.status === 'ready_for_authentication' && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="success"
-                      startIcon={<SecurityIcon />}
-                      fullWidth
-                      onClick={() => {
-                        // Navegar al nuevo flujo de autenticación biométrica
-                        navigate(`/app/contracts/${contract.id}/authenticate`);
-                      }}
-                    >
-🎥 Autenticación Profesional
-                    </Button>
-                  )}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<CheckCircleIcon />}
+                    onClick={() => navigate(`/app/contracts/${contract.id}`)}
+                  >
+                    Ver Detalles
+                  </Button>
                 </CardActions>
               )}
             </Card>

@@ -9,11 +9,6 @@ const response = await api.get('/properties/', { params: filters });
 
 return response.data.results || response.data;
     } catch (error: any) {
-      console.error('❌ PropertyService: Error obteniendo propiedades:', error);
-      if (error.response) {
-        console.error('   Status:', error.response.status);
-        console.error('   Data:', error.response.data);
-      }
       throw error;
     }
   },
@@ -25,76 +20,34 @@ return response.data.results || response.data;
 
   createProperty: async (data: CreatePropertyDto | FormData): Promise<Property> => {
     try {
-      console.log('🚀 PropertyService: Iniciando creación de propiedad');
-      
-      if (data instanceof FormData) {
-        console.log('📦 PropertyService: Enviando FormData');
-        // Debug FormData contents
-        for (let [key, value] of data.entries()) {
-          if (value instanceof File) {
-            console.log(`📄 FormData: ${key} = File(${value.name}, ${value.size} bytes)`);
-          } else {
-            console.log(`📝 FormData: ${key} = ${value}`);
-          }
-        }
-      } else {
-        console.log('📦 PropertyService: Datos a enviar:', data);
-      }
-
-      const response = await api.post('/properties/', data, 
-        data instanceof FormData ? { 
-          headers: { 
-            'Content-Type': 'multipart/form-data' 
-          } 
-        } : undefined
+      const response = await api.post('/properties/', data,
+        data instanceof FormData ? {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        } : undefined,
       );
 
-      console.log('✅ PropertyService: Propiedad creada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ PropertyService: Error creando propiedad:', error);
-      console.error('   Response:', error.response?.data);
-      console.error('   Status:', error.response?.status);
-      console.error('   Request config:', error.config);
       throw error;
     }
   },
 
   updateProperty: async (id: string, data: UpdatePropertyDto | FormData): Promise<Property> => {
     try {
-      console.log('🚀 PropertyService: Iniciando actualización de propiedad:', id);
-      
-      if (data instanceof FormData) {
-        console.log('📦 PropertyService: Enviando FormData para actualización');
-        // Debug FormData contents
-        for (let [key, value] of data.entries()) {
-          if (value instanceof File) {
-            console.log(`📄 FormData: ${key} = File(${value.name}, ${value.size} bytes)`);
-          } else {
-            console.log(`📝 FormData: ${key} = ${value}`);
-          }
-        }
-      } else {
-        console.log('📦 PropertyService: Datos de actualización:', data);
-      }
-
       const response = await api.put(
-        `/properties/${id}/`, 
+        `/properties/${id}/`,
         data,
-        data instanceof FormData ? { 
-          headers: { 
-            'Content-Type': 'multipart/form-data' 
-          } 
-        } : undefined
+        data instanceof FormData ? {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        } : undefined,
       );
 
-      console.log('✅ PropertyService: Propiedad actualizada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ PropertyService: Error actualizando propiedad:', error);
-      console.error('   Response:', error.response?.data);
-      console.error('   Status:', error.response?.status);
-      console.error('   Request config:', error.config);
       throw error;
     }
   },
@@ -145,12 +98,7 @@ const response = await api.post(`/properties/${propertyId}/contact-landlord/`, d
 
 return response.data;
     } catch (error: any) {
-      console.error('❌ PropertyService: Error contactando arrendador:', error);
-      if (error.response) {
-        console.error('   Status:', error.response.status);
-        console.error('   Data:', error.response.data);
-      }
       throw error;
     }
   },
-}; 
+};

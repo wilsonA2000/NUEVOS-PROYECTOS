@@ -20,14 +20,14 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
   Description as DocumentIcon,
   CheckCircle as CheckIcon,
   Close as CloseIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -49,14 +49,14 @@ const DOCUMENT_TYPES = [
   { value: 'codeudor_cedula_extranjeria', label: 'Codeudor: Cédula de Extranjería' },
   { value: 'codeudor_certificado_laboral', label: 'Codeudor: Certificado Laboral' },
   { value: 'codeudor_libertad_tradicion', label: 'Codeudor: Certificado de Libertad y Tradición' },
-  { value: 'otros', label: 'Otros Documentos' }
+  { value: 'otros', label: 'Otros Documentos' },
 ];
 
 export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
   open,
   onClose,
   matchId,
-  onUploadSuccess
+  onUploadSuccess,
 }) => {
   const [documentType, setDocumentType] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -115,7 +115,7 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-        }
+        },
       );
 
       console.log('✅ Documento subido exitosamente:', response.data);
@@ -167,7 +167,7 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
         color: 'white',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <DocumentIcon sx={{ mr: 1 }} />
@@ -234,7 +234,7 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
             borderColor: file ? 'success.main' : 'grey.300',
             backgroundColor: file ? 'success.50' : 'grey.50',
             textAlign: 'center',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
           }}
         >
           <input
@@ -313,7 +313,7 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             '&:hover': {
               background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-            }
+            },
           }}
         >
           {uploading ? 'Subiendo...' : 'Subir Documento'}

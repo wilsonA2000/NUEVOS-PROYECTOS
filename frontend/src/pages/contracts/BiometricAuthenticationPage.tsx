@@ -29,7 +29,6 @@ const BiometricAuthenticationPage: React.FC = () => {
     if (!id || !user) return;
 
     try {
-      console.log('🔐 Validating turn for user:', user.user_type);
 
       // Intentar iniciar autenticación para verificar turno
       const response = await api.post(`/contracts/${id}/start-biometric-authentication/`);
@@ -38,7 +37,6 @@ const BiometricAuthenticationPage: React.FC = () => {
       setTurnValidation({ canProceed: true });
 
     } catch (error: any) {
-      console.log('🚫 Turn validation failed:', error.response?.status, error.response?.data);
 
       if (error.response?.status === 423) {
         // HTTP 423 Locked = no es su turno
@@ -47,7 +45,7 @@ const BiometricAuthenticationPage: React.FC = () => {
           canProceed: false,
           currentTurn: data.current_turn,
           waitingFor: data.waiting_for,
-          message: data.message
+          message: data.message,
         });
       } else if (error.response?.status === 409) {
         // HTTP 409 Conflict = ya completado
@@ -66,18 +64,15 @@ const BiometricAuthenticationPage: React.FC = () => {
 
       try {
         setLoading(true);
-        console.log('🔍 BiometricAuth: Buscando contrato del workflow:', id);
 
         // Intentar obtener desde el endpoint de contratos normales primero
         const response = await api.get(`/contracts/contracts/${id}/`);
         setWorkflowContract(response.data);
-        console.log('✅ BiometricAuth: Contrato encontrado:', response.data);
 
         // Validar turno después de obtener el contrato
         await validateTurn();
 
       } catch (err) {
-        console.error('❌ BiometricAuth: Error al obtener contrato:', err);
         setError('No se pudo cargar el contrato');
       } finally {
         setLoading(false);
@@ -141,7 +136,7 @@ const BiometricAuthenticationPage: React.FC = () => {
     'pending_biometric',
     'draft',
     'pending_tenant_review',
-    'pdf_generated'
+    'pdf_generated',
   ];
 
   if (!validStatesForAuth.includes(contract.status)) {
@@ -163,30 +158,18 @@ const BiometricAuthenticationPage: React.FC = () => {
   }
 
   const handleComplete = async (data: any) => {
-    console.log('🎉 BiometricAuthenticationPage: Autenticación biométrica completada');
-    console.log('📦 Data recibida de ProfessionalBiometricFlow:', data);
 
     try {
       setLoading(true);
 
       // Llamar al endpoint de completado
-      console.log(`🚀 Llamando a POST /contracts/${id}/complete-auth/`);
       const response = await api.post(`/contracts/${id}/complete-auth/`, data);
 
-      console.log('✅ Respuesta del servidor:', response.data);
 
       // Determinar el tipo de usuario de forma más robusta
       const currentUserId = authContext.user?.id;
       const currentUserType = authContext.user?.user_type;
 
-      console.log('🔍 Determinando tipo de usuario:', {
-        currentUserId,
-        currentUserType,
-        contractTenantId: contract?.tenant?.id,
-        contractSecondaryPartyId: contract?.secondary_party?.id,
-        contractLandlordId: contract?.landlord?.id,
-        contractPrimaryPartyId: contract?.primary_party?.id
-      });
 
       // Determinar userType por múltiples métodos
       let userType = 'unknown';
@@ -201,40 +184,34 @@ const BiometricAuthenticationPage: React.FC = () => {
         userType = 'landlord';
       }
 
-      console.log(`✅ Tipo de usuario determinado: ${userType}`);
 
       if (userType === 'tenant') {
         // Tenant completó → Esperar al landlord
-        console.log('➡️ Redirigiendo a dashboard de tenant');
         navigate('/app/contracts/tenant', {
           state: {
             message: '✅ Autenticación completada. Esperando autenticación del arrendador.',
-            type: 'success'
-          }
+            type: 'success',
+          },
         });
       } else if (userType === 'landlord') {
         // Landlord completó → Contrato activo
-        console.log('🎉 Redirigiendo a dashboard principal - Contrato activo');
         navigate('/app/contracts', {
           state: {
             message: '🎉 ¡Contrato firmado y activo! El contrato ha nacido a la vida jurídica.',
-            type: 'success'
-          }
+            type: 'success',
+          },
         });
       } else {
         // Fallback
-        console.warn('⚠️ UserType desconocido, usando fallback');
         navigate('/app/contracts', {
           state: {
             message: 'Autenticación biométrica completada exitosamente',
-            type: 'success'
-          }
+            type: 'success',
+          },
         });
       }
 
     } catch (error: any) {
-      console.error('❌ Error guardando autenticación:', error);
-      console.error('❌ Error details:', error.response?.data);
       setError(`Error: ${error.response?.data?.error || 'No se pudo completar la autenticación'}`);
       setLoading(false);
     }
@@ -266,8 +243,8 @@ const BiometricAuthenticationPage: React.FC = () => {
                 <strong>1. Arrendatario</strong> {turnValidation.currentTurn === 'tenant' ? '(En proceso...)' : contract.guarantor ? '(Pendiente)' : '(Completado ✅)'}
               </Typography>
               {contract.guarantor && (
-                <Typography component="li" variant="body2" color={turnValidation.currentTurn === 'guarantor' ? 'primary' : 'text.secondary'}>
-                  <strong>2. Garante/Codeudor</strong> {turnValidation.currentTurn === 'guarantor' ? '(En proceso...)' : turnValidation.currentTurn === 'tenant' ? '(Esperando...)' : '(Completado ✅)'}
+                <Typography component="li" variant="body2" color={(turnValidation.currentTurn as string) === 'guarantor' ? 'primary' : 'text.secondary'}>
+                  <strong>2. Garante/Codeudor</strong> {(turnValidation.currentTurn as string) === 'guarantor' ? '(En proceso...)' : turnValidation.currentTurn === 'tenant' ? '(Esperando...)' : '(Completado ✅)'}
                 </Typography>
               )}
               <Typography component="li" variant="body2" color={turnValidation.currentTurn === 'landlord' ? 'primary' : 'text.secondary'}>
@@ -287,13 +264,13 @@ const BiometricAuthenticationPage: React.FC = () => {
                 recibirás una notificación y podrás continuar con tu autenticación.
               </Typography>
             )}
-            {user?.user_type === 'landlord' && turnValidation.currentTurn === 'guarantor' && (
+            {user?.user_type === 'landlord' && (turnValidation.currentTurn as string) === 'guarantor' && (
               <Typography variant="body2">
                 El garante/codeudor debe completar su verificación biométrica. Una vez que termine,
                 recibirás una notificación y podrás continuar con tu autenticación.
               </Typography>
             )}
-            {user?.user_type === 'tenant' && turnValidation.currentTurn === 'guarantor' && (
+            {user?.user_type === 'tenant' && (turnValidation.currentTurn as string) === 'guarantor' && (
               <Typography variant="body2">
                 Has completado tu autenticación exitosamente. Ahora el garante/codeudor debe completar
                 su verificación biométrica antes de que el arrendador pueda proceder.
@@ -334,7 +311,7 @@ const BiometricAuthenticationPage: React.FC = () => {
   const userInfo = {
     fullName: contract.tenant?.full_name || '', // Nombre del inquilino
     documentNumber: contract.tenant?.document_number || '', // Número de documento
-    documentIssueDate: contract.tenant?.document_issue_date || '' // Fecha de expedición
+    documentIssueDate: contract.tenant?.document_issue_date || '', // Fecha de expedición
   };
 
   return (

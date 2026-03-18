@@ -33,7 +33,7 @@ import {
   Chip,
   LinearProgress,
   CircularProgress,
-  Fade
+  Fade,
 } from '@mui/material';
 import {
   Draw,
@@ -48,7 +48,7 @@ import {
   Send,
   Warning,
   Info,
-  Gavel
+  Gavel,
 } from '@mui/icons-material';
 
 interface DigitalSignaturePadProps {
@@ -94,7 +94,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
   contractNumber,
   loading = false,
   error = null,
-  biometricData
+  biometricData,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -175,13 +175,13 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       // Evento táctil
       return {
         x: (event.touches[0].clientX - rect.left) * scaleX,
-        y: (event.touches[0].clientY - rect.top) * scaleY
+        y: (event.touches[0].clientY - rect.top) * scaleY,
       };
     } else if ('clientX' in event) {
       // Evento de ratón
       return {
         x: (event.clientX - rect.left) * scaleX,
-        y: (event.clientY - rect.top) * scaleY
+        y: (event.clientY - rect.top) * scaleY,
       };
     }
 
@@ -209,11 +209,11 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
           minX: coords.x,
           minY: coords.y,
           maxX: coords.x,
-          maxY: coords.y
+          maxY: coords.y,
         },
         duration: 0,
         startTime: Date.now(),
-        endTime: 0
+        endTime: 0,
       });
     }
 
@@ -245,7 +245,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       const newPoint: SignaturePoint = {
         x: coords.x,
         y: coords.y,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       return {
@@ -255,8 +255,8 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
           minX: Math.min(prev.boundingBox.minX, coords.x),
           minY: Math.min(prev.boundingBox.minY, coords.y),
           maxX: Math.max(prev.boundingBox.maxX, coords.x),
-          maxY: Math.max(prev.boundingBox.maxY, coords.y)
-        }
+          maxY: Math.max(prev.boundingBox.maxY, coords.y),
+        },
       };
     });
 
@@ -278,7 +278,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       const updatedData = {
         ...prev,
         duration,
-        endTime
+        endTime,
       };
       
       // Calcular calidad de la firma
@@ -334,8 +334,8 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       device: {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
-        language: navigator.language
-      }
+        language: navigator.language,
+      },
     };
     
     // Convertir a base64 completo
@@ -352,7 +352,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
   // Event listeners para mouse y touch
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return undefined;
 
     const handleMouseMove = (e: MouseEvent) => draw(e as any);
     const handleMouseUp = () => stopDrawing();
@@ -462,7 +462,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              mb: 2
+              mb: 2,
             }}
           >
             <Paper
@@ -472,7 +472,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                 bgcolor: 'grey.50',
                 border: hasSignature ? '2px solid' : '2px dashed',
                 borderColor: hasSignature ? 'success.main' : 'grey.300',
-                borderRadius: 2
+                borderRadius: 2,
               }}
             >
               <canvas
@@ -486,7 +486,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                 style={{
                   cursor: 'crosshair',
                   touchAction: 'none',
-                  display: 'block'
+                  display: 'block',
                 }}
               />
             </Paper>
@@ -514,8 +514,8 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                   bgcolor: 'grey.200',
                   '& .MuiLinearProgress-bar': {
                     borderRadius: 3,
-                    bgcolor: signatureQuality > 70 ? 'success.main' : signatureQuality > 40 ? 'warning.main' : 'error.main'
-                  }
+                    bgcolor: signatureQuality > 70 ? 'success.main' : signatureQuality > 40 ? 'warning.main' : 'error.main',
+                  },
                 }}
               />
             </Box>
@@ -619,7 +619,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
             minWidth: 250,
             height: 56,
             fontSize: '1.1rem',
-            borderRadius: 3
+            borderRadius: 3,
           }}
         >
           {loading ? 'Firmando Contrato...' : 'Firmar Digitalmente'}
@@ -645,7 +645,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                 style={{
                   maxWidth: '100%',
                   border: '1px solid #ddd',
-                  borderRadius: 8
+                  borderRadius: 8,
                 }}
               />
               

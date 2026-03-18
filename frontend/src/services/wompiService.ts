@@ -64,7 +64,7 @@ class WompiService {
     try {
       const response = await api.post<WompiPaymentResponse>(
         `${this.baseURL}/wompi/initiate/`,
-        paymentData
+        paymentData,
       );
       return response.data;
     } catch (error: any) {
@@ -79,7 +79,7 @@ class WompiService {
   async getPSEBanks(): Promise<PSEBank[]> {
     try {
       const response = await api.get<{ banks: PSEBank[]; count: number }>(
-        `${this.baseURL}/pse/banks/`
+        `${this.baseURL}/pse/banks/`,
       );
       return response.data.banks;
     } catch (error: any) {
@@ -94,7 +94,7 @@ class WompiService {
   async getPaymentStatus(transactionId: number): Promise<TransactionStatus> {
     try {
       const response = await api.get<TransactionStatus>(
-        `${this.baseURL}/wompi/status/${transactionId}/`
+        `${this.baseURL}/wompi/status/${transactionId}/`,
       );
       return response.data;
     } catch (error: any) {
@@ -112,7 +112,7 @@ class WompiService {
   async pollPaymentStatus(
     transactionId: number,
     maxAttempts: number = 60,
-    intervalMs: number = 2000
+    intervalMs: number = 2000,
   ): Promise<TransactionStatus> {
     let attempts = 0;
 

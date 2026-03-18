@@ -125,14 +125,14 @@ const ServicesPage: React.FC = () => {
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: 6,
-              }
+              },
             }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Avatar sx={{ 
                     bgcolor: `${getCategoryColor(service.category)}.light`,
                     color: `${getCategoryColor(service.category)}.main`,
-                    mr: 2
+                    mr: 2,
                   }}>
                     <BuildIcon />
                   </Avatar>

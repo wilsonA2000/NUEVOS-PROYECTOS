@@ -45,8 +45,29 @@ urlpatterns = [
     
     # Estadísticas para landlords
     path(
-        'stats/', 
-        document_api_views.document_stats_for_landlord, 
+        'stats/',
+        document_api_views.document_stats_for_landlord,
         name='document_stats'
+    ),
+
+    # 🔒 DESCARGA SEGURA (Plan Maestro V2.0)
+    path(
+        '<uuid:document_id>/secure-download/',
+        document_api_views.SecureDocumentDownloadView.as_view(),
+        name='secure_download'
+    ),
+
+    # 👁️ VISTA PREVIA SEGURA (Plan Maestro V2.0)
+    path(
+        '<uuid:document_id>/secure-preview/',
+        document_api_views.SecureDocumentPreviewView.as_view(),
+        name='secure_preview'
+    ),
+
+    # 📜 HISTORIAL DE ACCESOS (Plan Maestro V2.0)
+    path(
+        '<uuid:document_id>/access-history/',
+        document_api_views.document_access_history,
+        name='access_history'
     ),
 ]

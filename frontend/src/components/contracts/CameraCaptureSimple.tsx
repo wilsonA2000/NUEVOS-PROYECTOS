@@ -13,7 +13,7 @@ interface CameraCaptureSimpleProps {
 
 const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({ 
   onCapture, 
-  onError 
+  onError, 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -29,7 +29,7 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: true, 
-        audio: false 
+        audio: false, 
       });
       
       console.log('🎥 SIMPLE: Stream obtenido', stream);
@@ -121,7 +121,7 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
             width: '100%',
             height: '300px',
             objectFit: 'cover',
-            display: 'block'
+            display: 'block',
           }}
           autoPlay
           playsInline

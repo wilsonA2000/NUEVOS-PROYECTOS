@@ -13,11 +13,11 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para usuarios."""
     full_name = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'full_name', 'user_type', 'is_verified', 'phone_number')
-        read_only_fields = ('id', 'is_verified')
+        fields = ('id', 'email', 'first_name', 'last_name', 'full_name', 'user_type', 'is_verified', 'phone_number', 'is_staff', 'is_superuser')
+        read_only_fields = ('id', 'is_verified', 'is_staff', 'is_superuser')
     
     def get_full_name(self, obj):
         return obj.get_full_name()

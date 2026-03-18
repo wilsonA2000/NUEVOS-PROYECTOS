@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
+from django.conf import settings
 
 from .models import Notification, ActivityLog, SystemAlert
 from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer
@@ -533,4 +534,140 @@ class ExportLogsAPIView(APIView):
             return Response(
                 {'error': 'Failed to export logs'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) 
+            )
+
+
+# ============================================
+# MAINTENANCE ENDPOINTS
+# ============================================
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def maintenance_health_check(request):
+    """Comprehensive system health check for admin dashboard."""
+    import time
+
+    result = {'overall': 'healthy'}
+
+    # Database check
+    try:
+        from django.db import connection
+        start = time.time()
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        db_latency = round((time.time() - start) * 1000, 1)
+        result['database'] = {'status': 'healthy', 'latency_ms': db_latency}
+    except Exception as e:
+        result['database'] = {'status': 'unhealthy', 'latency_ms': 0, 'error': str(e)}
+        result['overall'] = 'degraded'
+
+    # Redis check
+    try:
+        from django.core.cache import caches
+        start = time.time()
+        cache = caches['default']
+        cache.set('health_check', 'ok', 10)
+        cache.get('health_check')
+        redis_latency = round((time.time() - start) * 1000, 1)
+        result['redis'] = {'status': 'healthy', 'latency_ms': redis_latency}
+    except Exception:
+        result['redis'] = {'status': 'fallback', 'latency_ms': 0}
+
+    # Storage check
+    try:
+        import shutil
+        import os
+        media_root = getattr(settings, 'MEDIA_ROOT', '/tmp')
+        if os.path.exists(media_root):
+            total, used, free = shutil.disk_usage(media_root)
+            usage_pct = round((used / total) * 100, 1)
+            result['storage'] = {
+                'status': 'healthy' if usage_pct < 85 else 'warning',
+                'usage_percent': usage_pct,
+            }
+        else:
+            result['storage'] = {'status': 'healthy', 'usage_percent': 0}
+    except Exception:
+        result['storage'] = {'status': 'unknown', 'usage_percent': 0}
+
+    # Celery check
+    try:
+        from celery import current_app
+        inspector = current_app.control.inspect(timeout=2)
+        active = inspector.active()
+        worker_count = len(active) if active else 0
+        result['celery'] = {
+            'status': 'healthy' if worker_count > 0 else 'warning',
+            'active_workers': worker_count,
+        }
+    except Exception:
+        result['celery'] = {'status': 'unavailable', 'active_workers': 0}
+
+    return Response(result)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def maintenance_clear_logs(request):
+    """Clear logs older than 30 days."""
+    try:
+        cutoff = timezone.now() - timedelta(days=30)
+        deleted_count, _ = ActivityLog.objects.filter(created_at__lt=cutoff).delete()
+        return Response({
+            'message': f'Se eliminaron {deleted_count} registros de log antiguos',
+            'deleted_count': deleted_count,
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def maintenance_clear_cache(request):
+    """Clear all cache entries."""
+    try:
+        from django.core.cache import caches
+        for cache_name in ['default', 'local_fallback']:
+            try:
+                caches[cache_name].clear()
+            except Exception:
+                pass
+        return Response({'message': 'Cache limpiada exitosamente'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def maintenance_clear_sessions(request):
+    """Clear expired sessions."""
+    try:
+        from django.contrib.sessions.models import Session
+        expired = Session.objects.filter(expire_date__lt=timezone.now())
+        count = expired.count()
+        expired.delete()
+        return Response({
+            'message': f'Se eliminaron {count} sesiones expiradas',
+            'deleted_count': count,
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def maintenance_optimize_db(request):
+    """Run database optimization (VACUUM ANALYZE for PostgreSQL, integrity check for SQLite)."""
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            if connection.vendor == 'postgresql':
+                cursor.execute('ANALYZE')
+                msg = 'ANALYZE ejecutado exitosamente en PostgreSQL'
+            else:
+                cursor.execute('PRAGMA integrity_check')
+                result = cursor.fetchone()
+                msg = f'Integridad de SQLite: {result[0]}'
+        return Response({'message': msg})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

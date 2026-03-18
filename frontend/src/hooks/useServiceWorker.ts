@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { registerSW } from 'virtual:pwa-register';
 
 interface ServiceWorkerState {
   isSupported: boolean;
@@ -7,6 +8,7 @@ interface ServiceWorkerState {
   isWaiting: boolean;
   isControlling: boolean;
   updateAvailable: boolean;
+  isOffline: boolean;
   registration: ServiceWorkerRegistration | null;
   error: string | null;
 }
@@ -15,10 +17,15 @@ interface ServiceWorkerActions {
   register: () => Promise<void>;
   unregister: () => Promise<void>;
   update: () => Promise<void>;
+  updateApp: () => void;
   skipWaiting: () => void;
   getCacheSize: () => Promise<number>;
   clearCache: () => Promise<void>;
 }
+
+// Singleton for the SW update callback from vite-plugin-pwa
+let updateSWCallback: ((reloadPage?: boolean) => Promise<void>) | null = null;
+let swRegistered = false;
 
 export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
   const [state, setState] = useState<ServiceWorkerState>({
@@ -28,38 +35,82 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     isWaiting: false,
     isControlling: false,
     updateAvailable: false,
+    isOffline: !navigator.onLine,
     registration: null,
     error: null,
   });
 
-  // Registrar Service Worker
+  // Track online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setState(prev => ({ ...prev, isOffline: false }));
+    };
+    const handleOffline = () => {
+      setState(prev => ({ ...prev, isOffline: true }));
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Register vite-plugin-pwa service worker
   const register = useCallback(async () => {
-    if (!state.isSupported) {
-      setState(prev => ({ 
-        ...prev, 
-        error: 'Service Worker no es soportado en este navegador' 
-      }));
+    if (!state.isSupported || swRegistered) {
       return;
     }
 
     try {
       setState(prev => ({ ...prev, isInstalling: true, error: null }));
 
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'imports',
+      const updateSW = registerSW({
+        immediate: true,
+        onRegisteredSW(swUrl, registration) {
+          setState(prev => ({
+            ...prev,
+            isRegistered: true,
+            isInstalling: false,
+            registration: registration || null,
+            isControlling: !!registration?.active,
+          }));
+
+          // Check for updates periodically (every hour)
+          if (registration) {
+            setInterval(() => {
+              registration.update();
+            }, 60 * 60 * 1000);
+          }
+        },
+        onRegisterError(error) {
+          console.error('Error registrando Service Worker:', error);
+          setState(prev => ({
+            ...prev,
+            isInstalling: false,
+            error: error instanceof Error ? error.message : 'Error desconocido al registrar SW',
+          }));
+        },
+        onNeedRefresh() {
+          setState(prev => ({
+            ...prev,
+            updateAvailable: true,
+            isWaiting: true,
+          }));
+        },
+        onOfflineReady() {
+          setState(prev => ({
+            ...prev,
+            isRegistered: true,
+            isControlling: true,
+          }));
+        },
       });
 
-      setState(prev => ({
-        ...prev,
-        isRegistered: true,
-        isInstalling: false,
-        registration,
-      }));
-
-// Configurar listeners
-      setupEventListeners(registration);
-
+      updateSWCallback = updateSW;
+      swRegistered = true;
     } catch (error) {
       console.error('Error registrando Service Worker:', error);
       setState(prev => ({
@@ -70,6 +121,18 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     }
   }, [state.isSupported]);
 
+  // Update the app (reload with new SW)
+  const updateApp = useCallback(() => {
+    if (updateSWCallback) {
+      updateSWCallback(true);
+    }
+  }, []);
+
+  // Alias for backward compatibility
+  const skipWaiting = useCallback(() => {
+    updateApp();
+  }, [updateApp]);
+
   // Desregistrar Service Worker
   const unregister = useCallback(async () => {
     if (!state.registration) {
@@ -79,6 +142,8 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     try {
       const success = await state.registration.unregister();
       if (success) {
+        swRegistered = false;
+        updateSWCallback = null;
         setState(prev => ({
           ...prev,
           isRegistered: false,
@@ -86,8 +151,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
           isWaiting: false,
           updateAvailable: false,
         }));
-
-}
+      }
     } catch (error) {
       console.error('Error desregistrando Service Worker:', error);
       setState(prev => ({
@@ -105,8 +169,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
 
     try {
       await state.registration.update();
-
-} catch (error) {
+    } catch (error) {
       console.error('Error actualizando Service Worker:', error);
       setState(prev => ({
         ...prev,
@@ -115,120 +178,35 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     }
   }, [state.registration]);
 
-  // Saltar espera y activar nueva versión
-  const skipWaiting = useCallback(() => {
-    if (state.registration?.waiting) {
-      state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-    }
-  }, [state.registration]);
-
-  // Obtener tamaño del cache
+  // Obtener tamano del cache
   const getCacheSize = useCallback(async (): Promise<number> => {
-    if (!state.registration?.active) {
+    try {
+      const cacheNames = await caches.keys();
+      let totalEntries = 0;
+      for (const name of cacheNames) {
+        const cache = await caches.open(name);
+        const keys = await cache.keys();
+        totalEntries += keys.length;
+      }
+      return totalEntries;
+    } catch {
       return 0;
-    }
-
-    return new Promise((resolve) => {
-      const messageChannel = new MessageChannel();
-      
-      messageChannel.port1.onmessage = (event) => {
-        if (event.data.type === 'CACHE_SIZE') {
-          resolve(event.data.size);
-        }
-      };
-
-      state.registration.active.postMessage(
-        { type: 'GET_CACHE_SIZE' },
-        [messageChannel.port2]
-      );
-    });
-  }, [state.registration]);
-
-  // Limpiar cache
-  const clearCache = useCallback(async (): Promise<void> => {
-    if (!state.registration?.active) {
-      return;
-    }
-
-    return new Promise((resolve) => {
-      const messageChannel = new MessageChannel();
-      
-      messageChannel.port1.onmessage = (event) => {
-        if (event.data.type === 'CACHE_CLEARED') {
-          resolve();
-        }
-      };
-
-      state.registration.active.postMessage(
-        { type: 'CLEAR_CACHE' },
-        [messageChannel.port2]
-      );
-    });
-  }, [state.registration]);
-
-  // Configurar event listeners para el Service Worker
-  const setupEventListeners = useCallback((registration: ServiceWorkerRegistration) => {
-    // Listener para actualizaciones
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (!newWorker) return;
-
-      setState(prev => ({ ...prev, isInstalling: true }));
-
-      newWorker.addEventListener('statechange', () => {
-        switch (newWorker.state) {
-          case 'installed':
-            setState(prev => ({
-              ...prev,
-              isInstalling: false,
-              isWaiting: true,
-              updateAvailable: true,
-            }));
-            break;
-          case 'activated':
-            setState(prev => ({
-              ...prev,
-              isWaiting: false,
-              updateAvailable: false,
-              isControlling: true,
-            }));
-            break;
-          case 'redundant':
-            setState(prev => ({
-              ...prev,
-              isInstalling: false,
-              isWaiting: false,
-            }));
-            break;
-        }
-      });
-    });
-
-    // Listener para cambios de controlador
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      setState(prev => ({ ...prev, isControlling: true }));
-      // Recargar la página cuando el nuevo SW tome control
-      window.location.reload();
-    });
-
-    // Verificar estado inicial
-    if (registration.waiting) {
-      setState(prev => ({
-        ...prev,
-        isWaiting: true,
-        updateAvailable: true,
-      }));
-    }
-
-    if (registration.active) {
-      setState(prev => ({ ...prev, isControlling: true }));
     }
   }, []);
 
-  // Auto-registrar en mount si es soportado
+  // Limpiar cache
+  const clearCache = useCallback(async (): Promise<void> => {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    } catch (error) {
+      console.error('Error limpiando cache:', error);
+    }
+  }, []);
+
+  // Auto-registrar en mount
   useEffect(() => {
-    if (state.isSupported && !state.isRegistered) {
-      // Registrar después de que la página esté completamente cargada
+    if (state.isSupported && !swRegistered) {
       if (document.readyState === 'complete') {
         register();
       } else {
@@ -236,13 +214,15 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
         return () => window.removeEventListener('load', register);
       }
     }
-  }, [state.isSupported, state.isRegistered, register]);
+    return undefined;
+  }, [state.isSupported, register]);
 
   return {
     ...state,
     register,
     unregister,
     update,
+    updateApp,
     skipWaiting,
     getCacheSize,
     clearCache,
@@ -260,9 +240,9 @@ export function usePushNotifications() {
       return 'denied';
     }
 
-    const permission = await Notification.requestPermission();
-    setPermission(permission);
-    return permission;
+    const perm = await Notification.requestPermission();
+    setPermission(perm);
+    return perm;
   }, []);
 
   const subscribe = useCallback(async (): Promise<PushSubscription | null> => {
@@ -271,28 +251,26 @@ export function usePushNotifications() {
     }
 
     try {
-      // Aquí deberías usar tu VAPID public key
-      const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY || '';
-      
-      const subscription = await registration.pushManager.subscribe({
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+
+      const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidPublicKey,
       });
 
-      setSubscription(subscription);
-      
-      // Enviar la suscripción al servidor
+      setSubscription(sub);
+
       await fetch('/api/v1/push/subscribe/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(subscription),
+        body: JSON.stringify(sub),
       });
 
-      return subscription;
+      return sub;
     } catch (error) {
-      console.error('Error suscribiéndose a notificaciones push:', error);
+      console.error('Error suscribiendose a notificaciones push:', error);
       return null;
     }
   }, [registration, permission]);
@@ -306,8 +284,7 @@ export function usePushNotifications() {
       const success = await subscription.unsubscribe();
       if (success) {
         setSubscription(null);
-        
-        // Notificar al servidor
+
         await fetch('/api/v1/push/unsubscribe/', {
           method: 'POST',
           headers: {
@@ -318,7 +295,7 @@ export function usePushNotifications() {
       }
       return success;
     } catch (error) {
-      console.error('Error desuscribiéndose de notificaciones push:', error);
+      console.error('Error desuscribiendose de notificaciones push:', error);
       return false;
     }
   }, [subscription]);
@@ -344,7 +321,7 @@ export function usePushNotifications() {
   };
 }
 
-// Hook para instalación de PWA
+// Hook para instalacion de PWA
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -355,27 +332,22 @@ export function usePWAInstall() {
       return false;
     }
 
-    // Mostrar el prompt de instalación
     (deferredPrompt as any).prompt();
-
-    // Esperar a que el usuario responda
     const { outcome } = await (deferredPrompt as any).userChoice;
-    
+
     setDeferredPrompt(null);
     setIsInstallable(false);
-    
+
     return outcome === 'accepted';
   }, [deferredPrompt]);
 
   useEffect(() => {
-    // Listener para el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
-    // Listener para detectar cuando la app está instalada
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setIsInstallable(false);
@@ -385,7 +357,6 @@ export function usePWAInstall() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Verificar si ya está instalada
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
     }

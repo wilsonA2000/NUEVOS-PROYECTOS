@@ -9,7 +9,7 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Stack
+  Stack,
 } from '@mui/material';
 import { CheckCircle, Error, Email } from '@mui/icons-material';
 import { api } from '../services/api';
@@ -41,8 +41,8 @@ export const ConfirmEmail: React.FC = () => {
             navigate('/login', {
               state: {
                 message: 'Tu email ha sido verificado. Ya puedes iniciar sesión.',
-                email: data.email
-              }
+                email: data.email,
+              },
             });
           }, 3000);
         } else {
@@ -67,8 +67,8 @@ export const ConfirmEmail: React.FC = () => {
   const handleRequestNewEmail = () => {
     navigate('/email-verification', {
       state: {
-        message: 'Solicita un nuevo email de verificación'
-      }
+        message: 'Solicita un nuevo email de verificación',
+      },
     });
   };
 
@@ -101,7 +101,7 @@ export const ConfirmEmail: React.FC = () => {
                   <CheckCircle 
                     sx={{ 
                       fontSize: 80, 
-                      color: 'success.main' 
+                      color: 'success.main', 
                     }} 
                   />
                   <Typography variant="h4" color="success.main" fontWeight="bold">
@@ -128,7 +128,7 @@ export const ConfirmEmail: React.FC = () => {
                   <Error 
                     sx={{ 
                       fontSize: 80, 
-                      color: 'error.main' 
+                      color: 'error.main', 
                     }} 
                   />
                   <Typography variant="h4" color="error.main" fontWeight="bold">

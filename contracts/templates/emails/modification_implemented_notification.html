@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato Actualizado</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2196f3;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2196f3;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .success-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success-box strong {
+            color: #4caf50;
+            font-size: 18px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2196f3;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1976d2;
+        }
+        .steps {
+            background-color: #fff3e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Contrato Actualizado</h1>
+        </div>
+
+        <div class="content">
+            <p>Hola <strong>{{ tenant_name }}</strong>,</p>
+
+            <p>¡Buenas noticias! El arrendador <strong>{{ landlord_name }}</strong> ha completado la edición del contrato según tus modificaciones solicitadas.</p>
+
+            <div class="success-box">
+                <strong>✅ Modificaciones Implementadas</strong><br>
+                Número de Contrato: <strong>{{ contract_number }}</strong><br>
+                Propiedad: <strong>{{ property_address }}</strong><br>
+                Ciclo de Revisión: <strong>#{{ revision_number }}</strong>
+            </div>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #1976d2;">📋 Próximos Pasos:</h3>
+                <p style="margin: 10px 0;">El contrato actualizado está ahora disponible para tu revisión. Es importante que revises cuidadosamente todos los cambios antes de proceder.</p>
+            </div>
+
+            <div class="steps">
+                <p style="margin-top: 0;"><strong>🔍 ¿Qué debes hacer?</strong></p>
+                <ol>
+                    <li><strong>Revisar el contrato actualizado:</strong> Verifica que los cambios solicitados se hayan implementado correctamente</li>
+                    <li><strong>Tomar una decisión:</strong>
+                        <ul>
+                            <li>Si todo está correcto → Aprobar y continuar al proceso biométrico</li>
+                            <li>Si necesitas más cambios → Solicitar una nueva modificación (si aún tienes ciclos disponibles)</li>
+                            <li>Si no estás de acuerdo → Rechazar el contrato</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="button">
+                    Ver Contrato Actualizado
+                </a>
+            </div>
+
+            <p style="background-color: #fff9c4; padding: 12px; border-radius: 4px; border-left: 4px solid #fbc02d;">
+                <strong>⚠️ Importante:</strong> Recuerda que hay un límite de 2 ciclos de revisión por contrato. Asegúrate de revisar cuidadosamente antes de tomar una decisión.
+            </p>
+
+            <p style="color: #666; font-size: 14px; text-align: center;">
+                Una vez que apruebes el contrato, procederás a la etapa de autenticación biométrica para formalizar el acuerdo.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Este es un email automático de VeriHome</p>
+            <p>No respondas a este correo. Para cualquier consulta, accede a tu panel de control.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -41,22 +41,25 @@ import {
   ChevronRight,
   Star,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import PushNotificationCenter from '../notifications/PushNotificationCenter';
 import UserStatusSelector from '../users/UserStatusSelector';
 import OptimizedWebSocketStatus from '../common/OptimizedWebSocketStatus';
+import ContextSwitcher from '../common/ContextSwitcher';
+import LanguageSelector from '../common/LanguageSelector';
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/app/dashboard' },
-  { text: 'Propiedades', icon: <Home />, path: '/app/properties' },
-  { text: 'Contratos', icon: <Description />, path: '/app/contracts' },
-  { text: 'Pagos', icon: <Payment />, path: '/app/payments' },
-  { text: 'Mensajes', icon: <Message />, path: '/app/messages' },
-  { text: 'Calificaciones', icon: <Star />, path: '/app/ratings' },
-  { text: 'Servicios', icon: <Build />, path: '/app/services' },
-  { text: 'Solicitudes', icon: <Assessment />, path: '/app/requests' },
+const menuItemsDef = [
+  { key: 'nav.dashboard', icon: <Dashboard />, path: '/app/dashboard' },
+  { key: 'nav.properties', icon: <Home />, path: '/app/properties' },
+  { key: 'nav.contracts', icon: <Description />, path: '/app/contracts' },
+  { key: 'nav.payments', icon: <Payment />, path: '/app/payments' },
+  { key: 'nav.messages', icon: <Message />, path: '/app/messages' },
+  { key: 'nav.ratings', icon: <Star />, path: '/app/ratings' },
+  { key: 'nav.services', icon: <Build />, path: '/app/services' },
+  { key: 'nav.requests', icon: <Assessment />, path: '/app/requests' },
 ];
 
 const Layout: React.FC = () => {
@@ -65,18 +68,25 @@ const Layout: React.FC = () => {
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   
+  const { t } = useTranslation('common');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // No WebSocket dependency for user status
   const { user, logout } = useAuth();
 
+  // Translate menu items
+  const menuItems = menuItemsDef.map(item => ({
+    ...item,
+    text: t(item.key),
+  }));
+
   // Hide/show bottom navigation on scroll for mobile
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile) return undefined;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -140,7 +150,7 @@ const Layout: React.FC = () => {
           component="div" 
           sx={{ 
             fontWeight: 'bold',
-            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            fontSize: { xs: '1.1rem', sm: '1.25rem' },
           }}
         >
           VeriHome
@@ -179,7 +189,7 @@ const Layout: React.FC = () => {
                 <ListItemText 
                   primary={item.text}
                   primaryTypographyProps={{
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
                   }}
                 />
               </ListItemButton>
@@ -221,14 +231,14 @@ const Layout: React.FC = () => {
           <Box sx={{ 
             flexGrow: 1, 
             overflow: 'hidden',
-            display: { xs: 'none', sm: 'block' }
+            display: { xs: 'none', sm: 'block' },
           }}>
             <Breadcrumbs 
               separator={<ChevronRight fontSize="small" />}
               sx={{
                 '& .MuiBreadcrumbs-ol': {
-                  flexWrap: 'nowrap'
-                }
+                  flexWrap: 'nowrap',
+                },
               }}
             >
               <Link
@@ -240,10 +250,10 @@ const Layout: React.FC = () => {
                 }}
                 sx={{ 
                   textDecoration: 'none',
-                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 }}
               >
-                Inicio
+                {t('nav.home')}
               </Link>
               {getBreadcrumbs().map((breadcrumb, index) => (
                 <Typography 
@@ -254,7 +264,7 @@ const Layout: React.FC = () => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    maxWidth: { xs: 80, sm: 120 }
+                    maxWidth: { xs: 80, sm: 120 },
                   }}
                 >
                   {breadcrumb.name}
@@ -267,7 +277,7 @@ const Layout: React.FC = () => {
           <Box sx={{ 
             flexGrow: 1, 
             display: { xs: 'block', sm: 'none' },
-            textAlign: 'center'
+            textAlign: 'center',
           }}>
             <Typography 
               variant="h6" 
@@ -278,10 +288,20 @@ const Layout: React.FC = () => {
             </Typography>
           </Box>
 
+          {/* Context Switcher - Cambio de rol */}
+          <Box sx={{ mr: { xs: 1, sm: 2 }, display: { xs: 'none', sm: 'flex' } }}>
+            <ContextSwitcher compact={isMobile} />
+          </Box>
+
           {/* User Status & WebSocket Control */}
           <Box sx={{ mr: { xs: 0.5, sm: 1 }, display: 'flex', alignItems: 'center', gap: 1 }}>
             <UserStatusSelector compact={true} showLabel={false} />
             <OptimizedWebSocketStatus compact={true} showControls={!isMobile} />
+          </Box>
+
+          {/* Language Selector */}
+          <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: { xs: 0.5, sm: 1 } }}>
+            <LanguageSelector />
           </Box>
 
           {/* Notifications - responsive sizing */}
@@ -298,7 +318,7 @@ const Layout: React.FC = () => {
               width: { xs: 28, sm: 32 }, 
               height: { xs: 28, sm: 32 }, 
               bgcolor: theme.palette.primary.main,
-              fontSize: { xs: '0.8rem', sm: '1rem' }
+              fontSize: { xs: '0.8rem', sm: '1rem' },
             }}>
               {user?.first_name?.charAt(0) || 'U'}
             </Avatar>
@@ -313,33 +333,54 @@ const Layout: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleProfileMenuClose}
         PaperProps={{
-          sx: { width: 200 },
+          sx: { width: 220 },
         }}
       >
         <MenuItem onClick={() => { navigate('/app/profile'); handleProfileMenuClose(); }}>
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Perfil</ListItemText>
+          <ListItemText>{t('nav.profile')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => { navigate('/app/resume'); handleProfileMenuClose(); }}>
           <ListItemIcon>
             <Description fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Hoja de Vida</ListItemText>
+          <ListItemText>{t('nav.resume')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => { navigate('/app/settings'); handleProfileMenuClose(); }}>
           <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Ajustes</ListItemText>
+          <ListItemText>{t('nav.settings')}</ListItemText>
         </MenuItem>
+        {/* Admin Legal - Solo visible para staff/superuser */}
+        {(user?.is_staff || user?.is_superuser) && (
+          <>
+            <Divider />
+            <MenuItem
+              onClick={() => { navigate('/app/admin'); handleProfileMenuClose(); }}
+              sx={{
+                bgcolor: 'rgba(156, 39, 176, 0.08)',
+                '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.15)' }
+              }}
+            >
+              <ListItemIcon>
+                <Assessment fontSize="small" sx={{ color: '#9c27b0' }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={t('nav.adminLegal')}
+                primaryTypographyProps={{ fontWeight: 500, color: '#9c27b0' }}
+              />
+            </MenuItem>
+          </>
+        )}
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Cerrar Sesión</ListItemText>
+          <ListItemText>{t('auth.logout')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -364,7 +405,7 @@ const Layout: React.FC = () => {
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
               width: { xs: drawerWidth * 0.85, sm: drawerWidth },
-              maxWidth: '85vw'
+              maxWidth: '85vw',
             },
           }}
         >
@@ -379,7 +420,7 @@ const Layout: React.FC = () => {
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
               width: drawerWidth,
-              borderRight: `1px solid ${theme.palette.divider}`
+              borderRight: `1px solid ${theme.palette.divider}`,
             },
           }}
           open

@@ -1,13 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getMaintenanceRequests,
-  getMaintenanceRequest,
-  createMaintenanceRequest,
-  updateMaintenanceRequest,
-  deleteMaintenanceRequest,
-  assignMaintenanceRequest,
-  completeMaintenanceRequest,
-} from '../lib/api';
+
+// Placeholder API functions - to be implemented
+const getMaintenanceRequests = async (filters?: any) => {
+  return [] as MaintenanceRequest[];
+};
+const createMaintenanceRequest = async (data: any) => {
+  return {} as MaintenanceRequest;
+};
+const updateMaintenanceRequest = async (id: number, data: any) => {
+  return {} as MaintenanceRequest;
+};
+const deleteMaintenanceRequest = async (id: number) => {
+  return;
+};
+const assignMaintenanceRequest = async (id: number, assigned_to: number, scheduled_date: string) => {
+  return {} as MaintenanceRequest;
+};
+const completeMaintenanceRequest = async (id: number) => {
+  return {} as MaintenanceRequest;
+};
 
 interface MaintenanceRequest {
   id: number;

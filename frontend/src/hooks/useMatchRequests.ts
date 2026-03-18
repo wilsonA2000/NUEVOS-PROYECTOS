@@ -57,7 +57,7 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
     data: matchRequestsResponse, 
     isLoading,
     error: requestsError,
-    refetch: refetchMatchRequests
+    refetch: refetchMatchRequests,
   } = useQuery({
     queryKey: matchRequestsKey,
     queryFn: async () => {
@@ -86,7 +86,7 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
   const { 
     data: statisticsResponse, 
     isLoading: isLoadingStats,
-    error: statsError 
+    error: statsError, 
   } = useQuery({
     queryKey: statisticsKey,
     queryFn: async () => {
@@ -103,7 +103,7 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
   // Dashboard data query
   const { 
     data: dashboardResponse,
-    error: dashboardError 
+    error: dashboardError, 
   } = useQuery({
     queryKey: dashboardKey,
     queryFn: async () => {
@@ -121,7 +121,7 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
   console.log('🔍 User info:', { 
     id: user?.id, 
     email: user?.email, 
-    user_type: user?.user_type 
+    user_type: user?.user_type, 
   });
   const sentRequests = user?.user_type === 'tenant' ? matchRequests : [];
   const receivedRequests = user?.user_type === 'landlord' ? matchRequests : [];

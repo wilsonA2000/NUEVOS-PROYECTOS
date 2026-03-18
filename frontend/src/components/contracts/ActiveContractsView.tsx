@@ -40,7 +40,7 @@ import {
   Divider,
   Paper,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material';
 import {
   Timeline,
@@ -48,7 +48,7 @@ import {
   TimelineSeparator,
   TimelineConnector,
   TimelineContent,
-  TimelineDot
+  TimelineDot,
 } from '@mui/lab';
 import {
   PlayArrow as ActiveIcon,
@@ -70,7 +70,7 @@ import {
   Assessment as AnalyticsIcon,
   Add as AddIcon,
   Close as CloseIcon,
-  Notifications as NotificationIcon
+  Notifications as NotificationIcon,
 } from '@mui/icons-material';
 import { format, addMonths, differenceInDays, parseISO, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -122,7 +122,7 @@ const ActiveContractsView: React.FC = () => {
     const totalContracts = contracts.length;
     const totalRevenue = contracts.reduce((sum, c) => sum + (c.totalPaid || 0), 0);
     const overduePaaments = contracts.filter(c => 
-      c.milestones?.some(m => m.type === 'payment' && m.status === 'overdue')
+      c.milestones?.some(m => m.type === 'payment' && m.status === 'overdue'),
     ).length;
     const expiringThisMonth = contracts.filter(c => {
       if (!c.end_date) return false;
@@ -136,7 +136,7 @@ const ActiveContractsView: React.FC = () => {
       totalRevenue,
       overduePaaments,
       expiringThisMonth,
-      averageRent: totalContracts > 0 ? Math.round(totalRevenue / totalContracts) : 0
+      averageRent: totalContracts > 0 ? Math.round(totalRevenue / totalContracts) : 0,
     };
   }, [contracts]);
 
@@ -147,9 +147,8 @@ const ActiveContractsView: React.FC = () => {
         setLoading(true);
         
         // Filtrar solo contratos activos/publicados
-        const response = await contractService.getContracts({ 
-          status: 'PUBLISHED',
-          is_active: true 
+        const response = await contractService.getContracts({
+          status: 'active',
         });
         
         // Enriquecer con datos de milestones (simulados por ahora)
@@ -160,10 +159,10 @@ const ActiveContractsView: React.FC = () => {
           totalPaid: Math.floor(Math.random() * 50000000) + 10000000, // 10M - 60M COP
           outstandingAmount: Math.floor(Math.random() * 5000000), // 0 - 5M COP
           maintenanceRequests: Math.floor(Math.random() * 3),
-          tenant_name: contract.tenant?.first_name ? `${contract.tenant.first_name} ${contract.tenant.last_name}` : 'Arrendatario',
-          landlord_name: contract.landlord?.first_name ? `${contract.landlord.first_name} ${contract.landlord.last_name}` : 'Arrendador',
+          tenant_name: contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`.trim() : contract.secondary_party?.email || 'Arrendatario',
+          landlord_name: contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}`.trim() : contract.primary_party?.email || 'Arrendador',
           property_address: contract.property?.address || 'Dirección no disponible',
-          monthly_rent: contract.monthly_rent || Math.floor(Math.random() * 3000000) + 1000000 // 1M - 4M COP
+          monthly_rent: contract.monthly_rent || Math.floor(Math.random() * 3000000) + 1000000, // 1M - 4M COP
         }));
         
         setContracts(enrichedContracts);
@@ -191,13 +190,13 @@ const ActiveContractsView: React.FC = () => {
       
       milestones.push({
         id: `payment-${paymentDate.toISOString()}`,
-        title: `Pago Canon Mensual`,
+        title: 'Pago Canon Mensual',
         description: `Canon de arrendamiento correspondiente a ${format(paymentDate, 'MMMM yyyy', { locale: es })}`,
         date: paymentDate.toISOString(),
         completed: isPast && !isOverdue,
         type: 'payment',
         amount: contract.monthly_rent || 2500000,
-        status: isOverdue ? 'overdue' : isPast ? 'completed' : 'upcoming'
+        status: isOverdue ? 'overdue' : isPast ? 'completed' : 'upcoming',
       });
       
       paymentDate = addMonths(paymentDate, 1);
@@ -211,7 +210,7 @@ const ActiveContractsView: React.FC = () => {
       date: addMonths(startDate, 6).toISOString(),
       completed: false,
       type: 'inspection',
-      status: 'upcoming'
+      status: 'upcoming',
     });
     
     return milestones.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -225,12 +224,12 @@ const ActiveContractsView: React.FC = () => {
   };
 
   // Obtener color del estado
-  const getStatusColor = (status: ContractMilestone['status']) => {
+  const getStatusColor = (status: ContractMilestone['status']): 'success' | 'error' | 'warning' | 'primary' => {
     switch (status) {
       case 'completed': return 'success';
       case 'overdue': return 'error';
       case 'upcoming': return 'warning';
-      default: return 'default';
+      default: return 'primary';
     }
   };
 
@@ -243,7 +242,7 @@ const ActiveContractsView: React.FC = () => {
       action: () => {
         // Implementar reporte de incidencia
         alert('Funcionalidad de reporte de incidencias próximamente');
-      }
+      },
     },
     {
       title: 'Solicitar Mantenimiento',
@@ -252,7 +251,7 @@ const ActiveContractsView: React.FC = () => {
       action: () => {
         // Implementar solicitud de mantenimiento
         alert('Funcionalidad de mantenimiento próximamente');
-      }
+      },
     },
     {
       title: 'Iniciar Renovación',
@@ -261,7 +260,7 @@ const ActiveContractsView: React.FC = () => {
       action: () => {
         // Implementar proceso de renovación
         alert('Proceso de renovación próximamente');
-      }
+      },
     },
     {
       title: 'Terminar Contrato',
@@ -270,8 +269,8 @@ const ActiveContractsView: React.FC = () => {
       action: () => {
         // Implementar terminación de contrato
         alert('Proceso de terminación próximamente');
-      }
-    }
+      },
+    },
   ];
 
   if (loading) {
@@ -465,7 +464,7 @@ const ActiveContractsView: React.FC = () => {
           position: 'fixed',
           bottom: 16,
           right: 16,
-          zIndex: 1000
+          zIndex: 1000,
         }}
         onClick={() => setActionDrawerOpen(true)}
       >

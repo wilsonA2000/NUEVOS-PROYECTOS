@@ -207,6 +207,7 @@ const MatchNotificationBell: React.FC<MatchNotificationBellProps> = ({
       const interval = setInterval(refreshNotifications, 30000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [unreadCount, refreshNotifications]);
 
   return (

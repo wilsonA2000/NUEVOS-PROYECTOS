@@ -19,7 +19,7 @@ export type ContractWorkflowState =
   | 'CANCELLED';               // Cancelado
 
 // Tipos de documento colombianos
-export type DocumentType = 'CC' | 'CE' | 'NIT' | 'PP';
+export type DocumentType = 'CC' | 'CE' | 'NIT' | 'PP' | 'TI';
 
 // Tipos de propiedad
 export type PropertyType = 
@@ -36,13 +36,13 @@ export type PropertyType =
 export type RentIncreaseType = 'fixed' | 'ipc' | 'negotiated' | 'none';
 
 // Políticas de huéspedes
-export type GuestsPolicy = 'unlimited' | 'limited' | 'no_overnight' | 'prior_approval';
+export type GuestsPolicy = 'unlimited' | 'limited' | 'no_overnight' | 'no_guests' | 'prior_approval';
 
 // Responsabilidad de mantenimiento
-export type MaintenanceResponsibility = 'landlord' | 'tenant' | 'shared';
+export type MaintenanceResponsibility = 'landlord' | 'tenant' | 'shared' | 'both';
 
 // Tipos de garantía
-export type GuarantorType = 'personal' | 'company' | 'insurance' | 'deposit' | 'mixed';
+export type GuarantorType = 'personal' | 'company' | 'insurance' | 'deposit' | 'mixed' | 'bank';
 
 // Prioridad de objeciones
 export type ObjectionPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -55,6 +55,8 @@ export interface LandlordData {
   full_name: string;
   document_type: DocumentType;
   document_number: string;
+  document_expedition_date?: string; // Fecha de expedición del documento (formato YYYY-MM-DD)
+  document_expedition_place?: string; // Lugar de expedición del documento
   phone: string;
   email: string;
   address: string;
@@ -76,6 +78,8 @@ export interface TenantData {
   full_name: string;
   document_type: DocumentType;
   document_number: string;
+  document_expedition_date?: string; // Fecha de expedición del documento (formato YYYY-MM-DD)
+  document_expedition_place?: string; // Lugar de expedición del documento
   phone: string;
   email: string;
   current_address: string;
@@ -570,3 +574,87 @@ export interface DigitalSignaturePayload {
 export interface PublishContractPayload {
   contract_id: string;
 }
+
+// =========================================
+// CONTRACT MODIFICATION REQUEST TYPES
+// =========================================
+
+/**
+ * Cambio individual solicitado en el contrato.
+ */
+export interface RequestedChange {
+  current_value: string | number;
+  requested_value: string | number;
+  reason: string;
+}
+
+/**
+ * Mapa de cambios solicitados.
+ * Clave: nombre del campo
+ * Valor: objeto RequestedChange
+ */
+export interface RequestedChanges {
+  [fieldName: string]: RequestedChange;
+}
+
+/**
+ * Estado de una solicitud de modificación.
+ */
+export type ModificationRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'IMPLEMENTED';
+
+/**
+ * Solicitud completa de modificación de contrato.
+ */
+export interface ContractModificationRequest {
+  id: string;
+  contract: string; // UUID del contrato
+  requested_by: string; // UUID del usuario
+  requested_by_name: string;
+  requested_by_email: string;
+  contract_address: string;
+  requested_changes: RequestedChanges;
+  reason: string;
+  revision_number: number;
+  status: ModificationRequestStatus;
+  landlord_response?: string;
+  created_at: string; // ISO 8601
+  updated_at: string; // ISO 8601
+  responded_at?: string; // ISO 8601
+  can_request_another: boolean;
+  days_since_request: number;
+}
+
+/**
+ * Payload para crear una solicitud de modificación.
+ */
+export interface CreateModificationRequestPayload {
+  contract: string; // UUID del contrato
+  requested_changes: RequestedChanges;
+  reason: string;
+}
+
+/**
+ * Payload para responder a una solicitud de modificación (arrendador).
+ */
+export interface RespondModificationRequestPayload {
+  action: 'approve' | 'reject';
+  landlord_response?: string;
+}
+
+/**
+ * Payload para marcar modificación como implementada (arrendador).
+ */
+export interface MarkImplementedPayload {
+  // No requiere payload, solo el ID de la modificación en la URL
+}
+
+/**
+ * Nuevos estados de workflow agregados.
+ */
+export const MODIFICATION_WORKFLOW_STATES = {
+  MODIFICATION_REQUESTED: 'Modificación Solicitada por Arrendatario',
+  UNDER_MODIFICATION: 'Arrendador Modificando Borrador',
+  APPROVED_BY_TENANT: 'Aprobado por Arrendatario',
+  REJECTED_BY_TENANT: 'Rechazado por Arrendatario',
+  REJECTED_BY_LANDLORD: 'Solicitud de Modificación Rechazada',
+} as const;

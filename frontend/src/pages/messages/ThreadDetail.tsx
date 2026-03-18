@@ -103,7 +103,7 @@ const ThreadDetail: React.FC = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['messageThread', threadId]);
+      queryClient.invalidateQueries({ queryKey: ['messageThread', threadId] });
       setNewMessage('');
     },
   });
@@ -229,7 +229,7 @@ const ThreadDetail: React.FC = () => {
         <Button
           type="submit"
           variant="contained"
-          disabled={!newMessage.trim() || sendMessageMutation.isLoading}
+          disabled={!newMessage.trim() || sendMessageMutation.isPending}
         >
           Enviar
         </Button>

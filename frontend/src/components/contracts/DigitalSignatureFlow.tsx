@@ -19,7 +19,7 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   Timeline,
@@ -27,7 +27,7 @@ import {
   TimelineSeparator,
   TimelineConnector,
   TimelineContent,
-  TimelineDot
+  TimelineDot,
 } from '@mui/lab';
 import {
   Security as SecurityIcon,
@@ -39,9 +39,9 @@ import {
   Warning as WarningIcon,
   Description as ContractIcon,
   Person as PersonIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import { BiometricAuthenticationFlow } from './BiometricAuthenticationFlow';
+import BiometricAuthenticationFlow from './BiometricAuthenticationFlow';
 import DigitalSignaturePad from './DigitalSignaturePad';
 
 interface DigitalSignatureFlowProps {
@@ -73,7 +73,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
   contractData,
   onSigningComplete,
   onCancel,
-  isOpen
+  isOpen,
 }) => {
   const { user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
@@ -89,24 +89,24 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
     {
       label: 'Revisión del Contrato',
       description: 'Revise los términos y condiciones',
-      icon: <ContractIcon />
+      icon: <ContractIcon />,
     },
     {
       label: 'Verificación de Identidad',
       description: 'Verificación biométrica opcional',
       icon: <SecurityIcon />,
-      optional: true
+      optional: true,
     },
     {
       label: 'Firma Digital',
       description: 'Firme digitalmente el contrato',
-      icon: <SignatureIcon />
+      icon: <SignatureIcon />,
     },
     {
       label: 'Confirmación',
       description: 'Confirme y finalice el proceso',
-      icon: <VerifiedIcon />
-    }
+      icon: <VerifiedIcon />,
+    },
   ];
 
   useEffect(() => {
@@ -160,7 +160,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
         biometricData,
         signatureData: result,
         timestamp: new Date(),
-        verificationLevel
+        verificationLevel,
       };
       
       onSigningComplete(completeData);
@@ -195,7 +195,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
     }
   };
 
-  const getVerificationColor = (): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  const getVerificationColor = (): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (verificationLevel) {
       case 'maximum': return 'success';
       case 'enhanced': return 'primary';
@@ -210,7 +210,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
       maxWidth="lg"
       fullWidth
       PaperProps={{
-        sx: { minHeight: '80vh' }
+        sx: { minHeight: '80vh' },
       }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
@@ -391,15 +391,15 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                             face_confidence: 0.95,
                             document_confidence: 0.88,
                             voice_confidence: 0.92,
-                            overall_confidence: 0.91
+                            overall_confidence: 0.91,
                           },
                           completedSteps: {
                             face_front: true,
                             face_side: true,
                             document: true,
                             combined: true,
-                            voice: true
-                          }
+                            voice: true,
+                          },
                         };
                         handleBiometricComplete(mockBiometricData);
                       }}

@@ -126,7 +126,7 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
 
   // Handle incoming user status updates (only when real-time enabled)
   useEffect(() => {
-    if (!realTimeEnabled || !isConnected) return;
+    if (!realTimeEnabled || !isConnected) return undefined;
 
     const unsubscribers = [
       optimizedWebSocketService.subscribe('user_online', (message) => {
@@ -262,11 +262,11 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
 
   // Handle page visibility for away status (optional, less aggressive)
   useEffect(() => {
-    if (!realTimeEnabled) return;
-    
+    if (!realTimeEnabled) return undefined;
+
     const handleVisibilityChange = () => {
       if (!userRef.current || !isConnected) return;
-      
+
       // Only change to away if currently online, don't override busy/offline
       const currentStatus = statusRef.current?.status;
       if (currentStatus === 'online') {

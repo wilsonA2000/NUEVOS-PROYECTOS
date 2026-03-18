@@ -186,18 +186,15 @@ describe('Performance Tests', () => {
       // Simulate adding event listeners
       const addEventListeners = () => {
         for (let i = 0; i < 10; i++) {
-          const listener = () =>
-
-listeners.push(listener);
+          const listener = () => { /* noop */ };
+          listeners.push(listener);
           // In real scenario, these would be added to DOM elements
         }
       };
 
       const removeEventListeners = () => {
-        listeners.forEach((listener, index) => {
-          // In real scenario, these would be removed from DOM elements
-          listeners.splice(index, 1);
-        });
+        // In real scenario, these would be removed from DOM elements
+        listeners.length = 0;
       };
 
       addEventListeners();

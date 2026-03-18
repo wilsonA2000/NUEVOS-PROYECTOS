@@ -30,7 +30,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
@@ -46,7 +46,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   ThumbUp as ApproveIcon,
   ThumbDown as RejectIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -96,7 +96,7 @@ interface LandlordDocumentReviewProps {
 const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
   processId,
   onDocumentReviewed,
-  onAllApproved
+  onAllApproved,
 }) => {
   const { user } = useAuth();
   
@@ -121,7 +121,6 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       setLoading(true);
       setError('');
       
-      console.log(`🔍 Loading document checklist for process ${processId}`);
       const response = await fetch(`/api/v1/requests/api/documents/process/${processId}/checklist/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -135,10 +134,8 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       
       const data = await response.json();
       setChecklist(data);
-      console.log(`✅ Loaded ${data.total_uploaded} documents for review`);
     } catch (err: any) {
       setError(err.message || 'Error al cargar documentos');
-      console.error('❌ Error loading documents:', err);
     } finally {
       setLoading(false);
     }
@@ -146,12 +143,10 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
 
   const handleReviewDocument = async () => {
     if (!selectedDocument) {
-      console.error('❌ No selected document');
       return;
     }
     
     if (!selectedDocument.id) {
-      console.error('❌ Selected document has no ID:', selectedDocument);
       setError('Error: Documento sin ID válido');
       return;
     }
@@ -161,10 +156,9 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       
       const reviewData = {
         status: reviewStatus,
-        review_notes: reviewNotes
+        review_notes: reviewNotes,
       };
       
-      console.log(`📝 Reviewing document ${selectedDocument.id}:`, reviewData);
       const response = await fetch(`/api/v1/requests/api/documents/${selectedDocument.id}/review/`, {
         method: 'PATCH',
         headers: {
@@ -203,11 +197,9 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
         }
       }
       
-      console.log(`✅ Document ${selectedDocument.id} reviewed successfully`);
       
     } catch (err: any) {
       setError(err.message || 'Error al revisar documento');
-      console.error('❌ Error reviewing document:', err);
     } finally {
       setReviewing(false);
     }
@@ -220,7 +212,6 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
   };
 
   const openReviewModal = (document: DocumentType) => {
-    console.log('🔍 Opening review modal for document:', document);
     setSelectedDocument(document);
     // Mapear el estado del documento a valores válidos para el Select
     if (document.status === 'approved') {
@@ -263,7 +254,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
   };
 
   const formatFileSize = (bytes: number) => {
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    return `${(bytes / 1024 / 1024).toFixed(2)  } MB`;
   };
 
   const renderDocumentItem = (doc: DocumentType) => {
@@ -277,7 +268,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
           bgcolor: doc.status === 'approved' ? 'success.50' : 
                   doc.status === 'rejected' ? 'error.50' :
                   doc.status === 'requires_correction' ? 'warning.50' :
-                  'background.paper'
+                  'background.paper',
         }}
       >
         <ListItemIcon>
@@ -332,18 +323,15 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                 <IconButton
                   size="small"
                   onClick={() => {
-                    console.log('🔍 Opening document URL:', doc.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
                     const backendUrl = 'http://localhost:8000';  // Django backend
                     const fullUrl = doc.file_url.startsWith('/') 
                       ? `${backendUrl}${doc.file_url}`
                       : doc.file_url;
-                    console.log('🌐 Full URL (Backend):', fullUrl);
                     
                     // Intentar abrir en nueva ventana
                     const newWindow = window.open(fullUrl, '_blank');
                     if (!newWindow) {
-                      console.warn('⚠️ Popup blocked, trying direct navigation');
                       window.location.href = fullUrl;
                     }
                   }}
@@ -535,18 +523,15 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                   variant="outlined"
                   startIcon={<ViewIcon />}
                   onClick={() => {
-                    console.log('🔍 Opening document from modal:', selectedDocument.file_url);
                     // Construir URL absoluta para el archivo - USAR BACKEND URL
                     const backendUrl = 'http://localhost:8000';  // Django backend
                     const fullUrl = selectedDocument.file_url.startsWith('/') 
                       ? `${backendUrl}${selectedDocument.file_url}`
                       : selectedDocument.file_url;
-                    console.log('🌐 Full URL from modal (Backend):', fullUrl);
                     
                     // Intentar abrir en nueva ventana
                     const newWindow = window.open(fullUrl, '_blank');
                     if (!newWindow) {
-                      console.warn('⚠️ Popup blocked in modal, trying direct navigation');
                       window.location.href = fullUrl;
                     }
                   }}
@@ -594,8 +579,8 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                 rows={3}
                 helperText={
                   reviewStatus === 'rejected' || reviewStatus === 'requires_correction' 
-                    ? "Explica el motivo del rechazo o qué debe corregirse"
-                    : "Comentarios adicionales (opcional)"
+                    ? 'Explica el motivo del rechazo o qué debe corregirse'
+                    : 'Comentarios adicionales (opcional)'
                 }
                 required={reviewStatus === 'rejected' || reviewStatus === 'requires_correction'}
               />

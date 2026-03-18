@@ -1,0 +1,64 @@
+{
+  "labels": {
+    "title": "Title",
+    "description": "Description",
+    "priority": "Priority",
+    "category": "Category",
+    "assignedTo": "Assigned To",
+    "reportedBy": "Reported By",
+    "reportDate": "Report Date",
+    "completionDate": "Completion Date",
+    "estimatedCost": "Estimated Cost",
+    "actualCost": "Actual Cost",
+    "property": "Property",
+    "unit": "Unit",
+    "photos": "Photos"
+  },
+  "priorities": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent",
+    "emergency": "Emergency"
+  },
+  "categories": {
+    "plumbing": "Plumbing",
+    "electrical": "Electrical",
+    "structural": "Structural",
+    "painting": "Painting",
+    "appliances": "Appliances",
+    "locksmith": "Locksmith",
+    "cleaning": "Cleaning",
+    "pest": "Pest Control",
+    "hvac": "HVAC",
+    "general": "General",
+    "other": "Other"
+  },
+  "status": {
+    "reported": "Reported",
+    "acknowledged": "Acknowledged",
+    "inProgress": "In Progress",
+    "waitingParts": "Waiting for Parts",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "closed": "Closed"
+  },
+  "actions": {
+    "createRequest": "Create Request",
+    "assignTechnician": "Assign Technician",
+    "updateStatus": "Update Status",
+    "addComment": "Add Comment",
+    "uploadPhoto": "Upload Photo",
+    "markCompleted": "Mark as Completed",
+    "closeRequest": "Close Request",
+    "requestQuote": "Request Quote"
+  },
+  "messages": {
+    "requestCreated": "Maintenance request created successfully",
+    "requestUpdated": "Request updated successfully",
+    "technicianAssigned": "Technician assigned successfully",
+    "requestCompleted": "Maintenance request completed",
+    "noRequests": "No maintenance requests",
+    "urgentNotice": "This request requires immediate attention"
+  }
+}

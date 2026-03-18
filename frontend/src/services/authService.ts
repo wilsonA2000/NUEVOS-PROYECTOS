@@ -3,50 +3,48 @@ import { User, LoginDto, RegisterDto, UpdateProfileDto, AuthResponse } from '../
 
 // Función para procesar errores y devolver mensajes amigables
 const processError = (error: any): Error => {
-  console.error('❌ Error procesado:', error);
-  
   // Si es un error de red
   if (!error.response) {
     if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED')) {
-      return new Error('🔌 No se puede conectar con el servidor VeriHome.\n\n• Verifica que el servidor esté ejecutándose\n• Comprueba tu conexión a internet\n• Si el problema persiste, contacta soporte');
+      return new Error('No se puede conectar con el servidor VeriHome.\n\nVerifica que el servidor este ejecutandose.');
     }
     if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
-      return new Error('🌐 Error de red.\n\n• Verifica tu conexión a internet\n• Intenta recargar la página\n• Si el problema persiste, contacta soporte');
+      return new Error('Error de red.\n\nVerifica tu conexion a internet.');
     }
     if (error.code === 'TIMEOUT' || error.message?.includes('timeout')) {
-      return new Error('⏱️ La petición tardó demasiado tiempo.\n\n• Verifica tu conexión a internet\n• Intenta nuevamente en unos segundos');
+      return new Error('La peticion tardo demasiado tiempo.\n\nIntenta nuevamente en unos segundos.');
     }
-    return new Error('🔌 Error de conexión.\n\n• Verifica tu conexión a internet\n• Asegúrate de que el servidor esté disponible');
+    return new Error('Error de conexion.\n\nVerifica tu conexion a internet.');
   }
-  
+
   const { status, data } = error.response;
-  
+
   // Errores específicos del backend con tipos
   if (status === 400 && data?.error_type) {
     switch (data.error_type) {
       case 'missing_fields':
-        return new Error('📝 Faltan campos requeridos.\n\n• Email y contraseña son obligatorios\n• Completa todos los campos e intenta nuevamente');
-      
+        return new Error('Faltan campos requeridos.\n\nEmail y contrasena son obligatorios.');
+
       case 'user_not_found':
-        return new Error(`👤 No existe una cuenta con el email:\n${data.email || 'el email proporcionado'}\n\n• Verifica que el email sea correcto\n• ¿Necesitas registrarte?`);
-      
+        return new Error(`No existe una cuenta con el email:\n${data.email || 'el email proporcionado'}\n\nVerifica que el email sea correcto.`);
+
       case 'invalid_password':
-        return new Error(`🔑 La contraseña es incorrecta.\n\n• Verifica que la contraseña sea correcta\n• ¿Olvidaste tu contraseña?`);
-      
+        return new Error('La contrasena es incorrecta.\n\nVerifica que la contrasena sea correcta.');
+
       case 'email_not_verified':
-        return new Error(`📧 Tu cuenta no ha sido verificada.\n\n• Revisa tu email (incluyendo spam)\n• Confirma tu cuenta haciendo clic en el enlace\n• ¿No recibiste el email?`);
-      
+        return new Error('Tu cuenta no ha sido verificada.\n\nRevisa tu email (incluyendo spam).');
+
       case 'account_disabled':
-        return new Error(`🚫 Tu cuenta ha sido desactivada.\n\n• Contacta al soporte para reactivarla\n• Email: soporte@verihome.com`);
-      
+        return new Error('Tu cuenta ha sido desactivada.\n\nContacta al soporte para reactivarla.');
+
       case 'token_generation_error':
-        return new Error('🔐 Error generando tokens de acceso.\n\n• Intenta nuevamente en unos segundos\n• Si persiste, contacta soporte');
-      
+        return new Error('Error generando tokens de acceso.\n\nIntenta nuevamente en unos segundos.');
+
       default:
-        return new Error(data.detail || 'Error de validación. Verifica los datos ingresados.');
+        return new Error(data.detail || 'Error de validacion. Verifica los datos ingresados.');
     }
   }
-  
+
   // Otros errores 400 sin tipo específico
   if (status === 400) {
     if (data?.detail) {
@@ -58,31 +56,31 @@ const processError = (error: any): Error => {
     if (typeof data === 'string') {
       return new Error(data);
     }
-    return new Error('📝 Datos de entrada inválidos.\n\nPor favor, verifica la información ingresada.');
+    return new Error('Datos de entrada invalidos.\n\nPor favor, verifica la informacion ingresada.');
   }
-  
+
   if (status === 401) {
-    return new Error('🚫 Credenciales inválidas.\n\n• Verifica tu email y contraseña\n• ¿Olvidaste tu contraseña?');
+    return new Error('Credenciales invalidas.\n\nVerifica tu email y contrasena.');
   }
-  
+
   if (status === 403) {
-    return new Error('🚫 Acceso denegado.\n\nTu cuenta no tiene permisos para esta acción.');
+    return new Error('Acceso denegado.\n\nTu cuenta no tiene permisos para esta accion.');
   }
-  
+
   if (status === 404) {
-    return new Error('❓ Recurso no encontrado.\n\nPor favor, verifica la URL o contacta soporte.');
+    return new Error('Recurso no encontrado.\n\nPor favor, verifica la URL o contacta soporte.');
   }
-  
+
   if (status === 429) {
-    return new Error('⏱️ Demasiadas solicitudes.\n\n• Espera un momento antes de intentar\n• El límite se restablece en unos minutos');
+    return new Error('Demasiadas solicitudes.\n\nEspera un momento antes de intentar.');
   }
-  
+
   if (status >= 500) {
-    return new Error('🔧 Error del servidor.\n\n• Intenta nuevamente más tarde\n• Si persiste, contacta soporte');
+    return new Error('Error del servidor.\n\nIntenta nuevamente mas tarde.');
   }
-  
+
   // Error genérico
-  return new Error(data?.detail || data?.message || '❌ Ha ocurrido un error inesperado.');
+  return new Error(data?.detail || data?.message || 'Ha ocurrido un error inesperado.');
 };
 
 export const authService = {
@@ -90,35 +88,33 @@ export const authService = {
 
 try {
       const response = await api.post('/users/auth/login/', data);
-      
+
       // Verificar si hay un error en la respuesta
       if (response.status >= 400) {
-        console.error('❌ Error en login:', response.data);
         throw processError({
           response: {
             data: response.data,
-            status: response.status
-          }
+            status: response.status,
+          },
         });
       }
 
 const { access, refresh } = response.data;
-      
+
       // Solo guardar tokens si realmente tenemos tokens válidos
       if (access && refresh) {
         localStorage.setItem('access_token', access);
         localStorage.setItem('refresh_token', refresh);
-        
+
         // Obtener el usuario actual con el token
 
 const userResponse = await api.get('/users/auth/me/');
 
 return userResponse.data;
       } else {
-        throw new Error('🔐 No se recibieron tokens válidos del servidor.\n\nIntenta nuevamente o contacta soporte.');
+        throw new Error('No se recibieron tokens validos del servidor.\n\nIntenta nuevamente o contacta soporte.');
       }
     } catch (error: any) {
-      console.error('❌ Error en login:', error);
       // Limpiar cualquier token inválido
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
@@ -132,24 +128,23 @@ try {
       // Backend expects password2 field for confirmation
       const registrationData = {
         ...data,
-        password2: data.password
+        password2: data.password,
       };
-      
+
       // Si el interview_code está vacío, no enviarlo al backend
       if (!registrationData.interview_code || registrationData.interview_code.trim() === '') {
         delete registrationData.interview_code;
       }
-      
+
       const response = await api.post('/users/auth/register/', registrationData);
-      
+
       // Verificar si la respuesta es realmente exitosa
       if (response.status >= 400) {
-        console.error('❌ Error en registro (status >= 400):', response.data);
         throw processError({
           response: {
             data: response.data,
-            status: response.status
-          }
+            status: response.status,
+          },
         });
       }
 
@@ -163,28 +158,20 @@ try {
         user_type: data.user_type,
         is_verified: false, // El usuario no está verificado hasta confirmar email
         phone_number: data.phone_number || '',
-        avatar: null
+        avatar: null,
       } as unknown as User;
     } catch (error: any) {
-      console.error('❌ Error en registro:', error);
       throw processError(error);
     }
   },
 
   async logout(): Promise<void> {
-    console.log('🔓 AuthService.logout - Iniciando...');
     // Obtener token del localStorage o sessionStorage
     const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-    console.log('🔑 Token:', token ? 'Presente' : 'No presente');
-    
+
     try {
-      const response = await api.post('/users/auth/logout/');
-      console.log('✅ Logout del servidor exitoso:', response.status);
+      await api.post('/users/auth/logout/');
     } catch (error: any) {
-      console.error('❌ Error en logout del servidor:', error);
-      console.error('❌ Status:', error.response?.status);
-      console.error('❌ Data:', error.response?.data);
-      console.error('❌ Message:', error.message);
       throw error;
     }
   },
@@ -196,21 +183,15 @@ try {
 
 // Verificar que la respuesta contiene un usuario válido
       if (!response.data || !response.data.email) {
-        console.error('❌ Respuesta de usuario inválida:', response.data);
-        throw new Error('Usuario inválido recibido del servidor');
+        throw new Error('Usuario invalido recibido del servidor');
       }
-      
+
       return response.data;
     } catch (error: any) {
       // Si es 401, es esperado cuando no hay token válido
       if (error.response?.status === 401) {
-        // No loguear error 401 como es esperado cuando no hay autenticación
         throw error;
       }
-      // Solo loguear otros errores inesperados
-      console.error('❌ Error obteniendo usuario actual:', error);
-      console.error('❌ Status:', error.response?.status);
-      console.error('❌ Data:', error.response?.data);
       throw error;
     }
   },
@@ -222,7 +203,6 @@ try {
 
 return response.data;
     } catch (error: any) {
-      console.error('❌ Error actualizando perfil:', error);
       throw error;
     }
   },
@@ -233,7 +213,6 @@ try {
       await api.put('/users/auth/change-password/', { oldPassword, newPassword });
 
 } catch (error: any) {
-      console.error('❌ Error cambiando contraseña:', error);
       throw error;
     }
   },
@@ -244,7 +223,6 @@ try {
       await api.post('/users/auth/forgot-password/', { email });
 
 } catch (error: any) {
-      console.error('❌ Error solicitando restablecimiento:', error);
       throw error;
     }
   },
@@ -255,9 +233,8 @@ try {
       await api.post('/users/auth/reset-password/', { token, newPassword, uid });
 
 } catch (error: any) {
-      console.error('❌ Error restableciendo contraseña:', error);
       throw error;
     }
   },
-}; 
+};
 /* Cache busted: 2025-08-06T04:42:27.058Z - AUTH_SERVICE */

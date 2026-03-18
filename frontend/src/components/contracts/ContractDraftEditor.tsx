@@ -19,25 +19,30 @@ import {
   Divider,
   Chip,
   InputAdornment,
-  LoadingButton,
   Skeleton,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
 } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import {
   SaveAs as SaveIcon,
   Preview as PreviewIcon,
   Close as CloseIcon,
   Edit as EditIcon,
   Security as SecurityIcon,
-  Legal as LegalIcon,
+  Gavel as LegalIcon,
   Restore as RestoreIcon,
-  PictureAsPdf as PdfIcon
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { LandlordContractService } from '../../services/landlordContractService';
-import { LandlordControlledContractData, CreateContractPayload } from '../../types/landlordContract';
+import {
+  LandlordControlledContractData,
+  CreateContractPayload,
+  DocumentType,
+  PropertyType,
+} from '../../types/landlordContract';
 
 interface ContractDraftEditorProps {
   contractId: string;
@@ -51,18 +56,20 @@ interface EditableContractData {
   landlord_full_name: string;
   landlord_document_type: string;
   landlord_document_number: string;
+  landlord_document_expedition_date: string;
+  landlord_document_expedition_place: string;
   landlord_phone: string;
   landlord_email: string;
   landlord_address: string;
   landlord_city: string;
-  
+
   // Property data
   property_id: string;
   property_address: string;
   property_area: number;
   property_type: string;
   property_furnished: boolean;
-  
+
   // Economic terms
   monthly_rent: number;
   security_deposit: number;
@@ -71,11 +78,16 @@ interface EditableContractData {
   pets_allowed: boolean;
   smoking_allowed: boolean;
   payment_day: number;
-  
+
+  // Contract terms - Políticas
+  guests_policy: 'unlimited' | 'limited' | 'prohibited';
+  max_occupants: number;
+  rent_increase_type: 'ipc' | 'fixed' | 'negotiable';
+
   // Contract template and clauses
   contract_template: string;
   special_clauses: string[];
-  
+
   // Guarantee system (3 options)
   guarantee_type: 'none' | 'codeudor_salario' | 'codeudor_finca_raiz';
   codeudor_full_name: string;
@@ -89,6 +101,7 @@ interface EditableContractData {
   codeudor_position: string;
   codeudor_monthly_income: number;
   codeudor_work_phone: string;
+  codeudor_occupation: string;
   // Real estate guarantee fields
   property_matricula: string;
   property_address_guarantee: string;
@@ -105,7 +118,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   contractId,
   onSave,
   onCancel,
-  onClose
+  onClose,
 }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setIsSaving] = useState(false);
@@ -120,6 +133,8 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     landlord_full_name: '',
     landlord_document_type: 'CC',
     landlord_document_number: '',
+    landlord_document_expedition_date: '',
+    landlord_document_expedition_place: '',
     landlord_phone: '',
     landlord_email: '',
     landlord_address: '',
@@ -136,6 +151,9 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     pets_allowed: false,
     smoking_allowed: false,
     payment_day: 5,
+    guests_policy: 'unlimited',
+    max_occupants: 4,
+    rent_increase_type: 'ipc',
     contract_template: 'rental_urban',
     special_clauses: [],
     guarantee_type: 'none',
@@ -150,6 +168,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     codeudor_position: '',
     codeudor_monthly_income: 0,
     codeudor_work_phone: '',
+    codeudor_occupation: '',
     property_matricula: '',
     property_address_guarantee: '',
     property_predial_number: '',
@@ -158,7 +177,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     property_area_guarantee: 0,
     property_department_guarantee: '',
     property_city_guarantee: '',
-    requires_biometric_codeudor: false
+    requires_biometric_codeudor: false,
   });
 
   // Original data for comparison
@@ -171,7 +190,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     'Términos del Contrato',
     'Garantías del Contrato',
     'Cláusulas Especiales',
-    'Revisión y Actualización'
+    'Revisión y Actualización',
   ];
 
   // Load contract data on component mount
@@ -181,7 +200,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
   // Auto-save every 30 seconds if there are changes
   useEffect(() => {
-    if (!hasChanges) return;
+    if (!hasChanges) return undefined;
 
     const autoSaveTimer = setInterval(async () => {
       if (hasChanges && !saving) {
@@ -217,63 +236,72 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
   const mapContractToEditableData = (contract: LandlordControlledContractData): EditableContractData => {
     // Extract data from contract and map to editable format
-    const basicTerms = contract.basic_terms || {};
-    const landlordData = contract.landlord_data || {};
-    const propertyData = contract.property_data || {};
-    const guaranteeData = basicTerms.guarantee_data || {};
+    const landlordData = contract.landlord_data;
+    // Extract contract_terms (puede contener guests_policy, guarantee_type, codeudor_data)
+    const contractTerms = (contract as any).contract_terms || {};
+    const codeudorData = contractTerms.codeudor_data || {};
 
     return {
       // Landlord data
       landlord_full_name: landlordData.full_name || '',
       landlord_document_type: landlordData.document_type || 'CC',
       landlord_document_number: landlordData.document_number || '',
+      landlord_document_expedition_date: landlordData.document_expedition_date || '',
+      landlord_document_expedition_place: landlordData.document_expedition_place || '',
       landlord_phone: landlordData.phone || '',
       landlord_email: landlordData.email || '',
       landlord_address: landlordData.address || '',
       landlord_city: landlordData.city || '',
-      
+
       // Property data
-      property_id: propertyData.property_id || '',
-      property_address: propertyData.property_address || '',
-      property_area: propertyData.property_area || 0,
-      property_type: propertyData.property_type || 'apartment',
-      property_furnished: propertyData.property_furnished || false,
-      
+      property_id: contract.property_id || '',
+      property_address: contract.property_address || '',
+      property_area: contract.property_area || 0,
+      property_type: contract.property_type || 'apartamento',
+      property_furnished: contract.property_furnished || false,
+
       // Economic terms
-      monthly_rent: basicTerms.monthly_rent || 0,
-      security_deposit: basicTerms.security_deposit || 0,
-      contract_duration_months: basicTerms.duration_months || 12,
-      utilities_included: basicTerms.utilities_included || false,
-      pets_allowed: basicTerms.pets_allowed || false,
-      smoking_allowed: basicTerms.smoking_allowed || false,
-      payment_day: basicTerms.payment_day || 5,
-      
+      monthly_rent: contract.monthly_rent || 0,
+      security_deposit: contract.security_deposit || 0,
+      contract_duration_months: contract.contract_duration_months || 12,
+      utilities_included: contract.utilities_included || false,
+      pets_allowed: contract.pets_allowed || false,
+      smoking_allowed: contract.smoking_allowed || false,
+      payment_day: contract.payment_day || 5,
+
+      // Contract terms - Políticas (leer de contract_terms o valores por defecto)
+      guests_policy: contractTerms.guests_policy || (contract as any).guests_policy || 'unlimited',
+      max_occupants: contractTerms.max_occupants || (contract as any).max_occupants || 4,
+      rent_increase_type: contractTerms.rent_increase_type || (contract as any).rent_increase_type || 'ipc',
+
       // Contract template and clauses
-      contract_template: contract.contract_template || 'rental_urban',
+      contract_template: 'rental_urban', // Default template
       special_clauses: contract.special_clauses || [],
-      
-      // Guarantee system
-      guarantee_type: guaranteeData.guarantee_type || 'none',
-      codeudor_full_name: guaranteeData.codeudor_full_name || '',
-      codeudor_document_type: guaranteeData.codeudor_document_type || 'CC',
-      codeudor_document_number: guaranteeData.codeudor_document_number || '',
-      codeudor_phone: guaranteeData.codeudor_phone || '',
-      codeudor_email: guaranteeData.codeudor_email || '',
-      codeudor_address: guaranteeData.codeudor_address || '',
-      codeudor_city: guaranteeData.codeudor_city || '',
-      codeudor_employer: guaranteeData.codeudor_employer || '',
-      codeudor_position: guaranteeData.codeudor_position || '',
-      codeudor_monthly_income: guaranteeData.codeudor_monthly_income || 0,
-      codeudor_work_phone: guaranteeData.codeudor_work_phone || '',
-      property_matricula: guaranteeData.property_matricula || '',
-      property_address_guarantee: guaranteeData.property_address_guarantee || '',
-      property_predial_number: guaranteeData.property_predial_number || '',
-      property_catastral_number: guaranteeData.property_catastral_number || '',
-      property_linderos: guaranteeData.property_linderos || '',
-      property_area_guarantee: guaranteeData.property_area_guarantee || 0,
-      property_department_guarantee: guaranteeData.property_department_guarantee || '',
-      property_city_guarantee: guaranteeData.property_city_guarantee || '',
-      requires_biometric_codeudor: guaranteeData.requires_biometric_codeudor || false
+
+      // Guarantee system - leer de contract_terms
+      guarantee_type: contractTerms.guarantee_type || 'none',
+      codeudor_full_name: codeudorData.codeudor_full_name || '',
+      codeudor_document_type: codeudorData.codeudor_document_type || 'CC',
+      codeudor_document_number: codeudorData.codeudor_document_number || '',
+      codeudor_phone: codeudorData.codeudor_phone || '',
+      codeudor_email: codeudorData.codeudor_email || '',
+      codeudor_address: codeudorData.codeudor_address || '',
+      codeudor_city: codeudorData.codeudor_city || '',
+      codeudor_employer: codeudorData.codeudor_employer || '',
+      codeudor_position: codeudorData.codeudor_position || '',
+      codeudor_monthly_income: codeudorData.codeudor_monthly_income || 0,
+      codeudor_work_phone: codeudorData.codeudor_work_phone || '',
+      codeudor_occupation: codeudorData.codeudor_occupation || '',
+      // Real estate guarantee fields - leer de codeudor_data
+      property_matricula: codeudorData.property_matricula || '',
+      property_address_guarantee: codeudorData.property_address_guarantee || '',
+      property_predial_number: codeudorData.property_predial_number || '',
+      property_catastral_number: codeudorData.property_catastral_number || '',
+      property_linderos: codeudorData.property_linderos || '',
+      property_area_guarantee: codeudorData.property_area_guarantee || 0,
+      property_department_guarantee: codeudorData.property_department_guarantee || '',
+      property_city_guarantee: codeudorData.property_city_guarantee || '',
+      requires_biometric_codeudor: contractTerms.requires_biometric_codeudor || false,
     };
   };
 
@@ -292,59 +320,91 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         return;
       }
 
-      // Prepare update payload
-      const updatePayload = {
+      // Prepare update payload - matching LandlordControlledContractData structure
+      const updatePayload: Partial<LandlordControlledContractData> & { contract_terms?: any } = {
+        // Landlord data
         landlord_data: {
           full_name: contractData.landlord_full_name,
-          document_type: contractData.landlord_document_type,
+          document_type: contractData.landlord_document_type as DocumentType,
           document_number: contractData.landlord_document_number,
+          document_expedition_date: contractData.landlord_document_expedition_date,
+          document_expedition_place: contractData.landlord_document_expedition_place,
           phone: contractData.landlord_phone,
           email: contractData.landlord_email,
           address: contractData.landlord_address,
           city: contractData.landlord_city,
+          emergency_contact: '', // Required field - using empty string as default
         },
-        property_data: {
-          property_id: contractData.property_id,
-          property_address: contractData.property_address,
-          property_area: contractData.property_area,
-          property_type: contractData.property_type,
-          property_furnished: contractData.property_furnished,
-        },
-        basic_terms: {
-          monthly_rent: contractData.monthly_rent,
-          security_deposit: contractData.security_deposit,
-          duration_months: contractData.contract_duration_months,
-          utilities_included: contractData.utilities_included,
-          pets_allowed: contractData.pets_allowed,
-          smoking_allowed: contractData.smoking_allowed,
-          payment_day: contractData.payment_day,
+        // Property data
+        property_id: contractData.property_id,
+        property_address: contractData.property_address,
+        property_area: contractData.property_area,
+        property_type: contractData.property_type as PropertyType,
+        property_furnished: contractData.property_furnished,
+        property_stratum: 3, // Default value - should be made editable
+        // Economic terms
+        monthly_rent: contractData.monthly_rent,
+        security_deposit: contractData.security_deposit,
+        contract_duration_months: contractData.contract_duration_months,
+        utilities_included: contractData.utilities_included,
+        pets_allowed: contractData.pets_allowed,
+        smoking_allowed: contractData.smoking_allowed,
+        payment_day: contractData.payment_day,
+        // Contract clauses
+        special_clauses: contractData.special_clauses,
+        // Required fields for the type
+        current_state: contract?.current_state || 'DRAFT',
+        rent_increase_type: contractData.rent_increase_type as any,
+        guests_policy: contractData.guests_policy as any,
+        max_occupants: contractData.max_occupants,
+        guarantor_required: contractData.guarantee_type !== 'none',
+        // Contract terms con garantías, políticas y codeudor
+        contract_terms: {
+          // Políticas del contrato
+          guests_policy: contractData.guests_policy,
+          max_occupants: contractData.max_occupants,
+          rent_increase_type: contractData.rent_increase_type,
+          // Garantías
           guarantee_type: contractData.guarantee_type,
-          guarantee_data: {
-            guarantee_type: contractData.guarantee_type,
-            codeudor_full_name: contractData.codeudor_full_name,
-            codeudor_document_type: contractData.codeudor_document_type,
-            codeudor_document_number: contractData.codeudor_document_number,
-            codeudor_phone: contractData.codeudor_phone,
-            codeudor_email: contractData.codeudor_email,
-            codeudor_address: contractData.codeudor_address,
-            codeudor_city: contractData.codeudor_city,
-            codeudor_employer: contractData.codeudor_employer,
-            codeudor_position: contractData.codeudor_position,
-            codeudor_monthly_income: contractData.codeudor_monthly_income,
-            codeudor_work_phone: contractData.codeudor_work_phone,
-            property_matricula: contractData.property_matricula,
-            property_address_guarantee: contractData.property_address_guarantee,
-            property_predial_number: contractData.property_predial_number,
-            property_catastral_number: contractData.property_catastral_number,
-            property_linderos: contractData.property_linderos,
-            property_area_guarantee: contractData.property_area_guarantee,
-            property_department_guarantee: contractData.property_department_guarantee,
-            property_city_guarantee: contractData.property_city_guarantee,
-            requires_biometric_codeudor: contractData.requires_biometric_codeudor
-          }
+          guarantor_required: contractData.guarantee_type !== 'none',
+          // Datos del codeudor si aplica
+          ...(contractData.guarantee_type !== 'none' && {
+            codeudor_data: {
+              codeudor_full_name: contractData.codeudor_full_name,
+              codeudor_document_type: contractData.codeudor_document_type,
+              codeudor_document_number: contractData.codeudor_document_number,
+              codeudor_phone: contractData.codeudor_phone,
+              codeudor_email: contractData.codeudor_email,
+              codeudor_address: contractData.codeudor_address,
+              codeudor_city: contractData.codeudor_city,
+              codeudor_occupation: contractData.codeudor_occupation,
+              codeudor_monthly_income: contractData.codeudor_monthly_income,
+              codeudor_employer: contractData.codeudor_employer,
+              codeudor_position: contractData.codeudor_position,
+              codeudor_work_phone: contractData.codeudor_work_phone,
+              // Datos específicos para codeudor_finca_raiz
+              ...(contractData.guarantee_type === 'codeudor_finca_raiz' && {
+                property_matricula: contractData.property_matricula,
+                property_address_guarantee: contractData.property_address_guarantee,
+                property_city_guarantee: contractData.property_city_guarantee,
+                property_department_guarantee: contractData.property_department_guarantee,
+                property_area_guarantee: contractData.property_area_guarantee,
+                property_predial_number: contractData.property_predial_number,
+                property_catastral_number: contractData.property_catastral_number,
+                property_linderos: contractData.property_linderos,
+              }),
+            },
+          }),
         },
-        contract_template: contractData.contract_template,
-        special_clauses: contractData.special_clauses
+        maintenance_responsibility: 'landlord',
+        utilities_responsibility: 'tenant',
+        insurance_responsibility: 'tenant',
+        landlord_approved: false,
+        tenant_approved: false,
+        landlord_signed: false,
+        tenant_signed: false,
+        published: false,
+        workflow_history: contract?.workflow_history || [],
       };
 
       console.log('💾 Saving contract changes:', updatePayload);
@@ -446,7 +506,10 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   const handlePreviewPDF = async () => {
     try {
       setPreviewDialogOpen(true);
-      // TODO: Implement PDF preview functionality
+      // Open PDF preview in new tab using the contract ID
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const pdfUrl = `${API_BASE_URL}/contracts/${contractId}/preview-pdf/`;
+      window.open(pdfUrl, '_blank');
     } catch (error) {
       console.error('Error generating PDF preview:', error);
     }
@@ -472,18 +535,529 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
   const getChangedFields = (): string[] => {
     if (!originalData) return [];
-    
+
     const changedFields: string[] = [];
     Object.keys(contractData).forEach(key => {
       const currentValue = contractData[key as keyof EditableContractData];
       const originalValue = originalData[key as keyof EditableContractData];
-      
+
       if (JSON.stringify(currentValue) !== JSON.stringify(originalValue)) {
         changedFields.push(key);
       }
     });
-    
+
     return changedFields;
+  };
+
+  const renderStepContent = (step: number): React.ReactNode => {
+    switch (step) {
+      case 0: // Información del Arrendador
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nombre Completo"
+                value={contractData.landlord_full_name}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_full_name: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Documento</InputLabel>
+                <Select
+                  value={contractData.landlord_document_type}
+                  onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_type: e.target.value }))}
+                  label="Tipo de Documento"
+                >
+                  <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                  <MenuItem value="PP">Pasaporte</MenuItem>
+                  <MenuItem value="NI">NIT</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                label="Número de Documento"
+                value={contractData.landlord_document_number}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_number: e.target.value }))}
+              />
+            </Grid>
+            {/* Campos de expedición de documento */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Lugar de Expedición del Documento"
+                value={contractData.landlord_document_expedition_place}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_expedition_place: e.target.value }))}
+                placeholder="Ej: Piedecuesta, Santander"
+                helperText="Ciudad donde fue expedido el documento"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Fecha de Expedición del Documento"
+                type="date"
+                value={contractData.landlord_document_expedition_date}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_expedition_date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                helperText="Fecha en que fue expedido el documento"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Teléfono"
+                value={contractData.landlord_phone}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_phone: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={contractData.landlord_email}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_email: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Dirección"
+                value={contractData.landlord_address}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_address: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Ciudad"
+                value={contractData.landlord_city}
+                onChange={(e) => setContractData(prev => ({ ...prev, landlord_city: e.target.value }))}
+              />
+            </Grid>
+          </Grid>
+        );
+
+      case 1: // Detalles de la Propiedad
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Dirección de la Propiedad"
+                value={contractData.property_address}
+                onChange={(e) => setContractData(prev => ({ ...prev, property_address: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Área (m²)"
+                type="number"
+                value={contractData.property_area}
+                onChange={(e) => setContractData(prev => ({ ...prev, property_area: parseFloat(e.target.value) }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Propiedad</InputLabel>
+                <Select
+                  value={contractData.property_type}
+                  onChange={(e) => setContractData(prev => ({ ...prev, property_type: e.target.value }))}
+                  label="Tipo de Propiedad"
+                >
+                  <MenuItem value="apartamento">Apartamento</MenuItem>
+                  <MenuItem value="casa">Casa</MenuItem>
+                  <MenuItem value="oficina">Oficina</MenuItem>
+                  <MenuItem value="local">Local Comercial</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={contractData.property_furnished}
+                    onChange={(e) => setContractData(prev => ({ ...prev, property_furnished: e.target.checked }))}
+                  />
+                }
+                label="Amoblado"
+              />
+            </Grid>
+          </Grid>
+        );
+
+      case 2: // Términos Económicos
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Arriendo Mensual"
+                type="number"
+                value={contractData.monthly_rent}
+                onChange={(e) => setContractData(prev => ({ ...prev, monthly_rent: parseFloat(e.target.value) }))}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Depósito de Garantía"
+                type="number"
+                value={contractData.security_deposit}
+                onChange={(e) => setContractData(prev => ({ ...prev, security_deposit: parseFloat(e.target.value) }))}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Duración (meses)"
+                type="number"
+                value={contractData.contract_duration_months}
+                onChange={(e) => setContractData(prev => ({ ...prev, contract_duration_months: parseInt(e.target.value) }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Día de Pago"
+                type="number"
+                value={contractData.payment_day}
+                onChange={(e) => setContractData(prev => ({ ...prev, payment_day: parseInt(e.target.value) }))}
+                helperText="Día del mes (1-31)"
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={contractData.utilities_included}
+                    onChange={(e) => setContractData(prev => ({ ...prev, utilities_included: e.target.checked }))}
+                  />
+                }
+                label="Servicios Incluidos"
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={contractData.pets_allowed}
+                    onChange={(e) => setContractData(prev => ({ ...prev, pets_allowed: e.target.checked }))}
+                  />
+                }
+                label="Mascotas Permitidas"
+              />
+            </Grid>
+            {/* Divider para separar políticas adicionales */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle1" color="primary" gutterBottom>
+                Políticas de Convivencia
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Política de Huéspedes</InputLabel>
+                <Select
+                  value={contractData.guests_policy}
+                  onChange={(e) => setContractData(prev => ({ ...prev, guests_policy: e.target.value as 'unlimited' | 'limited' | 'prohibited' }))}
+                  label="Política de Huéspedes"
+                >
+                  <MenuItem value="unlimited">Sin Restricciones</MenuItem>
+                  <MenuItem value="limited">Limitado (máx. 3 noches)</MenuItem>
+                  <MenuItem value="prohibited">Prohibido</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Máximo de Ocupantes"
+                type="number"
+                value={contractData.max_occupants}
+                onChange={(e) => setContractData(prev => ({ ...prev, max_occupants: parseInt(e.target.value) || 1 }))}
+                helperText="Número máximo de personas"
+                inputProps={{ min: 1, max: 20 }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Incremento de Arriendo</InputLabel>
+                <Select
+                  value={contractData.rent_increase_type}
+                  onChange={(e) => setContractData(prev => ({ ...prev, rent_increase_type: e.target.value as 'ipc' | 'fixed' | 'negotiable' }))}
+                  label="Incremento de Arriendo"
+                >
+                  <MenuItem value="ipc">IPC (Índice de Precios al Consumidor)</MenuItem>
+                  <MenuItem value="fixed">Porcentaje Fijo</MenuItem>
+                  <MenuItem value="negotiable">Negociable</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        );
+
+      case 3: // Sistema de Garantías
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Garantía</InputLabel>
+                <Select
+                  value={contractData.guarantee_type}
+                  onChange={(e) => setContractData(prev => ({ ...prev, guarantee_type: e.target.value as any }))}
+                  label="Tipo de Garantía"
+                >
+                  <MenuItem value="none">Sin Garantía</MenuItem>
+                  <MenuItem value="codeudor_salario">Codeudor (Salario)</MenuItem>
+                  <MenuItem value="codeudor_finca_raiz">Codeudor (Finca Raíz)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            {contractData.guarantee_type !== 'none' && (
+              <>
+                {/* Sección: Datos Personales del Codeudor */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="subtitle1" color="primary" gutterBottom>
+                    Datos Personales del Codeudor
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Nombre Completo del Codeudor"
+                    value={contractData.codeudor_full_name}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_full_name: e.target.value }))}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo Documento</InputLabel>
+                    <Select
+                      value={contractData.codeudor_document_type}
+                      onChange={(e) => setContractData(prev => ({ ...prev, codeudor_document_type: e.target.value as any }))}
+                      label="Tipo Documento"
+                    >
+                      <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                      <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                      <MenuItem value="NIT">NIT</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    label="Número de Documento"
+                    value={contractData.codeudor_document_number}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_document_number: e.target.value }))}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email del Codeudor"
+                    type="email"
+                    value={contractData.codeudor_email}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_email: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono del Codeudor"
+                    value={contractData.codeudor_phone}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_phone: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={8}>
+                  <TextField
+                    fullWidth
+                    label="Dirección del Codeudor"
+                    value={contractData.codeudor_address}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_address: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Ciudad"
+                    value={contractData.codeudor_city}
+                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_city: e.target.value }))}
+                  />
+                </Grid>
+
+                {/* Sección: Información Laboral (para codeudor_salario) */}
+                {contractData.guarantee_type === 'codeudor_salario' && (
+                  <>
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 1 }} />
+                      <Typography variant="subtitle1" color="primary" gutterBottom>
+                        Información Laboral
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Empresa/Empleador"
+                        value={contractData.codeudor_employer}
+                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_employer: e.target.value }))}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Cargo/Posición"
+                        value={contractData.codeudor_position}
+                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_position: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Ingresos Mensuales"
+                        type="number"
+                        value={contractData.codeudor_monthly_income}
+                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_monthly_income: parseFloat(e.target.value) || 0 }))}
+                        InputProps={{
+                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        }}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Teléfono de Trabajo"
+                        value={contractData.codeudor_work_phone}
+                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_work_phone: e.target.value }))}
+                      />
+                    </Grid>
+                  </>
+                )}
+
+                {/* Sección: Datos del Inmueble de Garantía (para codeudor_finca_raiz) */}
+                {contractData.guarantee_type === 'codeudor_finca_raiz' && (
+                  <>
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 1 }} />
+                      <Typography variant="subtitle1" color="primary" gutterBottom>
+                        Inmueble en Garantía
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Matrícula Inmobiliaria"
+                        value={contractData.property_matricula}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_matricula: e.target.value }))}
+                        required
+                        helperText="Número de folio de matrícula inmobiliaria"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Número Predial"
+                        value={contractData.property_predial_number}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_predial_number: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Dirección del Inmueble de Garantía"
+                        value={contractData.property_address_guarantee}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_address_guarantee: e.target.value }))}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Ciudad"
+                        value={contractData.property_city_guarantee}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_city_guarantee: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Departamento"
+                        value={contractData.property_department_guarantee}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_department_guarantee: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Área (m²)"
+                        type="number"
+                        value={contractData.property_area_guarantee}
+                        onChange={(e) => setContractData(prev => ({ ...prev, property_area_guarantee: parseFloat(e.target.value) || 0 }))}
+                      />
+                    </Grid>
+                  </>
+                )}
+              </>
+            )}
+          </Grid>
+        );
+
+      case 4: // Cláusulas Especiales
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Las cláusulas especiales se generan automáticamente basándose en las opciones seleccionadas.
+              </Alert>
+              <Typography variant="body2" color="text.secondary">
+                Total de cláusulas especiales: {contractData.special_clauses?.length || 0}
+              </Typography>
+            </Grid>
+          </Grid>
+        );
+
+      case 5: // Revisión y Confirmación
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Alert severity="success">
+                Revise todos los datos antes de guardar los cambios.
+              </Alert>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                Cambios Realizados: {getChangedFields().length} campos modificados
+              </Typography>
+              {getChangedFields().length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  {getChangedFields().map(field => (
+                    <Chip key={field} label={field} size="small" sx={{ m: 0.5 }} />
+                  ))}
+                </Box>
+              )}
+            </Grid>
+          </Grid>
+        );
+
+      default:
+        return <Typography>Paso no implementado</Typography>;
+    }
   };
 
   if (loading) {
@@ -594,22 +1168,17 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
           ))}
         </Stepper>
 
-        {/* Step Content - This would be similar to LandlordContractForm but with all fields editable and prefilled */}
+        {/* Step Content - Editable fields for each step */}
         <Box sx={{ minHeight: 400 }}>
-          {/* TODO: Implement step content rendering similar to LandlordContractForm */}
           <Typography variant="h6" gutterBottom>
             {steps[activeStep]}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Paso {activeStep + 1} de {steps.length}
           </Typography>
-          
-          {/* Placeholder for step content */}
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', border: '1px dashed #ccc', borderRadius: 1 }}>
-            <Typography variant="body1" color="text.secondary">
-              Formulario de edición para: {steps[activeStep]}
-            </Typography>
-          </Box>
+
+          {/* Step Content Rendering */}
+          {renderStepContent(activeStep)}
         </Box>
 
         {/* Navigation buttons */}
@@ -667,10 +1236,15 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            Vista previa del PDF con los cambios actuales...
-          </Typography>
-          {/* TODO: Implement PDF preview iframe or component */}
+          <Box sx={{ width: '100%', height: '600px' }}>
+            <iframe
+              src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contractId}/preview-pdf/`}
+              width="100%"
+              height="100%"
+              title="Vista Previa del Contrato PDF"
+              style={{ border: 'none', borderRadius: '4px' }}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPreviewDialogOpen(false)}>

@@ -48,7 +48,7 @@ import {
   LinearProgress,
   useTheme,
   useMediaQuery,
-  Zoom
+  Zoom,
 } from '@mui/material';
 import {
   Visibility as PreviewIcon,
@@ -71,14 +71,14 @@ import {
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
   Print as PrintIcon,
-  Share as ShareIcon
+  Share as ShareIcon,
 } from '@mui/icons-material';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { contractService } from '../../services/contractService';
 import { Contract } from '../../types/contract';
-import { DigitalSignatureFlow } from './DigitalSignatureFlow';
+import DigitalSignatureFlow from './DigitalSignatureFlow';
 
 interface ContractPreviewProps {
   contractId: string;
@@ -106,7 +106,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   contractId,
   onSigningComplete,
   onClose,
-  initialEditMode = false
+  initialEditMode = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -127,59 +127,59 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
     {
       id: 'parties',
       title: 'PARTES DEL CONTRATO',
-      content: `Entre los suscritos a saber: ${contract?.landlord?.first_name || '[ARRENDADOR]'} ${contract?.landlord?.last_name || ''}, mayor de edad, identificado con cédula de ciudadanía número ${contract?.landlord?.document_number || '[CC_ARRENDADOR]'}, quien en adelante se denominará EL ARRENDADOR, y ${contract?.tenant?.first_name || '[ARRENDATARIO]'} ${contract?.tenant?.last_name || ''}, mayor de edad, identificado con cédula de ciudadanía número ${contract?.tenant?.document_number || '[CC_ARRENDATARIO]'}, quien en adelante se denominará EL ARRENDATARIO.`,
+      content: `Entre los suscritos a saber: ${contract?.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : '[ARRENDADOR]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDADOR], quien en adelante se denominará EL ARRENDADOR, y ${contract?.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : '[ARRENDATARIO]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDATARIO], quien en adelante se denominará EL ARRENDATARIO.`,
       editable: true,
       required: true,
-      category: 'parties'
+      category: 'parties',
     },
     {
       id: 'property',
       title: 'OBJETO DEL CONTRATO',
-      content: `EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble ubicado en ${contract?.property?.address || '[DIRECCION_PROPIEDAD]'}, ciudad de ${contract?.property?.city || '[CIUDAD]'}, con las siguientes características: ${contract?.property?.bedrooms || '[X]'} habitaciones, ${contract?.property?.bathrooms || '[X]'} baños, área de ${contract?.property?.total_area || '[X]'} metros cuadrados, estrato ${contract?.property?.floor_number || '[X]'}.`,
+      content: `EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble ubicado en ${contract?.property?.address || '[DIRECCION_PROPIEDAD]'}, con las características descritas en el anexo del contrato.`,
       editable: true,
       required: true,
-      category: 'property'
+      category: 'property',
     },
     {
       id: 'financial',
       title: 'CANON DE ARRENDAMIENTO Y FORMA DE PAGO',
-      content: `El canon mensual de arrendamiento es de ${contract?.monthly_rent ? `$${contract.monthly_rent.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_CANON]'} ($${contract?.monthly_rent || '[VALOR_NUMERICO]'}), que EL ARRENDATARIO se obliga a pagar dentro de los cinco (5) primeros días de cada mes. El depósito de garantía corresponde a ${contract?.security_deposit ? `$${contract.security_deposit.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_DEPOSITO]'}.`,
+      content: `El canon mensual de arrendamiento es de ${contract?.monthly_rent ? `$${contract.monthly_rent.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_CANON]'} ($${contract?.monthly_rent || '[VALOR_NUMERICO]'}), que EL ARRENDATARIO se obliga a pagar dentro de los cinco (5) primeros días de cada mes. El depósito de garantía corresponde a ${contract?.deposit_amount ? `$${contract.deposit_amount.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_DEPOSITO]'}.`,
       editable: true,
       required: true,
-      category: 'financial'
+      category: 'financial',
     },
     {
       id: 'duration',
       title: 'DURACIÓN DEL CONTRATO',
-      content: `El presente contrato tendrá una duración de ${contract?.duration_months || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_FIN]'}.`,
+      content: `El presente contrato tendrá una duración de ${differenceInMonths(contract?.end_date ? parseISO(contract.end_date) : new Date(), contract?.start_date ? parseISO(contract.start_date) : new Date()) || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_FIN]'}.`,
       editable: true,
       required: true,
-      category: 'terms'
+      category: 'terms',
     },
     {
       id: 'obligations',
       title: 'OBLIGACIONES DE LAS PARTES',
-      content: `OBLIGACIONES DEL ARRENDADOR: 1) Entregar el inmueble en buen estado, 2) Realizar las reparaciones necesarias por deterioro normal, 3) Respetar la destinación del inmueble. OBLIGACIONES DEL ARRENDATARIO: 1) Pagar oportunamente el canon de arrendamiento, 2) Usar el inmueble conforme a su destinación, 3) Permitir las inspecciones del arrendador, 4) Restituir el inmueble en las mismas condiciones.`,
+      content: 'OBLIGACIONES DEL ARRENDADOR: 1) Entregar el inmueble en buen estado, 2) Realizar las reparaciones necesarias por deterioro normal, 3) Respetar la destinación del inmueble. OBLIGACIONES DEL ARRENDATARIO: 1) Pagar oportunamente el canon de arrendamiento, 2) Usar el inmueble conforme a su destinación, 3) Permitir las inspecciones del arrendador, 4) Restituir el inmueble en las mismas condiciones.',
       editable: true,
       required: true,
-      category: 'legal'
+      category: 'legal',
     },
     {
       id: 'clauses',
       title: 'CLÁUSULAS ESPECIALES',
-      content: `Se pactan las siguientes cláusulas especiales: ${contract?.special_clauses || '1) El inmueble se entrega amoblado según inventario anexo. 2) No se permite el subarriendo sin autorización previa. 3) Los servicios públicos son por cuenta del arrendatario. 4) Se prohíbe tener mascotas sin autorización.'}`,
+      content: `Se pactan las siguientes cláusulas especiales: ${contract?.terms || '1) El inmueble se entrega amoblado según inventario anexo. 2) No se permite el subarriendo sin autorización previa. 3) Los servicios públicos son por cuenta del arrendatario. 4) Se prohíbe tener mascotas sin autorización.'}`,
       editable: true,
       required: false,
-      category: 'legal'
+      category: 'legal',
     },
     {
       id: 'termination',
       title: 'TERMINACIÓN DEL CONTRATO',
-      content: `El presente contrato podrá darse por terminado por las siguientes causas: 1) Vencimiento del plazo pactado, 2) Incumplimiento en el pago del canon por más de dos (2) meses, 3) Violación de cualquiera de las obligaciones pactadas, 4) Mutuo acuerdo entre las partes. En caso de terminación anticipada por parte del arrendatario, deberá dar aviso con treinta (30) días de anticipación.`,
+      content: 'El presente contrato podrá darse por terminado por las siguientes causas: 1) Vencimiento del plazo pactado, 2) Incumplimiento en el pago del canon por más de dos (2) meses, 3) Violación de cualquiera de las obligaciones pactadas, 4) Mutuo acuerdo entre las partes. En caso de terminación anticipada por parte del arrendatario, deberá dar aviso con treinta (30) días de anticipación.',
       editable: true,
       required: true,
-      category: 'legal'
-    }
+      category: 'legal',
+    },
   ], [contract]);
 
   // Cargar datos del contrato
@@ -192,7 +192,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           ...response,
           sections: contractSections,
           lastModified: new Date().toISOString(),
-          version: 1
+          version: 1,
         });
       } catch (error) {
         console.error('Error loading contract:', error);
@@ -209,12 +209,12 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
     if (!contract) return;
     
     const updatedSections = contract.sections?.map(section =>
-      section.id === sectionId ? { ...section, content: newContent } : section
+      section.id === sectionId ? { ...section, content: newContent } : section,
     );
     
     setContract({
       ...contract,
-      sections: updatedSections
+      sections: updatedSections,
     });
     setUnsavedChanges(true);
   };
@@ -225,10 +225,10 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
     
     try {
       setLoading(true);
-      
+
       // Aquí se enviarían los cambios al backend
       await contractService.editContractBeforeAuth(contractId, {
-        special_clauses: contract.sections?.find(s => s.id === 'clauses')?.content,
+        terms: contract.sections?.find(s => s.id === 'clauses')?.content,
         // Otros campos editables...
       });
       
@@ -278,7 +278,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       property: 'success',
       financial: 'warning',
       legal: 'error',
-      terms: 'info'
+      terms: 'info',
     };
     return colors[category] as 'primary' | 'success' | 'warning' | 'error' | 'info';
   };
@@ -455,7 +455,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                         sx={{ 
                           textAlign: 'justify',
                           lineHeight: 1.8,
-                          fontFamily: 'serif'
+                          fontFamily: 'serif',
                         }}
                       >
                         {section.content}
@@ -487,7 +487,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                   sx={{ 
                     fontFamily: 'serif',
                     fontWeight: 'bold',
-                    textTransform: 'uppercase'
+                    textTransform: 'uppercase',
                   }}
                 >
                   {index + 1}. {section.title}
@@ -499,7 +499,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                     textAlign: 'justify',
                     lineHeight: 1.8,
                     fontFamily: 'serif',
-                    pl: 2
+                    pl: 2,
                   }}
                 >
                   {section.content}
@@ -522,24 +522,24 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                       EL ARRENDADOR
                     </Typography>
                     <Typography variant="body2">
-                      {contract.landlord?.first_name} {contract.landlord?.last_name}
+                      {contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : contract.primary_party?.email || 'N/A'}
                     </Typography>
                     <Typography variant="body2">
-                      C.C. {contract.landlord?.document_number}
+                      Documento: N/A
                     </Typography>
                   </Box>
                 </Grid>
-                
+
                 <Grid item xs={12} md={6} textAlign="center">
                   <Box sx={{ borderTop: '1px solid black', pt: 1, mt: 8 }}>
                     <Typography variant="body1" fontWeight="bold">
                       EL ARRENDATARIO
                     </Typography>
                     <Typography variant="body2">
-                      {contract.tenant?.first_name} {contract.tenant?.last_name}
+                      {contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'N/A'}
                     </Typography>
                     <Typography variant="body2">
-                      C.C. {contract.tenant?.document_number}
+                      Documento: N/A
                     </Typography>
                   </Box>
                 </Grid>
@@ -558,7 +558,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               position: 'fixed',
               bottom: 24,
               right: 24,
-              zIndex: 1000
+              zIndex: 1000,
             }}
             onClick={handleProceedToSign}
             disabled={unsavedChanges}
@@ -577,7 +577,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               position: 'fixed',
               bottom: 24,
               right: 24,
-              zIndex: 1000
+              zIndex: 1000,
             }}
             onClick={handleSaveChanges}
             disabled={loading}
@@ -598,7 +598,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           display: 'flex',
           gap: 1,
           zIndex: 1000,
-          boxShadow: theme.shadows[8]
+          boxShadow: theme.shadows[8],
         }}
       >
         {editMode ? (
@@ -698,7 +698,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           isOpen={showSignatureFlow}
           contractId={contractId}
           contractTitle={`Contrato de Arrendamiento #${contractId.slice(0, 8)}`}
-          signerName={contract.tenant?.first_name || 'Usuario'}
+          signerName={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'Usuario'}
           signerRole="tenant"
           contractData={contract}
           onSigningComplete={() => {

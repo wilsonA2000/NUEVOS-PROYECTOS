@@ -182,7 +182,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         document_type: formData.documentType,
         document_number: formData.documentNumber,
         phone: formData.phone,
-        redirect_url: redirectUrl || window.location.origin + '/payments/return',
+        redirect_url: redirectUrl || `${window.location.origin  }/payments/return`,
       };
 
       const response = await fetch('http://localhost:8000/api/v1/payments/wompi/initiate/', {

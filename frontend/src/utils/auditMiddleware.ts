@@ -24,7 +24,7 @@ const defaultConfig: AuditConfig = {
   logErrors: true,
   logPerformance: true,
   sensitiveFields: ['password', 'token', 'secret', 'key', 'auth'],
-  ignoredPaths: ['/health', '/ping', '/status']
+  ignoredPaths: ['/health', '/ping', '/status'],
 };
 
 class AuditMiddleware {
@@ -51,7 +51,7 @@ class AuditMiddleware {
     loggingService.info(
       LogCategory.SYSTEM, 
       'Audit middleware initialized',
-      { config: this.config }
+      { config: this.config },
     );
   }
 
@@ -74,8 +74,8 @@ class AuditMiddleware {
           from: window.location.href,
           to: url?.toString(),
           state,
-          title
-        }
+          title,
+        },
       });
 
       return originalPushState.apply(history, [state, title, url]);
@@ -90,8 +90,8 @@ class AuditMiddleware {
           from: window.location.href,
           to: url?.toString(),
           state,
-          title
-        }
+          title,
+        },
       });
 
       return originalReplaceState.apply(history, [state, title, url]);
@@ -101,12 +101,12 @@ class AuditMiddleware {
     window.addEventListener('popstate', (event) => {
       loggingService.logUserActivity({
         action: 'navigation_back_forward',
-        description: `Browser back/forward navigation`,
+        description: 'Browser back/forward navigation',
         category: LogCategory.UI,
         metadata: {
           url: window.location.href,
-          state: event.state
-        }
+          state: event.state,
+        },
       });
     });
   }
@@ -134,8 +134,8 @@ class AuditMiddleware {
             elementText: elementInfo.text,
             elementId: elementInfo.id,
             elementClass: elementInfo.className,
-            position: { x: event.clientX, y: event.clientY }
-          }
+            position: { x: event.clientX, y: event.clientY },
+          },
         });
       }
     });
@@ -155,8 +155,8 @@ class AuditMiddleware {
           formClass: form.className,
           formMethod: form.method,
           formAction: form.action,
-          fieldCount: sanitizedData.size
-        }
+          fieldCount: sanitizedData.size,
+        },
       });
     });
 
@@ -172,8 +172,8 @@ class AuditMiddleware {
             inputType: target.type,
             inputName: target.name,
             inputId: target.id,
-            hasValue: !!target.value
-          }
+            hasValue: !!target.value,
+          },
         );
       }
     });
@@ -195,10 +195,10 @@ class AuditMiddleware {
           lineno: event.lineno,
           colno: event.colno,
           message: event.message,
-          stack: event.error?.stack
+          stack: event.error?.stack,
         },
         'AuditMiddleware',
-        event.error
+        event.error,
       );
     });
 
@@ -213,9 +213,9 @@ class AuditMiddleware {
             elementType: element.tagName,
             resourceUrl: (element as any).src || (element as any).href,
             elementId: element.id,
-            elementClass: element.className
+            elementClass: element.className,
           },
-          'AuditMiddleware'
+          'AuditMiddleware',
         );
       }
     }, true);
@@ -239,8 +239,8 @@ class AuditMiddleware {
               {
                 element: (entry as any).element?.tagName,
                 url: (entry as any).url,
-                size: (entry as any).size
-              }
+                size: (entry as any).size,
+              },
             );
           });
         });
@@ -255,8 +255,8 @@ class AuditMiddleware {
               {
                 inputType: (entry as any).name,
                 processingStart: (entry as any).processingStart,
-                startTime: entry.startTime
-              }
+                startTime: entry.startTime,
+              },
             );
           });
         });
@@ -286,8 +286,8 @@ class AuditMiddleware {
                 clsValue,
                 {
                   totalShifts: list.getEntries().length,
-                  threshold: 'significant'
-                }
+                  threshold: 'significant',
+                },
               );
             }
             clsValue = 0; // Reset valor acumulado
@@ -304,16 +304,16 @@ class AuditMiddleware {
     window.addEventListener('load', () => {
       setTimeout(() => {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        
+
         loggingService.logPerformance(
           'page_load_complete',
-          navigation.loadEventEnd - navigation.navigationStart,
+          navigation.loadEventEnd - navigation.fetchStart,
           {
-            domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
+            domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
             firstPaint: this.getFirstPaint(),
             firstContentfulPaint: this.getFirstContentfulPaint(),
-            resources: performance.getEntriesByType('resource').length
-          }
+            resources: performance.getEntriesByType('resource').length,
+          },
         );
       }, 0);
     });
@@ -340,9 +340,9 @@ class AuditMiddleware {
         url: config.url,
         hasData: !!config.data,
         headers: this.sanitizeHeaders(config.headers || {}),
-        params: config.params
+        params: config.params,
       },
-      'APIInterceptor'
+      'APIInterceptor',
     );
 
     // Agregar metadata para el response
@@ -370,9 +370,9 @@ class AuditMiddleware {
         statusText: response.statusText,
         duration,
         responseSize: JSON.stringify(response.data).length,
-        headers: this.sanitizeHeaders(response.headers || {})
+        headers: this.sanitizeHeaders(response.headers || {}),
       },
-      'APIInterceptor'
+      'APIInterceptor',
     );
 
     // Integrar con performanceMonitor existente
@@ -380,7 +380,7 @@ class AuditMiddleware {
       response.config.url,
       response.config.method?.toUpperCase() || 'GET',
       duration,
-      response.status
+      response.status,
     );
 
     return response;
@@ -406,10 +406,10 @@ class AuditMiddleware {
         duration,
         errorMessage: error.message,
         errorCode: error.code,
-        responseData: error.response?.data
+        responseData: error.response?.data,
       },
       'APIInterceptor',
-      error
+      error,
     );
 
     return Promise.reject(error);
@@ -447,7 +447,7 @@ class AuditMiddleware {
       type: element.tagName.toLowerCase(),
       text: element.textContent?.trim().substring(0, 50) || '',
       id: element.id,
-      className: element.className
+      className: element.className,
     };
   }
 
@@ -457,7 +457,7 @@ class AuditMiddleware {
     for (const [key] of formData.entries()) {
       // Solo registrar si el campo existe, no el valor
       const isSensitive = this.config.sensitiveFields.some(field => 
-        key.toLowerCase().includes(field.toLowerCase())
+        key.toLowerCase().includes(field.toLowerCase()),
       );
       sanitized.set(key, !isSensitive);
     }
@@ -472,7 +472,7 @@ class AuditMiddleware {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(data)) {
         const isSensitive = this.config.sensitiveFields.some(field => 
-          key.toLowerCase().includes(field.toLowerCase())
+          key.toLowerCase().includes(field.toLowerCase()),
         );
         sanitized[key] = isSensitive ? '[SANITIZED]' : value;
       }
@@ -488,7 +488,7 @@ class AuditMiddleware {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(headers)) {
       const isSensitive = this.config.sensitiveFields.some(field => 
-        key.toLowerCase().includes(field.toLowerCase())
+        key.toLowerCase().includes(field.toLowerCase()),
       ) || key.toLowerCase().includes('authorization');
       
       sanitized[key] = isSensitive ? '[SANITIZED]' : value;
@@ -521,8 +521,8 @@ export const useAuditTrack = (componentName: string) => {
       category: LogCategory.USER_ACTION,
       metadata: {
         component: componentName,
-        ...details
-      }
+        ...details,
+      },
     });
   };
 
@@ -532,10 +532,10 @@ export const useAuditTrack = (componentName: string) => {
       `Error in ${componentName}`,
       {
         component: componentName,
-        ...context
+        ...context,
       },
       componentName,
-      error
+      error,
     );
   };
 
@@ -545,15 +545,15 @@ export const useAuditTrack = (componentName: string) => {
       duration,
       {
         component: componentName,
-        ...metadata
-      }
+        ...metadata,
+      },
     );
   };
 
   return {
     trackEvent,
     trackError,
-    trackPerformance
+    trackPerformance,
   };
 };
 

@@ -15,7 +15,7 @@ import {
 import { 
   Send as SendIcon, 
   CheckCircle as CheckIcon,
-  ContactSupport as ContactIcon 
+  ContactSupport as ContactIcon, 
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { api } from '../../services/api';
@@ -131,7 +131,7 @@ const ContactForm: React.FC = () => {
                 control={control}
                 rules={{ 
                   required: 'El nombre es requerido',
-                  minLength: { value: 2, message: 'Mínimo 2 caracteres' }
+                  minLength: { value: 2, message: 'Mínimo 2 caracteres' },
                 }}
                 render={({ field }) => (
                   <TextField
@@ -205,8 +205,8 @@ const ContactForm: React.FC = () => {
                   required: 'El teléfono es requerido',
                   pattern: {
                     value: /^[+]?[\d\s\-()]{10,}$/,
-                    message: 'Teléfono inválido'
-                  }
+                    message: 'Teléfono inválido',
+                  },
                 }}
                 render={({ field }) => (
                   <TextField
@@ -277,7 +277,7 @@ const ContactForm: React.FC = () => {
                 control={control}
                 rules={{ 
                   required: 'El asunto es requerido',
-                  minLength: { value: 5, message: 'Mínimo 5 caracteres' }
+                  minLength: { value: 5, message: 'Mínimo 5 caracteres' },
                 }}
                 render={({ field }) => (
                   <TextField

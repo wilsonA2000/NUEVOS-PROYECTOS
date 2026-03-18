@@ -27,7 +27,7 @@ import {
   BarChart as ChartIcon,
   Email as EmailIcon,
   Smartphone as MobileIcon,
-  Desktop as DesktopIcon,
+  Computer as DesktopIcon,
 } from '@mui/icons-material';
 
 // Interfaces para métricas de notificaciones

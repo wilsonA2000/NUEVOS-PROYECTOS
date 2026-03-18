@@ -24,9 +24,9 @@ interface RoleProtectedRouteProps {
 const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ 
   children, 
   requiredRole,
-  fallbackComponent: FallbackComponent 
+  fallbackComponent: FallbackComponent, 
 }) => {
-  const { user, loading } = useAuth();
+  const { user, isLoading: loading } = useAuth();
 
   if (loading) {
     return <LoadingSpinner message="Verificando permisos..." />;

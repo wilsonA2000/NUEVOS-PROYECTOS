@@ -253,13 +253,13 @@ class BusinessNotificationService {
         type: 'property_created',
         actor: {
           id: landlord.id,
-          name: landlord.first_name + ' ' + landlord.last_name,
+          name: `${landlord.first_name  } ${  landlord.last_name}`,
           email: landlord.email,
           user_type: 'landlord',
         },
         target: {
           id: user.id,
-          name: user.first_name + ' ' + user.last_name,
+          name: `${user.first_name  } ${  user.last_name}`,
           email: user.email,
           user_type: user.user_type,
         },
@@ -281,13 +281,13 @@ class BusinessNotificationService {
       type: 'property_interest',
       actor: {
         id: tenant.id,
-        name: tenant.first_name + ' ' + tenant.last_name,
+        name: `${tenant.first_name  } ${  tenant.last_name}`,
         email: tenant.email,
         user_type: 'tenant',
       },
       target: {
         id: landlord.id,
-        name: landlord.first_name + ' ' + landlord.last_name,
+        name: `${landlord.first_name  } ${  landlord.last_name}`,
         email: landlord.email,
         user_type: 'landlord',
       },
@@ -308,13 +308,13 @@ class BusinessNotificationService {
       type: 'service_request',
       actor: {
         id: requester.id,
-        name: requester.first_name + ' ' + requester.last_name,
+        name: `${requester.first_name  } ${  requester.last_name}`,
         email: requester.email,
         user_type: requester.user_type,
       },
       target: {
         id: serviceProvider.id,
-        name: serviceProvider.first_name + ' ' + serviceProvider.last_name,
+        name: `${serviceProvider.first_name  } ${  serviceProvider.last_name}`,
         email: serviceProvider.email,
         user_type: 'service_provider',
       },
@@ -335,13 +335,13 @@ class BusinessNotificationService {
       type: 'request_accepted',
       actor: {
         id: acceptor.id,
-        name: acceptor.first_name + ' ' + acceptor.last_name,
+        name: `${acceptor.first_name  } ${  acceptor.last_name}`,
         email: acceptor.email,
         user_type: acceptor.user_type,
       },
       target: {
         id: requester.id,
-        name: requester.first_name + ' ' + requester.last_name,
+        name: `${requester.first_name  } ${  requester.last_name}`,
         email: requester.email,
         user_type: requester.user_type,
       },
@@ -362,13 +362,13 @@ class BusinessNotificationService {
       type: 'request_rejected',
       actor: {
         id: rejector.id,
-        name: rejector.first_name + ' ' + rejector.last_name,
+        name: `${rejector.first_name  } ${  rejector.last_name}`,
         email: rejector.email,
         user_type: rejector.user_type,
       },
       target: {
         id: requester.id,
-        name: requester.first_name + ' ' + requester.last_name,
+        name: `${requester.first_name  } ${  requester.last_name}`,
         email: requester.email,
         user_type: requester.user_type,
       },
@@ -389,13 +389,13 @@ class BusinessNotificationService {
       type: 'message_received',
       actor: {
         id: sender.id,
-        name: sender.first_name + ' ' + sender.last_name,
+        name: `${sender.first_name  } ${  sender.last_name}`,
         email: sender.email,
         user_type: sender.user_type,
       },
       target: {
         id: recipient.id,
-        name: recipient.first_name + ' ' + recipient.last_name,
+        name: `${recipient.first_name  } ${  recipient.last_name}`,
         email: recipient.email,
         user_type: recipient.user_type,
       },
@@ -419,13 +419,13 @@ class BusinessNotificationService {
       type: 'payment_received',
       actor: {
         id: payer.id,
-        name: payer.first_name + ' ' + payer.last_name,
+        name: `${payer.first_name  } ${  payer.last_name}`,
         email: payer.email,
         user_type: payer.user_type,
       },
       target: {
         id: recipient.id,
-        name: recipient.first_name + ' ' + recipient.last_name,
+        name: `${recipient.first_name  } ${  recipient.last_name}`,
         email: recipient.email,
         user_type: recipient.user_type,
       },
@@ -449,13 +449,13 @@ class BusinessNotificationService {
       type: 'contract_created',
       actor: {
         id: creator.id,
-        name: creator.first_name + ' ' + creator.last_name,
+        name: `${creator.first_name  } ${  creator.last_name}`,
         email: creator.email,
         user_type: creator.user_type,
       },
       target: {
         id: signatory.id,
-        name: signatory.first_name + ' ' + signatory.last_name,
+        name: `${signatory.first_name  } ${  signatory.last_name}`,
         email: signatory.email,
         user_type: signatory.user_type,
       },
@@ -476,13 +476,13 @@ class BusinessNotificationService {
       type: 'contract_signed',
       actor: {
         id: signer.id,
-        name: signer.first_name + ' ' + signer.last_name,
+        name: `${signer.first_name  } ${  signer.last_name}`,
         email: signer.email,
         user_type: signer.user_type,
       },
       target: {
         id: otherParty.id,
-        name: otherParty.first_name + ' ' + otherParty.last_name,
+        name: `${otherParty.first_name  } ${  otherParty.last_name}`,
         email: otherParty.email,
         user_type: otherParty.user_type,
       },
@@ -503,13 +503,13 @@ class BusinessNotificationService {
       type: 'rating_received',
       actor: {
         id: rater.id,
-        name: rater.first_name + ' ' + rater.last_name,
+        name: `${rater.first_name  } ${  rater.last_name}`,
         email: rater.email,
         user_type: rater.user_type,
       },
       target: {
         id: rated.id,
-        name: rated.first_name + ' ' + rated.last_name,
+        name: `${rated.first_name  } ${  rated.last_name}`,
         email: rated.email,
         user_type: rated.user_type,
       },
@@ -530,8 +530,8 @@ class BusinessNotificationService {
    */
   private async getInterestedUsers(type: string, object: any): Promise<any[]> {
     try {
-      const response = await api.get(`/notifications/interested-users/`, {
-        params: { type, object_id: object.id }
+      const response = await api.get('/notifications/interested-users/', {
+        params: { type, object_id: object.id },
       });
       return response.data.users || [];
     } catch (error) {

@@ -154,7 +154,7 @@ export const useBusinessNotifications = (): NotificationTrigger => {
         },
         target: {
           id: user.id,
-          name: user.first_name + ' ' + user.last_name,
+          name: `${user.first_name  } ${  user.last_name}`,
           email: user.email,
           user_type: user.user_type,
         },
@@ -189,7 +189,7 @@ export const useBusinessNotifications = (): NotificationTrigger => {
           },
           target: {
             id: targetUser.id,
-            name: targetUser.first_name + ' ' + targetUser.last_name,
+            name: `${targetUser.first_name  } ${  targetUser.last_name}`,
             email: targetUser.email,
             user_type: targetUser.user_type,
           },

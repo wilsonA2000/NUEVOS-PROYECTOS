@@ -38,7 +38,7 @@ import {
   DialogActions,
   Tooltip,
   Divider,
-  Paper
+  Paper,
 } from '@mui/material';
 import {
   CloudUpload,
@@ -56,7 +56,7 @@ import {
   AccountBalance,
   Assignment,
   Gavel,
-  Security
+  Security,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 
@@ -99,7 +99,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Work />,
       category: 'required',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 5
+      maxSize: 5,
     },
     {
       id: 'desprendibles_pago',
@@ -108,7 +108,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <AccountBalance />,
       category: 'required',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 10
+      maxSize: 10,
     },
     {
       id: 'cedula_codeudor',
@@ -117,7 +117,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Assignment />,
       category: 'required',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 3
+      maxSize: 3,
     },
     {
       id: 'autorizacion_centrales',
@@ -126,7 +126,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Security />,
       category: 'required',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 3
+      maxSize: 3,
     },
     {
       id: 'referencias_comerciales',
@@ -135,8 +135,8 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Description />,
       category: 'optional',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 5
-    }
+      maxSize: 5,
+    },
   ],
   codeudor_finca_raiz: [
     {
@@ -146,7 +146,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Gavel />,
       category: 'required',
       acceptedTypes: ['application/pdf'],
-      maxSize: 5
+      maxSize: 5,
     },
     {
       id: 'escritura_inmueble',
@@ -155,7 +155,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Description />,
       category: 'required',
       acceptedTypes: ['application/pdf'],
-      maxSize: 20
+      maxSize: 20,
     },
     {
       id: 'cedula_codeudor',
@@ -164,7 +164,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Assignment />,
       category: 'required',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 3
+      maxSize: 3,
     },
     {
       id: 'avaluo_comercial',
@@ -173,7 +173,7 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <Home />,
       category: 'optional',
       acceptedTypes: ['application/pdf'],
-      maxSize: 10
+      maxSize: 10,
     },
     {
       id: 'impuesto_predial',
@@ -182,9 +182,9 @@ const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
       icon: <AccountBalance />,
       category: 'optional',
       acceptedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
-      maxSize: 3
-    }
-  ]
+      maxSize: 3,
+    },
+  ],
 };
 
 const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
@@ -192,7 +192,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
   codeudorName,
   onDocumentsChange,
   existingDocuments = [],
-  disabled = false
+  disabled = false,
 }) => {
   const [documents, setDocuments] = useState<GuaranteeDocument[]>(existingDocuments);
   const [previewDocument, setPreviewDocument] = useState<GuaranteeDocument | null>(null);
@@ -205,7 +205,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
 
   // Calculate completion status
   const requiredUploaded = requiredDocs.filter(docType => 
-    documents.some(doc => doc.type === docType.id && doc.status === 'uploaded')
+    documents.some(doc => doc.type === docType.id && doc.status === 'uploaded'),
   ).length;
   const completionPercentage = requiredDocs.length > 0 ? (requiredUploaded / requiredDocs.length) * 100 : 0;
 
@@ -215,7 +215,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
     // Handle rejected files
     if (rejectedFiles.length > 0) {
       const rejectedReasons = rejectedFiles.map(rejection => 
-        rejection.errors.map((error: any) => error.message).join(', ')
+        rejection.errors.map((error: any) => error.message).join(', '),
       ).join('; ');
       setUploadError(`Archivos rechazados: ${rejectedReasons}`);
       return;
@@ -235,7 +235,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
         type: docType.id,
         category: docType.category,
         status: 'pending',
-        progress: 0
+        progress: 0,
       };
 
       // Remove existing document of same type (replace)
@@ -282,7 +282,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
       const updated = prev.map(doc => 
         doc.id === documentId 
           ? { ...doc, status, progress, error }
-          : doc
+          : doc,
       );
       
       // Notify parent component
@@ -315,7 +315,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
       onDrop: (acceptedFiles, rejectedFiles) => onDrop(acceptedFiles, rejectedFiles, docType),
       accept: docType.acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
       maxFiles: 1,
-      disabled
+      disabled,
     });
 
     const existingDoc = documents.find(doc => doc.type === docType.id);
@@ -332,8 +332,8 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
           transition: 'all 0.2s ease-in-out',
           '&:hover': disabled ? {} : {
             borderColor: '#2196f3',
-            bgcolor: 'action.hover'
-          }
+            bgcolor: 'action.hover',
+          },
         }}
       >
         <input {...getInputProps()} />
@@ -512,12 +512,12 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
         {/* Completion Status */}
         {requiredDocs.length > 0 && (
           <Alert 
-            severity={completionPercentage === 100 ? "success" : "warning"}
+            severity={completionPercentage === 100 ? 'success' : 'warning'}
             sx={{ mt: 3 }}
           >
             <Typography variant="body2">
               {completionPercentage === 100 
-                ? `✅ Todos los documentos requeridos han sido subidos correctamente`
+                ? '✅ Todos los documentos requeridos han sido subidos correctamente'
                 : `⚠️ Faltan ${requiredDocs.length - requiredUploaded} documentos requeridos por subir`
               }
             </Typography>

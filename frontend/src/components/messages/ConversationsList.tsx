@@ -130,8 +130,8 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                 bgcolor: 'primary.light',
                 '&:hover': {
                   bgcolor: 'primary.light',
-                }
-              }
+                },
+              },
             }}
           >
             <ListItemAvatar>
@@ -161,7 +161,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                     variant="subtitle2" 
                     sx={{ 
                       fontWeight: conversation.unread_count > 0 ? 600 : 400,
-                      color: isSelected ? 'primary.contrastText' : 'inherit'
+                      color: isSelected ? 'primary.contrastText' : 'inherit',
                     }}
                   >
                     {participant.name}
@@ -174,7 +174,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                     sx={{ 
                       height: 18, 
                       fontSize: '0.6rem',
-                      opacity: isSelected ? 0.8 : 1
+                      opacity: isSelected ? 0.8 : 1,
                     }}
                   />
                   {conversation.unread_count > 0 && (
@@ -197,7 +197,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                       fontWeight: conversation.unread_count > 0 ? 500 : 400,
                       color: isSelected ? 'primary.contrastText' : 'text.secondary',
                       opacity: isSelected ? 0.8 : 1,
-                      mb: 0.5
+                      mb: 0.5,
                     }}
                   >
                     {isTyping ? (
@@ -212,7 +212,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                       variant="caption" 
                       sx={{ 
                         color: isSelected ? 'primary.contrastText' : 'text.secondary',
-                        opacity: isSelected ? 0.7 : 1
+                        opacity: isSelected ? 0.7 : 1,
                       }}
                     >
                       {conversation.context?.type === 'property' ? '🏠' : '🔧'} {' '}
@@ -223,14 +223,14 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
                       variant="caption" 
                       sx={{ 
                         color: isSelected ? 'primary.contrastText' : 'text.secondary',
-                        opacity: isSelected ? 0.7 : 1
+                        opacity: isSelected ? 0.7 : 1,
                       }}
                     >
                       {new Date(conversation.last_message.sent_at).toLocaleDateString('es-ES', {
                         month: 'short',
                         day: 'numeric',
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       })}
                     </Typography>
                   </Box>

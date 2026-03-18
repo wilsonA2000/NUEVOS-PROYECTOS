@@ -203,7 +203,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                   sx={{ fontWeight: 'bold', mb: 1 }}
                 >
                   {formatPrice(property.rent_price || property.sale_price || 0)}
-                  {property.price_type === 'rent' && (
+                  {(property as any).price_type === 'rent' && (
                     <Typography component="span" variant="body2" color="text.secondary">
                       /mes
                     </Typography>

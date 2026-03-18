@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+from celery.schedules import crontab
 
 # Construir rutas dentro del proyecto como: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,13 @@ INSTALLED_APPS = [
     'django_redis',
     'django_celery_beat',
     'django_celery_results',
+
+    # API Documentation
+    'drf_spectacular',
+
+    # Sistema Control Molecular - Editor Rico y Versionado
+    'ckeditor',
+    'simple_history',
     
     # Local apps
     'core.apps.CoreConfig',
@@ -205,6 +213,27 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# DRF Spectacular - OpenAPI Documentation
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'VeriHome API',
+    'DESCRIPTION': 'Enterprise-grade real estate platform API with revolutionary biometric contract authentication. Compliant with Colombian Law 820 of 2003.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/v1/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'Users', 'description': 'User management and authentication'},
+        {'name': 'Properties', 'description': 'Property CRUD and management'},
+        {'name': 'Contracts', 'description': 'Contract management with biometric authentication'},
+        {'name': 'Messaging', 'description': 'Real-time messaging system'},
+        {'name': 'Payments', 'description': 'Payment processing'},
+        {'name': 'Matching', 'description': 'AI-powered tenant-landlord matching'},
+        {'name': 'Dashboard', 'description': 'Analytics and dashboard widgets'},
+        {'name': 'Admin', 'description': 'Admin operations and maintenance'},
+    ],
 }
 
 # Configuración de JWT
@@ -492,6 +521,18 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'core.tasks.backup_database',
         'schedule': 86400.0,  # diario
     },
+    'check-contract-renewals': {
+        'task': 'contracts.tasks.check_contract_renewals',
+        'schedule': 86400.0,  # diario
+    },
+    'check-payment-reminders': {
+        'task': 'payments.tasks.check_payment_reminders',
+        'schedule': crontab(hour=8, minute=0),  # Diario a las 8:00 AM
+    },
+    'escalate-overdue-payments': {
+        'task': 'payments.tasks.escalate_overdue_payments',
+        'schedule': crontab(hour=9, minute=0, day_of_week=1),  # Lunes a las 9:00 AM
+    },
 }
 
 # Campo de clave primaria por defecto
@@ -537,57 +578,10 @@ if DEBUG:
 # Modelo de usuario personalizado
 AUTH_USER_MODEL = 'users.User'
 
-# Configuración de Sentry para monitoreo y APM
-# Comentado temporalmente para pruebas de conectividad
-# import sentry_sdk
-# from sentry_sdk.integrations.django import DjangoIntegration
-# from sentry_sdk.integrations.redis import RedisIntegration
-# from sentry_sdk.integrations.celery import CeleryIntegration
-# from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration  # No necesario para este proyecto
-
-SENTRY_DSN = config('SENTRY_DSN', default='')
-SENTRY_ENVIRONMENT = config('SENTRY_ENVIRONMENT', default='development')
-
-# Comentado temporalmente para pruebas de conectividad
-# if SENTRY_DSN and not DEBUG:
-#     sentry_sdk.init(
-#         dsn=SENTRY_DSN,
-#         environment=SENTRY_ENVIRONMENT,
-#         integrations=[
-#             DjangoIntegration(
-#                 transaction_style='url',
-#                 middleware_spans=True,
-#                 signals_spans=True,
-#                 cache_spans=True,
-#             ),
-#             RedisIntegration(),
-#             CeleryIntegration(monitor_beat_tasks=True),
-#             # SqlalchemyIntegration(),  # No necesario
-#         ],
-#         # Performance Monitoring
-#         traces_sample_rate=0.1,  # 10% de las transacciones
-#         profiles_sample_rate=0.1,  # 10% de profiling
-#         
-#         # Error sampling
-#         sample_rate=1.0,
-#         
-#         # Release tracking
-#         release=config('SENTRY_RELEASE', default='latest'),
-#         
-#         # PII filtering
-#         send_default_pii=False,
-#         
-#         # Performance thresholds
-#         before_send_transaction=lambda event, hint: event if event.get('transaction', '').startswith('/api/') else None,
-#         
-#         # Custom tags
-#         initial_scope={
-#             'tags': {
-#                 'component': 'verihome-backend',
-#                 'server': config('SERVER_NAME', default='unknown'),
-#             }
-#         }
-#     )
+# Sentry Error Monitoring - initialized via core.sentry_config
+# Reads SENTRY_DSN from environment; no-op if not set.
+from core.sentry_config import init_sentry
+init_sentry()
 
 # Configuración de Email
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
@@ -866,3 +860,44 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
 # Django Debug Toolbar
 INTERNAL_IPS = ['127.0.0.1', 'localhost']
+
+# =============================================================================
+# SISTEMA CONTROL MOLECULAR - CKEDITOR CONFIGURATION
+# =============================================================================
+# Editor rico para editar cláusulas de contratos desde el panel de admin
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Full',
+        'height': 300,
+        'width': '100%',
+    },
+    'clause_editor': {
+        'toolbar': [
+            ['Bold', 'Italic', 'Underline', 'Strike'],
+            ['NumberedList', 'BulletedList'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat'],
+            ['Source'],
+        ],
+        'height': 400,
+        'width': '100%',
+        'removePlugins': 'elementspath',
+        'resize_enabled': True,
+        'extraPlugins': ','.join([
+            'autogrow',
+        ]),
+        'autoGrow_minHeight': 300,
+        'autoGrow_maxHeight': 800,
+        'autoGrow_bottomSpace': 50,
+        # Permitir estilos inline para mantener formato en PDF
+        'allowedContent': True,
+    }
+}
+
+# Ruta donde se suben archivos de CKEditor (si se habilita upload)
+CKEDITOR_UPLOAD_PATH = 'ckeditor/'
+
+# Configuración de simple_history
+SIMPLE_HISTORY_REVERT_DISABLED = True  # Solo admin puede revertir

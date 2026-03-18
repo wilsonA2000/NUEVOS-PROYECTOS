@@ -197,7 +197,7 @@ class VideoUtils {
   static extractYouTubeId(url: string): string | null {
     const patterns = [
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
-      /^([a-zA-Z0-9_-]{11})$/
+      /^([a-zA-Z0-9_-]{11})$/,
     ];
     
     for (const pattern of patterns) {
@@ -213,7 +213,7 @@ class VideoUtils {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   }
 
   static formatDuration(seconds: number): string {
@@ -275,7 +275,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files).filter(file => 
-      file.type.startsWith('video/')
+      file.type.startsWith('video/'),
     );
 
     if (files.length > 0) {
@@ -422,7 +422,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
         const { propertyVideoService } = await import('../../services/propertyVideoService');
         
         // Obtener propertyId (necesitamos añadir esta prop al componente)
-        const propertyId = video.property || (window.location.pathname.match(/properties\/([^\/]+)/) || [])[1];
+        const propertyId = (video as any).property || (window.location.pathname.match(/properties\/([^\/]+)/) || [])[1];
         
         if (propertyId) {
           await propertyVideoService.deleteVideo(propertyId, video.id);
@@ -457,7 +457,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
     if (!editingVideo) return;
 
     const updatedVideos = videos.map(video => 
-      video.id === editingVideo.id ? editingVideo : video
+      video.id === editingVideo.id ? editingVideo : video,
     );
     onChange(updatedVideos);
     setEditingVideo(null);

@@ -16,16 +16,16 @@ describe('PropertyService', () => {
     title: 'Beautiful Apartment',
     description: 'A wonderful place to live',
     address: '123 Main St',
-    city: 'Madrid',
-    state: 'Madrid',
-    zip_code: '28001',
-    country: 'Spain',
+    city: 'Bogota',
+    state: 'Cundinamarca',
+    zip_code: '110111',
+    country: 'Colombia',
     property_type: 'apartment' as const,
     bedrooms: 2,
     bathrooms: 1,
     square_meters: 80,
-    price: 1000,
-    currency: 'EUR',
+    price: 1500000,
+    currency: 'COP',
     available: true,
     owner_id: '1',
     created_at: '2024-01-01T00:00:00Z',
@@ -38,16 +38,16 @@ describe('PropertyService', () => {
     title: 'New Apartment',
     description: 'Great location',
     address: '456 Oak St',
-    city: 'Barcelona',
-    state: 'Catalonia',
-    zip_code: '08001',
-    country: 'Spain',
+    city: 'Medellin',
+    state: 'Antioquia',
+    zip_code: '050001',
+    country: 'Colombia',
     property_type: 'apartment' as const,
     bedrooms: 3,
     bathrooms: 2,
     square_meters: 100,
-    price: 1200,
-    currency: 'EUR'
+    price: 2000000,
+    currency: 'COP'
   };
 
   describe('getProperties', () => {
@@ -56,15 +56,15 @@ describe('PropertyService', () => {
 
       const result = await propertyService.getProperties();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/properties/');
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/', { params: undefined });
       expect(result).toEqual([mockProperty]);
     });
 
     it('should fetch properties with filters', async () => {
       const filters = {
-        city: 'Madrid',
-        min_price: 500,
-        max_price: 1500,
+        city: 'Bogota',
+        min_price: 500000,
+        max_price: 3000000,
         bedrooms: 2
       };
 
@@ -72,7 +72,15 @@ describe('PropertyService', () => {
 
       const result = await propertyService.getProperties(filters);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/properties/', { params: filters });
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/', { params: filters });
+      expect(result).toEqual([mockProperty]);
+    });
+
+    it('should handle paginated response with results field', async () => {
+      mockedApi.get.mockResolvedValueOnce({ data: { results: [mockProperty], count: 1 } });
+
+      const result = await propertyService.getProperties();
+
       expect(result).toEqual([mockProperty]);
     });
 
@@ -89,7 +97,7 @@ describe('PropertyService', () => {
 
       const result = await propertyService.getProperty('1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/properties/1/');
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/1/');
       expect(result).toEqual(mockProperty);
     });
   });
@@ -100,21 +108,30 @@ describe('PropertyService', () => {
 
       const result = await propertyService.createProperty(mockCreatePropertyDto);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/properties/properties/', mockCreatePropertyDto);
+      expect(mockedApi.post).toHaveBeenCalledWith('/properties/', mockCreatePropertyDto, undefined);
+      expect(result).toEqual(mockProperty);
+    });
+
+    it('should create property with FormData', async () => {
+      const formData = new FormData();
+      formData.append('title', 'New Apartment');
+
+      mockedApi.post.mockResolvedValueOnce({ data: mockProperty });
+
+      const result = await propertyService.createProperty(formData);
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/properties/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       expect(result).toEqual(mockProperty);
     });
 
     it('should handle validation errors', async () => {
-      const mockError = {
-        response: {
-          status: 400,
-          data: { title: ['This field is required'] }
-        }
-      };
+      const mockError = new Error('Validation failed');
 
       mockedApi.post.mockRejectedValueOnce(mockError);
 
-      await expect(propertyService.createProperty(mockCreatePropertyDto)).rejects.toThrow();
+      await expect(propertyService.createProperty(mockCreatePropertyDto)).rejects.toThrow('Validation failed');
     });
   });
 
@@ -125,8 +142,22 @@ describe('PropertyService', () => {
 
       const result = await propertyService.updateProperty('1', { title: 'Updated Apartment' });
 
-      expect(mockedApi.put).toHaveBeenCalledWith('/properties/properties/1/', { title: 'Updated Apartment' });
+      expect(mockedApi.put).toHaveBeenCalledWith('/properties/1/', { title: 'Updated Apartment' }, undefined);
       expect(result).toEqual(updatedProperty);
+    });
+
+    it('should update property with FormData', async () => {
+      const formData = new FormData();
+      formData.append('title', 'Updated');
+
+      mockedApi.put.mockResolvedValueOnce({ data: mockProperty });
+
+      const result = await propertyService.updateProperty('1', formData);
+
+      expect(mockedApi.put).toHaveBeenCalledWith('/properties/1/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      expect(result).toEqual(mockProperty);
     });
   });
 
@@ -136,49 +167,61 @@ describe('PropertyService', () => {
 
       await propertyService.deleteProperty('1');
 
-      expect(mockedApi.delete).toHaveBeenCalledWith('/properties/properties/1/');
+      expect(mockedApi.delete).toHaveBeenCalledWith('/properties/1/');
     });
   });
 
   describe('searchProperties', () => {
     it('should search properties successfully', async () => {
-      const searchQuery = 'apartment madrid';
+      const filters = { city: 'Bogota', min_price: 500000 };
       mockedApi.get.mockResolvedValueOnce({ data: [mockProperty] });
 
-      const result = await propertyService.searchProperties(searchQuery);
+      const result = await propertyService.searchProperties(filters);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/search/', { params: { q: searchQuery } });
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/search/', { params: filters });
       expect(result).toEqual([mockProperty]);
     });
 
-    it('should search with filters', async () => {
-      const searchQuery = 'apartment';
-      const filters = { city: 'Madrid', min_price: 500 };
-      
-      mockedApi.get.mockResolvedValueOnce({ data: [mockProperty] });
+    it('should handle paginated search response', async () => {
+      const filters = { city: 'Bogota' };
+      mockedApi.get.mockResolvedValueOnce({ data: { results: [mockProperty], count: 1 } });
 
-      const result = await propertyService.searchProperties(searchQuery, filters);
+      const result = await propertyService.searchProperties(filters);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/search/', { 
-        params: { q: searchQuery, ...filters } 
-      });
       expect(result).toEqual([mockProperty]);
     });
   });
 
-  describe('uploadImages', () => {
-    it('should upload images successfully', async () => {
-      const formData = new FormData();
-      formData.append('images', new File(['test'], 'test.jpg'));
-      
-      mockedApi.post.mockResolvedValueOnce({ data: { images: ['image1.jpg'] } });
+  describe('getFeaturedProperties', () => {
+    it('should fetch featured properties successfully', async () => {
+      mockedApi.get.mockResolvedValueOnce({ data: [mockProperty] });
 
-      const result = await propertyService.uploadImages('1', formData);
+      const result = await propertyService.getFeaturedProperties();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/properties/1/images/upload/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      expect(result).toEqual({ images: ['image1.jpg'] });
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/featured/');
+      expect(result).toEqual([mockProperty]);
+    });
+  });
+
+  describe('getTrendingProperties', () => {
+    it('should fetch trending properties successfully', async () => {
+      mockedApi.get.mockResolvedValueOnce({ data: [mockProperty] });
+
+      const result = await propertyService.getTrendingProperties();
+
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/trending/');
+      expect(result).toEqual([mockProperty]);
+    });
+  });
+
+  describe('toggleFavorite', () => {
+    it('should toggle favorite successfully', async () => {
+      mockedApi.post.mockResolvedValueOnce({ data: { message: 'Added to favorites' } });
+
+      const result = await propertyService.toggleFavorite('1');
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/properties/1/toggle-favorite/');
+      expect(result).toEqual({ message: 'Added to favorites' });
     });
   });
 
@@ -193,37 +236,15 @@ describe('PropertyService', () => {
     });
   });
 
-  describe('addToFavorites', () => {
-    it('should add property to favorites successfully', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { success: true } });
-
-      const result = await propertyService.addToFavorites('1');
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/properties/1/favorites/');
-      expect(result).toEqual({ success: true });
-    });
-  });
-
-  describe('removeFromFavorites', () => {
-    it('should remove property from favorites successfully', async () => {
-      mockedApi.delete.mockResolvedValueOnce({ data: { success: true } });
-
-      const result = await propertyService.removeFromFavorites('1');
-
-      expect(mockedApi.delete).toHaveBeenCalledWith('/properties/1/favorites/');
-      expect(result).toEqual({ success: true });
-    });
-  });
-
   describe('getPropertyStats', () => {
     it('should fetch property statistics successfully', async () => {
       const stats = {
         total_properties: 10,
         available_properties: 7,
         rented_properties: 3,
-        average_price: 1100
+        average_price: 1500000
       };
-      
+
       mockedApi.get.mockResolvedValueOnce({ data: stats });
 
       const result = await propertyService.getPropertyStats();
@@ -233,30 +254,29 @@ describe('PropertyService', () => {
     });
   });
 
-  describe('getRecommendations', () => {
-    it('should fetch property recommendations successfully', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: [mockProperty] });
+  describe('getPropertyFilters', () => {
+    it('should fetch property filters successfully', async () => {
+      const filters = { cities: ['Bogota', 'Medellin'], types: ['apartment', 'house'] };
 
-      const result = await propertyService.getRecommendations('1');
+      mockedApi.get.mockResolvedValueOnce({ data: filters });
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/properties/1/recommendations/');
-      expect(result).toEqual([mockProperty]);
+      const result = await propertyService.getPropertyFilters();
+
+      expect(mockedApi.get).toHaveBeenCalledWith('/properties/filters/');
+      expect(result).toEqual(filters);
     });
   });
 
-  describe('reportProperty', () => {
-    it('should report property successfully', async () => {
-      const reportData = {
-        reason: 'inappropriate_content',
-        description: 'This listing contains false information'
-      };
-      
-      mockedApi.post.mockResolvedValueOnce({ data: { success: true } });
+  describe('contactLandlord', () => {
+    it('should contact landlord successfully', async () => {
+      const contactData = { name: 'John', email: 'john@example.com', message: 'Interested' };
 
-      const result = await propertyService.reportProperty('1', reportData);
+      mockedApi.post.mockResolvedValueOnce({ data: { message: 'Message sent' } });
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/properties/1/report/', reportData);
-      expect(result).toEqual({ success: true });
+      const result = await propertyService.contactLandlord('1', contactData);
+
+      expect(mockedApi.post).toHaveBeenCalledWith('/properties/1/contact-landlord/', contactData);
+      expect(result).toEqual({ message: 'Message sent' });
     });
   });
 });

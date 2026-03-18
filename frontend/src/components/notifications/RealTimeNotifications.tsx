@@ -131,8 +131,8 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
       
       setNotifications(prev =>
         prev.map(notif =>
-          notif.id === notification_id ? { ...notif, read: true } : notif
-        )
+          notif.id === notification_id ? { ...notif, read: true } : notif,
+        ),
       );
     });
 

@@ -24,12 +24,12 @@ interface UseWebSocketReturn {
 
 export const useWebSocketEnhanced = (
   endpoint: string,
-  options: UseWebSocketOptions = {}
+  options: UseWebSocketOptions = {},
 ): UseWebSocketReturn => {
   const { autoConnect = true, onMessage, onConnectionChange, dependencies = [] } = options;
   
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(() => 
-    websocketService.getConnectionStatus(endpoint)
+    websocketService.getConnectionStatus(endpoint),
   );
   
   const onMessageRef = useRef(onMessage);
@@ -71,7 +71,7 @@ export const useWebSocketEnhanced = (
 
   // Connection status monitoring disabled
   useEffect(() => {
-    setConnectionStatus({ connected: false, connecting: false, error: null });
+    setConnectionStatus({ connected: false, connecting: false } as ConnectionStatus);
   }, [endpoint]);
 
   // Message handler disabled
@@ -102,7 +102,7 @@ export const useUserStatusWS = (options?: Omit<UseWebSocketOptions, 'autoConnect
 
 export const useThreadMessaging = (
   threadId: string | number,
-  options?: Omit<UseWebSocketOptions, 'autoConnect'>
+  options?: Omit<UseWebSocketOptions, 'autoConnect'>,
 ) => {
   const endpoint = `messaging/thread/${threadId}`;
   return useWebSocketEnhanced(endpoint, { 

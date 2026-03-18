@@ -31,7 +31,7 @@ export const MessageForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createMessage.mutateAsync(formData);
+      await createMessage.mutateAsync(formData as any);
       navigate('/app/messages');
     } catch (error) {
       console.error('Error al crear el mensaje:', error);

@@ -17,7 +17,7 @@ interface UsePropertyTableOptions {
 
 export const usePropertyTable = (
   properties: Property[],
-  options: UsePropertyTableOptions = {}
+  options: UsePropertyTableOptions = {},
 ) => {
   const {
     initialSortBy = 'created_at',

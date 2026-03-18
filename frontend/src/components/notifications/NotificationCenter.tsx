@@ -135,7 +135,7 @@ const NotificationCenter: React.FC = () => {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(n => 
         n.title.toLowerCase().includes(searchLower) ||
-        n.message.toLowerCase().includes(searchLower)
+        n.message.toLowerCase().includes(searchLower),
       );
     }
 
@@ -182,7 +182,7 @@ const NotificationCenter: React.FC = () => {
     // Read filter
     if (filters.read !== 'all') {
       filtered = filtered.filter(n => 
-        filters.read === 'read' ? n.read : !n.read
+        filters.read === 'read' ? n.read : !n.read,
       );
     }
 

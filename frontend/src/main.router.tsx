@@ -55,14 +55,13 @@ const router = createBrowserRouter(
   {
     // Habilitar flags v7 para preparar la migración
     future: {
-      v7_startTransition: true,
       v7_relativeSplatPath: true,
       v7_fetcherPersist: true,
       v7_normalizeFormMethod: true,
       v7_partialHydration: true,
       v7_skipActionErrorRevalidation: true,
-    },
-  }
+    } as any,
+  },
 );
 
 // Función principal mejorada con router
@@ -73,12 +72,12 @@ export function MainWithRouter() {
 // Si este archivo se ejecuta directamente, renderizar la app
 if (import.meta.hot) {
   const root = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement,
   );
   
   root.render(
     <React.StrictMode>
       <MainWithRouter />
-    </React.StrictMode>
+    </React.StrictMode>,
   );
 }

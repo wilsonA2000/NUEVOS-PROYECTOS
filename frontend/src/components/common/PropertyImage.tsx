@@ -47,7 +47,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   className,
   style,
 }) => {
-  console.log('🖼️ PropertyImage component render:', { src, alt, width, height });
   
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -56,32 +55,26 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
 
   // ULTIMATE FIX: Absolute simplification - NO optimization interference
   const optimizedSrc = React.useMemo(() => {
-    console.log('🔍 PropertyImage RAW INPUT:', { src, type: typeof src });
     
     if (!src || typeof src !== 'string' || src.trim() === '') {
-      console.log('❌ PropertyImage: Invalid/empty src, using placeholder');
       return '/placeholder-property.jpg';
     }
     
     const cleanSrc = src.trim();
-    console.log('🧼 PropertyImage CLEANED SRC:', cleanSrc);
     
     // ZERO INTERFERENCE: All HTTP URLs pass through untouched
     if (cleanSrc.startsWith('http://') || cleanSrc.startsWith('https://')) {
-      console.log('🚀 PropertyImage: HTTP URL DIRECT PASSTHROUGH:', cleanSrc);
       return cleanSrc;
     }
     
     // For relative URLs, prefix with base URL
     if (cleanSrc.startsWith('/media/') || cleanSrc.startsWith('media/')) {
       const baseUrl = 'http://127.0.0.1:8001';
-      const fullUrl = baseUrl + (cleanSrc.startsWith('/') ? cleanSrc : '/' + cleanSrc);
-      console.log('🔗 PropertyImage: RELATIVE TO ABSOLUTE:', { cleanSrc, fullUrl });
+      const fullUrl = baseUrl + (cleanSrc.startsWith('/') ? cleanSrc : `/${  cleanSrc}`);
       return fullUrl;
     }
     
     // Fallback for any other path format
-    console.log('✅ PropertyImage: Using original src as fallback:', cleanSrc);
     return cleanSrc;
   }, [src]);
 
@@ -94,7 +87,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
       try {
         return imageUtils.addSizeToUrl(optimizedSrc, 'small');
       } catch (error) {
-        console.log('⚠️ PropertyImage: Progressive loading failed, using original');
         return optimizedSrc;
       }
     }
@@ -110,11 +102,10 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
         const qualityMap = {
           low: 'medium',
           medium: 'large',
-          high: 'xlarge'
+          high: 'xlarge',
         };
         return imageUtils.addSizeToUrl(optimizedSrc, qualityMap[quality]);
       } catch (error) {
-        console.log('⚠️ PropertyImage: High quality loading failed, using original');
         return optimizedSrc;
       }
     }
@@ -124,22 +115,20 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   // Hook para lazy loading
   const { imgRef: lazyRef, isLoaded: isLazyLoaded, isInView, error: lazyError } = useLazyImage(
     loading === 'lazy' ? highQualitySrc : optimizedSrc,
-    { threshold: 0.1, rootMargin: '50px' }
+    { threshold: 0.1, rootMargin: '50px' },
   );
 
   // Hook para progressive loading
   const { src: progressiveSrc, isLoaded: isProgressiveLoaded } = useProgressiveImage(
     lowQualitySrc,
-    highQualitySrc
+    highQualitySrc,
   );
 
   // ULTIMATE ENGINEERING: Zero-complexity source determination
   const finalSrc = React.useMemo(() => {
-    console.log('🎯 PropertyImage FINAL SRC DETERMINATION:', { optimizedSrc, loading, isInView });
     
     // Fail fast on invalid sources
     if (!optimizedSrc || typeof optimizedSrc !== 'string' || optimizedSrc.trim() === '') {
-      console.log('❌ PropertyImage: Invalid final source, using placeholder');
       return '/placeholder-property.jpg';
     }
     
@@ -149,7 +138,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
     // }
     
     // Direct return - no more complexity
-    console.log('✅ PropertyImage: USING FINAL SRC:', optimizedSrc);
     return optimizedSrc;
   }, [optimizedSrc]);
 
@@ -164,7 +152,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   }, [width, height]);
 
   const handleLoad = () => {
-    console.log('✅ PropertyImage loaded successfully:', src);
     setImageLoaded(true);
     setShowLoader(false);
     onLoad?.();
@@ -177,7 +164,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
       finalSrc: finalSrc,
       imageSrc: imgElement.src,
       errorType: 'Image load error',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     setImageError(true);
     setShowLoader(false);

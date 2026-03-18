@@ -141,7 +141,7 @@ const validationSchema = Yup.object({
       relationship: Yup.string().min(2, 'Especifica la relación').required('Relación requerida'),
       phone: Yup.string().matches(/^[0-9\s\-\+\(\)]+$/, 'Teléfono inválido').required('Teléfono requerido'),
       years_known: Yup.number().min(1, 'Mínimo 1 año').max(50, 'Máximo 50 años').required('Años de conocerse requerido'),
-    })
+    }),
   ).min(2, 'Se requieren al menos 2 referencias personales'),
   
   // Referencias comerciales
@@ -150,7 +150,7 @@ const validationSchema = Yup.object({
       institution_name: Yup.string().min(3, 'Nombre de institución inválido').required('Institución requerida'),
       phone: Yup.string().matches(/^[0-9\s\-\+\(\)]+$/, 'Teléfono inválido').required('Teléfono requerido'),
       relationship_duration_months: Yup.number().min(1, 'Mínimo 1 mes').required('Duración de relación requerida'),
-    })
+    }),
   ).min(1, 'Se requiere al menos 1 referencia comercial'),
 });
 

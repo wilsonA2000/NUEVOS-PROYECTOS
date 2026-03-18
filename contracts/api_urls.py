@@ -8,6 +8,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
 from . import unified_contract_api
+from . import codeudor_public_api
 
 # Router para ViewSets
 router = DefaultRouter()
@@ -44,6 +45,16 @@ urlpatterns = [
     path('<uuid:contract_id>/auth/combined-capture/', api_views.CombinedCaptureAPIView.as_view(), name='api_combined_capture'),
     path('<uuid:contract_id>/auth/voice-capture/', api_views.VoiceCaptureAPIView.as_view(), name='api_voice_capture'),
     path('<uuid:contract_id>/complete-auth/', api_views.CompleteAuthenticationAPIView.as_view(), name='api_complete_authentication'),
+
+    # ===================================================================
+    # SISTEMA DE AUTENTICACIÓN PÚBLICA DE CODEUDORES (SIN LOGIN)
+    # ===================================================================
+    # Endpoints públicos para codeudores que reciben link por email
+    path('public/codeudor/validate/<str:token>/', codeudor_public_api.CodeudorTokenValidateView.as_view(), name='api_codeudor_validate'),
+    path('public/codeudor/biometric/start/<str:token>/', codeudor_public_api.CodeudorBiometricStartView.as_view(), name='api_codeudor_biometric_start'),
+    path('public/codeudor/biometric/capture/<str:token>/', codeudor_public_api.CodeudorBiometricCaptureView.as_view(), name='api_codeudor_biometric_capture'),
+    path('public/codeudor/biometric/complete/<str:token>/', codeudor_public_api.CodeudorBiometricCompleteView.as_view(), name='api_codeudor_biometric_complete'),
+    path('public/codeudor/status/<str:token>/', codeudor_public_api.CodeudorStatusView.as_view(), name='api_codeudor_status'),
 
     # ===================================================================
     # SISTEMA DE CONTRATOS CONTROLADO POR ARRENDADOR (NUEVO)
@@ -102,5 +113,12 @@ urlpatterns = [
     # IMPORTANTE: Este include DEBE ir al final para que las rutas específicas
     # definidas arriba (como complete-auth) se procesen ANTES que las rutas
     # genéricas del ViewSet (contracts/<pk>/)
+    # ===================================================================
+    # NUEVAS RUTAS PARA MATCHED CANDIDATES VIEW
+    # ===================================================================
+    path('<uuid:contract_id>/send-biometric-reminder/', api_views.send_biometric_reminder, name='send_biometric_reminder'),
+    path('<uuid:contract_id>/confirm-key-delivery/', api_views.confirm_key_delivery, name='confirm_key_delivery'),
+    path('<uuid:contract_id>/start-execution/', api_views.start_contract_execution, name='start_execution'),
+
     path('', include(router.urls)),
 ]
