@@ -46,7 +46,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyPropertyCreated(user, property);
     } catch (error) {
-      console.error('Error sending property created notification:', error);
     }
   }, [user]);
 
@@ -56,7 +55,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyPropertyInterest(user, property, property.landlord);
     } catch (error) {
-      console.error('Error sending property interest notification:', error);
     }
   }, [user]);
 
@@ -66,7 +64,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyServiceRequest(user, serviceProvider, serviceDetails);
     } catch (error) {
-      console.error('Error sending service request notification:', error);
     }
   }, [user]);
 
@@ -76,7 +73,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyRequestAccepted(user, requester, requestDetails);
     } catch (error) {
-      console.error('Error sending request accepted notification:', error);
     }
   }, [user]);
 
@@ -86,7 +82,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyRequestRejected(user, requester, requestDetails);
     } catch (error) {
-      console.error('Error sending request rejected notification:', error);
     }
   }, [user]);
 
@@ -96,7 +91,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyMessageReceived(user, recipient, message);
     } catch (error) {
-      console.error('Error sending message notification:', error);
     }
   }, [user]);
 
@@ -106,7 +100,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyPaymentReceived(payer, user, payment);
     } catch (error) {
-      console.error('Error sending payment received notification:', error);
     }
   }, [user]);
 
@@ -116,7 +109,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyContractCreated(user, signatory, contract);
     } catch (error) {
-      console.error('Error sending contract created notification:', error);
     }
   }, [user]);
 
@@ -126,7 +118,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyContractSigned(user, otherParty, contract);
     } catch (error) {
-      console.error('Error sending contract signed notification:', error);
     }
   }, [user]);
 
@@ -136,7 +127,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
     try {
       await businessNotificationService.notifyRatingReceived(user, rated, rating);
     } catch (error) {
-      console.error('Error sending rating notification:', error);
     }
   }, [user]);
 
@@ -168,7 +158,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
         },
       });
     } catch (error) {
-      console.error('Error sending verification completed notification:', error);
     }
   }, [user]);
 
@@ -204,7 +193,6 @@ export const useBusinessNotifications = (): NotificationTrigger => {
         });
       }
     } catch (error) {
-      console.error('Error sending system alert notification:', error);
     }
   }, [user]);
 

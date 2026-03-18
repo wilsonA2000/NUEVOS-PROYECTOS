@@ -223,11 +223,8 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         const editableData = mapContractToEditableData(contractResponse);
         setContractData(editableData);
         setOriginalData({ ...editableData }); // Deep copy for comparison
-        
-        console.log('✅ Contract loaded for editing:', contractResponse.id);
       }
     } catch (error) {
-      console.error('❌ Error loading contract for editing:', error);
       setValidationErrors(['Error al cargar el contrato. Inténtelo nuevamente.']);
     } finally {
       setLoading(false);
@@ -406,9 +403,6 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         published: false,
         workflow_history: contract?.workflow_history || [],
       };
-
-      console.log('💾 Saving contract changes:', updatePayload);
-
       const updatedContract = await LandlordContractService.updateContractDraft(contractId, updatePayload);
 
       if (updatedContract) {
@@ -417,7 +411,6 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         setHasChanges(false);
         
         if (showMessage) {
-          console.log('✅ Contract saved successfully');
         }
 
         if (onSave) {
@@ -426,7 +419,6 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       }
 
     } catch (error) {
-      console.error('❌ Error saving contract changes:', error);
       setValidationErrors(['Error al guardar los cambios. Inténtelo nuevamente.']);
     } finally {
       setIsSaving(false);
@@ -511,7 +503,6 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       const pdfUrl = `${API_BASE_URL}/contracts/${contractId}/preview-pdf/`;
       window.open(pdfUrl, '_blank');
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
     }
   };
 

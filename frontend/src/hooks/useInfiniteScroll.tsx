@@ -190,7 +190,6 @@ export function useInfiniteProperties(filters?: Record<string, any>) {
 
       return newProperties;
     } catch (error) {
-      console.error('Error fetching properties:', error);
       throw error;
     }
   }, [filters, page]);
@@ -211,7 +210,7 @@ export function useInfiniteProperties(filters?: Record<string, any>) {
     hasNextPage: hasMore,
     isLoading: false,
     threshold: 200,
-    onError: (error) => console.error('Infinite scroll error:', error),
+    onError: () => { /* Infinite scroll error handled */ },
   });
 
   return {
@@ -244,7 +243,6 @@ export function useInfiniteMessages(conversationId?: number) {
 
       return newMessages;
     } catch (error) {
-      console.error('Error fetching messages:', error);
       throw error;
     }
   }, [conversationId, page]);
@@ -288,7 +286,6 @@ export function useInfiniteContracts(filters?: Record<string, any>) {
 
       return newContracts;
     } catch (error) {
-      console.error('Error fetching contracts:', error);
       throw error;
     }
   }, [filters, page]);

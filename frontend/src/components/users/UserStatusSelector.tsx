@@ -53,7 +53,6 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
     // Update through optimized user status system
     setMyStatus({ status: newStatus } as any);
     
-    console.log(`User status changed to: ${newStatus}${isConnected ? ' (synced via WebSocket)' : ' (local only)'}`);
   };
 
   const getStatusIcon = (status: UserStatus) => {

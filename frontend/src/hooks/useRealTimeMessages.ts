@@ -144,7 +144,6 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
         break;
 
       case 'error':
-        console.error('Error WebSocket:', message.message);
         showNotification('Error en la conexión de mensajería', 'error');
         break;
 

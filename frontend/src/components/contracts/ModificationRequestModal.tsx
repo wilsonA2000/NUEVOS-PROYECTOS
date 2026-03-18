@@ -553,7 +553,6 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
 
       handleClose();
     } catch (err: unknown) {
-      console.error('Error al crear solicitud de modificación:', err);
       const errorObj = err as { response?: { data?: { detail?: string; message?: string; contract?: string[] } } };
       const errorMessage =
         errorObj.response?.data?.detail ||

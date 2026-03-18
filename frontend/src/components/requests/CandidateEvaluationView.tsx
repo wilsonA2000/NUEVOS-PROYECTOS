@@ -192,29 +192,20 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
     try {
       setLoading(true);
       setError(null);
-
-      console.log('🔍 CandidateEvaluationView Debug - Props:', { candidateId, propertyId, matchRequestId });
-
       // Construir URL con parámetros apropiados
       let url = `/api/v1/users/${candidateId}/evaluation/`;
       const params = new URLSearchParams();
       
       if (matchRequestId) {
-        console.log('✅ Using matchRequestId:', matchRequestId);
         params.append('match_request_id', matchRequestId);
       } else if (propertyId) {
-        console.log('⚠️ Using propertyId fallback:', propertyId);
         params.append('property_id', propertyId);
       } else {
-        console.log('❌ No matchRequestId or propertyId - using basic evaluation');
       }
       
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-
-      console.log('🔍 Final API URL:', url);
-
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

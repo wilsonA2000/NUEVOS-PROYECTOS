@@ -71,7 +71,6 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ targetType, targetId, showSta
       }
       setError(null);
     } catch (err: any) {
-      console.error('Error loading reviews:', err);
       setError('Error al cargar calificaciones');
     } finally {
       setLoading(false);

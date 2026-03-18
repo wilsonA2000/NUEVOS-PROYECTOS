@@ -50,7 +50,6 @@ export const EmailVerification: React.FC = () => {
         setResendMessage(errorData.error || 'Error al reenviar el email de verificación.');
       }
     } catch (error) {
-      console.error('Error reenviando email:', error);
       setResendMessage('Error de conexión. Por favor, intenta más tarde.');
     } finally {
       setIsResending(false);

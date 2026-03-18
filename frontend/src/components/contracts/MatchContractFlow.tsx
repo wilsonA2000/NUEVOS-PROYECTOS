@@ -81,7 +81,6 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
         setActiveStep(1);
       }
     } catch (error) {
-      console.error('Error validating match:', error);
     } finally {
       setLoading(false);
     }
@@ -107,7 +106,6 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
         }));
       }
     } catch (error) {
-      console.error('Error verifying identity:', error);
     }
   };
 
@@ -125,7 +123,6 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
       setContractDraft(response.data);
       setActiveStep(3);
     } catch (error) {
-      console.error('Error generating contract:', error);
     }
   };
 

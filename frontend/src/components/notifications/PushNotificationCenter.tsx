@@ -229,7 +229,6 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
         // Ignore autoplay policy errors
       });
     } catch (error) {
-      console.warn('Could not play notification sound:', error);
     }
   };
 

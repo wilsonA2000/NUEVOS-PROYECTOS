@@ -134,12 +134,10 @@ const TenantContractsDashboard: React.FC = () => {
           // El backend devuelve {results: [...], count: N}
           const processes = data.results || (Array.isArray(data) ? data : []);
           setWorkflowProcesses(processes);
-          console.log('📋 Loaded workflow processes:', processes.length);
         } else {
           throw new Error(`HTTP ${workflowResponse.status}`);
         }
       } catch (workflowError) {
-        console.warn('Could not load workflow processes:', workflowError);
         setWorkflowProcesses([]);
       }
       
@@ -158,7 +156,6 @@ const TenantContractsDashboard: React.FC = () => {
       setPendingReviewContracts(pendingContracts);
       
     } catch (err: any) {
-      console.error('Error loading tenant contracts:', err);
       setError(`Error al cargar contratos: ${  err.message || 'Error desconocido'}`);
       setContracts([]); // Asegurar array vacío en caso de error
       setPendingReviewContracts([]);
@@ -209,8 +206,6 @@ const TenantContractsDashboard: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Contract approved successfully:', result);
-
         setSuccessDialog({
           open: true,
           title: '🎉 ¡Contrato Aprobado Exitosamente!',
@@ -224,7 +219,6 @@ const TenantContractsDashboard: React.FC = () => {
         throw new Error(errorData.detail || `HTTP ${response.status}`);
       }
     } catch (error: any) {
-      console.error('❌ Error approving contract:', error);
       setErrorDialog({
         open: true,
         title: '❌ Error al Aprobar el Contrato',

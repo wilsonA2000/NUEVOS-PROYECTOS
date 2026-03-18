@@ -145,7 +145,6 @@ const ContractModificationService = {
 
       return currentRevisions < maxRevisions;
     } catch (error) {
-      console.error('Error verificando límite de modificaciones:', error);
       return false;
     }
   },

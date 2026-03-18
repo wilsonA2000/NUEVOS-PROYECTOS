@@ -167,7 +167,6 @@ const ActiveContractsView: React.FC = () => {
         
         setContracts(enrichedContracts);
       } catch (error) {
-        console.error('Error fetching active contracts:', error);
       } finally {
         setLoading(false);
       }

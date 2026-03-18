@@ -312,7 +312,6 @@ class MessageService {
       const response = await api.get('/messages/unread-count/');
       return response.data?.count ?? 0;
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
       return 0;
     }
   }
@@ -342,7 +341,6 @@ class MessageService {
       await this.getThread(threadId);
       return true;
     } catch (error) {
-      console.error('Error validating thread access:', error);
       return false;
     }
   }
@@ -356,7 +354,6 @@ class MessageService {
         this.getMessages(threadId, 1, 50), // Cargar primeros 50 mensajes
       ]);
     } catch (error) {
-      console.error('Error preloading thread:', error);
     }
   }
 

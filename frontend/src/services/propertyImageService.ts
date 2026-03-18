@@ -11,9 +11,7 @@ class PropertyImageService {
   async deleteImage(imageId: number): Promise<void> {
     try {
       await api.delete(`/properties/property-images/${imageId}/`);
-      console.log('✅ Imagen eliminada exitosamente');
     } catch (error) {
-      console.error('❌ Error eliminando imagen:', error);
       throw error;
     }
   }

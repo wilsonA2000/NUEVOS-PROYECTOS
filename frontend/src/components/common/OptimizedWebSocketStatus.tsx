@@ -61,7 +61,6 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
         await enableRealTime();
       }
     } catch (error) {
-      console.error('Error toggling real-time connection:', error);
     }
     handleMenuClose();
   };

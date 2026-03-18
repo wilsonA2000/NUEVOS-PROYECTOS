@@ -159,13 +159,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
 
   const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const imgElement = event.target as HTMLImageElement;
-    console.error('❌ PropertyImage LOAD FAILED:', {
-      originalSrc: src,
-      finalSrc: finalSrc,
-      imageSrc: imgElement.src,
-      errorType: 'Image load error',
-      timestamp: new Date().toISOString(),
-    });
     setImageError(true);
     setShowLoader(false);
     onError?.();

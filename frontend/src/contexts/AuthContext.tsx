@@ -102,7 +102,6 @@ setShowSessionWarning(false);
 await authService.logout();
 
 } catch (error) {
-      console.error('❌ Fallo al cerrar sesión en el servidor, se procederá con el logout local.', error);
     }
 
     // 2. Usar la utilidad de limpieza para asegurar estado limpio
@@ -273,7 +272,6 @@ navigate('/email-verification', {
     mutationFn: authService.login,
     onSuccess: handleAuthSuccess,
     onError: (error: Error) => {
-      console.error('❌ Error en login:', error);
       showErrorModal(error.message, 'Error de Inicio de Sesión');
     },
   });
@@ -282,7 +280,6 @@ navigate('/email-verification', {
     mutationFn: authService.register,
     onSuccess: handleRegistrationSuccess,
     onError: (error: Error) => {
-      console.error('❌ Error en registro:', error);
       showErrorModal(error.message, 'Error de Registro');
     },
   });
@@ -298,7 +295,6 @@ navigate('/email-verification', {
     try {
       await authService.forgotPassword(email);
     } catch (error) {
-      console.error('Error en forgot password:', error);
       throw error;
     }
   }, []);
@@ -307,7 +303,6 @@ navigate('/email-verification', {
     try {
       await authService.resetPassword(token, password, uid);
     } catch (error) {
-      console.error('Error en reset password:', error);
       throw error;
     }
   }, []);

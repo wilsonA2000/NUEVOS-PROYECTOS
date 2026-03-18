@@ -86,7 +86,6 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
           }
         },
         onRegisterError(error) {
-          console.error('Error registrando Service Worker:', error);
           setState(prev => ({
             ...prev,
             isInstalling: false,
@@ -112,7 +111,6 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
       updateSWCallback = updateSW;
       swRegistered = true;
     } catch (error) {
-      console.error('Error registrando Service Worker:', error);
       setState(prev => ({
         ...prev,
         isInstalling: false,
@@ -153,7 +151,6 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
         }));
       }
     } catch (error) {
-      console.error('Error desregistrando Service Worker:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error desregistrando',
@@ -170,7 +167,6 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     try {
       await state.registration.update();
     } catch (error) {
-      console.error('Error actualizando Service Worker:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error actualizando',
@@ -200,7 +196,6 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map(name => caches.delete(name)));
     } catch (error) {
-      console.error('Error limpiando cache:', error);
     }
   }, []);
 
@@ -270,7 +265,6 @@ export function usePushNotifications() {
 
       return sub;
     } catch (error) {
-      console.error('Error suscribiendose a notificaciones push:', error);
       return null;
     }
   }, [registration, permission]);
@@ -295,7 +289,6 @@ export function usePushNotifications() {
       }
       return success;
     } catch (error) {
-      console.error('Error desuscribiendose de notificaciones push:', error);
       return false;
     }
   }, [subscription]);

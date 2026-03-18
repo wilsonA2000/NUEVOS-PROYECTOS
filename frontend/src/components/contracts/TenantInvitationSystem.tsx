@@ -189,7 +189,6 @@ export const TenantInvitationSystem: React.FC<TenantInvitationSystemProps> = ({
       ];
       setInvitationHistory(mockHistory);
     } catch (error) {
-      console.error('Error loading invitation history:', error);
     }
   };
 

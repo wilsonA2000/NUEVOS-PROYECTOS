@@ -41,7 +41,6 @@ export const notificationService = {
       const response = await api.get('/core/notifications/unread_count/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching unread notification count:', error);
       // Devolver un valor por defecto en caso de error para no romper la UI
       return { count: 0 };
     }

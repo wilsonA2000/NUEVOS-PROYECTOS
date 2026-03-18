@@ -155,12 +155,12 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
       case 'excel':
         // Implementación básica para Excel (requeriría librería como xlsx)
-        console.warn('Excel export requires additional library (e.g., xlsx)');
+        // Excel export requires additional library (e.g., xlsx)
         return new Blob(['Excel export not implemented'], { type: 'text/plain' });
 
       case 'pdf':
         // Implementación básica para PDF (requeriría librería como jsPDF)
-        console.warn('PDF export requires additional library (e.g., jsPDF)');
+        // PDF export requires additional library (e.g., jsPDF)
         return new Blob(['PDF export not implemented'], { type: 'text/plain' });
 
       default:
@@ -219,7 +219,6 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       });
 
     } catch (error) {
-      console.error('Error durante la exportación:', error);
       setSnackbar({
         open: true,
         message: `Error al exportar en formato ${format.toUpperCase()}`,
@@ -366,7 +365,6 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         <MenuItem
           onClick={() => {
             // Abrir configuración avanzada o compartir
-            console.log('Advanced export options');
             handleMenuClose();
           }}
           sx={{

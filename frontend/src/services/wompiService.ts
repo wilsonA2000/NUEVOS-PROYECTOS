@@ -68,7 +68,6 @@ class WompiService {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Error initiating Wompi payment:', error);
       throw this.handleError(error);
     }
   }
@@ -83,7 +82,6 @@ class WompiService {
       );
       return response.data.banks;
     } catch (error: any) {
-      console.error('Error fetching PSE banks:', error);
       throw this.handleError(error);
     }
   }
@@ -98,7 +96,6 @@ class WompiService {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching payment status:', error);
       throw this.handleError(error);
     }
   }
@@ -282,7 +279,6 @@ class WompiService {
       }
       return null;
     } catch (error) {
-      console.error('Error parsing return URL:', error);
       return null;
     }
   }

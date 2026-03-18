@@ -61,7 +61,6 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error('Error al programar visita:', error);
     } finally {
       setLoading(false);
     }

@@ -135,30 +135,8 @@ const MessagingErrorBoundary: React.FC<MessagingErrorBoundaryProps> = ({ childre
       module="Messaging"
       fallback={<MessagingFallback />}
       onError={(error, errorInfo) => {
-        // Messaging-specific error logging
-        console.error('Messaging Module Error:', {
-          error: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          timestamp: new Date().toISOString(),
-          module: 'Messaging',
-          url: window.location.href,
-          connectionStatus: navigator.onLine ? 'online' : 'offline',
-        });
-
+        // Messaging-specific error handling
         // Check WebSocket connection status if available
-        const wsStatus = (window as any).messageWebSocket?.readyState;
-        if (wsStatus !== undefined) {
-          console.error('WebSocket Status:', {
-            readyState: wsStatus,
-            states: {
-              0: 'CONNECTING',
-              1: 'OPEN', 
-              2: 'CLOSING',
-              3: 'CLOSED',
-            },
-          });
-        }
       }}
     >
       {children}

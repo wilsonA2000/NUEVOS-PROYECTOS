@@ -482,11 +482,9 @@ const MessengerMain: React.FC = () => {
               } : undefined}
               onClose={() => setShowProfileSidebar(false)}
               onBlock={(userId) => {
-                console.log('Block user:', userId);
                 // Implementar lógica de bloqueo
               }}
               onReport={(userId) => {
-                console.log('Report user:', userId);
                 // Implementar lógica de reporte
               }}
             />

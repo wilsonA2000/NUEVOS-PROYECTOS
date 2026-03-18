@@ -46,7 +46,6 @@ export const usePollingNotifications = () => {
       setNotifications(mockNotifications);
       setUnreadCount(mockNotifications.filter(n => !n.is_read).length);
     } catch (error) {
-      console.warn('Failed to fetch notifications:', error);
     } finally {
       setIsLoading(false);
     }

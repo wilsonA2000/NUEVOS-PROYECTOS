@@ -46,8 +46,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     // Performance monitoring integration
     if (window.performance && window.performance.mark) {
       window.performance.mark('error-boundary-triggered');
@@ -76,14 +74,6 @@ export class ErrorBoundary extends Component<Props, State> {
       url: window.location.href,
       componentStack: errorInfo.componentStack,
     };
-
-    // Log to console for development
-    console.group('Error Boundary Report');
-    console.error('Error:', error);
-    console.error('Module:', this.props.module);
-    console.error('Component Stack:', errorInfo.componentStack);
-    console.error('Full Report:', errorReport);
-    console.groupEnd();
 
     // Send to Sentry if available
     try {

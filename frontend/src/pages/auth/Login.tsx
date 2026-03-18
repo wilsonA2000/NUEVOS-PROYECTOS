@@ -78,8 +78,6 @@ export const Login: React.FC = () => {
       await login.mutateAsync(formData);
       // La redirección se maneja en el useEffect cuando isAuthenticated cambia
     } catch (err: any) {
-      console.error('Error en login:', err);
-      
       // El error ya viene procesado desde el servicio
       if (err instanceof Error) {
         setError(err.message);

@@ -58,7 +58,6 @@ setFormData({ subject: '', message: '', contact_preference: 'email' });
       onClose();
     },
     onError: (error) => {
-      console.error('❌ ContactLandlord: Error enviando mensaje:', error);
     },
   });
 

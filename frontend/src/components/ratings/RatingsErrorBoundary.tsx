@@ -56,8 +56,6 @@ class RatingsErrorBoundary extends Component<RatingsErrorBoundaryProps, RatingsE
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('RatingsErrorBoundary caught an error:', error, errorInfo);
-    
     this.setState({
       error,
       errorInfo,

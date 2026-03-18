@@ -64,7 +64,6 @@ const ContactForm: React.FC = () => {
         type: 'error',
         message: 'Error al enviar el mensaje. Por favor verifica tus datos e intenta nuevamente.',
       });
-      console.error('Error enviando formulario de contacto:', error);
     } finally {
       setIsSubmitting(false);
     }

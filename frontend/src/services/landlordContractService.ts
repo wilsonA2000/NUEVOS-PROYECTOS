@@ -77,13 +77,6 @@ export class LandlordContractService {
       pets_allowed: basicTerms.pets_allowed ?? (contractTerms.pet_policy === 'allowed'),
       smoking_allowed: basicTerms.smoking_allowed ?? false,
     };
-
-    console.log('🚀 SENDING CONTRACT PAYLOAD:', {
-      originalPayload: payload,
-      transformedPayload: backendPayload,
-      endpoint: `${BASE_URL}/contracts/`,
-    });
-
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
   }
@@ -112,12 +105,6 @@ export class LandlordContractService {
       pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
       smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false),
     };
-
-    console.log('🚀 SENDING LEGACY CONTRACT PAYLOAD:', {
-      originalData: contractData,
-      transformedPayload: backendPayload,
-    });
-
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
   }
@@ -248,12 +235,9 @@ export class LandlordContractService {
         invitation_token: contractData.invitation_token,
         published_at: contractData.published_at,
       } as LandlordControlledContractData;
-
-      console.log('✅ Contract loaded for editing:', formattedContract.id);
       return formattedContract;
 
     } catch (error) {
-      console.error('❌ Error loading contract for editing:', error);
       throw error;
     }
   }

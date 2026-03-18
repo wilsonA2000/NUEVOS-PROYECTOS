@@ -64,7 +64,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Placeholder WebSocket context - replace with actual implementation
   const isConnected = false;
-  const send = (channel: string, data: any) => { console.log('Send:', channel, data); return true; };
+  const send = (_channel: string, _data: any) => { return true; };
   const subscribe = (event: string, handler: Function) => () => {};
   const onlineUsers = new Set<string>();
   
@@ -282,9 +282,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           content: messageContent,
           thread_id: conversationId,
         });
-        console.log('📧 ChatWindow: Notificación automática enviada por nuevo mensaje');
       } catch (notificationError) {
-        console.warn('⚠️ ChatWindow: Error enviando notificación automática:', notificationError);
         // No afectar el flujo principal si fallan las notificaciones
       }
 
@@ -294,7 +292,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       }, 5000);
 
     } catch (error) {
-      console.error('Error sending message:', error);
       setMessages(prev =>
         prev.map(msg =>
           msg.id === tempMessage.id

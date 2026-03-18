@@ -205,7 +205,6 @@ export const LandlordContractManager: React.FC = () => {
       const activity = await LandlordContractService.getRecentActivity(5);
       setRecentActivity(activity);
     } catch (err: any) {
-      console.error('Error loading recent activity:', err);
     }
   };
 

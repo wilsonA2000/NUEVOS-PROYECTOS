@@ -222,11 +222,8 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
           voiceText: response.voice_text || `Como codeudor ${codeudorData.guarantee_type === 'codeudor_salario' ? 'personal' : 'con finca raíz'}, acepto solidariamente las obligaciones del contrato de arrendamiento número ${response.contract_number}`,
           expiresAt: response.expires_at,
         }));
-
-        console.log('✅ Codeudor biometric session initialized:', response.authentication_id);
       }
     } catch (err) {
-      console.error('❌ Error initializing codeudor biometric session:', err);
       onError('Error al inicializar la sesión biométrica del codeudor');
     } finally {
       setLoading(false);
@@ -314,16 +311,12 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
         } else {
           await completeCodeudorBiometricAuth();
         }
-
-        console.log(`✅ Codeudor step ${stepId} completed:`, response);
       } else {
         const errorMessage = (response as any)?.message || `Error en paso ${stepId + 1}`;
         throw new globalThis.Error(errorMessage);
       }
 
     } catch (err: unknown) {
-      console.error(`❌ Error in codeudor step ${stepId}:`, err);
-
       const errorMessage = err instanceof globalThis.Error ? err.message : String(err);
 
       setSteps(prev => prev.map(step =>
@@ -355,8 +348,6 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
             codeudor_overall_confidence: overallConfidence,
           },
         };
-
-        console.log('✅ Codeudor biometric authentication completed:', finalBiometricData);
         onSuccess(finalBiometricData);
         
         // Close dialog after success
@@ -365,7 +356,6 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
         }, 2000);
       }
     } catch (err) {
-      console.error('❌ Error completing codeudor biometric auth:', err);
       onError('Error al completar la autenticación biométrica del codeudor');
     } finally {
       setLoading(false);

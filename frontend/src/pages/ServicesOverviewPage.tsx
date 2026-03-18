@@ -149,7 +149,6 @@ const ServicesOverviewPage: React.FC = () => {
       setFeaturedServices(featuredRes.data);
       setMostRequestedServices(mostRequestedRes.data);
     } catch (error) {
-      console.error('Error loading services data:', error);
       setError('Error al cargar los servicios. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
@@ -162,7 +161,6 @@ const ServicesOverviewPage: React.FC = () => {
       setServices(response.data);
       setSelectedCategory(categorySlug);
     } catch (error) {
-      console.error('Error loading services by category:', error);
     }
   };
 
@@ -203,7 +201,6 @@ const ServicesOverviewPage: React.FC = () => {
         });
       }, 2000);
     } catch (error) {
-      console.error('Error submitting service request:', error);
       setError('Error al enviar la solicitud. Por favor, intenta de nuevo.');
     } finally {
       setSubmittingRequest(false);

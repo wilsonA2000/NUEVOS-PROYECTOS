@@ -257,7 +257,6 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
       
       // Si hay un PDF, procesarlo de manera especial
       if (pdfFile) {
-        console.log('📄 Procesando documento PDF:', pdfFile.name);
         // Para PDF, podemos enviar directamente el archivo o el dataURL
         // El backend puede procesarlo con librerías de PDF
       }
@@ -434,7 +433,6 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         return (
           <CameraCaptureSimple
             onCapture={(image) => {
-              console.log('📷 Imagen capturada en step 0');
               // Simulamos el handleFaceCapture con una imagen
               handleFaceCapture(image, image); // front y side iguales por ahora
             }}
@@ -463,7 +461,6 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         return (
           <CameraCaptureSimple
             onCapture={(image) => {
-              console.log('📷 Imagen combinada capturada');
               handleCombinedVerification(image);
             }}
             onError={(error) => setError(error)}

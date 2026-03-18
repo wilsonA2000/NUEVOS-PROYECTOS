@@ -61,7 +61,6 @@ export function captureException(
   context?: Record<string, unknown>,
 ): void {
   if (!SENTRY_DSN) {
-    console.error('[Sentry disabled] Exception:', error, context);
     return;
   }
   Sentry.captureException(error, { extra: context });
@@ -75,7 +74,6 @@ export function captureMessage(
   level: Sentry.SeverityLevel = 'info',
 ): void {
   if (!SENTRY_DSN) {
-    console.log(`[Sentry disabled] ${level}: ${message}`);
     return;
   }
   Sentry.captureMessage(message, level);

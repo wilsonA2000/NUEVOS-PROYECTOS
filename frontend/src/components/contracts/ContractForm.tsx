@@ -73,7 +73,6 @@ export const ContractForm: React.FC<ContractFormProps> = ({
       }
       navigate('/app/contracts');
     } catch (error) {
-      console.error('Error al guardar el contrato:', error);
     }
   };
 

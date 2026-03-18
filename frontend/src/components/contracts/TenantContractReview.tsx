@@ -67,12 +67,10 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
     setLoading(true);
     try {
       await contractService.tenantContractReview(contract.id, 'approve', comments);
-      console.log('✅ Contrato aprobado exitosamente');
       setApproveDialogOpen(false);
       setComments('');
       onReviewComplete?.();
     } catch (error) {
-      console.error('Error approving contract:', error);
       alert('Error al aprobar el contrato. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
@@ -88,12 +86,10 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
     setLoading(true);
     try {
       await contractService.tenantContractReview(contract.id, 'request_changes', comments);
-      console.log('✅ Solicitud de cambios enviada exitosamente');
       setChangesDialogOpen(false);
       setComments('');
       onReviewComplete?.();
     } catch (error) {
-      console.error('Error requesting changes:', error);
       alert('Error al solicitar cambios. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);

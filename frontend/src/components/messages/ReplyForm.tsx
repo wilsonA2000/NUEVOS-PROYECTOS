@@ -45,7 +45,6 @@ export const ReplyForm: React.FC = () => {
       await createMessage.mutateAsync(formData as any);
       navigate('/app/messages');
     } catch (error) {
-      console.error('Error al enviar la respuesta:', error);
     }
   };
 

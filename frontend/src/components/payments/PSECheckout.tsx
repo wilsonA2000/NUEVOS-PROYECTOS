@@ -118,7 +118,6 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
       const data = await response.json();
       setBanks(data.banks || []);
     } catch (error) {
-      console.error('Error loading banks:', error);
       setGeneralError('No se pudieron cargar los bancos. Intenta nuevamente.');
     } finally {
       setLoadingBanks(false);
@@ -216,7 +215,6 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         throw new Error(data.error || 'No se recibió URL de redirección');
       }
     } catch (error: any) {
-      console.error('PSE payment error:', error);
       setGeneralError(error.message || 'Error al procesar el pago PSE');
       onError(error.message);
     } finally {

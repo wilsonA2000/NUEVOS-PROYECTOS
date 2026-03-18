@@ -132,7 +132,6 @@ const ResumeEdit: React.FC = () => {
     } else {
       setError(null);
       // Podrías usar alert temporal o implementar una notificación simple
-      console.log('✅', message);
     }
   };
 
@@ -186,9 +185,7 @@ const ResumeEdit: React.FC = () => {
       setFormData(mappedData);
       setVerificationScore(resume.verification_score || 0);
     } catch (err: any) {
-      console.error('Error loading resume:', err);
       if (err.response?.status === 404) {
-        console.log('No existe resume, mostrando formulario vacío');
         setError(null);
       } else {
         setError(`Error al cargar la hoja de vida: ${  err.response?.data?.error || err.message}`);
@@ -290,7 +287,6 @@ const ResumeEdit: React.FC = () => {
       }
       
     } catch (err: any) {
-      console.error('Error saving resume:', err);
       showNotification(`Error al guardar la hoja de vida: ${  err.response?.data?.error || err.message}`, 'error');
     } finally {
       setSaving(false);

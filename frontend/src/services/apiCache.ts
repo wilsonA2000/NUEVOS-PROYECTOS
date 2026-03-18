@@ -61,12 +61,10 @@ class ApiCache {
         storageApi.setItem(key, JSON.stringify(item));
       } catch (e) {
         // Si el storage está lleno, limpiar items antiguos
-        console.warn('Storage full, clearing old cache items');
         this.clearOldItems(storage);
         try {
           storageApi.setItem(key, JSON.stringify(item));
         } catch {
-          console.error('Unable to cache item');
         }
       }
     }
@@ -128,7 +126,7 @@ class ApiCache {
           
           // Si el cache no ha expirado, devolver los datos cacheados
           if (age < ttl) {
-            console.log(`🎯 ApiCache: Cache HIT para ${config.url} (age: ${Math.round(age/1000)}s)`);
+            // Cache HIT
             // Crear una respuesta falsa con los datos cacheados
             const cachedResponse: AxiosResponse = {
               data: cached.data,

@@ -71,7 +71,6 @@ const Compose: React.FC = () => {
       const response = await api.get('/users/');
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
     }
   };
 
@@ -80,7 +79,6 @@ const Compose: React.FC = () => {
       const response = await api.get('/properties/');
       setProperties(response.data);
     } catch (error) {
-      console.error('Error fetching properties:', error);
     }
   };
 
@@ -89,7 +87,6 @@ const Compose: React.FC = () => {
       const response = await api.get('/contracts/');
       setContracts(response.data);
     } catch (error) {
-      console.error('Error fetching contracts:', error);
     }
   };
 
@@ -146,7 +143,6 @@ const Compose: React.FC = () => {
         contract: selectedContract,
       });
     } catch (error) {
-      console.error('Error sending message:', error);
       setError('Error al enviar el mensaje');
     } finally {
       setSubmitting(false);

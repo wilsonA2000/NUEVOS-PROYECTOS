@@ -296,7 +296,6 @@ class AuditMiddleware {
         clsObserver.observe({ entryTypes: ['layout-shift'] });
 
       } catch (error) {
-        console.warn('Failed to setup performance observers:', error);
       }
     }
 

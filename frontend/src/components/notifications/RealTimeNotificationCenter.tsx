@@ -108,7 +108,6 @@ export const RealTimeNotificationCenter: React.FC = () => {
 
   const handlePushToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
     // Push notification toggle logic - to be implemented
-    console.log('Push notifications toggle:', event.target.checked);
   };
 
   // Filtrar notificaciones por tipo
@@ -293,7 +292,7 @@ export const RealTimeNotificationCenter: React.FC = () => {
                 <Button
                   size="small"
                   startIcon={<DeleteIcon />}
-                  onClick={() => console.log('Clear all notifications')}
+                  onClick={() => { /* TODO: implement clear all */ }}
                   color="error"
                 >
                   Limpiar todas
@@ -407,7 +406,6 @@ export const RealTimeNotificationCenter: React.FC = () => {
                               size="small"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log('Clear notification:', notification.id);
                               }}
                             >
                               <CloseIcon fontSize="small" />

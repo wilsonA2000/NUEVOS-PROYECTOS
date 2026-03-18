@@ -98,14 +98,7 @@ const PropertiesErrorBoundary: React.FC<PropertiesErrorBoundaryProps> = ({ child
       module="Properties"
       fallback={<PropertiesFallback />}
       onError={(error, errorInfo) => {
-        // Properties-specific error logging
-        console.error('Properties Module Error:', {
-          error: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          timestamp: new Date().toISOString(),
-          module: 'Properties',
-        });
+        // Properties-specific error handling
       }}
     >
       {children}

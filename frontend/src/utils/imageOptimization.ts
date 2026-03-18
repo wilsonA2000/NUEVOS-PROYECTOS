@@ -155,7 +155,6 @@ class ImageOptimizer {
         
         results[sizeName] = compressed;
       } catch (error) {
-        console.error(`Error generando tamaño ${sizeName}:`, error);
       }
     }
     
@@ -262,7 +261,6 @@ export function useImageOptimization() {
       
       return optimized;
     } catch (error) {
-      console.error('Error optimizando imagen:', error);
       throw error;
     } finally {
       setIsProcessing(false);
@@ -284,7 +282,6 @@ export function useImageOptimization() {
       
       return responsive;
     } catch (error) {
-      console.error('Error generando imágenes responsivas:', error);
       throw error;
     } finally {
       setIsProcessing(false);
@@ -296,7 +293,6 @@ export function useImageOptimization() {
     try {
       return await imageOptimizer.generateBlurPlaceholder(file);
     } catch (error) {
-      console.error('Error generando placeholder:', error);
       throw error;
     }
   };

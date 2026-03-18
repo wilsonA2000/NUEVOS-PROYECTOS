@@ -195,7 +195,6 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           version: 1,
         });
       } catch (error) {
-        console.error('Error loading contract:', error);
       } finally {
         setLoading(false);
       }
@@ -235,7 +234,6 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       setUnsavedChanges(false);
       setEditMode(false);
     } catch (error) {
-      console.error('Error saving changes:', error);
     } finally {
       setLoading(false);
     }
@@ -256,7 +254,6 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         window.open(url, '_blank');
       }
     } catch (error) {
-      console.error('Error generating PDF:', error);
     } finally {
       setLoading(false);
     }

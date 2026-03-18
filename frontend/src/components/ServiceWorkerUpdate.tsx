@@ -83,7 +83,6 @@ const ServiceWorkerUpdate: React.FC<ServiceWorkerUpdateProps> = ({ onUpdateCompl
       await clearCache();
       setCacheSize(0);
     } catch (error) {
-      console.error('Error limpiando cache:', error);
     } finally {
       setIsClearing(false);
     }
@@ -225,7 +224,7 @@ const ServiceWorkerUpdate: React.FC<ServiceWorkerUpdateProps> = ({ onUpdateCompl
               label="Error SW"
               color="error"
               size="small"
-              onClick={() => console.error('SW Error:', error)}
+              onClick={() => { /* SW Error details available in error state */ }}
             />
           )}
         </Box>

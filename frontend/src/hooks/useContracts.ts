@@ -187,7 +187,6 @@ export const useContracts = () => {
     mutationFn: ({ matchId }: { matchId: string }) =>
       contractService.validateMatchForContract(matchId),
     onError: (error) => {
-      console.error('Error validating match for contract:', error);
     },
   });
 

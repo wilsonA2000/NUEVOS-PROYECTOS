@@ -45,7 +45,6 @@ export const viewContractPDF = async (contractId: string): Promise<void> => {
       alert('No se pudo abrir el PDF. Por favor verifica que no esté bloqueado por el navegador.');
     }
   } catch (error) {
-    console.error('Error al cargar el PDF:', error);
     alert('Error al cargar el contrato profesional. Por favor intenta nuevamente.');
   }
 };
@@ -91,7 +90,6 @@ export const downloadContractPDF = async (contractId: string, filename?: string)
     // Liberar memoria
     URL.revokeObjectURL(downloadUrl);
   } catch (error) {
-    console.error('Error al descargar el PDF:', error);
     alert('Error al descargar el contrato. Por favor intenta nuevamente.');
   }
 };

@@ -136,7 +136,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         setIsCameraActive(true);
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
       alert('No se pudo acceder a la cámara. Verifique los permisos.');
     }
   };
@@ -207,7 +206,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       setActiveStep(1);
       
     } catch (error) {
-      console.error('Error in facial recognition:', error);
       setVerificationResults(prev => ({ ...prev, facial: false }));
     } finally {
       setIsProcessing(false);
@@ -259,7 +257,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       setActiveStep(2);
       
     } catch (error) {
-      console.error('Error in document capture:', error);
       setVerificationResults(prev => ({ ...prev, document: false }));
     } finally {
       setIsProcessing(false);
@@ -289,7 +286,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       setVerificationResults(prev => ({ ...prev, fingerprint: true }));
       
     } catch (error) {
-      console.error('Error in fingerprint capture:', error);
       setVerificationResults(prev => ({ ...prev, fingerprint: false }));
     } finally {
       setIsProcessing(false);

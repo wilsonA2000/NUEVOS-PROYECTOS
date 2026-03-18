@@ -85,13 +85,6 @@ export const useAdminAuth = (): UseAdminAuthReturn => {
       error: isAdmin ? null : 'Acceso denegado: Se requieren permisos de administrador',
     });
 
-    // Log para debugging
-    console.log('🔐 Admin Auth Check:', {
-      email: user.email,
-      is_staff: isStaff,
-      is_superuser: isSuperuser,
-      has_admin_access: isAdmin,
-    });
   }, [user, isAuthenticated, authLoading]);
 
   /**
@@ -108,7 +101,6 @@ export const useAdminAuth = (): UseAdminAuthReturn => {
   const redirectIfNotAdmin = useCallback(
     (redirectPath: string = '/app/dashboard'): void => {
       if (!state.isLoading && !state.isAdmin) {
-        console.warn('🚫 Admin access denied, redirecting to:', redirectPath);
         navigate(redirectPath, {
           replace: true,
           state: {

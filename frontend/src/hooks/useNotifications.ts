@@ -40,7 +40,6 @@ export const useNotifications = () => {
       const unread = data.filter((n: Notification) => !n.is_read).length;
       setUnreadCount(unread);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -56,7 +55,6 @@ export const useNotifications = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -66,7 +64,6 @@ export const useNotifications = () => {
       setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
     }
   };
 
@@ -81,7 +78,6 @@ export const useNotifications = () => {
         return prev.filter(n => n.id !== notificationId);
       });
     } catch (error) {
-      console.error('Error deleting notification:', error);
     }
   };
 
@@ -143,7 +139,6 @@ export const useNotifications = () => {
           );
         }
       } catch (error) {
-        console.error('Error procesando mensaje WebSocket:', error);
       }
     }
   }, [lastMessage]);

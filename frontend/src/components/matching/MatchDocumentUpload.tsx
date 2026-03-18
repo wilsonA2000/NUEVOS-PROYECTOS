@@ -117,9 +117,6 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
           },
         },
       );
-
-      console.log('✅ Documento subido exitosamente:', response.data);
-
       setSuccess(true);
 
       // Limpiar formulario
@@ -136,7 +133,6 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
       }
 
     } catch (err: any) {
-      console.error('❌ Error al subir documento:', err);
       const errorMsg = err.response?.data?.error || err.message || 'Error desconocido';
       setError(errorMsg);
     } finally {

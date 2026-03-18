@@ -32,10 +32,6 @@ export const ContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { contracts, isLoading, error } = useContracts();
 
-  // Debug: Log contracts data structure
-  console.log('🔍 ContractDetail - contracts:', contracts, 'type:', typeof contracts, 'isArray:', Array.isArray(contracts));
-  console.log('🔍 ContractDetail - looking for id:', id);
-
   const contract = Array.isArray(contracts) ? contracts.find((c) => c.id === id) : undefined;
 
   if (isLoading) {

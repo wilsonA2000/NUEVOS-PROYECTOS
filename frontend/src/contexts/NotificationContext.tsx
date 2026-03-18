@@ -252,7 +252,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
       } catch (error: any) {
         dispatch({ type: 'SET_ERROR', payload: error.message || 'Failed to load notifications' });
-        console.error('Error loading notifications:', error);
       }
     }, [isAuthenticated]),
 
@@ -261,7 +260,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         await api.post(`/core/notifications/${id}/mark_read/`);
         dispatch({ type: 'MARK_AS_READ', payload: id });
       } catch (error: any) {
-        console.error('Error marking notification as read:', error);
         toast.error('Failed to mark notification as read');
       }
     }, []),
@@ -272,7 +270,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         dispatch({ type: 'MARK_ALL_AS_READ' });
         toast.success('All notifications marked as read');
       } catch (error: any) {
-        console.error('Error marking all notifications as read:', error);
         toast.error('Failed to mark all notifications as read');
       }
     }, []),
@@ -282,7 +279,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         await api.delete(`/core/notifications/${id}/`);
         dispatch({ type: 'REMOVE_NOTIFICATION', payload: id });
       } catch (error: any) {
-        console.error('Error removing notification:', error);
         toast.error('Failed to remove notification');
       }
     }, []),
@@ -293,7 +289,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         dispatch({ type: 'CLEAR_ALL' });
         toast.success('All notifications cleared');
       } catch (error: any) {
-        console.error('Error clearing notifications:', error);
         toast.error('Failed to clear notifications');
       }
     }, []),
@@ -305,7 +300,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         const response = await api.get('/core/notifications/preferences/');
         dispatch({ type: 'SET_PREFERENCES', payload: response.data });
       } catch (error: any) {
-        console.error('Error loading notification preferences:', error);
       }
     }, [isAuthenticated]),
 
@@ -315,7 +309,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         dispatch({ type: 'SET_PREFERENCES', payload: response.data });
         toast.success('Notification preferences updated');
       } catch (error: any) {
-        console.error('Error updating notification preferences:', error);
         toast.error('Failed to update preferences');
       }
     }, []),
@@ -326,7 +319,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         dispatch({ type: 'ADD_NOTIFICATION', payload: response.data });
         toast.success('Notification created');
       } catch (error: any) {
-        console.error('Error creating notification:', error);
         toast.error('Failed to create notification');
       }
     }, []),
@@ -336,7 +328,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         await api.post('/core/notifications/test/', { channel });
         toast.success(`Test notification sent via ${channel}`);
       } catch (error: any) {
-        console.error('Error sending test notification:', error);
         toast.error('Failed to send test notification');
       }
     }, []),

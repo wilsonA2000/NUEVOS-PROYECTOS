@@ -63,9 +63,7 @@ export const ContractList: React.FC = () => {
       try {
         await deleteContract.mutateAsync(selectedContract.id);
         // Opcionalmente mostrar un mensaje de éxito
-        console.log('✅ Contrato eliminado exitosamente');
       } catch (error) {
-        console.error('Error deleting contract:', error);
         alert('Error al eliminar el contrato. Por favor, intenta de nuevo.');
       }
     }
@@ -74,14 +72,10 @@ export const ContractList: React.FC = () => {
 
   const handleSendForReview = async (contractId: string) => {
     try {
-      console.log('Enviar para revisión:', contractId);
       await contractService.sendContractForReview(contractId);
-      console.log('✅ Contrato enviado para revisión exitosamente');
-      
       // Refrescar la lista de contratos
       window.location.reload();
     } catch (error) {
-      console.error('Error sending contract for review:', error);
       alert('Error al enviar el contrato para revisión. Por favor, intenta de nuevo.');
     }
   };

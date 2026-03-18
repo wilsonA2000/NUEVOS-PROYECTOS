@@ -122,3 +122,7 @@ frontend/logs/
 
 # Archived directories
 archived/
+
+# Playwright test artifacts
+playwright-report/
+test-results/

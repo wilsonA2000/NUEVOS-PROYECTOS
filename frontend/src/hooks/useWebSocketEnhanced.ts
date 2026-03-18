@@ -46,24 +46,20 @@ export const useWebSocketEnhanced = (
 
   // Connect function disabled
   const connect = useCallback(async () => {
-    console.log(`WebSocket connect disabled for ${endpoint}`);
     return Promise.resolve();
   }, [endpoint]);
 
   // Disconnect function disabled
   const disconnect = useCallback(() => {
-    console.log(`WebSocket disconnect disabled for ${endpoint}`);
   }, [endpoint]);
 
   // Send function disabled
   const send = useCallback((message: WebSocketMessage) => {
-    console.log(`WebSocket send disabled for ${endpoint}:`, message);
     return false;
   }, [endpoint]);
 
   // Subscribe function disabled
   const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    console.log(`WebSocket subscribe disabled for ${eventType}`);
     return () => {};
   }, []);
 

@@ -47,7 +47,6 @@ export const PaymentList: React.FC = () => {
       try {
         await deleteTransaction.mutateAsync(selectedTransaction.id);
       } catch (error) {
-        console.error('Error deleting transaction:', error);
       }
     }
     handleMenuClose();

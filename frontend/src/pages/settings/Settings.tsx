@@ -87,7 +87,6 @@ const Settings: React.FC = () => {
       setSettings(settingsData);
       reset(settingsData);
     } catch (error: any) {
-      console.error('Error loading settings:', error);
       // Si no existe, usar valores por defecto
       if (error.response?.status === 404) {
         setSettings(null);
@@ -107,7 +106,6 @@ const Settings: React.FC = () => {
         setShowSuccess(false);
       }, 2000);
     } catch (error: any) {
-      console.error('Error updating settings:', error);
       setSuccessMessage('Error al actualizar los ajustes');
       setShowSuccess(true);
     } finally {

@@ -220,7 +220,6 @@ const Profile: React.FC = () => {
         setAvatarPreview(`http://localhost:8000${userData.avatar}`);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
       showError('Error al cargar el perfil');
     } finally {
       setLoading(false);
@@ -291,7 +290,6 @@ const Profile: React.FC = () => {
         });
         success('Avatar actualizado correctamente');
       } catch (error) {
-        console.error('Error uploading avatar:', error);
         showError('Error al subir el avatar');
         setAvatarPreview(null); // Reset preview on error
       }
@@ -334,9 +332,6 @@ const Profile: React.FC = () => {
         return;
       }
       
-      console.log('Campos modificados a enviar:', JSON.stringify(modifiedData, null, 2));
-      console.log('Número de campos modificados:', Object.keys(modifiedData).length);
-      
       await api.patch('/users/profile/', modifiedData);
       
       // Actualizar datos originales con los nuevos valores
@@ -348,8 +343,6 @@ const Profile: React.FC = () => {
       setIsEditing(false);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      console.log('Error response data:', error.response?.data);
       showError('Error al actualizar el perfil');
     } finally {
       setLoading(false);

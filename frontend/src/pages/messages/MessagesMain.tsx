@@ -169,7 +169,6 @@ return (
   }
 
   if (error) {
-    console.error('❌ MessagesMain: Error al cargar mensajes:', error);
     return (
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         <Alert severity="error" sx={{ mb: 2 }}>

@@ -374,7 +374,6 @@ const LandlordContractsDashboard: React.FC = () => {
           );
           break;
         default:
-          console.log(`Acción ${actionId} no implementada`);
       }
     } catch (err: any) {
       setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);

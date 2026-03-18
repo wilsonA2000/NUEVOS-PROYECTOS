@@ -331,7 +331,7 @@ const EnhancedDocumentVerification: React.FC<EnhancedDocumentVerificationProps> 
         <Box sx={{ flex: 1 }}>
           <SimpleProfessionalCamera
             onCapture={handlePhotoCapture}
-            onError={(err) => console.error(err)}
+            onError={() => { /* Camera error handled */ }}
             instructions={
               activePhotoCapture === 'front'
                 ? 'Sostenga el FRENTE del documento junto a su rostro'

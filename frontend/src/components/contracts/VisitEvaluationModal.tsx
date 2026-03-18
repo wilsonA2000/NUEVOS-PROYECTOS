@@ -57,7 +57,6 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
       await onEvaluate(approved, notes);
       onClose();
     } catch (error) {
-      console.error('Error al evaluar visita:', error);
     } finally {
       setLoading(false);
     }

@@ -179,7 +179,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       }
       navigate('/app/payments');
     } catch (error) {
-      console.error('Error al guardar el pago:', error);
     }
   };
 

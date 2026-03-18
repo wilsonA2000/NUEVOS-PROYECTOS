@@ -108,9 +108,6 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
   enableBulkActions = false,
   compactMode = false,
 }) => {
-  console.log('🔥 PropertyTable ACTUALIZADO rendering with properties:', properties?.length || 0);
-  console.log('🔥 First property image data:', properties?.[0]?.images?.[0]);
-  console.log('🔥 First property main_image_url:', properties?.[0]?.main_image_url);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -490,19 +487,10 @@ const PropertyTable: React.FC<PropertyTableProps> = memo(({
                         >
                           <PropertyImage
                             src={(() => {
-                              const imageSrc = property.main_image_url || 
-                                (property.images && property.images.length > 0 
+                              const imageSrc = property.main_image_url ||
+                                (property.images && property.images.length > 0
                                   ? property.images[0].image_url || property.images[0].image || '/placeholder-property.jpg'
                                   : '/placeholder-property.jpg');
-                              console.log(`🖼️ PropertyTable Image for ${property.title}:`, {
-                                main_image_url: property.main_image_url,
-                                images_count: property.images?.length || 0,
-                                first_image: property.images?.[0],
-                                first_image_url: property.images?.[0]?.image_url,
-                                final_src: imageSrc,
-                                full_property: property,
-                              });
-                              console.log('🔍 Image URL being used:', imageSrc);
                               return imageSrc;
                             })()}
                             alt={property.title}

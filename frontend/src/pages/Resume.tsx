@@ -158,10 +158,8 @@ const Resume: React.FC = () => {
       
       setResume(mappedResume);
     } catch (err: any) {
-      console.error('Error loading resume:', err);
       if (err.response?.status === 404) {
         // Si no existe resume, mostrar mensaje apropiado
-        console.log('No existe resume, usuario debe crear uno');
         setResume(null);
       } else {
         error(`Error al cargar la hoja de vida: ${  err.response?.data?.error || err.message}`);

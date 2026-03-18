@@ -166,7 +166,6 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
       onSigningComplete(completeData);
       
     } catch (error: any) {
-      console.error('Error submitting signature:', error);
       setError(error.response?.data?.detail || error.message || 'Error al firmar el contrato');
     } finally {
       setIsLoading(false);

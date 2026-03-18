@@ -101,7 +101,6 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
       setRequests(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError('Error al cargar las solicitudes de mantenimiento');
-      console.error('Error fetching maintenance requests:', err);
     } finally {
       setLoading(false);
     }

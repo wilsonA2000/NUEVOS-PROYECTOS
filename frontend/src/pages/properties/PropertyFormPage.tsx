@@ -25,18 +25,13 @@ const PropertyFormPage: React.FC = () => {
       if (isEditMode && id) {
         // Modo edición - actualizar propiedad existente usando hook
         result = await updateProperty.mutateAsync({ id, data: formData });
-        console.log('✅ Propiedad actualizada exitosamente:', result);
       } else {
         // Modo creación - crear nueva propiedad
         result = await createProperty.mutateAsync(formData);
-        console.log('✅ Propiedad creada exitosamente:', result);
       }
       
       return result;
     } catch (error: any) {
-      console.error(`❌ PropertyFormPage: Error ${isEditMode ? 'actualizando' : 'creando'} propiedad:`, error.response?.data || error.message);
-      console.error('📊 PropertyFormPage: Error completo:', error);
-      
       throw error;
     }
   };

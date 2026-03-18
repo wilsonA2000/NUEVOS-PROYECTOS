@@ -34,7 +34,6 @@ export const MessageForm: React.FC = () => {
       await createMessage.mutateAsync(formData as any);
       navigate('/app/messages');
     } catch (error) {
-      console.error('Error al crear el mensaje:', error);
     }
   };
 

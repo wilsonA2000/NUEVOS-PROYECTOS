@@ -16,7 +16,6 @@ export const useLanguage = () => {
         const module = await import(`../translations/${language}.json`);
         setTranslations(module.default);
       } catch (error) {
-        console.error('Error loading translations:', error);
       }
     };
 

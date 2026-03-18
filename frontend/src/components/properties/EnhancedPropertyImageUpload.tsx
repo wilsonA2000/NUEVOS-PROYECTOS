@@ -283,13 +283,11 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       for (const [index, file] of filesToProcess.entries()) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          console.error('Invalid file type:', file.type);
           continue;
         }
 
         // Validate file size
         if (file.size > maxSize) {
-          console.error('File too large:', file.size);
           continue;
         }
 
@@ -305,7 +303,6 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
             processedFile = await compressImage(file);
             compressed = true;
           } catch (error) {
-            console.error('Compression failed:', error);
           }
         }
 

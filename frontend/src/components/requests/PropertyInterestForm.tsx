@@ -90,9 +90,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
       if (user && property.landlord) {
         try {
           await onPropertyInterest(property, formData.description);
-          console.log('📧 PropertyInterestForm: Notificación automática enviada al propietario');
         } catch (notificationError) {
-          console.warn('⚠️ PropertyInterestForm: Error enviando notificación automática:', notificationError);
           // No afectar el flujo principal si fallan las notificaciones
         }
       }
@@ -103,7 +101,6 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
         onSuccess?.();
       }, 2000);
     } catch (error: any) {
-      console.error('Error creating property interest request:', error);
       setError(error.response?.data?.message || 'Error al enviar la solicitud');
     } finally {
       setLoading(false);

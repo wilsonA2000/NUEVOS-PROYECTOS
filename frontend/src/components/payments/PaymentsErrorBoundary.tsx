@@ -55,8 +55,6 @@ class PaymentsErrorBoundary extends Component<PaymentsErrorBoundaryProps, Paymen
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('PaymentsErrorBoundary caught an error:', error, errorInfo);
-    
     this.setState({
       error,
       errorInfo,

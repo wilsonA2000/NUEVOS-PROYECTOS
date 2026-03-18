@@ -126,15 +126,7 @@ const UsersErrorBoundary: React.FC<UsersErrorBoundaryProps> = ({ children }) => 
       module="Users"
       fallback={<UsersFallback />}
       onError={(error, errorInfo) => {
-        // Users-specific error logging
-        console.error('Users Module Error:', {
-          error: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          timestamp: new Date().toISOString(),
-          module: 'Users',
-          url: window.location.href,
-        });
+        // Users-specific error handling
       }}
     >
       {children}

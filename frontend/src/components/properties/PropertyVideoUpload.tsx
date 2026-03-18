@@ -349,7 +349,6 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
         }, 2000);
 
       } catch (error) {
-        console.error('Error processing video:', error);
         toast.error(`Error procesando ${file.name}`);
       }
     }
@@ -429,7 +428,6 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
           toast.success('Video eliminado del servidor');
         }
       } catch (error) {
-        console.error('Error eliminando video del servidor:', error);
         toast.error('Error eliminando video del servidor');
         return; // No continuar si falla la eliminación del servidor
       } finally {

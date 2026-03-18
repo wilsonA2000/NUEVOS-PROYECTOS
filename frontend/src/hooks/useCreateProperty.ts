@@ -11,8 +11,6 @@ export const useCreateProperty = () => {
   return useMutation<Property, Error, FormData | CreatePropertyDto>({
     mutationFn: propertyService.createProperty,
     onSuccess: (data) => {
-      console.log('✅ useCreateProperty: Propiedad creada exitosamente:', data);
-      
       // Verificar queryClient de forma segura
       if (queryClient && typeof queryClient.invalidateQueries === 'function') {
         try {
@@ -21,8 +19,6 @@ export const useCreateProperty = () => {
           queryClient.invalidateQueries({ queryKey: ['featured-properties'] });
           queryClient.invalidateQueries({ queryKey: ['trending-properties'] });
           
-          console.log('✅ useCreateProperty: Caché invalidado correctamente');
-          
           // Refetch después de un pequeño delay
           setTimeout(() => {
             if (queryClient && typeof queryClient.refetchQueries === 'function') {
@@ -30,16 +26,14 @@ export const useCreateProperty = () => {
             }
           }, 100);
         } catch (error) {
-          console.error('❌ useCreateProperty: Error invalidando caché:', error);
+          // Cache invalidation error silently handled
         }
       } else {
-        console.warn('⚠️ useCreateProperty: queryClient no disponible para invalidar caché');
+        // queryClient not available for cache invalidation
       }
     },
     onError: (error: any) => {
-      console.error('❌ useCreateProperty: Error en mutation:', error);
-      console.error('   Error details:', error.message);
-      console.error('   Error response:', error.response?.data);
+      // Mutation error handled by React Query
     },
   });
 };

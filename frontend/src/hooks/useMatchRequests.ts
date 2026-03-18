@@ -62,9 +62,6 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
     queryKey: matchRequestsKey,
     queryFn: async () => {
       const response = await matchingService.getMyMatchRequests();
-      console.log('🔍 API Response completa:', response);
-      console.log('🔍 API Response.data:', response?.data);
-      console.log('🔍 API Response.data.results:', response?.data?.results);
       return response;
     },
     enabled: !!user,
@@ -79,8 +76,6 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
       : Array.isArray(matchRequestsResponse) 
         ? matchRequestsResponse  // Response is array itself
         : [];
-  
-  console.log('🔍 matchRequests procesado:', matchRequests);
 
   // Statistics query
   const { 
@@ -91,7 +86,6 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
     queryKey: statisticsKey,
     queryFn: async () => {
       const response = await matchingService.getMatchStatistics();
-      console.log('📊 Statistics Response:', response);
       return response;
     },
     enabled: !!user,
@@ -108,7 +102,6 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
     queryKey: dashboardKey,
     queryFn: async () => {
       const response = await matchingService.getDashboardData();
-      console.log('📈 Dashboard Response:', response);
       return response;
     },
     enabled: !!user,
@@ -118,11 +111,6 @@ export const useMatchRequests = (): UseMatchRequestsReturn => {
   const dashboardData = dashboardResponse?.data || dashboardResponse || null;
 
   // Separate sent and received requests based on user role
-  console.log('🔍 User info:', { 
-    id: user?.id, 
-    email: user?.email, 
-    user_type: user?.user_type, 
-  });
   const sentRequests = user?.user_type === 'tenant' ? matchRequests : [];
   const receivedRequests = user?.user_type === 'landlord' ? matchRequests : [];
 

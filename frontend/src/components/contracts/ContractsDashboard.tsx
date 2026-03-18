@@ -305,7 +305,6 @@ const ContractsDashboard: React.FC = () => {
           await loadDashboardData();
           break;
         default:
-          console.log(`Acción ${actionId} no implementada aún`);
       }
     } catch (err: any) {
       setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);

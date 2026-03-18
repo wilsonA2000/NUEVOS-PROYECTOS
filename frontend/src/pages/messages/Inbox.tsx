@@ -66,7 +66,6 @@ const Inbox: React.FC = () => {
       const response = await api.get('/messages/threads/');
       setThreads(response.data);
     } catch (error) {
-      console.error('Error fetching threads:', error);
       setError('Error al cargar los mensajes');
     } finally {
       setLoading(false);
@@ -84,7 +83,6 @@ const Inbox: React.FC = () => {
         thread.id === threadId ? response.data : thread,
       ));
     } catch (error) {
-      console.error('Error starring thread:', error);
     }
   };
 
@@ -93,7 +91,6 @@ const Inbox: React.FC = () => {
       const response = await api.post(`/messages/threads/${threadId}/archive/`);
       setThreads(threads.filter(thread => thread.id !== threadId));
     } catch (error) {
-      console.error('Error archiving thread:', error);
     }
   };
 
@@ -102,7 +99,6 @@ const Inbox: React.FC = () => {
       await api.delete(`/messages/threads/${threadId}/delete/`);
       setThreads(threads.filter(thread => thread.id !== threadId));
     } catch (error) {
-      console.error('Error deleting thread:', error);
     }
   };
 

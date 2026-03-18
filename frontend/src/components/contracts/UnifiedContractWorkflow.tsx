@@ -146,7 +146,6 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       setContract(contractRes.data);
       setWorkflowStatus(statusRes.data);
     } catch (error) {
-      console.error('Error loading contract:', error);
     } finally {
       setLoading(false);
     }
@@ -169,7 +168,6 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       
       alert('✅ Contrato aprobado exitosamente. Ahora procederemos con la autenticación biométrica.');
     } catch (error: any) {
-      console.error('Error approving contract:', error);
       alert(error.response?.data?.error || 'Error al aprobar el contrato');
     } finally {
       setProcessing(false);
@@ -201,7 +199,6 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
       alert('⚠️ Objeción registrada. El arrendador será notificado.');
     } catch (error: any) {
-      console.error('Error submitting objection:', error);
       alert(error.response?.data?.error || 'Error al presentar objeción');
     } finally {
       setProcessing(false);
@@ -221,7 +218,6 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       
       alert('📤 Contrato enviado a revisión del arrendatario');
     } catch (error: any) {
-      console.error('Error sending to review:', error);
       alert(error.response?.data?.error || 'Error al enviar a revisión');
     } finally {
       setProcessing(false);
@@ -239,7 +235,6 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       const nextStep = response.data.next_biometric_step;
       alert(`🔐 Iniciando autenticación biométrica. Siguiente paso: ${nextStep}`);
     } catch (error: any) {
-      console.error('Error starting biometric:', error);
       alert(error.response?.data?.error || 'Error al iniciar autenticación biométrica');
     } finally {
       setProcessing(false);

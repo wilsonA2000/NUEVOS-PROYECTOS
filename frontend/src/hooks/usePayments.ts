@@ -16,7 +16,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener transacciones:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -35,7 +34,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener métodos de pago:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -54,7 +52,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener facturas:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -73,7 +70,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener cuentas escrow:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -92,7 +88,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener planes de pago:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -111,7 +106,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener cuotas:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -130,7 +124,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener balance:', error.response?.status, error.response?.data);
         throw error;
       }
     },
@@ -149,7 +142,6 @@ try {
 
 return result;
       } catch (error: any) {
-        console.error('❌ usePayments: Error al obtener estadísticas:', error.response?.status, error.response?.data);
         throw error;
       }
     },

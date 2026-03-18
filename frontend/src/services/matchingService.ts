@@ -6,7 +6,6 @@
 import api from './api';
 
 // VERIFICACIÓN: El import debe ser 'api' y NO 'apiClient'
-console.log('🔧 MatchingService FIXED cargado correctamente con api:', typeof api);
 
 export interface MatchRequest {
   id: string;
@@ -171,19 +170,15 @@ class MatchingServiceFixed {
   private baseUrl = '/matching';
 
   constructor() {
-    console.log('✅ MatchingServiceFixed instanciado con baseUrl:', this.baseUrl);
   }
 
   // Match Requests
   async getMyMatchRequests() {
-    console.log('🚀 getMyMatchRequests llamado con baseUrl:', this.baseUrl);
     return api.get(`${this.baseUrl}/requests/`);
   }
 
   async getMatchRequest(id: string) {
-    console.log('📄 getMatchRequest llamado para ID:', id);
     const response = await api.get(`${this.baseUrl}/requests/${id}/`);
-    console.log('📄 Detalles completos recibidos:', response.data);
     return response;
   }
 
@@ -204,7 +199,6 @@ class MatchingServiceFixed {
   }
 
   async cancelMatchRequestById(id: string) {
-    console.log('🚫 Cancelando match request con ID:', id);
     return api.post(`${this.baseUrl}/requests/${id}/cancel/`);
   }
 
@@ -273,7 +267,6 @@ class MatchingServiceFixed {
 
   // Statistics
   async getMatchStatistics() {
-    console.log('📊 getMatchStatistics llamado con baseUrl:', this.baseUrl);
     return api.get(`${this.baseUrl}/statistics/`);
   }
 
@@ -284,7 +277,6 @@ class MatchingServiceFixed {
 
   // Dashboard
   async getDashboardData() {
-    console.log('📈 getDashboardData llamado con baseUrl:', this.baseUrl);
     return api.get(`${this.baseUrl}/dashboard/`);
   }
 

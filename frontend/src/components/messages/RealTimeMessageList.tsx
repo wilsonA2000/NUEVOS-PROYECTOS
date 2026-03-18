@@ -87,9 +87,7 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
         type: 'join_conversation',
         thread_id: threadId,
       });
-      console.log(`Joined thread ${threadId}`);
     } catch (error) {
-      console.error('Error joining thread:', error);
     }
 
     return () => {
@@ -99,7 +97,6 @@ export const RealTimeMessageList: React.FC<RealTimeMessageListProps> = ({
           thread_id: threadId,
         });
       } catch (error) {
-        console.error('Error leaving thread:', error);
       }
     };
   }, [threadId, isConnected, send]);

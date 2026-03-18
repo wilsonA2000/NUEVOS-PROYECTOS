@@ -32,7 +32,6 @@ class PerformanceMonitor {
   endTiming(name: string): number | null {
     const metric = this.metrics.get(name);
     if (!metric) {
-      console.warn(`Performance metric '${name}' not found`);
       return null;
     }
 
@@ -218,7 +217,6 @@ export const logPerformanceReport = () => {
   if (report.slowOperations.length > 0) {
     console.group('🐌 Slow Operations (>100ms)');
     report.slowOperations.forEach((op: any) => {
-      console.log(`${op.operation}: ${op.duration}ms`, op.metadata);
     });
     console.groupEnd();
   }

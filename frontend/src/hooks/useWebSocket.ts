@@ -77,7 +77,6 @@ export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWeb
   // Función para crear conexión WebSocket
   const createWebSocket = useCallback(() => {
     if (!isAuthenticated || !token) {
-      console.warn('Usuario no autenticado, no se puede crear conexión WebSocket');
       return;
     }
 
@@ -100,7 +99,6 @@ export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWeb
       // Agregar token de autenticación
       const urlWithToken = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${token}`;
 
-      console.log('Conectando WebSocket a:', urlWithToken);
       const newSocket = new WebSocket(urlWithToken, protocols);
 
       newSocket.onopen = (event) => {
@@ -142,7 +140,7 @@ reconnectTimeoutRef.current = setTimeout(() => {
       };
 
       newSocket.onerror = (event) => {
-        console.error('Error en WebSocket:', event);
+        // WebSocket error event
         setConnectionState('error');
         onError?.(event);
       };
@@ -160,13 +158,13 @@ reconnectTimeoutRef.current = setTimeout(() => {
           setLastMessage({ ...message, data: event.data });
           onMessage?.(message);
         } catch (error) {
-          console.error('Error parseando mensaje WebSocket:', error);
+          // WebSocket message parse error
         }
       };
 
       setSocket(newSocket);
     } catch (error) {
-      console.error('Error creando WebSocket:', error);
+      // WebSocket creation error
       setConnectionState('error');
     }
   }, [url, protocols, token, isAuthenticated, onOpen, onClose, onError, onMessage, shouldReconnect, reconnectAttempts, reconnectInterval, heartbeatInterval]);
@@ -176,7 +174,7 @@ reconnectTimeoutRef.current = setTimeout(() => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket no está conectado, no se puede enviar el mensaje');
+      // WebSocket not connected, message not sent
     }
   }, [socket]);
 

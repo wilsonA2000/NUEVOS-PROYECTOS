@@ -55,8 +55,6 @@ class ContractsErrorBoundary extends Component<ContractsErrorBoundaryProps, Cont
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ContractsErrorBoundary caught an error:', error, errorInfo);
-    
     this.setState({
       error,
       errorInfo,

@@ -20,7 +20,6 @@ export const useRatings = () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
     onError: (error) => {
-      console.error('Error creating rating:', error);
     },
   });
 
@@ -31,7 +30,6 @@ export const useRatings = () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
     onError: (error) => {
-      console.error('Error updating rating:', error);
     },
   });
 
@@ -41,7 +39,6 @@ export const useRatings = () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
     onError: (error) => {
-      console.error('Error deleting rating:', error);
     },
   });
 

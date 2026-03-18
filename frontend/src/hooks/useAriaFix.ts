@@ -22,11 +22,9 @@ export const useAriaFix = () => {
             // Usar inert si está disponible (mejor soporte moderno)
             (element as HTMLElement).inert = true;
             element.removeAttribute('aria-hidden');
-            console.warn('Corregido: elemento con aria-hidden contenía elementos enfocables. Usando inert.', element);
           } else {
             // Fallback: remover aria-hidden si contiene elementos enfocables
             element.removeAttribute('aria-hidden');
-            console.warn('Corregido: removido aria-hidden de elemento con contenido enfocable', element);
           }
         }
       });

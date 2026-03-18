@@ -34,8 +34,6 @@ const DigitalSignaturePage: React.FC = () => {
   }
 
   const handleSignatureComplete = async (signatureData: any) => {
-    console.log('Firma digital completada:', signatureData);
-
     try {
       await contractService.completeAuthentication(id!);
       setSignatureCompleted(true);
@@ -44,7 +42,6 @@ const DigitalSignaturePage: React.FC = () => {
         navigate('/app/contracts');
       }, 3000);
     } catch (err) {
-      console.error('Error al completar la autenticación:', err);
       setSignatureCompleted(true);
       setTimeout(() => {
         navigate('/app/contracts');
@@ -53,7 +50,6 @@ const DigitalSignaturePage: React.FC = () => {
   };
 
   const handleSignatureError = (error: Error) => {
-    console.error('Error en firma digital:', error);
   };
 
   if (signatureCompleted) {

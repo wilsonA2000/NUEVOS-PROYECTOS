@@ -184,7 +184,6 @@ class BusinessNotificationService {
     try {
       const template = this.templates[interaction.type];
       if (!template) {
-        console.warn(`No template found for interaction type: ${interaction.type}`);
         return;
       }
 
@@ -201,10 +200,7 @@ class BusinessNotificationService {
         metadata: interaction.metadata,
         notification_data: processedNotification,
       });
-
-      console.log(`Business notification sent: ${interaction.type} from ${interaction.actor.name} to ${interaction.target.name}`);
     } catch (error) {
-      console.error('Error sending business notification:', error);
     }
   }
 
@@ -535,7 +531,6 @@ class BusinessNotificationService {
       });
       return response.data.users || [];
     } catch (error) {
-      console.error('Error getting interested users:', error);
       return [];
     }
   }

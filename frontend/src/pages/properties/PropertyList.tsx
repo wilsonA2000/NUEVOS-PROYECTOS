@@ -135,7 +135,6 @@ const PropertyList: React.FC = () => {
         setDeleteDialogOpen(false);
         setPropertyToDelete(null);
       } catch (error) {
-        console.error('Error deleting property:', error);
       }
     }
   };
@@ -150,7 +149,6 @@ const PropertyList: React.FC = () => {
 
   const handleApplyFilters = () => {
     // Los filtros se aplican automáticamente a través del hook
-    console.log('Filtros aplicados:', filters);
   };
 
   // View mode handlers
@@ -183,13 +181,11 @@ const PropertyList: React.FC = () => {
       }
       setSelectedProperties([]);
     } catch (error) {
-      console.error('Error bulk deleting properties:', error);
     }
   };
 
   const handleToggleFavorite = (id: string) => {
     // Implement toggle favorite logic
-    console.log('Toggle favorite for property:', id);
   };
 
   // Table pagination handlers
@@ -205,7 +201,6 @@ const PropertyList: React.FC = () => {
   // Cards pagination (if you want to add pagination to cards)
   const handleCardsPageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     // Implement if needed
-    console.log('Cards page change:', value);
   };
 
   const isLandlord = user?.user_type === 'landlord';

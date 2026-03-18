@@ -207,7 +207,6 @@ export const RegisterWithCode: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error validating interview code:', error);
       setCodeValidation({
         isValid: false,
         message: '🌐 Error de conexión. Verifique su internet e intente nuevamente.',
@@ -351,8 +350,6 @@ export const RegisterWithCode: React.FC = () => {
       await register.mutateAsync(registrationData);
       setShowSuccess(true);
     } catch (err: any) {
-      console.error('Error en registro:', err);
-      
       if (err.response?.status === 400) {
         const errorData = err.response.data;
         if (errorData.email) {

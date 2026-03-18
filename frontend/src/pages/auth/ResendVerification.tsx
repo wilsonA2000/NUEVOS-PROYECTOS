@@ -35,8 +35,6 @@ export const ResendVerification: React.FC = () => {
       await api.post('/users/auth/resend-confirmation/', { email });
       setMessage(`📧 Email de verificación reenviado exitosamente a ${email}.\n\n• Revisa tu bandeja de entrada\n• No olvides revisar la carpeta de spam\n• El enlace expira en 24 horas`);
     } catch (err: any) {
-      console.error('Error reenviando verificación:', err);
-      
       if (err.response?.status === 400) {
         setError('Email inválido o ya verificado. Verifica el email ingresado.');
       } else if (err.response?.status === 404) {

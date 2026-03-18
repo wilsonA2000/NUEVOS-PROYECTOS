@@ -58,8 +58,8 @@ const NotificationSettings: React.FC = () => {
     loading: false
   };
   const actions = {
-    updatePreferences: async (prefs: any) => console.log('Update preferences', prefs),
-    testNotification: async (channel: string) => console.log('Test notification', channel)
+    updatePreferences: async (_prefs: any) => { /* TODO: implement */ },
+    testNotification: async (_channel: string) => { /* TODO: implement */ }
   };
 
   const [localPreferences, setLocalPreferences] = useState<any>(state.preferences);
@@ -114,7 +114,6 @@ const NotificationSettings: React.FC = () => {
       await actions.updatePreferences(localPreferences);
       setHasChanges(false);
     } catch (error) {
-      console.error('Error saving preferences:', error);
     }
   };
 

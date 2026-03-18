@@ -80,7 +80,6 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
     if (!user || realTimeEnabled) return;
     
     try {
-      console.log('🔌 Enabling real-time user status...');
       await optimizedWebSocketService.connectAuthenticated('user-status');
       setRealTimeEnabled(true);
       
@@ -97,7 +96,6 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
       }
       
     } catch (error) {
-      console.error('Failed to enable real-time status:', error);
       throw error;
     }
   }, [user, realTimeEnabled]);
@@ -105,7 +103,6 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
   // Disable real-time connection
   const disableRealTime = useCallback(() => {
     if (realTimeEnabled) {
-      console.log('📴 Disabling real-time user status...');
       optimizedWebSocketService.disconnect('user-status');
       setRealTimeEnabled(false);
       setIsConnected(false);
@@ -117,7 +114,6 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
     const unsubscribe = optimizedWebSocketService.onConnectionStatusChange((status) => {
       if (status.connected !== isConnected) {
         setIsConnected(status.connected);
-        console.log(`User status WebSocket: ${status.connected ? 'Connected' : 'Disconnected'}`);
       }
     });
 

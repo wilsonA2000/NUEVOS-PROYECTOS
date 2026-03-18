@@ -25,29 +25,23 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
   // Función simple para iniciar cámara
   const startCamera = async () => {
     try {
-      console.log('🎥 SIMPLE: Iniciando cámara');
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: true, 
         audio: false, 
       });
       
-      console.log('🎥 SIMPLE: Stream obtenido', stream);
       streamRef.current = stream;
       setHasStream(true);
       
       if (videoRef.current) {
-        console.log('🎥 SIMPLE: Asignando stream a video');
         videoRef.current.srcObject = stream;
         videoRef.current.play();
         setIsActive(true);
         setError(null);
       } else {
-        console.log('🎥 SIMPLE: videoRef es null');
         setError('Video element no disponible');
       }
     } catch (err: any) {
-      console.error('🎥 SIMPLE: Error', err);
       setError(`Error: ${err.message}`);
       if (onError) onError(err.message);
     }
@@ -73,7 +67,6 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
 
   // Función para detener cámara
   const stopCamera = () => {
-    console.log('🎥 SIMPLE: Deteniendo cámara');
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -84,9 +77,7 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
 
   // Effect simple - solo al montar
   useEffect(() => {
-    console.log('🎥 SIMPLE: Componente montado');
     return () => {
-      console.log('🎥 SIMPLE: Componente desmontado');
       stopCamera();
     };
   }, []); // SIN dependencias para evitar loops

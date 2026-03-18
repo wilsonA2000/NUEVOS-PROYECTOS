@@ -151,7 +151,6 @@ const CodeudorAuthPage: React.FC = () => {
         setTokenInfo(data);
         setCurrentStep(1); // Paso "Revisar Información"
       } catch (err) {
-        console.error('Error validating token:', err);
         setError('Error de conexión. Por favor intente nuevamente.');
       } finally {
         setLoading(false);
@@ -186,7 +185,6 @@ const CodeudorAuthPage: React.FC = () => {
       setCurrentStep(2); // Paso "Autenticación Biométrica"
       setShowBiometricFlow(true);
     } catch (err) {
-      console.error('Error starting biometric session:', err);
       setError('Error de conexión. Por favor intente nuevamente.');
     } finally {
       setLoading(false);
@@ -224,7 +222,6 @@ const CodeudorAuthPage: React.FC = () => {
       setCurrentStep(3); // Paso "Completado"
       setShowSuccessModal(true);
     } catch (err) {
-      console.error('Error completing biometric:', err);
       setError('Error de conexión. Por favor intente nuevamente.');
     } finally {
       setLoading(false);

@@ -16,8 +16,6 @@ export const useUpdateProperty = () => {
   return useMutation<Property, Error, UpdatePropertyParams>({
     mutationFn: ({ id, data }) => propertyService.updateProperty(id, data),
     onSuccess: (data, variables) => {
-      console.log('✅ useUpdateProperty: Propiedad actualizada exitosamente:', data);
-      
       // Verificar queryClient de forma segura
       if (queryClient && typeof queryClient.invalidateQueries === 'function') {
         try {
@@ -30,8 +28,6 @@ export const useUpdateProperty = () => {
           queryClient.invalidateQueries({ queryKey: ['featured-properties'] });
           queryClient.invalidateQueries({ queryKey: ['trending-properties'] });
           
-          console.log('✅ useUpdateProperty: Caché invalidado correctamente');
-          
           // Refetch después de un pequeño delay
           setTimeout(() => {
             if (queryClient && typeof queryClient.refetchQueries === 'function') {
@@ -40,16 +36,14 @@ export const useUpdateProperty = () => {
             }
           }, 100);
         } catch (error) {
-          console.error('❌ useUpdateProperty: Error invalidando caché:', error);
+          // Cache invalidation error silently handled
         }
       } else {
-        console.warn('⚠️ useUpdateProperty: queryClient no disponible para invalidar caché');
+        // queryClient not available for cache invalidation
       }
     },
     onError: (error: any) => {
-      console.error('❌ useUpdateProperty: Error en mutation:', error);
-      console.error('   Error details:', error.message);
-      console.error('   Error response:', error.response?.data);
+      // Mutation error handled by React Query
     },
   });
 };

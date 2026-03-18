@@ -203,7 +203,6 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
         type: 'error',
         message: 'Error al enviar la solicitud. Por favor verifica los datos e intenta nuevamente.',
       });
-      console.error('Error enviando solicitud de match:', error);
     }
   };
 

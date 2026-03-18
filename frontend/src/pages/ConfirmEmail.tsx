@@ -51,7 +51,6 @@ export const ConfirmEmail: React.FC = () => {
           setMessage(errorData.detail || 'Error al confirmar el email');
         }
       } catch (error) {
-        console.error('Error confirmando email:', error);
         setStatus('error');
         setMessage('Error de conexión. Por favor, intenta más tarde.');
       }

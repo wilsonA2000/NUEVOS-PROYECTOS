@@ -377,7 +377,6 @@ export const useRealTimeNotifications = (): UseRealTimeNotificationsReturn => {
 
       return enabled;
     } catch (error) {
-      console.error('Error enabling push notifications:', error);
       notification.error('Error al habilitar notificaciones');
       return false;
     }

@@ -12,7 +12,6 @@ export const clearAuthState = () => {
   
   // Evitar limpiezas repetitivas
   if (now - lastClearTime < CLEAR_DEBOUNCE_MS) {
-    console.log('🔒 clearAuthState: Debounce - skipping clear (demasiado reciente)');
     return;
   }
   

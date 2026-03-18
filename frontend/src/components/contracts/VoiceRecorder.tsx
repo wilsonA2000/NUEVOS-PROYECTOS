@@ -174,7 +174,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       return true;
     } catch (err) {
-      console.error('Error initializing recorder:', err);
       return false;
     }
   }, []);
@@ -331,7 +330,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setTranscriptionResult(simulatedTranscription);
       
     } catch (err) {
-      console.error('Error analyzing recorded audio:', err);
+      // Error analyzing recorded audio silently handled
     }
   }, [expectedText]);
 
@@ -398,12 +397,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   // Enviar grabación
   const handleSubmit = useCallback(async () => {
-    console.log('🎤 VOICE RECORDER: handleSubmit llamado');
-    console.log('🎤 VOICE RECORDER: audioBlob existe?', !!recordingState.audioBlob);
-    console.log('🎤 VOICE RECORDER: duración:', recordingState.duration);
-    
     if (!recordingState.audioBlob) {
-      console.log('🎤 VOICE RECORDER: Sin audioBlob, cancelando');
       return;
     }
     
@@ -412,13 +406,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-        console.log('🎤 VOICE RECORDER: Datos convertidos a base64, llamando onRecord');
-        console.log('🎤 VOICE RECORDER: Base64 length:', base64Data.length);
         onRecord(base64Data);
       };
       reader.readAsDataURL(recordingState.audioBlob);
     } catch (err) {
-      console.error('🎤 VOICE RECORDER: Error submitting recording:', err);
+      // Error submitting recording silently handled
     }
   }, [recordingState.audioBlob, onRecord]);
 

@@ -32,15 +32,12 @@ const CACHE_STRATEGIES = {
 // Cache global para queries
 const queryCache = new QueryCache({
   onError: (error, query) => {
-    console.error('Query failed:', query.queryKey, error);
     if (error instanceof Error) {
-      console.error('Query error:', error.message);
     }
   },
   onSuccess: (data, query) => {
     // Log successful queries in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('Query success:', query.queryKey);
     }
   },
 });
@@ -48,14 +45,11 @@ const queryCache = new QueryCache({
 // Cache global para mutations
 const mutationCache = new MutationCache({
   onError: (error, variables, context, mutation) => {
-    console.error('Mutation failed:', mutation.options.mutationKey, error);
     if (error instanceof Error) {
-      console.error('Mutation error:', error.message);
     }
   },
   onSuccess: (data, variables, context, mutation) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Mutation success:', mutation.options.mutationKey);
     }
   },
 });
@@ -94,7 +88,6 @@ export const queryClient = new QueryClient({
       retry: false,
       networkMode: 'online',
       onError: (error) => {
-        console.error('Default mutation error:', error);
       },
     },
   },

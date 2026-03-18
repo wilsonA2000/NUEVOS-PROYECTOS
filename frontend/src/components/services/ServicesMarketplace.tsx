@@ -146,7 +146,6 @@ const ServicesMarketplace: React.FC = () => {
       setServices(servicesRes.data.results || servicesRes.data);
       setError(null);
     } catch (err: any) {
-      console.error('Error loading services:', err);
       setError('Error al cargar servicios. Intenta nuevamente.');
     } finally {
       setLoading(false);
@@ -225,7 +224,6 @@ const ServicesMarketplace: React.FC = () => {
         });
       }, 2000);
     } catch (err: any) {
-      console.error('Error submitting request:', err);
       alert('Error al enviar solicitud. Intenta nuevamente.');
     } finally {
       setRequestLoading(false);

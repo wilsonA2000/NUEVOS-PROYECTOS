@@ -67,7 +67,6 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   const enableRealTime = useCallback(async () => {
     if (!isAuthenticated || !user || realTimeEnabled) return;
     
-    console.log('🚀 Enabling optimized real-time features...');
     setConnectionStatus('Conectando...');
     
     try {
@@ -84,7 +83,7 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
       }
       
     } catch (error) {
-      console.error('Error enabling real-time features:', error);
+      // Real-time features connection error
       setIsConnected(false);
       setConnectionStatus('Error de conexión');
       if (typeof showNotification === 'function') {
@@ -97,8 +96,6 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   // Disable real-time features
   const disableRealTime = useCallback(() => {
     if (!realTimeEnabled) return;
-    
-    console.log('📴 Disabling real-time features...');
     
     optimizedWebSocketService.disconnectAll();
     
@@ -177,7 +174,7 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
 
       // Connection errors
       optimizedWebSocketService.subscribe('error', (message) => {
-        console.error('WebSocket error:', message);
+        // WebSocket error handled silently
         // Don't spam user with error notifications
       }),
     ];
@@ -197,7 +194,6 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   // Send function wrapper
   const send = useCallback((endpoint: string, message: WebSocketMessage) => {
     if (!realTimeEnabled) {
-      console.log('Real-time disabled, message not sent:', message);
       return false;
     }
     return optimizedWebSocketService.send(endpoint, message);
@@ -206,7 +202,6 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   // Subscribe function wrapper
   const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
     if (!realTimeEnabled) {
-      console.log('Real-time disabled, subscription not created:', eventType);
       return () => {};
     }
     return optimizedWebSocketService.subscribe(eventType, callback);

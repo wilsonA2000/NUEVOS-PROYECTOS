@@ -81,7 +81,6 @@ const ThreadDetail: React.FC = () => {
       const response = await api.get(`/messages/threads/${threadId}/`);
       setThread(response.data);
     } catch (error) {
-      console.error('Error fetching thread:', error);
       setError('Error al cargar el hilo de mensajes');
     } finally {
       setLoading(false);
@@ -93,7 +92,6 @@ const ThreadDetail: React.FC = () => {
       const response = await api.get(`/messages/threads/${threadId}/messages/`);
       setMessages(response.data);
     } catch (error) {
-      console.error('Error fetching messages:', error);
     }
   };
 
@@ -113,7 +111,6 @@ const ThreadDetail: React.FC = () => {
       const response = await api.post(`/messages/threads/${threadId}/star/`);
       setThread(response.data);
     } catch (error) {
-      console.error('Error starring thread:', error);
     }
   };
 
@@ -125,7 +122,6 @@ const ThreadDetail: React.FC = () => {
         navigate('/messages/inbox');
       }
     } catch (error) {
-      console.error('Error archiving thread:', error);
     }
   };
 
@@ -134,7 +130,6 @@ const ThreadDetail: React.FC = () => {
       await api.delete(`/messages/threads/${threadId}/delete/`);
       navigate('/messages/inbox');
     } catch (error) {
-      console.error('Error deleting thread:', error);
     }
   };
 

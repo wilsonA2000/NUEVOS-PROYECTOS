@@ -81,7 +81,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
       if (notification?.success) notification.success('Conexión en tiempo real establecida');
     } catch (error) {
-      console.error('Error connecting to WebSocket:', error);
+      // WebSocket connection error handled
       setIsConnected(false);
       setConnectionStatus('Error de conexión');
       if (notification?.error) notification.error('Error al conectar tiempo real');
@@ -103,24 +103,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   // Disabled connect function
   const connect = useCallback(async (endpoint: string) => {
-    console.log(`WebSocket connection disabled for ${endpoint}`);
     return Promise.resolve();
   }, []);
 
   // Disabled disconnect function
   const disconnect = useCallback((endpoint: string) => {
-    console.log(`WebSocket disconnect disabled for ${endpoint}`);
   }, []);
 
   // Disabled send function
   const send = useCallback((endpoint: string, message: WebSocketMessage) => {
-    console.log(`WebSocket send disabled for ${endpoint}:`, message);
     return false;
   }, []);
 
   // Disabled subscribe function
   const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    console.log(`WebSocket subscribe disabled for ${eventType}`);
     return () => {};
   }, []);
 

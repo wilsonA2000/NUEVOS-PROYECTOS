@@ -99,10 +99,8 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         setClauses(data.clauses || []);
         setNextClauseNumber(data.next_clause_number || 11);
       } else {
-        console.error('Error loading clauses:', response.statusText);
       }
     } catch (error) {
-      console.error('Error loading clauses:', error);
     } finally {
       setLoading(false);
     }
@@ -148,7 +146,6 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         alert('Error al eliminar la cláusula');
       }
     } catch (error) {
-      console.error('Error deleting clause:', error);
       alert('Error al eliminar la cláusula');
     }
   };
@@ -196,7 +193,6 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         alert(errorData.error || 'Error al guardar la cláusula');
       }
     } catch (error) {
-      console.error('Error saving clause:', error);
       alert('Error al guardar la cláusula');
     } finally {
       setLoading(false);
