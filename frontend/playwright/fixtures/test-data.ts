@@ -10,7 +10,7 @@ export const CREDENTIALS = {
   },
   tenant: {
     email: 'letefon100@gmail.com',
-    password: 'adim123',
+    password: 'admin123',
     name: 'Leidy Tenant',
   },
   serviceProvider: {

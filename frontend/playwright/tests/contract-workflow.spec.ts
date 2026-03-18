@@ -3,6 +3,10 @@ import { test, expect, Page } from '@playwright/test';
 /**
  * E2E Test Suite: Complete Contract Workflow
  *
+ * IMPORTANT: This test requires the REAL backend running at http://localhost:8000
+ * Run with: npx playwright test contract-workflow.spec.ts
+ * (Make sure both Django backend and Vite frontend are running)
+ *
  * Este test ejecuta el flujo completo de creación de contratos:
  * Stage 1: Match Request (solicitud de match)
  * Stage 2: Document Upload & Approval (subir y aprobar documentos)
@@ -68,6 +72,8 @@ async function logout(page: Page) {
 }
 
 test.describe('Complete Contract Workflow - E2E', () => {
+  // Skip unless real backend is running
+  test.skip(() => !process.env.REAL_BACKEND, 'Requires real backend - run with REAL_BACKEND=1');
 
   test.beforeEach(async ({ page }) => {
     // Configure longer timeout for each test
@@ -348,6 +354,8 @@ test.describe('Complete Contract Workflow - E2E', () => {
 
 // Additional test suite for contract editing
 test.describe('Contract Draft Editor', () => {
+  // Skip unless real backend is running
+  test.skip(() => !process.env.REAL_BACKEND, 'Requires real backend - run with REAL_BACKEND=1');
 
   test('Edit existing contract draft', async ({ page }) => {
     console.log('🎬 Testing Contract Draft Editor');
