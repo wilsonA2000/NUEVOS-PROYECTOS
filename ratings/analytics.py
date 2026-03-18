@@ -419,13 +419,25 @@ class RatingAnalytics:
         # Factores del score
         avg_rating = float(profile.average_rating)
         total_ratings = profile.total_ratings_received
-        response_rate = 0  # TODO: Implementar tasa de respuesta
-        
+        # Calcular tasa de respuesta basada en mensajes recibidos vs respondidos
+        try:
+            from messaging.models import Message
+            total_received = Message.objects.filter(recipient=user).count()
+            total_responded = Message.objects.filter(
+                recipient=user,
+                thread__messages__sender=user
+            ).distinct().count()
+            response_rate = (total_responded / max(total_received, 1)) * 100
+        except Exception:
+            response_rate = 0
+
         # Cálculo del score (0-1000)
         rating_score = (avg_rating / 10) * 400  # Máximo 400 puntos
         volume_score = min(total_ratings * 5, 300)  # Máximo 300 puntos
-        engagement_score = response_rate * 100  # Máximo 100 puntos
-        longevity_score = min(200, 200)  # TODO: Basado en antigüedad
+        engagement_score = min(response_rate, 100)  # Máximo 100 puntos
+        # Longevity basado en antigüedad de la cuenta: 1 punto por día, max 200
+        account_age_days = (timezone.now() - user.date_joined).days
+        longevity_score = min(200, account_age_days)
         
         total_score = rating_score + volume_score + engagement_score + longevity_score
         

@@ -532,10 +532,23 @@ class OptimizedPropertyInquiryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Create inquiry with notifications."""
         inquiry = serializer.save(inquirer=self.request.user)
-        
-        # TODO: Send notification to landlord
-        # notification_service.send_inquiry_notification(inquiry)
-        
+
+        # Send notification to landlord
+        try:
+            from core.notification_service import NotificationService
+            NotificationService.create_notification(
+                user=inquiry.property.landlord,
+                notification_type='property',
+                title='Nueva consulta sobre tu propiedad',
+                message=f'Has recibido una consulta sobre {inquiry.property.title}',
+                priority='normal',
+                action_url=f'/app/properties/{inquiry.property.id}/inquiries',
+                action_label='Ver Consulta',
+                related_object=inquiry
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send inquiry notification: {e}")
+
         logger.info(f"New inquiry {inquiry.id} for property {inquiry.property_id}")
 
 
