@@ -67,8 +67,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install "setuptools<81"
 
     - name: Run migrations
       run: python manage.py migrate --noinput
@@ -178,8 +179,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install "setuptools<81"
 
     - name: Run migrations
       run: python manage.py migrate --noinput
@@ -264,8 +266,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install "setuptools<81"
         pip install locust
 
     - name: Run migrations
