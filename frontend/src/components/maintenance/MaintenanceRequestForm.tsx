@@ -156,7 +156,20 @@ const MaintenanceRequestForm: React.FC<MaintenanceRequestFormProps> = ({
         priority: formData.priority,
       };
 
-      await requestService.createMaintenanceRequest(payload);
+      if (photos.length > 0) {
+        const formDataPayload = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formDataPayload.append(key, String(value));
+          }
+        });
+        photos.forEach((photo) => {
+          formDataPayload.append('photos', photo.file);
+        });
+        await requestService.createMaintenanceRequest(formDataPayload);
+      } else {
+        await requestService.createMaintenanceRequest(payload);
+      }
       setSuccess(true);
 
       setTimeout(() => {

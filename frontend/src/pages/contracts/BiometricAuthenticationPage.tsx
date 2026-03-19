@@ -306,13 +306,39 @@ const BiometricAuthenticationPage: React.FC = () => {
     );
   }
 
-  // Extraer información del usuario para la verificación de voz
-  // Esta información podría venir del perfil del usuario logueado o del contrato
-  const userInfo = {
-    fullName: contract.tenant?.full_name || '', // Nombre del inquilino
-    documentNumber: contract.tenant?.document_number || '', // Número de documento
-    documentIssueDate: contract.tenant?.document_issue_date || '', // Fecha de expedición
-  };
+  // BUG-001 FIX: Detect the current user's role and pass the correct user's data
+  // Previously, this always passed tenant data regardless of who was authenticating
+  const currentUserId = user?.id;
+
+  const isTenant =
+    currentUserId === contract.tenant?.id ||
+    currentUserId === contract.secondary_party?.id;
+
+  const isLandlord =
+    currentUserId === contract.landlord?.id ||
+    currentUserId === contract.primary_party?.id;
+
+  let userInfo;
+  if (isTenant) {
+    userInfo = {
+      fullName: contract.tenant?.full_name || contract.secondary_party?.full_name || '',
+      documentNumber: contract.tenant?.document_number || contract.secondary_party?.document_number || '',
+      documentIssueDate: contract.tenant?.document_issue_date || contract.secondary_party?.document_issue_date || '',
+    };
+  } else if (isLandlord) {
+    userInfo = {
+      fullName: contract.landlord?.full_name || contract.primary_party?.full_name || '',
+      documentNumber: contract.landlord?.document_number || contract.primary_party?.document_number || '',
+      documentIssueDate: contract.landlord?.document_issue_date || contract.primary_party?.document_issue_date || '',
+    };
+  } else {
+    // Fallback: use the current user's own data from authContext
+    userInfo = {
+      fullName: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
+      documentNumber: (user as any)?.document_number || '',
+      documentIssueDate: undefined,
+    };
+  }
 
   return (
     <ProfessionalBiometricFlow

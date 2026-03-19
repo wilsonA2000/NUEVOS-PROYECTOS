@@ -26,6 +26,7 @@ import {
   Error as ErrorIcon,
   Payment as PaymentIcon,
 } from '@mui/icons-material';
+import api from '../../services/api';
 
 export interface PSECheckoutProps {
   amount: number;
@@ -102,20 +103,8 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
   const loadBanks = async () => {
     try {
       setLoadingBanks(true);
-      const accessToken = localStorage.getItem('access_token');
 
-      const response = await fetch('http://localhost:8000/api/v1/payments/pse/banks/', {
-        headers: {
-          'Accept': 'application/json',
-          ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al cargar bancos');
-      }
-
-      const data = await response.json();
+      const { data } = await api.get('/payments/pse/banks/');
       setBanks(data.banks || []);
     } catch (error) {
       setGeneralError('No se pudieron cargar los bancos. Intenta nuevamente.');
@@ -168,11 +157,6 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
       setLoading(true);
       setGeneralError('');
 
-      const accessToken = localStorage.getItem('access_token');
-      if (!accessToken) {
-        throw new Error('No estás autenticado. Por favor inicia sesión.');
-      }
-
       const payload = {
         amount: amount,
         payment_method: 'PSE',
@@ -184,20 +168,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         redirect_url: redirectUrl || `${window.location.origin  }/payments/return`,
       };
 
-      const response = await fetch('http://localhost:8000/api/v1/payments/wompi/initiate/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al procesar el pago');
-      }
+      const { data } = await api.post('/payments/wompi/initiate/', payload);
 
       if (data.success && data.redirect_url) {
         // Call success callback
@@ -215,8 +186,9 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         throw new Error(data.error || 'No se recibió URL de redirección');
       }
     } catch (error: any) {
-      setGeneralError(error.message || 'Error al procesar el pago PSE');
-      onError(error.message);
+      const message = error.response?.data?.error || error.message || 'Error al procesar el pago PSE';
+      setGeneralError(message);
+      onError(message);
     } finally {
       setLoading(false);
     }

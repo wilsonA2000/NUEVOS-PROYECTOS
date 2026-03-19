@@ -358,6 +358,10 @@ class MessageService {
   }
 
   // === MÉTODOS ADICIONALES PARA COMPATIBILIDAD ===
+  async markAsRead(ids: string[]): Promise<void> {
+    await api.post('/messages/mark-read/', { ids });
+  }
+
   async markAsUnread(ids: string[]): Promise<void> {
     await api.post('/messages/mark-unread/', { ids });
   }

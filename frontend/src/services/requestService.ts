@@ -285,8 +285,11 @@ class RequestService {
     return api.get(`${this.baseUrl}/maintenance/`);
   }
 
-  async createMaintenanceRequest(data: CreateMaintenanceRequestData) {
-    return api.post(`${this.baseUrl}/maintenance/`, data);
+  async createMaintenanceRequest(data: CreateMaintenanceRequestData | FormData) {
+    const config = data instanceof FormData
+      ? { headers: { 'Content-Type': 'multipart/form-data' } }
+      : undefined;
+    return api.post(`${this.baseUrl}/maintenance/`, data, config);
   }
 
   async getMaintenanceRequest(id: string) {

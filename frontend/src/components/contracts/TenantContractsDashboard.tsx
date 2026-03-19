@@ -120,23 +120,10 @@ const TenantContractsDashboard: React.FC = () => {
       
       // Cargar procesos del workflow (PRIORIDAD)
       try {
-        const token = localStorage.getItem('access_token');
-        const workflowResponse = await fetch('http://localhost:8000/api/v1/contracts/tenant-processes/', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (workflowResponse.ok) {
-          const data = await workflowResponse.json();
-          // El backend devuelve {results: [...], count: N}
-          const processes = data.results || (Array.isArray(data) ? data : []);
-          setWorkflowProcesses(processes);
-        } else {
-          throw new Error(`HTTP ${workflowResponse.status}`);
-        }
+        const { data } = await api.get('/contracts/tenant-processes/');
+        // El backend devuelve {results: [...], count: N}
+        const processes = data.results || (Array.isArray(data) ? data : []);
+        setWorkflowProcesses(processes);
       } catch (workflowError) {
         setWorkflowProcesses([]);
       }
@@ -190,39 +177,25 @@ const TenantContractsDashboard: React.FC = () => {
       setApprovingContract(contractId);
 
       // Llamar al endpoint específico para aprobar contrato desde el workflow
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/v1/contracts/tenant/contracts/${contractId}/approve_contract/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          approved: true,
-          tenant_notes: 'Aprobado desde el dashboard del arrendatario',
-          confirm_understanding: true,
-        }),
+      await api.post(`/contracts/tenant/contracts/${contractId}/approve_contract/`, {
+        approved: true,
+        tenant_notes: 'Aprobado desde el dashboard del arrendatario',
+        confirm_understanding: true,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        setSuccessDialog({
-          open: true,
-          title: '🎉 ¡Contrato Aprobado Exitosamente!',
-          message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.',
-        });
+      setSuccessDialog({
+        open: true,
+        title: '🎉 ¡Contrato Aprobado Exitosamente!',
+        message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.',
+      });
 
-        // Recargar los datos para reflejar el cambio
-        await loadTenantContracts();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP ${response.status}`);
-      }
+      // Recargar los datos para reflejar el cambio
+      await loadTenantContracts();
     } catch (error: any) {
       setErrorDialog({
         open: true,
         title: '❌ Error al Aprobar el Contrato',
-        message: error.message || 'Error desconocido',
+        message: error.response?.data?.detail || error.message || 'Error desconocido',
       });
     } finally {
       setApprovingContract(null);
