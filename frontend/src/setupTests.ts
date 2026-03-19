@@ -5,19 +5,16 @@ import { configure } from '@testing-library/react';
 // Mock API service
 jest.mock('./services/api', () => require('./__mocks__/api'));
 
-// Mock environment variables
-(global as any).import = {
-  meta: {
-    env: {
-      VITE_API_URL: 'http://localhost:8000/api/v1',
-      VITE_MAPBOX_TOKEN: 'test-token',
-      VITE_DEFAULT_COUNTRY: 'CO',
-      VITE_DEFAULT_LAT: '4.5709',
-      VITE_DEFAULT_LNG: '-74.2973',
-      VITE_DEFAULT_ZOOM: '6',
-    },
-  },
-};
+// Mock environment variables (import.meta.env is transformed to process.env by jest-import-meta-transform.cjs)
+process.env.VITE_API_URL = 'http://localhost:8000/api/v1';
+process.env.VITE_MAPBOX_TOKEN = 'test-token';
+process.env.VITE_DEFAULT_COUNTRY = 'CO';
+process.env.VITE_DEFAULT_LAT = '4.5709';
+process.env.VITE_DEFAULT_LNG = '-74.2973';
+process.env.VITE_DEFAULT_ZOOM = '6';
+process.env.VITE_STRIPE_PUBLISHABLE_KEY = 'pk_test_mock';
+process.env.VITE_PAYPAL_CLIENT_ID = 'test-client-id';
+process.env.MODE = 'test';
 
 // Configure testing-library
 configure({

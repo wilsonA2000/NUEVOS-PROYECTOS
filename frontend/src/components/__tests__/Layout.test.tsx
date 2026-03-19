@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,11 +11,38 @@ jest.mock('../../hooks/useAuth', () => ({
   useAuth: jest.fn(),
 }));
 
+// Mock react-i18next to return known translations
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'nav.dashboard': 'Dashboard',
+        'nav.properties': 'Propiedades',
+        'nav.contracts': 'Contratos',
+        'nav.payments': 'Pagos',
+        'nav.messages': 'Mensajes',
+        'nav.ratings': 'Calificaciones',
+        'nav.services': 'Servicios',
+        'nav.requests': 'Solicitudes',
+        'nav.home': 'Inicio',
+        'nav.profile': 'Perfil',
+        'nav.resume': 'Hoja de Vida',
+        'nav.settings': 'Configuración',
+        'nav.adminLegal': 'Admin Legal',
+        'auth.logout': 'Cerrar sesión',
+      };
+      return translations[key] || key;
+    },
+    i18n: { language: 'es', changeLanguage: jest.fn() },
+  }),
+}));
+
 // Mock child components that might cause issues
 jest.mock('../notifications/PushNotificationCenter', () => () => null);
 jest.mock('../users/UserStatusSelector', () => () => null);
 jest.mock('../common/OptimizedWebSocketStatus', () => () => null);
 jest.mock('../common/ContextSwitcher', () => () => null);
+jest.mock('../common/LanguageSelector', () => () => null);
 
 const routerWrapper = ({ children }: { children: React.ReactNode }) => (
   <BrowserRouter>{children}</BrowserRouter>
@@ -64,4 +91,4 @@ describe('Layout', () => {
     const titles = screen.getAllByText('VeriHome');
     expect(titles.length).toBeGreaterThanOrEqual(1);
   });
-}); 
+});

@@ -3,7 +3,10 @@ module.exports = {
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.jest.json'
+      tsconfig: 'tsconfig.jest.json',
+      astTransformers: {
+        before: ['./jest-import-meta-transform.cjs']
+      }
     }]
   },
   moduleNameMapper: {
