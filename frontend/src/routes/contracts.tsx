@@ -7,6 +7,7 @@ import MatchedCandidatesView from '../components/contracts/MatchedCandidatesView
 import TenantContractView from '../components/contracts/TenantContractView';
 import BiometricAuthenticationPage from '../pages/contracts/BiometricAuthenticationPage';
 import DigitalSignaturePage from '../pages/contracts/DigitalSignaturePage';
+import ContractRenewalWizard from '../components/contracts/ContractRenewalWizard';
 import { useAuth } from '../hooks/useAuth';
 import { Alert, Box } from '@mui/material';
 
@@ -83,9 +84,25 @@ const ContractRoutes: React.FC = () => {
           </LandlordOnlyRoute>
         } 
       />
-      <Route 
-        path="/:id/authenticate" 
-        element={<BiometricAuthenticationPage />} 
+      <Route
+        path="/renewal"
+        element={
+          <LandlordOnlyRoute>
+            <ContractRenewalWizard />
+          </LandlordOnlyRoute>
+        }
+      />
+      <Route
+        path="/:id/renewal"
+        element={
+          <LandlordOnlyRoute>
+            <ContractRenewalWizard />
+          </LandlordOnlyRoute>
+        }
+      />
+      <Route
+        path="/:id/authenticate"
+        element={<BiometricAuthenticationPage />}
       />
       <Route 
         path="/:id/sign" 
