@@ -165,7 +165,7 @@ class DashboardStatsView(APIView):
         # Contratos del inquilino
         contracts = Contract.objects.filter(secondary_party=user)
         active_contracts = contracts.filter(status='active').count()
-        
+
         # Pagos realizados
         payments = Transaction.objects.filter(
             payer=user,
@@ -173,43 +173,76 @@ class DashboardStatsView(APIView):
             created_at__lte=end_date
         )
         total_payments = payments.aggregate(total=Sum('amount'))['total'] or 0
+        previous_payments = Transaction.objects.filter(
+            payer=user,
+            created_at__gte=previous_start,
+            created_at__lt=start_date
+        ).aggregate(total=Sum('amount'))['total'] or 0
         pending_payments = Transaction.objects.filter(
             payer=user,
             status='pending'
         ).aggregate(total=Sum('amount'))['total'] or 0
-        
+
         # Propiedades vistas/favoritas (datos reales)
         viewed_properties = PropertyView.objects.filter(user=user).values('property').distinct().count()
+        previous_viewed = PropertyView.objects.filter(
+            user=user,
+            viewed_at__gte=previous_start,
+            viewed_at__lt=start_date
+        ).values('property').distinct().count()
+        current_viewed = PropertyView.objects.filter(
+            user=user,
+            viewed_at__gte=start_date
+        ).values('property').distinct().count()
         favorite_properties = PropertyFavorite.objects.filter(user=user).count()
-        
+
+        # Servicios solicitados por el inquilino (requests app)
+        try:
+            from requests.models import ServiceRequest as RequestsServiceRequest
+            tenant_services = RequestsServiceRequest.objects.filter(requester=user)
+            services_requested = tenant_services.filter(created_at__gte=start_date).count()
+            services_completed = tenant_services.filter(status='completed').count()
+            services_pending = tenant_services.filter(status__in=['pending', 'in_progress']).count()
+            previous_services = tenant_services.filter(
+                created_at__gte=previous_start, created_at__lt=start_date
+            ).count()
+        except Exception:
+            services_requested = 0
+            services_completed = 0
+            services_pending = 0
+            previous_services = 0
+
         return {
             'properties': {
                 'viewed': viewed_properties,
                 'favorites': favorite_properties,
                 'available': Property.objects.filter(status='available').count(),
                 'total': Property.objects.count(),
-                'trend': 0
+                'trend': self.calculate_trend(current_viewed, previous_viewed)
             },
             'finances': {
                 'monthlyPayments': float(total_payments),
                 'pendingPayments': float(pending_payments),
                 'totalPaid': float(Transaction.objects.filter(payer=user, status='completed').aggregate(total=Sum('amount'))['total'] or 0),
                 'nextPayment': float(pending_payments),
-                'trend': 0
+                'trend': self.calculate_trend(total_payments, previous_payments)
             },
             'contracts': {
                 'active': active_contracts,
                 'completed': contracts.filter(status='completed').count(),
                 'total': contracts.count(),
                 'currentProperty': contracts.filter(status='active').first(),
-                'trend': 0
+                'trend': self.calculate_trend(
+                    contracts.filter(created_at__gte=start_date).count(),
+                    contracts.filter(created_at__gte=previous_start, created_at__lt=start_date).count()
+                )
             },
             'services': {
-                'requested': 0,
-                'completed': 0,
-                'pending': 0,
-                'total': 0,
-                'trend': 0
+                'requested': services_requested,
+                'completed': services_completed,
+                'pending': services_pending,
+                'total': services_requested + services_completed + services_pending,
+                'trend': self.calculate_trend(services_requested, previous_services)
             },
             'ratings': {
                 'given': Rating.objects.filter(reviewer=user).count(),
@@ -236,25 +269,73 @@ class DashboardStatsView(APIView):
             created_at__lte=end_date
         )
         monthly_income = payments_received.aggregate(total=Sum('amount'))['total'] or 0
+        previous_income = Transaction.objects.filter(
+            property__landlord=user,
+            status='completed',
+            created_at__gte=previous_start,
+            created_at__lt=start_date
+        ).aggregate(total=Sum('amount'))['total'] or 0
         pending_payments = Transaction.objects.filter(
             property__landlord=user,
             status='pending'
         ).aggregate(total=Sum('amount'))['total'] or 0
 
+        # Service stats reales desde services.ServiceRequest
+        # Service model uses contact_email, not a FK to User, so filter by email
+        try:
+            from services.models import ServiceRequest, Service
+            user_services = Service.objects.filter(contact_email=user.email)
+            provider_requests = ServiceRequest.objects.filter(service__in=user_services)
+            current_requested = provider_requests.filter(created_at__gte=start_date).count()
+            previous_requested = provider_requests.filter(
+                created_at__gte=previous_start, created_at__lt=start_date
+            ).count()
+            completed_services = provider_requests.filter(status='completed').count()
+            pending_services = provider_requests.filter(status__in=['pending', 'contacted', 'in_progress']).count()
+            cancelled_services = provider_requests.filter(status='cancelled').count()
+        except Exception:
+            current_requested = 0
+            previous_requested = 0
+            completed_services = 0
+            pending_services = 0
+            cancelled_services = 0
+
+        # Client stats reales
+        try:
+            from services.models import ServiceRequest, Service
+            user_services = Service.objects.filter(contact_email=user.email)
+            provider_requests_all = ServiceRequest.objects.filter(service__in=user_services)
+            total_clients = provider_requests_all.values('requester_email').distinct().count()
+            new_clients = provider_requests_all.filter(
+                created_at__gte=start_date
+            ).values('requester_email').distinct().count()
+            previous_clients = provider_requests_all.filter(
+                created_at__gte=previous_start,
+                created_at__lt=start_date
+            ).values('requester_email').distinct().count()
+            recurring_clients = provider_requests_all.values('requester_email').annotate(
+                count=Count('id')
+            ).filter(count__gt=1).count()
+        except Exception:
+            total_clients = 0
+            new_clients = 0
+            previous_clients = 0
+            recurring_clients = 0
+
         return {
             'services': {
-                'requested': 0,
-                'completed': 0,
-                'pending': 0,
-                'cancelled': 0,
-                'trend': 0
+                'requested': current_requested,
+                'completed': completed_services,
+                'pending': pending_services,
+                'cancelled': cancelled_services,
+                'trend': self.calculate_trend(current_requested, previous_requested)
             },
             'finances': {
                 'monthlyIncome': float(monthly_income),
                 'pendingPayments': float(pending_payments),
                 'completedPayments': float(monthly_income),
-                'averagePerService': 0,
-                'trend': 0
+                'averagePerService': float(monthly_income / max(completed_services, 1)),
+                'trend': self.calculate_trend(monthly_income, previous_income)
             },
             'ratings': {
                 'average': round(avg_rating, 1),
@@ -262,22 +343,87 @@ class DashboardStatsView(APIView):
                 'distribution': rating_distribution
             },
             'clients': {
-                'total': 0,
-                'new': 0,
-                'recurring': 0,
-                'satisfaction': 0,
-                'trend': 0
+                'total': total_clients,
+                'new': new_clients,
+                'recurring': recurring_clients,
+                'satisfaction': round(avg_rating * 20, 1),
+                'trend': self.calculate_trend(new_clients, previous_clients)
             }
         }
     
     def get_general_stats(self, start_date, end_date, previous_start):
         """Estadísticas generales para administradores."""
+        total_users = User.objects.count()
+        new_users = User.objects.filter(date_joined__gte=start_date).count()
+        previous_new_users = User.objects.filter(
+            date_joined__gte=previous_start, date_joined__lt=start_date
+        ).count()
+
+        total_properties = Property.objects.count()
+        new_properties = Property.objects.filter(created_at__gte=start_date).count()
+        previous_new_properties = Property.objects.filter(
+            created_at__gte=previous_start, created_at__lt=start_date
+        ).count()
+
+        total_contracts = Contract.objects.count()
+        new_contracts = Contract.objects.filter(created_at__gte=start_date).count()
+        previous_new_contracts = Contract.objects.filter(
+            created_at__gte=previous_start, created_at__lt=start_date
+        ).count()
+
+        total_revenue = float(Transaction.objects.filter(
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or 0)
+        current_revenue = float(Transaction.objects.filter(
+            status='completed', created_at__gte=start_date
+        ).aggregate(total=Sum('amount'))['total'] or 0)
+        previous_revenue = float(Transaction.objects.filter(
+            status='completed',
+            created_at__gte=previous_start,
+            created_at__lt=start_date
+        ).aggregate(total=Sum('amount'))['total'] or 0)
+
         return {
             'overview': {
-                'totalUsers': User.objects.count(),
-                'totalProperties': Property.objects.count(),
-                'totalContracts': Contract.objects.count(),
-                'totalRevenue': float(Transaction.objects.filter(status='completed').aggregate(total=Sum('amount'))['total'] or 0)
+                'totalUsers': total_users,
+                'totalProperties': total_properties,
+                'totalContracts': total_contracts,
+                'totalRevenue': total_revenue,
+                'activeContracts': Contract.objects.filter(status='active').count(),
+                'occupiedProperties': Property.objects.filter(status='rented').count(),
+            },
+            'users': {
+                'total': total_users,
+                'tenants': User.objects.filter(user_type='tenant').count(),
+                'landlords': User.objects.filter(user_type='landlord').count(),
+                'serviceProviders': User.objects.filter(user_type='service_provider').count(),
+                'newThisMonth': new_users,
+                'trend': self.calculate_trend(new_users, previous_new_users)
+            },
+            'properties': {
+                'total': total_properties,
+                'available': Property.objects.filter(status='available').count(),
+                'occupied': Property.objects.filter(status='rented').count(),
+                'maintenance': Property.objects.filter(status='maintenance').count(),
+                'newThisMonth': new_properties,
+                'trend': self.calculate_trend(new_properties, previous_new_properties)
+            },
+            'contracts': {
+                'total': total_contracts,
+                'active': Contract.objects.filter(status='active').count(),
+                'pending': Contract.objects.filter(status='pending').count(),
+                'completed': Contract.objects.filter(status='completed').count(),
+                'newThisMonth': new_contracts,
+                'trend': self.calculate_trend(new_contracts, previous_new_contracts)
+            },
+            'finances': {
+                'totalRevenue': total_revenue,
+                'currentPeriod': current_revenue,
+                'previousPeriod': previous_revenue,
+                'pendingPayments': float(Transaction.objects.filter(
+                    status='pending'
+                ).aggregate(total=Sum('amount'))['total'] or 0),
+                'trend': self.calculate_trend(current_revenue, previous_revenue)
             }
         }
     
@@ -526,17 +672,47 @@ class DashboardExportView(APIView):
     def _export_service_provider_data(self, writer, user, start_date, end_date):
         """Exporta datos específicos para proveedores de servicios."""
         writer.writerow([
-            'Fecha', 'Tipo', 'Descripción', 'Cliente', 'Monto', 'Estado'
+            'Fecha', 'Tipo', 'Descripción', 'Cliente', 'Presupuesto', 'Estado'
         ])
-        
-        writer.writerow([
-            timezone.now().strftime('%Y-%m-%d %H:%M'),
-            'Información',
-            'Exportación de servicios no implementada aún',
-            'N/A',
-            0,
-            'Pendiente'
-        ])
+
+        # Solicitudes de servicio reales
+        try:
+            from services.models import ServiceRequest, Service
+            user_services = Service.objects.filter(contact_email=user.email)
+            service_requests = ServiceRequest.objects.filter(
+                service__in=user_services,
+                created_at__gte=start_date,
+                created_at__lte=end_date
+            ).select_related('service').order_by('-created_at')
+
+            for sr in service_requests:
+                writer.writerow([
+                    sr.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'Solicitud de Servicio',
+                    sr.message[:100] if sr.message else sr.service.name,
+                    sr.requester_name,
+                    sr.budget_range or 'N/A',
+                    sr.get_status_display()
+                ])
+        except Exception:
+            pass
+
+        # Transacciones
+        transactions = Transaction.objects.filter(
+            property__landlord=user,
+            created_at__gte=start_date,
+            created_at__lte=end_date
+        ).order_by('-created_at')
+
+        for transaction in transactions:
+            writer.writerow([
+                transaction.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Pago Recibido',
+                transaction.description,
+                transaction.payer.get_full_name() if transaction.payer else 'N/A',
+                float(transaction.amount),
+                transaction.status
+            ])
     
     def _export_general_data(self, writer, start_date, end_date):
         """Exporta datos generales para administradores."""

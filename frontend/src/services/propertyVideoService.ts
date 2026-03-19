@@ -112,7 +112,6 @@ class PropertyVideoService {
 
   /**
    * Cambiar fuente de video existente (URL <-> archivo)
-   * TODO: Implementar endpoint en backend
    */
   async updateVideoSource(
     propertyId: string,
@@ -124,13 +123,38 @@ class PropertyVideoService {
     video: PropertyVideo;
     video_type: 'url' | 'file';
   }> {
-    // NOTA: Este endpoint no está implementado en el backend aún
-    throw new Error('Funcionalidad de actualización de video no implementada aún');
+    const formData = new FormData();
+    if (updateData.video) {
+      formData.append('video', updateData.video);
+    }
+    if (updateData.youtube_url) {
+      formData.append('youtube_url', updateData.youtube_url);
+    }
+    if (updateData.title) {
+      formData.append('title', updateData.title);
+    }
+
+    const response = await api.patch(
+      `/properties/${propertyId}/videos/${videoId}/update_source/`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            onProgress({
+              loaded: progressEvent.loaded,
+              total: progressEvent.total,
+              percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total),
+            });
+          }
+        },
+      },
+    );
+    return response.data;
   }
 
   /**
    * Reordenar video en la galería
-   * TODO: Implementar endpoint en backend
    */
   async reorderVideo(
     propertyId: string,
@@ -140,8 +164,11 @@ class PropertyVideoService {
     message: string;
     video: PropertyVideo;
   }> {
-    // NOTA: Este endpoint no está implementado en el backend aún
-    throw new Error('Funcionalidad de reordenar videos no implementada aún');
+    const response = await api.patch(
+      `/properties/${propertyId}/videos/${videoId}/reorder/`,
+      { order: newOrder },
+    );
+    return response.data;
   }
 
   /**

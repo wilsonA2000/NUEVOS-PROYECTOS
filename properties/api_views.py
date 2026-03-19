@@ -4,6 +4,7 @@ OPTIMIZADO para performance con caching y queries eficientes.
 """
 
 from rest_framework import viewsets, generics, permissions, status, filters
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
@@ -364,7 +365,7 @@ class PropertyVideoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Personalizar la creación de videos."""
         video = serializer.save()
-        
+
         # Logging automático
         request = self.request
         if hasattr(request, 'impersonation_session'):
@@ -386,6 +387,57 @@ class PropertyVideoViewSet(viewsets.ModelViewSet):
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
+
+    @action(detail=True, methods=['patch'])
+    def update_source(self, request, pk=None, **kwargs):
+        """Cambiar fuente de video (archivo <-> URL)."""
+        video = self.get_object()
+        video_file = request.FILES.get('video')
+        youtube_url = request.data.get('youtube_url')
+
+        if video_file:
+            video.video = video_file
+            video.youtube_url = None
+        elif youtube_url:
+            video.youtube_url = youtube_url
+            if video.video:
+                video.video.delete(save=False)
+                video.video = None
+        else:
+            return Response(
+                {'error': 'Proporcione un archivo de video o URL de YouTube'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if request.data.get('title'):
+            video.title = request.data['title']
+        video.save()
+        serializer = self.get_serializer(video)
+        return Response({
+            'message': 'Fuente de video actualizada',
+            'video': serializer.data,
+            'video_type': 'file' if video.video else 'url'
+        })
+
+    @action(detail=True, methods=['patch'])
+    def reorder(self, request, pk=None, **kwargs):
+        """Reordenar video en la galería."""
+        video = self.get_object()
+        new_order = request.data.get('order')
+
+        if new_order is None:
+            return Response(
+                {'error': 'El campo order es requerido'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        video.order = int(new_order)
+        video.save(update_fields=['order'])
+        serializer = self.get_serializer(video)
+        return Response({
+            'message': 'Orden del video actualizado',
+            'video': serializer.data
+        })
 
 
 class PropertyAmenityViewSet(viewsets.ModelViewSet):
