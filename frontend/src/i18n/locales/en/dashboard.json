@@ -1,0 +1,112 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome, {{name}}",
+  "lastLogin": "Last login: {{date}}",
+  "overview": {
+    "title": "Overview",
+    "totalProperties": "Total Properties",
+    "activeContracts": "Active Contracts",
+    "pendingPayments": "Pending Payments",
+    "unreadMessages": "Unread Messages",
+    "pendingRequests": "Pending Requests",
+    "totalTenants": "Total Tenants",
+    "occupancyRate": "Occupancy Rate",
+    "monthlyRevenue": "Monthly Revenue",
+    "pendingMaintenance": "Pending Maintenance",
+    "activeMatches": "Active Matches",
+    "pendingBiometric": "Pending Biometrics",
+    "completedContracts": "Completed Contracts"
+  },
+  "widgets": {
+    "recentActivity": "Recent Activity",
+    "upcomingPayments": "Upcoming Payments",
+    "maintenanceRequests": "Maintenance Requests",
+    "recentMessages": "Recent Messages",
+    "contractStatus": "Contract Status",
+    "propertyPerformance": "Property Performance",
+    "tenantSatisfaction": "Tenant Satisfaction",
+    "financialSummary": "Financial Summary",
+    "matchingOverview": "Matching Overview",
+    "biometricProgress": "Biometric Progress",
+    "occupancyTrends": "Occupancy Trends",
+    "revenueChart": "Revenue Chart",
+    "expiringSoon": "Expiring Soon",
+    "pendingActions": "Pending Actions"
+  },
+  "activity": {
+    "newContract": "New contract created",
+    "paymentReceived": "Payment received",
+    "maintenanceCompleted": "Maintenance completed",
+    "newMessage": "New message received",
+    "contractSigned": "Contract signed",
+    "propertyListed": "Property listed",
+    "matchFound": "Match found",
+    "biometricCompleted": "Biometric authentication completed",
+    "tenantApproved": "Tenant approved",
+    "documentUploaded": "Document uploaded",
+    "ratingReceived": "Rating received",
+    "paymentOverdue": "Payment overdue"
+  },
+  "charts": {
+    "monthly": "Monthly",
+    "weekly": "Weekly",
+    "daily": "Daily",
+    "yearly": "Yearly",
+    "income": "Income",
+    "expenses": "Expenses",
+    "net": "Net",
+    "occupancy": "Occupancy",
+    "vacancy": "Vacancy",
+    "noData": "No data available"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "addProperty": "Add Property",
+    "createContract": "Create Contract",
+    "sendMessage": "Send Message",
+    "requestMaintenance": "Request Maintenance",
+    "viewPayments": "View Payments",
+    "findTenant": "Find Tenant",
+    "viewReports": "View Reports"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All as Read",
+    "viewAll": "View All",
+    "noNotifications": "No new notifications",
+    "paymentDue": "Payment due soon",
+    "contractExpiring": "Contract expiring soon",
+    "maintenanceUpdate": "Maintenance update",
+    "newMatch": "New match available"
+  },
+  "tenant": {
+    "title": "Tenant Dashboard",
+    "myRentals": "My Rentals",
+    "paymentHistory": "Payment History",
+    "maintenanceRequests": "My Maintenance Requests",
+    "myDocuments": "My Documents",
+    "nextPayment": "Next Payment",
+    "daysUntilPayment": "{{count}} days until next payment",
+    "contractDetails": "Contract Details",
+    "contactLandlord": "Contact Landlord"
+  },
+  "landlord": {
+    "title": "Landlord Dashboard",
+    "myProperties": "My Properties",
+    "tenantManagement": "Tenant Management",
+    "incomeOverview": "Income Overview",
+    "pendingApprovals": "Pending Approvals",
+    "propertyOccupancy": "Property Occupancy",
+    "collectionRate": "Collection Rate",
+    "averageRating": "Average Rating"
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "thisYear": "This Year",
+    "last30Days": "Last 30 Days",
+    "last90Days": "Last 90 Days",
+    "custom": "Custom"
+  }
+}

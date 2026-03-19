@@ -1,0 +1,67 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "properties": "Properties",
+    "contracts": "Contracts",
+    "messages": "Messages",
+    "payments": "Payments",
+    "maintenance": "Maintenance",
+    "services": "Services",
+    "profile": "Profile",
+    "settings": "Settings",
+    "requests": "Requests",
+    "notifications": "Notifications",
+    "ratings": "Ratings",
+    "home": "Home",
+    "resume": "Resume",
+    "adminLegal": "Admin Legal",
+    "matching": "Matching",
+    "help": "Help",
+    "support": "Support"
+  },
+  "header": {
+    "searchPlaceholder": "Search...",
+    "myAccount": "My Account",
+    "switchRole": "Switch Role",
+    "language": "Language",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "properties": "Properties",
+    "contracts": "Contracts",
+    "messages": "Messages",
+    "payments": "Payments",
+    "maintenance": "Maintenance",
+    "services": "Services",
+    "profile": "Profile",
+    "settings": "Settings",
+    "newProperty": "New Property",
+    "editProperty": "Edit Property",
+    "newContract": "New Contract",
+    "editContract": "Edit Contract",
+    "matching": "Matching",
+    "biometric": "Biometric Authentication"
+  },
+  "footer": {
+    "copyright": "All rights reserved",
+    "terms": "Terms and Conditions",
+    "privacy": "Privacy Policy",
+    "contact": "Contact",
+    "about": "About VeriHome"
+  },
+  "roles": {
+    "landlord": "Landlord",
+    "tenant": "Tenant",
+    "serviceProvider": "Service Provider",
+    "admin": "Administrator"
+  },
+  "menu": {
+    "collapse": "Collapse Menu",
+    "expand": "Expand Menu",
+    "openMenu": "Open Menu",
+    "closeMenu": "Close Menu"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "title": "Panel de Control",
+  "welcome": "Bienvenido, {{name}}",
+  "lastLogin": "Ultimo acceso: {{date}}",
+  "overview": {
+    "title": "Resumen General",
+    "totalProperties": "Total Propiedades",
+    "activeContracts": "Contratos Activos",
+    "pendingPayments": "Pagos Pendientes",
+    "unreadMessages": "Mensajes Sin Leer",
+    "pendingRequests": "Solicitudes Pendientes",
+    "totalTenants": "Total Arrendatarios",
+    "occupancyRate": "Tasa de Ocupacion",
+    "monthlyRevenue": "Ingresos Mensuales",
+    "pendingMaintenance": "Mantenimientos Pendientes",
+    "activeMatches": "Emparejamientos Activos",
+    "pendingBiometric": "Biometricos Pendientes",
+    "completedContracts": "Contratos Completados"
+  },
+  "widgets": {
+    "recentActivity": "Actividad Reciente",
+    "upcomingPayments": "Proximos Pagos",
+    "maintenanceRequests": "Solicitudes de Mantenimiento",
+    "recentMessages": "Mensajes Recientes",
+    "contractStatus": "Estado de Contratos",
+    "propertyPerformance": "Rendimiento de Propiedades",
+    "tenantSatisfaction": "Satisfaccion del Arrendatario",
+    "financialSummary": "Resumen Financiero",
+    "matchingOverview": "Resumen de Emparejamientos",
+    "biometricProgress": "Progreso Biometrico",
+    "occupancyTrends": "Tendencias de Ocupacion",
+    "revenueChart": "Grafico de Ingresos",
+    "expiringSoon": "Contratos por Vencer",
+    "pendingActions": "Acciones Pendientes"
+  },
+  "activity": {
+    "newContract": "Nuevo contrato creado",
+    "paymentReceived": "Pago recibido",
+    "maintenanceCompleted": "Mantenimiento completado",
+    "newMessage": "Nuevo mensaje recibido",
+    "contractSigned": "Contrato firmado",
+    "propertyListed": "Propiedad publicada",
+    "matchFound": "Emparejamiento encontrado",
+    "biometricCompleted": "Autenticacion biometrica completada",
+    "tenantApproved": "Arrendatario aprobado",
+    "documentUploaded": "Documento subido",
+    "ratingReceived": "Calificacion recibida",
+    "paymentOverdue": "Pago vencido"
+  },
+  "charts": {
+    "monthly": "Mensual",
+    "weekly": "Semanal",
+    "daily": "Diario",
+    "yearly": "Anual",
+    "income": "Ingresos",
+    "expenses": "Gastos",
+    "net": "Neto",
+    "occupancy": "Ocupacion",
+    "vacancy": "Vacancia",
+    "noData": "No hay datos disponibles"
+  },
+  "quickActions": {
+    "title": "Acciones Rapidas",
+    "addProperty": "Agregar Propiedad",
+    "createContract": "Crear Contrato",
+    "sendMessage": "Enviar Mensaje",
+    "requestMaintenance": "Solicitar Mantenimiento",
+    "viewPayments": "Ver Pagos",
+    "findTenant": "Buscar Arrendatario",
+    "viewReports": "Ver Reportes"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todas como leidas",
+    "viewAll": "Ver Todas",
+    "noNotifications": "No hay notificaciones nuevas",
+    "paymentDue": "Pago proximo a vencer",
+    "contractExpiring": "Contrato por vencer",
+    "maintenanceUpdate": "Actualizacion de mantenimiento",
+    "newMatch": "Nuevo emparejamiento disponible"
+  },
+  "tenant": {
+    "title": "Panel del Arrendatario",
+    "myRentals": "Mis Arriendos",
+    "paymentHistory": "Historial de Pagos",
+    "maintenanceRequests": "Mis Solicitudes de Mantenimiento",
+    "myDocuments": "Mis Documentos",
+    "nextPayment": "Proximo Pago",
+    "daysUntilPayment": "{{count}} dias para el proximo pago",
+    "contractDetails": "Detalles del Contrato",
+    "contactLandlord": "Contactar Arrendador"
+  },
+  "landlord": {
+    "title": "Panel del Arrendador",
+    "myProperties": "Mis Propiedades",
+    "tenantManagement": "Gestion de Arrendatarios",
+    "incomeOverview": "Resumen de Ingresos",
+    "pendingApprovals": "Aprobaciones Pendientes",
+    "propertyOccupancy": "Ocupacion por Propiedad",
+    "collectionRate": "Tasa de Recaudo",
+    "averageRating": "Calificacion Promedio"
+  },
+  "filters": {
+    "dateRange": "Rango de Fechas",
+    "thisMonth": "Este Mes",
+    "lastMonth": "Mes Anterior",
+    "thisYear": "Este Ano",
+    "last30Days": "Ultimos 30 Dias",
+    "last90Days": "Ultimos 90 Dias",
+    "custom": "Personalizado"
+  }
+}

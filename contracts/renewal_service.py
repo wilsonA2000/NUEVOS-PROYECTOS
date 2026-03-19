@@ -190,7 +190,10 @@ class RenewalAlertService:
     @staticmethod
     def calculate_ipc_adjustment(
         current_rent: Decimal,
-        ipc_rate: Decimal,
+        ipc_rate: Optional[Decimal] = None,
+        *,
+        use_dane: bool = False,
+        year: Optional[int] = None,
     ) -> Dict[str, Decimal]:
         """
         Calcula el nuevo canon aplicando el incremento máximo legal por IPC.
@@ -200,16 +203,41 @@ class RenewalAlertService:
 
         Args:
             current_rent: Canon mensual actual.
-            ipc_rate: Tasa IPC como porcentaje (ej. 5.62 para 5.62%).
+            ipc_rate: Tasa IPC como porcentaje (ej. 5.62 para 5.62 %).
+                Si se omite y ``use_dane=True``, se obtiene automáticamente
+                de la API del DANE.
+            use_dane: Si es ``True`` y no se proporciona ``ipc_rate``,
+                consulta la tasa IPC oficial del DANE (con cache de 24 h
+                y fallback a tasa por defecto).
+            year: Año específico para consultar el IPC del DANE.
+                Solo se usa cuando ``use_dane=True`` y ``ipc_rate`` es ``None``.
 
         Returns:
-            Dict con 'current_rent', 'ipc_rate', 'max_increment', 'new_rent'.
+            Dict con 'current_rent', 'ipc_rate', 'ipc_source',
+            'max_increment', 'new_rent'.
 
         Raises:
-            ValueError: Si el canon o el IPC son negativos.
+            ValueError: Si el canon o el IPC son negativos, o si no se
+                proporciona ``ipc_rate`` y ``use_dane`` es ``False``.
         """
+        from contracts.dane_ipc_service import DaneIPCService
+
         current_rent = Decimal(str(current_rent))
-        ipc_rate = Decimal(str(ipc_rate))
+        ipc_source = 'manual'
+
+        if ipc_rate is not None:
+            ipc_rate = Decimal(str(ipc_rate))
+        elif use_dane:
+            if year is not None:
+                ipc_rate = DaneIPCService.get_ipc_rate_for_year(year)
+            else:
+                ipc_rate = DaneIPCService.get_current_ipc_rate()
+            ipc_source = 'dane'
+            logger.info("IPC obtenido del DANE: %s%%", ipc_rate)
+        else:
+            raise ValueError(
+                "Debe proporcionar ipc_rate o activar use_dane=True."
+            )
 
         if current_rent < 0:
             raise ValueError("El canon actual no puede ser negativo.")
@@ -225,6 +253,7 @@ class RenewalAlertService:
         return {
             'current_rent': current_rent,
             'ipc_rate': ipc_rate,
+            'ipc_source': ipc_source,
             'max_increment': max_increment,
             'new_rent': new_rent,
         }

@@ -1,0 +1,67 @@
+{
+  "sidebar": {
+    "dashboard": "Panel de Control",
+    "properties": "Propiedades",
+    "contracts": "Contratos",
+    "messages": "Mensajes",
+    "payments": "Pagos",
+    "maintenance": "Mantenimiento",
+    "services": "Servicios",
+    "profile": "Perfil",
+    "settings": "Configuracion",
+    "requests": "Solicitudes",
+    "notifications": "Notificaciones",
+    "ratings": "Calificaciones",
+    "home": "Inicio",
+    "resume": "Hoja de Vida",
+    "adminLegal": "Admin Legal",
+    "matching": "Emparejamiento",
+    "help": "Ayuda",
+    "support": "Soporte"
+  },
+  "header": {
+    "searchPlaceholder": "Buscar...",
+    "myAccount": "Mi Cuenta",
+    "switchRole": "Cambiar Rol",
+    "language": "Idioma",
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro"
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "dashboard": "Panel de Control",
+    "properties": "Propiedades",
+    "contracts": "Contratos",
+    "messages": "Mensajes",
+    "payments": "Pagos",
+    "maintenance": "Mantenimiento",
+    "services": "Servicios",
+    "profile": "Perfil",
+    "settings": "Configuracion",
+    "newProperty": "Nueva Propiedad",
+    "editProperty": "Editar Propiedad",
+    "newContract": "Nuevo Contrato",
+    "editContract": "Editar Contrato",
+    "matching": "Emparejamiento",
+    "biometric": "Autenticacion Biometrica"
+  },
+  "footer": {
+    "copyright": "Todos los derechos reservados",
+    "terms": "Terminos y Condiciones",
+    "privacy": "Politica de Privacidad",
+    "contact": "Contacto",
+    "about": "Acerca de VeriHome"
+  },
+  "roles": {
+    "landlord": "Arrendador",
+    "tenant": "Arrendatario",
+    "serviceProvider": "Proveedor de Servicios",
+    "admin": "Administrador"
+  },
+  "menu": {
+    "collapse": "Contraer Menu",
+    "expand": "Expandir Menu",
+    "openMenu": "Abrir Menu",
+    "closeMenu": "Cerrar Menu"
+  }
+}

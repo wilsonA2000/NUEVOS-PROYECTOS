@@ -490,6 +490,17 @@ celery -A verihome beat -l info
 
 ---
 
+## Test Commands Summary
+
+### Running Tests
+- Frontend: `cd frontend && npm test` (63 suites, 771 tests)
+- Backend: `python manage.py test` (all apps)
+- Backend specific: `python manage.py test services.tests` (87 tests)
+- E2E: `cd frontend && npx playwright test` (27 tests)
+- Type check: `cd frontend && npx tsc --noEmit`
+
+---
+
 ## Important Notes
 
 ### Biometric System
@@ -536,9 +547,15 @@ docs: Update API documentation
 ✅ **Dual-system Architecture** - Legacy + modern contract models
 ✅ **Fallback Systems** - PostgreSQL→SQLite, Redis→Memory
 ✅ **Professional PDFs** - Notarial design with Goddess Themis
+✅ **Contract Renewal System** - IPC adjustment (Law 820 Art. 20)
+✅ **Complete Payment Integration** - Stripe + Wompi/PSE + Nequi
+✅ **Maintenance Request System** - Tenant-to-provider workflow
+✅ **Multi-language Support** - ES/EN with react-i18next
+✅ **Admin Dashboard V2** - Real-time notifications
+✅ **Comprehensive Testing** - 63 test suites, 771+ frontend tests, 87+ backend tests
 
 ---
 
-**Last Updated**: October 14, 2025
-**Version**: Production-ready with enterprise-grade biometric authentication
-**Branch**: feature/cleanup-conservative
+**Last Updated**: March 19, 2026
+**Version**: Production-ready with complete Plan Maestro implementation
+**Branch**: main
