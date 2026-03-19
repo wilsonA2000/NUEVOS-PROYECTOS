@@ -70,6 +70,7 @@ import { ModernImageGallery } from './ModernImageGallery';
 import MatchRequestForm from '../matching/MatchRequestForm';
 import { matchingService } from '../../services/matchingService';
 import { api } from '../../services/api';
+import { propertyService } from '../../services/propertyService';
 
 // Styled components for modern design
 const HeroSection = styled(Box)(({ theme }) => ({
@@ -433,6 +434,7 @@ export const PropertyDetail: React.FC = () => {
           setExistingMatchRequest(response.data.request);
         }
       } catch (error) {
+        console.error('Error al verificar solicitud existente:', error);
       } finally {
         setCheckingExistingRequest(false);
       }
@@ -507,12 +509,9 @@ export const PropertyDetail: React.FC = () => {
     const previousState = isFavorited;
     try {
       setIsFavorited(!isFavorited);
-      if (isFavorited) {
-        await api.delete(`/properties/${property.id}/favorite/`);
-      } else {
-        await api.post(`/properties/${property.id}/favorite/`);
-      }
+      await propertyService.toggleFavorite(property.id.toString());
     } catch (error) {
+      console.error('Error al cambiar estado de favorito:', error);
       setIsFavorited(previousState);
     }
   };
@@ -525,6 +524,8 @@ export const PropertyDetail: React.FC = () => {
       setExistingMatchRequest(null);
       // Mostrar notificación de éxito
     } catch (error) {
+      console.error('Error al cancelar solicitud:', error);
+      alert('No se pudo cancelar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
@@ -1242,9 +1243,9 @@ export const PropertyDetail: React.FC = () => {
                     Propietario
                   </Typography>
                   <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
-                    <Rating value={4.5} size="small" readOnly precision={0.1} />
+                    <Rating value={(property as any)?.average_rating || 0} size="small" readOnly precision={0.1} />
                     <Typography variant="caption" color="text.secondary">
-                      (12 reseñas)
+                      ({(property as any)?.total_ratings || 0} reseñas)
                     </Typography>
                   </Box>
                 </Box>
@@ -1374,6 +1375,8 @@ export const PropertyDetail: React.FC = () => {
                             await deleteProperty.mutateAsync(property.id.toString());
                             navigate('/app/properties');
                           } catch (error) {
+                            console.error('Error al eliminar propiedad:', error);
+                            alert('No se pudo eliminar la propiedad. Por favor, intenta de nuevo.');
                           }
                         }
                       }}

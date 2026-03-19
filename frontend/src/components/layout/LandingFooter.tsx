@@ -81,15 +81,19 @@ const LandingFooter: React.FC = () => {
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <EmailIcon sx={{ fontSize: 16, color: 'grey.400' }} />
-                <Typography variant="body2" sx={{ color: 'grey.400' }}>
-                  contacto@verihome.com
-                </Typography>
+                <a href="mailto:contacto@verihome.com" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <Typography variant="body2" sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}>
+                    contacto@verihome.com
+                  </Typography>
+                </a>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <PhoneIcon sx={{ fontSize: 16, color: 'grey.400' }} />
-                <Typography variant="body2" sx={{ color: 'grey.400' }}>
-                  +57 (7) 123-4567
-                </Typography>
+                <a href="tel:+5771234567" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <Typography variant="body2" sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}>
+                    +57 (7) 123-4567
+                  </Typography>
+                </a>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LocationIcon sx={{ fontSize: 16, color: 'grey.400' }} />
@@ -102,6 +106,10 @@ const LandingFooter: React.FC = () => {
             {/* Redes sociales */}
             <Box sx={{ display: 'flex', gap: 1 }}>
               <IconButton
+                component="a"
+                href="https://facebook.com/verihome"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -110,6 +118,10 @@ const LandingFooter: React.FC = () => {
                 <FacebookIcon />
               </IconButton>
               <IconButton
+                component="a"
+                href="https://twitter.com/verihome"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -118,6 +130,10 @@ const LandingFooter: React.FC = () => {
                 <TwitterIcon />
               </IconButton>
               <IconButton
+                component="a"
+                href="https://linkedin.com/company/verihome"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -126,6 +142,10 @@ const LandingFooter: React.FC = () => {
                 <LinkedInIcon />
               </IconButton>
               <IconButton
+                component="a"
+                href="https://instagram.com/verihome"
+                target="_blank"
+                rel="noopener noreferrer"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -240,9 +260,10 @@ const LandingFooter: React.FC = () => {
               >
                 Centro de Ayuda
               </MuiLink>
+              {/* TODO: create dedicated page */}
               <MuiLink
                 component={Link}
-                to="/terms"
+                to="/about"
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -251,9 +272,10 @@ const LandingFooter: React.FC = () => {
               >
                 Términos y Condiciones
               </MuiLink>
+              {/* TODO: create dedicated page */}
               <MuiLink
                 component={Link}
-                to="/privacy"
+                to="/about"
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -262,9 +284,10 @@ const LandingFooter: React.FC = () => {
               >
                 Política de Privacidad
               </MuiLink>
+              {/* TODO: create dedicated page */}
               <MuiLink
                 component={Link}
-                to="/security"
+                to="/about"
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',

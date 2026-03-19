@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AppBar,
@@ -7,15 +7,36 @@ import {
   Button,
   Box,
   Container,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import {
   Home as HomeIcon,
   Business as BusinessIcon,
   People as PeopleIcon,
   ContactSupport as ContactSupportIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 
+const navItems = [
+  { label: 'Propiedades', to: '/properties', icon: <HomeIcon /> },
+  { label: 'Servicios', to: '/services', icon: <BusinessIcon /> },
+  { label: 'Nosotros', to: '/about', icon: <PeopleIcon /> },
+  { label: 'Contacto', to: '/contact', icon: <ContactSupportIcon /> },
+];
+
 const LandingNavbar: React.FC = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen((prev) => !prev);
+  };
+
   return (
     <AppBar 
       position="fixed" 
@@ -72,64 +93,58 @@ const LandingNavbar: React.FC = () => {
             </Typography>
           </Box>
 
-          {/* Enlaces de navegación */}
+          {/* Hamburger menu for mobile */}
+          <IconButton
+            color="primary"
+            aria-label="open navigation menu"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+
+          {/* Mobile Drawer */}
+          <Drawer
+            anchor="left"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            sx={{ display: { md: 'none' } }}
+            ModalProps={{ keepMounted: true }}
+          >
+            <Box sx={{ width: 260, pt: 2 }} role="presentation" onClick={handleDrawerToggle}>
+              <List>
+                {navItems.map((item) => (
+                  <ListItem key={item.label} disablePadding>
+                    <ListItemButton component={Link} to={item.to}>
+                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.label} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Drawer>
+
+          {/* Enlaces de navegación (desktop) */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
-            <Button
-              component={Link}
-              to="/properties"
-              startIcon={<HomeIcon />}
-              sx={{
-                color: 'text.primary',
-                '&:hover': {
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                },
-              }}
-            >
-              Propiedades
-            </Button>
-            <Button
-              component={Link}
-              to="/services"
-              startIcon={<BusinessIcon />}
-              sx={{
-                color: 'text.primary',
-                '&:hover': {
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                },
-              }}
-            >
-              Servicios
-            </Button>
-            <Button
-              component={Link}
-              to="/about"
-              startIcon={<PeopleIcon />}
-              sx={{
-                color: 'text.primary',
-                '&:hover': {
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                },
-              }}
-            >
-              Nosotros
-            </Button>
-            <Button
-              component={Link}
-              to="/contact"
-              startIcon={<ContactSupportIcon />}
-              sx={{
-                color: 'text.primary',
-                '&:hover': {
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                },
-              }}
-            >
-              Contacto
-            </Button>
+            {navItems.map((item) => (
+              <Button
+                key={item.label}
+                component={Link}
+                to={item.to}
+                startIcon={item.icon}
+                sx={{
+                  color: 'text.primary',
+                  '&:hover': {
+                    color: 'primary.main',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  },
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
           </Box>
 
           {/* Botones de autenticación */}

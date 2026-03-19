@@ -1345,6 +1345,14 @@ _____________________________
         setContractHasBeenPreviewed(true);
       } else {
         // NO existe el contrato - crear primero como borrador y luego mostrar PDF
+        // Confirmar con el usuario antes de crear el borrador silenciosamente
+        const userConfirmed = window.confirm(
+          'Se creará un borrador del contrato para generar la vista previa. ¿Desea continuar?'
+        );
+        if (!userConfirmed) {
+          setLoading(false);
+          return;
+        }
 
         // ============================================================================
         // PAYLOAD COMPLETO PARA PREVISUALIZACIÓN - IDÉNTICO AL DE CREAR BORRADOR

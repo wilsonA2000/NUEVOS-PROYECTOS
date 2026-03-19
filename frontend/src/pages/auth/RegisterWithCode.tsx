@@ -44,7 +44,6 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { RegisterDto } from '../../types/user';
-import { SuccessModal } from '../../components/SuccessModal';
 import TermsModal from '../../components/modals/TermsModal';
 import PrivacyModal from '../../components/modals/PrivacyModal';
 
@@ -146,7 +145,6 @@ export const RegisterWithCode: React.FC = () => {
   // Estados generales
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
@@ -348,7 +346,7 @@ export const RegisterWithCode: React.FC = () => {
       };
       
       await register.mutateAsync(registrationData);
-      setShowSuccess(true);
+      // AuthContext.handleRegistrationSuccess handles the redirect to /email-verification
     } catch (err: any) {
       if (err.response?.status === 400) {
         const errorData = err.response.data;
@@ -1413,20 +1411,6 @@ export const RegisterWithCode: React.FC = () => {
       </Card>
 
       {/* Modales */}
-      <SuccessModal
-        open={showSuccess}
-        onClose={() => {
-          setShowSuccess(false);
-          navigate('/login', {
-            state: {
-              message: 'Cuenta creada exitosamente. Se ha enviado un correo de confirmación.',
-            },
-          });
-        }}
-        title="¡Cuenta creada exitosamente!"
-        message="Se ha enviado un correo de confirmación a tu email. Por favor, verifica tu cuenta para poder iniciar sesión."
-      />
-
       <TermsModal
         open={showTermsModal}
         onClose={() => setShowTermsModal(false)}

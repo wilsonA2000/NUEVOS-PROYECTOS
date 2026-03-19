@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button, Card, CardContent, TextField, Typography, Rating, Grid, Alert, CircularProgress, Chip, Divider } from '@mui/material';
 import { Star as StarIcon, Send as SendIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
-import api from '../../services/api';
+import { ratingService } from '../../services/ratingService';
 
 export interface RatingFormProps {
   targetType: 'user' | 'property' | 'service';
@@ -15,7 +15,7 @@ const RatingForm: React.FC<RatingFormProps> = ({ targetType, targetId, targetNam
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ratings, setRatings] = useState({ overall: 0, communication: 0, serviceQuality: 0, cleanliness: 0, value: 0, location: 0 });
+  const [ratings, setRatings] = useState({ overall: 0 });
   const [comment, setComment] = useState('');
 
   const handleSubmit = async () => {
@@ -28,11 +28,7 @@ const RatingForm: React.FC<RatingFormProps> = ({ targetType, targetId, targetNam
         return;
       }
       const ratingData: any = { target_type: targetType, target_id: targetId, overall_rating: ratings.overall, comment: comment.trim() };
-      if (targetType === 'user') {
-        if (ratings.communication > 0) ratingData.communication_rating = ratings.communication;
-        if (ratings.serviceQuality > 0) ratingData.service_quality_rating = ratings.serviceQuality;
-      }
-      await api.post('/ratings/', ratingData);
+      await ratingService.createRating(ratingData);
       setSuccess(true);
       setTimeout(() => { onSuccess?.(); }, 1500);
     } catch (err: any) {

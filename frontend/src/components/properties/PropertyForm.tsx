@@ -996,7 +996,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         <MenuItem value="warehouse">Bodega</MenuItem>
                         <MenuItem value="land">Terreno</MenuItem>
                         <MenuItem value="room">Habitación</MenuItem>
-                        <MenuItem value="habitacion">Habitacion</MenuItem>
                       </Select>
                     </FormControl>
                   )}
@@ -1222,6 +1221,17 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
               </Tooltip>
             </Grid>
             <Grid item xs={12} md={2}>
+              <Tooltip title="Número de medios baños de la propiedad" arrow placement="top">
+                <span><Controller
+                  name="half_bathrooms"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField {...field} label="Medio Baños" fullWidth inputMode="decimal" type="text" id={`propertyform-${field.name}`} />
+                  )}
+                /></span>
+              </Tooltip>
+            </Grid>
+            <Grid item xs={12} md={2}>
               <Tooltip title="Área total de la propiedad en metros cuadrados" arrow placement="top">
                 <span><Controller
                   name="total_area"
@@ -1421,7 +1431,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
               </Grid>
             )}
             <Grid item xs={12} md={2}>
-              <Tooltip title="Depósito de garantía en pesos mexicanos" arrow placement="top">
+              <Tooltip title="Depósito de garantía en pesos colombianos" arrow placement="top">
                 <span><Controller
                   name="security_deposit"
                   control={control}
@@ -1432,7 +1442,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
               </Tooltip>
             </Grid>
             <Grid item xs={12} md={2}>
-              <Tooltip title="Cuota de mantenimiento mensual en pesos mexicanos" arrow placement="top">
+              <Tooltip title="Cuota de mantenimiento mensual en pesos colombianos" arrow placement="top">
                 <span><Controller
                   name="maintenance_fee"
                   control={control}
