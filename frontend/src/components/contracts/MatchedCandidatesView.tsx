@@ -1310,14 +1310,34 @@ const MatchedCandidatesView: React.FC = () => {
             {/* ETAPA 4: Autenticación biométrica */}
             {candidate.workflow_stage === 4 && (
               <>
-                {renderBiometricActionButtons(candidate)}
+                {candidate.workflow_data.contract_created ? (
+                  renderBiometricActionButtons(candidate)
+                ) : (
+                  <Alert severity="warning" sx={{ mb: 1 }}>
+                    <AlertTitle>Datos de contrato no disponibles</AlertTitle>
+                    <Typography variant="body2">
+                      No se encontró información del contrato para iniciar la autenticación biométrica.
+                      Esto puede deberse a un error de sincronización. Por favor, recarga la página o contacta soporte.
+                    </Typography>
+                  </Alert>
+                )}
               </>
             )}
 
             {/* ETAPA 5: Entrega y ejecución */}
             {candidate.workflow_stage === 5 && (
               <>
-                {renderExecutionActionButtons(candidate)}
+                {candidate.workflow_data.contract_created ? (
+                  renderExecutionActionButtons(candidate)
+                ) : (
+                  <Alert severity="warning" sx={{ mb: 1 }}>
+                    <AlertTitle>Datos de contrato no disponibles</AlertTitle>
+                    <Typography variant="body2">
+                      No se encontró información del contrato para la entrega.
+                      Esto puede deberse a un error de sincronización. Por favor, recarga la página o contacta soporte.
+                    </Typography>
+                  </Alert>
+                )}
               </>
             )}
           </Box>

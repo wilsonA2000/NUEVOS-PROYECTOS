@@ -437,7 +437,7 @@ const AdminContractReview: React.FC = () => {
                 startIcon={<OpenIcon />}
                 onClick={() =>
                   window.open(
-                    `http://localhost:8000/api/v1/contracts/${contractId}/preview-pdf/`,
+                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contractId}/preview-pdf/`,
                     '_blank'
                   )
                 }

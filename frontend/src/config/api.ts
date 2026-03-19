@@ -4,9 +4,9 @@
  */
 
 // Backend API base URL
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? window.location.origin  // In production, use same origin
-  : 'http://localhost:8000';  // In development, use Django backend
+export const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL)
+  ? import.meta.env.VITE_API_URL.replace('/api/v1', '')  // Use configured API URL
+  : 'http://localhost:8000';  // Fallback for development
 
 // API endpoints
 export const API_ENDPOINTS = {

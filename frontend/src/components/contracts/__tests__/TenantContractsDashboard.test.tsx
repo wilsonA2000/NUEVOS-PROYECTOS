@@ -118,7 +118,7 @@ describe('TenantContractsDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
+      expect(mockGetTenantContracts).toHaveBeenCalled();
     });
   });
 

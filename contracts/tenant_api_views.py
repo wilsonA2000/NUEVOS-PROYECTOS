@@ -372,10 +372,79 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
             
         except (ValidationError, PermissionDenied) as e:
             return Response(
-                {'error': str(e)}, 
+                {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-    
+
+    @action(detail=True, methods=['post'])
+    def reject_contract(self, request, pk=None):
+        """
+        Rechazar el contrato por parte del arrendatario.
+        """
+        contract = self.get_object()
+
+        if contract.tenant != request.user:
+            return Response(
+                {'error': 'No tienes permisos para rechazar este contrato'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if contract.current_state not in ['BOTH_REVIEWING', 'READY_TO_SIGN']:
+            return Response(
+                {'error': 'El contrato no está en un estado que permita rechazo'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reason = request.data.get('reason', 'Rechazado por el arrendatario')
+
+        try:
+            with transaction.atomic():
+                # Update contract state
+                contract.tenant_approved = False
+                contract.current_state = 'TENANT_REJECTED'
+                contract.save()
+
+                # Record in workflow history
+                ContractWorkflowHistory.objects.create(
+                    contract=contract,
+                    action='TENANT_REJECTED',
+                    performed_by=request.user,
+                    notes=reason,
+                    from_state='BOTH_REVIEWING',
+                    to_state='TENANT_REJECTED'
+                )
+
+                # Update MatchRequest if exists
+                try:
+                    from matching.models import MatchRequest
+                    match_request = MatchRequest.objects.filter(
+                        tenant=request.user,
+                        property=contract.property
+                    ).first()
+
+                    if match_request:
+                        match_request.workflow_status = 'contract_rejected_by_tenant'
+                        match_request.status = 'contract_rejected'
+                        if match_request.workflow_data and 'contract_created' in match_request.workflow_data:
+                            match_request.workflow_data['contract_created']['tenant_rejected'] = True
+                            match_request.workflow_data['contract_created']['rejection_reason'] = reason
+                            match_request.workflow_data['contract_created']['rejected_at'] = timezone.now().isoformat()
+                        match_request.save()
+                        logger.info(f"MatchRequest {match_request.id} updated - Tenant rejected contract")
+                except Exception as e:
+                    logger.warning(f"Error updating MatchRequest on rejection: {e}")
+
+                return Response(
+                    {'message': 'Contrato rechazado exitosamente', 'reason': reason},
+                    status=status.HTTP_200_OK
+                )
+        except Exception as e:
+            logger.error(f"Error rejecting contract: {e}")
+            return Response(
+                {'error': 'Error al rechazar el contrato'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=True, methods=['post'])
     def sign_contract(self, request, pk=None):
         """

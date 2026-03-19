@@ -97,6 +97,7 @@ const ContractRenewalWizard: React.FC = () => {
   // Contract data
   const [contracts, setContracts] = useState<ContractSummary[]>([]);
   const [selectedContract, setSelectedContract] = useState<ContractSummary | null>(null);
+  const [contractNotFound, setContractNotFound] = useState(false);
 
   // Renewal terms
   const [terms, setTerms] = useState<RenewalTerms>({
@@ -121,9 +122,16 @@ const ContractRenewalWizard: React.FC = () => {
       const contract = contracts.find((c) => c.id === paramContractId);
       if (contract) {
         selectContract(contract);
+        setContractNotFound(false);
+      } else {
+        setContractNotFound(true);
+        setError(`El contrato ${paramContractId} no fue encontrado o no es elegible para renovación. Solo contratos activos o próximos a vencer pueden renovarse.`);
       }
+    } else if (paramContractId && !loading && contracts.length === 0) {
+      setContractNotFound(true);
+      setError('No se encontraron contratos elegibles para renovación.');
     }
-  }, [paramContractId, contracts]);
+  }, [paramContractId, contracts, loading]);
 
   const loadContracts = async () => {
     try {

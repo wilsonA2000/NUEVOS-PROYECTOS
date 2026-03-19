@@ -3,6 +3,8 @@
  * Solves JWT authentication issues when opening PDFs in new tabs
  */
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
 export const viewContractPDF = async (contractId: string): Promise<void> => {
   try {
     // Obtener el token de localStorage
@@ -13,7 +15,7 @@ export const viewContractPDF = async (contractId: string): Promise<void> => {
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`http://localhost:8000/api/v1/contracts/${contractId}/preview-pdf/`, {
+    const response = await fetch(`${API_BASE_URL}/contracts/${contractId}/preview-pdf/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -59,7 +61,7 @@ export const downloadContractPDF = async (contractId: string, filename?: string)
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`http://localhost:8000/api/v1/contracts/${contractId}/preview-pdf/`, {
+    const response = await fetch(`${API_BASE_URL}/contracts/${contractId}/preview-pdf/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
