@@ -27,23 +27,23 @@ export const useProperties = (filters?: PropertySearchFilters) => {
   }, [filters, user?.user_type]);
 
   const { data: properties, isLoading, error } = useDynamicQuery<Property[]>(
-    ['properties', 'list', JSON.stringify(roleBasedFilters), user?.user_type],
+    ['properties', 'list', JSON.stringify(roleBasedFilters), user?.user_type ?? ''],
     () => {
       return propertyService.getProperties(roleBasedFilters);
     },
     {
       enabled: isAuthenticated,
-      select: (data) => {
+      select: (data: Property[]) => {
         // Apply additional client-side filtering for enhanced security
         let filteredData = data;
 
         // For tenants, ensure only available properties are shown
         if (user?.user_type === 'tenant') {
-          filteredData = data?.filter(property => property.status === 'available') || [];
+          filteredData = data?.filter((property: Property) => property.status === 'available') || [];
         }
 
         // Optimizar datos de propiedades
-        return filteredData?.map(property => ({
+        return filteredData?.map((property: Property) => ({
           ...property,
           // Precargar imágenes optimizadas
           images: property.images?.map((img: any) => {

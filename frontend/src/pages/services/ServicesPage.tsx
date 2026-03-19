@@ -19,7 +19,7 @@ import {
 // import { useUser } from '../../hooks/useUser';
 
 // MOCK TEMPORAL para evitar error de compilación
-const useUser = () => ({ user: null });
+const useUser = () => ({ user: null as { role: string } | null });
 
 const ServicesPage: React.FC = () => {
   const { user } = useUser();

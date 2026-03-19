@@ -118,7 +118,7 @@ api.interceptors.response.use(
     // Track API performance
     if (response.config.metadata) {
       const { startTime } = response.config.metadata;
-      const duration = performance.now() - startTime;
+      const duration = performance.now() - (startTime ?? 0);
       const endpoint = response.config.url || '';
       const method = response.config.method || '';
       

@@ -202,7 +202,7 @@ class VideoUtils {
     
     for (const pattern of patterns) {
       const match = url.match(pattern);
-      if (match) return match[1];
+      if (match) return match[1] ?? null;
     }
     
     return null;
@@ -410,8 +410,8 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
   // Remove video
   const handleRemoveVideo = async (index: number) => {
-    const video = videos[index];
-    
+    const video = videos[index]!;
+
     // Si es un video existente (tiene ID), eliminarlo del servidor
     if (video.id) {
       try {
@@ -468,7 +468,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
     const newVideos = Array.from(videos);
     const [reorderedVideo] = newVideos.splice(result.source.index, 1);
-    newVideos.splice(result.destination.index, 0, reorderedVideo);
+    newVideos.splice(result.destination.index, 0, reorderedVideo!);
 
     // Update order
     const reorderedWithOrder = newVideos.map((video, index) => ({

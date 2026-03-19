@@ -79,25 +79,29 @@ interface AuthenticationStep {
   optional?: boolean;
 }
 
+interface CompletedSteps {
+  face_front: boolean;
+  face_side: boolean;
+  document: boolean;
+  combined: boolean;
+  voice: boolean;
+}
+
+interface ConfidenceScores {
+  face_confidence: number;
+  document_confidence: number;
+  voice_confidence: number;
+  overall_confidence: number;
+}
+
 interface BiometricData {
   authenticationId?: string;
   contractStatus?: string;
   voiceText?: string;
   expiresAt?: string;
   progress?: number;
-  completedSteps?: {
-    face_front: boolean;
-    face_side: boolean;
-    document: boolean;
-    combined: boolean;
-    voice: boolean;
-  };
-  confidenceScores?: {
-    face_confidence: number;
-    document_confidence: number;
-    voice_confidence: number;
-    overall_confidence: number;
-  };
+  completedSteps?: Partial<CompletedSteps>;
+  confidenceScores?: Partial<ConfidenceScores>;
 }
 
 const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = ({
@@ -665,38 +669,38 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
               </Typography>
               
               <Box display="grid" gridTemplateColumns={isMobile ? '1fr' : 'repeat(4, 1fr)'} gap={2}>
-                {biometricData.confidenceScores.face_confidence > 0 && (
+                {(biometricData.confidenceScores.face_confidence ?? 0) > 0 && (
                   <Box textAlign="center">
                     <Typography variant="body2" color="text.secondary">Facial</Typography>
                     <Typography variant="h6" color="success.main">
-                      {Math.round(biometricData.confidenceScores.face_confidence * 100)}%
+                      {Math.round((biometricData.confidenceScores.face_confidence ?? 0) * 100)}%
                     </Typography>
                   </Box>
                 )}
-                
-                {biometricData.confidenceScores.document_confidence > 0 && (
+
+                {(biometricData.confidenceScores.document_confidence ?? 0) > 0 && (
                   <Box textAlign="center">
                     <Typography variant="body2" color="text.secondary">Documento</Typography>
                     <Typography variant="h6" color="success.main">
-                      {Math.round(biometricData.confidenceScores.document_confidence * 100)}%
+                      {Math.round((biometricData.confidenceScores.document_confidence ?? 0) * 100)}%
                     </Typography>
                   </Box>
                 )}
-                
-                {biometricData.confidenceScores.voice_confidence > 0 && (
+
+                {(biometricData.confidenceScores.voice_confidence ?? 0) > 0 && (
                   <Box textAlign="center">
                     <Typography variant="body2" color="text.secondary">Voz</Typography>
                     <Typography variant="h6" color="success.main">
-                      {Math.round(biometricData.confidenceScores.voice_confidence * 100)}%
+                      {Math.round((biometricData.confidenceScores.voice_confidence ?? 0) * 100)}%
                     </Typography>
                   </Box>
                 )}
-                
-                {biometricData.confidenceScores.overall_confidence > 0 && (
+
+                {(biometricData.confidenceScores.overall_confidence ?? 0) > 0 && (
                   <Box textAlign="center">
                     <Typography variant="body2" color="text.secondary">General</Typography>
                     <Typography variant="h6" color="success.main">
-                      {Math.round(biometricData.confidenceScores.overall_confidence * 100)}%
+                      {Math.round((biometricData.confidenceScores.overall_confidence ?? 0) * 100)}%
                     </Typography>
                   </Box>
                 )}

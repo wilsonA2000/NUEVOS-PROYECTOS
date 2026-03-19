@@ -159,8 +159,8 @@ const ActiveContractsView: React.FC = () => {
           totalPaid: Math.floor(Math.random() * 50000000) + 10000000, // 10M - 60M COP
           outstandingAmount: Math.floor(Math.random() * 5000000), // 0 - 5M COP
           maintenanceRequests: Math.floor(Math.random() * 3),
-          tenant_name: contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`.trim() : contract.secondary_party?.email || 'Arrendatario',
-          landlord_name: contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}`.trim() : contract.primary_party?.email || 'Arrendador',
+          tenant_name: contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`.trim() : 'Arrendatario',
+          landlord_name: contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}`.trim() : 'Arrendador',
           property_address: contract.property?.address || 'Dirección no disponible',
           monthly_rent: contract.monthly_rent || Math.floor(Math.random() * 3000000) + 1000000, // 1M - 4M COP
         }));

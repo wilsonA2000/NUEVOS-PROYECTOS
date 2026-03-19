@@ -230,8 +230,8 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
       // Generar datos de documento simulados pero realistas
       const documentTypes = ['Cédula de Ciudadanía', 'Pasaporte', 'Cédula de Extranjería'];
-      const selectedType = documentTypes[Math.floor(Math.random() * documentTypes.length)];
-      
+      const selectedType = documentTypes[Math.floor(Math.random() * documentTypes.length)] ?? 'Cédula de Ciudadanía';
+
       const mockDocumentData: DocumentData = {
         documentType: selectedType,
         documentNumber: Math.floor(Math.random() * 99999999999).toString(),
@@ -316,7 +316,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
     
     if (isCompleted === true) return <CheckIcon color="success" />;
     if (isCompleted === false) return <WarningIcon color="error" />;
-    return steps[stepIndex].icon;
+    return steps[stepIndex]?.icon;
   };
 
   const canComplete = verificationResults.facial === true && 

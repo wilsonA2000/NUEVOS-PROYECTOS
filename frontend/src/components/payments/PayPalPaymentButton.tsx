@@ -386,7 +386,7 @@ export const PayPalPaymentButton: React.FC<PayPalPaymentButtonProps> = ({
   });
 
   useEffect(() => {
-    setScriptOptions((prev) => ({
+    setScriptOptions((prev: Record<string, string>) => ({
       ...prev,
       currency: props.currency || 'USD',
       intent: props.showSubscriptions && props.subscriptionPlanId ? 'subscription' : 'capture',

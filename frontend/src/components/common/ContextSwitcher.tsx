@@ -106,18 +106,18 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
 
     // Contexto de negocio basado en user_type (campo correcto del modelo)
     if (user.user_type === 'landlord') {
-      contexts.push(CONTEXT_OPTIONS.landlord);
+      contexts.push(CONTEXT_OPTIONS.landlord!);
     }
     if (user.user_type === 'tenant') {
-      contexts.push(CONTEXT_OPTIONS.tenant);
+      contexts.push(CONTEXT_OPTIONS.tenant!);
     }
     if (user.user_type === 'service_provider') {
-      contexts.push(CONTEXT_OPTIONS.service_provider);
+      contexts.push(CONTEXT_OPTIONS.service_provider!);
     }
 
     // Contexto admin (independiente del user_type)
     if (user.is_staff || user.is_superuser) {
-      contexts.push(CONTEXT_OPTIONS.admin);
+      contexts.push(CONTEXT_OPTIONS.admin!);
     }
 
     return contexts;
@@ -136,8 +136,8 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
       return CONTEXT_OPTIONS[user.user_type];
     }
 
-    return availableContexts[0] || CONTEXT_OPTIONS.landlord;
-  }, [location.pathname, user?.user_type, availableContexts]);
+    return availableContexts[0] ?? CONTEXT_OPTIONS.landlord!;
+  }, [location.pathname, user?.user_type, availableContexts]) as ContextOption;
 
   // Si solo tiene un contexto, no mostrar el switcher
   if (availableContexts.length <= 1) {

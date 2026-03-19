@@ -58,12 +58,12 @@ interface DigitalSignaturePadProps {
   error?: string | null;
   biometricData?: {
     authenticationId?: string;
-    confidenceScores?: {
+    confidenceScores?: Partial<{
       face_confidence: number;
       document_confidence: number;
       voice_confidence: number;
       overall_confidence: number;
-    };
+    }>;
     voiceText?: string;
     progress?: number;
   };
@@ -174,8 +174,8 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
     if ('touches' in event && event.touches.length > 0) {
       // Evento táctil
       return {
-        x: (event.touches[0].clientX - rect.left) * scaleX,
-        y: (event.touches[0].clientY - rect.top) * scaleY,
+        x: (event.touches[0]!.clientX - rect.left) * scaleX,
+        y: (event.touches[0]!.clientY - rect.top) * scaleY,
       };
     } else if ('clientX' in event) {
       // Evento de ratón
@@ -390,34 +390,34 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                 <Box textAlign="center">
                   <Typography variant="body2" color="text.secondary">Facial</Typography>
                   <Typography variant="h6" color="success.main">
-                    {Math.round(biometricData.confidenceScores.face_confidence * 100)}%
+                    {Math.round((biometricData.confidenceScores.face_confidence ?? 0) * 100)}%
                   </Typography>
                 </Box>
               </Grid>
-              
+
               <Grid item xs={6} sm={3}>
                 <Box textAlign="center">
                   <Typography variant="body2" color="text.secondary">Documento</Typography>
                   <Typography variant="h6" color="success.main">
-                    {Math.round(biometricData.confidenceScores.document_confidence * 100)}%
+                    {Math.round((biometricData.confidenceScores.document_confidence ?? 0) * 100)}%
                   </Typography>
                 </Box>
               </Grid>
-              
+
               <Grid item xs={6} sm={3}>
                 <Box textAlign="center">
                   <Typography variant="body2" color="text.secondary">Voz</Typography>
                   <Typography variant="h6" color="success.main">
-                    {Math.round(biometricData.confidenceScores.voice_confidence * 100)}%
+                    {Math.round((biometricData.confidenceScores.voice_confidence ?? 0) * 100)}%
                   </Typography>
                 </Box>
               </Grid>
-              
+
               <Grid item xs={6} sm={3}>
                 <Box textAlign="center">
                   <Typography variant="body2" color="text.secondary">General</Typography>
                   <Typography variant="h6" color="success.main">
-                    {Math.round(biometricData.confidenceScores.overall_confidence * 100)}%
+                    {Math.round((biometricData.confidenceScores.overall_confidence ?? 0) * 100)}%
                   </Typography>
                 </Box>
               </Grid>

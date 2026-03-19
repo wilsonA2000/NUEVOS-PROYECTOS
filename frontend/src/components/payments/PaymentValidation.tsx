@@ -113,8 +113,8 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
     const currentYear = now.getFullYear() % 100;
     const currentMonth = now.getMonth() + 1;
 
-    const expiryYear = parseInt(year);
-    const expiryMonth = parseInt(month);
+    const expiryYear = parseInt(year ?? '0');
+    const expiryMonth = parseInt(month ?? '0');
 
     if (expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth)) {
       return { isValid: false, error: 'Tarjeta vencida' };

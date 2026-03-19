@@ -129,7 +129,7 @@ export const MessageList: React.FC = () => {
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {filteredMessages.map((message) => (
+          {filteredMessages.map((message: any) => (
             <Grid item xs={12} key={message.id}>
               <Card
                 sx={{

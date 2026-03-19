@@ -147,7 +147,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
               {property.address}
             </Typography>
             <Chip 
-              label={`${requestService.formatCurrency(property.rent_price)}/mes`}
+              label={`${requestService.formatCurrency(property.rent_price ?? 0)}/mes`}
               color="primary"
               size="small"
             />

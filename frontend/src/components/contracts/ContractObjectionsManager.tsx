@@ -473,7 +473,7 @@ export const ContractObjectionsManager: React.FC<ContractObjectionsManagerProps>
         <Grid container spacing={2}>
           {filteredObjections.map((objection) => {
             const field = OBJECTIONABLE_FIELDS.find(f => f.value === objection.field_name);
-            const category = field ? FIELD_CATEGORIES[field.category] : null;
+            const category = field ? FIELD_CATEGORIES[field.category as keyof typeof FIELD_CATEGORIES] : null;
             
             return (
               <Grid item xs={12} key={objection.id}>

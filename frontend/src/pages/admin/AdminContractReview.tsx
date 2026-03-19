@@ -497,7 +497,7 @@ const AdminContractReview: React.FC = () => {
         onClose={() => setApprovalModalOpen(false)}
         onConfirm={(payload) => approveMutation.mutate(payload)}
         isLoading={approveMutation.isPending}
-        contractTitle={contract.property_title}
+        contractTitle={contract.property_title ?? ''}
         isReCycle={(contract.review_cycle_count ?? 1) > 1}
       />
 
@@ -506,7 +506,7 @@ const AdminContractReview: React.FC = () => {
         onClose={() => setRejectionModalOpen(false)}
         onConfirm={(payload) => rejectMutation.mutate(payload)}
         isLoading={rejectMutation.isPending}
-        contractTitle={contract.property_title}
+        contractTitle={contract.property_title ?? ''}
       />
     </Box>
   );

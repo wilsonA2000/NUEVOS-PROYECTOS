@@ -227,17 +227,17 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
       
       if (url.includes('v=')) {
         // Standard YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
-        videoId = url.split('v=')[1].split('&')[0];
+        videoId = url.split('v=')[1]?.split('&')[0] ?? '';
       } else if (url.includes('youtu.be/')) {
         // Short YouTube URL: https://youtu.be/VIDEO_ID
-        videoId = url.split('youtu.be/')[1].split('?')[0];
+        videoId = url.split('youtu.be/')[1]?.split('?')[0] ?? '';
       } else if (url.includes('/embed/')) {
         // Already an embed URL: https://www.youtube.com/embed/VIDEO_ID
-        videoId = url.split('/embed/')[1].split('?')[0];
+        videoId = url.split('/embed/')[1]?.split('?')[0] ?? '';
       } else {
         // Last resort: try to extract anything that looks like a video ID
         const parts = url.split('/');
-        videoId = parts[parts.length - 1].split('?')[0];
+        videoId = (parts[parts.length - 1] ?? '').split('?')[0] ?? '';
       }
       
       // Validate video ID (YouTube video IDs are typically 11 characters, can contain letters, numbers, _ and -)
@@ -707,7 +707,7 @@ export const PropertyDetail: React.FC = () => {
     
     // Fallback to first image
     const firstImg = property.images[0];
-    return firstImg.image_url || firstImg.image || '/images/property-placeholder.svg';
+    return firstImg?.image_url || firstImg?.image || '/images/property-placeholder.svg';
   })();
 
   // Get all images sorted by order and main status
@@ -1677,7 +1677,7 @@ export const PropertyDetail: React.FC = () => {
           property={{
             id: property.id,
             title: property.title,
-            rent_price: property.rent_price,
+            rent_price: property.rent_price ?? 0,
             city: property.city,
             state: property.state,
             property_type: property.property_type,

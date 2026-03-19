@@ -241,8 +241,8 @@ function parseJestOutput(output: string, suiteName: string, fileName: string, du
   const passedMatch = output.match(/(\d+) passed/);
   const failedMatch = output.match(/(\d+) failed/);
   
-  const passed = passedMatch ? parseInt(passedMatch[1]) : 0;
-  const failed = failedMatch ? parseInt(failedMatch[1]) : 0;
+  const passed = passedMatch ? parseInt(passedMatch[1] ?? '0') : 0;
+  const failed = failedMatch ? parseInt(failedMatch[1] ?? '0') : 0;
 
   // Intentar leer cobertura del archivo de resumen
   let coverage = { lines: 0, functions: 0, branches: 0 };

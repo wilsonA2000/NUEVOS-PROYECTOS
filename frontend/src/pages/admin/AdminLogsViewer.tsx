@@ -54,9 +54,9 @@ const AdminLogsViewer: React.FC = () => {
   const [dateFrom, setDateFrom] = useState(() => {
     const date = new Date();
     date.setDate(date.getDate() - 7);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] ?? '';
   });
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0] ?? '');
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);

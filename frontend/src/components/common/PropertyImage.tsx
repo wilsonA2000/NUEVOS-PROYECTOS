@@ -171,10 +171,10 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   // Combinar refs
   const combinedRef = (node: HTMLImageElement | null) => {
     if (imgRef.current !== node) {
-      imgRef.current = node;
+      (imgRef as React.MutableRefObject<HTMLImageElement | null>).current = node;
     }
     if (lazyRef.current !== node) {
-      lazyRef.current = node;
+      (lazyRef as React.MutableRefObject<HTMLImageElement | null>).current = node;
     }
   };
 

@@ -275,7 +275,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
       age: 1,
       vaccinated: false,
     };
-    formik.setFieldValue('pet_details', [...formik.values.pet_details, newPet]);
+    formik.setFieldValue('pet_details', [...(formik.values.pet_details ?? []), newPet]);
   };
 
   const removePet = (index: number) => {
@@ -689,7 +689,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.name}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.personal_references];
-                                    newRefs[index] = { ...newRefs[index], name: e.target.value };
+                                    newRefs[index] = { ...newRefs[index]!, name: e.target.value };
                                     formik.setFieldValue('personal_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -702,7 +702,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.relationship}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.personal_references];
-                                    newRefs[index] = { ...newRefs[index], relationship: e.target.value };
+                                    newRefs[index] = { ...newRefs[index]!, relationship: e.target.value };
                                     formik.setFieldValue('personal_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -715,7 +715,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.phone}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.personal_references];
-                                    newRefs[index] = { ...newRefs[index], phone: e.target.value };
+                                    newRefs[index] = { ...newRefs[index]!, phone: e.target.value };
                                     formik.setFieldValue('personal_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -729,7 +729,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.years_known}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.personal_references];
-                                    newRefs[index] = { ...newRefs[index], years_known: parseInt(e.target.value) || 0 };
+                                    newRefs[index] = { ...newRefs[index]!, years_known: parseInt(e.target.value) || 0 };
                                     formik.setFieldValue('personal_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -798,7 +798,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                     value={ref.type}
                                     onChange={(e) => {
                                       const newRefs = [...formik.values.commercial_references];
-                                      newRefs[index] = { ...newRefs[index], type: e.target.value as any };
+                                      newRefs[index] = { ...newRefs[index]!, type: e.target.value as any };
                                       formik.setFieldValue('commercial_references', newRefs);
                                     }}
                                     disabled={readOnly}
@@ -817,7 +817,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.institution_name}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.commercial_references];
-                                    newRefs[index] = { ...newRefs[index], institution_name: e.target.value };
+                                    newRefs[index] = { ...newRefs[index]!, institution_name: e.target.value };
                                     formik.setFieldValue('commercial_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -830,7 +830,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.phone}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.commercial_references];
-                                    newRefs[index] = { ...newRefs[index], phone: e.target.value };
+                                    newRefs[index] = { ...newRefs[index]!, phone: e.target.value };
                                     formik.setFieldValue('commercial_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -844,7 +844,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={ref.relationship_duration_months}
                                   onChange={(e) => {
                                     const newRefs = [...formik.values.commercial_references];
-                                    newRefs[index] = { ...newRefs[index], relationship_duration_months: parseInt(e.target.value) || 0 };
+                                    newRefs[index] = { ...newRefs[index]!, relationship_duration_months: parseInt(e.target.value) || 0 };
                                     formik.setFieldValue('commercial_references', newRefs);
                                   }}
                                   disabled={readOnly}
@@ -934,7 +934,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                   value={pet.type}
                                   onChange={(e) => {
                                     const newPets = [...(formik.values.pet_details || [])];
-                                    newPets[index] = { ...newPets[index], type: e.target.value as any };
+                                    newPets[index] = { ...newPets[index]!, type: e.target.value as any };
                                     formik.setFieldValue('pet_details', newPets);
                                   }}
                                   disabled={readOnly}
@@ -955,7 +955,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                 value={pet.name}
                                 onChange={(e) => {
                                   const newPets = [...(formik.values.pet_details || [])];
-                                  newPets[index] = { ...newPets[index], name: e.target.value };
+                                  newPets[index] = { ...newPets[index]!, name: e.target.value };
                                   formik.setFieldValue('pet_details', newPets);
                                 }}
                                 disabled={readOnly}
@@ -970,7 +970,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                 value={pet.age}
                                 onChange={(e) => {
                                   const newPets = [...(formik.values.pet_details || [])];
-                                  newPets[index] = { ...newPets[index], age: parseInt(e.target.value) || 0 };
+                                  newPets[index] = { ...newPets[index]!, age: parseInt(e.target.value) || 0 };
                                   formik.setFieldValue('pet_details', newPets);
                                 }}
                                 disabled={readOnly}
@@ -983,7 +983,7 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                                     checked={pet.vaccinated}
                                     onChange={(e) => {
                                       const newPets = [...(formik.values.pet_details || [])];
-                                      newPets[index] = { ...newPets[index], vaccinated: e.target.checked };
+                                      newPets[index] = { ...newPets[index]!, vaccinated: e.target.checked };
                                       formik.setFieldValue('pet_details', newPets);
                                     }}
                                     disabled={readOnly}

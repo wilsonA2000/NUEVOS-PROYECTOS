@@ -34,7 +34,7 @@ export const ForgotPassword: React.FC = () => {
     }
 
     try {
-      await forgotPassword(email);
+      await forgotPassword?.(email);
       setSuccess(true);
     } catch (err) {
       setError('Error al enviar el correo de restablecimiento. Por favor, intente nuevamente.');

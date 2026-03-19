@@ -334,18 +334,18 @@ function parseIntegrationTestOutput(
   let failed = 0;
 
   if (testsMatch) {
-    failed = parseInt(testsMatch[1]) || 0;
-    passed = parseInt(testsMatch[2]) || 0;
+    failed = parseInt(testsMatch[1] ?? '0') || 0;
+    passed = parseInt(testsMatch[2] ?? '0') || 0;
   } else {
-    passed = passedMatch ? parseInt(passedMatch[1]) : 0;
-    failed = failedMatch ? parseInt(failedMatch[1]) : 0;
+    passed = passedMatch ? parseInt(passedMatch[1] ?? '0') : 0;
+    failed = failedMatch ? parseInt(failedMatch[1] ?? '0') : 0;
   }
 
   // Extraer tiempos de tests individuales
   const testTimeMatches = output.matchAll(/(\\w+.*?) \\((\\d+) ms\\)/g);
   const testTimes = Array.from(testTimeMatches).map(match => ({
-    name: match[1],
-    time: parseInt(match[2]),
+    name: match[1] ?? '',
+    time: parseInt(match[2] ?? '0'),
   }));
 
   const performance = {

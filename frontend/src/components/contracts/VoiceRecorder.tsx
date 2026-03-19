@@ -344,7 +344,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       expectedText.toLowerCase(),
     ];
     
-    const transcribedText = variations[Math.floor(Math.random() * variations.length)];
+    const transcribedText = variations[Math.floor(Math.random() * variations.length)] ?? expectedText;
     const confidence = 0.85 + Math.random() * 0.1; // 85-95%
     
     // Calcular similitud simple
@@ -469,7 +469,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             height: recordingState.isRecording 
               ? `${Math.max(2, (waveformData[i] || 0) * 60)}px`
               : '2px',
-            bgcolor: recordingState.isRecording && waveformData[i] > 0.1 
+            bgcolor: recordingState.isRecording && (waveformData[i] ?? 0) > 0.1
               ? 'primary.main' 
               : 'grey.300',
             borderRadius: 1,

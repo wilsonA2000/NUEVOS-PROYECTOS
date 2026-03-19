@@ -298,7 +298,7 @@ export function VirtualizedList<T>({
               width: '100%',
             }}
           >
-            {renderItem(items[virtualItem.index], virtualItem.index, isScrolling)}
+            {renderItem(items[virtualItem.index]!, virtualItem.index, isScrolling)}
           </div>
         ))}
       </div>

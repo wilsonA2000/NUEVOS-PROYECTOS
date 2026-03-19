@@ -26,7 +26,7 @@ export const useNotifications = () => {
   // WebSocket para notificaciones en tiempo real - TEMPORALMENTE DESHABILITADO
   // const { sendMessage, lastMessage, isConnected } = useWebSocket('/ws/notifications/');
   const sendMessage = () => {};
-  const lastMessage = null;
+  const lastMessage = null as { data: string } | null;
   const isConnected = false;
 
   const fetchNotifications = useCallback(async () => {

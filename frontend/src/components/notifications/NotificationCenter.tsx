@@ -110,21 +110,21 @@ const NotificationCenter: React.FC = () => {
   };
 
   // Channel icons
-  const channelIcons = {
+  const channelIcons: Record<string, React.ReactElement> = {
     in_app: <InAppIcon />,
     email: <EmailIcon />,
     sms: <SmsIcon />,
     push: <PushIcon />,
   };
 
-  // Priority colors
-  const priorityColors = {
+  const priorityColors: Record<string, 'default' | 'primary' | 'warning' | 'error'> = {
     low: 'default',
     normal: 'primary',
+    medium: 'primary',
     high: 'warning',
     urgent: 'error',
     critical: 'error',
-  } as const;
+  };
 
   // Filter notifications
   const filteredNotifications = useMemo(() => {

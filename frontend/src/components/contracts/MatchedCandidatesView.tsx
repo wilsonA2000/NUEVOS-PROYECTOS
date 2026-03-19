@@ -1215,14 +1215,14 @@ const MatchedCandidatesView: React.FC = () => {
             {candidate.workflow_stage === 3 && candidate.workflow_data.contract_created && (
               <>
                 {/* Alert de solicitudes de modificación pendientes */}
-                {modificationRequests[candidate.workflow_data.contract_created.contract_id]?.filter(req => req.status === 'PENDING').length > 0 && (
+                {(modificationRequests[candidate.workflow_data.contract_created!.contract_id]?.filter(req => req.status === 'PENDING').length ?? 0) > 0 && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     <AlertTitle>✏️ Solicitud de Modificación Pendiente</AlertTitle>
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       El arrendatario ha solicitado modificaciones al contrato. Revisa y responde.
                     </Typography>
-                    {modificationRequests[candidate.workflow_data.contract_created.contract_id]
-                      .filter(req => req.status === 'PENDING')
+                    {modificationRequests[candidate.workflow_data.contract_created!.contract_id]
+                      ?.filter(req => req.status === 'PENDING')
                       .map((req: any) => (
                         <Box key={req.id} sx={{ mt: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
                           <Typography variant="subtitle2">Revisión #{req.revision_number}</Typography>
@@ -1238,7 +1238,7 @@ const MatchedCandidatesView: React.FC = () => {
                                   setSuccess('Modificación aprobada. Abriendo editor de contrato...');
 
                                   // Abrir el editor de contrato
-                                  setContractToEdit(candidate.workflow_data.contract_created.contract_id);
+                                  setContractToEdit(candidate.workflow_data.contract_created!.contract_id);
                                   setEditorOpen(true);
 
                                   fetchMatchedCandidates();

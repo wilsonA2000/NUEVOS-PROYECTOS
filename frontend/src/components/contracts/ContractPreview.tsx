@@ -519,7 +519,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                       EL ARRENDADOR
                     </Typography>
                     <Typography variant="body2">
-                      {contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : contract.primary_party?.email || 'N/A'}
+                      {contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : 'N/A'}
                     </Typography>
                     <Typography variant="body2">
                       Documento: N/A
@@ -533,7 +533,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                       EL ARRENDATARIO
                     </Typography>
                     <Typography variant="body2">
-                      {contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'N/A'}
+                      {contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : 'N/A'}
                     </Typography>
                     <Typography variant="body2">
                       Documento: N/A
@@ -695,7 +695,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           isOpen={showSignatureFlow}
           contractId={contractId}
           contractTitle={`Contrato de Arrendamiento #${contractId.slice(0, 8)}`}
-          signerName={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'Usuario'}
+          signerName={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : 'Usuario'}
           signerRole="tenant"
           contractData={contract}
           onSigningComplete={() => {

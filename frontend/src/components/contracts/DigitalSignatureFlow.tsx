@@ -174,8 +174,8 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
 
   const getStepIcon = (stepIndex: number) => {
     if (stepIndex < activeStep) return <CheckIcon color="success" />;
-    if (stepIndex === activeStep) return steps[stepIndex].icon;
-    return steps[stepIndex].icon;
+    if (stepIndex === activeStep) return steps[stepIndex]?.icon;
+    return steps[stepIndex]?.icon;
   };
 
   const getVerificationIcon = () => {

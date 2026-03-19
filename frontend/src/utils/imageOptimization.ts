@@ -217,8 +217,7 @@ class ImageOptimizer {
 
   private determineOutputFormat(format: string, originalType: string): string {
     if (format === 'auto') {
-      // Usar WebP si es soportado, sino el formato original
-      return this.supportsFormat('webp') ? 'image/webp' : originalType;
+      return originalType;
     }
     
     return `image/${format}`;
@@ -384,7 +383,7 @@ export function useLazyImage(src: string, options: { threshold?: number; rootMar
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setIsInView(true);
           observer.disconnect();
         }

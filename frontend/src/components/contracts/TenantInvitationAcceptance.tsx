@@ -645,7 +645,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                         value={reference.name}
                         onChange={(e) => {
                           const newReferences = [...tenantData.references];
-                          newReferences[index].name = e.target.value;
+                          newReferences[index]!.name = e.target.value;
                           setTenantData(prev => ({ ...prev, references: newReferences }));
                         }}
                       />
@@ -657,7 +657,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                         value={reference.phone}
                         onChange={(e) => {
                           const newReferences = [...tenantData.references];
-                          newReferences[index].phone = e.target.value;
+                          newReferences[index]!.phone = e.target.value;
                           setTenantData(prev => ({ ...prev, references: newReferences }));
                         }}
                       />
@@ -669,7 +669,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                           value={reference.relationship}
                           onChange={(e) => {
                             const newReferences = [...tenantData.references];
-                            newReferences[index].relationship = e.target.value;
+                            newReferences[index]!.relationship = e.target.value;
                             setTenantData(prev => ({ ...prev, references: newReferences }));
                           }}
                           label="Relación"

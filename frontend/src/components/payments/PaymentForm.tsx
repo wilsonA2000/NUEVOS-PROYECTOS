@@ -163,7 +163,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: Record<string, unknown>) => ({
       ...prev,
       [name as string]: value,
     }));

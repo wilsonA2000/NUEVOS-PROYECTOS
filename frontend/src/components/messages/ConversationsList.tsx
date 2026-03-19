@@ -89,7 +89,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   };
 
   const filteredConversations = conversations.filter(conv => {
-    const participant = conv.participants[0];
+    const participant = conv.participants[0]!;
     return participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            conv.last_message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
            (conv.context?.property?.title && conv.context.property.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -113,7 +113,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   return (
     <List sx={{ p: 0 }}>
       {filteredConversations.map((conversation) => {
-        const participant = conversation.participants[0];
+        const participant = conversation.participants[0]!;
         const isOnline = onlineUsers.get(participant.id)?.isOnline || participant.is_online;
         const isSelected = selectedConversation?.id === conversation.id;
         const isTyping = typingUsers.some(user => user.userId === participant.id);

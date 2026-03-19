@@ -68,9 +68,9 @@ const AdminAuditDashboard: React.FC = () => {
   const [dateFrom, setDateFrom] = useState(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] ?? '';
   });
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0] ?? '');
   const [selectedSections, setSelectedSections] = useState<string[]>(['contracts']);
   const [format, setFormat] = useState<'json' | 'pdf' | 'csv'>('pdf');
 

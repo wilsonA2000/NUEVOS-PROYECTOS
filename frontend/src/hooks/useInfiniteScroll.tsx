@@ -92,7 +92,7 @@ export function useInfiniteScroll<T>({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           debouncedLoadMore();
         }
       },

@@ -192,7 +192,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
 
   const handleBillingDetailsChange = (field: string, value: string) => {
     if (field.includes('.')) {
-      const [parent, child] = field.split('.');
+      const [parent, child] = field.split('.') as [string, string];
       setBillingDetails((prev) => ({
         ...prev,
         [parent]: {

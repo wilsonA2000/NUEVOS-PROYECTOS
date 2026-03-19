@@ -130,7 +130,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                   src={
                     property.main_image_url || 
                     (property.images && property.images.length > 0 
-                      ? property.images[0].image_url || property.images[0].image || '/placeholder-property.jpg'
+                      ? property.images[0]?.image_url || property.images[0]?.image || '/placeholder-property.jpg'
                       : '/placeholder-property.jpg')
                   }
                   alt={property.title}

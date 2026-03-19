@@ -126,7 +126,7 @@ return userResponse.data;
 
 try {
       // Backend expects password2 field for confirmation
-      const registrationData = {
+      const registrationData: Record<string, any> = {
         ...data,
         password2: data.password,
       };

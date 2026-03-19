@@ -252,7 +252,7 @@ export const usePropertiesQuery = (filters?: Record<string, any>) => {
 
 export const useContractsQuery = (userId?: number) => {
   return useDynamicQuery(
-    ['contracts', 'list', userId],
+    ['contracts', 'list', userId ?? 0],
     () => import('../services/contractService').then(m => m.contractService.getContracts()),
     {
       enabled: !!userId,
@@ -262,7 +262,7 @@ export const useContractsQuery = (userId?: number) => {
 
 export const useMessagesQuery = (conversationId?: number) => {
   return useRealtimeQuery(
-    ['messages', 'conversation', conversationId],
+    ['messages', 'conversation', conversationId ?? 0],
     () => import('../services/messageService').then(m => m.messageService.getMessages(String(conversationId!))),
     {
       enabled: !!conversationId,

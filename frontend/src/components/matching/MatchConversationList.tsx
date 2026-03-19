@@ -225,7 +225,7 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
   const filteredConversations = conversations.filter(conversation => {
     // Filtro por tab
     if (selectedTab > 0) {
-      const tabValue = statusTabs[selectedTab].value;
+      const tabValue = statusTabs[selectedTab]?.value;
       if (conversation.status !== tabValue) return false;
     }
 

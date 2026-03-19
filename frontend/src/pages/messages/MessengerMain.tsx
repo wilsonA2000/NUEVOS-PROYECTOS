@@ -182,7 +182,7 @@ const MessengerMain: React.FC = () => {
       last_message: {
         content: 'Perfecto, quedamos entonces el viernes a las 2 PM',
         sent_at: '2024-01-15T12:45:00Z',
-        sender_id: user?.id,
+        sender_id: user?.id ?? '',
       },
       unread_count: 0,
       context: {
@@ -391,19 +391,19 @@ const MessengerMain: React.FC = () => {
                     overlap="circular"
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     badgeContent={
-                      onlineUsers.get(selectedConversation.participants[0].id)?.isOnline ? (
+                      onlineUsers.get(selectedConversation.participants[0]!.id)?.isOnline ? (
                         <CircleIcon sx={{ color: 'success.main', fontSize: 12 }} />
                       ) : null
                     }
                   >
                     <Avatar>
-                      {selectedConversation.participants[0].name[0]}
+                      {selectedConversation.participants[0]!.name[0]}
                     </Avatar>
                   </Badge>
                   
                   <Box>
                     <Typography variant="h6">
-                      {selectedConversation.participants[0].name}
+                      {selectedConversation.participants[0]!.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {selectedConversation.context?.property?.title || selectedConversation.context?.service?.title}
@@ -433,8 +433,8 @@ const MessengerMain: React.FC = () => {
               {/* ChatWindow component real */}
               <ChatWindow
                 conversationId={selectedConversation.id}
-                recipientId={selectedConversation.participants[0].id}
-                recipientName={selectedConversation.participants[0].name}
+                recipientId={selectedConversation.participants[0]!.id}
+                recipientName={selectedConversation.participants[0]!.name}
                 contextInfo={selectedConversation.context ? {
                   type: selectedConversation.context.type,
                   title: selectedConversation.context.property?.title || selectedConversation.context.service?.title || '',

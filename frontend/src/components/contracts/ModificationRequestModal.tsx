@@ -366,7 +366,7 @@ const groupSectionsByCategory = (sections: ContractSection[]) => {
     if (!grouped[section.category]) {
       grouped[section.category] = [];
     }
-    grouped[section.category].push(section);
+    grouped[section.category]!.push(section);
   });
   return grouped;
 };

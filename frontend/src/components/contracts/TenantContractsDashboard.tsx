@@ -312,7 +312,7 @@ const TenantContractsDashboard: React.FC = () => {
       'FULLY_SIGNED': 90,
       'PUBLISHED': 100,
     };
-    return stateProgress[contract.current_state] || 0;
+    return stateProgress[contract.current_state as keyof typeof stateProgress] || 0;
   };
 
   // Obtener los pasos del workflow
@@ -388,7 +388,7 @@ const TenantContractsDashboard: React.FC = () => {
       'TERMINATED': 'Terminado',
       'CANCELLED': 'Cancelado',
     };
-    return stateTexts[state] || state;
+    return stateTexts[state as keyof typeof stateTexts] || state;
   };
 
   // Renderizar tarjeta de contrato
@@ -580,7 +580,7 @@ const TenantContractsDashboard: React.FC = () => {
               size="small"
               color={pendingActions.some(a => a.urgent) ? 'error' : 'primary'}
               startIcon={<StartIcon />}
-              onClick={pendingActions[0].action}
+              onClick={pendingActions[0]?.action}
             >
               {pendingActions.some(a => a.urgent) ? 'Acción Urgente' : 'Continuar Proceso'}
             </Button>

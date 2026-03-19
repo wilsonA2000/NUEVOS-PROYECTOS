@@ -167,7 +167,7 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
     }
   };
 
-  const currentStepData = steps[currentStep];
+  const currentStepData = steps[currentStep]!;
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   // Pool de frases educativas para verificación cultural

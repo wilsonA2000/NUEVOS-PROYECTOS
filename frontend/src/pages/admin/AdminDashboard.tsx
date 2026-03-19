@@ -347,7 +347,7 @@ const AdminDashboard: React.FC = () => {
                               }
                               variant={contract.days_pending >= 7 ? 'filled' : 'outlined'}
                             />
-                            {contract.review_cycle_count > 1 && (
+                            {(contract.review_cycle_count ?? 0) > 1 && (
                               <Chip
                                 size="small"
                                 label={`Ciclo #${contract.review_cycle_count}`}

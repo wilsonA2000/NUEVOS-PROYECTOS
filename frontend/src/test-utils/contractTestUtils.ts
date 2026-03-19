@@ -147,7 +147,7 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
   ];
 
   return Array.from({ length: count }, (_, index) => {
-    const state = states[index % states.length];
+    const state = states[index % states.length]!;
     const baseRent = 2000000 + (index * 500000);
     
     return createMockContract(state, {

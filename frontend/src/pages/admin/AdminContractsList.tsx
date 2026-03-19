@@ -211,9 +211,9 @@ const AdminContractsList: React.FC = () => {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (c) =>
-          c.property_title.toLowerCase().includes(term) ||
+          (c.property_title ?? '').toLowerCase().includes(term) ||
           c.landlord_name.toLowerCase().includes(term) ||
-          c.tenant_name.toLowerCase().includes(term) ||
+          (c.tenant_name ?? '').toLowerCase().includes(term) ||
           c.property_address.toLowerCase().includes(term)
       );
     }
@@ -470,7 +470,7 @@ const AdminContractsList: React.FC = () => {
                     <TableCell>
                       <Chip
                         size="small"
-                        label={formatState(contract.current_state)}
+                        label={formatState(contract.current_state ?? '')}
                         color={contract.current_state === 'RE_PENDING_ADMIN' ? 'secondary' : 'primary'}
                         icon={contract.current_state === 'RE_PENDING_ADMIN' ? <CycleIcon /> : undefined}
                       />
@@ -485,7 +485,7 @@ const AdminContractsList: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell align="right">
-                      {contract.review_cycle_count > 1 ? (
+                      {(contract.review_cycle_count ?? 0) > 1 ? (
                         <Tooltip title={`Ciclo de revisión #${contract.review_cycle_count}`}>
                           <Chip
                             size="small"

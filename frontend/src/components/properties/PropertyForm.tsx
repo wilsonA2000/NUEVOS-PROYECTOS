@@ -832,10 +832,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     }
     
     // ARREGLO CRÍTICO: Separar lógica de archivos de video y URLs de YouTube
-    const videoFiles = [];
-    const youtubeUrls = [];
-    const videoMetadata = {};
-    const youtubeMetadata = {};
+    const videoFiles: File[] = [];
+    const youtubeUrls: string[] = [];
+    const videoMetadata: Record<string, string> = {};
+    const youtubeMetadata: Record<string, string> = {};
     
     // Separar videos por tipo y recopilar metadatos
     propertyVideos.forEach((video, idx) => {

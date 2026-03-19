@@ -90,8 +90,8 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
     try {
       const formData = new FormData();
       formData.append('user_type', userType);
-      formData.append('id_document', documents[`${userType}_id`]);
-      formData.append('selfie', documents[`${userType}_selfie`]);
+      formData.append('id_document', documents[`${userType}_id`]!);
+      formData.append('selfie', documents[`${userType}_selfie`]!);
 
       const response = await axios.post(
         '/api/v1/contracts/verify-identity/',
@@ -278,7 +278,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              landlord_id: e.target.files![0],
+                              landlord_id: e.target.files![0]!,
                             }));
                           }
                         }}
@@ -301,7 +301,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              landlord_selfie: e.target.files![0],
+                              landlord_selfie: e.target.files![0]!,
                             }));
                           }
                         }}
@@ -352,7 +352,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              tenant_id: e.target.files![0],
+                              tenant_id: e.target.files![0]!,
                             }));
                           }
                         }}
@@ -375,7 +375,7 @@ const MatchContractFlow: React.FC<MatchContractFlowProps> = ({ matchId }) => {
                           if (e.target.files?.[0]) {
                             setDocuments(prev => ({
                               ...prev,
-                              tenant_selfie: e.target.files![0],
+                              tenant_selfie: e.target.files![0]!,
                             }));
                           }
                         }}

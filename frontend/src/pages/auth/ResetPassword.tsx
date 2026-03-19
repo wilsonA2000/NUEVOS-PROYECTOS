@@ -53,7 +53,7 @@ export const ResetPassword: React.FC = () => {
     }
 
     try {
-      await resetPassword(token, formData.password, uid);
+      await resetPassword?.(token, formData.password, uid);
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');

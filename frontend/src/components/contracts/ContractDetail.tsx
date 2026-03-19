@@ -102,7 +102,7 @@ export const ContractDetail: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Inquilino"
-                  secondary={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : contract.secondary_party?.email || 'No especificado'}
+                  secondary={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : 'No especificado'}
                 />
               </ListItem>
             </List>

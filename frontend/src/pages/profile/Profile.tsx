@@ -304,7 +304,7 @@ const Profile: React.FC = () => {
       // Solo enviar campos que han sido modificados
       const modifiedData: any = {};
       modifiedFields.forEach(fieldName => {
-        let value = formData[fieldName];
+        let value = (formData as Record<string, any>)[fieldName];
         
         // Convertir strings vacíos a null para fechas
         if ((fieldName === 'move_in_date' || fieldName === 'date_of_birth') && value === '') {
@@ -335,7 +335,7 @@ const Profile: React.FC = () => {
       await api.patch('/users/profile/', modifiedData);
       
       // Actualizar datos originales con los nuevos valores
-      setOriginalData(prev => ({ ...prev, ...modifiedData }));
+      setOriginalData((prev: Record<string, any>) => ({ ...prev, ...modifiedData }));
       setModifiedFields(new Set()); // Limpiar campos modificados
       
       setSaveSuccess(true);

@@ -180,7 +180,7 @@ export const LandlordContractTemplate: React.FC<LandlordContractTemplateProps> =
       administration_fee: 0,
       utilities_deposit: 0,
       contract_duration_months: 12,
-      start_date: new Date().toISOString().split('T')[0],
+      start_date: new Date().toISOString().split('T')[0] ?? '',
       rent_increase_type: 'ipc',
       rent_increase_percentage: 0,
       utilities_included: false,

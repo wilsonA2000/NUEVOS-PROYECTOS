@@ -258,7 +258,7 @@ const getStatusColor = (status: string): string => {
     rejected: 'error',
     requires_correction: 'info',
   };
-  return colors[status] || 'default';
+  return colors[status as keyof typeof colors] || 'default';
 };
 
 const getStatusGradient = (status: string): string => {
@@ -268,7 +268,7 @@ const getStatusGradient = (status: string): string => {
     rejected: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
     requires_correction: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
   };
-  return gradients[status] || 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)';
+  return gradients[status as keyof typeof gradients] || 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)';
 };
 
 const getStatusIcon = (status: string) => {
@@ -288,7 +288,7 @@ const getStatusLabel = (status: string): string => {
     rejected: 'Rechazado ✗',
     requires_correction: 'Requiere Corrección ⚠',
   };
-  return labels[status] || status;
+  return labels[status as keyof typeof labels] || status;
 };
 
 const formatFileSize = (bytes: number): string => {
@@ -314,7 +314,7 @@ const EnhancedDocumentItem: React.FC<{
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
-        onFileSelect(acceptedFiles[0], document.type);
+        onFileSelect(acceptedFiles[0]!, document.type);
       }
     },
     accept: {
@@ -560,7 +560,7 @@ const EnhancedDocumentItem: React.FC<{
                           opacity: 0.8,
                           fontWeight: 500,
                         }}>
-                          👤 Por: {document.reviewed_by.full_name} • 📅 {format(new Date(document.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                          👤 Por: {document.reviewed_by.full_name} • 📅 {document.reviewed_at && format(new Date(document.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </Typography>
                       )}
                     </Alert>
@@ -633,7 +633,7 @@ const EnhancedDocumentItem: React.FC<{
                         <ModernIconButton
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDelete(document.id);
+                            onDelete(document.id ?? '');
                           }}
                           sx={{
                             background: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
@@ -1620,7 +1620,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               'GARANTIA': { primary: '#4CAF50', secondary: '#388E3C', emoji: '🏦' },
               'OTROS': { primary: '#2196F3', secondary: '#1976D2', emoji: '📎' },
             };
-            const colors = categoryColors[category] || categoryColors['OTROS'];
+            const colors = categoryColors[category as keyof typeof categoryColors] || categoryColors['OTROS'];
 
             return (
               <Grid item xs={12} lg={6} key={category}>

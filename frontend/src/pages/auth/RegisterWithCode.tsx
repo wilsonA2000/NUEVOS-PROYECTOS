@@ -479,7 +479,7 @@ export const RegisterWithCode: React.FC = () => {
                       <strong>🔐 Código:</strong> {codeValidation.codeData.code}
                     </Typography>
                     <Typography variant="body2" gutterBottom>
-                      <strong>👤 Tipo de Usuario:</strong> {getUserTypeLabel(codeValidation.codeData.user_type)}
+                      <strong>👤 Tipo de Usuario:</strong> {getUserTypeLabel(codeValidation.codeData.user_type ?? '')}
                     </Typography>
                     {codeValidation.codeData.email && (
                       <Typography variant="body2" gutterBottom>
@@ -496,7 +496,7 @@ export const RegisterWithCode: React.FC = () => {
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                     <Chip
                       icon={<PersonIcon />}
-                      label={`Tipo: ${getUserTypeLabel(codeValidation.codeData.user_type)}`}
+                      label={`Tipo: ${getUserTypeLabel(codeValidation.codeData.user_type ?? '')}`}
                       color="primary"
                       variant="filled"
                     />

@@ -238,7 +238,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
   if (filteredOptions.length === 1) {
     // Si solo hay una opción, mostrar botón directo
-    const option = filteredOptions[0];
+    const option = filteredOptions[0]!;
     return (
       <>
         <Button

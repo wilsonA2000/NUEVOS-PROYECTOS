@@ -415,8 +415,8 @@ const MatchesDashboard: React.FC = () => {
                           width: 16,
                           height: 16,
                           borderRadius: '50%',
-                          bgcolor: request.workflow_stage >= step ? 'primary.main' : 'grey.300',
-                          border: request.workflow_stage === step ? '2px solid' : 'none',
+                          bgcolor: (request.workflow_stage ?? 0) >= step ? 'primary.main' : 'grey.300',
+                          border: (request.workflow_stage ?? 0) === step ? '2px solid' : 'none',
                           borderColor: 'primary.dark',
                         }}
                       />

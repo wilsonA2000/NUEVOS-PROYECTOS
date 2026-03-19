@@ -405,7 +405,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       if (updatedImages.length > 0) {
         const wasMain = images.find(img => img.id === imageId)?.isMain;
         if (wasMain) {
-          updatedImages[0].isMain = true;
+          updatedImages[0]!.isMain = true;
         }
       }
       
@@ -431,7 +431,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
 
       const reorderedImages = Array.from(images);
       const [movedImage] = reorderedImages.splice(result.source.index, 1);
-      reorderedImages.splice(result.destination.index, 0, movedImage);
+      reorderedImages.splice(result.destination.index, 0, movedImage!);
 
       onImagesChange(reorderedImages);
     },

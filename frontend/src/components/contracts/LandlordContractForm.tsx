@@ -1545,7 +1545,7 @@ _____________________________
   const getRecommendedDeposit = (): number => {
     if (!contractData.property_type || !contractData.monthly_rent) return 0;
     
-    const config = PROPERTY_CONFIGURATIONS[contractData.property_type];
+    const config = PROPERTY_CONFIGURATIONS[contractData.property_type as keyof typeof PROPERTY_CONFIGURATIONS];
     const recommendedMonths = config?.deposit_months[0] || 1;
     
     return contractData.monthly_rent * recommendedMonths;
@@ -2371,7 +2371,7 @@ _____________________________
                         <Grid item xs={12} sm={6}>
                           <Typography variant="caption" color="text.secondary" gutterBottom>Servicios Incluidos</Typography>
                           <Box display="flex" gap={1} flexWrap="wrap">
-                            {(Array.isArray(selectedProperty.utilities_included) ? selectedProperty.utilities_included : [])?.map((utility, index) => (
+                            {(Array.isArray(selectedProperty.utilities_included) ? selectedProperty.utilities_included : [])?.map((utility: string, index: number) => (
                               <Chip key={index} label={`⚡ ${utility}`} size="small" color="secondary" />
                             )) || <Typography variant="caption" color="text.secondary">No especificados</Typography>}
                           </Box>
@@ -2383,7 +2383,7 @@ _____________________________
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="caption" color="text.secondary" gutterBottom>Características Especiales</Typography>
                           <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
-                            {selectedProperty.property_features.slice(0, 6).map((feature, index) => (
+                            {selectedProperty.property_features.slice(0, 6).map((feature: string, index: number) => (
                               <Chip key={index} label={`✨ ${feature}`} size="small" variant="outlined" />
                             ))}
                             {selectedProperty.property_features.length > 6 && (
