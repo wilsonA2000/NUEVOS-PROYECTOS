@@ -55,7 +55,7 @@ const LandingNavbar: React.FC = () => {
               sx={{
                 width: 40,
                 height: 40,
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                 borderRadius: 2,
                 display: 'flex',
                 alignItems: 'center',
@@ -79,7 +79,7 @@ const LandingNavbar: React.FC = () => {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: 'linear-gradient(135deg, #2563eb, #1e40af)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -138,7 +138,7 @@ const LandingNavbar: React.FC = () => {
                   color: 'text.primary',
                   '&:hover': {
                     color: 'primary.main',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'action.hover',
                   },
                 }}
               >
@@ -158,7 +158,7 @@ const LandingNavbar: React.FC = () => {
                 color: 'primary.main',
                 '&:hover': {
                   borderColor: 'primary.dark',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  backgroundColor: 'action.hover',
                 },
               }}
             >
@@ -169,9 +169,9 @@ const LandingNavbar: React.FC = () => {
               to="/register"
               variant="contained"
               sx={{
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: 'linear-gradient(135deg, #2563eb, #1e40af)',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #2563eb, #1e40af)',
+                  background: 'linear-gradient(135deg, #1d4ed8, #1e3a8a)',
                 },
               }}
             >

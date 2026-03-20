@@ -71,13 +71,13 @@ const LandingPage: React.FC = () => {
             py: { xs: 4, md: 6 },
             backdropFilter: 'blur(2px)',
           }}>
-            <Typography variant="h2" component="h1" gutterBottom sx={{ color: '#111', fontWeight: 700, textShadow: '0 2px 8px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+            <Typography variant="h2" component="h1" gutterBottom sx={{ color: 'text.primary', fontWeight: 700, textShadow: '0 2px 8px rgba(0,0,0,0.08)', textAlign: 'center' }}>
               VeriHome
             </Typography>
-            <Typography variant="h5" component="h2" gutterBottom sx={{ color: '#222', fontWeight: 500, textShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'center' }}>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ color: 'text.secondary', fontWeight: 500, textShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'center' }}>
               La plataforma inmobiliaria del futuro
             </Typography>
-            <Typography variant="body1" paragraph sx={{ color: '#222', textShadow: '0 2px 8px rgba(0,0,0,0.04)', textAlign: 'center', maxWidth: 600, mx: 'auto' }}>
+            <Typography variant="body1" paragraph sx={{ color: 'text.secondary', textShadow: '0 2px 8px rgba(0,0,0,0.04)', textAlign: 'center', maxWidth: 600, mx: 'auto' }}>
               Conectamos arrendadores, arrendatarios y prestadores de servicios en una plataforma integral y confiable.
             </Typography>
             <Button
