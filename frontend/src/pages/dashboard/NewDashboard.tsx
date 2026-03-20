@@ -57,6 +57,7 @@ import {
   PendingActions as PendingActionsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { api } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -144,6 +145,7 @@ const NewDashboard: React.FC = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAuth();
+  const { showError } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -635,7 +637,7 @@ const NewDashboard: React.FC = () => {
                   link.click();
                   link.remove();
                 } catch (error) {
-                  alert('No se pudo exportar el dashboard. Intenta de nuevo más tarde.');
+                  showError('No se pudo exportar el dashboard. Intenta de nuevo más tarde.');
                 }
               }}
             >

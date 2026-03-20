@@ -68,6 +68,24 @@ jest.mock('date-fns/locale', () => ({
   es: {},
 }));
 
+// Mock SnackbarContext and useConfirmDialog
+jest.mock('../../../contexts/SnackbarContext', () => ({
+  useSnackbar: () => ({
+    showSuccess: jest.fn(),
+    showError: jest.fn(),
+    showWarning: jest.fn(),
+    showInfo: jest.fn(),
+  }),
+  SnackbarProvider: ({ children }: any) => children,
+}));
+
+jest.mock('../../../hooks/useConfirmDialog', () => ({
+  useConfirmDialog: () => ({
+    confirm: jest.fn().mockResolvedValue(true),
+    ConfirmDialog: () => null,
+  }),
+}));
+
 // Mock EnhancedTenantDocumentUpload
 jest.mock('../../contracts/EnhancedTenantDocumentUpload', () => {
   return function MockDocumentUpload() {

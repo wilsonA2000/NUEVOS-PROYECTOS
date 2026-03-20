@@ -79,6 +79,8 @@ import { propertyService } from '../../services/propertyService';
 import { useAuth } from '../../hooks/useAuth';
 import { useProperties } from '../../hooks/useProperties';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 
 // Types del nuevo sistema
 import {
@@ -227,6 +229,8 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { showSuccess } = useSnackbar();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   // Obtener parámetros de query string
   const [searchParams] = React.useState(() => new URLSearchParams(window.location.search));
   const queryPropertyId = searchParams.get('property');
@@ -1346,8 +1350,9 @@ _____________________________
       } else {
         // NO existe el contrato - crear primero como borrador y luego mostrar PDF
         // Confirmar con el usuario antes de crear el borrador silenciosamente
-        const userConfirmed = window.confirm(
-          'Se creará un borrador del contrato para generar la vista previa. ¿Desea continuar?'
+        const userConfirmed = await confirm(
+          'Se creará un borrador del contrato para generar la vista previa. ¿Desea continuar?',
+          { title: 'Crear borrador' },
         );
         if (!userConfirmed) {
           setLoading(false);
@@ -1546,7 +1551,7 @@ _____________________________
     
     // Mostrar confirmación
     setTimeout(() => {
-      alert('✅ Los cambios en el borrador del contrato han sido guardados. Puede continuar con la creación.');
+      showSuccess('Los cambios en el borrador del contrato han sido guardados. Puede continuar con la creación.');
     }, 200);
   };
 
@@ -3808,6 +3813,7 @@ _____________________________
           onError={handleCodeudorBiometricError}
         />
       )}
+      <ConfirmDialog />
     </Box>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { contractService } from '../../services/contractService';
 import { useAuth } from '../../hooks/useAuth';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   Box,
   Stepper,
@@ -76,6 +77,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
   isOpen,
 }) => {
   const { user } = useAuth();
+  const { showWarning } = useSnackbar();
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [biometricData, setBiometricData] = useState<any>(null);
@@ -120,7 +122,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
 
   const handleContractReview = () => {
     if (!agreedToTerms) {
-      alert('Debe aceptar los términos y condiciones para continuar');
+      showWarning('Debe aceptar los términos y condiciones para continuar');
       return;
     }
     setActiveStep(1);

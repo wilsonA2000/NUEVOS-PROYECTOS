@@ -10,6 +10,7 @@ import {
   Chip,
   useTheme,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
@@ -23,6 +24,7 @@ interface WaitingForOtherUserProps {
   otherUserName?: string;
   contractId: string;
   onBack: () => void;
+  onRefresh?: () => void;
 }
 
 const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
@@ -31,8 +33,18 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
   otherUserName,
   contractId,
   onBack,
+  onRefresh,
 }) => {
   const theme = useTheme();
+  const queryClient = useQueryClient();
+
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    }
+  };
 
   const isMyTurn = currentTurn === userType;
   const waitingFor = currentTurn === 'tenant' ? 'arrendatario' : 'arrendador';
@@ -197,7 +209,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
           </Button>
           <Button
             variant="text"
-            onClick={() => window.location.reload()}
+            onClick={handleRefresh}
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {

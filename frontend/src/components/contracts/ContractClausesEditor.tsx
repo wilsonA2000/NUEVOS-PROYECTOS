@@ -45,6 +45,8 @@ import {
   PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 
 interface Clause {
   id: string;
@@ -66,6 +68,8 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   contractId,
   onClausesChange,
 }) => {
+  const { showError } = useSnackbar();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [clauses, setClauses] = useState<Clause[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -124,7 +128,11 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   };
 
   const handleDeleteClause = async (clause: Clause) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la cláusula "${clause.title}"?`)) {
+    const confirmed = await confirm(`¿Estás seguro de eliminar la cláusula "${clause.title}"?`, {
+      title: 'Eliminar cláusula',
+      confirmColor: 'error',
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -143,10 +151,10 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         await loadClauses();
         onClausesChange?.();
       } else {
-        alert('Error al eliminar la cláusula');
+        showError('Error al eliminar la cláusula');
       }
     } catch (error) {
-      alert('Error al eliminar la cláusula');
+      showError('Error al eliminar la cláusula');
     }
   };
 
@@ -190,10 +198,10 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         setFormData({ title: '', content: '' });
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Error al guardar la cláusula');
+        showError(errorData.error || 'Error al guardar la cláusula');
       }
     } catch (error) {
-      alert('Error al guardar la cláusula');
+      showError('Error al guardar la cláusula');
     } finally {
       setLoading(false);
     }
@@ -396,6 +404,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog />
     </Box>
   );
 };

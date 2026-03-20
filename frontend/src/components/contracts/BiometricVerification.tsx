@@ -28,6 +28,7 @@ import {
   Warning as WarningIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 interface BiometricVerificationProps {
   onVerificationComplete: (verificationData: BiometricData) => void;
@@ -84,6 +85,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const { showError } = useSnackbar();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [activeStep, setActiveStep] = useState(0);
@@ -136,7 +138,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         setIsCameraActive(true);
       }
     } catch (error) {
-      alert('No se pudo acceder a la cámara. Verifique los permisos.');
+      showError('No se pudo acceder a la cámara. Verifique los permisos.');
     }
   };
 

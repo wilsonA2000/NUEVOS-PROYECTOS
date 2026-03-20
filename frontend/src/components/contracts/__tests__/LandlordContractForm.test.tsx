@@ -69,6 +69,25 @@ jest.mock('../../../utils/contractPdfUtils', () => ({
   viewContractPDF: jest.fn(),
 }));
 
+// Mock SnackbarContext
+jest.mock('../../../contexts/SnackbarContext', () => ({
+  useSnackbar: () => ({
+    showSuccess: jest.fn(),
+    showError: jest.fn(),
+    showWarning: jest.fn(),
+    showInfo: jest.fn(),
+  }),
+  SnackbarProvider: ({ children }: any) => children,
+}));
+
+// Mock useConfirmDialog
+jest.mock('../../../hooks/useConfirmDialog', () => ({
+  useConfirmDialog: () => ({
+    confirm: jest.fn().mockResolvedValue(true),
+    ConfirmDialog: () => null,
+  }),
+}));
+
 // Mock CodeudorBiometricFlow sub-component
 jest.mock('../CodeudorBiometricFlow', () => {
   return function MockCodeudorBiometricFlow() {

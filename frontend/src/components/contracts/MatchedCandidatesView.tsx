@@ -72,6 +72,7 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import VisitScheduleModal from './VisitScheduleModal';
 import VisitEvaluationModal from './VisitEvaluationModal';
 import LandlordDocumentReview from './LandlordDocumentReview';
@@ -138,6 +139,7 @@ interface WorkflowAction {
 
 const MatchedCandidatesView: React.FC = () => {
   const { user } = useAuth();
+  const { showSuccess, showError } = useSnackbar();
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<MatchedCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -396,7 +398,7 @@ const MatchedCandidatesView: React.FC = () => {
 
 
       // Mostrar mensaje de éxito
-      alert(`✅ Contrato generado exitosamente!\n\nNúmero de contrato: ${result.contract.contract_number}\nEstado: ${result.contract.status}`);
+      showSuccess(`Contrato generado exitosamente. Número de contrato: ${result.contract.contract_number}. Estado: ${result.contract.status}`);
 
       // Recargar candidatos para mostrar el contrato creado
       await fetchMatchedCandidates();
@@ -404,7 +406,7 @@ const MatchedCandidatesView: React.FC = () => {
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || err.message || 'Error desconocido';
       setError(`Error al generar contrato: ${errorMsg}`);
-      alert(`❌ Error: ${errorMsg}`);
+      showError(`Error: ${errorMsg}`);
     } finally {
       setActionLoading(false);
     }
@@ -561,9 +563,9 @@ const MatchedCandidatesView: React.FC = () => {
 
     try {
       const result = await contractService.sendBiometricReminder(contractId);
-      alert(`✅ ${result.message || `Recordatorio enviado exitosamente a ${tenantName}`}`);
+      showSuccess(result.message || `Recordatorio enviado exitosamente a ${tenantName}`);
     } catch (error: any) {
-      alert(`❌ Error enviando recordatorio: ${error.response?.data?.error || error.message}`);
+      showError(`Error enviando recordatorio: ${error.response?.data?.error || error.message}`);
     }
   }, []);
 
@@ -601,13 +603,13 @@ const MatchedCandidatesView: React.FC = () => {
         // Recargar los datos para reflejar el cambio
         await fetchMatchedCandidates();
 
-        alert('🎉 ¡Contrato aprobado exitosamente! El proceso ahora avanzará a la autenticación biométrica.');
+        showSuccess('Contrato aprobado exitosamente. El proceso ahora avanzará a la autenticación biométrica.');
       } else {
         const errorData = response.data;
-        alert(`Error al aprobar contrato: ${errorData.error || 'Error desconocido'}`);
+        showError(`Error al aprobar contrato: ${errorData.error || 'Error desconocido'}`);
       }
     } catch (error) {
-      alert('Error al aprobar el contrato. Por favor intenta nuevamente.');
+      showError('Error al aprobar el contrato. Por favor intenta nuevamente.');
     } finally {
       setActionLoading(false);
     }
@@ -620,11 +622,11 @@ const MatchedCandidatesView: React.FC = () => {
 
     try {
       const result = await contractService.confirmKeyDelivery(contractId);
-      alert(`✅ ${result.message || 'Entrega de llaves confirmada exitosamente'}`);
+      showSuccess(result.message || 'Entrega de llaves confirmada exitosamente');
       // Refrescar lista de candidatos para ver cambios actualizados
       await fetchMatchedCandidates();
     } catch (error: any) {
-      alert(`❌ Error confirmando entrega: ${error.response?.data?.error || error.message}`);
+      showError(`Error confirmando entrega: ${error.response?.data?.error || error.message}`);
     }
   }, [fetchMatchedCandidates]);
 
@@ -635,11 +637,11 @@ const MatchedCandidatesView: React.FC = () => {
 
     try {
       const result = await contractService.startContractExecution(contractId);
-      alert(`✅ ${result.message || 'Ejecución del contrato iniciada exitosamente'}`);
+      showSuccess(result.message || 'Ejecución del contrato iniciada exitosamente');
       // Refrescar lista de candidatos para ver el nuevo estado
       await fetchMatchedCandidates();
     } catch (error: any) {
-      alert(`❌ Error iniciando ejecución: ${error.response?.data?.error || error.message}`);
+      showError(`Error iniciando ejecución: ${error.response?.data?.error || error.message}`);
     }
   }, [fetchMatchedCandidates]);
 
@@ -1146,13 +1148,13 @@ const MatchedCandidatesView: React.FC = () => {
                       const response = await matchingService.advanceToContractStage(candidate.id);
                       if (response.data.success) {
                         await fetchMatchedCandidates();
-                        alert('✅ Proceso avanzado a Etapa 3: Creación del Contrato');
+                        showSuccess('Proceso avanzado a Etapa 3: Creación del Contrato');
                       } else {
-                        alert('❌ Error: Respuesta inesperada del servidor');
+                        showError('Error: Respuesta inesperada del servidor');
                       }
                     } catch (error: any) {
                       const errorMessage = error.response?.data?.error || error.message || 'Error desconocido';
-                      alert(`❌ Error: ${  errorMessage}`);
+                      showError(`Error: ${errorMessage}`);
                     }
                   }}
                   disabled={false}
@@ -1621,9 +1623,8 @@ const MatchedCandidatesView: React.FC = () => {
                 await fetchMatchedCandidates();
 
                 // Mostrar mensaje
-                alert(
-                  '✅ ¡Todos los documentos aprobados!\n\n' +
-                  'Ahora puedes hacer clic en "Continuar a Creación de Contrato" para avanzar a la siguiente etapa.',
+                showSuccess(
+                  'Todos los documentos aprobados. Ahora puedes hacer clic en "Continuar a Creación de Contrato" para avanzar a la siguiente etapa.',
                 );
               }}
             />

@@ -42,6 +42,7 @@ import {
   AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
 import api from '../../services/api';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 interface ServiceCategory {
   id: string;
@@ -93,6 +94,7 @@ interface ServiceRequest {
 const ServicesMarketplace: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { showError } = useSnackbar();
 
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -224,7 +226,7 @@ const ServicesMarketplace: React.FC = () => {
         });
       }, 2000);
     } catch (err: any) {
-      alert('Error al enviar solicitud. Intenta nuevamente.');
+      showError('Error al enviar solicitud. Intenta nuevamente.');
     } finally {
       setRequestLoading(false);
     }

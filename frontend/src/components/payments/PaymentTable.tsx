@@ -31,11 +31,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { usePayments } from '../../hooks/usePayments';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { formatCurrency } from '../../utils/formatters';
 
 export const PaymentTable: React.FC = () => {
   const navigate = useNavigate();
   const { transactions: payments = [], isLoading, error, deleteTransaction: deletePayment } = usePayments();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   
   // Estados para filtros y paginación
   const [filterModel, setFilterModel] = useState<GridFilterModel>({
@@ -187,7 +189,11 @@ export const PaymentTable: React.FC = () => {
   ];
 
   const handleDelete = async (paymentId: number) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este pago?')) {
+    const confirmed = await confirm(
+      '¿Estás seguro de que quieres eliminar este pago?',
+      { title: 'Eliminar pago', confirmText: 'Eliminar', confirmColor: 'error' },
+    );
+    if (confirmed) {
       await deletePayment.mutateAsync(paymentId.toString());
     }
   };
@@ -297,7 +303,9 @@ export const PaymentTable: React.FC = () => {
             }}
           />
         </Box>
+
+        <ConfirmDialog />
       </CardContent>
     </Card>
   );
-}; 
+};

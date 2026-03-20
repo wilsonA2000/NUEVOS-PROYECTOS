@@ -22,15 +22,19 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useContracts } from '../../hooks/useContracts';
 import { useAuth } from '../../hooks/useAuth';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { contractService } from '../../services/contractService';
 import TenantContractsDashboard from './TenantContractsDashboard';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { contracts, isLoading, error, deleteContract } = useContracts();
+  const { showError } = useSnackbar();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedContract, setSelectedContract] = React.useState<any>(null);
 
@@ -64,7 +68,7 @@ export const ContractList: React.FC = () => {
         await deleteContract.mutateAsync(selectedContract.id);
         // Opcionalmente mostrar un mensaje de éxito
       } catch (error) {
-        alert('Error al eliminar el contrato. Por favor, intenta de nuevo.');
+        showError('Error al eliminar el contrato. Por favor, intenta de nuevo.');
       }
     }
     handleMenuClose();
@@ -74,9 +78,9 @@ export const ContractList: React.FC = () => {
     try {
       await contractService.sendContractForReview(contractId);
       // Refrescar la lista de contratos
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
     } catch (error) {
-      alert('Error al enviar el contrato para revisión. Por favor, intenta de nuevo.');
+      showError('Error al enviar el contrato para revisión. Por favor, intenta de nuevo.');
     }
   };
 

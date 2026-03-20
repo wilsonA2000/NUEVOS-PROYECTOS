@@ -86,6 +86,17 @@ jest.mock('../../../services/landlordContractService', () => ({
   },
 }));
 
+// Mock SnackbarContext
+jest.mock('../../../contexts/SnackbarContext', () => ({
+  useSnackbar: () => ({
+    showSuccess: jest.fn(),
+    showError: jest.fn(),
+    showWarning: jest.fn(),
+    showInfo: jest.fn(),
+  }),
+  SnackbarProvider: ({ children }: any) => children,
+}));
+
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: {

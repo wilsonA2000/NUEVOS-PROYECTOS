@@ -94,7 +94,6 @@ export const LazyPropertyList = React.lazy(() => import('../../pages/properties/
 export const LazyPropertyFormPage = React.lazy(() => import('../../pages/properties/PropertyFormPage'));
 
 // CONTRATOS - Lazy loaded
-export const LazyContractsDashboardDemo = React.lazy(() => import('../../pages/contracts/ContractsDashboardDemo'));
 export const LazyBiometricAuthenticationPage = React.lazy(() => import('../../pages/contracts/BiometricAuthenticationPage'));
 export const LazyTenantInvitationLanding = React.lazy(() => import('../../pages/contracts/TenantInvitationLanding'));
 
@@ -102,8 +101,6 @@ export const LazyTenantInvitationLanding = React.lazy(() => import('../../pages/
 export const LazyMessagesMain = React.lazy(() => import('../../pages/messages/MessagesMain'));
 export const LazyInbox = React.lazy(() => import('../../pages/messages/Inbox'));
 export const LazyCompose = React.lazy(() => import('../../pages/messages/Compose'));
-export const LazyConversations = React.lazy(() => import('../../pages/messages/Conversations'));
-
 // SERVICIOS - Lazy loaded
 export const LazyServicesPage = React.lazy(() => import('../../pages/services/ServicesPage'));
 
@@ -125,15 +122,12 @@ export const EmailVerification = withLazyLoading(LazyEmailVerification);
 export const PropertyList = withLazyLoading(LazyPropertyList);
 export const PropertyFormPage = withLazyLoading(LazyPropertyFormPage);
 
-export const ContractsDashboardDemo = withLazyLoading(LazyContractsDashboardDemo);
 export const BiometricAuthenticationPage = withLazyLoading(LazyBiometricAuthenticationPage);
 export const TenantInvitationLanding = withLazyLoading(LazyTenantInvitationLanding);
 
 export const MessagesMain = withLazyLoading(LazyMessagesMain);
 export const Inbox = withLazyLoading(LazyInbox);
 export const Compose = withLazyLoading(LazyCompose);
-export const Conversations = withLazyLoading(LazyConversations);
-
 export const ServicesPage = withLazyLoading(LazyServicesPage);
 
 // Charts con loading especializado

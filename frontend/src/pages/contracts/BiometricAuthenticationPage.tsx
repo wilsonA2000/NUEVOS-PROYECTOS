@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Alert, Button, CircularProgress, Typography } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
@@ -57,30 +57,32 @@ const BiometricAuthenticationPage: React.FC = () => {
     }
   };
 
+  // Función para obtener el contrato y validar turno
+  const fetchWorkflowContract = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Intentar obtener desde el endpoint de contratos normales primero
+      const response = await api.get(`/contracts/contracts/${id}/`);
+      setWorkflowContract(response.data);
+
+      // Validar turno después de obtener el contrato
+      await validateTurn();
+
+    } catch (err) {
+      setError('No se pudo cargar el contrato');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, user]);
+
   // Intentar obtener el contrato desde el workflow
   useEffect(() => {
-    const fetchWorkflowContract = async () => {
-      if (!id) return;
-
-      try {
-        setLoading(true);
-
-        // Intentar obtener desde el endpoint de contratos normales primero
-        const response = await api.get(`/contracts/contracts/${id}/`);
-        setWorkflowContract(response.data);
-
-        // Validar turno después de obtener el contrato
-        await validateTurn();
-
-      } catch (err) {
-        setError('No se pudo cargar el contrato');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchWorkflowContract();
-  }, [id, user]);
+  }, [fetchWorkflowContract]);
 
   // Usar el contrato del workflow si está disponible, sino el de la lista normal
   const contract = workflowContract || contracts?.find((c: any) => c.id === id);
@@ -296,7 +298,7 @@ const BiometricAuthenticationPage: React.FC = () => {
           </Button>
           <Button
             variant="contained"
-            onClick={() => window.location.reload()}
+            onClick={() => fetchWorkflowContract()}
             color="primary"
           >
             🔄 Actualizar Estado

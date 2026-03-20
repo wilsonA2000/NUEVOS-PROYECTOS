@@ -78,6 +78,7 @@ import { es } from 'date-fns/locale';
 
 import { contractService } from '../../services/contractService';
 import { Contract } from '../../types/contract';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import DigitalSignatureFlow from './DigitalSignatureFlow';
 
 interface ContractPreviewProps {
@@ -110,6 +111,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { showWarning } = useSnackbar();
   
   // Estados principales
   const [loading, setLoading] = useState(true);
@@ -262,7 +264,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   // Proceder a firma
   const handleProceedToSign = () => {
     if (unsavedChanges) {
-      alert('Debe guardar los cambios antes de proceder a la firma');
+      showWarning('Debe guardar los cambios antes de proceder a la firma');
       return;
     }
     setShowSignatureFlow(true);

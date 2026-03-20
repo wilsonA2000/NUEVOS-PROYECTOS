@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { contractService } from '../../services/contractService';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 interface TenantContractReviewProps {
   contract: {
@@ -58,6 +59,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
   contract, 
   onReviewComplete, 
 }) => {
+  const { showError, showWarning } = useSnackbar();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [changesDialogOpen, setChangesDialogOpen] = useState(false);
   const [comments, setComments] = useState('');
@@ -71,7 +73,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
       setComments('');
       onReviewComplete?.();
     } catch (error) {
-      alert('Error al aprobar el contrato. Por favor, intenta de nuevo.');
+      showError('Error al aprobar el contrato. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
 
   const handleRequestChanges = async () => {
     if (!comments.trim()) {
-      alert('Por favor, especifica qué cambios solicitas');
+      showWarning('Por favor, especifica qué cambios solicitas');
       return;
     }
 
@@ -90,7 +92,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
       setComments('');
       onReviewComplete?.();
     } catch (error) {
-      alert('Error al solicitar cambios. Por favor, intenta de nuevo.');
+      showError('Error al solicitar cambios. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
     }

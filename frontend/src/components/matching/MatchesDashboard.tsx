@@ -56,6 +56,8 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import useMatchRequests from '../../hooks/useMatchRequests';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { MatchRequest, matchingService } from '../../services/matchingService';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -84,9 +86,11 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const MatchesDashboard: React.FC = () => {
-  
+
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useSnackbar();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   
   const {
     sentRequests,
@@ -149,29 +153,32 @@ const MatchesDashboard: React.FC = () => {
   const handleAcceptRequest = async (requestId: string) => {
     try {
       const result = await matchingService.acceptMatchRequest(requestId);
-      
+
       // Refrescar los datos
       refetchMatchRequests();
-      
-      alert('¡Solicitud aceptada exitosamente! El proceso de arrendamiento puede continuar.');
+
+      showSuccess('Solicitud aceptada exitosamente. El proceso de arrendamiento puede continuar.');
     } catch (error) {
-      alert('Error al aceptar la solicitud. Por favor, intenta de nuevo.');
+      showError('Error al aceptar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
   const handleRejectRequest = async (requestId: string) => {
-    const confirmReject = window.confirm('¿Estás seguro de que quieres rechazar esta solicitud?');
+    const confirmReject = await confirm('¿Estás seguro de que quieres rechazar esta solicitud?', {
+      title: 'Rechazar solicitud',
+      confirmColor: 'error',
+    });
     if (!confirmReject) return;
-    
+
     try {
       const result = await matchingService.rejectMatchRequest(requestId);
-      
+
       // Refrescar los datos
       refetchMatchRequests();
-      
-      alert('Solicitud rechazada.');
+
+      showSuccess('Solicitud rechazada.');
     } catch (error) {
-      alert('Error al rechazar la solicitud. Por favor, intenta de nuevo.');
+      showError('Error al rechazar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
@@ -190,14 +197,14 @@ const MatchesDashboard: React.FC = () => {
         const errorMessage = validationResult.errors && Array.isArray(validationResult.errors)
           ? validationResult.errors.join(', ')
           : 'Error de validación desconocido';
-        alert(`No se puede crear el contrato: ${errorMessage}`);
+        showError(`No se puede crear el contrato: ${errorMessage}`);
         return;
       }
 
       setSelectedRequestForContract(request);
       setContractDialogOpen(true);
     } catch (error) {
-      alert('Error validando el match para crear contrato');
+      showError('Error validando el match para crear contrato');
     }
   };
 
@@ -235,10 +242,10 @@ const MatchesDashboard: React.FC = () => {
         navigate('/app/contracts');
       }
 
-      alert('¡Contrato creado exitosamente! Redirigiendo...');
+      showSuccess('Contrato creado exitosamente. Redirigiendo...');
 
     } catch (error: any) {
-      alert(`Error creando contrato: ${error.response?.data?.error || error.message}`);
+      showError(`Error creando contrato: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsCreatingContract(false);
     }
@@ -1451,6 +1458,7 @@ const MatchesDashboard: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog />
     </Box>
   );
 };

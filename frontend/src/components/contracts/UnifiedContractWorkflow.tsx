@@ -36,6 +36,7 @@ import {
   VisibilityOutlined,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import api from '../../services/api';
 
 interface Contract {
@@ -78,6 +79,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   onUpdate,
 }) => {
   const { user } = useAuth();
+  const { showSuccess, showError, showWarning, showInfo } = useSnackbar();
   const [contract, setContract] = useState<Contract | null>(null);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,9 +168,9 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       await loadContractData();
       if (onUpdate) onUpdate();
       
-      alert('✅ Contrato aprobado exitosamente. Ahora procederemos con la autenticación biométrica.');
+      showSuccess('Contrato aprobado exitosamente. Ahora procederemos con la autenticación biométrica.');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al aprobar el contrato');
+      showError(error.response?.data?.error || 'Error al aprobar el contrato');
     } finally {
       setProcessing(false);
     }
@@ -176,7 +178,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
   const handleTenantObject = async () => {
     if (!objectionText.trim()) {
-      alert('Por favor, describe tu objeción');
+      showWarning('Por favor, describe tu objeción');
       return;
     }
 
@@ -197,9 +199,9 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       await loadContractData();
       if (onUpdate) onUpdate();
 
-      alert('⚠️ Objeción registrada. El arrendador será notificado.');
+      showSuccess('Objeción registrada. El arrendador será notificado.');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al presentar objeción');
+      showError(error.response?.data?.error || 'Error al presentar objeción');
     } finally {
       setProcessing(false);
     }
@@ -216,9 +218,9 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       await loadContractData();
       if (onUpdate) onUpdate();
       
-      alert('📤 Contrato enviado a revisión del arrendatario');
+      showSuccess('Contrato enviado a revisión del arrendatario');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al enviar a revisión');
+      showError(error.response?.data?.error || 'Error al enviar a revisión');
     } finally {
       setProcessing(false);
     }
@@ -233,9 +235,9 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       if (onUpdate) onUpdate();
       
       const nextStep = response.data.next_biometric_step;
-      alert(`🔐 Iniciando autenticación biométrica. Siguiente paso: ${nextStep}`);
+      showInfo(`Iniciando autenticación biométrica. Siguiente paso: ${nextStep}`);
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al iniciar autenticación biométrica');
+      showError(error.response?.data?.error || 'Error al iniciar autenticación biométrica');
     } finally {
       setProcessing(false);
     }

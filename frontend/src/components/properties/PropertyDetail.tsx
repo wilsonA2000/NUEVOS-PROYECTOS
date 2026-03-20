@@ -71,6 +71,8 @@ import MatchRequestForm from '../matching/MatchRequestForm';
 import { matchingService } from '../../services/matchingService';
 import { api } from '../../services/api';
 import { propertyService } from '../../services/propertyService';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 
 // Styled components for modern design
 const HeroSection = styled(Box)(({ theme }) => ({
@@ -398,6 +400,8 @@ export const PropertyDetail: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { property, isLoading, error } = useProperty(id || '');
   const { deleteProperty } = useProperties();
+  const { showError } = useSnackbar();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   
   // State management
   const [matchRequestDialogOpen, setMatchRequestDialogOpen] = useState(false);
@@ -525,7 +529,7 @@ export const PropertyDetail: React.FC = () => {
       // Mostrar notificación de éxito
     } catch (error) {
       console.error('Error al cancelar solicitud:', error);
-      alert('No se pudo cancelar la solicitud. Por favor, intenta de nuevo.');
+      showError('No se pudo cancelar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
@@ -1370,13 +1374,17 @@ export const PropertyDetail: React.FC = () => {
                       color="error"
                       startIcon={<DeleteIcon />}
                       onClick={async () => {
-                        if (window.confirm('¿Estás seguro de que quieres eliminar esta propiedad?')) {
+                        const confirmed = await confirm(
+                          '¿Estás seguro de que quieres eliminar esta propiedad?',
+                          { title: 'Eliminar propiedad', confirmText: 'Eliminar', confirmColor: 'error' },
+                        );
+                        if (confirmed) {
                           try {
                             await deleteProperty.mutateAsync(property.id.toString());
                             navigate('/app/properties');
                           } catch (error) {
                             console.error('Error al eliminar propiedad:', error);
-                            alert('No se pudo eliminar la propiedad. Por favor, intenta de nuevo.');
+                            showError('No se pudo eliminar la propiedad. Por favor, intenta de nuevo.');
                           }
                         }
                       }}
@@ -1673,6 +1681,8 @@ export const PropertyDetail: React.FC = () => {
           </Box>
         </Fade>
       </Modal>
+
+      <ConfirmDialog />
 
       {/* Match Request Dialog */}
       {canContact && (

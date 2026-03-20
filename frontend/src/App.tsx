@@ -14,6 +14,7 @@ import OptimizedWebSocketProvider from './contexts/OptimizedWebSocketContext';
 import { initSentry, SentryErrorBoundary } from './services/sentryService';
 import OfflineIndicator from './components/common/OfflineIndicator';
 import UpdatePrompt from './components/common/UpdatePrompt';
+import { SnackbarProvider } from './contexts/SnackbarContext';
 
 // Initialize Sentry as early as possible
 initSentry();
@@ -57,11 +58,13 @@ function App() {
             >
               <AuthProvider>
                 <OptimizedWebSocketProvider>
-                  <NotificationWrapper>
-                    <OfflineIndicator />
-                    <UpdatePrompt />
-                    <AppRoutes />
-                  </NotificationWrapper>
+                  <SnackbarProvider>
+                    <NotificationWrapper>
+                      <OfflineIndicator />
+                      <UpdatePrompt />
+                      <AppRoutes />
+                    </NotificationWrapper>
+                  </SnackbarProvider>
                 </OptimizedWebSocketProvider>
               </AuthProvider>
             </BrowserRouter>

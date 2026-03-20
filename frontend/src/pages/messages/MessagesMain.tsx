@@ -32,18 +32,35 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMessages } from '../../hooks/useMessages';
 import { useAuth } from '../../hooks/useAuth';
 import { MessageList } from '../../components/messages/MessageList';
-import Templates from './Templates';
-import Folders from './Folders';
-import MessagingStats from './MessagingStats';
-import Conversations from './Conversations';
-// import Compose from './Compose';
-// import MessageDetail from './MessageDetail';
-// import Templates from './Templates';
-// import Folders from './Folders';
-// import MessagingStats from './MessagingStats';
+// Placeholder components for tabs (previously separate files, now inline)
+const Conversations: React.FC = () => (
+  <Box sx={{ p: 3, textAlign: 'center' }}>
+    <Typography variant="h6" gutterBottom>Conversaciones</Typography>
+    <Typography color="text.secondary">Las conversaciones activas aparecerán aquí.</Typography>
+  </Box>
+);
+const Folders: React.FC = () => (
+  <Box sx={{ p: 3, textAlign: 'center' }}>
+    <Typography variant="h6" gutterBottom>Carpetas</Typography>
+    <Typography color="text.secondary">Organiza tus mensajes en carpetas personalizadas.</Typography>
+  </Box>
+);
+const Templates: React.FC = () => (
+  <Box sx={{ p: 3, textAlign: 'center' }}>
+    <Typography variant="h6" gutterBottom>Plantillas</Typography>
+    <Typography color="text.secondary">Crea plantillas de mensajes para respuestas rápidas.</Typography>
+  </Box>
+);
+const MessagingStats: React.FC = () => (
+  <Box sx={{ p: 3, textAlign: 'center' }}>
+    <Typography variant="h6" gutterBottom>Estadísticas</Typography>
+    <Typography color="text.secondary">Estadísticas de mensajería próximamente.</Typography>
+  </Box>
+);
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -70,8 +87,9 @@ function TabPanel(props: TabPanelProps) {
 const MessagesMain: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { 
+  const {
     messages, 
     threads, 
     folders, 
@@ -179,7 +197,7 @@ return (
         </Typography>
         <Button
           variant="outlined"
-          onClick={() => window.location.reload()}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['messages'] })}
         >
           Reintentar
         </Button>

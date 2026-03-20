@@ -71,6 +71,7 @@ import {
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -900,6 +901,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
   isLandlord = false,
 }) => {
   const { user } = useAuth();
+  const { showWarning } = useSnackbar();
   const [checklist, setChecklist] = useState<DocumentSection | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1027,8 +1029,8 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
       finalFile = new File([file], newName, { type: file.type });
 
 
-      // Show alert to user
-      alert(`⚠️ El nombre del archivo era muy largo (${file.name.length} caracteres). Se ha renombrado automáticamente a: ${newName}`);
+      // Show warning to user
+      showWarning(`El nombre del archivo era muy largo (${file.name.length} caracteres). Se ha renombrado automaticamente a: ${newName}`);
     }
 
     setUploadFile(finalFile);
