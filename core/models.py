@@ -13,6 +13,37 @@ import uuid
 User = get_user_model()
 
 
+class ContactMessage(models.Model):
+    """Mensajes recibidos desde el formulario público de contacto."""
+
+    STATUS_CHOICES = [
+        ('new', 'Nuevo'),
+        ('read', 'Leído'),
+        ('replied', 'Respondido'),
+        ('archived', 'Archivado'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField('Nombre completo', max_length=200)
+    email = models.EmailField('Email')
+    subject = models.CharField('Asunto', max_length=300)
+    message = models.TextField('Mensaje')
+    status = models.CharField('Estado', max_length=10, choices=STATUS_CHOICES, default='new')
+    admin_notes = models.TextField('Notas internas', blank=True)
+    ip_address = models.GenericIPAddressField('IP', null=True, blank=True)
+    email_notified = models.BooleanField('Notificación enviada', default=False)
+    created_at = models.DateTimeField('Fecha de recepción', auto_now_add=True)
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Mensaje de Contacto'
+        verbose_name_plural = 'Mensajes de Contacto'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.subject} - {self.name} ({self.email})"
+
+
 class SiteConfiguration(models.Model):
     """Configuración general del sitio."""
     

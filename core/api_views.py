@@ -13,8 +13,105 @@ from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 from django.conf import settings
 
-from .models import Notification, ActivityLog, SystemAlert
+from .models import Notification, ActivityLog, SystemAlert, ContactMessage
 from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer
+from django.core.mail import send_mail
+from rest_framework.throttling import AnonRateThrottle
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class ContactRateThrottle(AnonRateThrottle):
+    """Limitar a 5 mensajes de contacto por hora por IP."""
+    rate = '5/hour'
+
+
+class ContactMessageAPIView(APIView):
+    """Endpoint público para recibir mensajes del formulario de contacto."""
+    permission_classes = [AllowAny]
+    throttle_classes = [ContactRateThrottle]
+
+    def post(self, request):
+        name = request.data.get('name', '').strip()
+        email = request.data.get('email', '').strip()
+        subject = request.data.get('subject', '').strip()
+        message = request.data.get('message', '').strip()
+
+        # Validación
+        errors = {}
+        if not name:
+            errors['name'] = 'El nombre es obligatorio.'
+        if not email:
+            errors['email'] = 'El email es obligatorio.'
+        if not subject:
+            errors['subject'] = 'El asunto es obligatorio.'
+        if not message:
+            errors['message'] = 'El mensaje es obligatorio.'
+        if errors:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Obtener IP del cliente
+        x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+        ip = x_forwarded.split(',')[0].strip() if x_forwarded else request.META.get('REMOTE_ADDR')
+
+        # Guardar en base de datos
+        contact = ContactMessage.objects.create(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message,
+            ip_address=ip,
+        )
+
+        # Enviar notificación por email al admin
+        email_sent = False
+        try:
+            admin_email = getattr(settings, 'EMAIL_HOST_USER', '')
+            if admin_email:
+                send_mail(
+                    subject=f'[VeriHome Contacto] {subject}',
+                    message=(
+                        f'Nuevo mensaje de contacto recibido:\n\n'
+                        f'Nombre: {name}\n'
+                        f'Email: {email}\n'
+                        f'Asunto: {subject}\n\n'
+                        f'Mensaje:\n{message}\n\n'
+                        f'---\n'
+                        f'IP: {ip}\n'
+                        f'Fecha: {contact.created_at}\n'
+                        f'ID: {contact.id}\n\n'
+                        f'Responde directamente a este correo o gestiona desde el panel admin.'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[admin_email],
+                    fail_silently=False,
+                    html_message=(
+                        f'<h2>Nuevo mensaje de contacto</h2>'
+                        f'<table style="border-collapse:collapse;width:100%;max-width:600px;">'
+                        f'<tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold;">Nombre</td>'
+                        f'<td style="padding:8px;border:1px solid #ddd;">{name}</td></tr>'
+                        f'<tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold;">Email</td>'
+                        f'<td style="padding:8px;border:1px solid #ddd;"><a href="mailto:{email}">{email}</a></td></tr>'
+                        f'<tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold;">Asunto</td>'
+                        f'<td style="padding:8px;border:1px solid #ddd;">{subject}</td></tr>'
+                        f'<tr><td style="padding:8px;border:1px solid #ddd;font-weight:bold;">Mensaje</td>'
+                        f'<td style="padding:8px;border:1px solid #ddd;">{message}</td></tr>'
+                        f'</table>'
+                        f'<br><small style="color:#888;">IP: {ip} | ID: {contact.id}</small>'
+                    ),
+                )
+                email_sent = True
+        except Exception as e:
+            logger.warning(f'No se pudo enviar email de contacto: {e}')
+
+        contact.email_notified = email_sent
+        contact.save(update_fields=['email_notified'])
+
+        return Response(
+            {'message': '¡Mensaje enviado exitosamente! Te responderemos pronto.', 'email_sent': email_sent},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class NotificationViewSet(viewsets.ModelViewSet):

@@ -15,6 +15,8 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
+  Fade,
+  Grow,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -31,6 +33,193 @@ import {
 import LandingNavbar from '../components/layout/LandingNavbar';
 import LandingFooter from '../components/layout/LandingFooter';
 import { useNavigate } from 'react-router-dom';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+
+const CARD_HOVER_SX = {
+  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+  },
+};
+
+const SupportChannelsSection: React.FC<{ supportChannels: Array<{ icon: React.ReactNode; title: string; description: string; contact: string; available: boolean; premium?: boolean }> }> = ({ supportChannels }) => {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
+  return (
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+        ¿Cómo Podemos Ayudarte?
+      </Typography>
+      <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
+        {supportChannels.map((channel, index) => (
+          <Grid item xs={12} md={4} key={index}>
+            <Grow in={isVisible} timeout={400 + index * 150}>
+              <Card sx={{ height: '100%', textAlign: 'center', ...CARD_HOVER_SX }}>
+                <CardContent>
+                  <Box sx={{ color: 'primary.main', mb: 2 }}>
+                    {channel.icon}
+                  </Box>
+                  <Typography variant="h6" component="h3" gutterBottom>
+                    {channel.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    {channel.description}
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                    {channel.contact}
+                  </Typography>
+                  {channel.premium && (
+                    <Chip
+                      icon={<LockIcon />}
+                      label="Solo usuarios registrados"
+                      color="primary"
+                      size="small"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
+  );
+};
+
+const ResourcesSection: React.FC<{ resources: Array<{ icon: React.ReactNode; title: string; description: string; features: string[]; premium: boolean }> }> = ({ resources }) => {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
+  return (
+    <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
+      <Container maxWidth="lg">
+        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+          Recursos de Ayuda
+        </Typography>
+        <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
+          {resources.map((resource, index) => (
+            <Grid item xs={12} md={4} key={index}>
+              <Grow in={isVisible} timeout={400 + index * 150}>
+                <Card sx={{ height: '100%', ...CARD_HOVER_SX }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Box sx={{ color: 'primary.main', mr: 2 }}>
+                        {resource.icon}
+                      </Box>
+                      <Box>
+                        <Typography variant="h6" component="h3" gutterBottom>
+                          {resource.title}
+                        </Typography>
+                        {resource.premium && (
+                          <Chip
+                            icon={<LockIcon />}
+                            label="Premium"
+                            color="primary"
+                            size="small"
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {resource.description}
+                    </Typography>
+                    <List dense>
+                      {resource.features.map((feature, idx) => (
+                        <ListItem key={idx} sx={{ py: 0 }}>
+                          <ListItemIcon sx={{ minWidth: 30 }}>
+                            <CheckCircleIcon color="primary" fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText primary={feature} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grow>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
+  );
+};
+
+const FaqSection: React.FC<{ faqs: Array<{ question: string; answer: string }> }> = ({ faqs }) => {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.05 });
+  return (
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+        Preguntas Frecuentes
+      </Typography>
+      <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
+        Encuentra respuestas a las preguntas más comunes sobre VeriHome.
+      </Typography>
+      <Fade in={isVisible} timeout={700}>
+        <Box ref={ref} sx={{ maxWidth: 800, mx: 'auto' }}>
+          {faqs.map((faq, index) => (
+            <Accordion key={index} sx={{ mb: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6" component="h3">
+                  {faq.question}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body1">
+                  {faq.answer}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      </Fade>
+    </Container>
+  );
+};
+
+const CtaSection: React.FC<{ onRegister: () => void; onContact: () => void }> = ({ onRegister, onContact }) => {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
+  return (
+    <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
+      <Container maxWidth="lg">
+        <Fade in={isVisible} timeout={700}>
+          <Box ref={ref} textAlign="center">
+            <Typography variant="h4" component="h2" gutterBottom>
+              ¿Necesitas Ayuda Personalizada?
+            </Typography>
+            <Typography variant="body1" paragraph sx={{ maxWidth: 600, mx: 'auto' }}>
+              Únete a VeriHome y obtén acceso a soporte prioritario, chat en vivo
+              y recursos exclusivos para maximizar tu experiencia.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={onRegister}
+                sx={{
+                  bgcolor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'grey.100' },
+                }}
+              >
+                Registrarse Ahora
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={onContact}
+                sx={{
+                  borderColor: 'white',
+                  color: 'white',
+                  '&:hover': { borderColor: 'grey.100', bgcolor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                Contactar Soporte
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Container>
+    </Box>
+  );
+};
 
 const SupportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -110,185 +299,47 @@ const SupportPage: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <LandingNavbar />
-      
+
       {/* Hero Section */}
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          pt: 12,
-          pb: 8,
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" textAlign="center" gutterBottom>
-            Centro de Soporte
-          </Typography>
-          <Typography variant="h5" component="h2" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
-            Encuentra respuestas rápidas, recursos útiles y soporte experto para maximizar 
-            tu experiencia con VeriHome.
-          </Typography>
-        </Container>
-      </Box>
+      <Fade in timeout={800}>
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+            color: 'white',
+            pt: 12,
+            pb: 8,
+          }}
+        >
+          <Container maxWidth="lg">
+            <Typography variant="h2" component="h1" textAlign="center" gutterBottom>
+              Centro de Soporte
+            </Typography>
+            <Typography variant="h5" component="h2" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
+              Encuentra respuestas rápidas, recursos útiles y soporte experto para maximizar
+              tu experiencia con VeriHome.
+            </Typography>
+          </Container>
+        </Box>
+      </Fade>
 
       {/* Canales de Soporte */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-          ¿Cómo Podemos Ayudarte?
-        </Typography>
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {supportChannels.map((channel, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <Card sx={{ height: '100%', textAlign: 'center' }}>
-                <CardContent>
-                  <Box sx={{ color: 'primary.main', mb: 2 }}>
-                    {channel.icon}
-                  </Box>
-                  <Typography variant="h6" component="h3" gutterBottom>
-                    {channel.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {channel.description}
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                    {channel.contact}
-                  </Typography>
-                  {channel.premium && (
-                    <Chip
-                      icon={<LockIcon />}
-                      label="Solo usuarios registrados"
-                      color="primary"
-                      size="small"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
+      <SupportChannelsSection supportChannels={supportChannels} />
 
       {/* Recursos */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-            Recursos de Ayuda
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            {resources.map((resource, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Box sx={{ color: 'primary.main', mr: 2 }}>
-                        {resource.icon}
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" component="h3" gutterBottom>
-                          {resource.title}
-                        </Typography>
-                        {resource.premium && (
-                          <Chip
-                            icon={<LockIcon />}
-                            label="Premium"
-                            color="primary"
-                            size="small"
-                          />
-                        )}
-                      </Box>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      {resource.description}
-                    </Typography>
-                    <List dense>
-                      {resource.features.map((feature, idx) => (
-                        <ListItem key={idx} sx={{ py: 0 }}>
-                          <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CheckCircleIcon color="primary" fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText primary={feature} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+      <ResourcesSection resources={resources} />
 
       {/* FAQ */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-          Preguntas Frecuentes
-        </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
-          Encuentra respuestas a las preguntas más comunes sobre VeriHome.
-        </Typography>
-
-        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-          {faqs.map((faq, index) => (
-            <Accordion key={index} sx={{ mb: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" component="h3">
-                  {faq.question}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body1">
-                  {faq.answer}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Box>
-      </Container>
+      <FaqSection faqs={faqs} />
 
       {/* CTA */}
-      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
-        <Container maxWidth="lg">
-          <Box textAlign="center">
-            <Typography variant="h4" component="h2" gutterBottom>
-              ¿Necesitas Ayuda Personalizada?
-            </Typography>
-            <Typography variant="body1" paragraph sx={{ maxWidth: 600, mx: 'auto' }}>
-              Únete a VeriHome y obtén acceso a soporte prioritario, chat en vivo 
-              y recursos exclusivos para maximizar tu experiencia.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => navigate('/register')}
-                sx={{ 
-                  bgcolor: 'white', 
-                  color: 'primary.main',
-                  '&:hover': { bgcolor: 'grey.100' },
-                }}
-              >
-                Registrarse Ahora
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={() => navigate('/contact')}
-                sx={{ 
-                  borderColor: 'white', 
-                  color: 'white',
-                  '&:hover': { borderColor: 'grey.100', bgcolor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                Contactar Soporte
-              </Button>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      <CtaSection
+        onRegister={() => navigate('/register')}
+        onContact={() => navigate('/contact')}
+      />
 
       <LandingFooter />
     </Box>
   );
 };
 
-export default SupportPage; 
+export default SupportPage;

@@ -158,16 +158,15 @@ const LandingFooter: React.FC = () => {
 
           {/* Enlaces rápidos */}
           <Grid item xs={12} md={2}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                mb: 2,
-                color: 'white',
-              }}
+            <MuiLink
+              component={Link}
+              to="/"
+              sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              Navegación
-            </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+                Navegación
+              </Typography>
+            </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
@@ -207,47 +206,45 @@ const LandingFooter: React.FC = () => {
 
           {/* Servicios */}
           <Grid item xs={12} md={2}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                mb: 2,
-                color: 'white',
-              }}
+            <MuiLink
+              component={Link}
+              to="/services"
+              sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              Servicios
-            </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+                Servicios
+              </Typography>
+            </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography variant="body2" sx={{ color: 'grey.400' }}>
+              <MuiLink component={Link} to="/services#arrendamiento" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Arrendamiento
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'grey.400' }}>
+              </MuiLink>
+              <MuiLink component={Link} to="/services#venta" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Venta
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'grey.400' }}>
+              </MuiLink>
+              <MuiLink component={Link} to="/services#administracion" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Administración
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'grey.400' }}>
-                Mantenimiento
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'grey.400' }}>
+              </MuiLink>
+              <MuiLink component={Link} to="/services#servicios-profesionales" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+                Servicios Profesionales
+              </MuiLink>
+              <MuiLink component={Link} to="/services#seguros" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Seguros
-              </Typography>
+              </MuiLink>
             </Box>
           </Grid>
 
           {/* Soporte */}
           <Grid item xs={12} md={2}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                mb: 2,
-                color: 'white',
-              }}
+            <MuiLink
+              component={Link}
+              to="/help"
+              sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              Soporte
-            </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+                Soporte
+              </Typography>
+            </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
@@ -260,40 +257,13 @@ const LandingFooter: React.FC = () => {
               >
                 Centro de Ayuda
               </MuiLink>
-              {/* TODO: create dedicated page */}
-              <MuiLink
-                component={Link}
-                to="/about"
-                sx={{
-                  color: 'grey.400',
-                  textDecoration: 'none',
-                  '&:hover': { color: 'white' },
-                }}
-              >
+              <MuiLink component={Link} to="/terms" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Términos y Condiciones
               </MuiLink>
-              {/* TODO: create dedicated page */}
-              <MuiLink
-                component={Link}
-                to="/about"
-                sx={{
-                  color: 'grey.400',
-                  textDecoration: 'none',
-                  '&:hover': { color: 'white' },
-                }}
-              >
+              <MuiLink component={Link} to="/privacy" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Política de Privacidad
               </MuiLink>
-              {/* TODO: create dedicated page */}
-              <MuiLink
-                component={Link}
-                to="/about"
-                sx={{
-                  color: 'grey.400',
-                  textDecoration: 'none',
-                  '&:hover': { color: 'white' },
-                }}
-              >
+              <MuiLink component={Link} to="/security" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
                 Seguridad
               </MuiLink>
             </Box>
@@ -301,16 +271,15 @@ const LandingFooter: React.FC = () => {
 
           {/* Comunidad */}
           <Grid item xs={12} md={2}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                mb: 2,
-                color: 'white',
-              }}
+            <MuiLink
+              component={Link}
+              to="/blog"
+              sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              Comunidad
-            </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+                Comunidad
+              </Typography>
+            </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
@@ -378,7 +347,7 @@ const LandingFooter: React.FC = () => {
               color: 'grey.400',
             }}
           >
-            © 2025 VeriHome. Todos los derechos reservados.
+            © 2026 VeriHome. Todos los derechos reservados.
           </Typography>
           <Typography
             variant="body2"

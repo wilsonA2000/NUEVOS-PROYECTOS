@@ -32,6 +32,7 @@ import {
   Paper,
   Tooltip,
   Divider,
+  Container,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -43,7 +44,13 @@ import {
   FilterList as FilterIcon,
   Sort as SortIcon,
   Search as SearchIcon,
+  Apartment as ApartmentIcon,
+  Home as HomeIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
+import LandingNavbar from '../../components/layout/LandingNavbar';
+import LandingFooter from '../../components/layout/LandingFooter';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useProperties } from '../../hooks/useProperties';
@@ -60,6 +67,225 @@ import { usePerformanceTracking } from '../../utils/performanceMonitor';
 import { SortableColumns, SortOrder } from '../../components/properties/PropertyTable';
 
 type ViewMode = 'cards' | 'table';
+
+const CARD_HOVER = {
+  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
+  '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' },
+};
+
+const RevealBlock: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { ref, isVisible } = useScrollReveal();
+  return (
+    <div ref={ref} style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(24px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
+      {children}
+    </div>
+  );
+};
+
+const BlueDivider = () => (
+  <Box sx={{ width: 48, height: 4, bgcolor: 'primary.main', borderRadius: 2, mx: 'auto', mb: 4 }} />
+);
+
+const UnauthenticatedView: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh' }}>
+      <LandingNavbar />
+
+      {/* HERO */}
+      <Box sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white', pt: 14, pb: 8 }}>
+        <Container maxWidth="lg" sx={{ textAlign: 'center' }}>
+          <Typography variant="h2" component="h1" sx={{ fontWeight: 800, mb: 2 }}>
+            Propiedades Verificadas
+          </Typography>
+          <Typography variant="h5" sx={{ maxWidth: 700, mx: 'auto', lineHeight: 1.7, opacity: 0.9 }}>
+            Accede a un cat&aacute;logo exclusivo de inmuebles donde cada propiedad, cada arrendador y cada documento est&aacute; verificado por VeriHome.
+          </Typography>
+        </Container>
+      </Box>
+
+      {/* TIPOS DE PROPIEDADES */}
+      <RevealBlock>
+      <Box sx={{ py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>Encuentra tu espacio ideal</Typography>
+            <BlueDivider />
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 650, mx: 'auto', lineHeight: 1.7 }}>
+              Ya sea que busques un apartamento moderno, una casa familiar o un local comercial, en VeriHome cada propiedad cumple con est&aacute;ndares de verificaci&oacute;n rigurosos.
+            </Typography>
+          </Box>
+          <Grid container spacing={4}>
+            {[
+              { icon: <ApartmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />, title: 'Apartamentos', desc: 'Apartamentos en las mejores zonas urbanas de Colombia. Cada publicaci\u00f3n incluye fotos verificadas, planos, servicios p\u00fablicos detallados y ubicaci\u00f3n exacta en mapa interactivo.' },
+              { icon: <HomeIcon sx={{ fontSize: 40, color: 'primary.main' }} />, title: 'Casas', desc: 'Casas familiares con espacios amplios y documentaci\u00f3n legal verificada. Incluye historial de la propiedad, certificado de tradici\u00f3n y libertad, y estado de servicios p\u00fablicos.' },
+              { icon: <BusinessIcon sx={{ fontSize: 40, color: 'primary.main' }} />, title: 'Oficinas y Locales', desc: 'Espacios comerciales ideales para tu negocio. Informaci\u00f3n detallada sobre zona comercial, aforo, estacionamientos, accesibilidad y normativa de uso de suelo.' },
+            ].map((item, i) => (
+              <Grid item xs={12} md={4} key={i}>
+                <Card sx={{ height: '100%', ...CARD_HOVER }}><CardContent sx={{ p: 3 }}>
+                  <Box sx={{ mb: 2 }}>{item.icon}</Box>
+                  <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1.5 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>{item.desc}</Typography>
+                </CardContent></Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+      </RevealBlock>
+
+      <Divider />
+
+      {/* POR QUE PROPIEDADES VERIFICADAS */}
+      <RevealBlock>
+      <Box sx={{ bgcolor: '#f8fafc', py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>&iquest;Por qu&eacute; propiedades verificadas?</Typography>
+            <BlueDivider />
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 700, mx: 'auto', lineHeight: 1.7 }}>
+              En VeriHome no publicamos cualquier inmueble. Cada propiedad pasa por un proceso de verificaci&oacute;n que garantiza la seguridad de arrendadores y arrendatarios.
+            </Typography>
+          </Box>
+          <Grid container spacing={4}>
+            {[
+              { title: 'Documentaci\u00f3n legal verificada', desc: 'Certificado de tradici\u00f3n y libertad, escrituras, paz y salvos de administraci\u00f3n y servicios p\u00fablicos. Todo verificado antes de publicar.' },
+              { title: 'Fotos y videos reales', desc: 'Prohibimos fotos de stock o im\u00e1genes enga\u00f1osas. Cada imagen es verificada para que lo que veas sea exactamente lo que encontrar\u00e1s.' },
+              { title: 'Arrendadores calificados', desc: 'Cada propietario tiene un perfil p\u00fablico con calificaciones de arrendatarios anteriores, historial de respuesta y tiempo promedio de atenci\u00f3n.' },
+              { title: 'Precios transparentes', desc: 'Canon de arrendamiento, administraci\u00f3n, servicios estimados y dep\u00f3sito de garant\u00eda detallados desde la publicaci\u00f3n. Sin costos ocultos ni sorpresas.' },
+              { title: 'Ubicaci\u00f3n precisa con mapa', desc: 'Cada propiedad tiene ubicaci\u00f3n exacta en mapa interactivo con informaci\u00f3n del barrio, transporte cercano, colegios, supermercados y zonas verdes.' },
+              { title: 'Contratos digitales seguros', desc: 'Contratos generados autom\u00e1ticamente conforme a la Ley 820 de 2003 con firma biom\u00e9trica de 5 pasos. Validez legal plena sin salir de la plataforma.' },
+            ].map((item, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <Card sx={{ height: '100%', ...CARD_HOVER }}><CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1.5 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>{item.desc}</Typography>
+                </CardContent></Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+      </RevealBlock>
+
+      <Divider />
+
+      {/* COMO FUNCIONA PARA ARRENDATARIOS */}
+      <RevealBlock>
+      <Box sx={{ py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>Si buscas arrendar</Typography>
+            <BlueDivider />
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 650, mx: 'auto', lineHeight: 1.7 }}>
+              Encuentra tu pr&oacute;ximo hogar con la tranquilidad de saber que cada propietario est&aacute; verificado y cada contrato tiene respaldo legal.
+            </Typography>
+          </Box>
+          <Grid container spacing={3}>
+            {[
+              { step: '1', title: 'Reg\u00edstrate y verifica tu identidad', desc: 'Crea tu perfil con verificaci\u00f3n de c\u00e9dula colombiana, referencias personales y laborales. Tu perfil verificado te da acceso prioritario a las mejores propiedades.' },
+              { step: '2', title: 'Explora y filtra propiedades', desc: 'Busca por ciudad, barrio, precio, n\u00famero de habitaciones, pet-friendly, parqueadero y m\u00e1s. Cada propiedad tiene galeria completa y ficha t\u00e9cnica detallada.' },
+              { step: '3', title: 'Solicita y firma digitalmente', desc: 'Env\u00eda tu solicitud al arrendador. Si es aprobada, firma el contrato con autenticaci\u00f3n biom\u00e9trica de 5 pasos desde tu celular. Todo legal y sin papeleo.' },
+            ].map((item, i) => (
+              <Grid item xs={12} md={4} key={i}>
+                <Box sx={{ textAlign: 'center', px: 2 }}>
+                  <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2, boxShadow: '0 4px 14px rgba(37,99,235,0.3)' }}>
+                    <Typography variant="h5" sx={{ color: 'white', fontWeight: 800 }}>{item.step}</Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>{item.desc}</Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+      </RevealBlock>
+
+      <Divider />
+
+      {/* COMO FUNCIONA PARA ARRENDADORES */}
+      <RevealBlock>
+      <Box sx={{ bgcolor: '#f8fafc', py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>Si eres propietario</Typography>
+            <BlueDivider />
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 650, mx: 'auto', lineHeight: 1.7 }}>
+              Publica tus propiedades y conecta con arrendatarios verificados que cumplen todos los requisitos. Olvídate de los riesgos del arrendamiento tradicional.
+            </Typography>
+          </Box>
+          <Grid container spacing={4}>
+            {[
+              { title: 'Arrendatarios verificados', desc: 'Solo personas con identidad confirmada, historial crediticio revisado y referencias comprobables pueden solicitar tus propiedades. Filtramos por ti.' },
+              { title: 'Publicaci\u00f3n profesional', desc: 'Sube fotos, videos, planos y documentaci\u00f3n. Nuestra plataforma presenta tu propiedad con calidad profesional y la posiciona ante los mejores candidatos.' },
+              { title: 'Contratos autom\u00e1ticos', desc: 'Genera contratos conformes a la Ley 820 con cl\u00e1usulas din\u00e1micas, ajuste IPC anual autom\u00e1tico y renovaci\u00f3n inteligente. Todo sin abogado.' },
+              { title: 'Cobro y seguimiento', desc: 'Gestiona pagos de arriendo, genera recibos autom\u00e1ticos, controla fechas de vencimiento y recibe alertas de mora. Todo desde tu dashboard personalizado.' },
+            ].map((item, i) => (
+              <Grid item xs={12} sm={6} key={i}>
+                <Card sx={{ height: '100%', ...CARD_HOVER }}><CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1.5 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>{item.desc}</Typography>
+                </CardContent></Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+      </RevealBlock>
+
+      <Divider />
+
+      {/* ESTADISTICAS */}
+      <Box sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {[
+              { value: '500+', label: 'Propiedades Verificadas' },
+              { value: '1,000+', label: 'Usuarios Activos' },
+              { value: '98%', label: 'Satisfacci\u00f3n' },
+              { value: '24h', label: 'Tiempo Promedio de Respuesta' },
+            ].map((stat, i) => (
+              <Grid item xs={6} md={3} key={i}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h3" sx={{ color: 'white', fontWeight: 800 }}>{stat.value}</Typography>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mt: 0.5, fontWeight: 500 }}>{stat.label}</Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* CTA FINAL */}
+      <RevealBlock>
+      <Box sx={{ py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="md">
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 700, mb: 2 }}>
+              &iquest;Listo para encontrar tu pr&oacute;ximo hogar?
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, maxWidth: 550, mx: 'auto', lineHeight: 1.7 }}>
+              Reg&iacute;strate gratis y accede al cat&aacute;logo completo de propiedades verificadas. Publica, busca y firma contratos digitales con total seguridad.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button variant="contained" size="large" onClick={() => navigate('/register')} sx={{ fontWeight: 700, px: 4, py: 1.5 }}>
+                Registrarme gratis
+              </Button>
+              <Button variant="outlined" size="large" onClick={() => navigate('/contact')} sx={{ fontWeight: 600, px: 4, py: 1.5 }}>
+                Contactar equipo
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+      </RevealBlock>
+
+      <LandingFooter />
+    </Box>
+  );
+};
 
 const PropertyList: React.FC = () => {
   const theme = useTheme();
@@ -219,20 +445,7 @@ const PropertyList: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return (
-      <Box textAlign="center" py={4}>
-        <Typography variant="h6" color="text.secondary" gutterBottom>
-          Necesitas iniciar sesión para ver las propiedades
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate('/login')}
-          sx={{ mt: 2 }}
-        >
-          Iniciar Sesión
-        </Button>
-      </Box>
-    );
+    return <UnauthenticatedView />;
   }
 
   if (isLoading) {

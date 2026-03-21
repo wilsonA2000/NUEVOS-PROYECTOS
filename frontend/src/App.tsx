@@ -15,6 +15,8 @@ import { initSentry, SentryErrorBoundary } from './services/sentryService';
 import OfflineIndicator from './components/common/OfflineIndicator';
 import UpdatePrompt from './components/common/UpdatePrompt';
 import { SnackbarProvider } from './contexts/SnackbarContext';
+import ScrollToTop from './components/common/ScrollToTop';
+import ScrollToTopButton from './components/common/ScrollToTopButton';
 
 // Initialize Sentry as early as possible
 initSentry();
@@ -56,6 +58,7 @@ function App() {
                 v7_relativeSplatPath: true,
               }}
             >
+              <ScrollToTop />
               <AuthProvider>
                 <OptimizedWebSocketProvider>
                   <SnackbarProvider>
@@ -63,6 +66,7 @@ function App() {
                       <OfflineIndicator />
                       <UpdatePrompt />
                       <AppRoutes />
+                      <ScrollToTopButton />
                     </NotificationWrapper>
                   </SnackbarProvider>
                 </OptimizedWebSocketProvider>

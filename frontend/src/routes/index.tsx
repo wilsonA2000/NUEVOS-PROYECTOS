@@ -36,6 +36,9 @@ import AboutPage from '../pages/AboutPage';
 import ContactPage from '../pages/ContactPage';
 import ServicesOverviewPage from '../pages/ServicesOverviewPage';
 import SupportPage from '../pages/SupportPage';
+import TermsPage from '../pages/TermsPage';
+import PrivacyPage from '../pages/PrivacyPage';
+import SecurityPage from '../pages/SecurityPage';
 import CommunityPage from '../pages/CommunityPage';
 import Profile from '../pages/profile/Profile';
 import ConfirmEmail from '../pages/ConfirmEmail';
@@ -75,6 +78,9 @@ return (
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<SupportPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/security" element={<SecurityPage />} />
         <Route path="/blog" element={<CommunityPage />} />
         <Route path="/events" element={<CommunityPage />} />
         <Route path="/partners" element={<CommunityPage />} />

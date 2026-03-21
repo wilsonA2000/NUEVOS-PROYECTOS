@@ -200,25 +200,6 @@ const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 8,
-            background: 'rgba(255, 255, 255, 0.08)',
-            '& fieldset': {
-              borderColor: 'rgba(255, 255, 255, 0.25)',
-            },
-            '&:hover fieldset': {
-              borderColor: 'rgba(255, 255, 255, 0.35)',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'rgba(37, 99, 235, 0.8)',
-            },
-          },
-          '& .MuiInputLabel-root': {
-            color: 'rgba(255, 255, 255, 0.7)',
-            '&.Mui-focused': {
-              color: 'rgba(37, 99, 235, 0.8)',
-            },
-          },
-          '& .MuiInputBase-input': {
-            color: '#f3f4f6',
           },
         },
       },
@@ -228,9 +209,6 @@ const theme = createTheme({
         root: {
           borderRadius: 6,
           fontWeight: 500,
-          background: 'rgba(255, 255, 255, 0.1)',
-          color: '#f3f4f6',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
         },
       },
     },
@@ -278,100 +256,49 @@ const theme = createTheme({
       },
     },
     MuiTypography: {
-      styleOverrides: {
-        root: {
-          color: '#f3f4f6',
-        },
-        h1: {
-          color: '#f3f4f6',
-        },
-        h2: {
-          color: '#f3f4f6',
-        },
-        h3: {
-          color: '#f3f4f6',
-        },
-        h4: {
-          color: '#f3f4f6',
-        },
-        h5: {
-          color: '#f3f4f6',
-        },
-        h6: {
-          color: '#f3f4f6',
-        },
-        body1: {
-          color: '#d1d5db',
-        },
-        body2: {
-          color: '#d1d5db',
-        },
-        caption: {
-          color: '#9ca3af',
-        },
-      },
+      styleOverrides: {},
     },
     MuiAlert: {
       styleOverrides: {
         root: {
-          background: 'rgba(255, 255, 255, 0.1)',
-          color: '#f3f4f6',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: 8,
         },
       },
     },
     MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-        },
-      },
+      styleOverrides: {},
     },
     MuiAccordion: {
       styleOverrides: {
         root: {
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: 8,
         },
       },
     },
     MuiTableContainer: {
-      styleOverrides: {
-        root: {
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-        },
-      },
+      styleOverrides: {},
     },
     MuiTableCell: {
       styleOverrides: {
-        root: {
-          color: '#f3f4f6',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        },
         head: {
-          background: 'rgba(255, 255, 255, 0.1)',
-          color: '#f3f4f6',
           fontWeight: 600,
+          backgroundColor: '#f8fafc',
         },
       },
     },
     MuiMenu: {
       styleOverrides: {
         paper: {
-          background: 'rgba(10, 10, 10, 0.9)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
         },
       },
     },
     MuiMenuItem: {
       styleOverrides: {
         root: {
-          color: '#f3f4f6',
           '&:hover': {
-            background: 'rgba(37, 99, 235, 0.2)',
+            backgroundColor: 'rgba(37, 99, 235, 0.08)',
           },
         },
       },
