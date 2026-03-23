@@ -45,6 +45,7 @@ import ConfirmEmail from '../pages/ConfirmEmail';
 import ContractSigningDemo from '../pages/ContractSigningDemo';
 import RequestsPage from '../pages/requests/RequestsPage';
 import TenantInvitationLanding from '../pages/contracts/TenantInvitationLanding';
+import SubscriptionPlans from '../pages/subscriptions/SubscriptionPlans';
 
 export const AppRoutes: React.FC = () => {
 
@@ -165,6 +166,8 @@ return (
         <Route path="events" element={<CommunityPage />} />
         <Route path="partners" element={<CommunityPage />} />
         <Route path="careers" element={<CommunityPage />} />
+        {/* Subscriptions */}
+        <Route path="subscriptions" element={<SubscriptionPlans />} />
         {/* Admin Routes - Dashboard de Administración Legal */}
         <Route path="admin/*" element={<AdminRoutes />} />
         {/* Catch all route para rutas protegidas */}

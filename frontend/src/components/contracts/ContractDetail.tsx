@@ -26,6 +26,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { useContracts } from '../../hooks/useContracts';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import ContractTimeline from './ContractTimeline';
 
 export const ContractDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -162,6 +163,11 @@ export const ContractDetail: React.FC = () => {
         </Typography>
 
         {/* Documents section - Contract type doesn't have documents array in base interface */}
+
+        {/* Contract Timeline / History */}
+        <Box mt={3}>
+          <ContractTimeline contractId={contract.id} />
+        </Box>
 
         <Box display="flex" gap={2} mt={3}>
           <Button

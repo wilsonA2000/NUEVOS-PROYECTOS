@@ -591,6 +591,10 @@ docs: Update API documentation
 ✅ **Payment Reconciliation** - Webhook handlers reconcile payments with RentPaymentSchedule, mark rent as paid
 ✅ **Payment Confirmation Emails** - Auto-email to payer + payee on success, failure notification on error
 ✅ **DIAN Electronic Invoicing** - UBL 2.1 XML generation, auto-invoice on rent payment, Resolution 000042/2020 compliant schema
+✅ **Admin Verification Dashboard** - Agent management, visit scheduling, report approval (AdminVerificationDashboard.tsx)
+✅ **Admin Tickets Dashboard** - Ticket management with filters, responses, assignment (AdminTicketsDashboard.tsx)
+✅ **Subscription Plans Page** - Plan comparison, subscribe/cancel/upgrade for service providers (SubscriptionPlans.tsx)
+✅ **ContractTimeline Integration** - Audit trail now visible in ContractDetail view
 
 ---
 

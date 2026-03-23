@@ -29,6 +29,8 @@ const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'
 const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 const AdminMaintenance = lazy(() => import('../pages/admin/AdminMaintenance'));
+const AdminVerificationDashboard = lazy(() => import('../pages/admin/AdminVerificationDashboard'));
+const AdminTicketsDashboard = lazy(() => import('../pages/admin/AdminTicketsDashboard'));
 
 /**
  * Loading fallback para lazy components
@@ -79,6 +81,12 @@ const AdminRoutes: React.FC = () => {
 
           {/* Mantenimiento */}
           <Route path="maintenance" element={<AdminMaintenance />} />
+
+          {/* Verificación */}
+          <Route path="verification" element={<AdminVerificationDashboard />} />
+
+          {/* Tickets */}
+          <Route path="tickets" element={<AdminTicketsDashboard />} />
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/app/admin" replace />} />
