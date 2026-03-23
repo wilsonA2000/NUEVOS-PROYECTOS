@@ -787,6 +787,33 @@ A: Actualmente es una PWA (Progressive Web App) que funciona como app nativa. Ap
 
 ---
 
+## 💰 Pagos Automáticos de Arriendo
+
+### ¿Cómo funciona?
+
+VeriHome ofrece cobros automáticos de arriendo. Cuando un contrato tiene habilitada la opción de cobro automático:
+
+1. **Cada mes**, el sistema procesa el cobro del canon de arrendamiento
+2. **Se crea una transacción** automáticamente vinculada al contrato
+3. **Se aplican moras** automáticamente si el pago está vencido (según el porcentaje configurado en el contrato)
+4. **Usted recibe un email** cada vez que se procesa un pago: "Pago de arriendo recibido"
+5. **El arrendatario recibe confirmación** con el monto, referencia y fecha
+
+### Si un cobro falla
+
+- El arrendatario recibe una notificación indicando que debe realizar el pago manualmente
+- El sistema reintenta el cobro al día siguiente
+- Después de 15 días sin pago, el caso se escala automáticamente
+
+### Reconciliación automática
+
+Cuando el arrendatario paga a través de cualquier pasarela (PSE, Nequi, Stripe, tarjeta), el sistema:
+- Confirma el pago automáticamente vía webhook
+- Marca el canon del mes como **pagado** en el calendario de pagos
+- Genera recibo descargable desde su panel
+
+---
+
 ## 🛠️ Soporte Técnico
 
 ### 📞 Canales de Atención

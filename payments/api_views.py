@@ -1137,29 +1137,35 @@ class PaymentWebhookView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def _handle_payment_success(self, webhook_data):
-        """Manejar webhook de pago exitoso."""
+        """Manejar webhook de pago exitoso. Reconcilia y envía confirmación."""
         payment_intent_id = webhook_data.get('payment_intent_id')
-        
+
         try:
-            # Buscar el pago en nuestra base de datos
             payment = Transaction.objects.get(gateway_transaction_id=payment_intent_id)
             payment.status = 'completed'
             payment.processed_at = timezone.now()
             payment.save()
+
+            # Reconciliar con RentPaymentSchedule
+            from .reconciliation_service import reconcile_payment, send_payment_confirmation
+            reconcile_payment(payment)
+            send_payment_confirmation(payment)
         except Transaction.DoesNotExist:
-            # Log error but don't fail the webhook
             pass
-    
+
     def _handle_payment_failure(self, webhook_data):
-        """Manejar webhook de pago fallido."""
+        """Manejar webhook de pago fallido. Notifica al pagador."""
         payment_intent_id = webhook_data.get('payment_intent_id')
         error = webhook_data.get('error', {})
-        
+
         try:
             payment = Transaction.objects.get(gateway_transaction_id=payment_intent_id)
             payment.status = 'failed'
             payment.failure_reason = error.get('message', 'Payment failed')
             payment.save()
+
+            from .reconciliation_service import send_payment_failure_notification
+            send_payment_failure_notification(payment)
         except Transaction.DoesNotExist:
             pass
 
@@ -1694,6 +1700,14 @@ class WompiWebhookAPIView(APIView):
                 # Actualizar metadata
                 transaction.metadata.update(result.metadata)
                 transaction.save()
+
+                # Reconciliar y notificar
+                from .reconciliation_service import reconcile_payment, send_payment_confirmation, send_payment_failure_notification
+                if result.status == 'completed':
+                    reconcile_payment(transaction)
+                    send_payment_confirmation(transaction)
+                elif result.status == 'failed':
+                    send_payment_failure_notification(transaction)
 
                 # Log del evento
                 import logging

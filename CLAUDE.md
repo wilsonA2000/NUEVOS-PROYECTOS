@@ -587,6 +587,9 @@ docs: Update API documentation
 ✅ **Verification Agents Module** - Field agents, visits, reports, ratings (verification/ Django app)
 ✅ **Internal Tickets System** - SupportTicket with departments, auto-distribution from contact form, CRUD API
 ✅ **Service Provider Subscriptions** - 3 plans (Básico $50K, Profesional $100K, Enterprise $150K), subscribe/cancel/upgrade API
+✅ **Payment Auto-Charge** - Celery task processes auto rent charges daily, creates transactions, handles failures
+✅ **Payment Reconciliation** - Webhook handlers reconcile payments with RentPaymentSchedule, mark rent as paid
+✅ **Payment Confirmation Emails** - Auto-email to payer + payee on success, failure notification on error
 
 ---
 

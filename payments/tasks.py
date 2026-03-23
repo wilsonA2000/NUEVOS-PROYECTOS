@@ -55,3 +55,28 @@ def escalate_overdue_payments(self):
     except Exception as exc:
         logger.error(f"Error en escalate_overdue_payments: {exc}")
         raise self.retry(exc=exc)
+
+
+@shared_task(
+    name='payments.tasks.process_auto_rent_charges',
+    bind=True,
+    max_retries=3,
+    default_retry_delay=600,
+)
+def process_auto_rent_charges(self):
+    """
+    Tarea diaria para procesar cobros automáticos de arriendo.
+    Busca RentPaymentSchedule con auto_charge_enabled y pago pendiente,
+    crea transacciones y envía confirmaciones/notificaciones de fallo.
+    """
+    try:
+        from .auto_charge_service import process_auto_charges
+
+        logger.info("Iniciando cobros automáticos de arriendo...")
+        stats = process_auto_charges()
+        logger.info(f"Cobros automáticos completados: {stats}")
+        return stats
+
+    except Exception as exc:
+        logger.error(f"Error en process_auto_rent_charges: {exc}")
+        raise self.retry(exc=exc)
