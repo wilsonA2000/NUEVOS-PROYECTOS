@@ -189,8 +189,11 @@ const ContractsDashboard: React.FC = () => {
 
   // Función para obtener el texto del estado
   const getStateText = (state: ContractWorkflowState): string => {
-    const stateTexts = {
+    const stateTexts: Record<ContractWorkflowState, string> = {
+      'PENDING_ADMIN_REVIEW': 'En Revisión Jurídica',
+      'RE_PENDING_ADMIN': 'Re-Revisión Jurídica',
       'DRAFT': 'Borrador',
+      'LANDLORD_COMPLETING': 'Completando Datos',
       'TENANT_INVITED': 'Arrendatario Invitado',
       'TENANT_REVIEWING': 'Revisión Arrendatario',
       'LANDLORD_REVIEWING': 'Revisión Arrendador',

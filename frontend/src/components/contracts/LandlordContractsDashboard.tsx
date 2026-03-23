@@ -77,6 +77,7 @@ import {
   Print as PrintIcon,
   Share as ShareIcon,
   Refresh as RefreshIcon,
+  Balance as BalanceIcon,
 } from '@mui/icons-material';
 import { format, differenceInDays, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -262,6 +263,8 @@ const LandlordContractsDashboard: React.FC = () => {
   // Obtener color del estado
   const getStateColor = (state: ContractWorkflowState): 'success' | 'warning' | 'error' | 'info' | 'default' => {
     switch (state) {
+      case 'PENDING_ADMIN_REVIEW':
+      case 'RE_PENDING_ADMIN': return 'info';
       case 'PUBLISHED': return 'success';
       case 'FULLY_SIGNED': return 'success';
       case 'READY_TO_SIGN': return 'info';
@@ -277,7 +280,10 @@ const LandlordContractsDashboard: React.FC = () => {
   // Obtener texto del estado
   const getStateText = (state: ContractWorkflowState): string => {
     const stateTexts = {
+      'PENDING_ADMIN_REVIEW': 'En Revisión Jurídica',
+      'RE_PENDING_ADMIN': 'Re-Revisión Jurídica',
       'DRAFT': 'Borrador',
+      'LANDLORD_COMPLETING': 'Completando Datos',
       'TENANT_INVITED': 'Arrendatario Invitado',
       'TENANT_REVIEWING': 'En Revisión (Arrendatario)',
       'LANDLORD_REVIEWING': 'En Revisión (Arrendador)',
@@ -433,11 +439,20 @@ const LandlordContractsDashboard: React.FC = () => {
         </TableCell>
         
         <TableCell>
-          <Chip
-            label={getStateText(contract.current_state)}
-            color={getStateColor(contract.current_state)}
-            size="small"
-          />
+          <Tooltip title={
+            contract.current_state === 'PENDING_ADMIN_REVIEW'
+              ? 'Su contrato está siendo revisado por el equipo legal de VeriHome. Tiempo estimado: 3-5 días hábiles.'
+              : contract.current_state === 'RE_PENDING_ADMIN'
+              ? 'Su contrato fue devuelto para re-revisión jurídica tras las correcciones realizadas.'
+              : ''
+          } arrow disableHoverListener={!['PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN'].includes(contract.current_state)}>
+            <Chip
+              label={getStateText(contract.current_state)}
+              color={getStateColor(contract.current_state)}
+              size="small"
+              icon={['PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN'].includes(contract.current_state) ? <BalanceIcon sx={{ fontSize: 16 }} /> : undefined}
+            />
+          </Tooltip>
           {isExpiringSoon && (
             <Chip
               label={`${daysUntilExpiration}d`}

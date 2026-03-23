@@ -204,6 +204,19 @@ class LandlordControlledContract(models.Model):
         help_text='Comentarios del administrador durante la revisión'
     )
 
+    # SLA de revisión jurídica
+    admin_review_deadline = models.DateTimeField(
+        'Fecha límite de revisión',
+        null=True,
+        blank=True,
+        help_text='Fecha máxima para que el admin revise el contrato (5 días hábiles)'
+    )
+    admin_review_escalated = models.BooleanField(
+        'Revisión escalada',
+        default=False,
+        help_text='True si el plazo de revisión venció y fue escalado'
+    )
+
     # === SISTEMA DE INMUTABILIDAD Y FLUJO CIRCULAR (Plan Maestro V2.0) ===
     is_locked = models.BooleanField(
         'Bloqueado',
@@ -414,6 +427,17 @@ class LandlordControlledContract(models.Model):
         # Actualizar título automáticamente si no se ha definido
         if not self.title and self.property:
             self.title = f"Contrato de {self.get_contract_type_display()} - {self.property.address}"
+
+        # Calcular deadline de revisión admin (5 días hábiles) al entrar en PENDING_ADMIN_REVIEW
+        if self.current_state in ('PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN') and not self.admin_review_deadline:
+            from datetime import timedelta
+            deadline = timezone.now()
+            days_added = 0
+            while days_added < 5:
+                deadline += timedelta(days=1)
+                if deadline.weekday() < 5:  # Lunes=0 a Viernes=4
+                    days_added += 1
+            self.admin_review_deadline = deadline
 
         super().save(*args, **kwargs)
     
@@ -872,6 +896,13 @@ class LandlordControlledContract(models.Model):
         if not admin_user.is_staff:
             raise ValidationError('Solo administradores pueden aprobar contratos')
 
+        # Conflicto de intereses: admin no puede aprobar contrato donde es parte
+        if admin_user == self.landlord:
+            raise ValidationError(
+                'Conflicto de intereses: el administrador no puede aprobar un contrato '
+                'en el que figura como arrendador.'
+            )
+
         # Registrar aprobación
         self.admin_reviewed = True
         self.admin_reviewed_at = timezone.now()
@@ -918,6 +949,12 @@ class LandlordControlledContract(models.Model):
 
         if not admin_user.is_staff:
             raise ValidationError('Solo administradores pueden rechazar contratos')
+
+        if admin_user == self.landlord:
+            raise ValidationError(
+                'Conflicto de intereses: el administrador no puede rechazar un contrato '
+                'en el que figura como arrendador.'
+            )
 
         if not reason:
             raise ValidationError('Debe proporcionar un motivo de rechazo')

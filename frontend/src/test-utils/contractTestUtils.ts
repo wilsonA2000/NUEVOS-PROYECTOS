@@ -174,7 +174,10 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
 export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}): ContractStatistics => ({
   total_contracts: 25,
   by_state: {
+    'PENDING_ADMIN_REVIEW': 2,
+    'RE_PENDING_ADMIN': 0,
     'DRAFT': 5,
+    'LANDLORD_COMPLETING': 1,
     'TENANT_INVITED': 3,
     'TENANT_REVIEWING': 4,
     'LANDLORD_REVIEWING': 2,

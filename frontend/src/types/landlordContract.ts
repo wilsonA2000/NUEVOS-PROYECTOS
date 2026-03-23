@@ -5,7 +5,10 @@
 
 // Estados del workflow de contratos
 export type ContractWorkflowState =
+  | 'PENDING_ADMIN_REVIEW'     // Pendiente revisión jurídica
+  | 'RE_PENDING_ADMIN'         // Re-revisión jurídica
   | 'DRAFT'                    // Borrador del arrendador
+  | 'LANDLORD_COMPLETING'      // Arrendador completando datos
   | 'TENANT_INVITED'           // Arrendatario invitado
   | 'TENANT_REVIEWING'         // Arrendatario revisando
   | 'LANDLORD_REVIEWING'       // Arrendador revisando datos del arrendatario
