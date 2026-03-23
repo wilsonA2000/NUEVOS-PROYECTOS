@@ -814,6 +814,27 @@ Cuando el arrendatario paga a través de cualquier pasarela (PSE, Nequi, Stripe,
 
 ---
 
+## 🎛️ Panel de Administración (Solo Staff)
+
+Si usted es parte del equipo administrativo de VeriHome (staff), tendrá acceso a funcionalidades adicionales en el menú lateral:
+
+### Verificaciones (`/app/admin/verification`)
+- **Agentes**: Gestione agentes de campo, active/desactive disponibilidad
+- **Visitas**: Programe, asigne agentes, inicie y complete visitas de verificación
+- **Reportes**: Revise y apruebe reportes con calificación inicial
+
+### Tickets (`/app/admin/tickets`)
+- **Panel de tickets**: Vea todos los tickets de soporte con filtros por departamento, estado y prioridad
+- **Responder**: Agregue respuestas públicas o notas internas
+- **Asignar**: Asigne tickets a miembros del equipo por área
+- **Resolver/Cerrar**: Gestione el ciclo de vida completo del ticket
+
+### Contratos (`/app/admin/contracts`)
+- **Revisión jurídica**: Apruebe o rechace contratos pendientes
+- **Historial**: Vea el audit trail completo de cada contrato
+
+---
+
 ## 🛠️ Soporte Técnico
 
 ### 📞 Canales de Atención

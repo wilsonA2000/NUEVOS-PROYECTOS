@@ -40,6 +40,10 @@ import {
   Assessment,
   ChevronRight,
   Star,
+  VerifiedUser,
+  ConfirmationNumber,
+  CardMembership,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
@@ -51,7 +55,7 @@ import LanguageSelector from '../common/LanguageSelector';
 
 const drawerWidth = 240;
 
-const menuItemsDef = [
+const baseMenuItems = [
   { key: 'nav.dashboard', icon: <Dashboard />, path: '/app/dashboard' },
   { key: 'nav.properties', icon: <Home />, path: '/app/properties' },
   { key: 'nav.contracts', icon: <Description />, path: '/app/contracts' },
@@ -60,6 +64,17 @@ const menuItemsDef = [
   { key: 'nav.ratings', icon: <Star />, path: '/app/ratings' },
   { key: 'nav.services', icon: <Build />, path: '/app/services' },
   { key: 'nav.requests', icon: <Assessment />, path: '/app/requests' },
+];
+
+// Items adicionales por rol
+const serviceProviderItems = [
+  { key: 'Suscripciones', icon: <CardMembership />, path: '/app/subscriptions' },
+];
+
+const adminItems = [
+  { key: 'Admin Panel', icon: <AdminPanelSettings />, path: '/app/admin' },
+  { key: 'Verificaciones', icon: <VerifiedUser />, path: '/app/admin/verification' },
+  { key: 'Tickets', icon: <ConfirmationNumber />, path: '/app/admin/tickets' },
 ];
 
 const Layout: React.FC = () => {
@@ -78,10 +93,16 @@ const Layout: React.FC = () => {
   // No WebSocket dependency for user status
   const { user, logout } = useAuth();
 
-  // Translate menu items
+  // Build menu items based on user role
+  const menuItemsDef = [
+    ...baseMenuItems,
+    ...(user?.user_type === 'service_provider' ? serviceProviderItems : []),
+    ...(user?.is_staff || user?.is_superuser ? adminItems : []),
+  ];
+
   const menuItems = menuItemsDef.map(item => ({
     ...item,
-    text: t(item.key),
+    text: t(item.key, item.key),
   }));
 
   // Hide/show bottom navigation on scroll for mobile
