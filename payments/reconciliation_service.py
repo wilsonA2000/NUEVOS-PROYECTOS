@@ -47,6 +47,13 @@ def reconcile_payment(transaction):
         schedule.last_payment_date = timezone.now().date()
         schedule.save(update_fields=['last_payment_date', 'updated_at'])
 
+        # Auto-generar factura DIAN
+        try:
+            from .dian_invoice_service import auto_invoice_rent_payment
+            auto_invoice_rent_payment(transaction)
+        except Exception as e:
+            logger.warning(f"Auto-invoice failed for {transaction.id}: {e}")
+
         logger.info(f"Reconciled transaction {transaction.id} with schedule {schedule.id}")
         return True
 

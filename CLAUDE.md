@@ -590,6 +590,7 @@ docs: Update API documentation
 ✅ **Payment Auto-Charge** - Celery task processes auto rent charges daily, creates transactions, handles failures
 ✅ **Payment Reconciliation** - Webhook handlers reconcile payments with RentPaymentSchedule, mark rent as paid
 ✅ **Payment Confirmation Emails** - Auto-email to payer + payee on success, failure notification on error
+✅ **DIAN Electronic Invoicing** - UBL 2.1 XML generation, auto-invoice on rent payment, Resolution 000042/2020 compliant schema
 
 ---
 
