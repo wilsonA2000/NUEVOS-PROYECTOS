@@ -2,17 +2,20 @@
 Vistas API para el sistema de servicios adicionales.
 """
 
-from rest_framework import viewsets, generics, status, filters
+from rest_framework import viewsets, generics, status, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count, Q
+from django.utils import timezone
+from datetime import timedelta
 
-from .models import ServiceCategory, Service, ServiceRequest
+from .models import ServiceCategory, Service, ServiceRequest, SubscriptionPlan, ServiceSubscription
 from .serializers import (
     ServiceCategorySerializer, ServiceListSerializer, ServiceDetailSerializer,
-    CreateServiceRequestSerializer, ServiceRequestSerializer, ServiceStatsSerializer
+    CreateServiceRequestSerializer, ServiceRequestSerializer, ServiceStatsSerializer,
+    SubscriptionPlanSerializer, ServiceSubscriptionSerializer
 )
 
 
@@ -215,3 +218,144 @@ class ServiceSearchView(generics.ListAPIView):
 
     def get_queryset(self):
         return Service.objects.filter(is_active=True).select_related('category')
+
+
+# ══════════════════════════════════════════════════════════════
+# SISTEMA DE SUSCRIPCIONES
+# ══════════════════════════════════════════════════════════════
+
+class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Planes de suscripción disponibles. Público (solo lectura).
+    """
+    serializer_class = SubscriptionPlanSerializer
+    permission_classes = [AllowAny]
+    queryset = SubscriptionPlan.objects.filter(is_active=True)
+
+
+class ServiceSubscriptionViewSet(viewsets.ModelViewSet):
+    """
+    Gestión de suscripciones. Solo el prestador de servicios ve la suya.
+    Staff ve todas.
+    """
+    serializer_class = ServiceSubscriptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return ServiceSubscription.objects.select_related('plan', 'service_provider').all()
+        return ServiceSubscription.objects.filter(service_provider=self.request.user).select_related('plan')
+
+    @action(detail=False, methods=['get'])
+    def current(self, request):
+        """Obtener suscripción activa del usuario actual."""
+        try:
+            sub = ServiceSubscription.objects.get(
+                service_provider=request.user,
+                status__in=['trial', 'active'],
+            )
+            return Response(ServiceSubscriptionSerializer(sub).data)
+        except ServiceSubscription.DoesNotExist:
+            return Response({'detail': 'No tiene suscripción activa'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'])
+    def subscribe(self, request):
+        """Suscribirse a un plan."""
+        plan_id = request.data.get('plan_id')
+        if not plan_id:
+            return Response({'error': 'plan_id es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id, is_active=True)
+        except SubscriptionPlan.DoesNotExist:
+            return Response({'error': 'Plan no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Verificar que no tenga suscripción activa
+        existing = ServiceSubscription.objects.filter(
+            service_provider=request.user,
+            status__in=['trial', 'active'],
+        ).first()
+        if existing:
+            return Response({'error': 'Ya tiene una suscripción activa. Cancele primero para cambiar de plan.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        now = timezone.now()
+        # Calcular duración según ciclo
+        if plan.billing_cycle == 'monthly':
+            end_date = now + timedelta(days=30)
+        elif plan.billing_cycle == 'quarterly':
+            end_date = now + timedelta(days=90)
+        else:
+            end_date = now + timedelta(days=365)
+
+        sub = ServiceSubscription.objects.create(
+            service_provider=request.user,
+            plan=plan,
+            status='trial',
+            start_date=now,
+            end_date=end_date,
+            trial_end_date=now + timedelta(days=7),
+            next_billing_date=(now + timedelta(days=7)).date(),
+        )
+        return Response(ServiceSubscriptionSerializer(sub).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def cancel(self, request):
+        """Cancelar suscripción activa."""
+        reason = request.data.get('reason', '')
+        try:
+            sub = ServiceSubscription.objects.get(
+                service_provider=request.user,
+                status__in=['trial', 'active'],
+            )
+        except ServiceSubscription.DoesNotExist:
+            return Response({'error': 'No tiene suscripción activa'}, status=status.HTTP_404_NOT_FOUND)
+
+        sub.status = 'cancelled'
+        sub.cancelled_at = timezone.now()
+        sub.cancellation_reason = reason
+        sub.auto_renew = False
+        sub.save(update_fields=['status', 'cancelled_at', 'cancellation_reason', 'auto_renew', 'updated_at'])
+        return Response(ServiceSubscriptionSerializer(sub).data)
+
+    @action(detail=False, methods=['post'])
+    def upgrade(self, request):
+        """Cambiar a un plan superior."""
+        plan_id = request.data.get('plan_id')
+        if not plan_id:
+            return Response({'error': 'plan_id es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_plan = SubscriptionPlan.objects.get(id=plan_id, is_active=True)
+        except SubscriptionPlan.DoesNotExist:
+            return Response({'error': 'Plan no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            sub = ServiceSubscription.objects.get(
+                service_provider=request.user,
+                status__in=['trial', 'active'],
+            )
+        except ServiceSubscription.DoesNotExist:
+            return Response({'error': 'No tiene suscripción activa'}, status=status.HTTP_404_NOT_FOUND)
+
+        sub.plan = new_plan
+        sub.save(update_fields=['plan', 'updated_at'])
+        return Response(ServiceSubscriptionSerializer(sub).data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Estadísticas de suscripciones (solo staff)."""
+        if not request.user.is_staff:
+            return Response({'error': 'Solo staff'}, status=status.HTTP_403_FORBIDDEN)
+        total = ServiceSubscription.objects.count()
+        active = ServiceSubscription.objects.filter(status__in=['trial', 'active']).count()
+        by_plan = dict(
+            ServiceSubscription.objects.filter(status__in=['trial', 'active'])
+            .values_list('plan__name')
+            .annotate(c=Count('id'))
+            .values_list('plan__name', 'c')
+        )
+        return Response({
+            'total_subscriptions': total,
+            'active_subscriptions': active,
+            'by_plan': by_plan,
+        })

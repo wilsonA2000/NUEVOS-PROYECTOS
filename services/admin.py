@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db import models
 from django.forms import Textarea
-from .models import ServiceCategory, Service, ServiceImage, ServiceRequest
+from .models import ServiceCategory, Service, ServiceImage, ServiceRequest, SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory
 
 
 @admin.register(ServiceCategory)
@@ -162,3 +162,46 @@ class ServiceRequestAdmin(admin.ModelAdmin):
         updated = queryset.update(status='completed')
         self.message_user(request, f'{updated} solicitudes marcadas como completadas.')
     mark_as_completed.short_description = 'Marcar como completado'
+
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'billing_cycle', 'price', 'discount_percentage', 'max_active_services', 'featured_listing', 'is_active', 'is_recommended', 'sort_order')
+    list_editable = ('price', 'is_active', 'is_recommended', 'sort_order')
+    list_filter = ('billing_cycle', 'is_active', 'is_recommended')
+    prepopulated_fields = {'slug': ('name',)}
+    fieldsets = (
+        ('Plan', {'fields': ('name', 'slug', 'description', 'billing_cycle')}),
+        ('Precios', {'fields': ('price', 'discount_percentage')}),
+        ('Funcionalidades', {'fields': (
+            'max_active_services', 'max_monthly_requests', 'featured_listing',
+            'priority_in_search', 'verified_badge', 'access_to_analytics',
+            'direct_messaging', 'payment_gateway_access',
+        )}),
+        ('Estado', {'fields': ('is_active', 'is_recommended', 'sort_order')}),
+    )
+
+
+class BillingHistoryInline(admin.TabularInline):
+    model = SubscriptionBillingHistory
+    extra = 0
+    readonly_fields = ('billing_date', 'amount', 'status', 'transaction_ref', 'created_at')
+    fields = ('billing_date', 'amount', 'status', 'payment_method', 'transaction_ref', 'notes')
+
+
+@admin.register(ServiceSubscription)
+class ServiceSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('service_provider', 'plan', 'status', 'start_date', 'end_date', 'next_billing_date', 'auto_renew', 'services_published')
+    list_filter = ('status', 'plan', 'auto_renew')
+    search_fields = ('service_provider__email', 'service_provider__first_name', 'service_provider__last_name')
+    raw_id_fields = ('service_provider',)
+    readonly_fields = ('id', 'services_published', 'requests_this_month', 'created_at', 'updated_at')
+    inlines = [BillingHistoryInline]
+    fieldsets = (
+        ('Suscripción', {'fields': ('id', 'service_provider', 'plan', 'status')}),
+        ('Fechas', {'fields': ('start_date', 'end_date', 'trial_end_date', 'next_billing_date', 'cancelled_at')}),
+        ('Configuración', {'fields': ('auto_renew',)}),
+        ('Uso', {'fields': ('services_published', 'requests_this_month')}),
+        ('Notas', {'fields': ('cancellation_reason', 'admin_notes'), 'classes': ('collapse',)}),
+        ('Sistema', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),
+    )

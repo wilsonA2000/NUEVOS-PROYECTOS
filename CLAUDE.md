@@ -586,6 +586,7 @@ docs: Update API documentation
 ✅ **Contract Timeline** - Audit trail component (ContractTimeline.tsx)
 ✅ **Verification Agents Module** - Field agents, visits, reports, ratings (verification/ Django app)
 ✅ **Internal Tickets System** - SupportTicket with departments, auto-distribution from contact form, CRUD API
+✅ **Service Provider Subscriptions** - 3 plans (Básico $50K, Profesional $100K, Enterprise $150K), subscribe/cancel/upgrade API
 
 ---
 

@@ -7,9 +7,9 @@ from rest_framework.routers import DefaultRouter
 
 from .api_views import (
     ServiceCategoryViewSet, ServiceViewSet, ServiceRequestViewSet,
-    PopularServicesListView, FeaturedServicesListView, 
+    PopularServicesListView, FeaturedServicesListView,
     MostRequestedServicesListView, ServicesByCategoryListView,
-    ServiceSearchView
+    ServiceSearchView, SubscriptionPlanViewSet, ServiceSubscriptionViewSet
 )
 
 app_name = 'services'
@@ -19,6 +19,8 @@ router = DefaultRouter()
 router.register(r'categories', ServiceCategoryViewSet, basename='categories')
 router.register(r'services', ServiceViewSet, basename='services')
 router.register(r'requests', ServiceRequestViewSet, basename='requests')
+router.register(r'subscription-plans', SubscriptionPlanViewSet, basename='subscription-plans')
+router.register(r'subscriptions', ServiceSubscriptionViewSet, basename='subscriptions')
 
 urlpatterns = [
     # API endpoints (sin prefijo extra /api/ porque ya está en /api/v1/services/)

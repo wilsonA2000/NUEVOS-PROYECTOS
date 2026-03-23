@@ -3,6 +3,7 @@ Serializers para la API de servicios adicionales.
 """
 
 from rest_framework import serializers
+from .models import SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory
 from .models import ServiceCategory, Service, ServiceImage, ServiceRequest
 
 
@@ -122,3 +123,55 @@ class ServiceStatsSerializer(serializers.Serializer):
     pending_requests = serializers.IntegerField()
     categories_stats = serializers.ListField()
     popular_services = ServiceListSerializer(many=True, read_only=True)
+
+
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    effective_price = serializers.DecimalField(max_digits=10, decimal_places=0, read_only=True)
+    billing_cycle_display = serializers.CharField(source='get_billing_cycle_display', read_only=True)
+
+    class Meta:
+        model = SubscriptionPlan
+        fields = [
+            'id', 'name', 'slug', 'description', 'billing_cycle', 'billing_cycle_display',
+            'price', 'discount_percentage', 'effective_price',
+            'max_active_services', 'max_monthly_requests',
+            'featured_listing', 'priority_in_search', 'verified_badge',
+            'access_to_analytics', 'direct_messaging', 'payment_gateway_access',
+            'is_active', 'is_recommended', 'sort_order',
+        ]
+
+
+class SubscriptionBillingHistorySerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = SubscriptionBillingHistory
+        fields = ['id', 'amount', 'billing_date', 'payment_method', 'transaction_ref', 'status', 'status_display', 'notes', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class ServiceSubscriptionSerializer(serializers.ModelSerializer):
+    plan_name = serializers.CharField(source='plan.name', read_only=True)
+    plan_price = serializers.DecimalField(source='plan.price', max_digits=10, decimal_places=0, read_only=True)
+    provider_name = serializers.CharField(source='service_provider.get_full_name', read_only=True)
+    provider_email = serializers.EmailField(source='service_provider.email', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    is_valid = serializers.BooleanField(read_only=True)
+    can_publish_service = serializers.BooleanField(read_only=True)
+    can_receive_requests = serializers.BooleanField(read_only=True)
+    billing_history = SubscriptionBillingHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ServiceSubscription
+        fields = [
+            'id', 'service_provider', 'provider_name', 'provider_email',
+            'plan', 'plan_name', 'plan_price',
+            'status', 'status_display',
+            'start_date', 'end_date', 'trial_end_date', 'next_billing_date',
+            'auto_renew', 'cancelled_at',
+            'services_published', 'requests_this_month',
+            'is_valid', 'can_publish_service', 'can_receive_requests',
+            'billing_history',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'services_published', 'requests_this_month', 'created_at', 'updated_at']

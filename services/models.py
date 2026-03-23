@@ -300,3 +300,178 @@ class ServiceRequest(models.Model):
 
     def __str__(self):
         return f"Solicitud: {self.service.name} - {self.requester_name}"
+
+
+# ══════════════════════════════════════════════════════════════
+# SISTEMA DE SUSCRIPCIONES PARA PRESTADORES DE SERVICIOS
+# ══════════════════════════════════════════════════════════════
+
+class SubscriptionPlan(models.Model):
+    """
+    Plan de suscripción disponible para prestadores de servicios.
+    Define precio, duración y funcionalidades incluidas.
+    """
+
+    BILLING_CYCLE = [
+        ('monthly', 'Mensual'),
+        ('quarterly', 'Trimestral'),
+        ('annual', 'Anual'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField('Nombre del plan', max_length=50)
+    slug = models.SlugField('Slug', unique=True)
+    description = models.TextField('Descripción')
+    billing_cycle = models.CharField('Ciclo de facturación', max_length=15, choices=BILLING_CYCLE, default='monthly')
+
+    # Precios en COP
+    price = models.DecimalField('Precio (COP)', max_digits=10, decimal_places=0)
+    discount_percentage = models.PositiveIntegerField('Descuento (%)', default=0, help_text='Descuento aplicado sobre el precio base')
+
+    # Límites y funcionalidades
+    max_active_services = models.PositiveIntegerField('Máx. servicios activos', default=3)
+    max_monthly_requests = models.PositiveIntegerField('Máx. solicitudes/mes', default=20)
+    featured_listing = models.BooleanField('Listado destacado', default=False)
+    priority_in_search = models.BooleanField('Prioridad en búsquedas', default=False)
+    verified_badge = models.BooleanField('Badge verificado', default=False)
+    access_to_analytics = models.BooleanField('Acceso a analíticas', default=False)
+    direct_messaging = models.BooleanField('Mensajería directa', default=True)
+    payment_gateway_access = models.BooleanField('Pasarela de pagos propia', default=False)
+
+    # Estado
+    is_active = models.BooleanField('Activo', default=True)
+    is_recommended = models.BooleanField('Recomendado', default=False, help_text='Mostrar badge "Recomendado" en la UI')
+    sort_order = models.PositiveIntegerField('Orden de visualización', default=0)
+
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Plan de Suscripción'
+        verbose_name_plural = 'Planes de Suscripción'
+        ordering = ['sort_order', 'price']
+
+    def __str__(self):
+        return f"{self.name} - ${self.price:,.0f}/{'mes' if self.billing_cycle == 'monthly' else 'trim' if self.billing_cycle == 'quarterly' else 'año'}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    @property
+    def effective_price(self):
+        if self.discount_percentage > 0:
+            return self.price * (100 - self.discount_percentage) / 100
+        return self.price
+
+
+class ServiceSubscription(models.Model):
+    """
+    Suscripción activa de un prestador de servicios.
+    Vincula un usuario service_provider con un plan de suscripción.
+    """
+
+    STATUS_CHOICES = [
+        ('trial', 'Período de Prueba'),
+        ('active', 'Activa'),
+        ('past_due', 'Pago Vencido'),
+        ('suspended', 'Suspendida'),
+        ('cancelled', 'Cancelada'),
+        ('expired', 'Expirada'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    service_provider = models.OneToOneField(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='service_subscription',
+        limit_choices_to={'user_type': 'service_provider'},
+        verbose_name='Prestador de servicios',
+    )
+    plan = models.ForeignKey(
+        SubscriptionPlan,
+        on_delete=models.PROTECT,
+        related_name='subscriptions',
+        verbose_name='Plan',
+    )
+    status = models.CharField('Estado', max_length=15, choices=STATUS_CHOICES, default='trial')
+
+    # Fechas
+    start_date = models.DateTimeField('Fecha de inicio')
+    end_date = models.DateTimeField('Fecha de vencimiento')
+    trial_end_date = models.DateTimeField('Fin del período de prueba', null=True, blank=True)
+    cancelled_at = models.DateTimeField('Fecha de cancelación', null=True, blank=True)
+
+    # Facturación
+    next_billing_date = models.DateField('Próxima fecha de cobro', null=True, blank=True)
+    auto_renew = models.BooleanField('Renovación automática', default=True)
+
+    # Uso actual
+    services_published = models.PositiveIntegerField('Servicios publicados', default=0)
+    requests_this_month = models.PositiveIntegerField('Solicitudes este mes', default=0)
+
+    # Metadatos
+    cancellation_reason = models.TextField('Motivo de cancelación', blank=True)
+    admin_notes = models.TextField('Notas admin', blank=True)
+
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Suscripción de Servicio'
+        verbose_name_plural = 'Suscripciones de Servicios'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.service_provider.get_full_name()} - {self.plan.name} ({self.get_status_display()})"
+
+    @property
+    def is_valid(self):
+        from django.utils import timezone
+        return self.status in ('trial', 'active') and self.end_date > timezone.now()
+
+    @property
+    def can_publish_service(self):
+        return self.is_valid and self.services_published < self.plan.max_active_services
+
+    @property
+    def can_receive_requests(self):
+        return self.is_valid and self.requests_this_month < self.plan.max_monthly_requests
+
+
+class SubscriptionBillingHistory(models.Model):
+    """Historial de cobros de suscripción."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    subscription = models.ForeignKey(
+        ServiceSubscription,
+        on_delete=models.CASCADE,
+        related_name='billing_history',
+        verbose_name='Suscripción',
+    )
+    amount = models.DecimalField('Monto cobrado (COP)', max_digits=10, decimal_places=0)
+    billing_date = models.DateField('Fecha de cobro')
+    payment_method = models.CharField('Método de pago', max_length=50, blank=True)
+    transaction_ref = models.CharField('Referencia de transacción', max_length=100, blank=True)
+    status = models.CharField(
+        'Estado',
+        max_length=15,
+        choices=[
+            ('pending', 'Pendiente'),
+            ('paid', 'Pagado'),
+            ('failed', 'Fallido'),
+            ('refunded', 'Reembolsado'),
+        ],
+        default='pending',
+    )
+    notes = models.TextField('Notas', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Historial de Facturación'
+        verbose_name_plural = 'Historial de Facturación'
+        ordering = ['-billing_date']
+
+    def __str__(self):
+        return f"{self.subscription.service_provider.get_full_name()} - ${self.amount:,.0f} ({self.get_status_display()})"
