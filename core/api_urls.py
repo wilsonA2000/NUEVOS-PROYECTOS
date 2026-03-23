@@ -11,6 +11,7 @@ router = DefaultRouter()
 router.register(r'notifications', api_views.NotificationViewSet, basename='notification')
 router.register(r'activity-logs', api_views.ActivityLogViewSet, basename='activity-log')
 router.register(r'system-alerts', api_views.SystemAlertViewSet, basename='system-alert')
+router.register(r'tickets', api_views.SupportTicketViewSet, basename='support-ticket')
 
 urlpatterns = [
     # Incluir rutas del router

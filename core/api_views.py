@@ -13,8 +13,8 @@ from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 from django.conf import settings
 
-from .models import Notification, ActivityLog, SystemAlert, ContactMessage
-from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer
+from .models import Notification, ActivityLog, SystemAlert, ContactMessage, SupportTicket, TicketResponse
+from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer, SupportTicketSerializer, TicketResponseSerializer
 from django.core.mail import send_mail
 from rest_framework.throttling import AnonRateThrottle
 import logging
@@ -108,10 +108,144 @@ class ContactMessageAPIView(APIView):
         contact.email_notified = email_sent
         contact.save(update_fields=['email_notified'])
 
+        # Auto-crear ticket de soporte para seguimiento interno
+        try:
+            from .models import SupportTicket
+            # Determinar departamento según asunto
+            subject_lower = subject.lower()
+            if any(w in subject_lower for w in ['contrato', 'arriendo', 'legal', 'juridic']):
+                dept = 'legal'
+            elif any(w in subject_lower for w in ['pago', 'factura', 'cobro', 'dinero']):
+                dept = 'billing'
+            elif any(w in subject_lower for w in ['verificaci', 'visita', 'agente']):
+                dept = 'verification_agents'
+            elif any(w in subject_lower for w in ['servicio', 'mantenimiento', 'reparaci']):
+                dept = 'technical'
+            else:
+                dept = 'general'
+
+            SupportTicket.objects.create(
+                subject=f'[Contacto Web] {subject}',
+                description=f'Mensaje de {name} ({email}):\n\n{message}',
+                category='other',
+                department=dept,
+                priority='normal',
+                contact_message=contact,
+                ip_address=ip,
+            )
+        except Exception as e:
+            logger.warning(f'No se pudo crear ticket desde contacto: {e}')
+
         return Response(
             {'message': '¡Mensaje enviado exitosamente! Te responderemos pronto.', 'email_sent': email_sent},
             status=status.HTTP_201_CREATED,
         )
+
+
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    """
+    Gestión de tickets de soporte interno.
+    Staff ve todos los tickets. Usuarios normales solo los suyos.
+    """
+    serializer_class = SupportTicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = SupportTicket.objects.select_related('created_by', 'assigned_to').prefetch_related('responses')
+        if not self.request.user.is_staff:
+            return qs.filter(created_by=self.request.user)
+
+        # Filtros para staff
+        dept = self.request.query_params.get('department')
+        if dept:
+            qs = qs.filter(department=dept)
+        stat = self.request.query_params.get('status')
+        if stat:
+            qs = qs.filter(status=stat)
+        priority = self.request.query_params.get('priority')
+        if priority:
+            qs = qs.filter(priority=priority)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def assign(self, request, pk=None):
+        """Asignar ticket a un miembro del staff."""
+        ticket = self.get_object()
+        if not request.user.is_staff:
+            return Response({'error': 'Solo staff puede asignar tickets'}, status=status.HTTP_403_FORBIDDEN)
+        staff_id = request.data.get('assigned_to')
+        if staff_id:
+            try:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                staff_user = User.objects.get(id=staff_id, is_staff=True)
+                ticket.assigned_to = staff_user
+            except User.DoesNotExist:
+                return Response({'error': 'Usuario staff no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        ticket.status = 'in_progress'
+        ticket.save(update_fields=['assigned_to', 'status', 'updated_at'])
+        return Response(self.get_serializer(ticket).data)
+
+    @action(detail=True, methods=['post'])
+    def respond(self, request, pk=None):
+        """Agregar respuesta a un ticket."""
+        ticket = self.get_object()
+        message = request.data.get('message', '').strip()
+        if not message:
+            return Response({'error': 'El mensaje es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+        is_internal = request.data.get('is_internal', False) and request.user.is_staff
+        response_obj = TicketResponse.objects.create(
+            ticket=ticket,
+            author=request.user,
+            message=message,
+            is_internal=is_internal,
+        )
+        if request.user.is_staff and ticket.status == 'open':
+            ticket.status = 'in_progress'
+            ticket.save(update_fields=['status', 'updated_at'])
+        return Response(TicketResponseSerializer(response_obj).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        """Marcar ticket como resuelto."""
+        ticket = self.get_object()
+        if not request.user.is_staff:
+            return Response({'error': 'Solo staff puede resolver tickets'}, status=status.HTTP_403_FORBIDDEN)
+        ticket.status = 'resolved'
+        ticket.resolved_at = timezone.now()
+        ticket.save(update_fields=['status', 'resolved_at', 'updated_at'])
+        return Response(self.get_serializer(ticket).data)
+
+    @action(detail=True, methods=['post'])
+    def close(self, request, pk=None):
+        """Cerrar ticket definitivamente."""
+        ticket = self.get_object()
+        ticket.status = 'closed'
+        ticket.closed_at = timezone.now()
+        ticket.save(update_fields=['status', 'closed_at', 'updated_at'])
+        return Response(self.get_serializer(ticket).data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Estadísticas de tickets (solo staff)."""
+        if not request.user.is_staff:
+            return Response({'error': 'Solo staff'}, status=status.HTTP_403_FORBIDDEN)
+        from django.db.models import Count
+        qs = SupportTicket.objects.all()
+        by_status = dict(qs.values_list('status').annotate(c=Count('id')).values_list('status', 'c'))
+        by_dept = dict(qs.values_list('department').annotate(c=Count('id')).values_list('department', 'c'))
+        by_priority = dict(qs.values_list('priority').annotate(c=Count('id')).values_list('priority', 'c'))
+        open_tickets = qs.filter(status__in=['open', 'in_progress']).count()
+        return Response({
+            'total': qs.count(),
+            'open': open_tickets,
+            'by_status': by_status,
+            'by_department': by_dept,
+            'by_priority': by_priority,
+        })
 
 
 class NotificationViewSet(viewsets.ModelViewSet):

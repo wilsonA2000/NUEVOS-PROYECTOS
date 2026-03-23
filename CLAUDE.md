@@ -585,8 +585,25 @@ docs: Update API documentation
 ✅ **Conflict of Interest Validation** - Admin cannot approve own contracts
 ✅ **Contract Timeline** - Audit trail component (ContractTimeline.tsx)
 ✅ **Verification Agents Module** - Field agents, visits, reports, ratings (verification/ Django app)
+✅ **Internal Tickets System** - SupportTicket with departments, auto-distribution from contact form, CRUD API
 
 ---
+
+## Internal Tickets System (Pilar 2)
+
+```
+Departments: general, verification_agents, legal, ceo, marketing, technical, billing
+
+Auto-distribution: ContactMessage → SupportTicket (department auto-detected by keywords)
+
+API Endpoints:
+  GET/POST   /api/v1/core/tickets/                # Ticket CRUD (staff=all, user=own)
+  POST       /api/v1/core/tickets/{id}/assign/     # Assign to staff member
+  POST       /api/v1/core/tickets/{id}/respond/    # Add response (internal/public)
+  POST       /api/v1/core/tickets/{id}/resolve/    # Mark as resolved
+  POST       /api/v1/core/tickets/{id}/close/      # Close ticket
+  GET        /api/v1/core/tickets/stats/           # Statistics by dept/status/priority
+```
 
 ## Verification Agents Module (Pilar 1)
 

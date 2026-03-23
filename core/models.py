@@ -419,7 +419,19 @@ class SupportTicket(models.Model):
         ('property', 'Propiedad'),
         ('contract', 'Contrato'),
         ('verification', 'Verificación'),
+        ('legal', 'Jurídico'),
+        ('services', 'Servicios'),
         ('other', 'Otro'),
+    ]
+
+    DEPARTMENTS = [
+        ('general', 'Consultas Generales'),
+        ('verification_agents', 'Agentes de Verificación'),
+        ('legal', 'Área Jurídica'),
+        ('ceo', 'Dirección / CEO'),
+        ('marketing', 'Marketing'),
+        ('technical', 'Soporte Técnico'),
+        ('billing', 'Facturación y Pagos'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -444,8 +456,19 @@ class SupportTicket(models.Model):
     subject = models.CharField('Asunto', max_length=200)
     description = models.TextField('Descripción', max_length=2000)
     category = models.CharField('Categoría', max_length=20, choices=CATEGORIES)
+    department = models.CharField('Departamento destino', max_length=25, choices=DEPARTMENTS, default='general')
     priority = models.CharField('Prioridad', max_length=10, choices=PRIORITY_LEVELS, default='normal')
     status = models.CharField('Estado', max_length=20, choices=TICKET_STATUS, default='open')
+
+    # Referencia a ContactMessage (si el ticket viene del formulario público)
+    contact_message = models.ForeignKey(
+        'ContactMessage',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tickets',
+        verbose_name='Mensaje de contacto origen',
+    )
     
     # Referencias relacionadas
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
