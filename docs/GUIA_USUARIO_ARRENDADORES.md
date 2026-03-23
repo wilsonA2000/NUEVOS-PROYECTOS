@@ -138,6 +138,42 @@ es de $[CANON] pesos colombianos...
 
 ---
 
+## ⚖️ Revisión Jurídica del Contrato
+
+### ¿Qué es la Revisión Jurídica?
+
+Todo contrato creado en VeriHome pasa obligatoriamente por revisión del equipo legal antes de ser enviado al arrendatario. Este proceso garantiza:
+
+- Cumplimiento con la Ley 820 de 2003
+- Cláusulas equilibradas para ambas partes
+- Documentación legal correcta y completa
+- Protección jurídica para arrendador y arrendatario
+
+### Flujo de Revisión
+
+1. **Usted crea el contrato** → Estado: "En Revisión Jurídica"
+2. **Equipo legal VeriHome revisa** → Plazo máximo: 5 días hábiles
+3. **Aprobación o correcciones**:
+   - ✅ Si se aprueba → Pasa a estado "Borrador" y puede invitar al arrendatario
+   - ❌ Si necesita correcciones → Recibirá email detallado con lo que debe ajustar
+4. **Después de corregir** → Se re-envía a revisión (flujo circular)
+
+### ¿Cómo saber el estado?
+
+En su Dashboard de Contratos verá un chip **"En Revisión Jurídica"** (color azul) con un icono de balanza. Al pasar el mouse, verá el mensaje:
+
+> "Su contrato está siendo revisado por el equipo legal de VeriHome. Tiempo estimado: 3-5 días hábiles."
+
+Si el plazo se excede, el contrato se marca como **"Revisión priorizada"** y recibirá notificación de que será atendido en las próximas 24 horas.
+
+### Importante
+
+- El administrador que revisa NO puede ser la misma persona que figura como arrendador (conflicto de intereses)
+- Después de la firma biométrica, el contrato es **inmutable** — no puede ser modificado
+- Cualquier modificación posterior requiere un **Otrosí** aprobado por ambas partes
+
+---
+
 ## 👥 Gestión de Arrendatarios
 
 ### Invitación de Arrendatarios

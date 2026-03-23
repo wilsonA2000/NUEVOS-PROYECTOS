@@ -185,6 +185,25 @@ Una vez ingreses, verás el contrato completo estructurado en secciones:
 
 ---
 
+## ⚖️ Estado de Revisión Jurídica
+
+Cuando un arrendador crea un contrato para usted, este pasa primero por una revisión legal del equipo de VeriHome. Durante este tiempo:
+
+- Usted aún no recibirá la invitación para revisar el contrato
+- El arrendador verá el estado "En Revisión Jurídica" en su panel
+- Una vez aprobado, usted recibirá la invitación por email/SMS/WhatsApp
+- El equipo legal garantiza que las cláusulas sean equilibradas y conformes a la Ley 820 de 2003
+
+### Historial del Contrato
+
+En la vista de detalle de cualquier contrato, puede consultar el **Historial del Contrato** que muestra:
+- Fecha y hora de cada acción
+- Quién realizó la acción (arrendador, arrendatario, admin, sistema)
+- Transiciones de estado
+- Este historial es su respaldo de auditoría para cualquier reclamación
+
+---
+
 ## ⚠️ Sistema de Objeciones
 
 ### 💡 ¿Qué es una Objeción?

@@ -265,12 +265,21 @@ GET  /api/v1/contracts/{id}/auth-status/
 
 **Critical**: Both records must exist. Use `scripts/fixes/sync_biometric_contract.py` to synchronize.
 
-**Workflow States:**
+**Workflow States (LandlordControlledContract):**
+- `PENDING_ADMIN_REVIEW` → Juridical review by VeriHome lawyer
+- `RE_PENDING_ADMIN` → Re-review after corrections
+- `DRAFT` → Approved by admin, ready for tenant
 - `pending_tenant_biometric` → Tenant authentication
 - `pending_guarantor_biometric` → Guarantor (if has guarantor)
 - `pending_landlord_biometric` → Landlord authentication
 - `completed_biometric` → All authenticated
 - `active` → Contract executing
+
+**New Safeguards:**
+- `admin_review_deadline`: 5 business days SLA
+- `admin_review_escalated`: auto-escalation flag
+- Conflict of interest: `admin_user != contract.landlord` validation
+- Celery tasks: `check_admin_review_sla`, `check_biometric_expiration`
 
 ### Database Fallback System
 
@@ -488,6 +497,21 @@ celery -A verihome beat -l info
 - `src/contexts/AuthContext.tsx` - Global auth state
 - `src/utils/performanceMonitor.ts` - Performance tracking
 
+### New Backend Files
+- `core/models.py` - ContactMessage model
+- `core/admin.py` - ContactMessage admin panel
+- `contracts/tasks.py` - SLA monitoring + biometric expiration tasks
+
+### New Frontend Files
+- `src/hooks/useScrollReveal.ts` - IntersectionObserver scroll animations
+- `src/components/common/ScrollToTop.tsx` - Route change scroll reset
+- `src/components/common/ScrollToTopButton.tsx` - Floating scroll button
+- `src/components/contracts/ContractTimeline.tsx` - Workflow history visual
+- `src/pages/TermsPage.tsx` - Terms and conditions (Law 820/2003)
+- `src/pages/PrivacyPage.tsx` - Privacy policy (Law 1581/2012)
+- `src/pages/SecurityPage.tsx` - Security pillars page
+- `src/pages/ServicesOverviewPage.tsx` - Complete rewrite with 5 service sections
+
 ---
 
 ## Test Commands Summary
@@ -553,9 +577,16 @@ docs: Update API documentation
 ✅ **Multi-language Support** - ES/EN with react-i18next
 ✅ **Admin Dashboard V2** - Real-time notifications
 ✅ **Comprehensive Testing** - 63 test suites, 771+ frontend tests, 87+ backend tests
+✅ **Contact Form** - Real backend (POST /api/v1/core/contact/ + email notification)
+✅ **Legal Pages** - Terms (/terms), Privacy (/privacy, Ley 1581/2012), Security (/security)
+✅ **Scroll Animations** - Scroll-reveal animations (useScrollReveal hook) + ScrollToTopButton
+✅ **Google Maps Integration** - Embedded map on Contact page
+✅ **Juridical Review SLA** - Contract review: 5 business days + auto-escalation
+✅ **Conflict of Interest Validation** - Admin cannot approve own contracts
+✅ **Contract Timeline** - Audit trail component (ContractTimeline.tsx)
 
 ---
 
-**Last Updated**: March 19, 2026
+**Last Updated**: March 23, 2026
 **Version**: Production-ready with complete Plan Maestro implementation
 **Branch**: main
