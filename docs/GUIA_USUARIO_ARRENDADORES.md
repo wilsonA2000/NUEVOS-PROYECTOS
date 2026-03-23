@@ -2,15 +2,17 @@
 
 ## 📋 Índice
 1. [Introducción](#introducción)
-2. [Primeros Pasos](#primeros-pasos)
-3. [Creación de Contratos](#creación-de-contratos)
-4. [Gestión de Arrendatarios](#gestión-de-arrendatarios)
-5. [Sistema de Firmas Biométricas](#sistema-de-firmas-biométricas)
-6. [Dashboard y Estadísticas](#dashboard-y-estadísticas)
-7. [Gestión de Propiedades](#gestión-de-propiedades)
-8. [Notificaciones y Comunicación](#notificaciones-y-comunicación)
-9. [Preguntas Frecuentes](#preguntas-frecuentes)
-10. [Soporte Técnico](#soporte-técnico)
+2. [Verificación Presencial](#verificación-presencial)
+3. [Primeros Pasos](#primeros-pasos)
+4. [Creación de Contratos](#creación-de-contratos)
+5. [Revisión Jurídica del Contrato](#revisión-jurídica-del-contrato)
+6. [Gestión de Arrendatarios](#gestión-de-arrendatarios)
+7. [Sistema de Firmas Biométricas](#sistema-de-firmas-biométricas)
+8. [Dashboard y Estadísticas](#dashboard-y-estadísticas)
+9. [Gestión de Propiedades](#gestión-de-propiedades)
+10. [Notificaciones y Comunicación](#notificaciones-y-comunicación)
+11. [Preguntas Frecuentes](#preguntas-frecuentes)
+12. [Soporte Técnico](#soporte-técnico)
 
 ---
 
@@ -24,6 +26,42 @@ Bienvenido al **Sistema de Contratos Inteligente de VeriHome**, la plataforma m�
 - **⚡ Tiempo Real**: Notificaciones instantáneas y chat en vivo
 - **📊 Análisis Avanzado**: Estadísticas detalladas y predicciones ML
 - **🇨🇴 Cumplimiento Legal**: Totalmente conforme con la legislación colombiana
+
+---
+
+## 🔍 Verificación Presencial
+
+### ¿Qué es la Verificación Presencial?
+
+Antes de poder publicar propiedades o interactuar en la plataforma, todo arrendador debe pasar por una **verificación presencial** realizada por un agente de campo de VeriHome. Este proceso garantiza la autenticidad de cada miembro de nuestra comunidad.
+
+### ¿Cómo funciona?
+
+1. **Solicitud de verificación**: Al registrarse, VeriHome programa una visita presencial a su domicilio o propiedad.
+2. **Asignación de agente**: Un agente de verificación certificado es asignado a su caso. Recibirá un correo con los datos del agente, fecha y hora programada.
+3. **Visita presencial**: El agente verificará:
+   - Su identidad (cédula de ciudadanía, cédula de extranjería o pasaporte)
+   - La existencia física de la propiedad (si aplica)
+   - Que la propiedad coincida con la descripción proporcionada
+   - Referencias personales y laborales
+4. **Reporte de verificación**: El agente genera un reporte con:
+   - Estado general (Excelente, Bueno, Aceptable, Necesita Mejoras, Rechazado)
+   - Calificación inicial de 1 a 10
+   - Hallazgos y recomendaciones
+   - Evidencias fotográficas
+5. **Número de registro**: Una vez aprobada la verificación, se le asigna un número de registro VeriHome y su perfil se marca como **verificado**.
+
+### ¿Qué pasa si la verificación no es aprobada?
+
+Si el agente identifica inconsistencias, recibirá un informe detallado con las observaciones y podrá solicitar una nueva visita una vez resueltas las observaciones. VeriHome se reserva el derecho de rechazar el ingreso a la plataforma si se detectan irregularidades graves.
+
+### Seguimiento de su verificación
+
+Desde su panel podrá ver:
+- **Visita programada**: Fecha, hora y agente asignado
+- **En progreso**: El agente está realizando la verificación
+- **Completada**: Reporte disponible con resultado
+- **Número de visita**: Identificador único para seguimiento (formato VIS-2026-XXXXX)
 
 ---
 

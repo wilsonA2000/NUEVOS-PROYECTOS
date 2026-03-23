@@ -58,6 +58,7 @@ urlpatterns = [
         path('services/', include('services.urls', namespace='api-services')),
         path('core/', include('core.api_urls')),
         path('dashboard/', include('dashboard.urls')),
+        path('verification/', include('verification.api_urls')),
     ])),
     
     # Páginas especiales

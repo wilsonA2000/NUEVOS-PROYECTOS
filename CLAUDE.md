@@ -584,6 +584,33 @@ docs: Update API documentation
 ✅ **Juridical Review SLA** - Contract review: 5 business days + auto-escalation
 ✅ **Conflict of Interest Validation** - Admin cannot approve own contracts
 ✅ **Contract Timeline** - Audit trail component (ContractTimeline.tsx)
+✅ **Verification Agents Module** - Field agents, visits, reports, ratings (verification/ Django app)
+
+---
+
+## Verification Agents Module (Pilar 1)
+
+```
+verification/                    # Field verification system
+├── models.py                   # VerificationAgent, VerificationVisit, VerificationReport
+├── admin.py                    # Full admin panel with fieldsets
+├── api_views.py                # 3 ViewSets + custom actions (assign, start, complete, cancel, approve)
+├── serializers.py              # DRF serializers
+├── api_urls.py                 # Router-based URLs
+└── migrations/
+
+API Endpoints:
+  GET/POST   /api/v1/verification/agents/           # Agent CRUD
+  GET        /api/v1/verification/agents/available/  # Agents with capacity
+  GET        /api/v1/verification/agents/stats/      # Agent statistics
+  GET/POST   /api/v1/verification/visits/            # Visit CRUD
+  POST       /api/v1/verification/visits/{id}/assign_agent/  # Assign agent
+  POST       /api/v1/verification/visits/{id}/start/         # Start visit
+  POST       /api/v1/verification/visits/{id}/complete/      # Complete visit
+  POST       /api/v1/verification/visits/{id}/cancel/        # Cancel visit
+  GET/POST   /api/v1/verification/reports/           # Report CRUD
+  POST       /api/v1/verification/reports/{id}/approve/  # Admin approval
+```
 
 ---
 

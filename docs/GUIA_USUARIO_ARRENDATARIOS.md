@@ -2,8 +2,9 @@
 
 ## 📋 Índice
 1. [Introducción](#introducción)
-2. [Acceso al Sistema](#acceso-al-sistema)
-3. [Revisión de Contratos](#revisión-de-contratos)
+2. [Verificación Presencial](#verificación-presencial)
+3. [Acceso al Sistema](#acceso-al-sistema)
+4. [Revisión de Contratos](#revisión-de-contratos)
 4. [Sistema de Objeciones](#sistema-de-objeciones)
 5. [Proceso de Firma Biométrica](#proceso-de-firma-biométrica)
 6. [Gestión de Pagos](#gestión-de-pagos)
@@ -40,6 +41,31 @@
 - Cumple con toda la legislación colombiana
 - Ley 820 de 2003 de arrendamientos
 - Validez jurídica garantizada
+
+---
+
+## 🔍 Verificación Presencial
+
+### ¿Por qué necesito una verificación presencial?
+
+VeriHome garantiza que todos los miembros de su comunidad sean personas reales y confiables. Antes de poder buscar propiedades o firmar contratos, un agente de campo de VeriHome le visitará para verificar su identidad.
+
+### El proceso
+
+1. **Programación**: VeriHome le contactará para coordinar una visita en su domicilio actual.
+2. **Visita del agente**: Un agente certificado verificará:
+   - Su documento de identidad (original, no copias)
+   - Que usted vive en la dirección proporcionada
+   - Sus referencias personales y laborales
+3. **Calificación inicial**: El agente le asigna una calificación de 1 a 10 que será visible en su perfil. Esta calificación puede mejorar con el tiempo según su comportamiento en la plataforma.
+4. **Activación**: Una vez aprobada la verificación, su perfil se activa como **verificado** y puede interactuar plenamente en la plataforma.
+
+### Beneficios de estar verificado
+
+- Los arrendadores confían más en arrendatarios verificados
+- Acceso prioritario a las mejores propiedades
+- Su calificación inicial le da ventaja en el proceso de matching
+- Puede firmar contratos digitales con validez legal
 
 ---
 
