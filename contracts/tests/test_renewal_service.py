@@ -71,7 +71,7 @@ class IPCAdjustmentTest(TestCase):
         """Test que el resultado contiene todas las claves esperadas."""
         result = RenewalAlertService.calculate_ipc_adjustment(1500000, 4.5)
 
-        expected_keys = {'current_rent', 'ipc_rate', 'max_increment', 'new_rent'}
+        expected_keys = {'current_rent', 'ipc_rate', 'max_increment', 'new_rent', 'ipc_source'}
         self.assertEqual(set(result.keys()), expected_keys)
 
     def test_ipc_with_string_inputs(self):
