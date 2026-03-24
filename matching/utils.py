@@ -38,6 +38,11 @@ def create_match_notification(match_request, notification_type, custom_message=N
             'recipient': match_request.landlord,
             'title': 'Recordatorio: Solicitud de match pendiente',
             'message': f'Tienes una solicitud pendiente de {match_request.tenant.get_full_name()} para "{match_request.property.title}". No olvides responder.'
+        },
+        'match_request_cancelled': {
+            'recipient': match_request.landlord,
+            'title': 'Solicitud de match cancelada',
+            'message': f'{match_request.tenant.get_full_name()} ha cancelado su solicitud para "{match_request.property.title}".'
         }
     }
     

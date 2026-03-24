@@ -181,7 +181,7 @@ class UserSearchAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        query = self.getattr(request, "query_params", request.GET).get('q', '')
+        query = getattr(self.request, "query_params", self.request.GET).get('q', '')
         return User.objects.filter(
             email__icontains=query
         ) | User.objects.filter(
@@ -196,7 +196,7 @@ class ServiceProviderSearchAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        query = self.getattr(request, "query_params", request.GET).get('q', '')
+        query = getattr(self.request, "query_params", self.request.GET).get('q', '')
         return User.objects.filter(
             user_type='service_provider',
             email__icontains=query

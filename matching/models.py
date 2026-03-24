@@ -255,7 +255,7 @@ class MatchRequest(models.Model):
             property_requests.delete()
         
         # 3. ELIMINAR MENSAJES DEL HILO DE CONVERSACIÓN
-        from messaging.models import Message, Thread
+        from messaging.models import Message, MessageThread as Thread
         try:
             # Buscar hilo de conversación específico de este match
             thread = Thread.objects.filter(

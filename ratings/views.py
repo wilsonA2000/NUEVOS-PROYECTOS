@@ -9,9 +9,12 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Avg, Q
 from django.core.paginator import Paginator
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 from .models import Rating, RatingCategory, RatingResponse, RatingReport, UserRatingProfile
 from .forms import RatingForm, RatingResponseForm, RatingReportForm
@@ -327,9 +330,18 @@ class RatingListCreateView(generics.ListCreateAPIView):
                 contract=contract,
                 property=contract.property
             )
+        elif reviewee_id:
+            # Calificación general con reviewee explícito
+            reviewee = get_object_or_404(User, id=reviewee_id)
+            rating = serializer.save(
+                reviewer=self.request.user,
+                reviewee=reviewee,
+                rating_type='general'
+            )
         else:
-            # Calificación general sin contrato
-            rating = serializer.save(reviewer=self.request.user, rating_type='general')
+            raise serializers.ValidationError(
+                {"detail": "Se requiere 'contract' o 'reviewee' para crear una calificación."}
+            )
         
         # Logging automático
         request = self.request

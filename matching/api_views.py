@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -354,9 +355,9 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         
         # Crear notificación para el arrendador
         create_match_notification(
-            match_request, 
+            match_request,
             'match_request_cancelled',
-            message=f"El inquilino {match_request.tenant.get_full_name()} ha cancelado su solicitud para {match_request.property.title}"
+            custom_message=f"El inquilino {match_request.tenant.get_full_name()} ha cancelado su solicitud para {match_request.property.title}"
         )
         
         return Response({
@@ -1320,7 +1321,7 @@ class SmartMatchingAPIView(APIView):
         """Genera razones específicas para el match."""
         reasons = []
         
-        if criteria.max_price and property.rent_price <= criteria.max_price * 0.8:
+        if criteria.max_price and property.rent_price <= criteria.max_price * Decimal('0.8'):
             reasons.append("Precio muy competitivo")
         elif criteria.max_price and property.rent_price <= criteria.max_price:
             reasons.append("Dentro de tu presupuesto")
