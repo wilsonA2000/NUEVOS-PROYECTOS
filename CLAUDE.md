@@ -595,6 +595,9 @@ docs: Update API documentation
 ✅ **Admin Tickets Dashboard** - Ticket management with filters, responses, assignment (AdminTicketsDashboard.tsx)
 ✅ **Subscription Plans Page** - Plan comparison, subscribe/cancel/upgrade for service providers (SubscriptionPlans.tsx)
 ✅ **ContractTimeline Integration** - Audit trail now visible in ContractDetail view
+✅ **User Status Persistence** - is_online, last_seen, status_mode fields on User model, WebSocket consumer persists to DB
+✅ **Dynamic FAQ System** - Backend API /api/v1/core/faqs/ + SupportPage loads from DB with fallback to defaults
+✅ **Profile Completeness** - Alert for incomplete profiles, resume fields integrated into completion calculation
 
 ---
 

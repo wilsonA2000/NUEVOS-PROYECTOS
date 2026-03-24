@@ -221,31 +221,35 @@ const CtaSection: React.FC<{ onRegister: () => void; onContact: () => void }> = 
   );
 };
 
+const DEFAULT_FAQS = [
+  { question: '¿Qué es VeriHome?', answer: 'VeriHome es una plataforma integral de gestión inmobiliaria que conecta propietarios, inquilinos y prestadores de servicios en Colombia, ofreciendo herramientas digitales para simplificar todos los aspectos del sector inmobiliario.' },
+  { question: '¿Es seguro usar VeriHome?', answer: 'Absolutamente. Utilizamos tecnología de encriptación avanzada y verificamos a todos nuestros usuarios. Además, cumplimos con todas las regulaciones de protección de datos en Colombia.' },
+  { question: '¿Qué servicios incluye la plataforma?', answer: 'VeriHome incluye gestión de propiedades, arrendamiento inteligente, servicios de mantenimiento, sistema de pagos, verificación de usuarios y reportes detallados.' },
+  { question: '¿Cómo funciona la verificación de usuarios?', answer: 'Nuestro sistema verifica la identidad mediante visita presencial de un agente de campo, verificación de documento colombiano, referencias personales y laborales. Cada usuario recibe una calificación inicial.' },
+  { question: '¿Puedo cancelar mi suscripción en cualquier momento?', answer: 'Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.' },
+];
+
 const SupportPage: React.FC = () => {
   const navigate = useNavigate();
+  const [faqs, setFaqs] = React.useState(DEFAULT_FAQS);
 
-  const faqs = [
-    {
-      question: '¿Qué es VeriHome?',
-      answer: 'VeriHome es una plataforma integral de gestión inmobiliaria que conecta propietarios, inquilinos y prestadores de servicios en Colombia, ofreciendo herramientas digitales para simplificar todos los aspectos del sector inmobiliario.',
-    },
-    {
-      question: '¿Es seguro usar VeriHome?',
-      answer: 'Absolutamente. Utilizamos tecnología de encriptación avanzada y verificamos a todos nuestros usuarios. Además, cumplimos con todas las regulaciones de protección de datos en Colombia.',
-    },
-    {
-      question: '¿Qué servicios incluye la plataforma?',
-      answer: 'VeriHome incluye gestión de propiedades, arrendamiento inteligente, servicios de mantenimiento, sistema de pagos, verificación de usuarios y reportes detallados.',
-    },
-    {
-      question: '¿Cómo funciona la verificación de usuarios?',
-      answer: 'Nuestro sistema verifica la identidad, antecedentes penales y historial crediticio de todos los usuarios para garantizar la seguridad de la comunidad.',
-    },
-    {
-      question: '¿Puedo cancelar mi suscripción en cualquier momento?',
-      answer: 'Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.',
-    },
-  ];
+  React.useEffect(() => {
+    const loadFaqs = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const response = await fetch(`${apiUrl}/core/faqs/`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length > 0) {
+            setFaqs(data);
+          }
+        }
+      } catch {
+        // Fallback to defaults silently
+      }
+    };
+    loadFaqs();
+  }, []);
 
   const supportChannels = [
     {

@@ -20,6 +20,9 @@ urlpatterns = [
     # Formulario de contacto público
     path('contact/', api_views.ContactMessageAPIView.as_view(), name='api_contact_message'),
 
+    # FAQ público
+    path('faqs/', api_views.FAQListAPIView.as_view(), name='api_faqs'),
+
     # Endpoints de prueba
     path('health/', api_views.health_check, name='health_check'),
     path('test/', api_views.test_connection, name='test_connection'),

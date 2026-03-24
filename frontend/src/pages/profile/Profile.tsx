@@ -86,28 +86,34 @@ const Profile: React.FC = () => {
   const calculateCompletionPercentage = (data: any): number => {
     const requiredFields = [
       'first_name', 'last_name', 'phone_number', 'date_of_birth', 'gender',
-      'nationality', 'marital_status', 'country', 'state', 'city', 
+      'nationality', 'marital_status', 'country', 'state', 'city',
       'current_address', 'employment_status', 'monthly_income',
     ];
-    
+
     const roleSpecificFields: { [key: string]: string[] } = {
       landlord: ['total_properties', 'years_experience'],
       tenant: ['budget_range', 'family_size'],
       service_provider: ['service_category', 'hourly_rate', 'business_name'],
     };
-    
-    const userType = user?.user_type || 'tenant';
-    const allRequiredFields = [
-      ...requiredFields, 
-      ...(roleSpecificFields[userType] || []),
+
+    // Campos de la hoja de vida (opcionales pero aumentan el score)
+    const resumeFields = [
+      'education_level', 'emergency_contact_name', 'emergency_contact_phone',
     ];
-    
-    const completedFields = allRequiredFields.filter(field => {
+
+    const userType = user?.user_type || 'tenant';
+    const allFields = [
+      ...requiredFields,
+      ...(roleSpecificFields[userType] || []),
+      ...resumeFields,
+    ];
+
+    const completedFields = allFields.filter(field => {
       const value = data[field];
       return value !== null && value !== '' && value !== undefined && value !== 0;
     });
-    
-    return Math.round((completedFields.length / allRequiredFields.length) * 100);
+
+    return Math.round((completedFields.length / allFields.length) * 100);
   };
 
   const [formData, setFormData] = useState({

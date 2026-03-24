@@ -26,6 +26,17 @@ class User(AbstractUser):
     user_type = models.CharField('Tipo de usuario', max_length=20, choices=USER_TYPES)
     is_verified = models.BooleanField('Verificado', default=False)
     verification_date = models.DateTimeField('Fecha de verificación', null=True, blank=True)
+
+    # Estado de conexión
+    is_online = models.BooleanField('En línea', default=False)
+    last_seen = models.DateTimeField('Última actividad', null=True, blank=True)
+    status_mode = models.CharField(
+        'Estado',
+        max_length=10,
+        choices=[('online', 'En línea'), ('busy', 'Ocupado'), ('offline', 'Desconectado')],
+        default='offline',
+    )
+
     phone_number = models.CharField(
         'Número de teléfono',
         max_length=15,

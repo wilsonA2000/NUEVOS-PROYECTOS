@@ -727,19 +727,33 @@ class UserStatusConsumer(AsyncWebsocketConsumer):
             )
     
     async def receive(self, text_data):
-        """Procesa mensajes de estado."""
+        """Procesa mensajes de estado y cambios manuales."""
         try:
             data = json.loads(text_data)
-            
+
             if data.get('type') == 'heartbeat':
                 await self.send(text_data=json.dumps({
                     'type': 'heartbeat_ack',
                     'timestamp': django_timezone.now().isoformat()
                 }))
-                
-                # Actualizar última actividad
                 await self.update_last_activity()
-                
+
+            elif data.get('type') == 'set_status':
+                new_status = data.get('status', 'online')
+                if new_status in ('online', 'busy', 'offline'):
+                    await self.set_manual_status(new_status)
+                    await self.channel_layer.group_send(
+                        self.status_group,
+                        {
+                            'type': 'user_status_update',
+                            'user_id': self.user.id,
+                            'user_name': self.user.get_full_name(),
+                            'is_online': new_status != 'offline',
+                            'status_mode': new_status,
+                            'last_seen': django_timezone.now().isoformat()
+                        }
+                    )
+
         except Exception as e:
             logger.error(f"Error in status consumer: {str(e)}")
     
@@ -751,27 +765,40 @@ class UserStatusConsumer(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def update_user_status(self, is_online):
-        """Actualiza el estado online/offline del usuario."""
+        """Actualiza el estado online/offline del usuario en el modelo User."""
         try:
-            from users.models import UserProfile
-            
-            profile, created = UserProfile.objects.get_or_create(user=self.user)
-            profile.is_online = is_online
-            profile.last_seen = django_timezone.now()
-            profile.save()
-            
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            User.objects.filter(pk=self.user.pk).update(
+                is_online=is_online,
+                last_seen=django_timezone.now(),
+                status_mode='online' if is_online else 'offline',
+            )
         except Exception as e:
             logger.error(f"Error updating user status: {str(e)}")
-    
+
+    @database_sync_to_async
+    def set_manual_status(self, status_mode):
+        """Establece estado manual del usuario (online/busy/offline)."""
+        try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            User.objects.filter(pk=self.user.pk).update(
+                is_online=status_mode != 'offline',
+                status_mode=status_mode,
+                last_seen=django_timezone.now(),
+            )
+        except Exception as e:
+            logger.error(f"Error setting manual status: {str(e)}")
+
     @database_sync_to_async
     def update_last_activity(self):
         """Actualiza la última actividad del usuario."""
         try:
-            from users.models import UserProfile
-            
-            profile, created = UserProfile.objects.get_or_create(user=self.user)
-            profile.last_seen = django_timezone.now()
-            profile.save()
-            
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            User.objects.filter(pk=self.user.pk).update(
+                last_seen=django_timezone.now(),
+            )
         except Exception as e:
             logger.error(f"Error updating last activity: {str(e)}")

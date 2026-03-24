@@ -13,7 +13,7 @@ from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 from django.conf import settings
 
-from .models import Notification, ActivityLog, SystemAlert, ContactMessage, SupportTicket, TicketResponse
+from .models import Notification, ActivityLog, SystemAlert, ContactMessage, SupportTicket, TicketResponse, FAQ
 from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer, SupportTicketSerializer, TicketResponseSerializer
 from django.core.mail import send_mail
 from rest_framework.throttling import AnonRateThrottle
@@ -140,6 +140,28 @@ class ContactMessageAPIView(APIView):
             {'message': '¡Mensaje enviado exitosamente! Te responderemos pronto.', 'email_sent': email_sent},
             status=status.HTTP_201_CREATED,
         )
+
+
+class FAQListAPIView(APIView):
+    """Endpoint público para obtener FAQs publicadas."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        category = request.query_params.get('category')
+        qs = FAQ.objects.filter(is_published=True).order_by('category', 'order')
+        if category:
+            qs = qs.filter(category=category)
+        data = [
+            {
+                'id': faq.id,
+                'question': faq.question,
+                'answer': faq.answer,
+                'category': faq.category,
+                'category_display': faq.get_category_display(),
+            }
+            for faq in qs
+        ]
+        return Response(data)
 
 
 class SupportTicketViewSet(viewsets.ModelViewSet):
