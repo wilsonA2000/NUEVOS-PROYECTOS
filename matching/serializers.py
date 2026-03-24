@@ -55,12 +55,26 @@ class MatchRequestSerializer(serializers.ModelSerializer):
             'compatibility_score', 'is_expired', 'can_follow_up', 'follow_up_count',
             'has_contract', 'contract_generated_at', 'can_create_contract', 'contract_status',
             'workflow_status', 'workflow_stage', 'workflow_data',
-            # Campos adicionales para detalles del candidato
-            'tenant_message', 'tenant_phone', 'tenant_email', 'monthly_income',
+            # Campos del candidato (info básica, no sensible)
+            'tenant_message', 'monthly_income',
             'employment_type', 'preferred_move_in_date', 'lease_duration_months',
             'has_rental_references', 'has_employment_proof', 'has_credit_check',
-            'number_of_occupants', 'has_pets', 'pet_details', 'smoking_allowed'
+            'number_of_occupants', 'has_pets', 'pet_details', 'smoking_allowed',
+            # Contacto solo visible post-aceptación (controlado por get_tenant_contact)
+            'tenant_contact',
         ]
+
+    tenant_contact = serializers.SerializerMethodField()
+
+    def get_tenant_contact(self, obj):
+        """Solo expone phone/email si el match fue aceptado."""
+        accepted = ['accepted', 'contract_generated', 'contract_signed']
+        if obj.status in accepted:
+            return {
+                'phone': getattr(obj, 'tenant_phone', ''),
+                'email': getattr(obj, 'tenant_email', ''),
+            }
+        return None
         read_only_fields = ['id', 'match_code', 'created_at', 'viewed_at', 'responded_at']
     
     def get_compatibility_score(self, obj):
@@ -155,22 +169,44 @@ class MatchRequestDetailSerializer(serializers.ModelSerializer):
     
     def get_tenant(self, obj):
         tenant = obj.tenant
+        is_verified = getattr(tenant, 'is_verified', False)
+        # Solo exponer datos de contacto si el match fue aceptado
+        accepted_statuses = ['accepted', 'contract_generated', 'contract_signed']
+        if obj.status in accepted_statuses:
+            return {
+                'id': str(tenant.id),
+                'name': tenant.get_full_name(),
+                'email': tenant.email,
+                'phone_number': getattr(tenant, 'phone_number', ''),
+                'user_type': tenant.user_type,
+                'is_verified': is_verified,
+            }
+        # Antes de aceptar: solo info pública no sensible
         return {
             'id': str(tenant.id),
             'name': tenant.get_full_name(),
-            'email': tenant.email,
-            'phone_number': tenant.phone_number,
-            'user_type': tenant.user_type
+            'user_type': tenant.user_type,
+            'is_verified': is_verified,
         }
-    
+
     def get_landlord(self, obj):
         landlord = obj.landlord
+        is_verified = getattr(landlord, 'is_verified', False)
+        accepted_statuses = ['accepted', 'contract_generated', 'contract_signed']
+        if obj.status in accepted_statuses:
+            return {
+                'id': str(landlord.id),
+                'name': landlord.get_full_name(),
+                'email': landlord.email,
+                'phone_number': getattr(landlord, 'phone_number', ''),
+                'user_type': landlord.user_type,
+                'is_verified': is_verified,
+            }
         return {
             'id': str(landlord.id),
             'name': landlord.get_full_name(),
-            'email': landlord.email,
-            'phone_number': landlord.phone_number,
-            'user_type': landlord.user_type
+            'user_type': landlord.user_type,
+            'is_verified': is_verified,
         }
     
     def get_compatibility_analysis(self, obj):

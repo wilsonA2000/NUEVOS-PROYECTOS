@@ -438,6 +438,18 @@ const Profile: React.FC = () => {
                 )}
               </Box>
               
+              {/* Alerta de perfil incompleto */}
+              {calculateCompletionPercentage(formData) < 100 && (
+                <Alert severity={calculateCompletionPercentage(formData) < 50 ? 'error' : 'warning'} sx={{ mt: 2, width: '100%', maxWidth: 500 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Su perfil est&aacute; al {calculateCompletionPercentage(formData)}% de completitud
+                  </Typography>
+                  <Typography variant="caption">
+                    Complete toda su informaci&oacute;n para mejorar su visibilidad en la plataforma y acceder a todas las funcionalidades. Los usuarios con perfil completo tienen prioridad en el matching.
+                  </Typography>
+                </Alert>
+              )}
+
               {/* Barra de progreso de completitud */}
               <Box mt={2} width="100%" maxWidth={400}>
                 <Box display="flex" alignItems="center" gap={1} mb={1}>
