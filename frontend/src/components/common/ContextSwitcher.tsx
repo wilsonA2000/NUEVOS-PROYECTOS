@@ -123,15 +123,31 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
     return contexts;
   }, [user]);
 
-  // Detectar contexto actual basado en la URL
+  // Detectar contexto actual basado en URL + localStorage
   const currentContext = useMemo(() => {
     const path = location.pathname;
 
+    // Rutas admin siempre = contexto admin
     if (path.startsWith('/app/admin')) {
       return CONTEXT_OPTIONS.admin;
     }
 
-    // Si no está en admin, usar el user_type del usuario
+    // Ruta de suscripciones = service_provider
+    if (path.startsWith('/app/subscriptions')) {
+      return CONTEXT_OPTIONS.service_provider;
+    }
+
+    // Leer preferencia guardada de localStorage
+    const savedContext = localStorage.getItem(CONTEXT_STORAGE_KEY);
+    if (savedContext && CONTEXT_OPTIONS[savedContext]) {
+      // Verificar que el usuario tenga acceso a ese contexto
+      const hasAccess = availableContexts.some(c => c.id === savedContext);
+      if (hasAccess) {
+        return CONTEXT_OPTIONS[savedContext];
+      }
+    }
+
+    // Fallback: usar user_type
     if (user?.user_type && CONTEXT_OPTIONS[user.user_type]) {
       return CONTEXT_OPTIONS[user.user_type];
     }
