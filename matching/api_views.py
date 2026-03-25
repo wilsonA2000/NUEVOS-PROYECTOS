@@ -423,7 +423,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             create_match_notification(
                 match_request,
                 'document_uploaded',
-                message=f"{request.user.get_full_name()} ha subido un documento: {document.get_document_type_display()}"
+                custom_message=f"{request.user.get_full_name()} ha subido un documento: {document.get_document_type_display()}"
             )
 
             return Response({
@@ -548,7 +548,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             create_match_notification(
                 match_request,
                 'stage_advanced',
-                message=f"El arrendador ha aprobado todos tus documentos. El proceso avanza a Etapa 3: Creación del Contrato"
+                custom_message=f"El arrendador ha aprobado todos tus documentos. El proceso avanza a Etapa 3: Creación del Contrato"
             )
             logger.info(f"✅ Notificación enviada")
         except Exception as e:
@@ -686,7 +686,7 @@ class PotentialMatchesAPIView(APIView):
             criteria = tenant.match_criteria
             
             if criteria.max_price and property.rent_price <= criteria.max_price:
-                if property.rent_price <= criteria.max_price * 0.8:
+                if property.rent_price <= criteria.max_price * Decimal('0.8'):
                     reasons.append("Precio muy atractivo")
                 else:
                     reasons.append("Dentro de tu presupuesto")
