@@ -114,6 +114,13 @@ class Property(models.Model):
         verbose_name = 'Propiedad'
         verbose_name_plural = 'Propiedades'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'is_active'], name='idx_property_status_active'),
+            models.Index(fields=['city', 'status'], name='idx_property_city_status'),
+            models.Index(fields=['landlord', '-created_at'], name='idx_property_landlord_date'),
+            models.Index(fields=['property_type', 'status'], name='idx_property_type_status'),
+            models.Index(fields=['rent_price'], name='idx_property_rent_price'),
+        ]
         
     def __str__(self):
         return f"{self.title} - {self.city}, {self.state}"

@@ -86,7 +86,10 @@ class LandlordControlledContractListSerializer(serializers.ModelSerializer):
     current_state_display = serializers.CharField(source='get_current_state_display', read_only=True)
     days_in_current_state = serializers.SerializerMethodField()
     pending_objections_count = serializers.SerializerMethodField()
-    
+    monthly_rent = serializers.SerializerMethodField()
+    security_deposit = serializers.SerializerMethodField()
+    contract_duration_months = serializers.SerializerMethodField()
+
     class Meta:
         model = LandlordControlledContract
         fields = [
@@ -103,12 +106,31 @@ class LandlordControlledContractListSerializer(serializers.ModelSerializer):
             'progress_percentage', 'days_in_current_state'
         ]
     
+    def get_monthly_rent(self, obj):
+        return (obj.economic_terms or {}).get('monthly_rent')
+
+    def get_security_deposit(self, obj):
+        return (obj.economic_terms or {}).get('security_deposit')
+
+    def get_contract_duration_months(self, obj):
+        return (obj.contract_terms or {}).get('contract_duration_months')
+
     def get_progress_percentage(self, obj):
-        return obj.get_progress_percentage()
-    
+        state_progress = {
+            'DRAFT': 10, 'PENDING_ADMIN_REVIEW': 15, 'RE_PENDING_ADMIN': 15,
+            'TENANT_INVITED': 30, 'TENANT_REVIEWING': 50,
+            'LANDLORD_REVIEWING': 70, 'BOTH_REVIEWING': 80,
+            'READY_TO_SIGN': 90, 'FULLY_SIGNED': 95,
+            'pending_tenant_biometric': 60, 'pending_guarantor_biometric': 70,
+            'pending_landlord_biometric': 80, 'completed_biometric': 90,
+            'active': 100, 'PUBLISHED': 100,
+        }
+        return state_progress.get(obj.current_state, 0)
+
     def get_days_in_current_state(self, obj):
-        return obj.get_days_in_current_state()
-    
+        from django.utils import timezone
+        return (timezone.now() - obj.updated_at).days
+
     def get_pending_objections_count(self, obj):
         return obj.objections.filter(status='PENDING').count()
 

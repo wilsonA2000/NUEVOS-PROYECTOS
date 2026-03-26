@@ -253,8 +253,16 @@ SIMPLE_JWT = {
 }
 
 # Configuración de CORS
-# En desarrollo, permitir todos los orígenes
-CORS_ALLOW_ALL_ORIGINS = True
+# En desarrollo, solo permitir orígenes conocidos
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:80",
+    "http://127.0.0.1:80",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
@@ -854,7 +862,7 @@ if not DEBUG:
     
 else:
     # Configuraciones de desarrollo más permisivas (actuales)
-    CORS_ALLOW_ALL_ORIGINS = True
+    pass
 # Frontend URL for invitation emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 

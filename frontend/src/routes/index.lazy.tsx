@@ -47,6 +47,18 @@ const ServicesOverviewPage = lazy(() => import('../pages/ServicesOverviewPage'))
 const SupportPage = lazy(() => import('../pages/SupportPage'));
 const CommunityPage = lazy(() => import('../pages/CommunityPage'));
 const ConfirmEmail = lazy(() => import('../pages/ConfirmEmail'));
+const TermsPage = lazy(() => import('../pages/TermsPage'));
+const PrivacyPage = lazy(() => import('../pages/PrivacyPage'));
+const SecurityPage = lazy(() => import('../pages/SecurityPage'));
+const SubscriptionPlans = lazy(() => import('../pages/subscriptions/SubscriptionPlans'));
+const ContractSigningDemo = lazy(() => import('../pages/ContractSigningDemo'));
+const RequestsPage = lazy(() => import('../pages/requests/RequestsPage'));
+const MessengerMain = lazy(() => import('../pages/messages/MessengerMain'));
+const EmailVerification = lazy(() => import('../pages/auth/EmailVerification').then(m => ({ default: m.EmailVerification })));
+const ResendVerification = lazy(() => import('../pages/auth/ResendVerification').then(m => ({ default: m.ResendVerification })));
+const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('../pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const TenantInvitationLanding = lazy(() => import('../pages/contracts/TenantInvitationLanding'));
 
 // Página pública de autenticación de codeudor (SIN login requerido)
 const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
@@ -133,18 +145,25 @@ return (
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterWithCode />} />
+        <Route path="/email-verification" element={<LazyRoute><EmailVerification /></LazyRoute>} />
+        <Route path="/resend-verification" element={<LazyRoute><ResendVerification /></LazyRoute>} />
         <Route path="/confirm-email/:key" element={<LazyRoute><ConfirmEmail /></LazyRoute>} />
-        <Route path="/forgot-password" element={<LandingPage />} />
-        <Route path="/reset-password" element={<LandingPage />} />
+        <Route path="/forgot-password" element={<LazyRoute><ForgotPassword /></LazyRoute>} />
+        <Route path="/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
         <Route path="/properties" element={<LazyRoute><PropertyList /></LazyRoute>} />
         <Route path="/services" element={<LazyRoute><ServicesOverviewPage /></LazyRoute>} />
         <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
         <Route path="/contact" element={<LazyRoute><ContactPage /></LazyRoute>} />
         <Route path="/help" element={<LazyRoute><SupportPage /></LazyRoute>} />
+        <Route path="/terms" element={<LazyRoute><TermsPage /></LazyRoute>} />
+        <Route path="/privacy" element={<LazyRoute><PrivacyPage /></LazyRoute>} />
+        <Route path="/security" element={<LazyRoute><SecurityPage /></LazyRoute>} />
         <Route path="/blog" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="/events" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="/partners" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="/careers" element={<LazyRoute><CommunityPage /></LazyRoute>} />
+        {/* Ruta pública de invitación de arrendatario */}
+        <Route path="/tenant/invitation/:token" element={<LazyRoute><TenantInvitationLanding /></LazyRoute>} />
         {/* Ruta pública de autenticación de codeudor (SIN login) */}
         <Route path="/codeudor-auth/:token" element={<LazyRoute><CodeudorAuthPage /></LazyRoute>} />
         {/* Redirigir cualquier otra ruta a la landing */}
@@ -221,6 +240,12 @@ return (
         <Route path="service-requests" element={<LazyRoute><ServiceRequestsPage /></LazyRoute>} />
         {/* Maintenance Routes */}
         <Route path="maintenance" element={<LazyRoute type="list"><MaintenancePage /></LazyRoute>} />
+        {/* Requests Routes */}
+        <Route path="requests" element={<LazyRoute type="list"><RequestsPage /></LazyRoute>} />
+        {/* Subscriptions */}
+        <Route path="subscriptions" element={<LazyRoute><SubscriptionPlans /></LazyRoute>} />
+        {/* Contract Signing Demo */}
+        <Route path="contracts/signing-demo" element={<LazyRoute><ContractSigningDemo /></LazyRoute>} />
         <Route path="help" element={<LazyRoute><SupportPage /></LazyRoute>} />
         <Route path="blog" element={<LazyRoute><CommunityPage /></LazyRoute>} />
         <Route path="events" element={<LazyRoute><CommunityPage /></LazyRoute>} />

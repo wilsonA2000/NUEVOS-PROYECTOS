@@ -271,7 +271,13 @@ class Contract(models.Model):
         verbose_name = 'Contrato'
         verbose_name_plural = 'Contratos'
         ordering = ['-created_at']
-        
+        indexes = [
+            models.Index(fields=['status', '-created_at'], name='idx_contract_status_date'),
+            models.Index(fields=['primary_party', 'status'], name='idx_contract_primary_status'),
+            models.Index(fields=['secondary_party', 'status'], name='idx_contract_secondary_status'),
+            models.Index(fields=['property', 'status'], name='idx_contract_property_status'),
+        ]
+
     def __str__(self):
         return f"{self.contract_number} - {self.title}"
     

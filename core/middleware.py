@@ -24,9 +24,9 @@ class RateLimitMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         super().__init__(get_response)
         self.rate_limits = {
-            'api': {'requests': 1000, 'window': 3600},  # 1000 req/hour para API
-            'auth': {'requests': 100, 'window': 900},    # 100 req/15min para auth (temporal)
-            'admin': {'requests': 1000, 'window': 3600},  # 1000 req/hour para admin (desarrollo)
+            'api': {'requests': 300, 'window': 3600},   # 300 req/hour para API
+            'auth': {'requests': 10, 'window': 900},     # 10 req/15min para auth (anti brute-force)
+            'admin': {'requests': 200, 'window': 3600},  # 200 req/hour para admin
             'default': {'requests': 100, 'window': 3600}, # 100 req/hour por defecto
         }
     
@@ -118,11 +118,11 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         else:
             security_headers['Content-Security-Policy'] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.mapbox.com; "
-                "style-src 'self' 'unsafe-inline' fonts.googleapis.com *.mapbox.com; "
-                "font-src 'self' fonts.gstatic.com; "
-                "img-src 'self' data: *.mapbox.com; "
-                "connect-src 'self' *.mapbox.com;"
+                "script-src 'self' 'unsafe-inline' https://api.mapbox.com; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "img-src 'self' data: blob: https://*.mapbox.com; "
+                "connect-src 'self' https://*.mapbox.com wss://*.mapbox.com;"
             )
         
         # HSTS en producción con HTTPS

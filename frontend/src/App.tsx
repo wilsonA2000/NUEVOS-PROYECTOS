@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import theme from './theme';
 import { queryClient } from './lib/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import { AppRoutes } from './routes/index';
+import { AppRoutes } from './routes/index.lazy';
 import ErrorBoundary from './components/ErrorBoundary';
 import { clearAuthState } from './utils/clearAuthState';
 import CustomNotification from './components/common/CustomNotification';
