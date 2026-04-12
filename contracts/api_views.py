@@ -1285,7 +1285,12 @@ class EditContractBeforeAuthAPIView(APIView):
             contract = Contract.objects.get(
                 id=contract_id,
                 primary_party=request.user,
-                status__in=['pdf_generated', 'ready_for_authentication']
+                # BUG-E2E-01: permitir estados del flujo biométrico secuencial
+                status__in=[
+                    'pdf_generated', 'ready_for_authentication', 'pending_biometric',
+                    'pending_tenant_biometric', 'pending_guarantor_biometric',
+                    'pending_landlord_biometric',
+                ]
             )
             
             # Obtener datos de edición
@@ -1340,7 +1345,12 @@ class StartBiometricAuthenticationAPIView(APIView):
             except LandlordControlledContract.DoesNotExist:
                 contract = Contract.objects.get(
                     id=contract_id,
-                    status__in=['pdf_generated', 'ready_for_authentication', 'pending_biometric']
+                    # BUG-E2E-01: permitir estados del flujo biométrico secuencial
+                    status__in=[
+                        'pdf_generated', 'ready_for_authentication', 'pending_biometric',
+                        'pending_tenant_biometric', 'pending_guarantor_biometric',
+                        'pending_landlord_biometric',
+                    ]
                 )
                 print(f"✅ Contrato encontrado en Contract (viejo): {contract.contract_number}")
 
@@ -3231,7 +3241,13 @@ class TenantContractReviewAPIView(APIView):
             
             # Verificar que el contrato esté en estado de revisión
             print(f"📋 Contract status: {contract.status}")
-            valid_statuses = ['draft', 'pending_tenant_review', 'tenant_changes_requested', 'ready_for_authentication', 'pending_biometric']
+            # BUG-E2E-01: incluir estados del flujo biométrico secuencial
+            valid_statuses = [
+                'draft', 'pending_tenant_review', 'tenant_changes_requested',
+                'ready_for_authentication', 'pending_biometric',
+                'pending_tenant_biometric', 'pending_guarantor_biometric',
+                'pending_landlord_biometric',
+            ]
             print(f"📋 Valid statuses for review: {valid_statuses}")
             
             if contract.status not in valid_statuses:

@@ -57,7 +57,13 @@ class BiometricAuthenticationService:
                 raise ValueError("El usuario no es parte de este contrato")
 
             # Verificar que el contrato esté en estado correcto
-            if contract.status not in ['ready_for_authentication', 'pending_authentication', 'pending_biometric']:
+            # BUG-E2E-01: permitir estados del flujo secuencial (tenant->guarantor->landlord)
+            valid_states_for_auth = {
+                'ready_for_authentication', 'pending_authentication', 'pending_biometric',
+                'pending_tenant_biometric', 'pending_guarantor_biometric',
+                'pending_landlord_biometric',
+            }
+            if contract.status not in valid_states_for_auth:
                 raise ValueError(f"El contrato no está en estado válido para autenticación: {contract.status}")
             
             # Verificar si ya existe una autenticación (cualquier estado)
