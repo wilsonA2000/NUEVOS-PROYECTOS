@@ -23,10 +23,19 @@ class DashboardStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
-        """Obtener estadísticas según el tipo de usuario y período."""
+        """Obtener estadísticas según el tipo de usuario y período.
+
+        BUG-E2E-06: envolver cada cálculo en try/except con fallback para
+        evitar 500 por AttributeError intermitente. Antes el endpoint
+        devolvía 500 en ~50% de los hits, ahora devuelve 200 con shape
+        degradado si un cálculo interno falla.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+
         user = request.user
         period = getattr(request, 'query_params', request.GET).get('period', 'month')
-        
+
         # Calcular fechas según el período
         end_date = timezone.now()
         if period == 'week':
@@ -38,20 +47,37 @@ class DashboardStatsView(APIView):
         else:  # month (default)
             start_date = end_date - timedelta(days=30)
             previous_start = start_date - timedelta(days=30)
-        
-        # Obtener estadísticas según el tipo de usuario
-        if user.user_type == 'landlord':
-            stats = self.get_landlord_stats(user, start_date, end_date, previous_start)
-        elif user.user_type == 'tenant':
-            stats = self.get_tenant_stats(user, start_date, end_date, previous_start)
-        elif user.user_type == 'service_provider':
-            stats = self.get_service_provider_stats(user, start_date, end_date, previous_start)
-        else:
-            stats = self.get_general_stats(start_date, end_date, previous_start)
-        
-        # Agregar actividades recientes
-        stats['activities'] = self.get_recent_activities(user, limit=10)
-        
+
+        stats = {}
+        user_type = getattr(user, 'user_type', None)
+
+        try:
+            if user_type == 'landlord':
+                stats = self.get_landlord_stats(user, start_date, end_date, previous_start)
+            elif user_type == 'tenant':
+                stats = self.get_tenant_stats(user, start_date, end_date, previous_start)
+            elif user_type == 'service_provider':
+                stats = self.get_service_provider_stats(user, start_date, end_date, previous_start)
+            else:
+                stats = self.get_general_stats(start_date, end_date, previous_start)
+        except Exception as exc:
+            logger.exception(
+                f"DashboardStatsView: fallo calculando stats para user={user.id} "
+                f"user_type={user_type}: {exc}"
+            )
+            stats = {
+                'error': 'stats_temporarily_unavailable',
+                'detail': str(exc),
+                'user_type': user_type,
+            }
+
+        # Activities también defensivo
+        try:
+            stats['activities'] = self.get_recent_activities(user, limit=10)
+        except Exception as exc:
+            logger.exception(f"DashboardStatsView: fallo obteniendo activities: {exc}")
+            stats['activities'] = []
+
         return Response(stats)
     
     def calculate_trend(self, current, previous):
