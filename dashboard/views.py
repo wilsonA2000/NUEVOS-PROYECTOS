@@ -5,6 +5,7 @@ Vistas para el dashboard de VeriHome.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
+from django.core.cache import cache
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -51,6 +52,12 @@ class DashboardStatsView(APIView):
         stats = {}
         user_type = getattr(user, 'user_type', None)
 
+        # BUG-E2E-07: cachear 60s por usuario+periodo para aliviar cold cache
+        cache_key = f"dashboard:stats:v2:{user.id}:{user_type}:{period}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         try:
             if user_type == 'landlord':
                 stats = self.get_landlord_stats(user, start_date, end_date, previous_start)
@@ -77,6 +84,13 @@ class DashboardStatsView(APIView):
         except Exception as exc:
             logger.exception(f"DashboardStatsView: fallo obteniendo activities: {exc}")
             stats['activities'] = []
+
+        # BUG-E2E-07: cachear 60s (corto para reflejar cambios rápido pero
+        # suficiente para aliviar hits múltiples del dashboard en 1 load)
+        try:
+            cache.set(cache_key, stats, timeout=60)
+        except Exception:
+            pass
 
         return Response(stats)
     

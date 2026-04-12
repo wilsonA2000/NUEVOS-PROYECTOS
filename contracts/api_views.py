@@ -473,41 +473,43 @@ class ExpiringContractsAPIView(generics.ListAPIView):
     """Vista para listar contratos próximos a expirar."""
     serializer_class = ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
+        # BUG-E2E-07: usar Q en vez de | de QuerySets + select/prefetch para
+        # evitar subqueries costosas y N+1 al serializar.
         from django.utils import timezone
         from datetime import timedelta
-        
-        # Contratos que expiran en los próximos 30 días
+
         future_date = timezone.now().date() + timedelta(days=30)
-        
+        user = self.request.user
+
         return Contract.objects.filter(
+            models.Q(primary_party=user) | models.Q(secondary_party=user),
             end_date__lte=future_date,
-            status='active'
-        ).filter(
-            primary_party=self.request.user
-        ) | Contract.objects.filter(
-            end_date__lte=future_date,
-            status='active'
-        ).filter(
-            secondary_party=self.request.user
-        )
+            status='active',
+        ).select_related(
+            'property', 'primary_party', 'secondary_party', 'template'
+        ).prefetch_related(
+            'signatures', 'amendments', 'documents'
+        ).order_by('end_date')
+
 
 class PendingSignaturesAPIView(generics.ListAPIView):
     """Vista para listar contratos pendientes de firma."""
     serializer_class = ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
+        # BUG-E2E-07: mismo refactor que ExpiringContractsAPIView
+        user = self.request.user
         return Contract.objects.filter(
-            status='pending_signature'
-        ).filter(
-            primary_party=self.request.user
-        ) | Contract.objects.filter(
-            status='pending_signature'
-        ).filter(
-            secondary_party=self.request.user
-        )
+            models.Q(primary_party=user) | models.Q(secondary_party=user),
+            status='pending_signature',
+        ).select_related(
+            'property', 'primary_party', 'secondary_party', 'template'
+        ).prefetch_related(
+            'signatures', 'amendments', 'documents'
+        ).order_by('-created_at')
 
 class ContractStatsAPIView(APIView):
     """Vista para estadísticas de contratos."""
