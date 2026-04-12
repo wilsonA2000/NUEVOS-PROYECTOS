@@ -130,6 +130,9 @@ const BiometricAuthenticationPage: React.FC = () => {
   }
 
   // Verificar si el contrato está en un estado válido para autenticación biométrica
+  // BUG-E2E-02: incluir estados del flujo secuencial (tenant->guarantor->landlord)
+  // para que la UI no redirija silenciosamente cuando el backend ya está en
+  // pending_*_biometric.
   const validStatesForAuth = [
     'ready_for_authentication',
     'pending_authentication',
@@ -139,6 +142,10 @@ const BiometricAuthenticationPage: React.FC = () => {
     'draft',
     'pending_tenant_review',
     'pdf_generated',
+    // Flujo secuencial backend:
+    'pending_tenant_biometric',
+    'pending_guarantor_biometric',
+    'pending_landlord_biometric',
   ];
 
   if (!validStatesForAuth.includes(contract.status)) {
