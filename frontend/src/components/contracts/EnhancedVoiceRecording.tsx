@@ -22,6 +22,7 @@ import {
   Info as InfoIcon,
   VolumeUp as VolumeUpIcon,
   Security as SecurityIcon,
+  UploadFile as UploadFileIcon,
 } from '@mui/icons-material';
 import VoiceRecorder from './VoiceRecorder';
 
@@ -92,6 +93,28 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
     setRecordingPhase('identification');
     setIdentificationRecording(null);
     setCulturalRecording(null);
+  };
+
+  // BUG-E2E-08: fallback upload cuando el usuario no tiene micrófono
+  const handleAudioFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('audio/')) {
+      onError?.('Por favor suba un archivo de audio (WAV, MP3, OGG, WEBM)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (!result) return;
+      if (recordingPhase === 'identification') {
+        handleIdentificationRecording(result);
+      } else if (recordingPhase === 'cultural') {
+        handleCulturalRecording(result);
+      }
+    };
+    reader.onerror = () => onError?.('No se pudo leer el archivo de audio');
+    reader.readAsDataURL(file);
   };
 
   // Obtener el texto actual según la fase
@@ -369,6 +392,30 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 expectedText={getCurrentText()}
                 loading={loading}
               />
+            )}
+
+            {/* BUG-E2E-08: fallback upload si el micrófono no está disponible */}
+            {recordingPhase !== 'completed' && (
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  ¿Problemas con el micrófono?
+                </Typography>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  size="small"
+                  startIcon={<UploadFileIcon />}
+                  disabled={loading}
+                >
+                  Subir audio desde archivo
+                  <input
+                    type="file"
+                    hidden
+                    accept="audio/wav,audio/mpeg,audio/ogg,audio/webm"
+                    onChange={handleAudioFileUpload}
+                  />
+                </Button>
+              </Box>
             )}
 
             {recordingPhase === 'completed' && (

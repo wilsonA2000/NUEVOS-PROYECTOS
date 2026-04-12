@@ -17,6 +17,7 @@ import {
   ArrowForward as ArrowForwardIcon,
   PhotoCamera as PhotoCameraIcon,
   Info as InfoIcon,
+  UploadFile as UploadFileIcon,
 } from '@mui/icons-material';
 import SimpleProfessionalCamera from './SimpleProfessionalCamera';
 
@@ -41,6 +42,23 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // BUG-E2E-08: fallback upload cuando el usuario no tiene cámara o permisos
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      onError?.('Por favor suba un archivo de imagen (JPG, PNG, WEBP)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (result) onCapture(result);
+    };
+    reader.onerror = () => onError?.('No se pudo leer el archivo seleccionado');
+    reader.readAsDataURL(file);
+  };
 
   return (
     <Box sx={{ 
@@ -109,6 +127,28 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
             onError={onError}
             instructions="Tome una foto frontal clara de su rostro"
           />
+        </Box>
+
+        {/* BUG-E2E-08: fallback upload si la cámara no está disponible */}
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            ¿Problemas con la cámara?
+          </Typography>
+          <Button
+            component="label"
+            variant="outlined"
+            size="small"
+            startIcon={<UploadFileIcon />}
+            disabled={loading}
+          >
+            Subir foto desde archivo
+            <input
+              type="file"
+              hidden
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileUpload}
+            />
+          </Button>
         </Box>
       </Box>
 
