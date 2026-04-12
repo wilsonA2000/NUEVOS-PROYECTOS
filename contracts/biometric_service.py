@@ -975,6 +975,13 @@ Tu participación es esencial para activar el contrato de arrendamiento.
             match_request.save()
             contract.save(update_fields=['status'])
 
+            # BUG-E2E-05: recomputar estado canónico basado en firmas reales
+            # para evitar drift entre workflow_status y firmas completadas.
+            try:
+                recompute_workflow_status(contract)
+            except Exception as exc:
+                logger.warning(f"recompute_workflow_status falló tras firma {user_type}: {exc}")
+
             # 🔄 SINCRONIZAR CON LANDLORDCONTROLLEDCONTRACT
             try:
                 from .landlord_contract_models import LandlordControlledContract
@@ -1100,3 +1107,106 @@ Tu participación es esencial para activar el contrato de arrendamiento.
 
 # Instancia global del servicio
 biometric_service = BiometricAuthenticationService()
+
+
+def recompute_workflow_status(contract):
+    """
+    BUG-E2E-05: recalcula MatchRequest.workflow_status + Contract.status +
+    LandlordControlledContract.current_state basándose en las firmas REALES
+    (BiometricAuthentication del tenant/landlord + CodeudorAuthToken del garante).
+
+    Llamar después de CUALQUIER firma completada (tenant, garante público, landlord)
+    para mantener el workflow sincronizado.
+
+    Retorna: dict con el estado recalculado o None si no hay MatchRequest.
+    """
+    from matching.models import MatchRequest
+
+    try:
+        from .landlord_contract_models import CodeudorAuthToken
+    except ImportError:
+        CodeudorAuthToken = None
+
+    # Determinar partes del contrato (funciona para Contract legacy y LandlordControlled)
+    tenant = getattr(contract, 'secondary_party', None) or getattr(contract, 'tenant', None)
+    landlord = getattr(contract, 'primary_party', None) or getattr(contract, 'landlord', None)
+
+    if not tenant or not landlord:
+        logger.warning(f"recompute_workflow_status: contract {contract.id} sin tenant o landlord")
+        return None
+
+    match_request = MatchRequest.objects.filter(
+        tenant=tenant, property=contract.property
+    ).first()
+    if not match_request:
+        logger.warning(f"recompute_workflow_status: no MatchRequest para contract {contract.id}")
+        return None
+
+    # Verificar firmas reales
+    tenant_done = BiometricAuthentication.objects.filter(
+        contract_id=contract.id, user=tenant, status='completed'
+    ).exists()
+    landlord_done = BiometricAuthentication.objects.filter(
+        contract_id=contract.id, user=landlord, status='completed'
+    ).exists()
+
+    has_guarantor = False
+    guarantor_done = False
+    if CodeudorAuthToken:
+        guarantor_tokens = CodeudorAuthToken.objects.filter(contract_id=contract.id)
+        has_guarantor = guarantor_tokens.exists()
+        guarantor_done = guarantor_tokens.filter(status='completed').exists()
+
+    # Determinar nuevo estado canónico
+    if tenant_done and landlord_done and (guarantor_done or not has_guarantor):
+        new_workflow = 'all_biometrics_completed'
+        new_contract_status = 'active'
+    elif tenant_done and (guarantor_done or not has_guarantor):
+        new_workflow = 'pending_landlord_biometric'
+        new_contract_status = 'pending_landlord_biometric'
+    elif tenant_done and has_guarantor and not guarantor_done:
+        new_workflow = 'pending_guarantor_biometric'
+        new_contract_status = 'pending_guarantor_biometric'
+    else:
+        new_workflow = 'pending_tenant_biometric'
+        new_contract_status = 'pending_tenant_biometric'
+
+    match_request.workflow_status = new_workflow
+    match_request.save(update_fields=['workflow_status'])
+
+    # Sincronizar Contract legacy.status
+    if hasattr(contract, 'status'):
+        contract.status = new_contract_status
+        contract.save(update_fields=['status'])
+
+    # Sincronizar LandlordControlledContract.current_state si existe
+    try:
+        from .landlord_contract_models import LandlordControlledContract
+        lcc = LandlordControlledContract.objects.filter(id=contract.id).first()
+        if lcc:
+            if new_workflow == 'all_biometrics_completed':
+                lcc.current_state = 'ACTIVE'
+                lcc.is_active = True
+                lcc.activation_date = timezone.now()
+            elif new_workflow == 'pending_landlord_biometric':
+                lcc.current_state = 'LANDLORD_AUTHENTICATION'
+            elif new_workflow == 'pending_guarantor_biometric':
+                lcc.current_state = 'GUARANTOR_AUTHENTICATION'
+            lcc.save()
+    except Exception as exc:
+        logger.warning(f"recompute_workflow_status: no se pudo sync LandlordControlled: {exc}")
+
+    logger.info(
+        f"🔄 recompute_workflow_status: contract={contract.id} "
+        f"tenant_done={tenant_done} guarantor={has_guarantor}/{guarantor_done} "
+        f"landlord_done={landlord_done} -> {new_workflow}"
+    )
+
+    return {
+        'workflow_status': new_workflow,
+        'contract_status': new_contract_status,
+        'tenant_done': tenant_done,
+        'guarantor_done': guarantor_done,
+        'has_guarantor': has_guarantor,
+        'landlord_done': landlord_done,
+    }
