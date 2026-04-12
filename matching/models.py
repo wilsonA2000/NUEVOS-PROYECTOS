@@ -393,8 +393,14 @@ class MatchRequest(models.Model):
         """
         ✅ GENERA AUTOMÁTICAMENTE UN CONTRATO DESDE EL MATCH APROBADO
         Vincula el contrato con este match y copia todos los datos relevantes.
+
+        BUG-E2E-03: crea AMBOS modelos (Contract legacy + LandlordControlledContract)
+        en la misma transacción atómica, compartiendo el mismo UUID, para que los
+        endpoints del sistema nuevo (approve_contract, etc.) encuentren el contrato.
         """
         from contracts.models import Contract
+        from contracts.landlord_contract_models import LandlordControlledContract
+        from django.db import transaction
         from django.utils import timezone
         from dateutil.relativedelta import relativedelta
 
@@ -412,41 +418,85 @@ class MatchRequest(models.Model):
         start_date = self.preferred_move_in_date or (timezone.now().date() + timezone.timedelta(days=7))
         end_date = start_date + relativedelta(months=self.lease_duration_months)
 
-        # Crear contrato con datos del match
-        contract = Contract.objects.create(
-            match_request=self,  # ✅ VÍNCULO CON MATCH
-            contract_type='rental_urban',
-            title=f"Contrato de Arrendamiento - {self.property.title}",
-            description=f"Generado automáticamente desde match {self.match_code}",
-            content="Contrato de arrendamiento de vivienda urbana",
+        monthly_rent = self.property.rent_price
 
-            # Partes del contrato
-            primary_party=self.landlord,
-            secondary_party=self.tenant,
+        with transaction.atomic():
+            # Crear contrato legacy con datos del match
+            contract = Contract.objects.create(
+                match_request=self,  # ✅ VÍNCULO CON MATCH
+                contract_type='rental_urban',
+                title=f"Contrato de Arrendamiento - {self.property.title}",
+                description=f"Generado automáticamente desde match {self.match_code}",
+                content="Contrato de arrendamiento de vivienda urbana",
 
-            # Fechas
-            start_date=start_date,
-            end_date=end_date,
+                # Partes del contrato
+                primary_party=self.landlord,
+                secondary_party=self.tenant,
 
-            # Información financiera
-            monthly_rent=self.property.rent_price,
-            security_deposit=self.property.rent_price * 1,  # 1 mes de depósito
+                # Fechas
+                start_date=start_date,
+                end_date=end_date,
 
-            # Estado inicial
-            status='draft',
+                # Información financiera
+                monthly_rent=monthly_rent,
+                security_deposit=monthly_rent * 1,  # 1 mes de depósito
 
-            # Variables adicionales del match
-            variables_data={
-                'match_code': self.match_code,
-                'monthly_income': float(self.monthly_income) if self.monthly_income else None,
-                'employment_type': self.employment_type,
-                'number_of_occupants': self.number_of_occupants,
-                'has_pets': self.has_pets,
-                'pet_details': self.pet_details,
-                'lease_duration_months': self.lease_duration_months,
-                'workflow_match_id': str(self.id),
-            }
-        )
+                # Estado inicial
+                status='draft',
+
+                # Variables adicionales del match
+                variables_data={
+                    'match_code': self.match_code,
+                    'monthly_income': float(self.monthly_income) if self.monthly_income else None,
+                    'employment_type': self.employment_type,
+                    'number_of_occupants': self.number_of_occupants,
+                    'has_pets': self.has_pets,
+                    'pet_details': self.pet_details,
+                    'lease_duration_months': self.lease_duration_months,
+                    'workflow_match_id': str(self.id),
+                }
+            )
+
+            # BUG-E2E-03: crear LandlordControlledContract espejo con mismo UUID
+            # para que el sistema nuevo encuentre el contrato cuando el tenant
+            # lo aprueba desde /api/v1/contracts/tenant/contracts/{id}/approve_contract/
+            try:
+                LandlordControlledContract.objects.get_or_create(
+                    id=contract.id,
+                    defaults={
+                        'contract_number': contract.contract_number,
+                        'landlord': self.landlord,
+                        'tenant': self.tenant,
+                        'property': self.property,
+                        'contract_type': 'rental_urban',
+                        'title': contract.title,
+                        'description': contract.description or '',
+                        'current_state': 'TENANT_REVIEWING',  # listo para que tenant revise
+                        'start_date': start_date,
+                        'end_date': end_date,
+                        'economic_terms': {
+                            'monthly_rent': float(monthly_rent) if monthly_rent else 0,
+                            'security_deposit': float(monthly_rent) if monthly_rent else 0,
+                        },
+                        'contract_terms': {
+                            'duration_months': self.lease_duration_months,
+                        },
+                        'property_data': {
+                            'title': self.property.title,
+                            'address': self.property.address,
+                            'city': self.property.city,
+                        },
+                        'landlord_approved': True,
+                        'landlord_approved_at': timezone.now(),
+                    }
+                )
+            except Exception as exc:
+                # No fallar la creación del Contract legacy si el espejo falla.
+                # Se puede sincronizar después con scripts/fixes/sync_biometric_contract.py
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"auto_create_contract: no se pudo crear LandlordControlledContract espejo: {exc}"
+                )
 
         # Actualizar estado del match
         self.has_contract = True
