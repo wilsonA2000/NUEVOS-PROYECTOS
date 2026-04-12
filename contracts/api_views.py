@@ -1288,6 +1288,7 @@ class EditContractBeforeAuthAPIView(APIView):
                 # BUG-E2E-01: permitir estados del flujo biométrico secuencial
                 status__in=[
                     'pdf_generated', 'ready_for_authentication', 'pending_biometric',
+                    'pending_authentication',
                     'pending_tenant_biometric', 'pending_guarantor_biometric',
                     'pending_landlord_biometric',
                 ]
@@ -1348,6 +1349,7 @@ class StartBiometricAuthenticationAPIView(APIView):
                     # BUG-E2E-01: permitir estados del flujo biométrico secuencial
                     status__in=[
                         'pdf_generated', 'ready_for_authentication', 'pending_biometric',
+                        'pending_authentication',
                         'pending_tenant_biometric', 'pending_guarantor_biometric',
                         'pending_landlord_biometric',
                     ]
@@ -3244,7 +3246,7 @@ class TenantContractReviewAPIView(APIView):
             # BUG-E2E-01: incluir estados del flujo biométrico secuencial
             valid_statuses = [
                 'draft', 'pending_tenant_review', 'tenant_changes_requested',
-                'ready_for_authentication', 'pending_biometric',
+                'ready_for_authentication', 'pending_biometric', 'pending_authentication',
                 'pending_tenant_biometric', 'pending_guarantor_biometric',
                 'pending_landlord_biometric',
             ]
