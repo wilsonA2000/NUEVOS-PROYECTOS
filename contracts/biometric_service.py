@@ -520,9 +520,53 @@ class BiometricAuthenticationService:
             # NUEVO: Lógica de progresión secuencial
             contract = auth.contract
             self._handle_sequential_progression(auth, contract)
-            
+
+            # TEST-E2E-03: determinar user_type y next_actor para respuesta enriquecida
+            user_type = 'unknown'
+            if auth.user == getattr(contract, 'secondary_party', None):
+                user_type = 'tenant'
+            elif auth.user == getattr(contract, 'primary_party', None):
+                user_type = 'landlord'
+            elif auth.user == getattr(contract, 'guarantor', None):
+                user_type = 'guarantor'
+
+            # Recalcular estado canónico y determinar próximo actor
+            ws = None
+            next_actor = None
+            next_step_msg = None
+            try:
+                rec = recompute_workflow_status(contract)
+                if rec:
+                    ws = rec['workflow_status']
+                    if ws == 'all_biometrics_completed':
+                        next_actor = None
+                        next_step_msg = '🎉 Contrato activo: nació a la vida jurídica.'
+                    elif ws == 'pending_landlord_biometric':
+                        next_actor = 'landlord'
+                        next_step_msg = 'Esperando firma del arrendador.'
+                    elif ws == 'pending_guarantor_biometric':
+                        next_actor = 'guarantor'
+                        next_step_msg = 'Esperando firma del garante.'
+                    elif ws == 'pending_tenant_biometric':
+                        next_actor = 'tenant'
+                        next_step_msg = 'Esperando firma del arrendatario.'
+            except Exception as exc:
+                logger.warning(f"complete_authentication: recompute falló: {exc}")
+
+            # TEST-E2E-03: certificado estilo codeudor para paridad
+            certificate = {
+                'certificate_id': f"CERT-{user_type.upper()}-{str(auth.id)[:8].upper()}",
+                'user_name': auth.user.get_full_name() if hasattr(auth.user, 'get_full_name') else str(auth.user),
+                'user_type': user_type,
+                'contract_number': getattr(contract, 'contract_number', None),
+                'completed_at': auth.completed_at.isoformat(),
+                'overall_confidence': f"{(auth.overall_confidence_score or 0) * 100:.1f}%",
+                'integrity_hash': auth.integrity_hash,
+            }
+
             result = {
                 'success': True,
+                'message': '¡Autenticación biométrica completada exitosamente!',
                 'authentication_id': str(auth.id),
                 'overall_confidence': auth.overall_confidence_score,
                 'individual_scores': {
@@ -533,10 +577,14 @@ class BiometricAuthenticationService:
                 'completion_time': auth.completed_at.isoformat(),
                 'duration_minutes': auth.security_checks['total_duration_minutes'],
                 'contract_status': contract.status,
+                'workflow_status': ws,
                 'next_step': 'digital_signature',
-                'integrity_hash': auth.integrity_hash
+                'next_actor': next_actor,
+                'next_step_message': next_step_msg,
+                'integrity_hash': auth.integrity_hash,
+                'certificate': certificate,
             }
-            
+
             logger.info(f"Autenticación biométrica completada exitosamente. Confianza general: {auth.overall_confidence_score:.2f}")
             return result
             
