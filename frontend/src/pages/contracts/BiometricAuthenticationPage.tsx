@@ -130,6 +130,9 @@ const BiometricAuthenticationPage: React.FC = () => {
   }
 
   // Verificar si el contrato está en un estado válido para autenticación biométrica
+  // BUG-E2E-02: incluir estados del flujo secuencial (tenant->guarantor->landlord)
+  // para que la UI no redirija silenciosamente cuando el backend ya está en
+  // pending_*_biometric.
   const validStatesForAuth = [
     'ready_for_authentication',
     'pending_authentication',
@@ -139,22 +142,63 @@ const BiometricAuthenticationPage: React.FC = () => {
     'draft',
     'pending_tenant_review',
     'pdf_generated',
+    // Flujo secuencial backend:
+    'pending_tenant_biometric',
+    'pending_guarantor_biometric',
+    'pending_landlord_biometric',
   ];
 
   if (!validStatesForAuth.includes(contract.status)) {
+    // LOG-E2E-01: Alert informativo en vez de redirección silenciosa.
+    // Muestra estado actual + próxima acción esperada, y loguea a consola
+    // para diagnóstico (y Sentry si está activo).
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[BiometricAuthPage] Contrato ${contract.id} en estado no válido para firma: "${contract.status}". ` +
+        `Estados válidos: ${validStatesForAuth.join(', ')}`,
+    );
+
+    const suggestedActionByState: Record<string, string> = {
+      active: 'Este contrato ya está activo. No requiere más firmas.',
+      expired: 'Este contrato ha expirado. No se puede firmar.',
+      cancelled: 'Este contrato fue cancelado. No se puede firmar.',
+      terminated: 'Este contrato fue terminado. No se puede firmar.',
+      PUBLISHED: 'Este contrato ya nació a la vida jurídica (firmas completas).',
+      all_biometrics_completed:
+        'Todas las firmas biométricas ya fueron completadas.',
+    };
+    const suggestion =
+      suggestedActionByState[contract.status] ||
+      'Es posible que otro actor deba completar un paso antes. Intenta de nuevo más tarde o contacta soporte.';
+
     return (
-      <Box p={3}>
-        <Alert severity="warning">
-          Este contrato no está listo para autenticación biométrica.
-          Estado actual: {contract.status}
+      <Box p={3} maxWidth="md" mx="auto">
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Contrato no listo para firma biométrica
+          </Typography>
+          <Typography variant="body2" paragraph>
+            <strong>Estado actual:</strong> <code>{contract.status}</code>
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {suggestion}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Estados válidos para este flujo: {validStatesForAuth.join(', ')}
+          </Typography>
         </Alert>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/app/contracts')}
-          sx={{ mt: 2 }}
-        >
-          Volver a Contratos
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/app/contracts')}
+          >
+            Volver a Contratos
+          </Button>
+          <Button variant="contained" onClick={() => fetchWorkflowContract()}>
+            🔄 Actualizar Estado
+          </Button>
+        </Box>
       </Box>
     );
   }

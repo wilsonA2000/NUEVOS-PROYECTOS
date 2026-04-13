@@ -126,3 +126,9 @@ archived/
 # Playwright test artifacts
 playwright-report/
 test-results/
+
+# E2E real backend artifacts
+frontend/e2e-logs/
+frontend/playwright-report-e2e-real/
+frontend/playwright-artifacts-e2e-real/
+*.pre-fixes.bak

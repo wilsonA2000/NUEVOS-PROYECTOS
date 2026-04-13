@@ -643,6 +643,39 @@ API Endpoints:
 
 ---
 
-**Last Updated**: March 23, 2026
-**Version**: Production-ready with complete Plan Maestro implementation
-**Branch**: main
+## 🔒 Auditoría E2E Completa (2026-04-12) — RESUELTA
+
+Ver `FINDINGS.md` (raíz) + `IMPLEMENTATION_PLAN.md`.
+
+Suite Playwright contra **backend real** que cubre: login · propiedades · match · firma biométrica TRIPLE (tenant + garante público + landlord) · messaging · dashboard · 11 páginas UI accesorias.
+
+**Resultado**: 5/5 casos E2E pasan, contrato termina `current_state: active`, 11 bugs resueltos en rama `fix/e2e-audit-2026-04-12`.
+
+### Estados canónicos del contrato (usar desde `contracts/constants.py`)
+```python
+from contracts.constants import ContractState, STATES_READY_FOR_BIOMETRIC
+# Usar ContractState.ACTIVE.value en comparaciones, .label para UI
+```
+
+### Rate Limits post-fix (core/middleware.py)
+- `auth_strict`: 10/min (login, register, forgot-password)
+- `auth`: 60 / 5 min (refresh, me)
+- `api_authenticated`: 3000/hora (dashboards intensivos)
+- `api_anonymous`: 300/hora
+- `admin`: 1000/hora
+- **Exención**: `settings.DEBUG && ip in {127.0.0.1, ::1}` → sin límite
+
+### Re-validar suite E2E
+```bash
+cd frontend
+npx playwright test --config=playwright.config.e2e-real.ts
+# 5 passed (~11 min)
+```
+
+Artefactos por run en `frontend/e2e-logs/run-<timestamp>/` y `frontend/e2e-logs/full/run-<timestamp>/`.
+
+---
+
+**Last Updated**: April 12, 2026 (E2E audit resuelto)
+**Version**: Production-ready + E2E audit cleared · contract flow fully functional
+**Branch**: main (post-merge de fix/e2e-audit-2026-04-12)

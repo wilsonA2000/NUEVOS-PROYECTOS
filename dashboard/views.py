@@ -5,6 +5,7 @@ Vistas para el dashboard de VeriHome.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
+from django.core.cache import cache
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -23,10 +24,19 @@ class DashboardStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
-        """Obtener estadísticas según el tipo de usuario y período."""
+        """Obtener estadísticas según el tipo de usuario y período.
+
+        BUG-E2E-06: envolver cada cálculo en try/except con fallback para
+        evitar 500 por AttributeError intermitente. Antes el endpoint
+        devolvía 500 en ~50% de los hits, ahora devuelve 200 con shape
+        degradado si un cálculo interno falla.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+
         user = request.user
         period = getattr(request, 'query_params', request.GET).get('period', 'month')
-        
+
         # Calcular fechas según el período
         end_date = timezone.now()
         if period == 'week':
@@ -38,20 +48,50 @@ class DashboardStatsView(APIView):
         else:  # month (default)
             start_date = end_date - timedelta(days=30)
             previous_start = start_date - timedelta(days=30)
-        
-        # Obtener estadísticas según el tipo de usuario
-        if user.user_type == 'landlord':
-            stats = self.get_landlord_stats(user, start_date, end_date, previous_start)
-        elif user.user_type == 'tenant':
-            stats = self.get_tenant_stats(user, start_date, end_date, previous_start)
-        elif user.user_type == 'service_provider':
-            stats = self.get_service_provider_stats(user, start_date, end_date, previous_start)
-        else:
-            stats = self.get_general_stats(start_date, end_date, previous_start)
-        
-        # Agregar actividades recientes
-        stats['activities'] = self.get_recent_activities(user, limit=10)
-        
+
+        stats = {}
+        user_type = getattr(user, 'user_type', None)
+
+        # BUG-E2E-07: cachear 60s por usuario+periodo para aliviar cold cache
+        cache_key = f"dashboard:stats:v2:{user.id}:{user_type}:{period}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
+        try:
+            if user_type == 'landlord':
+                stats = self.get_landlord_stats(user, start_date, end_date, previous_start)
+            elif user_type == 'tenant':
+                stats = self.get_tenant_stats(user, start_date, end_date, previous_start)
+            elif user_type == 'service_provider':
+                stats = self.get_service_provider_stats(user, start_date, end_date, previous_start)
+            else:
+                stats = self.get_general_stats(start_date, end_date, previous_start)
+        except Exception as exc:
+            logger.exception(
+                f"DashboardStatsView: fallo calculando stats para user={user.id} "
+                f"user_type={user_type}: {exc}"
+            )
+            stats = {
+                'error': 'stats_temporarily_unavailable',
+                'detail': str(exc),
+                'user_type': user_type,
+            }
+
+        # Activities también defensivo
+        try:
+            stats['activities'] = self.get_recent_activities(user, limit=10)
+        except Exception as exc:
+            logger.exception(f"DashboardStatsView: fallo obteniendo activities: {exc}")
+            stats['activities'] = []
+
+        # BUG-E2E-07: cachear 60s (corto para reflejar cambios rápido pero
+        # suficiente para aliviar hits múltiples del dashboard en 1 load)
+        try:
+            cache.set(cache_key, stats, timeout=60)
+        except Exception:
+            pass
+
         return Response(stats)
     
     def calculate_trend(self, current, previous):

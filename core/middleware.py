@@ -19,36 +19,46 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 class RateLimitMiddleware(MiddlewareMixin):
-    """Middleware para rate limiting por IP y usuario."""
-    
+    """Middleware para rate limiting por IP y usuario.
+
+    BUG-E2E-04 fix: límites elevados para usuarios autenticados (antes 300/h
+    bloqueaba tests E2E y dashboards con muchas tarjetas), granularidad por
+    endpoint y exención explícita para localhost en DEBUG.
+    """
+
+    LOCAL_IPS = {'127.0.0.1', '::1', 'localhost'}
+
     def __init__(self, get_response):
         super().__init__(get_response)
         self.rate_limits = {
-            'api': {'requests': 300, 'window': 3600},   # 300 req/hour para API
-            'auth': {'requests': 10, 'window': 900},     # 10 req/15min para auth (anti brute-force)
-            'admin': {'requests': 200, 'window': 3600},  # 200 req/hour para admin
-            'default': {'requests': 100, 'window': 3600}, # 100 req/hour por defecto
+            # Anti brute-force estricto para login/register/reset
+            'auth_strict': {'requests': 10, 'window': 60},      # 10/min
+            'auth': {'requests': 60, 'window': 300},            # 60 / 5 min (refresh, me)
+            # Dashboards y navegación autenticada: suficiente para uso intensivo
+            'api_authenticated': {'requests': 3000, 'window': 3600},
+            # API anónima (lista pública de propiedades, etc.)
+            'api_anonymous': {'requests': 300, 'window': 3600},
+            'admin': {'requests': 1000, 'window': 3600},
+            'default': {'requests': 300, 'window': 3600},
         }
-    
+
     def process_request(self, request):
         """Procesa la request para aplicar rate limiting."""
-        # Obtener IP del cliente
         ip = self.get_client_ip(request)
-        
-        # Determinar el tipo de endpoint
-        endpoint_type = self.get_endpoint_type(request.path)
-        
-        # Obtener límites
+
+        # BUG-E2E-04: exención local en desarrollo
+        if settings.DEBUG and ip in self.LOCAL_IPS:
+            return None
+
+        endpoint_type = self.get_endpoint_type(request)
         limits = self.rate_limits.get(endpoint_type, self.rate_limits['default'])
-        
-        # Crear clave de cache
+
         cache_key = f"rate_limit:{endpoint_type}:{ip}"
         if hasattr(request, 'user') and request.user.is_authenticated:
             cache_key += f":{request.user.id}"
-        
-        # Verificar límite
+
         current_requests = cache.get(cache_key, 0)
-        
+
         if current_requests >= limits['requests']:
             logger.warning(
                 f"Rate limit exceeded for {ip} on {endpoint_type}: "
@@ -59,17 +69,15 @@ class RateLimitMiddleware(MiddlewareMixin):
                 'detail': f"Too many requests. Limit: {limits['requests']} per {limits['window']} seconds",
                 'retry_after': limits['window']
             }, status=429)
-        
-        # Incrementar contador
+
         cache.set(cache_key, current_requests + 1, timeout=limits['window'])
-        
-        # Agregar headers informativos
+
         response = self.get_response(request)
         if hasattr(response, '__setitem__'):
             response['X-RateLimit-Limit'] = str(limits['requests'])
             response['X-RateLimit-Remaining'] = str(limits['requests'] - current_requests - 1)
             response['X-RateLimit-Reset'] = str(int(time.time()) + limits['window'])
-        
+
         return response
     
     def get_client_ip(self, request):
@@ -81,16 +89,29 @@ class RateLimitMiddleware(MiddlewareMixin):
             ip = request.META.get('REMOTE_ADDR')
         return ip
     
-    def get_endpoint_type(self, path):
-        """Determina el tipo de endpoint basado en la ruta."""
-        if path.startswith('/api/v1/auth/'):
+    # Endpoints con brute-force estricto
+    _STRICT_AUTH_PATTERNS = (
+        '/api/v1/users/auth/login/',
+        '/api/v1/users/auth/register',
+        '/api/v1/users/auth/forgot-password/',
+        '/api/v1/users/auth/reset-password',
+    )
+
+    def get_endpoint_type(self, request):
+        """Determina el tipo de endpoint basado en la ruta + autenticación."""
+        path = request.path
+
+        if any(path.startswith(p) for p in self._STRICT_AUTH_PATTERNS):
+            return 'auth_strict'
+        if path.startswith('/api/v1/users/auth/') or path.startswith('/api/v1/auth/'):
             return 'auth'
-        elif path.startswith('/admin/'):
+        if path.startswith('/admin/'):
             return 'admin'
-        elif path.startswith('/api/'):
-            return 'api'
-        else:
-            return 'default'
+        if path.startswith('/api/'):
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                return 'api_authenticated'
+            return 'api_anonymous'
+        return 'default'
 
 class SecurityHeadersMiddleware(MiddlewareMixin):
     """Middleware para agregar headers de seguridad."""

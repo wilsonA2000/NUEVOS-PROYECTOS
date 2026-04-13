@@ -427,23 +427,37 @@ class CodeudorBiometricCompleteView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _update_contract_workflow(self, auth_token):
-        """Actualiza el workflow del contrato después de la autenticación del codeudor."""
+        """Actualiza el workflow del contrato después de la autenticación del codeudor.
+
+        BUG-E2E-05: llama a recompute_workflow_status para sincronizar
+        MatchRequest.workflow_status + Contract.status + LandlordControlled.current_state
+        basándose en las firmas REALES. Antes el garante completaba pero el
+        landlord seguía viendo 423 'Esperando tenant'.
+        """
         try:
-            contract = auth_token.contract
+            landlord_contract = auth_token.contract  # LandlordControlledContract
 
-            # Verificar si el contrato está esperando al codeudor
-            if contract.current_state in ['pending_guarantor_biometric', 'TENANT_SIGNED']:
-                # Avanzar al siguiente estado (landlord biometric)
-                contract.current_state = 'pending_landlord_biometric'
-                contract.save(update_fields=['current_state'])
+            # Buscar Contract legacy (mismo UUID) para pasarlo a recompute
+            legacy_contract = Contract.objects.filter(id=landlord_contract.id).first()
 
-                logger.info(f"Contract {contract.contract_number} advanced to pending_landlord_biometric")
+            target = legacy_contract or landlord_contract
 
-                # Notificar al arrendador (implementar en servicio de emails)
-                # notification_service.notify_landlord_codeudor_completed(contract, auth_token)
+            from .biometric_service import recompute_workflow_status
+            result = recompute_workflow_status(target)
+
+            if result:
+                logger.info(
+                    f"Contract {landlord_contract.contract_number} workflow recomputed "
+                    f"post codeudor: {result['workflow_status']}"
+                )
+            else:
+                # Fallback al comportamiento anterior si no hay MatchRequest
+                if landlord_contract.current_state in ['pending_guarantor_biometric', 'TENANT_SIGNED']:
+                    landlord_contract.current_state = 'pending_landlord_biometric'
+                    landlord_contract.save(update_fields=['current_state'])
 
         except Exception as e:
-            logger.error(f"Error updating contract workflow: {e}")
+            logger.error(f"Error updating contract workflow post-codeudor: {e}")
 
 
 class CodeudorStatusView(APIView):
