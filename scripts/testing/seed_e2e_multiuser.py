@@ -158,6 +158,7 @@ def create_contract_ready_for_signing(landlord, tenant, prop, match_request):
         content='Contrato de arrendamiento para test E2E.',
         primary_party=landlord,
         secondary_party=tenant,
+        property=prop,  # requerido para que recompute_workflow_status encuentre MatchRequest
         start_date=start_date,
         end_date=end_date,
         monthly_rent=prop.rent_price or Decimal('1500000.00'),

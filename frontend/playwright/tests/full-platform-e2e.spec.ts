@@ -47,6 +47,7 @@ async function uiLogin(
 ): Promise<void> {
   logStep(ctx, actor, 'ui-login', 'start', { email });
   await page.goto('/login');
+  await page.waitForSelector('input[name="email"]', { timeout: 30000 });
   await snap(page, ctx, actor, 'login-page');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);

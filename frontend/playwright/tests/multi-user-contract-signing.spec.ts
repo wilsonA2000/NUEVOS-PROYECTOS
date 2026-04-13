@@ -37,6 +37,7 @@ import {
   createRunContext,
   getAuthToken,
   logStep,
+  runSeed,
   snap,
 } from '../helpers/multi-user-logger';
 import { BiometricPayloads } from '../fixtures/biometric-samples';
@@ -50,18 +51,20 @@ test('flujo completo tenant + landlord hasta contrato active', async ({ browser 
   test.setTimeout(180_000);
 
   // ========================================================================
-  // SETUP: leer IDs sembrados por globalSetup
+  // SETUP: este spec ejecuta su propio seed para ser independiente de
+  // specs anteriores que pueden haber limpiado el Contract inicial.
   // ========================================================================
-  const landlordEmail = process.env.E2E_LANDLORD_EMAIL!;
-  const tenantEmail = process.env.E2E_TENANT_EMAIL!;
-  const password = process.env.E2E_PASSWORD!;
-  const matchRequestId = process.env.E2E_MATCH_REQUEST_ID!;
-  const contractId = process.env.E2E_CONTRACT_ID!;
+  const seed = runSeed('ready_for_bio');
+  const landlordEmail = seed.landlord_email;
+  const tenantEmail = seed.tenant_email;
+  const password = seed.password;
+  const matchRequestId = seed.match_request_id;
+  const contractId = seed.contract_id;
 
-  expect(landlordEmail, 'globalSetup debio exportar E2E_LANDLORD_EMAIL').toBeTruthy();
-  expect(tenantEmail, 'globalSetup debio exportar E2E_TENANT_EMAIL').toBeTruthy();
-  expect(matchRequestId, 'globalSetup debio exportar E2E_MATCH_REQUEST_ID').toBeTruthy();
-  expect(contractId, 'globalSetup debio exportar E2E_CONTRACT_ID').toBeTruthy();
+  expect(landlordEmail, 'seed debe tener landlord_email').toBeTruthy();
+  expect(tenantEmail, 'seed debe tener tenant_email').toBeTruthy();
+  expect(matchRequestId, 'seed debe tener match_request_id').toBeTruthy();
+  expect(contractId, 'seed debe tener contract_id').toBeTruthy();
 
   const ctx = createRunContext(REPORT_DIR);
   fs.writeFileSync(
@@ -96,6 +99,7 @@ test('flujo completo tenant + landlord hasta contrato active', async ({ browser 
   async function uiLogin(page: Page, actor: Actor, email: string): Promise<void> {
     logStep(ctx, actor, 'ui-login', 'start', { email });
     await page.goto('/login');
+    await page.waitForSelector('input[name="email"]', { timeout: 30000 });
     await snap(page, ctx, actor, 'login-page');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
