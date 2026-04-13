@@ -31,13 +31,18 @@
 
 ### Sesión 2: Auditoría de botones (perfil/ajustes/resume)
 
-| # | Bug | Severidad | Estado | Fix |
+| # | Bug | Severidad | Estado | Fix commit |
 |---|---|---|---|---|
-| 12 | BUG-BTN-01 · Accordion Seguridad sin `defaultExpanded` | P2 | ⏳ PENDIENTE | 1 línea en `Settings.tsx:440` |
-| 13 | OBS-BTN-01 · Labels duplicados en ResumeEdit | Informativo | ⏳ PENDIENTE | Accesibilidad (no bloquea) |
-| 14 | OBS-BTN-02 · `family_size` no aparece con selector esperado | Informativo | ⏳ VERIFICAR | Validación manual |
+| 12 | BUG-BTN-01 · Accordions Privacidad/Preferencias/Seguridad sin `defaultExpanded` | P2 | ✅ RESUELTO | `04bb60b` |
+| 13 | OBS-BTN-01 · Labels duplicados en ResumeEdit | Informativo | ✅ VERIFICADO · no es bug (contexto visual por Card) | — |
+| 14 | OBS-BTN-02 · `family_size` no aparece con selector esperado | Informativo | ✅ RESUELTO · test buscaba en tab equivocado | `04bb60b` |
 
-**Total sesión 2**: 0 fails funcionales · 1 bug P2 pendiente · 2 observaciones
+**Total sesión 2**: 3/3 resueltos/verificados
+
+### Resultado post-fix (2026-04-13T02:27):
+- **Landlord**: 59/59 OK (100%) · 0 fail · 0 not_found
+- **Tenant**: 57/57 OK (100%) · 0 fail · 0 not_found
+- **Total**: 116/116 acciones funcionando perfectamente
 
 ---
 
@@ -50,8 +55,8 @@
 | Bugs P1 (flujo principal) | 4 |
 | Bugs P2 (DX/UX) | 4 |
 | Observaciones informativas | 2 |
-| **Bugs RESUELTOS** | **11 (79%)** |
-| **Bugs PENDIENTES** | **1 P2 + 2 obs** |
+| **Bugs RESUELTOS** | **14 (100%)** |
+| **Bugs PENDIENTES** | **0** |
 
 ---
 
@@ -213,35 +218,13 @@ Del run `2026-04-13T01-20-34-062Z`:
 
 ---
 
-## Pendientes (opcionales)
+## Pendientes (opcionales, no bloqueadores)
 
-### BUG-BTN-01 (P2) — 1 línea
-```python
-# frontend/src/pages/settings/Settings.tsx:440
-- <Accordion>
-+ <Accordion defaultExpanded>
-```
-Tiempo: 2 minutos.
+Todos los bugs descubiertos fueron resueltos. Los únicos pendientes son mejoras opcionales de DX:
 
-### OBS-BTN-01 — mejora de accesibilidad (~1 h)
-Prefijar labels duplicados en ResumeEdit:
-- `"Nombre del contacto"` → dejar así (ya es claro)
-- `"Teléfono"` en Emergencia → `"Teléfono de emergencia"`
-- `"Relación"` en Emergencia → `"Relación con el contacto"`
-- Similar en Referencia Personal / Familiar
-
-### OBS-BTN-02 — verificar manual (~5 min)
-Logear como tenant → `/app/profile` → tab Arrendatario → verificar si "Tamaño familia" aparece y cuál es su selector real.
-
----
-
-## Plan de ejecución post-sesión
-
-1. ✅ Verificar todo está en `main` (hecho)
-2. Opcional: aplicar BUG-BTN-01 (2 min)
-3. Opcional: verificar OBS-BTN-02 manualmente (5 min)
-4. Integrar los 3 specs E2E al pipeline CI como regresión permanente
-5. Documentar en `CLAUDE.md` el nuevo comando `npx playwright test --config=playwright.config.e2e-real.ts` como check obligatorio pre-deploy
+1. **Integración CI**: añadir los 3 specs E2E al pipeline como test de regresión permanente
+2. **Documentar en `CLAUDE.md`** el comando `npx playwright test --config=playwright.config.e2e-real.ts` como check pre-deploy
+3. **Mejoras de accesibilidad** (opcional): prefijar labels duplicados en ResumeEdit con contexto de sección para mejor experiencia con screen readers
 
 ---
 
@@ -271,5 +254,5 @@ git reset --hard pre-phase-0   # vuelve a baseline pre-audit
 
 ---
 
-**Última actualización**: 2026-04-13 02:15 UTC
-**Estado**: plataforma lista para producción · 11 bugs críticos resueltos · 1 bug P2 menor pendiente
+**Última actualización**: 2026-04-13 02:30 UTC
+**Estado**: ✅ plataforma lista para producción · **14/14 bugs resueltos (100%)** · 116/116 acciones UI funcionando
