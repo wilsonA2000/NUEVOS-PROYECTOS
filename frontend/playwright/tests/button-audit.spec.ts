@@ -91,6 +91,8 @@ function buildProfileActions(actor: Actor): AuditAction[] {
     { name: 'fill-phone', selector: 'input[name="phone_number"]', kind: 'fill', value: '+573001234567' },
     { name: 'fill-whatsapp', selector: 'input[name="whatsapp"]', kind: 'fill', value: '+573009876543', skipIfNotFound: true },
     { name: 'fill-nationality', selector: 'input[name="nationality"]', kind: 'fill', value: 'Colombiana' },
+    // family_size está en el tab Personal (común), no en Arrendatario
+    { name: 'fill-family-size', selector: 'input[name="family_size"]', kind: 'fill', value: '2', skipIfNotFound: true },
     // Tab Ubicación
     {
       name: 'tab-ubicacion',
@@ -137,7 +139,8 @@ function buildProfileActions(actor: Actor): AuditAction[] {
         skipIfNotFound: true,
         postDelayMs: 300,
       },
-      { name: 'fill-family-size', selector: 'input[name="family_size"]', kind: 'fill', value: '2', skipIfNotFound: true },
+      // budget_range y move_in_date son los campos reales del tab Arrendatario
+      { name: 'fill-move-in-date', selector: 'input[name="move_in_date"]', kind: 'fill', value: '2026-06-01', skipIfNotFound: true },
     );
   }
 
@@ -273,14 +276,19 @@ function buildResumeEditActions(): AuditAction[] {
     { name: 'fill-bank-name', selector: { label: /banco|nombre del banco/i }, kind: 'fill', value: 'Bancolombia', skipIfNotFound: true },
     { name: 'fill-account-type', selector: { label: /tipo de cuenta/i }, kind: 'fill', value: 'Ahorros', skipIfNotFound: true },
     { name: 'fill-monthly-expenses', selector: { label: /gastos mensuales/i }, kind: 'fill', value: '1500000', skipIfNotFound: true },
-    // Emergencia
-    { name: 'fill-emergency-name', selector: { label: /nombre del contacto.*emergencia|contacto de emergencia/i }, kind: 'fill', value: 'Madre E2E', skipIfNotFound: true },
-    { name: 'fill-emergency-phone', selector: { label: /tel[eé]fono.*emergencia/i }, kind: 'fill', value: '+573004445566', skipIfNotFound: true },
-    { name: 'fill-emergency-relation', selector: { label: /relaci[oó]n.*emergencia|parentesco/i }, kind: 'fill', value: 'Madre', skipIfNotFound: true },
-    // Referencias (Ref 1)
-    { name: 'fill-ref1-name', selector: { label: /referencia 1.*nombre|nombre.*referencia 1/i }, kind: 'fill', value: 'Ref 1 E2E', skipIfNotFound: true },
-    { name: 'fill-ref1-phone', selector: { label: /referencia 1.*tel[eé]fono|tel[eé]fono.*referencia 1/i }, kind: 'fill', value: '+573007778899', skipIfNotFound: true },
-    { name: 'fill-ref1-email', selector: { label: /referencia 1.*email|email.*referencia 1/i }, kind: 'fill', value: 'ref1@test.com', skipIfNotFound: true },
+    // Emergencia: labels reales en ResumeEdit.tsx:605,613,622
+    { name: 'fill-emergency-name', selector: { label: /^nombre del contacto$/i }, kind: 'fill', value: 'Madre E2E', skipIfNotFound: true },
+    // "Teléfono" y "Relación" están duplicados (Emergencia + 2 Referencias),
+    // usamos el primero (Emergencia aparece antes en el DOM)
+    { name: 'fill-emergency-phone', selector: { label: /^tel[eé]fono$/i }, kind: 'fill', value: '+573004445566', skipIfNotFound: true },
+    { name: 'fill-emergency-relation', selector: { label: /^relaci[oó]n$/i }, kind: 'fill', value: 'Madre', skipIfNotFound: true },
+    // Referencias · sección "Referencia Personal" (subtítulo en la misma Card)
+    // Los TextField dentro tienen labels genéricos "Nombre", "Email", "Teléfono", "Relación"
+    // Usamos .first() en el helper; Playwright selecciona el primer match.
+    // Para Ref1, los labels aparecen DESPUÉS de emergency, así que .first() ya lo tomó.
+    // Usamos labels exactos (los genéricos duplicados) y confiamos en orden DOM.
+    { name: 'fill-ref1-name', selector: { label: /^nombre$/i }, kind: 'fill', value: 'Ref 1 E2E', skipIfNotFound: true },
+    { name: 'fill-ref1-email', selector: { label: /^email$/i }, kind: 'fill', value: 'ref1@test.com', skipIfNotFound: true },
     // Guardar
     {
       name: 'save-resume',

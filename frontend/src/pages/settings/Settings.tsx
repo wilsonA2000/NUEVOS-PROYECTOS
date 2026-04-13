@@ -275,7 +275,7 @@ const Settings: React.FC = () => {
 
           {/* Privacidad */}
           <Grid item xs={12}>
-            <Accordion>
+            <Accordion defaultExpanded>
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <VisibilityIcon />
@@ -358,7 +358,7 @@ const Settings: React.FC = () => {
 
           {/* Preferencias */}
           <Grid item xs={12}>
-            <Accordion>
+            <Accordion defaultExpanded>
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LanguageIcon />
@@ -437,7 +437,7 @@ const Settings: React.FC = () => {
 
           {/* Seguridad */}
           <Grid item xs={12}>
-            <Accordion>
+            <Accordion defaultExpanded>
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <SecurityIcon />
