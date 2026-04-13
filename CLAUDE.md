@@ -676,6 +676,28 @@ Artefactos por run en `frontend/e2e-logs/run-<timestamp>/` y `frontend/e2e-logs/
 
 ---
 
-**Last Updated**: April 12, 2026 (E2E audit resuelto)
-**Version**: Production-ready + E2E audit cleared · contract flow fully functional
-**Branch**: main (post-merge de fix/e2e-audit-2026-04-12)
+## 🔒 Auditoría E2E de Botones (2026-04-12) — RESUELTA
+
+Ver `BUTTON_AUDIT_RESULTS.md` + `SESSION_AUDIT_SUMMARY.md`.
+
+Suite Playwright que cubre perfil/ajustes/hoja de vida para ambos roles (landlord + tenant), 116 acciones totales (click/fill/toggle/select/tab).
+
+**Resultado final (2026-04-12)**:
+- Landlord: 59/59 OK (100%)
+- Tenant: 57/57 OK (100%)
+- APIs verificadas 200: `PATCH /users/profile/`, `PUT /users/settings/`, `PUT/POST /users/resume/`
+
+Correr:
+```bash
+cd frontend
+npx playwright test --config=playwright.config.e2e-real.ts button-audit
+```
+
+### Fix importante: Settings accordions
+Todos los 4 accordions de `/app/settings` (Notificaciones, Privacidad, Preferencias, Seguridad) ahora tienen `defaultExpanded` para consistencia UX. Antes solo Notificaciones estaba expandido por default.
+
+---
+
+**Last Updated**: April 12, 2026 (2 auditorías E2E resueltas · 14/14 bugs)
+**Version**: Production-ready + E2E audits cleared · contract flow + profile/settings/resume fully functional
+**Branch**: main (post-merge de fix/e2e-audit-2026-04-12 + audit/buttons-2026-04-12)
