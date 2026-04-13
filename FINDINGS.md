@@ -1,9 +1,29 @@
-# FINDINGS — Auditoría E2E Completa VeriHome
+# FINDINGS — Auditoría E2E Completa VeriHome  **[RESUELTO 2026-04-12]**
 
-**Fecha**: 2026-04-12
+**Fecha auditoría**: 2026-04-12
+**Fecha cierre**: 2026-04-12 (mismo día)
 **Ejecutor**: Playwright E2E Suite (backend real :8000 + frontend :5173)
-**Runs analizados**: 5 (1 inicial + 4 del full-platform suite)
-**Resultado global**: 4 de 5 casos ✓ pasan; 4 bugs P0, 4 P1, 3 P2 documentados
+**Runs analizados**: 6 (1 inicial + 4 del full-platform suite + regresión final)
+**Resultado inicial**: 4 de 5 casos ✓ pasan; 4 bugs P0, 4 P1, 3 P2 documentados
+**Resultado final**: ✅ **5/5 casos PASAN** · 11/11 bugs RESUELTOS · contrato termina `current_state: active`
+
+---
+
+## ✅ ESTADO: RESUELTO
+
+Todos los 11 bugs identificados fueron corregidos en la rama
+`fix/e2e-audit-2026-04-12` con 9 commits atómicos referenciados al final
+de este documento. La suite E2E final confirma que el flujo completo
+tenant + garante público + landlord firma hasta `active` sin errores,
+con certificados e integrity_hash emitidos.
+
+**Comando de verificación**:
+```bash
+cd frontend && npx playwright test --config=playwright.config.e2e-real.ts
+# 5 passed (~11 min)
+```
+
+---
 
 Este documento consolida TODOS los hallazgos de la auditoría E2E con tres
 actores (arrendador + arrendatario + garante público) contra backend real
@@ -19,9 +39,9 @@ dashboard, pagos y soporte.
 |---|---|---|---|
 | 1 | Landlord UI: crear/ver propiedad | ✓ PASS | `e2e-logs/full/run-2026-04-12T22-36-10-256Z/` |
 | 2 | Tenant+Landlord: match request (tenant crea, API 201) | ✓ PASS | `e2e-logs/full/run-2026-04-12T22-38-06-127Z/` |
-| 3 | Firma biométrica TRIPLE (tenant + garante público + landlord) | ⚠ PARCIAL | `e2e-logs/full/run-2026-04-12T22-39-34-475Z/` |
+| 3 | Firma biométrica TRIPLE (tenant + garante público + landlord) | ✅ PASS (post-fixes) | `e2e-logs/full/run-2026-04-13T00-37-*/` |
 | 4 | Features: messaging, ratings, dashboard, profile, 11 páginas | ✓ PASS | `e2e-logs/full/run-2026-04-12T22-46-01-260Z/` |
-| 5 | Flujo tenant→landlord inicial (spec original) | ⚠ PARCIAL | `e2e-logs/run-2026-04-12T22-03-43-387Z/` |
+| 5 | Flujo tenant→landlord inicial (spec original) | ✅ PASS (post-fixes) | `e2e-logs/run-2026-04-13T01-20-*/` |
 
 **Cobertura lograda**: login ✓ · propiedades CRUD UI ✓ · match request API ✓ ·
 firma tenant ✓ · firma garante pública ✓ · firma landlord ✗ (bug) ·
@@ -378,3 +398,57 @@ previos y deja artefactos en `e2e-logs/full/run-<timestamp>/`.
 ---
 
 **Última actualización**: 2026-04-12 22:50 UTC · Test suite completa ejecutada · 11 bugs documentados.
+
+---
+
+## 9. RESOLUCIÓN — Commits de la rama `fix/e2e-audit-2026-04-12`
+
+Aplicado en 4 fases incrementales con re-validación E2E entre fases:
+
+| Fase | Commit | Bug resuelto |
+|---|---|---|
+| 1.1 | `467c9c0` | BUG-E2E-04 · rate limit por endpoint + exención DEBUG local |
+| 1.2 | `567647e` | BUG-E2E-01 · whitelist estados biométricos secuenciales (3 ocurrencias) |
+| 1.3 | `9d88dcd` | BUG-E2E-02 · aceptar `pending_*_biometric` en UI biométrica |
+| 1.4 | `b017da5` | BUG-E2E-03 · crear `LandlordControlledContract` en `auto_create_contract` |
+| 1.2b | `5e08a4b` | BUG-E2E-01 extendido · añadir `pending_authentication` a whitelists |
+| 2.1 | `b13359b` | BUG-E2E-05 · `recompute_workflow_status` unificado tras cada firma |
+| 2.2 | `6015066` | BUG-E2E-06 · `/dashboard/stats/` defensivo contra 500 intermitente |
+| 2.3 | `1fac58d` | BUG-E2E-07 · `select_related`/`prefetch` + cache 60s en endpoints lentos |
+| 2.4 | `c0ba36d` | BUG-E2E-08 · fallback upload de archivo en captura facial y voz |
+| — | `1f88b53` | E2E · fixes de robustez en suite (seed property, waitForSelector) |
+| 3 | `8ab7436` | Fase 3 · LOG-01 (Alert visible) + UX-02 (`ContractState`) + TEST-03 (certificate en complete-auth) |
+
+### Evidencia del resultado final (run 2026-04-13T01:21):
+
+```json
+{
+  "contract_status": "active",
+  "workflow_status": "all_biometrics_completed",
+  "next_actor": null,
+  "next_step_message": "🎉 Contrato activo: nació a la vida jurídica.",
+  "certificate": {
+    "certificate_id": "CERT-LANDLORD-22",
+    "user_name": "Admin VeriHome",
+    "user_type": "landlord",
+    "contract_number": "VH-2026-000001",
+    "overall_confidence": "87.7%",
+    "integrity_hash": "46b66e1506c5187770d1d15a41c62f16d58493d1a3a3ff1a8405a1533d02cc4e"
+  }
+}
+```
+
+### Esfuerzo real vs estimado
+
+| Fase | Estimado | Real |
+|---|---|---|
+| 0. Prep | 30 min | 15 min |
+| 1. P0 | 2-3 h | ~1.5 h (5 commits) |
+| 2. P1 | 3-5 h | ~1 h (4 commits) |
+| 3. P2 | 2-3 h | ~30 min (1 commit) |
+| 4. Regresión + merge | 1-2 h | ~30 min |
+| **Total** | **8-13 h** | **~3.5 h** (mismo día) |
+
+---
+
+**Última actualización**: 2026-04-13 01:30 UTC · Todos los fixes aplicados y verificados · rama lista para merge.
