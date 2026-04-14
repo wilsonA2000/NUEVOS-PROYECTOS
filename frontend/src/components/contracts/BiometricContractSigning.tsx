@@ -364,7 +364,7 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
                   </Alert>
                 ) : (
                   <Alert severity="success">
-                    <Typography>✅ Verificación de identidad completada exitosamente</Typography>
+                    <Typography>Verificación de identidad completada exitosamente</Typography>
                   </Alert>
                 )}
               </Box>
@@ -405,7 +405,7 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
               {/* Resumen de términos clave */}
               <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
                 <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                  📋 Términos Principales
+                  Términos Principales
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
@@ -506,7 +506,7 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
                     <Grid item xs={12} md={6}>
                       <Typography variant="caption" color="text.secondary">Nivel de Confianza</Typography>
                       <Typography variant="body1" color="success.main">
-                        {biometricAuthResult?.confidence_score.toFixed(1)}% - Verificado ✅
+                        {biometricAuthResult?.confidence_score.toFixed(1)}% — Verificado
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>

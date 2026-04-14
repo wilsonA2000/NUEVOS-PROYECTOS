@@ -997,7 +997,7 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     }));
     
     // Show success message
-    setValidationErrors(['✅ Verificación biométrica del codeudor completada exitosamente']);
+    setValidationErrors(['Verificación biométrica del codeudor completada exitosamente']);
     
     // Auto-clear success message after 3 seconds
     setTimeout(() => {
@@ -2225,7 +2225,7 @@ _____________________________
                       {/* Property Header */}
                       <Box sx={{ mb: 3, p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
                         <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
-                          🏠 {selectedProperty.title || `${selectedProperty.property_type} - ${selectedProperty.city}`}
+                          {selectedProperty.title || `${selectedProperty.property_type} - ${selectedProperty.city}`}
                         </Typography>
                         <Typography variant="body1" color="text.secondary" gutterBottom>
                           📍 {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}, {selectedProperty.country}
@@ -2244,7 +2244,7 @@ _____________________________
                           <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
                             <Typography variant="caption" color="text.secondary">Área Total</Typography>
                             <Typography variant="h6" fontWeight="bold" color="primary">
-                              📐 {selectedProperty.total_area || selectedProperty.area || 'N/A'} m²
+                              {selectedProperty.total_area || selectedProperty.area || 'N/A'} m²
                             </Typography>
                           </Paper>
                         </Grid>
@@ -2253,7 +2253,7 @@ _____________________________
                           <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
                             <Typography variant="caption" color="text.secondary">Habitaciones</Typography>
                             <Typography variant="h6" fontWeight="bold" color="primary">
-                              🛏️ {selectedProperty.bedrooms || 'N/A'}
+                              {selectedProperty.bedrooms || 'N/A'} hab.
                             </Typography>
                           </Paper>
                         </Grid>
@@ -2262,7 +2262,7 @@ _____________________________
                           <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
                             <Typography variant="caption" color="text.secondary">Baños</Typography>
                             <Typography variant="h6" fontWeight="bold" color="primary">
-                              🚿 {selectedProperty.bathrooms || 'N/A'}
+                              {selectedProperty.bathrooms || 'N/A'} baños
                             </Typography>
                           </Paper>
                         </Grid>
@@ -2271,7 +2271,7 @@ _____________________________
                           <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'grey.50' }}>
                             <Typography variant="caption" color="text.secondary">Parqueaderos</Typography>
                             <Typography variant="h6" fontWeight="bold" color="primary">
-                              🚗 {selectedProperty.parking_spaces || 'N/A'}
+                              {selectedProperty.parking_spaces || 'N/A'} parq.
                             </Typography>
                           </Paper>
                         </Grid>
@@ -2376,7 +2376,7 @@ _____________________________
                               <Chip label="🚬 Fumadores Permitidos" size="small" color="warning" />
                             )}
                             {selectedProperty.minimum_lease_term && (
-                              <Chip label={`📅 Min. ${selectedProperty.minimum_lease_term} meses`} size="small" color="primary" />
+                              <Chip label={`Mín. ${selectedProperty.minimum_lease_term} meses`} size="small" color="primary" />
                             )}
                           </Box>
                         </Grid>
@@ -2385,7 +2385,7 @@ _____________________________
                           <Typography variant="caption" color="text.secondary" gutterBottom>Servicios Incluidos</Typography>
                           <Box display="flex" gap={1} flexWrap="wrap">
                             {(Array.isArray(selectedProperty.utilities_included) ? selectedProperty.utilities_included : [])?.map((utility: string, index: number) => (
-                              <Chip key={index} label={`⚡ ${utility}`} size="small" color="secondary" />
+                              <Chip key={index} label={utility} size="small" color="secondary" />
                             )) || <Typography variant="caption" color="text.secondary">No especificados</Typography>}
                           </Box>
                         </Grid>
@@ -2408,7 +2408,7 @@ _____________________________
                       
                       <Alert severity="success" sx={{ mt: 2 }}>
                         <Typography variant="body2">
-                          ✅ <strong>Datos Auto-Cargados:</strong> Toda la información de esta propiedad ha sido transferida automáticamente 
+                          <strong>Datos Auto-Cargados:</strong> Toda la información de esta propiedad ha sido transferida automáticamente 
                           al formulario del contrato. Verifica los datos en los campos de abajo y modifica lo que sea necesario antes de continuar.
                         </Typography>
                       </Alert>
@@ -2478,8 +2478,8 @@ _____________________________
                     📍 {propertyData.property_address}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    📐 {propertyData.property_area}m² • 🛏️ {propertyData.property_rooms} hab. • 🚿 {propertyData.property_bathrooms} baños
-                    {propertyData.property_parking_spaces > 0 && ` • 🚗 ${propertyData.property_parking_spaces} parqueaderos`}
+                    {propertyData.property_area}m² · {propertyData.property_rooms} hab. · {propertyData.property_bathrooms} baños
+                    {propertyData.property_parking_spaces > 0 && ` · ${propertyData.property_parking_spaces} parqueaderos`}
                   </Typography>
                 </Alert>
               </Grid>
@@ -2492,7 +2492,7 @@ _____________________________
                 value={propertyData.property_address}
                 onChange={(e) => setPropertyData(prev => ({ ...prev, property_address: e.target.value }))}
                 error={validationErrors.some(err => err.includes('dirección de la propiedad'))}
-                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad seleccionada. Puedes editarlo si es necesario.' : 'Dirección exacta incluida nomenclatura y referencias'}
+                helperText={effectivePropertyId ? 'Auto-llenado desde la propiedad seleccionada. Puedes editarlo si es necesario.' : 'Dirección exacta incluida nomenclatura y referencias'}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -2518,11 +2518,11 @@ _____________________________
                   '&.Mui-focused': { bgcolor: 'background.paper' },
                 }, 
               } : undefined}>
-                <InputLabel>Tipo de Propiedad * {effectivePropertyId && '✅'}</InputLabel>
+                <InputLabel>Tipo de Propiedad *</InputLabel>
                 <Select
                   value={contractData.property_type}
                   onChange={(e) => setContractData(prev => ({ ...prev, property_type: e.target.value as PropertyType }))}
-                  label={`Tipo de Propiedad * ${effectivePropertyId ? '✅' : ''}`}
+                  label={'Tipo de Propiedad *'}
                 >
                   <MenuItem value="apartamento">Apartamento</MenuItem>
                   <MenuItem value="casa">Casa</MenuItem>
@@ -2552,7 +2552,7 @@ _____________________________
                   property_area: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 error={validationErrors.some(err => err.includes('área'))}
-                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad seleccionada' : ''}
+                helperText={effectivePropertyId ? 'Auto-llenado desde la propiedad seleccionada' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -2596,7 +2596,7 @@ _____________________________
                   property_rooms: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
+                helperText={effectivePropertyId ? 'Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -2625,7 +2625,7 @@ _____________________________
                   property_bathrooms: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
+                helperText={effectivePropertyId ? 'Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -2654,7 +2654,7 @@ _____________________________
                   property_parking_spaces: e.target.value === '' ? 0 : Number(e.target.value), 
                 }))}
                 inputProps={{ min: 0 }}
-                helperText={effectivePropertyId ? '✅ Auto-llenado desde la propiedad' : ''}
+                helperText={effectivePropertyId ? 'Auto-llenado desde la propiedad' : ''}
                 InputProps={{
                   startAdornment: effectivePropertyId ? (
                     <InputAdornment position="start">
@@ -2691,7 +2691,7 @@ _____________________________
                 />
                 {effectivePropertyId && (
                   <Typography variant="caption" color="success.main" display="block">
-                    ✅ Auto-llenado desde la propiedad
+                    Auto-llenado desde la propiedad
                   </Typography>
                 )}
               </Box>
@@ -3047,7 +3047,7 @@ _____________________________
                   </Typography>
                   <Alert severity="info" sx={{ mb: 2 }}>
                     <Typography variant="body2">
-                      🔐 El codeudor deberá completar proceso biométrico durante la firma del contrato
+                      El codeudor deberá completar proceso biométrico durante la firma del contrato
                     </Typography>
                   </Alert>
                   
@@ -3213,7 +3213,7 @@ _____________________________
                   </Typography>
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     <Typography variant="body2">
-                      📋 Se requerirá certificado de libertad y tradición del inmueble
+                      Se requerirá certificado de libertad y tradición del inmueble
                     </Typography>
                   </Alert>
                 </Grid>
@@ -3307,7 +3307,7 @@ _____________________________
               <Grid item xs={12}>
                 <Alert severity="success" sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
-                    ✅ Garantía Configurada
+                    Garantía Configurada
                   </Typography>
                   <Typography variant="body2">
                     Tipo: {guaranteeData.guarantee_type === 'codeudor_salario' ? 'Codeudor con Salario' : 'Codeudor con Finca Raíz'}
@@ -3378,7 +3378,7 @@ _____________________________
             <Grid item xs={12}>
               <Alert severity="info">
                 <Typography variant="subtitle2" gutterBottom>
-                  📋 Template Incluido Automáticamente
+                  Template Incluido Automáticamente
                 </Typography>
                 <Typography variant="body2">
                   El contrato incluirá automáticamente todas las cláusulas estándar del template seleccionado, 
@@ -3425,7 +3425,7 @@ _____________________________
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom color="primary">
-                  📋 Resumen del Contrato
+                  Resumen del Contrato
                 </Typography>
                 
                 <Box sx={{ mb: 2 }}>

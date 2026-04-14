@@ -235,7 +235,7 @@ const BiometricAuthenticationPage: React.FC = () => {
         // Tenant completó → Esperar al landlord
         navigate('/app/contracts/tenant', {
           state: {
-            message: '✅ Autenticación completada. Esperando autenticación del arrendador.',
+            message: 'Autenticación completada. Esperando autenticación del arrendador.',
             type: 'success',
           },
         });
@@ -243,7 +243,7 @@ const BiometricAuthenticationPage: React.FC = () => {
         // Landlord completó → Contrato activo
         navigate('/app/contracts', {
           state: {
-            message: '🎉 ¡Contrato firmado y activo! El contrato ha nacido a la vida jurídica.',
+            message: '¡Contrato firmado y activo! El contrato ha nacido a la vida jurídica.',
             type: 'success',
           },
         });
@@ -273,7 +273,7 @@ const BiometricAuthenticationPage: React.FC = () => {
       <Box p={3} maxWidth="md" mx="auto">
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            🔐 Autenticación Biométrica Secuencial
+            Autenticación Biométrica Secuencial
           </Typography>
           <Typography variant="body1" paragraph>
             {turnValidation.message}
@@ -282,15 +282,15 @@ const BiometricAuthenticationPage: React.FC = () => {
           {/* Información pedagógica del flujo */}
           <Box mt={2} p={2} bgcolor="rgba(25, 118, 210, 0.05)" borderRadius={1}>
             <Typography variant="subtitle2" gutterBottom color="primary">
-              📋 Orden de Autenticación:
+              Orden de Autenticación:
             </Typography>
             <Box component="ol" pl={2}>
               <Typography component="li" variant="body2" color={turnValidation.currentTurn === 'tenant' ? 'primary' : 'text.secondary'}>
-                <strong>1. Arrendatario</strong> {turnValidation.currentTurn === 'tenant' ? '(En proceso...)' : contract.guarantor ? '(Pendiente)' : '(Completado ✅)'}
+                <strong>1. Arrendatario</strong> {turnValidation.currentTurn === 'tenant' ? '(En proceso...)' : contract.guarantor ? '(Pendiente)' : '(Completado)'}
               </Typography>
               {contract.guarantor && (
                 <Typography component="li" variant="body2" color={(turnValidation.currentTurn as string) === 'guarantor' ? 'primary' : 'text.secondary'}>
-                  <strong>2. Garante/Codeudor</strong> {(turnValidation.currentTurn as string) === 'guarantor' ? '(En proceso...)' : turnValidation.currentTurn === 'tenant' ? '(Esperando...)' : '(Completado ✅)'}
+                  <strong>2. Garante/Codeudor</strong> {(turnValidation.currentTurn as string) === 'guarantor' ? '(En proceso...)' : turnValidation.currentTurn === 'tenant' ? '(Esperando...)' : '(Completado)'}
                 </Typography>
               )}
               <Typography component="li" variant="body2" color={turnValidation.currentTurn === 'landlord' ? 'primary' : 'text.secondary'}>
@@ -324,7 +324,7 @@ const BiometricAuthenticationPage: React.FC = () => {
             )}
             {user?.user_type === 'tenant' && turnValidation.currentTurn === 'landlord' && (
               <Typography variant="body2">
-                ✅ ¡Felicitaciones! Has completado tu autenticación biométrica exitosamente.
+                ¡Felicitaciones! Has completado tu autenticación biométrica exitosamente.
                 Ahora el arrendador debe completar su verificación biométrica para activar el contrato.
                 Te notificaremos cuando el proceso esté completo.
               </Typography>

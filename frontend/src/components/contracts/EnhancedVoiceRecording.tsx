@@ -131,7 +131,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
     } else if (recordingPhase === 'cultural') {
       return 'Grabación 2/2: Verificación Cultural y Anti-Bot';
     } else {
-      return '✅ Verificación de Voz Completada';
+      return 'Verificación de Voz Completada';
     }
   };
 
@@ -214,14 +214,14 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
 
             {recordingPhase === 'cultural' && (
               <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>🎭 Ahora grabe la siguiente frase educativa</strong><br/>
+                <strong>Ahora grabe la siguiente frase educativa</strong><br/>
                 Esta verificación cultural confirma que es una persona real y promueve la lectura.
               </Typography>
             )}
 
             {recordingPhase === 'completed' && (
               <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>🎉 ¡Excelente! Ha completado ambas verificaciones de voz</strong><br/>
+                <strong>¡Excelente! Ha completado ambas verificaciones de voz</strong><br/>
                 Su identidad ha sido verificada y ha demostrado sus habilidades de lectura.
               </Typography>
             )}
@@ -274,7 +274,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 }}
               >
                 <Typography variant="caption" color="success.main" fontWeight="600" sx={{ mb: 1, display: 'block' }}>
-                  ✅ Grabación 1/2 completada: Información de identidad registrada
+                  Grabación 1/2 completada: información de identidad registrada
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Ahora proceda con la verificación cultural para demostrar sus habilidades de lectura.
@@ -349,12 +349,12 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 }}
               >
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>✅ Verificaciones completadas:</strong>
+                  <strong>Verificaciones completadas:</strong>
                 </Typography>
                 <Box component="ul" sx={{ m: 0, pl: 2, fontSize: '0.875rem' }}>
-                  <li>✅ Identidad personal verificada</li>
-                  <li>✅ Capacidad de lectura demostrada</li>
-                  <li>✅ Verificación anti-bot completada</li>
+                  <li>Identidad personal verificada</li>
+                  <li>Capacidad de lectura demostrada</li>
+                  <li>Verificación anti-bot completada</li>
                 </Box>
               </Paper>
             )}
@@ -428,7 +428,17 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 textAlign: 'center',
                 gap: 3,
               }}>
-                <Box sx={{ fontSize: '4rem' }}>🎉</Box>
+                <Box sx={{
+                  width: 96, height: 96, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(22,163,74,0.15), rgba(22,163,74,0.05))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '3px solid rgba(22,163,74,0.4)',
+                }}>
+                  <Box component="span" sx={{ fontSize: '3rem', lineHeight: 1, color: 'success.main' }}>
+                    {/* check mark via CSS pseudo (no emoji) */}
+                    ✓
+                  </Box>
+                </Box>
                 <Typography variant="h5" fontWeight="600" color="success.main">
                   ¡Verificación Completada!
                 </Typography>
