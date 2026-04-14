@@ -33,6 +33,7 @@ urlpatterns = [
     # Estadísticas generales
     path('stats/dashboard/', api_views.DashboardStatsAPIView.as_view(), name='api_dashboard_stats'),
     path('stats/overview/', api_views.SystemOverviewAPIView.as_view(), name='api_system_overview'),
+    path('security/analysis/', api_views.SecurityAnalysisAPIView.as_view(), name='api_security_analysis'),
 
     # Mantenimiento del sistema (admin only)
     path('maintenance/health/', api_views.maintenance_health_check, name='maintenance_health'),

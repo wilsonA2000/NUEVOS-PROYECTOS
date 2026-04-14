@@ -1918,23 +1918,6 @@ class TenantProcessesAPIView(generics.ListAPIView):
                     status__in=workflow_statuses
                 ).select_related('property', 'landlord').order_by('-created_at')
 
-                # Si no hay resultados, intentar con campo 'requester'
-                if not match_requests.exists():
-                    print(f"🔍 No matches found with tenant={request.user.email}, trying with requester field...")
-                    match_requests = MatchRequest.objects.filter(
-                        requester=request.user,
-                        status__in=workflow_statuses
-                    ).select_related('property', 'landlord').order_by('-created_at')
-
-                # Si aún no hay resultados, buscar por cualquier match con el usuario
-                if not match_requests.exists():
-                    print(f"🔍 No matches found with requester either, searching all matches...")
-                    from django.db.models import Q
-                    match_requests = MatchRequest.objects.filter(
-                        Q(tenant=request.user) | Q(requester=request.user),
-                        status__in=workflow_statuses
-                    ).select_related('property', 'landlord').order_by('-created_at')
-
                 print(f"🔍 Found {match_requests.count()} workflow MatchRequests for user {request.user.email}")
                 
                 for match_obj in match_requests:
@@ -2285,7 +2268,7 @@ C.C.                                    C.C.
                 visit_data = request.data.get('visit_data', {})
                 
                 # OPCIÓN C: COORDINACIÓN PROFESIONAL CON EQUIPO VERIHOME
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 property_obj = getattr(match_request, 'property', None)
                 
                 if not tenant or not property_obj:
@@ -2465,7 +2448,7 @@ www.verihome.com | soporte@verihome.com
                 
             elif action == 'visit_completed':
                 # Marcar visita como completada y avanzar a etapa 2 - SINCRONIZACIÓN FIX
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
 
                 # Actualizar estado del match request - CRÍTICO PARA SINCRONIZACIÓN
                 match_request.workflow_stage = 2
@@ -2493,7 +2476,7 @@ www.verihome.com | soporte@verihome.com
                 
             elif action == 'documents_request':
                 # Solicitar documentos al candidato - SINCRONIZACIÓN FIX
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 
                 # Actualizar estado del match request - SINCRONIZACIÓN
                 match_request.workflow_stage = 2
@@ -2514,7 +2497,7 @@ www.verihome.com | soporte@verihome.com
                 # 🔄 SINCRONIZACIÓN CRÍTICA: Actualizar MatchRequest correspondiente
                 try:
                     property_request = MatchRequest.objects.filter(
-                        requester=tenant,
+                        tenant=tenant,
                         property=match_request.property
                     ).first()
                     
@@ -2544,7 +2527,7 @@ www.verihome.com | soporte@verihome.com
             elif action == 'documents_approved':
                 # Aprobar documentos y avanzar a etapa 3 - SINCRONIZACIÓN FIX
                 documents_data = request.data.get('documents_data', {})
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 
                 # Actualizar estado del match request - AVANZAR A ETAPA 3
                 match_request.workflow_stage = 3
@@ -2661,7 +2644,7 @@ www.verihome.com | soporte@verihome.com
                 
             elif action == 'contract_create':
                 # CREAR CONTRATO REAL EN EL MODELO CONTRACT
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 property_obj = getattr(match_request, 'property', None)
                 
                 if not tenant:
@@ -2853,7 +2836,7 @@ www.verihome.com | soporte@verihome.com
                         
                         # Buscar MatchRequest asociado
                         property_request = MatchRequest.objects.filter(
-                            requester=tenant,
+                            tenant=tenant,
                             property=property_obj
                         ).first()
                         
@@ -2938,7 +2921,7 @@ www.verihome.com | soporte@verihome.com
                 # SINCRONIZACIÓN: Contrato fue creado exitosamente desde LandlordContractForm
                 contract_data = request.data.get('contract_data', {})
                 contract_id = contract_data.get('contract_id')
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 
                 print(f"🎯 SINCRONIZACIÓN: Contrato {contract_id} creado para match {match_request.id}")
                 
@@ -2982,7 +2965,7 @@ www.verihome.com | soporte@verihome.com
             elif action == 'reject' or action == 'cancel':
                 # Rechazar o cancelar candidato - ELIMINACIÓN COMPLETA
                 rejection_reason = request.data.get('rejection_reason', 'No especificado')
-                tenant = getattr(match_request, 'requester', None) or getattr(match_request, 'tenant', None)
+                tenant = match_request.tenant
                 match_code = match_request.match_code
                 match_id = str(match_request.id)
 
@@ -3293,9 +3276,9 @@ class TenantContractReviewAPIView(APIView):
                 try:
                     # 1. Actualizar MatchRequest
                     property_request = MatchRequest.objects.filter(
-                        requester=request.user,
+                        tenant=request.user,
                         property=contract.property,
-                        assignee=contract.primary_party
+                        landlord=contract.primary_party
                     ).first()
                     
                     if property_request:

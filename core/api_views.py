@@ -568,24 +568,69 @@ class AuditReportAPIView(APIView):
 
 
 class SecurityAnalysisAPIView(APIView):
-    """Vista para análisis de eventos de seguridad."""
+    """Análisis de eventos de seguridad para AdminSecurityPanel."""
     permission_classes = [permissions.IsAdminUser]
-    
+
     def get(self, request):
-        """Obtiene análisis de seguridad."""
         try:
+            from .audit_service import audit_service as _audit
+            from .models import SystemAlert, ActivityLog
+
             hours = int(getattr(request, "query_params", request.GET).get('hours', 24))
-            time_period = timedelta(hours=hours)
-            
-            analysis = audit_service.analyze_security_events(time_period)
-            
-            return Response(analysis)
-            
+            analysis = _audit.analyze_security_events(timedelta(hours=hours))
+
+            suspicious_ips = []
+            for ip_data in analysis.get('suspicious_ips', []) or []:
+                if isinstance(ip_data, dict):
+                    suspicious_ips.append({
+                        'ip': ip_data.get('ip') or ip_data.get('ip_address', ''),
+                        'failed_attempts': ip_data.get('count', 0),
+                        'last_attempt': str(ip_data.get('last_attempt') or ''),
+                    })
+
+            failed_logs = ActivityLog.objects.filter(
+                action_type='login', success=False,
+            ).order_by('-created_at').values(
+                'ip_address', 'created_at',
+            )[:20]
+            recent_failed_logins = [
+                {
+                    'email': '',
+                    'ip': r.get('ip_address') or '',
+                    'timestamp': r['created_at'].isoformat() if r.get('created_at') else '',
+                    'reason': 'invalid_credentials',
+                }
+                for r in failed_logs
+            ]
+
+            alerts = SystemAlert.objects.filter(
+                is_active=True, is_resolved=False,
+            ).order_by('-created_at').values(
+                'id', 'category', 'title', 'level', 'created_at',
+            )[:50]
+            active_alerts = [
+                {
+                    'id': str(a['id']),
+                    'type': a.get('category') or '',
+                    'message': a.get('title') or '',
+                    'severity': a.get('level') or 'low',
+                    'created_at': a['created_at'].isoformat() if a.get('created_at') else '',
+                }
+                for a in alerts
+            ]
+
+            return Response({
+                'risk_score': analysis.get('risk_score', 0),
+                'suspicious_ips': suspicious_ips,
+                'recent_failed_logins': recent_failed_logins,
+                'active_alerts': active_alerts,
+            })
+
         except Exception as e:
             logger.error(f"Failed to analyze security events: {str(e)}")
             return Response(
                 {'error': 'Failed to analyze security events'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

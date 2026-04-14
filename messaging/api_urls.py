@@ -25,6 +25,7 @@ urlpatterns = [
     path('quick-reply/', api_views.QuickReplyAPIView.as_view(), name='api_quick_reply'),
     
     # Estado de mensajes
+    path('mark-read/', api_views.BulkMarkMessagesReadAPIView.as_view(), name='api_bulk_mark_read'),
     path('mark-read/<uuid:message_pk>/', api_views.MarkMessageReadAPIView.as_view(), name='api_mark_read'),
     path('mark-unread/<uuid:message_pk>/', api_views.MarkMessageUnreadAPIView.as_view(), name='api_mark_unread'),
     path('star/<uuid:message_pk>/', api_views.StarMessageAPIView.as_view(), name='api_star_message'),

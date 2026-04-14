@@ -55,10 +55,11 @@ class MessageService {
     const formData = new FormData();
     formData.append('thread', data.thread_id);
     formData.append('content', data.content);
-    
+    formData.append('message_type', 'text');
+
     if (data.attachments) {
-      data.attachments.forEach((file, index) => {
-        formData.append(`attachment_${index}`, file);
+      data.attachments.forEach((file) => {
+        formData.append('attachments', file);
       });
     }
 

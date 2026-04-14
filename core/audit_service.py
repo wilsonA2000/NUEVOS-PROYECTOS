@@ -27,7 +27,11 @@ class AuditService:
     """Servicio centralizado de auditoría para VeriHome."""
     
     def __init__(self):
-        self.admin_logger = AdminActionLogger()
+        # AdminActionLogger requires an impersonation_session; defer init to callers
+        self.admin_logger = None
+
+    def _get_admin_logger(self, impersonation_session):
+        return AdminActionLogger(impersonation_session)
     
     def log_user_activity(
         self,
@@ -246,7 +250,7 @@ class AuditService:
         
         # Intentos de login fallidos
         failed_logins = ActivityLog.objects.filter(
-            timestamp__gte=cutoff_time,
+            created_at__gte=cutoff_time,
             action_type='login',
             success=False
         ).values('ip_address').annotate(
@@ -255,7 +259,7 @@ class AuditService:
         
         # Actividades sospechosas por IP
         suspicious_ips = ActivityLog.objects.filter(
-            timestamp__gte=cutoff_time,
+            created_at__gte=cutoff_time,
             success=False
         ).values('ip_address').annotate(
             failed_count=Count('id')
@@ -263,14 +267,14 @@ class AuditService:
         
         # Accesos de diferentes ubicaciones para el mismo usuario
         user_locations = ActivityLog.objects.filter(
-            timestamp__gte=cutoff_time,
+            created_at__gte=cutoff_time,
             user__isnull=False
         ).values('user_id', 'ip_address').distinct().count()
         
-        # Sesiones de impersonación activas
+        # Sesiones de impersonación activas (end_time=None indica activa)
         active_impersonations = AdminImpersonationSession.objects.filter(
-            is_active=True,
-            started_at__gte=cutoff_time
+            end_time__isnull=True,
+            start_time__gte=cutoff_time,
         ).count()
         
         # Alertas de seguridad recientes
@@ -328,7 +332,7 @@ class AuditService:
         # Actividades por tipo
         activities_by_type = ActivityLog.objects.filter(
             user=user,
-            timestamp__gte=cutoff_date
+            created_at__gte=cutoff_date
         ).values('action_type').annotate(
             count=Count('id')
         ).order_by('-count')
@@ -336,9 +340,9 @@ class AuditService:
         # Actividades por día
         activities_by_day = ActivityLog.objects.filter(
             user=user,
-            timestamp__gte=cutoff_date
+            created_at__gte=cutoff_date
         ).extra(
-            select={'day': 'date(timestamp)'}
+            select={'day': 'date(created_at)'}
         ).values('day').annotate(
             count=Count('id')
         ).order_by('day')
@@ -346,20 +350,20 @@ class AuditService:
         # Actividades fallidas
         failed_activities = ActivityLog.objects.filter(
             user=user,
-            timestamp__gte=cutoff_date,
+            created_at__gte=cutoff_date,
             success=False
         ).count()
         
         # IPs utilizadas
         ips_used = ActivityLog.objects.filter(
             user=user,
-            timestamp__gte=cutoff_date
+            created_at__gte=cutoff_date
         ).values_list('ip_address', flat=True).distinct().count()
         
         # Actividades de admin (si las hay)
         admin_activities = UserActivityLog.objects.filter(
             user=user,
-            timestamp__gte=cutoff_date,
+            created_at__gte=cutoff_date,
             metadata__performed_by_admin=True
         ).count()
         
@@ -465,15 +469,15 @@ class AuditService:
         
         # Contar registros a eliminar
         activity_logs_count = ActivityLog.objects.filter(
-            timestamp__lt=cutoff_date
+            created_at__lt=cutoff_date
         ).count()
         
         user_activity_logs_count = UserActivityLog.objects.filter(
-            timestamp__lt=cutoff_date
+            created_at__lt=cutoff_date
         ).count()
         
         admin_action_logs_count = AdminActionLog.objects.filter(
-            timestamp__lt=cutoff_date
+            created_at__lt=cutoff_date
         ).count()
         
         stats = {
@@ -485,9 +489,9 @@ class AuditService:
         
         if not dry_run and stats['total'] > 0:
             with transaction.atomic():
-                ActivityLog.objects.filter(timestamp__lt=cutoff_date).delete()
-                UserActivityLog.objects.filter(timestamp__lt=cutoff_date).delete()
-                AdminActionLog.objects.filter(timestamp__lt=cutoff_date).delete()
+                ActivityLog.objects.filter(created_at__lt=cutoff_date).delete()
+                UserActivityLog.objects.filter(created_at__lt=cutoff_date).delete()
+                AdminActionLog.objects.filter(created_at__lt=cutoff_date).delete()
             
             logger.info(
                 f"Cleaned up {stats['total']} old log entries",
@@ -558,16 +562,16 @@ class AuditService:
     def _get_general_stats(self, start_date: datetime, end_date: datetime) -> Dict[str, Any]:
         """Obtiene estadísticas generales para el reporte."""
         total_activities = ActivityLog.objects.filter(
-            timestamp__range=[start_date, end_date]
+            created_at__range=[start_date, end_date]
         ).count()
         
         unique_users = ActivityLog.objects.filter(
-            timestamp__range=[start_date, end_date],
+            created_at__range=[start_date, end_date],
             user__isnull=False
         ).values('user').distinct().count()
         
         failed_activities = ActivityLog.objects.filter(
-            timestamp__range=[start_date, end_date],
+            created_at__range=[start_date, end_date],
             success=False
         ).count()
         
@@ -583,14 +587,14 @@ class AuditService:
         return {
             'activities_by_type': list(
                 ActivityLog.objects.filter(
-                    timestamp__range=[start_date, end_date]
+                    created_at__range=[start_date, end_date]
                 ).values('action_type').annotate(
                     count=Count('id')
                 ).order_by('-count')[:10]
             ),
             'top_active_users': list(
                 ActivityLog.objects.filter(
-                    timestamp__range=[start_date, end_date],
+                    created_at__range=[start_date, end_date],
                     user__isnull=False
                 ).values('user__email').annotate(
                     count=Count('id')
@@ -602,14 +606,14 @@ class AuditService:
         """Obtiene estadísticas de acciones administrativas."""
         return {
             'total_admin_actions': AdminActionLog.objects.filter(
-                timestamp__range=[start_date, end_date]
+                created_at__range=[start_date, end_date]
             ).count(),
             'impersonation_sessions': AdminImpersonationSession.objects.filter(
-                started_at__range=[start_date, end_date]
+                start_time__range=[start_date, end_date]
             ).count(),
             'actions_by_type': list(
                 AdminActionLog.objects.filter(
-                    timestamp__range=[start_date, end_date]
+                    created_at__range=[start_date, end_date]
                 ).values('action_type').annotate(
                     count=Count('id')
                 ).order_by('-count')[:10]

@@ -137,7 +137,7 @@ class QuickReplyAPIView(APIView):
 class MarkMessageReadAPIView(APIView):
     """Vista para marcar un mensaje como leído."""
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request, message_pk):
         try:
             message = Message.objects.get(id=message_pk, recipient=request.user)
@@ -146,9 +146,26 @@ class MarkMessageReadAPIView(APIView):
             return Response({"detail": "Mensaje marcado como leído"})
         except Message.DoesNotExist:
             return Response(
-                {"detail": "Mensaje no encontrado"}, 
+                {"detail": "Mensaje no encontrado"},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class BulkMarkMessagesReadAPIView(APIView):
+    """Marca varios mensajes como leídos en una sola llamada (BUG-MSG-01)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        ids = request.data.get('ids') or []
+        if not isinstance(ids, list) or not ids:
+            return Response(
+                {"detail": "Se requiere lista 'ids' no vacía"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        updated = Message.objects.filter(
+            id__in=ids, recipient=request.user, is_read=False,
+        ).update(is_read=True)
+        return Response({"updated": updated})
 
 class MarkMessageUnreadAPIView(APIView):
     """Vista para marcar un mensaje como no leído."""
