@@ -38,7 +38,7 @@ export default defineConfig({
   outputDir: 'playwright-artifacts-e2e-real',
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5174',
     trace: 'on',
     screenshot: 'on',
     video: 'on',

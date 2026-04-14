@@ -48,7 +48,8 @@ async function globalSetup(): Promise<void> {
   // eslint-disable-next-line no-console
   console.log('[globalSetup] Verificando servidores...');
   await assertServerUp('http://localhost:8000/api/v1/', 'backend Django');
-  await assertServerUp('http://localhost:5173/', 'frontend Vite');
+  const frontendUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5174';
+  await assertServerUp(frontendUrl + '/', 'frontend Vite');
 
   // Ejecutar seed. Usa venv_ubuntu si existe.
   const projectRoot = path.resolve(__dirname, '..', '..');

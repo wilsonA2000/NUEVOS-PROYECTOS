@@ -177,15 +177,45 @@ class MatchRequest(models.Model):
             self.save()
     
     def accept_match(self, landlord_message=''):
-        """Acepta la solicitud de match."""
+        """Acepta la solicitud de match y crea el Contract asociado."""
         self.status = 'accepted'
         self.responded_at = timezone.now()
         self.landlord_response = landlord_message
+        self.workflow_stage = 1
+        self.workflow_status = 'visit_pending'
         self.save()
-        
-        # Integrar con sistema de mensajería
+
         from .services import MatchingMessagingService
         MatchingMessagingService.create_match_thread(self)
+
+        self._ensure_contract_exists()
+
+    def _ensure_contract_exists(self):
+        """Crea un Contract legacy vinculado al match si aún no existe."""
+        from contracts.models import Contract
+        from datetime import timedelta
+
+        if Contract.objects.filter(match_request=self).exists():
+            return
+
+        months = self.lease_duration_months or 12
+        start = self.preferred_move_in_date or timezone.now().date()
+        end = start + timedelta(days=30 * months)
+
+        Contract.objects.create(
+            match_request=self,
+            contract_type='rental_urban',
+            primary_party=self.landlord,
+            secondary_party=self.tenant,
+            property=self.property,
+            title=f'Contrato {self.property.title}',
+            description=f'Arrendamiento vinculado al match {self.match_code}',
+            content='',
+            start_date=start,
+            end_date=end,
+            status='draft',
+            monthly_rent=self.property.rent_price,
+        )
     
     def reject_match(self, landlord_message=''):
         """Rechaza la solicitud de match y limpia todos los datos asociados."""

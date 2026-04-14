@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ContractList } from '../components/contracts/ContractList';
 import { ContractForm } from '../components/contracts/ContractForm';
 import { ContractDetail } from '../components/contracts/ContractDetail';
-import MatchedCandidatesView from '../components/contracts/MatchedCandidatesView';
 import TenantContractView from '../components/contracts/TenantContractView';
 import BiometricAuthenticationPage from '../pages/contracts/BiometricAuthenticationPage';
 import DigitalSignaturePage from '../pages/contracts/DigitalSignaturePage';
@@ -51,13 +50,10 @@ const ContractRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<ContractList />} />
-      <Route 
-        path="/matched-candidates" 
-        element={
-          <LandlordOnlyRoute>
-            <MatchedCandidatesView />
-          </LandlordOnlyRoute>
-        } 
+      {/* Legacy route: consolidated into Solicitudes > Aceptadas */}
+      <Route
+        path="/matched-candidates"
+        element={<Navigate to="/app/matches?tab=accepted" replace />}
       />
       <Route 
         path="/my-processes" 

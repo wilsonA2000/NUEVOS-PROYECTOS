@@ -13,11 +13,9 @@ import {
   Button,
   Alert,
   CircularProgress,
-  Stack,
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
-  People as PeopleIcon,
   Send as SendIcon, // Reservado para handleSendForReview (Sistema Molecular Admin)
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
@@ -144,18 +142,6 @@ export const ContractList: React.FC = () => {
         <Typography variant="h4" component="h1">
           Contratos
         </Typography>
-        {/* Solo los landlords pueden crear nuevos contratos y ver candidatos */}
-        {user?.user_type === 'landlord' && (
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="outlined"
-              startIcon={<PeopleIcon />}
-              onClick={() => navigate('/app/contracts/matched-candidates')}
-            >
-              Candidatos Aprobados
-            </Button>
-          </Stack>
-        )}
       </Box>
 
       {finalContracts.length === 0 ? (

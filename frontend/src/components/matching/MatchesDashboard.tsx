@@ -54,7 +54,7 @@ import {
   Description as DocumentIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import useMatchRequests from '../../hooks/useMatchRequests';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
@@ -62,6 +62,7 @@ import { MatchRequest, matchingService } from '../../services/matchingService';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import EnhancedTenantDocumentUpload from '../contracts/EnhancedTenantDocumentUpload';
+import MatchedCandidatesView from '../contracts/MatchedCandidatesView';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -114,7 +115,12 @@ const MatchesDashboard: React.FC = () => {
   } = useMatchRequests();
   
 
-  const [tabValue, setTabValue] = useState(0);
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'accepted' ? 1
+    : searchParams.get('tab') === 'rejected' ? 2
+    : searchParams.get('tab') === 'cancelled' ? 3
+    : 0;
+  const [tabValue, setTabValue] = useState(initialTab);
   const [contractDialogOpen, setContractDialogOpen] = useState(false);
   const [isCreatingContract, setIsCreatingContract] = useState(false);
   const [selectedRequestForContract, setSelectedRequestForContract] = useState<MatchRequest | null>(null);
@@ -868,17 +874,7 @@ const MatchesDashboard: React.FC = () => {
             {isLandlord ? 'Solicitudes Aceptadas' : 'Solicitudes en Proceso'}
           </Typography>
           {isLandlord ? (
-            <>
-              {receivedRequests.filter(r => r.status === 'accepted').map(request => renderMatchRequestCard(request))}
-              {receivedRequests.filter(r => r.status === 'accepted').length === 0 && (
-                <Alert severity="success" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes aceptadas</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que aceptes aparecerán aquí. Podrás generar contratos desde esta sección.
-                  </Typography>
-                </Alert>
-              )}
-            </>
+            <MatchedCandidatesView />
           ) : (
             <>
               {sentRequests.filter(r => ['viewed', 'pending'].includes(r.status)).map(request => renderMatchRequestCard(request))}
