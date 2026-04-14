@@ -91,9 +91,9 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
       {/* Estado Debug */}
       <Alert severity="info" sx={{ mb: 2 }}>
         <Typography variant="body2">
-          Estado: videoRef={videoRef.current ? '✅' : '❌'} | 
-          stream={hasStream ? '✅' : '❌'} | 
-          active={isActive ? '✅' : '❌'}
+          Estado: videoRef={videoRef.current ? 'OK' : 'NO'} | 
+          stream={hasStream ? 'OK' : 'NO'} | 
+          active={isActive ? 'OK' : 'NO'}
         </Typography>
       </Alert>
 

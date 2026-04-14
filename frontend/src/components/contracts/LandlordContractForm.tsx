@@ -2228,7 +2228,7 @@ _____________________________
                           {selectedProperty.title || `${selectedProperty.property_type} - ${selectedProperty.city}`}
                         </Typography>
                         <Typography variant="body1" color="text.secondary" gutterBottom>
-                          📍 {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}, {selectedProperty.country}
+                          {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}, {selectedProperty.country}
                         </Typography>
                         {selectedProperty.description && (
                           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -2301,7 +2301,7 @@ _____________________________
                           <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary">Piso #</Typography>
                             <Typography variant="body2" fontWeight="medium">
-                              📍 Piso {selectedProperty.floor_number}
+                              Piso {selectedProperty.floor_number}
                             </Typography>
                           </Grid>
                         )}
@@ -2475,7 +2475,7 @@ _____________________________
                     <Typography variant="subtitle2" fontWeight="bold">Propiedad seleccionada:</Typography>
                   </Box>
                   <Typography variant="body2" fontWeight="medium">
-                    📍 {propertyData.property_address}
+                    {propertyData.property_address}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {propertyData.property_area}m² · {propertyData.property_rooms} hab. · {propertyData.property_bathrooms} baños

@@ -120,7 +120,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
         <CardContent>
           <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
             <Typography variant="h6" component="h3">
-              📋 {contract.title}
+              {contract.title}
             </Typography>
             <Chip 
               label="Pendiente de tu revisión" 
@@ -216,7 +216,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
               startIcon={<ViewIcon />}
               onClick={() => handleViewProfessionalContract(contract.id)}
             >
-              📄 Ver Contrato Profesional
+              Ver Contrato Profesional
             </Button>
           </Stack>
         </CardActions>
@@ -225,7 +225,7 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
       {/* Dialog para aprobar */}
       <Dialog open={approveDialogOpen} onClose={() => setApproveDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
-          ✅ Aprobar Contrato
+          Aprobar Contrato
         </DialogTitle>
         <DialogContent>
           <Typography gutterBottom>

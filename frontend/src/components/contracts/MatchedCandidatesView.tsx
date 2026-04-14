@@ -956,7 +956,7 @@ const MatchedCandidatesView: React.FC = () => {
                   <strong>{candidate.property.title}</strong>
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  📍 {candidate.property.address}
+                  {candidate.property.address}
                 </Typography>
               </Box>
             </Box>
@@ -1000,7 +1000,7 @@ const MatchedCandidatesView: React.FC = () => {
               </Typography>
               {candidate.tenant.phone && (
                 <Typography variant="body2">
-                  📞 {candidate.tenant.phone}
+                  {candidate.tenant.phone}
                 </Typography>
               )}
             </Grid>
@@ -1009,10 +1009,10 @@ const MatchedCandidatesView: React.FC = () => {
                 Detalles de la Propiedad
               </Typography>
               <Typography variant="body2">
-                🛏️ {candidate.property.bedrooms} Habitaciones
+                {candidate.property.bedrooms} Habitaciones
               </Typography>
               <Typography variant="body2">
-                🚿 {candidate.property.bathrooms} Baños
+                {candidate.property.bathrooms} Baños
               </Typography>
             </Grid>
             {candidate.monthly_income && (

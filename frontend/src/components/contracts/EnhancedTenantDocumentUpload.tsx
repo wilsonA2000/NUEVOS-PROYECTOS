@@ -68,6 +68,7 @@ import {
   History as HistoryIcon,
   Dashboard as DashboardIcon,
   SwapHoriz as SwapHorizIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../contexts/AuthContext';
@@ -570,7 +571,7 @@ const EnhancedDocumentItem: React.FC<{
                           opacity: 0.8,
                           fontWeight: 500,
                         }}>
-                          👤 Por: {document.reviewed_by.full_name} • 📅 {document.reviewed_at && format(new Date(document.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                          Revisado por {document.reviewed_by.full_name} · {document.reviewed_at && format(new Date(document.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </Typography>
                       )}
                     </Alert>
@@ -831,7 +832,7 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({ stats }) =
                   {stats.approved}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  ✅ Aprobados
+                  Aprobados
                 </Typography>
               </StatCard>
             </Grid>
@@ -1046,7 +1047,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
     const isOtherDoc = documentType === 'otros';
     setIsOtherDocument(isOtherDoc);
 
-    // ✅ FIX: Para documentos "otros", generar un tipo único con timestamp
+    // Para documentos "otros", generar un tipo único con timestamp
     // Esto permite que se suban múltiples documentos personalizados sin sobreescribir
     let finalDocumentType = documentType;
     if (isOtherDoc) {
@@ -1211,7 +1212,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     Gestión Inteligente de Documentos
                   </Typography>
                   <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                    📋 Sube, revisa y gestiona todos tus documentos de forma centralizada
+                    Sube, revisa y gestiona todos tus documentos de forma centralizada
                   </Typography>
                 </Box>
 
@@ -1304,7 +1305,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                         color: '#667eea',
                         fontSize: '1.3rem',
                       }}>
-                        👤 Documentos del Tomador (Inquilino)
+                        Documentos del Tomador (Inquilino)
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Documentos personales e información del inquilino principal
@@ -1375,12 +1376,12 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                   expandIcon={<ExpandMoreIcon sx={{ color: '#FF9800', fontSize: '1.5rem' }} />}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                    <PulseAvatar sx={{
-                      background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                    <PulseAvatar sx={(t) => ({
+                      background: `linear-gradient(135deg, ${t.palette.warning.main} 0%, ${t.palette.warning.dark} 100%)`,
                       width: 48,
                       height: 48,
-                    }}>
-                      👥
+                    })}>
+                      <PeopleIcon />
                     </PulseAvatar>
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="h6" sx={{
@@ -1388,7 +1389,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                         color: '#FF9800',
                         fontSize: '1.3rem',
                       }}>
-                        🤝 Documentos del Codeudor
+                        Documentos del Codeudor
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Documentos del garante o codeudor solidario
@@ -1522,7 +1523,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                         alignItems: 'center',
                         gap: 1,
                       }}>
-                        ✅ Documentos Personalizados Subidos ({checklist.otros_documents.length})
+                        Documentos Personalizados Subidos ({checklist.otros_documents.length})
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Puedes seguir agregando más documentos con el botón de abajo
@@ -1555,7 +1556,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                     border: '2px dashed rgba(33, 150, 243, 0.3)',
                   }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      📄 Aún no has subido documentos personalizados
+                      Aún no has subido documentos personalizados
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Haz clic en el botón de abajo para agregar tu primer documento personalizado
@@ -1626,8 +1627,8 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
         <Grid container spacing={4}>
           {Object.entries(categorizedDocuments).map(([category, documents], index) => {
             const categoryColors = {
-              'TOMADOR': { primary: '#667eea', secondary: '#764ba2', emoji: '👤' },
-              'CODEUDOR': { primary: '#FF9800', secondary: '#F57C00', emoji: '🤝' },
+              'TOMADOR': { primary: '#667eea', secondary: '#764ba2', emoji: '' },
+              'CODEUDOR': { primary: '#FF9800', secondary: '#F57C00', emoji: '' },
               'GARANTIA': { primary: '#4CAF50', secondary: '#388E3C', emoji: '🏦' },
               'OTROS': { primary: '#2196F3', secondary: '#1976D2', emoji: '📎' },
             };
@@ -1726,7 +1727,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                           color: 'text.secondary',
                         }}>
                           <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                            📄 No hay documentos en esta categoría
+                            No hay documentos en esta categoría
                           </Typography>
                         </Box>
                       )}
@@ -1874,7 +1875,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               },
             }}
           >
-            ❌ Cancelar
+            Cancelar
           </Button>
           <FloatingActionButton
             onClick={handleUpload}
@@ -1974,7 +1975,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
               },
             }}
           >
-            ❌ Cancelar
+            Cancelar
           </Button>
           <FloatingActionButton
             onClick={handleDeleteConfirm}
@@ -2035,7 +2036,7 @@ const EnhancedTenantDocumentUpload: React.FC<EnhancedTenantDocumentUploadProps> 
                   👀 Vista Previa del Documento
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                  📄 {previewDocument?.display_name}
+                  {previewDocument?.display_name}
                 </Typography>
               </Box>
             </Box>

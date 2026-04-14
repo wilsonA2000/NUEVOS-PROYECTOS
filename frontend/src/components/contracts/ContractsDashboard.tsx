@@ -359,7 +359,7 @@ const ContractsDashboard: React.FC = () => {
           {/* Información de la propiedad */}
           <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
             <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, mr: 1, fontSize: 14 }}>
-              {contract.property_type === 'apartamento' ? '🏢' : '🏠'}
+              {''}
             </Avatar>
             {contract.property_address}
           </Typography>
@@ -542,7 +542,7 @@ const ContractsDashboard: React.FC = () => {
         <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
             <Typography variant="h4" sx={{ mb: 1 }}>
-              {isLandlord ? '🏢 Dashboard de Arrendador' : '🏠 Dashboard de Arrendatario'}
+              {isLandlord ? 'Dashboard de Arrendador' : 'Dashboard de Arrendatario'}
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Gestiona todos tus contratos de arrendamiento en un solo lugar

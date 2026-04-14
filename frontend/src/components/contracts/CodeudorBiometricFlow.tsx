@@ -619,7 +619,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
         {steps.every(step => step.completed) && (
           <Alert severity="success" sx={{ ml: 2 }}>
             <Typography variant="body2">
-              ✅ Verificación biométrica del codeudor completada exitosamente
+              Verificación biométrica del codeudor completada exitosamente
             </Typography>
           </Alert>
         )}

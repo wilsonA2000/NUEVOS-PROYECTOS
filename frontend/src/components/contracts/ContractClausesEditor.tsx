@@ -228,7 +228,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h6" component="h3">
-          📋 Cláusulas Adicionales
+          Cláusulas Adicionales
         </Typography>
         <Stack direction="row" spacing={1}>
           <Button

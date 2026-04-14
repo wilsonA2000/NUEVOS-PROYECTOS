@@ -94,7 +94,7 @@ const EnhancedDigitalSignature: React.FC<EnhancedDigitalSignatureProps> = ({
           {/* Resumen del proceso */}
           <Alert severity="success" icon={<SecurityIcon />} sx={{ mb: 2 }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              <strong>🎉 ¡Autenticación biométrica completada con éxito!</strong>
+              <strong>¡Autenticación biométrica completada con éxito!</strong>
             </Typography>
             <Box display="flex" gap={1} flexWrap="wrap">
               <Chip size="small" icon={<CheckCircleIcon />} label="Rostro verificado" color="success" variant="outlined" />

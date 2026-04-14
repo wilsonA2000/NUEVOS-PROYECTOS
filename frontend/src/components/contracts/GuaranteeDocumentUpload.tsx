@@ -517,7 +517,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
           >
             <Typography variant="body2">
               {completionPercentage === 100 
-                ? '✅ Todos los documentos requeridos han sido subidos correctamente'
+                ? 'Todos los documentos requeridos han sido subidos correctamente'
                 : `⚠️ Faltan ${requiredDocs.length - requiredUploaded} documentos requeridos por subir`
               }
             </Typography>
