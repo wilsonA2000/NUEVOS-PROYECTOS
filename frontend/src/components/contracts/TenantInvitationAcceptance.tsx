@@ -394,7 +394,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
             {/* Alertas */}
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                📄 Al aceptar esta invitación, podrás revisar el contrato completo y agregar tus datos personales.
+                Al aceptar esta invitación, podrás revisar el contrato completo y agregar tus datos personales.
                 Tendrás la oportunidad de presentar objeciones si algo no te parece correcto.
               </Typography>
             </Alert>

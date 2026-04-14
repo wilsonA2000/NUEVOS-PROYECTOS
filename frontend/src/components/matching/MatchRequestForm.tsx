@@ -35,6 +35,8 @@ import {
   ArrowBack as BackIcon,
   ArrowForward as ForwardIcon,
   Close as CloseIcon,
+  WarningAmber as WarningAmberIcon,
+  TipsAndUpdates as TipsAndUpdatesIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 
@@ -655,14 +657,20 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   Compatibilidad con la Propiedad
                 </Typography>
                 {!property.pets_allowed && watchHasPets && (
-                  <Typography variant="body2" sx={{ color: 'var(--color-warning)' }}>
-                    ⚠️ Esta propiedad no permite mascotas
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'var(--color-warning)' }}>
+                    <WarningAmberIcon sx={{ fontSize: 16 }} />
+                    <Typography variant="body2">
+                      Esta propiedad no permite mascotas
+                    </Typography>
+                  </Box>
                 )}
                 {property.pets_allowed && watchHasPets && (
-                  <Typography variant="body2" sx={{ color: 'var(--color-success)' }}>
-                    ✅ Esta propiedad permite mascotas
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'var(--color-success)' }}>
+                    <CheckIcon sx={{ fontSize: 16 }} />
+                    <Typography variant="body2">
+                      Esta propiedad permite mascotas
+                    </Typography>
+                  </Box>
                 )}
               </Alert>
             </Grid>
@@ -738,8 +746,9 @@ Puedes incluir:
                   border: '1px solid var(--color-border)',
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                  💡 Consejos para tu mensaje:
+                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <TipsAndUpdatesIcon sx={{ fontSize: 18 }} />
+                  Consejos para tu mensaje:
                 </Typography>
                 <Typography variant="body2" component="div">
                   • Sé genuino y profesional<br />

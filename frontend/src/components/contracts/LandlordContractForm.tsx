@@ -69,6 +69,17 @@ import {
   Visibility as VisibilityIcon,
   Close as CloseIcon,
   AutoFixHigh as AutoFillIcon,
+  Notes as NotesIcon,
+  Construction as ConstructionIcon,
+  CalendarToday as CalendarIcon,
+  Wc as WcIcon,
+  Chair as ChairIcon,
+  Pets as PetsIcon,
+  SmokingRooms as SmokingRoomsIcon,
+  AutoAwesome as SparkleIcon,
+  RocketLaunch as RocketIcon,
+  Description as DescriptionIcon,
+  Lightbulb as LightbulbIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { LoadingButton } from '@mui/lab';
@@ -2231,9 +2242,12 @@ _____________________________
                           {selectedProperty.address}, {selectedProperty.city}, {selectedProperty.state}, {selectedProperty.country}
                         </Typography>
                         {selectedProperty.description && (
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                            📝 {selectedProperty.description.substring(0, 200)}{selectedProperty.description.length > 200 ? '...' : ''}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1, color: 'text.secondary' }}>
+                            <NotesIcon sx={{ fontSize: 16, mt: 0.25 }} />
+                            <Typography variant="body2">
+                              {selectedProperty.description.substring(0, 200)}{selectedProperty.description.length > 200 ? '...' : ''}
+                            </Typography>
+                          </Box>
                         )}
                       </Box>
                       
@@ -2282,18 +2296,24 @@ _____________________________
                         {selectedProperty.built_area && (
                           <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary">Área Construida</Typography>
-                            <Typography variant="body2" fontWeight="medium">
-                              🏗️ {selectedProperty.built_area} m²
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <ConstructionIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" fontWeight="medium">
+                                {selectedProperty.built_area} m²
+                              </Typography>
+                            </Box>
                           </Grid>
                         )}
                         
                         {selectedProperty.floors && (
                           <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary">Pisos</Typography>
-                            <Typography variant="body2" fontWeight="medium">
-                              🏢 {selectedProperty.floors} {selectedProperty.floors === 1 ? 'piso' : 'pisos'}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <BusinessIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" fontWeight="medium">
+                                {selectedProperty.floors} {selectedProperty.floors === 1 ? 'piso' : 'pisos'}
+                              </Typography>
+                            </Box>
                           </Grid>
                         )}
                         
@@ -2309,18 +2329,24 @@ _____________________________
                         {selectedProperty.year_built && (
                           <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary">Año de Construcción</Typography>
-                            <Typography variant="body2" fontWeight="medium">
-                              🗓️ {selectedProperty.year_built}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" fontWeight="medium">
+                                {selectedProperty.year_built}
+                              </Typography>
+                            </Box>
                           </Grid>
                         )}
                         
                         {selectedProperty.half_bathrooms > 0 && (
                           <Grid item xs={12} sm={4}>
                             <Typography variant="caption" color="text.secondary">Medios Baños</Typography>
-                            <Typography variant="body2" fontWeight="medium">
-                              🚽 {selectedProperty.half_bathrooms}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <WcIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" fontWeight="medium">
+                                {selectedProperty.half_bathrooms}
+                              </Typography>
+                            </Box>
                           </Grid>
                         )}
                       </Grid>
@@ -2331,9 +2357,12 @@ _____________________________
                           <Grid item xs={12} sm={6} md={4}>
                             <Paper sx={{ p: 1.5, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
                               <Typography variant="caption" color="success.dark">Precio de Renta</Typography>
-                              <Typography variant="h6" fontWeight="bold" color="success.main">
-                                💰 ${Number(selectedProperty.rent_price).toLocaleString()} COP/mes
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'success.main' }}>
+                                <MoneyIcon sx={{ fontSize: 20 }} />
+                                <Typography variant="h6" fontWeight="bold">
+                                  ${Number(selectedProperty.rent_price).toLocaleString()} COP/mes
+                                </Typography>
+                              </Box>
                             </Paper>
                           </Grid>
                         )}
@@ -2342,9 +2371,12 @@ _____________________________
                           <Grid item xs={12} sm={6} md={4}>
                             <Paper sx={{ p: 1.5, bgcolor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
                               <Typography variant="caption" color="info.dark">Depósito de Garantía</Typography>
-                              <Typography variant="h6" fontWeight="bold" color="info.main">
-                                🏦 ${Number(selectedProperty.security_deposit).toLocaleString()} COP
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'info.main' }}>
+                                <BankIcon sx={{ fontSize: 20 }} />
+                                <Typography variant="h6" fontWeight="bold">
+                                  ${Number(selectedProperty.security_deposit).toLocaleString()} COP
+                                </Typography>
+                              </Box>
                             </Paper>
                           </Grid>
                         )}
@@ -2353,9 +2385,12 @@ _____________________________
                           <Grid item xs={12} sm={6} md={4}>
                             <Paper sx={{ p: 1.5, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
                               <Typography variant="caption" color="warning.dark">Administración</Typography>
-                              <Typography variant="h6" fontWeight="bold" color="warning.main">
-                                🏢 ${Number(selectedProperty.maintenance_fee).toLocaleString()} COP/mes
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'warning.main' }}>
+                                <BusinessIcon sx={{ fontSize: 20 }} />
+                                <Typography variant="h6" fontWeight="bold">
+                                  ${Number(selectedProperty.maintenance_fee).toLocaleString()} COP/mes
+                                </Typography>
+                              </Box>
                             </Paper>
                           </Grid>
                         )}
@@ -2367,13 +2402,13 @@ _____________________________
                           <Typography variant="caption" color="text.secondary" gutterBottom>Políticas de la Propiedad</Typography>
                           <Box display="flex" gap={1} flexWrap="wrap">
                             {selectedProperty.furnished && (
-                              <Chip label="🪑 Amoblado" size="small" color="info" />
+                              <Chip icon={<ChairIcon />} label="Amoblado" size="small" color="info" />
                             )}
                             {selectedProperty.pets_allowed && (
-                              <Chip label="🐕 Mascotas Permitidas" size="small" color="success" />
+                              <Chip icon={<PetsIcon />} label="Mascotas Permitidas" size="small" color="success" />
                             )}
                             {selectedProperty.smoking_allowed && (
-                              <Chip label="🚬 Fumadores Permitidos" size="small" color="warning" />
+                              <Chip icon={<SmokingRoomsIcon />} label="Fumadores Permitidos" size="small" color="warning" />
                             )}
                             {selectedProperty.minimum_lease_term && (
                               <Chip label={`Mín. ${selectedProperty.minimum_lease_term} meses`} size="small" color="primary" />
@@ -2397,7 +2432,7 @@ _____________________________
                           <Typography variant="caption" color="text.secondary" gutterBottom>Características Especiales</Typography>
                           <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
                             {selectedProperty.property_features.slice(0, 6).map((feature: string, index: number) => (
-                              <Chip key={index} label={`✨ ${feature}`} size="small" variant="outlined" />
+                              <Chip key={index} icon={<SparkleIcon />} label={feature} size="small" variant="outlined" />
                             ))}
                             {selectedProperty.property_features.length > 6 && (
                               <Chip label={`+${selectedProperty.property_features.length - 6} más`} size="small" variant="outlined" />
@@ -3482,8 +3517,9 @@ _____________________________
 
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom color="primary">
-                  🚀 Próximos Pasos
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <RocketIcon />
+                  Próximos Pasos
                 </Typography>
                 
                 <List>
@@ -3674,8 +3710,9 @@ _____________________________
         </DialogTitle>
         <DialogContent sx={{ pb: 1 }}>
           <Alert severity="info" sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              📝 Editor de Borrador del Contrato
+            <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <DescriptionIcon sx={{ fontSize: 18 }} />
+              Editor de Borrador del Contrato
             </Typography>
             <Typography variant="body2">
               Puede editar el contenido del contrato directamente aquí. Los cambios se aplicarán al momento de crear el contrato.
@@ -3708,9 +3745,12 @@ _____________________________
         <DialogActions sx={{ p: 2 }}>
           <Box display="flex" justifyContent="space-between" width="100%">
             <Box>
-              <Typography variant="caption" color="text.secondary">
-                💡 Tip: Use formato Markdown para mejor presentación
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                <LightbulbIcon sx={{ fontSize: 14 }} />
+                <Typography variant="caption">
+                  Tip: Use formato Markdown para mejor presentación
+                </Typography>
+              </Box>
             </Box>
             <Box>
               <Button 

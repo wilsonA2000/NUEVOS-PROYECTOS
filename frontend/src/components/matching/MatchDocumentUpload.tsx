@@ -181,7 +181,7 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
             icon={<CheckIcon />}
             sx={{ mb: 2 }}
           >
-            ✅ Documento subido exitosamente. El arrendador será notificado.
+            Documento subido exitosamente. El arrendador será notificado.
           </Alert>
         )}
 

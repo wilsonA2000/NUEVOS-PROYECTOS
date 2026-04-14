@@ -16,6 +16,8 @@ import {
   Person as PersonIcon,
   SecurityOutlined as SecurityIcon,
   ArrowBack as ArrowBackIcon,
+  Home as HomeIcon,
+  BusinessCenter as BusinessCenterIcon,
 } from '@mui/icons-material';
 
 interface WaitingForOtherUserProps {
@@ -48,14 +50,14 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
 
   const isMyTurn = currentTurn === userType;
   const waitingFor = currentTurn === 'tenant' ? 'arrendatario' : 'arrendador';
-  const waitingForIcon = currentTurn === 'tenant' ? '🏠' : '👔';
+  const WaitingForIconComp = currentTurn === 'tenant' ? HomeIcon : BusinessCenterIcon;
 
   if (isMyTurn) {
     // Caso especial: es su turno pero llegó a esta página por error
     return (
       <Box p={3} display="flex" flexDirection="column" alignItems="center">
         <Alert severity="info" sx={{ mb: 3, width: '100%', maxWidth: 600 }}>
-          <AlertTitle>🎯 Es tu turno</AlertTitle>
+          <AlertTitle>Es tu turno</AlertTitle>
           <Typography variant="body2">
             Puedes proceder con la autenticación biométrica ahora.
           </Typography>
@@ -116,7 +118,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
               fontSize: '2rem',
             }}
           >
-            {waitingForIcon}
+            <WaitingForIconComp sx={{ fontSize: '2rem', color: theme.palette.primary.main }} />
           </Box>
         </Box>
 

@@ -70,6 +70,8 @@ import {
   OpenInNew as OpenIcon,
   PlayArrow as ContinueIcon,
   Edit as EditIcon,
+  NotificationsActive as NotificationsActiveIcon,
+  ChatBubbleOutline as ChatBubbleIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -702,11 +704,11 @@ const MatchedCandidatesView: React.FC = () => {
           <Button
             variant="outlined"
             color="warning"
-            startIcon={<BiometricIcon />}
+            startIcon={<NotificationsActiveIcon />}
             onClick={() => handleSendBiometricReminder(candidate)}
             size="small"
           >
-            📬 Recordar al Arrendatario
+            Recordar al Arrendatario
           </Button>
           <Button
             variant="outlined"
@@ -781,11 +783,11 @@ const MatchedCandidatesView: React.FC = () => {
           <Button
             variant="outlined"
             color="warning"
-            startIcon={<BiometricIcon />}
+            startIcon={<NotificationsActiveIcon />}
             onClick={() => handleSendBiometricReminder(candidate)}
             size="small"
           >
-            📬 Recordar al Arrendatario
+            Recordar al Arrendatario
           </Button>
           <Button
             variant="outlined"
@@ -995,9 +997,12 @@ const MatchedCandidatesView: React.FC = () => {
               <Typography variant="caption" color="text.secondary">
                 Contacto del Candidato
               </Typography>
-              <Typography variant="body2">
-                📧 {candidate.tenant.email}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <EmailIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2">
+                  {candidate.tenant.email}
+                </Typography>
+              </Box>
               {candidate.tenant.phone && (
                 <Typography variant="body2">
                   {candidate.tenant.phone}
@@ -1020,9 +1025,12 @@ const MatchedCandidatesView: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Capacidad Financiera
                 </Typography>
-                <Typography variant="body2">
-                  💰 {formatCurrency(candidate.monthly_income)}/mes
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <MoneyIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                  <Typography variant="body2">
+                    {formatCurrency(candidate.monthly_income)}/mes
+                  </Typography>
+                </Box>
                 <Typography variant="caption" color="text.secondary">
                   {candidate.employment_type}
                 </Typography>
@@ -1043,9 +1051,12 @@ const MatchedCandidatesView: React.FC = () => {
           {/* Mensaje del candidato */}
           {candidate.tenant_message && (
             <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                💬 Mensaje del Candidato:
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <ChatBubbleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  Mensaje del Candidato:
+                </Typography>
+              </Box>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
                 "{candidate.tenant_message}"
               </Typography>
@@ -1200,7 +1211,7 @@ const MatchedCandidatesView: React.FC = () => {
                   }}
                   size="small"
                 >
-                  ✏️ Crear Manualmente
+                  Crear Manualmente
                 </Button>
                 <Button
                   variant="outlined"
@@ -1220,7 +1231,7 @@ const MatchedCandidatesView: React.FC = () => {
                 {/* Alert de solicitudes de modificación pendientes */}
                 {(modificationRequests[candidate.workflow_data.contract_created!.contract_id]?.filter(req => req.status === 'PENDING').length ?? 0) > 0 && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
-                    <AlertTitle>✏️ Solicitud de Modificación Pendiente</AlertTitle>
+                    <AlertTitle>Solicitud de Modificación Pendiente</AlertTitle>
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       El arrendatario ha solicitado modificaciones al contrato. Revisa y responde.
                     </Typography>

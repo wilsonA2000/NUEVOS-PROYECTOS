@@ -50,6 +50,10 @@ import {
   Email as EmailIcon,
   Work as WorkIcon,
   AccountBalance as BankIcon,
+  Assignment as AssignmentIcon,
+  Group as GroupIcon,
+  Comment as CommentIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
@@ -308,8 +312,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
   return (
     <FormikProvider value={formik}>
       <Box component="form" onSubmit={formik.handleSubmit}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
-          📋 Información del Arrendatario
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AssignmentIcon color="primary" />
+          Información del Arrendatario
         </Typography>
 
         {/* Información Básica */}
@@ -653,8 +658,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                 {/* Referencias Personales */}
                 <Grid item xs={12}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="medium">
-                      👥 Referencias Personales
+                    <Typography variant="subtitle1" fontWeight="medium" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <GroupIcon fontSize="small" color="primary" />
+                      Referencias Personales
                     </Typography>
                     {!readOnly && (
                       <Button
@@ -762,8 +768,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                 {/* Referencias Comerciales */}
                 <Grid item xs={12}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2, mt: 3 }}>
-                    <Typography variant="subtitle1" fontWeight="medium">
-                      🏢 Referencias Comerciales
+                    <Typography variant="subtitle1" fontWeight="medium" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <BusinessIcon fontSize="small" color="primary" />
+                      Referencias Comerciales
                     </Typography>
                     {!readOnly && (
                       <Button
@@ -908,8 +915,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="medium">
-                        🐾 Detalles de Mascotas
+                      <Typography variant="subtitle1" fontWeight="medium" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <PetsIcon fontSize="small" color="primary" />
+                        Detalles de Mascotas
                       </Typography>
                       {!readOnly && (
                         <Button
@@ -1021,8 +1029,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
         {/* Comentarios adicionales */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              💬 Información Adicional
+            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CommentIcon color="primary" />
+              Información Adicional
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -1073,8 +1082,9 @@ export const TenantDataForm: React.FC<TenantDataFormProps> = ({
         {/* Resumen de completitud */}
         <Card sx={{ mt: 3, bgcolor: 'grey.50' }}>
           <CardContent>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>
-              📊 Resumen de Completitud
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <AssessmentIcon fontSize="small" color="primary" />
+              Resumen de Completitud
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6} md={3}>

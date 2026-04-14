@@ -64,6 +64,14 @@ import {
   Edit as EditIcon,
   ThumbUp as ThumbUpIcon,
   ThumbDown as ThumbDownIcon,
+  HourglassEmpty as HourglassEmptyIcon,
+  VpnKey as KeyIcon,
+  Assignment as AssignmentIcon,
+  SyncAlt as SyncIcon,
+  Bed as BedIcon,
+  Shower as ShowerIcon,
+  AccessTime as TimeIcon,
+  ChatBubbleOutline as ChatIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import EnhancedTenantDocumentUpload from './EnhancedTenantDocumentUpload';
@@ -157,12 +165,12 @@ const TenantContractView: React.FC = () => {
 
   const getStageLabel = (stage: number) => {
     switch (stage) {
-      case 1: return 'Etapa 1: Visita 🏠';
-      case 2: return 'Etapa 2: Documentos 📄';
-      case 3: return 'Etapa 3: Revisión del Contrato 📋';
-      case 4: return 'Etapa 4: Autenticación Biométrica 🔐';
-      case 5: return 'Etapa 5: Mudanza y Ejecución 🔑';
-      default: return stage ? `Etapa ${stage}` : 'Etapa 1: Visita 🏠'; // Default to stage 1 if undefined
+      case 1: return 'Etapa 1: Visita';
+      case 2: return 'Etapa 2: Documentos';
+      case 3: return 'Etapa 3: Revisión del Contrato';
+      case 4: return 'Etapa 4: Autenticación Biométrica';
+      case 5: return 'Etapa 5: Mudanza y Ejecución';
+      default: return stage ? `Etapa ${stage}` : 'Etapa 1: Visita';
     }
   };
 
@@ -316,14 +324,14 @@ const TenantContractView: React.FC = () => {
           <Button
             variant="outlined"
             color="info"
-            startIcon={<InfoIcon />}
+            startIcon={<HourglassEmptyIcon />}
             size="small"
             disabled
           >
-            ⏳ Esperando coordinación de visita
+            Esperando coordinación de visita
           </Button>
         );
-        
+
       case 2:
         return (
           <Button
@@ -333,25 +341,25 @@ const TenantContractView: React.FC = () => {
             onClick={() => handleOpenDocuments(process)}
             size="small"
           >
-            📄 Subir Documentos
+            Subir Documentos
           </Button>
         );
-        
+
       case 3:
         if (!contractInfo) {
           return (
             <Button
               variant="outlined"
               color="info"
-              startIcon={<InfoIcon />}
+              startIcon={<HourglassEmptyIcon />}
               size="small"
               disabled
             >
-              ⏳ Esperando creación del contrato
+              Esperando creación del contrato
             </Button>
           );
         }
-        
+
         if (contractInfo.tenant_review_status === 'pending') {
           return (
             <Button
@@ -361,7 +369,7 @@ const TenantContractView: React.FC = () => {
               onClick={() => handleReviewContract(process)}
               size="small"
             >
-              📋 Revisar Borrador del Contrato
+              Revisar Borrador del Contrato
             </Button>
           );
         } else if (contractInfo.tenant_review_status === 'changes_requested') {
@@ -373,7 +381,7 @@ const TenantContractView: React.FC = () => {
               size="small"
               disabled
             >
-              ✏️ Cambios solicitados - Esperando arrendador
+              Cambios solicitados - Esperando arrendador
             </Button>
           );
         } else {
@@ -385,14 +393,14 @@ const TenantContractView: React.FC = () => {
               size="small"
               disabled
             >
-              ✅ Borrador aprobado
+              Borrador aprobado
             </Button>
           );
         }
-        
+
       case 4:
         if (!contractInfo) return null;
-        
+
         if (contractInfo.tenant_auth_completed) {
           return (
             <Button
@@ -402,7 +410,7 @@ const TenantContractView: React.FC = () => {
               size="small"
               disabled
             >
-              ✅ Tu autenticación completada
+              Tu autenticación completada
             </Button>
           );
         } else if (contractInfo.landlord_auth_completed) {
@@ -414,7 +422,7 @@ const TenantContractView: React.FC = () => {
               onClick={() => handleStartTenantAuth(process)}
               size="small"
             >
-              🔐 Iniciar Mi Autenticación
+              Iniciar Mi Autenticación
             </Button>
           );
         } else {
@@ -422,28 +430,28 @@ const TenantContractView: React.FC = () => {
             <Button
               variant="outlined"
               color="info"
-              startIcon={<InfoIcon />}
+              startIcon={<HourglassEmptyIcon />}
               size="small"
               disabled
             >
-              ⏳ Esperando autenticación del arrendador
+              Esperando autenticación del arrendador
             </Button>
           );
         }
-        
+
       case 5:
         if (!contractInfo) return null;
-        
+
         if (contractInfo.execution_started) {
           return (
             <Button
               variant="contained"
               color="success"
-              startIcon={<OpenIcon />}
+              startIcon={<HomeIcon />}
               onClick={() => handleViewContract(process)}
               size="small"
             >
-              🏠 Ver Contrato Activo
+              Ver Contrato Activo
             </Button>
           );
         } else if (contractInfo.keys_delivered) {
@@ -451,11 +459,11 @@ const TenantContractView: React.FC = () => {
             <Button
               variant="outlined"
               color="info"
-              startIcon={<CalendarIcon />}
+              startIcon={<KeyIcon />}
               size="small"
               disabled
             >
-              🔑 Llaves entregadas - Esperando inicio
+              Llaves entregadas - Esperando inicio
             </Button>
           );
         } else {
@@ -463,11 +471,11 @@ const TenantContractView: React.FC = () => {
             <Button
               variant="outlined"
               color="warning"
-              startIcon={<CalendarIcon />}
+              startIcon={<HourglassEmptyIcon />}
               size="small"
               disabled
             >
-              ⏳ Esperando entrega de llaves
+              Esperando entrega de llaves
             </Button>
           );
         }
@@ -549,15 +557,25 @@ const TenantContractView: React.FC = () => {
                   Información de la Propiedad
                 </Typography>
               </Box>
-              <Typography variant="body2">
-                📍 {process.property.address}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2">
+                  {process.property.address}
+                </Typography>
+              </Box>
               <Typography variant="h6" color="primary">
                 {formatCurrency(process.property.rent_price)}/mes
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                🛏️ {process.property.bedrooms} habitaciones • 🚿 {process.property.bathrooms} baños
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'text.secondary' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <BedIcon sx={{ fontSize: 16 }} />
+                  <Typography variant="body2">{process.property.bedrooms} habitaciones</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <ShowerIcon sx={{ fontSize: 16 }} />
+                  <Typography variant="body2">{process.property.bathrooms} baños</Typography>
+                </Box>
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -593,17 +611,26 @@ const TenantContractView: React.FC = () => {
                   Fecha de Mudanza Preferida
                 </Typography>
               </Box>
-              <Typography variant="body2" fontWeight="medium">
-                📅 {new Date(process.preferred_move_in_date).toLocaleDateString('es-CO')}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2" fontWeight="medium">
+                  {new Date(process.preferred_move_in_date).toLocaleDateString('es-CO')}
+                </Typography>
+              </Box>
             </Box>
           )}
 
           {/* Contract Info */}
           {process.workflow_data.contract_created && (
             <Box sx={{ mb: 2, p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.main' }}>
-              <Typography variant="subtitle2" color="primary" gutterBottom>
-                📋 Información del Contrato
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <AssignmentIcon sx={{ fontSize: 18 }} />
+                Información del Contrato
               </Typography>
               <Stack spacing={0.5}>
                 <Typography variant="body2">
@@ -675,46 +702,52 @@ const TenantContractView: React.FC = () => {
           
           {/* Workflow Explanation for Tenants */}
           <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom color="primary">
-              🔄 Tu Participación en el Proceso
+            <Typography
+              variant="h6"
+              gutterBottom
+              color="primary"
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <SyncIcon />
+              Tu Participación en el Proceso
             </Typography>
             <Stepper activeStep={-1} sx={{ mb: 2 }} orientation="vertical">
               <Step>
-                <StepLabel>
+                <StepLabel icon={<HomeIcon color="info" />}>
                   <Typography variant="body2">
-                    <strong>🏠 Etapa 1: Visita</strong><br />
+                    <strong>Etapa 1: Visita</strong><br />
                     VeriHome coordina tu visita a la propiedad
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel>
+                <StepLabel icon={<DocumentsIcon color="warning" />}>
                   <Typography variant="body2">
-                    <strong>📄 Etapa 2: Documentos</strong><br />
+                    <strong>Etapa 2: Documentos</strong><br />
                     El arrendador revisa tu documentación
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel>
+                <StepLabel icon={<AssignmentIcon color="primary" />}>
                   <Typography variant="body2">
-                    <strong>📋 Etapa 3: Revisión del Contrato</strong><br />
+                    <strong>Etapa 3: Revisión del Contrato</strong><br />
                     <strong>TU ACCIÓN:</strong> Revisa y aprueba el borrador del contrato
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel>
+                <StepLabel icon={<BiometricIcon color="secondary" />}>
                   <Typography variant="body2">
-                    <strong>🔐 Etapa 4: Autenticación Biométrica</strong><br />
+                    <strong>Etapa 4: Autenticación Biométrica</strong><br />
                     <strong>TU ACCIÓN:</strong> Completa tu autenticación después del arrendador
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel>
+                <StepLabel icon={<KeyIcon color="success" />}>
                   <Typography variant="body2">
-                    <strong>🔑 Etapa 5: Mudanza</strong><br />
+                    <strong>Etapa 5: Mudanza</strong><br />
                     Recibe las llaves y múdate a tu nuevo hogar
                   </Typography>
                 </StepLabel>
@@ -786,8 +819,18 @@ const TenantContractView: React.FC = () => {
                 }
                 label="Tu Decisión"
               >
-                <MenuItem value="approve">✅ Aprobar borrador y continuar</MenuItem>
-                <MenuItem value="request_changes">✏️ Solicitar cambios</MenuItem>
+                <MenuItem value="approve">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ApproveIcon fontSize="small" color="success" />
+                    Aprobar borrador y continuar
+                  </Box>
+                </MenuItem>
+                <MenuItem value="request_changes">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <EditIcon fontSize="small" color="warning" />
+                    Solicitar cambios
+                  </Box>
+                </MenuItem>
               </Select>
             </FormControl>
             
@@ -906,18 +949,30 @@ const TenantContractView: React.FC = () => {
                   {/* Visit Information */}
                   {selectedProcess.workflow_data.visit_scheduled && (
                     <Box>
-                      <Typography variant="subtitle2" color="primary" gutterBottom>
-                        📅 Información de Visita Programada
+                      <Typography
+                        variant="subtitle2"
+                        color="primary"
+                        gutterBottom
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <CalendarIcon sx={{ fontSize: 18 }} />
+                        Información de Visita Programada
                       </Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
                           <Typography variant="body2" color="text.secondary">Fecha y Hora</Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            📅 {new Date(selectedProcess.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')}
-                          </Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            🕐 {selectedProcess.workflow_data.visit_scheduled.time}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" fontWeight="medium">
+                              {new Date(selectedProcess.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" fontWeight="medium">
+                              {selectedProcess.workflow_data.visit_scheduled.time}
+                            </Typography>
+                          </Box>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <Typography variant="body2" color="text.secondary">Estado</Typography>
@@ -930,15 +985,21 @@ const TenantContractView: React.FC = () => {
                         {selectedProcess.workflow_data.visit_scheduled.notes && (
                           <Grid item xs={12}>
                             <Typography variant="body2" color="text.secondary">Mensaje del Arrendador</Typography>
-                            <Typography variant="body2" sx={{ 
-                              p: 2, 
-                              bgcolor: 'grey.50', 
-                              borderRadius: 1, 
-                              border: '1px solid #e0e0e0',
-                              fontStyle: 'italic',
+                            <Box sx={{
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: 1,
+                              p: 2,
+                              bgcolor: 'grey.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider',
                             }}>
-                              💬 "{selectedProcess.workflow_data.visit_scheduled.notes}"
-                            </Typography>
+                              <ChatIcon sx={{ fontSize: 18, color: 'text.secondary', mt: 0.25 }} />
+                              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                "{selectedProcess.workflow_data.visit_scheduled.notes}"
+                              </Typography>
+                            </Box>
                           </Grid>
                         )}
                       </Grid>
@@ -948,8 +1009,14 @@ const TenantContractView: React.FC = () => {
                   {/* Documents Information */}
                   {selectedProcess.workflow_data.documents_reviewed && (
                     <Box>
-                      <Typography variant="subtitle2" color="primary" gutterBottom>
-                        📄 Estado de Documentos
+                      <Typography
+                        variant="subtitle2"
+                        color="primary"
+                        gutterBottom
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <DocumentsIcon sx={{ fontSize: 18 }} />
+                        Estado de Documentos
                       </Typography>
                       <Chip 
                         label={selectedProcess.workflow_data.documents_reviewed.approved ? 'Aprobados' : 'En Revisión'}
@@ -962,8 +1029,14 @@ const TenantContractView: React.FC = () => {
                   {/* Contract Information */}
                   {selectedProcess.workflow_data.contract_created && (
                     <Box>
-                      <Typography variant="subtitle2" color="primary" gutterBottom>
-                        📋 Estado del Contrato
+                      <Typography
+                        variant="subtitle2"
+                        color="primary"
+                        gutterBottom
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <AssignmentIcon sx={{ fontSize: 18 }} />
+                        Estado del Contrato
                       </Typography>
                       <Grid container spacing={1}>
                         <Grid item xs={12} sm={6}>
@@ -994,46 +1067,64 @@ const TenantContractView: React.FC = () => {
 
                   {/* Información Adicional del Proceso */}
                   <Box>
-                    <Typography variant="subtitle2" color="primary" gutterBottom>
-                      📋 Información del Proceso
+                    <Typography
+                      variant="subtitle2"
+                      color="primary"
+                      gutterBottom
+                      sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                    >
+                      <InfoIcon sx={{ fontSize: 18 }} />
+                      Información del Proceso
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="body2" color="text.secondary">Proceso Iniciado</Typography>
-                        <Typography variant="body2">
-                          📅 {new Date(selectedProcess.created_at).toLocaleDateString('es-CO')} a las {new Date(selectedProcess.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {new Date(selectedProcess.created_at).toLocaleDateString('es-CO')} a las {new Date(selectedProcess.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                        </Box>
                       </Grid>
-                      
+
                       {/* Fecha de mudanza preferida */}
                       {selectedProcess.preferred_move_in_date && (
                         <Grid item xs={12} sm={6}>
                           <Typography variant="body2" color="text.secondary">Fecha de Mudanza Preferida</Typography>
-                          <Typography variant="body2" color="primary">
-                            🏠 {new Date(selectedProcess.preferred_move_in_date).toLocaleDateString('es-CO')}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'primary.main' }}>
+                            <HomeIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="body2" color="primary">
+                              {new Date(selectedProcess.preferred_move_in_date).toLocaleDateString('es-CO')}
+                            </Typography>
+                          </Box>
                         </Grid>
                       )}
-                      
+
                       {/* Duración del contrato */}
                       <Grid item xs={12} sm={6}>
                         <Typography variant="body2" color="text.secondary">Duración Deseada del Contrato</Typography>
-                        <Typography variant="body2">
-                          📋 {selectedProcess.lease_duration_months || 12} meses
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <AssignmentIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {selectedProcess.lease_duration_months || 12} meses
+                          </Typography>
+                        </Box>
                       </Grid>
 
                       {/* Ingresos mensuales declarados */}
                       {selectedProcess.monthly_income && (
                         <Grid item xs={12} sm={6}>
                           <Typography variant="body2" color="text.secondary">Ingresos Declarados</Typography>
-                          <Typography variant="body2" color="success.main">
-                            💰 {new Intl.NumberFormat('es-CO', {
-                              style: 'currency',
-                              currency: 'COP',
-                              minimumFractionDigits: 0,
-                            }).format(selectedProcess.monthly_income)}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'success.main' }}>
+                            <MoneyIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="body2" color="success.main">
+                              {new Intl.NumberFormat('es-CO', {
+                                style: 'currency',
+                                currency: 'COP',
+                                minimumFractionDigits: 0,
+                              }).format(selectedProcess.monthly_income)}
+                            </Typography>
+                          </Box>
                         </Grid>
                       )}
                     </Grid>
@@ -1060,8 +1151,9 @@ const TenantContractView: React.FC = () => {
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6">
-              📄 Subir Documentos - Etapa 2
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <DocumentsIcon color="primary" />
+              Subir Documentos - Etapa 2
             </Typography>
             <IconButton 
               edge="end" 

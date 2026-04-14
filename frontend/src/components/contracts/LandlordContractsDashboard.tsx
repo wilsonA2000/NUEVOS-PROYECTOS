@@ -517,8 +517,9 @@ const LandlordContractsDashboard: React.FC = () => {
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
-            <Typography variant="h4" sx={{ mb: 1 }}>
-              🏢 Dashboard de Arrendador
+            <Typography variant="h4" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LandlordIcon color="primary" fontSize="inherit" />
+              Dashboard de Arrendador
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Gestión avanzada de contratos de arrendamiento

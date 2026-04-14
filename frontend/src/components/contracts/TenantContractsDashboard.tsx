@@ -63,6 +63,10 @@ import {
   PlayArrow as StartIcon,
   DocumentScanner as DocumentIcon,
   Close as CloseIcon,
+  PriorityHigh as PriorityHighIcon,
+  Lightbulb as LightbulbIcon,
+  Campaign as CampaignIcon,
+  Chat as ChatIcon,
 } from '@mui/icons-material';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -428,8 +432,9 @@ const TenantContractsDashboard: React.FC = () => {
 
           {/* Información del arrendador */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              👤 Arrendador
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <PersonIcon sx={{ fontSize: 16 }} />
+              Arrendador
             </Typography>
             <Box display="flex" alignItems="center">
               <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
@@ -439,9 +444,12 @@ const TenantContractsDashboard: React.FC = () => {
                 <Typography variant="body2">
                   <strong>{contract.landlord_data.full_name}</strong>
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  📧 {contract.landlord_data.email}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                  <EmailIcon sx={{ fontSize: 14 }} />
+                  <Typography variant="caption">
+                    {contract.landlord_data.email}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -449,8 +457,9 @@ const TenantContractsDashboard: React.FC = () => {
           {/* Acciones pendientes */}
           {pendingActions.length > 0 && (
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                🎯 Acciones Pendientes
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <PriorityHighIcon sx={{ fontSize: 16 }} color="warning" />
+                Acciones Pendientes
               </Typography>
               <List dense>
                 {pendingActions.map((action) => (
@@ -685,19 +694,19 @@ const TenantContractsDashboard: React.FC = () => {
                           {/* Lista de etapas */}
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Typography variant="caption" color={process.workflow_stage >= 1 ? 'success.main' : 'text.disabled'}>
-                              ✓ Etapa 1: Solicitud enviada
+                              Etapa 1: Solicitud enviada
                             </Typography>
                             <Typography variant="caption" color={process.workflow_stage >= 2 ? 'success.main' : 'text.disabled'}>
-                              ✓ Etapa 2: Visita completada
+                              Etapa 2: Visita completada
                             </Typography>
                             <Typography variant="caption" color={process.workflow_stage >= 3 ? 'success.main' : 'text.disabled'}>
-                              ✓ Etapa 3: Documentos aprobados
+                              Etapa 3: Documentos aprobados
                             </Typography>
                             <Typography variant="caption" color={process.workflow_stage >= 4 ? 'warning.main' : 'text.disabled'}>
-                              {process.workflow_stage === 4 ? '⏳' : '○'} Etapa 4: Autenticación biométrica
+                              Etapa 4: Autenticación biométrica
                             </Typography>
                             <Typography variant="caption" color={process.workflow_stage >= 5 ? 'success.main' : 'text.disabled'}>
-                              ○ Etapa 5: Contrato activo
+                              Etapa 5: Contrato activo
                             </Typography>
                           </Box>
                         </Box>
@@ -714,7 +723,7 @@ const TenantContractsDashboard: React.FC = () => {
                           <>
                             <Alert severity="success" sx={{ mb: 2 }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                                🎯 ¡Es tu turno! Debes iniciar la autenticación biométrica
+                                ¡Es tu turno! Debes iniciar la autenticación biométrica
                               </Typography>
                               <Typography variant="body2" sx={{ mt: 1 }}>
                                 Orden del proceso:
@@ -732,9 +741,12 @@ const TenantContractsDashboard: React.FC = () => {
                                   {process.workflow_data?.contract_created?.guarantor_id ? '3.' : '2.'} Arrendador ← Al final
                                 </Typography>
                               </Box>
-                              <Typography variant="body2">
-                                💡 Una vez que completes tu verificación, {process.workflow_data?.contract_created?.guarantor_id ? 'el garante continuará y luego' : ''} el arrendador podrá proceder.
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                                <LightbulbIcon sx={{ fontSize: 16, mt: 0.25, color: 'warning.main' }} />
+                                <Typography variant="body2">
+                                  Una vez que completes tu verificación, {process.workflow_data?.contract_created?.guarantor_id ? 'el garante continuará y luego' : ''} el arrendador podrá proceder.
+                                </Typography>
+                              </Box>
                             </Alert>
 
                             <Button
@@ -793,7 +805,7 @@ const TenantContractsDashboard: React.FC = () => {
                                 fullWidth
                               >
                                 {approvingContract === process.workflow_data?.contract_created?.contract_id
-                                  ? '⏳ APROBANDO...'
+                                  ? 'APROBANDO...'
                                   : 'Aprobar y continuar'
                                 }
                               </Button>
@@ -818,7 +830,7 @@ const TenantContractsDashboard: React.FC = () => {
                                 sx={{ py: 1.5, fontSize: '1rem' }}
                                 fullWidth
                               >
-                                ✏️ SOLICITAR MODIFICACIÓN
+                                SOLICITAR MODIFICACIÓN
                               </Button>
 
                               <Button
@@ -860,7 +872,7 @@ const TenantContractsDashboard: React.FC = () => {
                             </Box>
 
                             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mb: 2 }}>
-                              💡 Revisa cuidadosamente todos los términos antes de aprobar
+                              Revisa cuidadosamente todos los términos antes de aprobar
                             </Typography>
                           </>
                         )}
@@ -1052,22 +1064,31 @@ const TenantContractsDashboard: React.FC = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                📧 <strong>Soporte por Email</strong><br />
-                soporte@verihome.com
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
+                <EmailIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
+                <Typography variant="body2">
+                  <strong>Soporte por Email</strong><br />
+                  soporte@verihome.com
+                </Typography>
+              </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                📞 <strong>Atención Telefónica</strong><br />
-                +57 (1) 123-4567
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
+                <PhoneIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
+                <Typography variant="body2">
+                  <strong>Atención Telefónica</strong><br />
+                  +57 (1) 123-4567
+                </Typography>
+              </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                💬 <strong>Chat en Línea</strong><br />
-                Disponible 24/7 en nuestra web
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
+                <ChatIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
+                <Typography variant="body2">
+                  <strong>Chat en Línea</strong><br />
+                  Disponible 24/7 en nuestra web
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
         </Paper>
@@ -1080,8 +1101,9 @@ const TenantContractsDashboard: React.FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: 'warning.50', color: 'warning.main' }}>
-          ⚠️ Confirmación de Aprobación
+        <DialogTitle sx={{ bgcolor: 'warning.50', color: 'warning.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon />
+          Confirmación de Aprobación
         </DialogTitle>
         <DialogContent sx={{ pt: 3 }}>
           <DialogContentText sx={{ mb: 2 }}>

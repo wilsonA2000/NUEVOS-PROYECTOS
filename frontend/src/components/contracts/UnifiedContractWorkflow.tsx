@@ -408,7 +408,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
               contract.status,
             ) && (
               <Alert severity="warning">
-                🔐 Autenticación biométrica en progreso...
+                Autenticación biométrica en progreso...
                 <br />
                 Siguiente paso: {workflowStatus.next_biometric_step}
               </Alert>
@@ -417,7 +417,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
             {/* CONTRATO ACTIVO */}
             {contract.status === 'active' && (
               <Alert severity="success">
-                ✅ Contrato activo y en ejecución
+                Contrato activo y en ejecución
               </Alert>
             )}
           </Box>
