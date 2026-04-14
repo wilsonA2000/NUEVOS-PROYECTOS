@@ -40,7 +40,7 @@ import {
   ToggleButtonGroup,
   Slide,
 } from '@mui/material';
-import { styled, keyframes } from '@mui/material/styles';
+import { styled, keyframes, useTheme } from '@mui/material/styles';
 import {
   ExpandMore as ExpandMoreIcon,
   Folder as FolderIcon,
@@ -96,17 +96,22 @@ const shimmer = keyframes`
   100% { background-position: calc(200px + 100%) 0; }
 `;
 
-const glow = keyframes`
-  0%, 100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 30px rgba(118, 75, 162, 0.4); }
+const glow = (color: string) => keyframes`
+  0%, 100% { box-shadow: 0 0 5px ${color}4D; }
+  50% { box-shadow: 0 0 20px ${color}99, 0 0 30px ${color}66; }
 `;
 
+/**
+ * Componentes styled refactorizados para usar tokens del tema (VIS-3, 2026-04-14).
+ * Antes: colores #667eea/#764ba2 hardcoded + shadows rgba arbitrarias.
+ * Ahora: primary.main/secondary.main + vh.shadows/vh.radius.
+ */
 const GradientCard = styled(Card)(({ theme }) => ({
-  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+  background: `linear-gradient(135deg, ${theme.palette.primary.main}1A 0%, ${theme.palette.secondary.main}1A 100%)`,
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  borderRadius: '20px',
-  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.1)',
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius * 2.5,
+  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
@@ -117,40 +122,41 @@ const GradientCard = styled(Card)(({ theme }) => ({
     left: 0,
     right: 0,
     height: '2px',
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
+    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 50%, ${theme.palette.primary.main} 100%)`,
     backgroundSize: '200% 100%',
     animation: `${shimmer} 2s infinite linear`,
   },
   '&:hover': {
     transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(102, 126, 234, 0.2)',
-    animation: `${glow} 2s infinite`,
+    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06)',
+    animation: `${glow(theme.palette.primary.main)} 2s infinite`,
   },
 }));
 
 const StatCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   textAlign: 'center',
-  background: 'rgba(255, 255, 255, 0.95)',
+  background: theme.palette.background.paper,
   backdropFilter: 'blur(10px)',
-  borderRadius: '16px',
-  border: '1px solid rgba(255, 255, 255, 0.3)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+  borderRadius: theme.shape.borderRadius * 2,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
   },
 }));
 
 const FloatingActionButton = styled(Button)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  borderRadius: '50px',
+  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+  borderRadius: 999,
   padding: '12px 32px',
   textTransform: 'none',
   fontWeight: 600,
   fontSize: '0.95rem',
-  boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
+  color: theme.palette.primary.contrastText,
+  boxShadow: `0 4px 16px ${theme.palette.primary.main}55`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
@@ -161,15 +167,13 @@ const FloatingActionButton = styled(Button)(({ theme }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
     transition: 'left 0.5s',
   },
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: '0 8px 30px rgba(102, 126, 234, 0.4)',
-    '&::before': {
-      left: '100%',
-    },
+    boxShadow: `0 8px 24px ${theme.palette.primary.main}77`,
+    '&::before': { left: '100%' },
   },
   '&:active': {
     transform: 'translateY(0px)',
@@ -177,20 +181,20 @@ const FloatingActionButton = styled(Button)(({ theme }) => ({
 }));
 
 const ModernIconButton = styled(IconButton)(({ theme }) => ({
-  borderRadius: '12px',
+  borderRadius: theme.shape.borderRadius * 1.5,
   padding: '12px',
   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
+  border: `1px solid ${theme.palette.divider}`,
   '&:hover': {
     transform: 'scale(1.1)',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
   },
 }));
 
 const PulseAvatar = styled(Avatar)(({ theme }) => ({
   animation: `${pulse} 2s infinite`,
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
   '&:hover': {
     animation: 'none',
     transform: 'scale(1.1)',
@@ -264,14 +268,16 @@ const getStatusColor = (status: string): string => {
   return colors[status as keyof typeof colors] || 'default';
 };
 
-const getStatusGradient = (status: string): string => {
-  const gradients = {
-    pending: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-    approved: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
-    rejected: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-    requires_correction: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
+// Gradients derivados del tema MUI (reemplaza hex hardcoded).
+const getStatusGradient = (status: string, theme: any): string => {
+  const p = theme.palette;
+  const map: Record<string, string> = {
+    pending: `linear-gradient(135deg, ${p.warning.main} 0%, ${p.warning.dark} 100%)`,
+    approved: `linear-gradient(135deg, ${p.success.main} 0%, ${p.success.dark} 100%)`,
+    rejected: `linear-gradient(135deg, ${p.error.main} 0%, ${p.error.dark} 100%)`,
+    requires_correction: `linear-gradient(135deg, ${p.info.main} 0%, ${p.info.dark} 100%)`,
   };
-  return gradients[status as keyof typeof gradients] || 'linear-gradient(135deg, #9E9E9E 0%, #757575 100%)';
+  return map[status] || `linear-gradient(135deg, ${p.grey[500]} 0%, ${p.grey[700]} 100%)`;
 };
 
 const getStatusIcon = (status: string) => {
@@ -314,6 +320,7 @@ const EnhancedDocumentItem: React.FC<{
   isUploading: boolean;
   canDelete: boolean;
 }> = React.memo(({ document, onFileSelect, onDelete, onPreview, isUploading, canDelete }) => {
+  const theme = useTheme();
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
@@ -360,7 +367,7 @@ const EnhancedDocumentItem: React.FC<{
             left: 0,
             right: 0,
             height: '4px',
-            background: getStatusGradient(document.status),
+            background: getStatusGradient(document.status, theme),
             borderRadius: '20px 20px 0 0',
           },
           ...(document.status === 'approved' && {
@@ -398,7 +405,7 @@ const EnhancedDocumentItem: React.FC<{
             <Grid item>
               <PulseAvatar
                 sx={{
-                  background: getStatusGradient(document.status),
+                  background: getStatusGradient(document.status, theme),
                   width: 64,
                   height: 64,
                   border: '3px solid rgba(255, 255, 255, 0.9)',
@@ -477,7 +484,7 @@ const EnhancedDocumentItem: React.FC<{
                     label={getStatusLabel(document.status)}
                     size="medium"
                     sx={{
-                      background: getStatusGradient(document.status),
+                      background: getStatusGradient(document.status, theme),
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '0.8rem',
