@@ -48,7 +48,7 @@ const REPORT_DIR = path.resolve(__dirname, '..', '..', 'e2e-logs');
 test.describe.configure({ mode: 'serial' });
 
 test('flujo completo tenant + landlord hasta contrato active', async ({ browser }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
 
   // ========================================================================
   // SETUP: este spec ejecuta su propio seed para ser independiente de

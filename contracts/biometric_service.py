@@ -1031,10 +1031,34 @@ Tu participación es esencial para activar el contrato de arrendamiento.
                 logger.warning(f"recompute_workflow_status falló tras firma {user_type}: {exc}")
 
             # 🔄 SINCRONIZAR CON LANDLORDCONTROLLEDCONTRACT
+            # BUG-BIO-01: crear espejo si no existe (contratos pre-refactor
+            # que no pasaron por matching.auto_create_contract).
             try:
                 from .landlord_contract_models import LandlordControlledContract
 
-                landlord_contract = LandlordControlledContract.objects.get(id=contract.id)
+                landlord_contract, created = LandlordControlledContract.objects.get_or_create(
+                    id=contract.id,
+                    defaults={
+                        'contract_number': contract.contract_number,
+                        'landlord': contract.primary_party,
+                        'tenant': contract.secondary_party,
+                        'property': contract.property,
+                        'contract_type': 'rental_urban',
+                        'title': contract.title,
+                        'description': contract.description or '',
+                        'current_state': 'TENANT_REVIEWING',
+                        'start_date': contract.start_date,
+                        'end_date': contract.end_date,
+                        'economic_terms': {
+                            'monthly_rent': float(contract.monthly_rent) if contract.monthly_rent else 0,
+                            'security_deposit': float(contract.security_deposit) if contract.security_deposit else 0,
+                        },
+                        'landlord_approved': True,
+                        'landlord_approved_at': timezone.now(),
+                    },
+                )
+                if created:
+                    logger.info(f"🛠️ LandlordControlledContract espejo creado on-the-fly para contrato {contract.id}")
 
                 # Actualizar workflow_stage y workflow_status
                 if match_request.workflow_status == 'pending_landlord_biometric':
@@ -1052,8 +1076,14 @@ Tu participación es esencial para activar el contrato de arrendamiento.
                     # =======================================================
                     # 🔒 INMUTABILIDAD POST-BIOMÉTRICA (Plan Maestro V2.0)
                     # Bloquear el contrato permanentemente después de que
-                    # todas las partes completen la autenticación biométrica
+                    # todas las partes completen la autenticación biométrica.
+                    # lock_contract() exige LANDLORD_SIGNED / READY_TO_PUBLISH
+                    # / PUBLISHED, así que transicionamos primero.
                     # =======================================================
+                    if landlord_contract.current_state not in ('LANDLORD_SIGNED', 'READY_TO_PUBLISH', 'PUBLISHED'):
+                        landlord_contract.current_state = 'LANDLORD_SIGNED'
+                        landlord_contract.save(update_fields=['current_state'])
+
                     try:
                         landlord_contract.lock_contract(
                             user=auth.user,

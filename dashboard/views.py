@@ -271,7 +271,9 @@ class DashboardStatsView(APIView):
                 'active': active_contracts,
                 'completed': contracts.filter(status='completed').count(),
                 'total': contracts.count(),
-                'currentProperty': contracts.filter(status='active').first(),
+                'currentProperty': self._serialize_current_property(
+                    contracts.filter(status='active').first()
+                ),
                 'trend': self.calculate_trend(
                     contracts.filter(created_at__gte=start_date).count(),
                     contracts.filter(created_at__gte=previous_start, created_at__lt=start_date).count()
@@ -507,6 +509,26 @@ class DashboardStatsView(APIView):
         # Ordenar por timestamp y limitar
         activities.sort(key=lambda x: x['timestamp'], reverse=True)
         return activities[:limit]
+
+    def _serialize_current_property(self, contract):
+        """BUG-DASH-01: serializar el Contract activo a dict JSON-safe.
+
+        Antes devolvía el objeto Contract crudo, lo que provocaba
+        'TypeError: Object of type Contract is not JSON serializable'.
+        """
+        if contract is None:
+            return None
+        prop = getattr(contract, 'property', None)
+        return {
+            'contract_id': str(contract.id),
+            'contract_number': getattr(contract, 'contract_number', None),
+            'status': getattr(contract, 'status', None),
+            'property_id': str(prop.id) if prop else None,
+            'property_title': getattr(prop, 'title', None) if prop else None,
+            'property_address': getattr(prop, 'address', None) if prop else None,
+            'start_date': contract.start_date.isoformat() if getattr(contract, 'start_date', None) else None,
+            'end_date': contract.end_date.isoformat() if getattr(contract, 'end_date', None) else None,
+        }
 
 
 class DashboardChartsView(APIView):
