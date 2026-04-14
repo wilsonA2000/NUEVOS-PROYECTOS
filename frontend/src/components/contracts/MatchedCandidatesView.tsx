@@ -73,6 +73,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import ProcessStepHeader from '../common/ProcessStepHeader';
 import VisitScheduleModal from './VisitScheduleModal';
 import VisitEvaluationModal from './VisitEvaluationModal';
 import LandlordDocumentReview from './LandlordDocumentReview';
@@ -219,7 +220,7 @@ const MatchedCandidatesView: React.FC = () => {
       await fetchMatchedCandidates();
 
       // Show success message
-      setSuccess('✅ Visita programada exitosamente. El arrendatario ha sido notificado.');
+      setSuccess('Visita programada exitosamente. El arrendatario ha sido notificado.');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al programar visita';
       setError(errorMsg);
@@ -252,11 +253,11 @@ const MatchedCandidatesView: React.FC = () => {
 
       // Show success message
       if (result.deleted) {
-        setSuccess(`✅ ${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
+        setSuccess(`${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
       } else {
         setSuccess(approved
-          ? '✅ Visita aprobada exitosamente. El candidato avanzó a la etapa de revisión de documentos.'
-          : '✅ Candidato rechazado. El proceso ha sido eliminado completamente.',
+          ? 'Visita aprobada exitosamente. El candidato avanzó a la etapa de revisión de documentos.'
+          : 'Candidato rechazado. El proceso ha sido eliminado completamente.',
         );
       }
     } catch (err) {
@@ -375,9 +376,9 @@ const MatchedCandidatesView: React.FC = () => {
 
       // Show success message to user
       if (result.deleted) {
-        setSuccess(`✅ ${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
+        setSuccess(`${result.message || 'Candidato eliminado completamente. El arrendatario puede volver a aplicar.'}`);
       } else {
-        setSuccess(result.message || '✅ Acción ejecutada exitosamente');
+        setSuccess(result.message || 'Acción ejecutada exitosamente');
       }
 
     } catch (err) {
@@ -414,11 +415,11 @@ const MatchedCandidatesView: React.FC = () => {
 
   const getStageLabel = (stage: number) => {
     switch (stage) {
-      case 1: return 'Etapa 1: Visita 🏠';
-      case 2: return 'Etapa 2: Documentos 📄';
-      case 3: return 'Etapa 3: Creación del Contrato 📋';
-      case 4: return 'Etapa 4: Autenticación Biométrica 🔐';
-      case 5: return 'Etapa 5: Entrega y Ejecución 🔑';
+      case 1: return 'Etapa 1: Visita';
+      case 2: return 'Etapa 2: Documentos';
+      case 3: return 'Etapa 3: Creación del Contrato';
+      case 4: return 'Etapa 4: Autenticación Biométrica';
+      case 5: return 'Etapa 5: Entrega y Ejecución';
       default: return 'Etapa';
     }
   };
@@ -661,7 +662,7 @@ const MatchedCandidatesView: React.FC = () => {
             onClick={() => handleWorkflowAction(candidate, { type: 'advance_to_execution' })}
             size="small"
           >
-            🎉 ¡Avanzar a Entrega de Llaves!
+            ¡Avanzar a Entrega de Llaves!
           </Button>
           <Button
             variant="outlined"
@@ -687,7 +688,7 @@ const MatchedCandidatesView: React.FC = () => {
             size="small"
             disabled
           >
-            ✅ Tu autenticación completada - Esperando arrendatario
+            Tu autenticación completada — esperando arrendatario
           </Button>
           <Button
             variant="outlined"
@@ -731,7 +732,7 @@ const MatchedCandidatesView: React.FC = () => {
             onClick={() => handleStartBiometricAuth(candidate)}
             size="small"
           >
-            🔐 Completar Mi Autenticación
+            Completar Mi Autenticación
           </Button>
           <Button
             variant="outlined"
@@ -740,7 +741,7 @@ const MatchedCandidatesView: React.FC = () => {
             size="small"
             disabled
           >
-            ✅ Arrendatario ya autenticado
+            Arrendatario ya autenticado
           </Button>
           <Button
             variant="outlined"
@@ -817,7 +818,7 @@ const MatchedCandidatesView: React.FC = () => {
           onClick={() => handleViewContract(candidate)}
           size="small"
         >
-          📋 Ver Contrato Activo
+          Ver Contrato Activo
         </Button>
       );
     }
@@ -848,7 +849,7 @@ const MatchedCandidatesView: React.FC = () => {
             onClick={() => handleDeliverKeys(candidate)}
             size="small"
           >
-            🔑 Confirmar Entrega de Llaves
+            Confirmar Entrega de Llaves
           </Button>
           {contractInfo.move_in_date && (
             <Chip
@@ -944,7 +945,7 @@ const MatchedCandidatesView: React.FC = () => {
           {/* Información de la propiedad */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              🏠 Propiedad
+              Propiedad
             </Typography>
             <Box display="flex" alignItems="center">
               <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
@@ -964,7 +965,7 @@ const MatchedCandidatesView: React.FC = () => {
           {/* Stepper de workflow */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              📋 Estado del Proceso
+              Estado del Proceso
             </Typography>
             <Stepper orientation="vertical" sx={{ pl: 2 }}>
               {[1, 2, 3, 4, 5].map((stage) => {
@@ -1033,7 +1034,7 @@ const MatchedCandidatesView: React.FC = () => {
                   Fecha Preferida de Mudanza
                 </Typography>
                 <Typography variant="body2">
-                  📅 {new Date(candidate.preferred_move_in_date).toLocaleDateString('es-CO')}
+                  {new Date(candidate.preferred_move_in_date).toLocaleDateString('es-CO')}
                 </Typography>
               </Grid>
             )}
@@ -1061,7 +1062,7 @@ const MatchedCandidatesView: React.FC = () => {
                 {candidate.workflow_data?.visit_scheduled ? (
                   <Box sx={{ width: '100%' }}>
                     <Alert severity="success" sx={{ mb: 1 }}>
-                      <AlertTitle>✅ Visita Programada</AlertTitle>
+                      <AlertTitle>Visita Programada</AlertTitle>
                       <Typography variant="body2">
                         <strong>Fecha:</strong> {new Date(candidate.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO', {
                           weekday: 'long',
@@ -1185,7 +1186,7 @@ const MatchedCandidatesView: React.FC = () => {
                   disabled={actionLoading}
                   size="small"
                 >
-                  ⚡ Generar Contrato Automáticamente
+                  Generar Contrato Automáticamente
                 </Button>
                 <Button
                   variant="outlined"
@@ -1422,7 +1423,7 @@ const MatchedCandidatesView: React.FC = () => {
         return (
           <Stack spacing={2}>
             <Typography>
-              🎉 ¡Excelente! Ambas partes han completado la autenticación biométrica exitosamente.
+              ¡Excelente! Ambas partes han completado la autenticación biométrica exitosamente.
             </Typography>
             <Typography>
               ¿Confirmas que todo está listo para avanzar a la etapa de entrega de llaves y ejecución del contrato?
@@ -1481,16 +1482,14 @@ const MatchedCandidatesView: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header simple */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ mb: 1 }}>
-          🏠 Candidatos Aprobados
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Gestiona tus candidatos a través del proceso de contratación
-        </Typography>
-      </Box>
+    <Box sx={{ p: { xs: 1.5, md: 3 } }}>
+      <ProcessStepHeader
+        kind="hero"
+        icon={<PersonIcon />}
+        title="Candidatos Aprobados"
+        subtitle="Gestiona tus candidatos a través del proceso de contratación"
+      />
+
 
 
       {error && (

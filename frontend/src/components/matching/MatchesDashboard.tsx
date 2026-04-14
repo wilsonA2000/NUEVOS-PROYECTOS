@@ -52,7 +52,14 @@ import {
   Assignment,
   Business,
   Description as DocumentIcon,
+  Fingerprint as FingerprintIcon,
+  VpnKey as VpnKeyIcon,
+  Edit as EditIcon,
+  EventAvailable as EventAvailableIcon,
+  Bolt as BoltIcon,
+  TaskAlt as TaskAltIcon,
 } from '@mui/icons-material';
+import StatusChip from '../common/StatusChip';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import useMatchRequests from '../../hooks/useMatchRequests';
@@ -453,13 +460,20 @@ const MatchesDashboard: React.FC = () => {
                                 request.workflow_stage === 3 ? 'primary.200' :
                                 request.workflow_stage === 4 ? 'secondary.200' : 'success.200',
                   }}>
-                    <Typography variant="body2" fontWeight={600} gutterBottom>
-                      {request.workflow_stage === 1 && '🏠 Programación de Visita'}
-                      {request.workflow_stage === 2 && '📄 Revisión de Documentos'}
-                      {request.workflow_stage === 3 && '📋 Creación del Contrato'}
-                      {request.workflow_stage === 4 && '🔐 Autenticación Biométrica'}
-                      {request.workflow_stage === 5 && '🔑 Proceso Completado'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      {request.workflow_stage === 1 && <Home fontSize="small" color="action" />}
+                      {request.workflow_stage === 2 && <DocumentIcon fontSize="small" color="action" />}
+                      {request.workflow_stage === 3 && <EditIcon fontSize="small" color="action" />}
+                      {request.workflow_stage === 4 && <FingerprintIcon fontSize="small" color="action" />}
+                      {request.workflow_stage === 5 && <VpnKeyIcon fontSize="small" color="action" />}
+                      <Typography variant="body2" fontWeight={600}>
+                        {request.workflow_stage === 1 && 'Programación de Visita'}
+                        {request.workflow_stage === 2 && 'Revisión de Documentos'}
+                        {request.workflow_stage === 3 && 'Creación del Contrato'}
+                        {request.workflow_stage === 4 && 'Autenticación Biométrica'}
+                        {request.workflow_stage === 5 && 'Proceso Completado'}
+                      </Typography>
+                    </Box>
                     
                     <Typography variant="caption" color="text.secondary">
                       {request.workflow_stage === 1 && (
@@ -483,15 +497,14 @@ const MatchesDashboard: React.FC = () => {
 
                     {/* Información específica de visita */}
                     {request.workflow_stage === 1 && request.workflow_data?.visit_scheduled && (
-                      <Box sx={{ mt: 1, p: 1, bgcolor: 'white', borderRadius: 0.5 }}>
+                      <Box sx={{ mt: 1, p: 1, bgcolor: 'white', borderRadius: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Schedule fontSize="inherit" color="action" />
                         <Typography variant="caption" fontWeight={600}>
-                          📅 Visita: {new Date(request.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')} 
-                          a las {request.workflow_data.visit_scheduled.time}
+                          Visita: {new Date(request.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')}
+                          {' '}a las {request.workflow_data.visit_scheduled.time}
                         </Typography>
                         {request.workflow_data.visit_scheduled.completed && (
-                          <Typography variant="caption" color="success.main" display="block">
-                            ✅ Visita completada
-                          </Typography>
+                          <StatusChip kind="success" label="Visita completada" icon={<TaskAltIcon fontSize="small" />} sx={{ ml: 'auto' }} />
                         )}
                       </Box>
                     )}
@@ -499,26 +512,22 @@ const MatchesDashboard: React.FC = () => {
                     {/* Acciones específicas por etapa */}
                     {request.workflow_stage === 2 && isTenant && (
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant="caption" color="warning.dark" fontWeight={600}>
-                          ⚡ Acción requerida: Subir documentos
-                        </Typography>
+                        <StatusChip kind="pending" label="Acción requerida: subir documentos" icon={<BoltIcon fontSize="small" />} />
                       </Box>
                     )}
-                    
+
                     {request.workflow_stage === 3 && !isTenant && (
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant="caption" color="primary.dark" fontWeight={600}>
-                          ⚡ Puedes crear el contrato desde la sección Contratos
-                        </Typography>
+                        <StatusChip kind="inProgress" label="Puedes crear el contrato desde Contratos" icon={<BoltIcon fontSize="small" />} />
                       </Box>
                     )}
                   </Box>
                   
                   {/* Mostrar visita programada solo si existe y no está en etapa 2+ (visita completada) */}
                   {request.workflow_data?.visit_scheduled && request.workflow_stage < 2 && (
-                    <Alert severity="info" sx={{ mt: 1 }}>
+                    <Alert severity="info" icon={<EventAvailableIcon />} sx={{ mt: 1 }}>
                       <Typography variant="body2" fontWeight={600}>
-                        🏠 Visita Programada
+                        Visita Programada
                       </Typography>
                       <Typography variant="caption">
                         Fecha: {new Date(request.workflow_data.visit_scheduled.date).toLocaleDateString()} 
@@ -534,9 +543,9 @@ const MatchesDashboard: React.FC = () => {
                   
                   {/* Mostrar confirmación de visita completada en etapa 2+ */}
                   {request.workflow_data?.visit_scheduled?.completed && request.workflow_stage >= 2 && (
-                    <Alert severity="success" sx={{ mt: 1 }}>
+                    <Alert severity="success" icon={<TaskAltIcon />} sx={{ mt: 1 }}>
                       <Typography variant="body2" fontWeight={600}>
-                        ✅ Visita Completada
+                        Visita Completada
                       </Typography>
                       <Typography variant="caption">
                         La visita a la propiedad ha sido completada exitosamente.
@@ -556,9 +565,9 @@ const MatchesDashboard: React.FC = () => {
               {/* Mostrar componente de subida de documentos si está en etapa 2 y es tenant */}
               {isTenant && request.status === 'accepted' && request.workflow_stage === 2 && (
                 <Box sx={{ mt: 2 }}>
-                  <Alert severity="warning" sx={{ mb: 2 }}>
+                  <Alert severity="warning" icon={<DocumentIcon />} sx={{ mb: 2 }}>
                     <Typography variant="body2" fontWeight={600}>
-                      📄 Acción Requerida: Subir Documentos
+                      Acción Requerida: Subir Documentos
                     </Typography>
                     <Typography variant="caption">
                       Para continuar con el proceso, necesitas subir los documentos requeridos.
@@ -590,35 +599,37 @@ const MatchesDashboard: React.FC = () => {
               {/* Vista para el arrendador cuando el tenant está subiendo documentos */}
               {!isTenant && request.status === 'accepted' && request.workflow_stage === 2 && (
                 <Box sx={{ mt: 2 }}>
-                  <Alert severity="info" sx={{ mb: 2 }}>
+                  <Alert severity="info" icon={<DocumentIcon />} sx={{ mb: 2 }}>
                     <Typography variant="body2" fontWeight={600}>
-                      📄 Arrendatario Subiendo Documentos
+                      Arrendatario Subiendo Documentos
                     </Typography>
                     <Typography variant="caption">
                       El arrendatario está en proceso de subir los documentos requeridos. Podrás ver el progreso aquí.
                     </Typography>
                   </Alert>
-                  {/* Solo mostrar progreso, sin funcionalidad de subida para el arrendador */}
-                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    ⏳ Esperando documentos del arrendatario...
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Schedule fontSize="small" color="disabled" />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                      Esperando documentos del arrendatario...
+                    </Typography>
+                  </Box>
                 </Box>
               )}
 
               {/* Mostrar información de documentos aprobados para arrendatarios en etapa 3 */}
               {isTenant && request.status === 'accepted' && request.workflow_stage === 3 && (
                 <Box sx={{ mt: 2 }}>
-                  <Alert severity="success" sx={{ mb: 2 }}>
+                  <Alert severity="success" icon={<TaskAltIcon />} sx={{ mb: 2 }}>
                     <Typography variant="body2" fontWeight={600}>
-                      ✅ Documentos Aprobados
+                      Documentos Aprobados
                     </Typography>
                     <Typography variant="caption">
                       ¡Excelente! Todos tus documentos han sido revisados y aprobados por el arrendador. El proceso ha avanzado a la creación del contrato.
                     </Typography>
                   </Alert>
-                  <Alert severity="info" sx={{ mb: 2 }}>
+                  <Alert severity="info" icon={<EditIcon />} sx={{ mb: 2 }}>
                     <Typography variant="body2" fontWeight={600}>
-                      📋 Etapa 3: Creación del Contrato
+                      Etapa 3: Creación del Contrato
                     </Typography>
                     <Typography variant="caption">
                       El arrendador está creando el borrador del contrato. Te notificaremos cuando esté listo para tu revisión.
@@ -1308,13 +1319,20 @@ const MatchesDashboard: React.FC = () => {
 
                     {/* Descripción de la etapa actual */}
                     <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.200' }}>
-                      <Typography variant="body2" fontWeight={600} color="primary.dark">
-                        {(selectedCandidate.workflow_stage || 1) === 1 && '🏠 Etapa 1: Programación de Visita'}
-                        {(selectedCandidate.workflow_stage || 1) === 2 && '📄 Etapa 2: Revisión de Documentos'}
-                        {(selectedCandidate.workflow_stage || 1) === 3 && '📋 Etapa 3: Creación del Contrato'}
-                        {(selectedCandidate.workflow_stage || 1) === 4 && '🔐 Etapa 4: Autenticación Biométrica'}
-                        {(selectedCandidate.workflow_stage || 1) === 5 && '🔑 Etapa 5: Entrega de Llaves'}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {(selectedCandidate.workflow_stage || 1) === 1 && <Home fontSize="small" color="primary" />}
+                        {(selectedCandidate.workflow_stage || 1) === 2 && <DocumentIcon fontSize="small" color="primary" />}
+                        {(selectedCandidate.workflow_stage || 1) === 3 && <EditIcon fontSize="small" color="primary" />}
+                        {(selectedCandidate.workflow_stage || 1) === 4 && <FingerprintIcon fontSize="small" color="primary" />}
+                        {(selectedCandidate.workflow_stage || 1) === 5 && <VpnKeyIcon fontSize="small" color="primary" />}
+                        <Typography variant="body2" fontWeight={600} color="primary.dark">
+                          {(selectedCandidate.workflow_stage || 1) === 1 && 'Etapa 1: Programación de Visita'}
+                          {(selectedCandidate.workflow_stage || 1) === 2 && 'Etapa 2: Revisión de Documentos'}
+                          {(selectedCandidate.workflow_stage || 1) === 3 && 'Etapa 3: Creación del Contrato'}
+                          {(selectedCandidate.workflow_stage || 1) === 4 && 'Etapa 4: Autenticación Biométrica'}
+                          {(selectedCandidate.workflow_stage || 1) === 5 && 'Etapa 5: Entrega de Llaves'}
+                        </Typography>
+                      </Box>
                       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                         {(selectedCandidate.workflow_stage || 1) === 1 && 'Se coordinará la visita a la propiedad con el candidato seleccionado.'}
                         {(selectedCandidate.workflow_stage || 1) === 2 && 'El candidato debe subir los documentos requeridos para verificación.'}
@@ -1328,9 +1346,12 @@ const MatchesDashboard: React.FC = () => {
                   {/* Información de Visita Programada */}
                   {selectedCandidate.workflow_data?.visit_scheduled && (
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="body1" fontWeight={600} gutterBottom>
-                        📅 Visita Programada
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <EventAvailableIcon fontSize="small" color="action" />
+                        <Typography variant="body1" fontWeight={600}>
+                          Visita Programada
+                        </Typography>
+                      </Box>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={4}>
                           <TextField

@@ -156,7 +156,7 @@ const TenantContractsDashboard: React.FC = () => {
     if (!contractId) {
       setErrorDialog({
         open: true,
-        title: '❌ Error',
+        title: 'Error',
         message: 'ID de contrato no encontrado',
       });
       return;
@@ -185,7 +185,7 @@ const TenantContractsDashboard: React.FC = () => {
 
       setSuccessDialog({
         open: true,
-        title: '🎉 ¡Contrato Aprobado Exitosamente!',
+        title: '¡Contrato Aprobado Exitosamente!',
         message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.',
       });
 
@@ -194,7 +194,7 @@ const TenantContractsDashboard: React.FC = () => {
     } catch (error: any) {
       setErrorDialog({
         open: true,
-        title: '❌ Error al Aprobar el Contrato',
+        title: 'Error al Aprobar el Contrato',
         message: error.response?.data?.detail || error.message || 'Error desconocido',
       });
     } finally {
@@ -477,7 +477,7 @@ const TenantContractsDashboard: React.FC = () => {
           {/* Stepper de progreso */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              📋 Estado del Proceso
+              Estado del Proceso
             </Typography>
             <Stepper orientation="vertical" sx={{ pl: 2 }}>
               {workflowSteps.map((step, index) => (
@@ -573,7 +573,7 @@ const TenantContractsDashboard: React.FC = () => {
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" sx={{ mb: 1 }}>
-            🏠 Mis Contratos de Arrendamiento
+            Mis Contratos de Arrendamiento
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Gestiona todos tus contratos y mantente al día con las acciones pendientes
@@ -585,7 +585,7 @@ const TenantContractsDashboard: React.FC = () => {
           <Box sx={{ mb: 4 }}>
             <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
               <HomeIcon sx={{ mr: 1, color: 'primary.main' }} />
-              🏠 Procesos Activos ({workflowProcesses.length})
+              Procesos Activos ({workflowProcesses.length})
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Tus procesos de arrendamiento en curso con PDF profesional
@@ -631,7 +631,7 @@ const TenantContractsDashboard: React.FC = () => {
                         ) : process.status === 'contract_approved_by_tenant' ? (
                           <>
                             <Alert severity="success" sx={{ mb: 2 }}>
-                              <AlertTitle>✅ Contrato Aprobado por Ti</AlertTitle>
+                              <AlertTitle>Contrato Aprobado por Ti</AlertTitle>
                               <Typography variant="body2">
                                 Has aprobado el contrato exitosamente. Ahora el arrendador debe revisar
                                 y aprobar para continuar al siguiente paso de autenticación biométrica.
@@ -648,7 +648,7 @@ const TenantContractsDashboard: React.FC = () => {
                         ) : process.status === 'contract_pending_tenant_approval' ? (
                           <>
                             <Alert severity="warning" sx={{ mb: 2 }}>
-                              <AlertTitle>📋 Contrato Listo para Revisión</AlertTitle>
+                              <AlertTitle>Contrato Listo para Revisión</AlertTitle>
                               <Typography variant="body2">
                                 El arrendador ha creado el contrato. ¡Es tu turno de revisarlo y aprobarlo!
                               </Typography>
@@ -717,7 +717,7 @@ const TenantContractsDashboard: React.FC = () => {
                                 🎯 ¡Es tu turno! Debes iniciar la autenticación biométrica
                               </Typography>
                               <Typography variant="body2" sx={{ mt: 1 }}>
-                                📋 Orden del proceso:
+                                Orden del proceso:
                               </Typography>
                               <Box component="ol" sx={{ pl: 2, mt: 0.5, mb: 1 }}>
                                 <Typography component="li" variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
@@ -748,11 +748,11 @@ const TenantContractsDashboard: React.FC = () => {
                               }}
                               sx={{ mb: 1, py: 1.5 }}
                             >
-                              🔐 INICIAR MI AUTENTICACIÓN BIOMÉTRICA
+                              Iniciar mi autenticación biométrica
                             </Button>
 
                             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
-                              ⚡ Proceso rápido y seguro - Toma menos de 5 minutos
+                              Proceso rápido y seguro — toma menos de 5 minutos
                             </Typography>
                           </>
                         )}
@@ -762,7 +762,7 @@ const TenantContractsDashboard: React.FC = () => {
                           <>
                             <Alert severity="warning" sx={{ mb: 2 }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                                📋 ¡Tu revisión es requerida!
+                                ¡Tu revisión es requerida!
                               </Typography>
                               <Typography variant="body2" sx={{ mt: 1 }}>
                                 El arrendador ha creado el contrato y está esperando tu aprobación para continuar al siguiente paso.
@@ -778,7 +778,7 @@ const TenantContractsDashboard: React.FC = () => {
                                 onClick={() => viewContractPDF(process.workflow_data?.contract_created?.contract_id)}
                                 fullWidth
                               >
-                                📄 Ver Contrato PDF
+                                Ver Contrato PDF
                               </Button>
 
                               <Button
@@ -794,7 +794,7 @@ const TenantContractsDashboard: React.FC = () => {
                               >
                                 {approvingContract === process.workflow_data?.contract_created?.contract_id
                                   ? '⏳ APROBANDO...'
-                                  : '✅ APROBAR Y CONTINUAR'
+                                  : 'Aprobar y continuar'
                                 }
                               </Button>
 
@@ -831,7 +831,7 @@ const TenantContractsDashboard: React.FC = () => {
                                   if (!contractId) {
                                     setErrorDialog({
                                       open: true,
-                                      title: '❌ Error',
+                                      title: 'Error',
                                       message: 'No se encontró el ID del contrato.',
                                     });
                                     return;
@@ -840,14 +840,14 @@ const TenantContractsDashboard: React.FC = () => {
                                     await api.post(`/tenant/contracts/${contractId}/reject_contract/`);
                                     setSuccessDialog({
                                       open: true,
-                                      title: '❌ Contrato Rechazado',
+                                      title: 'Contrato Rechazado',
                                       message: 'El contrato ha sido rechazado exitosamente. El arrendador será notificado.',
                                     });
                                     await loadTenantContracts();
                                   } catch (err: any) {
                                     setErrorDialog({
                                       open: true,
-                                      title: '❌ Error al Rechazar',
+                                      title: 'Error al Rechazar',
                                       message: err?.response?.data?.error || err?.message || 'No se pudo rechazar el contrato. Intenta nuevamente.',
                                     });
                                   }
@@ -855,7 +855,7 @@ const TenantContractsDashboard: React.FC = () => {
                                 sx={{ py: 1 }}
                                 fullWidth
                               >
-                                ❌ RECHAZAR CONTRATO
+                                Rechazar contrato
                               </Button>
                             </Box>
 
@@ -874,7 +874,7 @@ const TenantContractsDashboard: React.FC = () => {
                             onClick={() => viewContractPDF(process.workflow_data.contract_created.contract_id)}
                             size="small"
                           >
-                            📄 Ver Contrato PDF
+                            Ver Contrato PDF
                           </Button>
                         )}
 
@@ -889,7 +889,7 @@ const TenantContractsDashboard: React.FC = () => {
                             </Typography>
                             {process.workflow_data.contract_created.tenant_approved && (
                               <Typography variant="caption" display="block" color="success.main">
-                                <strong>✅ Aprobado:</strong> {new Date(process.workflow_data.contract_created.tenant_approved_at).toLocaleDateString()}
+                                <strong>Aprobado:</strong> {new Date(process.workflow_data.contract_created.tenant_approved_at).toLocaleDateString()}
                               </Typography>
                             )}
                           </Box>
@@ -996,7 +996,7 @@ const TenantContractsDashboard: React.FC = () => {
           <Box sx={{ mb: 4 }}>
             <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
               <WarningIcon sx={{ mr: 1, color: 'warning.main' }} />
-              📋 Contratos Pendientes de tu Revisión
+              Contratos Pendientes de tu Revisión
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Tienes {pendingReviewContracts.length} contrato{pendingReviewContracts.length !== 1 ? 's' : ''} que requiere{pendingReviewContracts.length === 1 ? '' : 'n'} tu aprobación o solicitud de cambios.
@@ -1197,7 +1197,7 @@ const TenantContractsDashboard: React.FC = () => {
           onSuccess={() => {
             setSuccessDialog({
               open: true,
-              title: '✅ Solicitud Enviada',
+              title: 'Solicitud Enviada',
               message: 'Tu solicitud de modificación ha sido enviada al arrendador. Te notificaremos cuando responda.',
             });
             setModificationModalOpen(false);
