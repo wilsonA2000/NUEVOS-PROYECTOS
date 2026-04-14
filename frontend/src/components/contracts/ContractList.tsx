@@ -26,6 +26,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { contractService } from '../../services/contractService';
 import TenantContractsDashboard from './TenantContractsDashboard';
+import StatusChip from '../common/StatusChip';
+import { contractStateKind, contractStateLabel } from '../../utils/statusMaps';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
@@ -176,10 +178,10 @@ export const ContractList: React.FC = () => {
                 {contract.property ? (
                   <Box sx={{ mt: 1, mb: 2 }}>
                     <Typography variant="subtitle2" color="primary" gutterBottom>
-                      🏠 {contract.property.title || 'Propiedad'}
+                      {contract.property.title || 'Propiedad'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      📍 {contract.property.address}
+                      {contract.property.address}
                     </Typography>
                     {/* Property details - using minimal Contract.property interface */}
                     <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
@@ -192,31 +194,16 @@ export const ContractList: React.FC = () => {
                   </Typography>
                 )}
                 <Box sx={{ mt: 2, mb: 2 }}>
-                  <Chip
-                    label={
-                      contract.status === 'active' ? 'Activo' :
-                      contract.status === 'fully_signed' ? 'Firmado' :
-                      contract.status === 'pending_signature' ? 'Pendiente Firma' :
-                      contract.status === 'partially_signed' ? 'Parcialmente Firmado' :
-                      contract.status === 'suspended' ? 'Suspendido' :
-                      contract.status === 'terminated' ? 'Terminado' :
-                      contract.status === 'expired' ? 'Expirado' :
-                      contract.status || 'Sin estado'
-                    }
-                    color={
-                      contract.status === 'active' || contract.status === 'fully_signed' ? 'success' :
-                      contract.status === 'pending_signature' || contract.status === 'partially_signed' ? 'warning' :
-                      contract.status === 'suspended' || contract.status === 'terminated' || contract.status === 'expired' ? 'error' :
-                      'default'
-                    }
-                    size="small"
+                  <StatusChip
+                    kind={contractStateKind(contract.status)}
+                    label={contractStateLabel(contract.status)}
                   />
                 </Box>
                 {/* Información del inquilino */}
                 {contract.secondary_party ? (
                   <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                     <Typography variant="body2" color="primary" gutterBottom>
-                      👤 <strong>Inquilino</strong>
+                      <strong>Inquilino</strong>
                     </Typography>
                     <Typography variant="body2">
                       {contract.secondary_party.first_name && contract.secondary_party.last_name

@@ -3,7 +3,6 @@ import {
   Box,
   Card,
   CardContent,
-  Chip,
   Grid,
   Typography,
   Button,
@@ -16,6 +15,8 @@ import {
   Alert,
   AlertTitle,
 } from '@mui/material';
+import StatusChip from '../common/StatusChip';
+import { contractStateKind, contractStateLabel } from '../../utils/statusMaps';
 import {
   Home as HomeIcon,
   Person as PersonIcon,
@@ -73,15 +74,9 @@ export const ContractDetail: React.FC = () => {
           <Typography variant="h5" component="div">
             Contrato #{contract.id}
           </Typography>
-          <Chip
-            label={contract.status}
-            color={
-              contract.status === 'active'
-                ? 'success'
-                : contract.status === 'expired'
-                ? 'error'
-                : 'warning'
-            }
+          <StatusChip
+            kind={contractStateKind(contract.status)}
+            label={contractStateLabel(contract.status)}
           />
         </Box>
 

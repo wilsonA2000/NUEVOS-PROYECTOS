@@ -143,7 +143,7 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
           color="error"
           startIcon={loading ? <CircularProgress size={20} /> : <RejectIcon />}
         >
-          ❌ Rechazar Candidato
+          Rechazar Candidato
         </Button>
         <Button
           onClick={() => handleEvaluate(true)}
@@ -152,7 +152,7 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
           color="success"
           startIcon={loading ? <CircularProgress size={20} /> : <ApproveIcon />}
         >
-          ✅ Aprobar y Continuar
+          Aprobar y Continuar
         </Button>
       </DialogActions>
     </Dialog>

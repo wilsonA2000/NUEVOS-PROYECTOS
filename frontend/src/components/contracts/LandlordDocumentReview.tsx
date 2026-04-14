@@ -379,7 +379,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            📄 Revisión de Documentos - {checklist.property_title}
+            Revisión de Documentos — {checklist.property_title}
           </Typography>
           
           <Typography variant="body2" color="text.secondary" gutterBottom>
