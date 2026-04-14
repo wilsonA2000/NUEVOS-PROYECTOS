@@ -1,9 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   TextField,
   FormControl,
@@ -12,11 +8,11 @@ import {
   MenuItem,
   Stack,
   Box,
-  IconButton,
   CircularProgress,
   Typography,
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { EventAvailable as EventAvailableIcon } from '@mui/icons-material';
+import DialogShell from '../common/DialogShell';
 
 interface VisitScheduleModalProps {
   open: boolean;
@@ -33,13 +29,11 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
   candidateName,
   propertyTitle,
 }) => {
-  // Estados locales completamente independientes
   const [visitDate, setVisitDate] = useState('');
   const [visitHour, setVisitHour] = useState('09');
   const [visitNotes, setVisitNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Resetear formulario cuando se abre
   React.useEffect(() => {
     if (open) {
       setVisitDate('');
@@ -51,7 +45,7 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
 
   const handleConfirm = useCallback(async () => {
     if (!visitDate || !visitHour) return;
-    
+
     setLoading(true);
     try {
       await onConfirm({
@@ -73,107 +67,79 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
   }, [loading, onClose]);
 
   const hourOptions = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
-
   const isFormValid = visitDate && visitHour;
 
   return (
-    <Dialog
+    <DialogShell
       open={open}
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          minHeight: '400px',
-        },
-      }}
+      icon={<EventAvailableIcon />}
+      title="Programar Visita"
+      subtitle={`${candidateName} · ${propertyTitle}`}
+      hideCloseButton={loading}
+      PaperProps={{ sx: { minHeight: '400px' } }}
+      actions={
+        <>
+          <Button onClick={handleClose} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirm}
+            disabled={!isFormValid || loading}
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {loading ? 'Programando...' : 'Programar Visita'}
+          </Button>
+        </>
+      }
     >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">
-            Programar Visita
-          </Typography>
-          <IconButton onClick={handleClose} disabled={loading}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+      <Stack spacing={3}>
+        <TextField
+          label="Fecha de Visita"
+          type="date"
+          value={visitDate}
+          onChange={(e) => setVisitDate(e.target.value)}
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          helperText="Selecciona la fecha para la visita"
+          inputProps={{
+            min: new Date().toISOString().split('T')[0],
+          }}
+          disabled={loading}
+        />
 
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            <strong>Candidato:</strong> {candidateName}<br />
-            <strong>Propiedad:</strong> {propertyTitle}
-          </Typography>
+        <FormControl fullWidth disabled={loading}>
+          <InputLabel>Hora de Visita</InputLabel>
+          <Select
+            value={visitHour}
+            onChange={(e) => setVisitHour(e.target.value)}
+            label="Hora de Visita"
+          >
+            {hourOptions.map((hour) => (
+              <MenuItem key={hour} value={hour}>
+                {hour}:00 {parseInt(hour) >= 12 ? 'PM' : 'AM'}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-          <Stack spacing={3}>
-            <TextField
-              label="Fecha de Visita"
-              type="date"
-              value={visitDate}
-              onChange={(e) => setVisitDate(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              helperText="Selecciona la fecha para la visita"
-              inputProps={{
-                min: new Date().toISOString().split('T')[0],
-              }}
-              disabled={loading}
-            />
-
-            <FormControl fullWidth disabled={loading}>
-              <InputLabel>Hora de Visita</InputLabel>
-              <Select
-                value={visitHour}
-                onChange={(e) => setVisitHour(e.target.value)}
-                label="Hora de Visita"
-              >
-                {hourOptions.map((hour) => (
-                  <MenuItem key={hour} value={hour}>
-                    {hour}:00 {parseInt(hour) >= 12 ? 'PM' : 'AM'}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Notas (opcional)"
-              multiline
-              rows={4}
-              value={visitNotes}
-              onChange={(e) => setVisitNotes(e.target.value)}
-              fullWidth
-              placeholder="Agrega notas sobre la visita programada..."
-              helperText="Información adicional sobre la visita"
-              inputProps={{
-                maxLength: 500,
-              }}
-              disabled={loading}
-            />
-          </Stack>
-        </Box>
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleConfirm}
-          disabled={!isFormValid || loading}
-        >
-          {loading ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-              Programando...
-            </>
-          ) : (
-            'Programar Visita'
-          )}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <TextField
+          label="Notas (opcional)"
+          multiline
+          rows={4}
+          value={visitNotes}
+          onChange={(e) => setVisitNotes(e.target.value)}
+          fullWidth
+          placeholder="Agrega notas sobre la visita programada..."
+          helperText="Información adicional sobre la visita"
+          inputProps={{ maxLength: 500 }}
+          disabled={loading}
+        />
+      </Stack>
+    </DialogShell>
   );
 };
 

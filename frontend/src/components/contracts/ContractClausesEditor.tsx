@@ -13,10 +13,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   List,
   ListItem,
   ListItemText,
@@ -47,6 +43,7 @@ import {
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import DialogShell from '../common/DialogShell';
 
 interface Clause {
   id: string;
@@ -342,68 +339,62 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
       )}
 
       {/* Dialog para agregar/editar cláusula */}
-      <Dialog 
-        open={dialogOpen} 
+      <DialogShell
+        open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        icon={editingClause ? <EditIcon /> : <AddIcon />}
+        title={editingClause ? 'Editar Cláusula' : 'Agregar Nueva Cláusula'}
+        subtitle={editingClause ? editingClause.ordinal_text : getOrdinalText(nextClauseNumber)}
+        actions={
+          <>
+            <Button
+              onClick={() => setDialogOpen(false)}
+              startIcon={<CancelIcon />}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveClause}
+              variant="contained"
+              startIcon={<SaveIcon />}
+              disabled={loading}
+            >
+              {loading ? 'Guardando...' : (editingClause ? 'Actualizar' : 'Agregar Cláusula')}
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>
-          {editingClause ? (
-            <>✏️ Editar Cláusula: {editingClause.ordinal_text}</>
-          ) : (
-            <>➕ Agregar Nueva Cláusula: {getOrdinalText(nextClauseNumber)}</>
-          )}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <FormLabel>Título de la Cláusula</FormLabel>
-              <TextField
-                placeholder="Ej: MASCOTAS, SERVICIOS ADICIONALES, RESTRICCIONES"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                error={!!errors.title}
-                helperText={errors.title || 'Escribe un título descriptivo para la cláusula'}
-                fullWidth
-                size="medium"
-                sx={{ mt: 1 }}
-              />
-            </FormControl>
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <FormLabel>Título de la Cláusula</FormLabel>
+          <TextField
+            placeholder="Ej: MASCOTAS, SERVICIOS ADICIONALES, RESTRICCIONES"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            error={!!errors.title}
+            helperText={errors.title || 'Escribe un título descriptivo para la cláusula'}
+            fullWidth
+            size="medium"
+            sx={{ mt: 1 }}
+          />
+        </FormControl>
 
-            <FormControl fullWidth>
-              <FormLabel>Contenido de la Cláusula</FormLabel>
-              <TextField
-                multiline
-                rows={6}
-                placeholder="Escribe el contenido completo de la cláusula. Ej: El ARRENDATARIO podrá tener mascotas en el inmueble, previo consentimiento escrito del ARRENDADOR y el pago de un depósito adicional equivalente a medio mes de arrendamiento."
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                error={!!errors.content}
-                helperText={errors.content || 'Escribe el texto completo tal como aparecerá en el contrato'}
-                fullWidth
-                sx={{ mt: 1 }}
-              />
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setDialogOpen(false)}
-            startIcon={<CancelIcon />}
-          >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleSaveClause}
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : (editingClause ? 'Actualizar' : 'Agregar Cláusula')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <FormControl fullWidth>
+          <FormLabel>Contenido de la Cláusula</FormLabel>
+          <TextField
+            multiline
+            rows={6}
+            placeholder="Escribe el contenido completo de la cláusula. Ej: El ARRENDATARIO podrá tener mascotas en el inmueble, previo consentimiento escrito del ARRENDADOR y el pago de un depósito adicional equivalente a medio mes de arrendamiento."
+            value={formData.content}
+            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+            error={!!errors.content}
+            helperText={errors.content || 'Escribe el texto completo tal como aparecerá en el contrato'}
+            fullWidth
+            sx={{ mt: 1 }}
+          />
+        </FormControl>
+      </DialogShell>
       <ConfirmDialog />
     </Box>
   );

@@ -12,10 +12,6 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Alert,
   LinearProgress,
@@ -47,8 +43,10 @@ import {
   ThumbUp as ApproveIcon,
   ThumbDown as RejectIcon,
   Edit as EditIcon,
+  RateReview as RateReviewIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import DialogShell from '../common/DialogShell';
 
 interface DocumentType {
   id: string;
@@ -510,15 +508,31 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       </Accordion>
 
       {/* Review Modal */}
-      <Dialog open={reviewModalOpen} onClose={() => setReviewModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Revisar Documento</DialogTitle>
-        <DialogContent>
-          {selectedDocument && (
-            <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Documento: {selectedDocument.display_name}
-              </Typography>
-              
+      <DialogShell
+        open={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        icon={<RateReviewIcon />}
+        title="Revisar Documento"
+        subtitle={selectedDocument?.display_name}
+        actions={
+          <>
+            <Button onClick={() => setReviewModalOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={handleReviewDocument}
+              disabled={reviewing || (
+                (reviewStatus === 'rejected' || reviewStatus === 'requires_correction') && !reviewNotes.trim()
+              )}
+              variant="contained"
+            >
+              {reviewing ? 'Guardando...' : 'Guardar Revisión'}
+            </Button>
+          </>
+        }
+      >
+        {selectedDocument && (
+          <Box>
               {selectedDocument.file_url && (
                 <Button
                   variant="outlined"
@@ -586,22 +600,9 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
                 }
                 required={reviewStatus === 'rejected' || reviewStatus === 'requires_correction'}
               />
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReviewModalOpen(false)}>Cancelar</Button>
-          <Button
-            onClick={handleReviewDocument}
-            disabled={reviewing || (
-              (reviewStatus === 'rejected' || reviewStatus === 'requires_correction') && !reviewNotes.trim()
-            )}
-            variant="contained"
-          >
-            {reviewing ? 'Guardando...' : 'Guardar Revisión'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Box>
+        )}
+      </DialogShell>
     </Box>
   );
 };
