@@ -191,8 +191,17 @@ class MatchRequest(models.Model):
         self._ensure_contract_exists()
 
     def _ensure_contract_exists(self):
-        """Crea un Contract legacy vinculado al match si aún no existe."""
+        """Crea el Contract legacy y su LandlordControlledContract sincronizado.
+
+        BIO-02: el flujo biométrico exige que ambos registros existan con el
+        MISMO UUID (ver StartBiometricAuthenticationAPIView). Además, el
+        endpoint /tenant/contracts/{id}/approve_contract/ del serializer del
+        tenant busca el LCC, por lo que sin este par sincronizado el tenant
+        queda bloqueado y solo puede avanzar pasando por el formulario manual
+        del landlord.
+        """
         from contracts.models import Contract
+        from contracts.landlord_contract_models import LandlordControlledContract
         from datetime import timedelta
 
         if Contract.objects.filter(match_request=self).exists():
@@ -201,8 +210,12 @@ class MatchRequest(models.Model):
         months = self.lease_duration_months or 12
         start = self.preferred_move_in_date or timezone.now().date()
         end = start + timedelta(days=30 * months)
+        monthly_rent = self.property.rent_price
+
+        shared_id = uuid.uuid4()
 
         Contract.objects.create(
+            id=shared_id,
             match_request=self,
             contract_type='rental_urban',
             primary_party=self.landlord,
@@ -214,7 +227,37 @@ class MatchRequest(models.Model):
             start_date=start,
             end_date=end,
             status='draft',
-            monthly_rent=self.property.rent_price,
+            monthly_rent=monthly_rent,
+        )
+
+        # LCC sincronizado (mismo UUID) en estado 'BOTH_REVIEWING' para que el
+        # tenant pueda ejecutar approve_contract sin requerir que el landlord
+        # pase por el formulario manual de creación.
+        LandlordControlledContract.objects.create(
+            id=shared_id,
+            landlord=self.landlord,
+            tenant=self.tenant,
+            property=self.property,
+            contract_type='rental_urban',
+            title=f'Contrato {self.property.title}',
+            description=f'Arrendamiento vinculado al match {self.match_code}',
+            current_state='BOTH_REVIEWING',
+            tenant_identifier=self.tenant.email,
+            start_date=start,
+            end_date=end,
+            economic_terms={
+                'monthly_rent': str(monthly_rent) if monthly_rent is not None else '0',
+                'currency': 'COP',
+            },
+            contract_terms={
+                'duration_months': months,
+                'start_date': start.isoformat(),
+                'end_date': end.isoformat(),
+            },
+            landlord_approved=True,
+            landlord_approved_at=timezone.now(),
+            admin_reviewed=True,
+            admin_reviewed_at=timezone.now(),
         )
     
     def reject_match(self, landlord_message=''):

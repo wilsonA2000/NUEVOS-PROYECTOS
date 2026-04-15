@@ -33,10 +33,12 @@ El corazón de la plataforma — triple firma biométrica — se mantiene verde:
 
 ---
 
-## Bugs pendientes (13)
+## Bugs pendientes (12)
 
-### P0 bloqueantes (1)
-- **BIO-02** · `matching/models.py:_ensure_contract_exists()` · el refactor 13-abr crea solo `Contract` legacy, no `LandlordControlledContract` → tenant no puede `approve_contract` ni iniciar biometría desde el flujo auto-creado. Fix requiere diseño + re-correr E2E triple firma.
+> Actualización 2026-04-16 · **BIO-02 resuelto** en rama `fix/audit-2026-04-15` (commit próximo). Ver sección "Addendum 2026-04-16" al final.
+
+### P0 bloqueantes (0)
+_Sin bugs P0 pendientes._
 
 ### P1 graves (3)
 - **DASH-03 resto** · `dashboard/api_views.py` importa 3 clases inexistentes de `services.py`. Refactor mayor.
@@ -135,3 +137,23 @@ VeriHome tiene **núcleo funcional sólido** (firma biométrica triple, flujo ad
 Quedan dos deudas arquitectónicas importantes (BIO-02, DASH-03 resto) y un gap de producto (SVC-02) que requieren decisión antes de exponer la plataforma al mercado.
 
 Tag de cierre sugerido tras merge a main: `post-audit-2026-04-15`.
+
+---
+
+## Addendum 2026-04-16 · BIO-02 resuelto
+
+### Fix aplicado
+`matching/models.py::_ensure_contract_exists()` ahora crea, en la misma transacción y con **UUID compartido**, el `Contract` legacy y su `LandlordControlledContract`:
+
+- `Contract` legacy: `status='draft'`, monto, fechas y partes del match.
+- `LandlordControlledContract`: `current_state='BOTH_REVIEWING'`, `landlord_approved=True`, `admin_reviewed=True`, términos económicos mínimos pre-cargados.
+- Resultado: el tenant ve inmediatamente la acción `approve_contract` en su dashboard, sin requerir que el landlord entre al formulario manual. A partir de ahí se encadena el flujo secuencial de biometría triple.
+
+### Validación
+- **Tests unitarios matching**: 60/60 OK (incluye 2 nuevos en `EnsureContractExistsTests`).
+- **E2E Playwright `multi-user-contract-signing`**: PASÓ 4.1 min · `finalState: active` · `workflow_status: all_biometrics_completed` · confianza 87.7% ✓
+
+### Bugs restantes tras BIO-02
+- P1 (3): DASH-03 resto, SVC-02 (decisión producto), ADM-04
+- P2 (5): FAV-01, PROP-07, DASH-02, DIAN-01, VER-01
+- P3 (resto cosméticos)
