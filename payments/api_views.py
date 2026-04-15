@@ -1034,7 +1034,7 @@ class BalanceAPIView(APIView):
             'available_balance': available_balance,
             'pending_balance': pending_balance,
             'total_balance': total_balance,
-            'currency': 'MXN'
+            'currency': 'COP'
         }
         
         return Response(balance_data)
