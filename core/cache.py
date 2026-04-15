@@ -205,12 +205,18 @@ def _invalidate_known_keys(pattern):
                     elif hasattr(cache._cache, '_cache'):
                         all_cache_keys = list(cache._cache._cache.keys())
                         
-                    # Filtrar keys que coincidan con el patrón
-                    matching_keys = [
-                        key for key in all_cache_keys 
-                        if isinstance(key, str) and key.startswith(base_pattern)
-                    ]
-                    
+                    # Django locmem stores keys with a version prefix like ':1:'.
+                    # Strip any such prefix before matching the user-facing pattern,
+                    # then reconstruct the API-visible key for cache.delete().
+                    import re as _re
+                    matching_keys = []
+                    for key in all_cache_keys:
+                        if not isinstance(key, str):
+                            continue
+                        stripped = _re.sub(r'^:\d+:', '', key)
+                        if stripped.startswith(base_pattern) or key.startswith(base_pattern):
+                            matching_keys.append(stripped)
+
                     keys_to_delete.extend(matching_keys)
                     logger.debug(f"Found {len(matching_keys)} dynamic keys matching pattern: {pattern}")
                     

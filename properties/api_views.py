@@ -103,8 +103,9 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
     def perform_create(self, serializer):
         """Asigna el landlord al crear la propiedad."""
         property_obj = serializer.save(landlord=self.request.user)
-        
-        # Invalidar cache relacionado con propiedades
+
+        SmartCache.invalidate_pattern('properties:list:v2:*')
+        SmartCache.invalidate_pattern('property:detail:v2:*')
         SmartCache.invalidate_pattern('verihome:properties:*')
         
         request = self.request
@@ -169,6 +170,8 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
             instance.delete()
             
             # Invalidar cache DESPUÉS de eliminar
+            SmartCache.invalidate_pattern('properties:list:v2:*')
+            SmartCache.invalidate_pattern('property:detail:v2:*')
             SmartCache.invalidate_pattern('verihome:properties:*')
             
             # Logging simple sin errores
@@ -187,6 +190,8 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
                 if hasattr(instance, 'is_active'):
                     instance.is_active = False
                     instance.save(update_fields=['is_active'])
+                    SmartCache.invalidate_pattern('properties:list:v2:*')
+                    SmartCache.invalidate_pattern('property:detail:v2:*')
                     SmartCache.invalidate_pattern('verihome:properties:*')
                     logger.warning(f'Fallback a soft delete para propiedad {property_id}')
                 else:
@@ -588,14 +593,14 @@ class PropertyFavoriteViewSet(viewsets.ModelViewSet):
 
 class PropertySearchAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para búsqueda básica de propiedades - OPTIMIZADA."""
+    queryset = Property.objects.filter(is_active=True, status='available')
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = PropertyPagination
-    
+
     def get_queryset(self):
         """Filtra propiedades según el rol del usuario - OPTIMIZADO."""
-        # Usar queryset optimizado de la clase base
-        queryset = super().get_queryset().select_related(
+        queryset = Property.objects.filter(is_active=True, status='available').select_related(
             'landlord'
         ).prefetch_related(
             'images',

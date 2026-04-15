@@ -58,11 +58,13 @@ class OptimizedLandlordSerializer(serializers.ModelSerializer):
     def get_profile(self, obj):
         """Use prefetched landlord_profile to avoid N+1."""
         if hasattr(obj, 'landlord_profile') and obj.landlord_profile:
+            profile = obj.landlord_profile
             return {
-                'phone_number': obj.landlord_profile.phone_number,
-                'bio': obj.landlord_profile.bio,
-                'verified': obj.landlord_profile.verified,
-                'rating': obj.landlord_profile.rating,
+                'phone_number': getattr(obj, 'phone_number', None),
+                'bio': getattr(profile, 'bio', ''),
+                'verified': getattr(obj, 'is_verified', False),
+                'company_name': getattr(profile, 'company_name', ''),
+                'years_experience': getattr(profile, 'years_experience', 0),
             }
         return None
 

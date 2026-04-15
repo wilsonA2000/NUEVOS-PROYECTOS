@@ -289,10 +289,11 @@ class OptimizedPropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, vi
     def perform_create(self, serializer):
         """Create property with cache invalidation."""
         property_obj = serializer.save(landlord=self.request.user)
-        
-        # Invalidate related caches
+
+        SmartCache.invalidate_pattern('properties:list:v2:*')
+        SmartCache.invalidate_pattern('property:detail:v2:*')
         SmartCache.invalidate_pattern('verihome:properties:*')
-        
+
         logger.info(f"Created property {property_obj.id} by user {self.request.user.id}")
     
     def perform_update(self, serializer):
