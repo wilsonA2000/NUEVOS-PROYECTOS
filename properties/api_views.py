@@ -664,29 +664,31 @@ class PropertyFiltersAPIView(APIView):
 
 class FeaturedPropertiesAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para obtener propiedades destacadas."""
+    queryset = Property.objects.filter(is_active=True, status='available', is_featured=True)
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        return super().get_queryset().filter(is_featured=True)
+        return Property.objects.filter(is_active=True, status='available', is_featured=True)
 
 
 class TrendingPropertiesAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para obtener propiedades tendencia."""
+    queryset = Property.objects.filter(is_active=True, status='available')
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        # Propiedades más vistas en los últimos 30 días
+        # Propiedades más vistas en los últimos 30 días (PropertyView usa viewed_at, no created_at)
         thirty_days_ago = timezone.now() - timedelta(days=30)
         trending_properties = PropertyView.objects.filter(
-            created_at__gte=thirty_days_ago
+            viewed_at__gte=thirty_days_ago
         ).values('property').annotate(
             view_count=Count('id')
         ).order_by('-view_count')[:10]
-        
+
         property_ids = [item['property'] for item in trending_properties]
-        return super().get_queryset().filter(id__in=property_ids)
+        return Property.objects.filter(is_active=True, status='available', id__in=property_ids)
 
 
 class PropertyStatsAPIView(APIView):
