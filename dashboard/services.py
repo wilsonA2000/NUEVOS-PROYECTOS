@@ -996,3 +996,9 @@ class DashboardAnalyticsEngine:
             return 'poor'
         else:
             return 'critical'
+
+
+# DASH-03 · aliases compat para dashboard/api_views.py (importa sin el prefijo/sufijo).
+DashboardDataService = AdvancedDashboardDataService
+WidgetDataProvider = AdvancedWidgetDataProvider
+DashboardAnalytics = DashboardAnalyticsEngine

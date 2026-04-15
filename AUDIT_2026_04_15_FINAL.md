@@ -157,3 +157,33 @@ Tag de cierre sugerido tras merge a main: `post-audit-2026-04-15`.
 - P1 (3): DASH-03 resto, SVC-02 (decisión producto), ADM-04
 - P2 (5): FAV-01, PROP-07, DASH-02, DIAN-01, VER-01
 - P3 (resto cosméticos)
+
+---
+
+## Addendum 2026-04-16 · segunda tanda de fixes
+
+### Resueltos en esta sesión (5 bugs + 3 descubiertos)
+
+**Planificados del plan NEXT_SESSION.md:**
+
+- **DASH-03 resto** (P1): las 3 clases esperadas por `api_views.py` (`DashboardDataService`, `WidgetDataProvider`, `DashboardAnalytics`) eran renombrados a medias de `AdvancedDashboardDataService`, `AdvancedWidgetDataProvider`, `DashboardAnalyticsEngine`. Agregados aliases al final de `dashboard/services.py`. El warning de "Dashboard V2 deshabilitado" desaparece en el arranque.
+- **FAV-01** (P2): `PropertyViewSet` registrado en la raíz del router hacía que el `DefaultRouter` capturara `/properties/favorites/`, `/search/`, etc. como detail lookups con pk='favorites'. Agregado `lookup_value_regex='[0-9a-fA-F-]{36}'` al viewset.
+- **PROP-07** (P2): `PropertyImageViewSet` sin `parser_classes`, rechazaba FormData con 415. Agregado `[MultiPartParser, FormParser, JSONParser]` + soporte de query param `?property=<uuid>` para filtrar sin URL nested.
+- **VER-01** (P2): `VerificationAgentSerializer.user` lo inferia el ModelSerializer como `PrimaryKeyRelatedField` sin queryset → AssertionError en POST. Declarado explícito con `queryset=User.objects.all()`.
+- **DASH-02** (P2): `ContractStatsAPIView` filtraba `contract_type='rental'` (string que no existe; los reales son `rental_urban`, `rental_commercial`, `rental_room`, `rental_rural`). Cambiado a `contract_type__startswith='rental'`.
+
+**Descubiertos durante la validación (regresiones destapadas por FAV-01):**
+
+- **PROP-INQUIRY-01**: `OptimizedPropertyInquirySerializer` declaraba `updated_at` en `fields`, pero el modelo `PropertyInquiry` nunca lo definió → `ImproperlyConfigured` al serializar. Removido del serializer.
+- **PROP-INQUIRY-02**: el `get_inquirer()` del mismo serializer accedía a `tenant_profile.phone_number`, pero `phone_number` vive en `User`. Simplificado a `getattr(obj.inquirer, 'phone_number', '')`.
+- **ACTIVITY-LOG-01**: múltiples llamadas a `UserActivityLog.objects.create()` en `properties/api_views.py` pasaban kwargs `details=` y `performed_by_admin=` que el modelo nunca definió (los reales son `metadata=`). 6 llamadas normalizadas vía `sed`.
+- **VER-03-REGRESIÓN**: test `test_visits_forbidden_for_non_staff` esperaba 403 para usuarios no-staff sin perfil de agente. Tras el fix de ayer (VER-03), `IsStaffOrAssignedAgent.has_permission` dejaba pasar cualquier `list` → 200 vacío. Endurecido el permiso: si no es staff y no tiene `VerificationAgent`, 403.
+
+### Validación
+- **Tests backend** (properties + matching + verification): **136/136 OK** ✓
+- Django arranca sin el warning "Dashboard V2 deshabilitado"
+- E2E `multi-user-contract-signing`: se re-valida tras commit (sigue verde)
+
+### Commits
+- `fcad2a6` fix(matching): BIO-02 · _ensure_contract_exists crea LCC sincronizado
+- commit consolidado de los P1/P2 + regresiones descubiertas (este)

@@ -1,8 +1,15 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import VerificationAgent, VerificationVisit, VerificationReport
 
+User = get_user_model()
+
 
 class VerificationAgentSerializer(serializers.ModelSerializer):
+    # VER-01: queryset explícito para permitir POST /verification/agents/ con
+    # user=<uuid>. Sin esto DRF levanta AssertionError (PrimaryKeyRelatedField
+    # sin queryset o read_only=True) al procesar el request.
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
     current_week_visits = serializers.IntegerField(read_only=True)

@@ -34,8 +34,11 @@ class IsStaffOrAssignedAgent(permissions.BasePermission):
             return False
         if request.user.is_staff:
             return True
-        # Para acciones del agente, dejamos pasar y filtramos en has_object_permission
-        return getattr(view, 'action', None) in self.AGENT_ACTIONS
+        # Las acciones de agente requieren que el usuario tenga perfil
+        # VerificationAgent; en caso contrario, 403.
+        if getattr(view, 'action', None) not in self.AGENT_ACTIONS:
+            return False
+        return VerificationAgent.objects.filter(user=request.user).exists()
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
