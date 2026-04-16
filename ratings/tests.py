@@ -600,3 +600,35 @@ class RatingAPITests(APITestCase):
         url = f'/api/v1/ratings/users/{self.landlord.id}/ratings/'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # BUG-RAT-01 regression: RatingCategoryListCreateView.get_queryset
+    # crasheaba por self.getattr(request, ...) en lugar de getattr(self.request, ...)
+    def test_rating_categories_list_endpoint(self):
+        """GET /api/v1/ratings/ratings/categories/ no debe crashear."""
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.get('/api/v1/ratings/ratings/categories/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_rating_categories_list_with_rating_id(self):
+        """Filtro por rating_id devuelve 200 sin crash."""
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.get(
+            f'/api/v1/ratings/ratings/categories/?rating_id={self.rating.id}',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_rating_categories_unauthenticated_401(self):
+        response = self.client.get('/api/v1/ratings/ratings/categories/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # Smoke tests adicionales
+    def test_rating_detail_get(self):
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.get(f'/api/v1/ratings/ratings/{self.rating.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_user_rating_profile(self):
+        self.client.force_authenticate(user=self.tenant)
+        url = f'/api/v1/ratings/users/{self.landlord.id}/rating-profile/'
+        response = self.client.get(url)
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])

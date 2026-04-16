@@ -590,7 +590,7 @@ class RatingCategoryListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         """Filtrar categorías por calificación."""
-        rating_id = self.getattr(request, "query_params", request.GET).get('rating_id')
+        rating_id = getattr(self.request, "query_params", self.request.GET).get('rating_id')
         
         if rating_id:
             return RatingCategory.objects.filter(rating_id=rating_id)

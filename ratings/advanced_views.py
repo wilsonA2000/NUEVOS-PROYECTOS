@@ -495,23 +495,21 @@ class RatingFromInvitationAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Crear calificación
+            # Crear calificación (pasar solo campos escribibles al serializer;
+            # reviewer/reviewee/contract/property/rating_type son read_only
+            # y se inyectan como kwargs en save() para poblar el modelo).
             rating_data = request.data.copy()
-            rating_data.update({
-                'reviewer': request.user.id,
-                'reviewee': invitation.inviter.id,
-                'contract': invitation.contract.id,
-                'property': invitation.contract.property.id if invitation.contract.property else None
-            })
-            
-            # Determinar tipo de calificación
             rating_type = self._determine_rating_type(request.user, invitation.inviter)
-            rating_data['rating_type'] = rating_type
-            
-            # Crear la calificación usando el serializer existente
+
             serializer = RatingDetailSerializer(data=rating_data)
             if serializer.is_valid():
-                rating = serializer.save()
+                rating = serializer.save(
+                    reviewer=request.user,
+                    reviewee=invitation.inviter,
+                    contract=invitation.contract,
+                    property=invitation.contract.property if invitation.contract.property else None,
+                    rating_type=rating_type,
+                )
                 
                 # Actualizar invitación
                 invitation.status = 'completed'
