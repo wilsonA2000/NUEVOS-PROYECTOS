@@ -5,6 +5,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Box, Button, Typography, CircularProgress, Dialog, IconButton } from '@mui/material';
 import { CameraAlt, Check, Replay, Fullscreen, FullscreenExit, Close } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 
 interface SimpleProfessionalCameraProps {
   onCapture: (image: string) => void;
@@ -286,7 +287,7 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
             position: 'absolute',
             top: 10,
             right: 10,
-            bgcolor: '#4caf50',
+            bgcolor: vhColors.success,
             color: 'white',
             px: 1,
             py: 0.5,
@@ -440,7 +441,7 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
               width: 8,
               height: 8,
               borderRadius: '50%',
-              bgcolor: '#4caf50',
+              bgcolor: vhColors.success,
               animation: 'pulse 2s infinite',
               '@keyframes pulse': {
                 '0%': { opacity: 1 },

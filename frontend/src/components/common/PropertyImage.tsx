@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Skeleton, CircularProgress } from '@mui/material';
 import { useLazyImage, useProgressiveImage, imageUtils } from '../../utils/imageOptimization';
+import { vhColors } from '../../theme/tokens';
 
 interface PropertyImageProps {
   src: string;
@@ -257,7 +258,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'grey.100',
-            color: '#999',
+            color: vhColors.textDisabled,
             fontSize: '0.875rem',
             textAlign: 'center',
             padding: 2,
@@ -277,10 +278,10 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
               padding: '4px 8px',
               fontSize: '0.75rem',
               backgroundColor: 'transparent',
-              border: '1px solid #ccc',
+              border: `1px solid ${vhColors.divider}`,
               borderRadius: '4px',
               cursor: 'pointer',
-              color: '#666',
+              color: vhColors.textSecondary,
               '&:hover': {
                 backgroundColor: 'grey.100',
               },

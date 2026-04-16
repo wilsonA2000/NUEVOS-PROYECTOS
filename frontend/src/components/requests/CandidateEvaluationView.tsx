@@ -49,6 +49,7 @@ import {
  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { vhColors } from '../../theme/tokens';
 
 interface CandidateScore {
  total: number;
@@ -291,7 +292,7 @@ const CandidateEvaluationView: React.FC<CandidateEvaluationViewProps> = ({
  if (score >= 85) return theme.palette.success.main;
  if (score >= 70) return theme.palette.info.main;
  if (score >= 55) return theme.palette.warning.main;
- if (score >= 40) return (theme.palette as any).orange?.main || '#ff9800';
+ if (score >= 40) return (theme.palette as any).orange?.main || vhColors.warning;
  return theme.palette.error.main;
  };
 

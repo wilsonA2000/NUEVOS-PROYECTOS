@@ -52,6 +52,7 @@ import UserStatusSelector from '../users/UserStatusSelector';
 import OptimizedWebSocketStatus from '../common/OptimizedWebSocketStatus';
 import ContextSwitcher from '../common/ContextSwitcher';
 import LanguageSelector from '../common/LanguageSelector';
+import { vhColors } from '../../theme/tokens';
 
 const drawerWidth = 240;
 
@@ -232,7 +233,7 @@ const Layout: React.FC = () => {
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
           backgroundColor: 'rgba(255, 255, 255, 0.98)',
-          color: '#1a1a1a',
+          color: vhColors.textPrimary,
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
           backdropFilter: 'blur(10px)',
           display: { xs: isMobile ? 'flex' : 'flex', md: 'flex' },
@@ -387,11 +388,11 @@ const Layout: React.FC = () => {
               }}
             >
               <ListItemIcon>
-                <Assessment fontSize="small" sx={{ color: '#9c27b0' }} />
+                <Assessment fontSize="small" sx={{ color: vhColors.purple }} />
               </ListItemIcon>
               <ListItemText
                 primary={t('nav.adminLegal')}
-                primaryTypographyProps={{ fontWeight: 500, color: '#9c27b0' }}
+                primaryTypographyProps={{ fontWeight: 500, color: vhColors.purple }}
               />
             </MenuItem>
           </>

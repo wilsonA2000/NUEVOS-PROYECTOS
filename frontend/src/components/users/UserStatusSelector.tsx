@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimizedUserStatus } from '../../hooks/useOptimizedUserStatus';
+import { vhColors } from '../../theme/tokens';
 
 type UserStatus = 'online' | 'offline' | 'busy';
 
@@ -58,9 +59,9 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
   const getStatusIcon = (status: UserStatus) => {
     switch (status) {
       case 'online':
-        return <OnlineIcon sx={{ color: '#4caf50', fontSize: 16 }} />;
+        return <OnlineIcon sx={{ color: vhColors.success, fontSize: 16 }} />;
       case 'busy':
-        return <BusyIcon sx={{ color: '#ff9800', fontSize: 16 }} />;
+        return <BusyIcon sx={{ color: vhColors.warning, fontSize: 16 }} />;
       case 'offline':
         return <OfflineIcon sx={{ color: '#9e9e9e', fontSize: 16 }} />;
     }
@@ -132,13 +133,13 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
         >
           <MenuItem value="online">
             <Box display="flex" alignItems="center" gap={1}>
-              <OnlineIcon sx={{ color: '#4caf50', fontSize: 16 }} />
+              <OnlineIcon sx={{ color: vhColors.success, fontSize: 16 }} />
               En línea
             </Box>
           </MenuItem>
           <MenuItem value="busy">
             <Box display="flex" alignItems="center" gap={1}>
-              <BusyIcon sx={{ color: '#ff9800', fontSize: 16 }} />
+              <BusyIcon sx={{ color: vhColors.warning, fontSize: 16 }} />
               Ocupado
             </Box>
           </MenuItem>

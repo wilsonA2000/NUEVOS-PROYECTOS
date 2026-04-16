@@ -19,6 +19,7 @@ import {
   ContactSupport as SupportIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 
 interface RatingsErrorBoundaryState {
   hasError: boolean;
@@ -389,7 +390,7 @@ Descripción detallada del problema:
                     max={10}
                     sx={{
                       '& .MuiRating-iconFilled': {
-                        color: '#f59e0b',
+                        color: vhColors.warning,
                       },
                     }}
                   />

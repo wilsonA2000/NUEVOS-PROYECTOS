@@ -39,6 +39,7 @@ import {
   TipsAndUpdates as TipsAndUpdatesIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
+import { vhColors } from '../../theme/tokens';
 
 // Interfaces exactas del backend
 interface Property {
@@ -167,9 +168,9 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
   const getIncomeRatioColor = () => {
     const ratio = parseFloat(getIncomeToRentRatio() || '0');
-    if (ratio >= 3) return '#10b981'; // Verde
-    if (ratio >= 2.5) return '#f59e0b'; // Amarillo
-    return '#ef4444'; // Rojo
+    if (ratio >= 3) return vhColors.success;
+    if (ratio >= 2.5) return vhColors.warning;
+    return vhColors.error;
   };
 
   const getIncomeAdvice = () => {
@@ -784,23 +785,23 @@ Puedes incluir:
           <CheckIcon
             sx={{
               fontSize: 64,
-              color: 'var(--color-success, #10b981)',
+              color: vhColors.success,
               mb: 2,
             }}
           />
           <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
             ¡Solicitud Enviada!
           </Typography>
-          <Typography variant="body1" sx={{ mb: 3, color: 'var(--color-text-secondary, #6b7280)' }}>
+          <Typography variant="body1" sx={{ mb: 3, color: vhColors.textSecondary }}>
             {submitStatus.message}
           </Typography>
           <Button
             variant="contained"
             onClick={onCancel}
             sx={{
-              backgroundColor: 'var(--color-primary, #3b82f6)',
+              backgroundColor: vhColors.accentBlue,
               '&:hover': {
-                backgroundColor: 'var(--color-primary-dark, #2563eb)',
+                backgroundColor: 'primary.dark',
               },
             }}
           >

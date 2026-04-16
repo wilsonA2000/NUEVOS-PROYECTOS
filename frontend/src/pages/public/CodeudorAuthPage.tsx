@@ -63,6 +63,7 @@ import {
 
 // Importar componentes biométricos
 import ProfessionalBiometricFlow from '../../components/contracts/ProfessionalBiometricFlow';
+import { vh } from '../../theme/tokens';
 
 // API base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -360,7 +361,7 @@ const CodeudorAuthPage: React.FC = () => {
             sx={{
               p: 3,
               mb: 3,
-              background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
+              background: vh.gradients.primary,
               color: 'white',
               borderRadius: 3,
             }}
@@ -603,7 +604,7 @@ const CodeudorAuthPage: React.FC = () => {
                       disabled={loading}
                       sx={{
                         py: 1.5,
-                        background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
+                        background: vh.gradients.primary,
                       }}
                     >
                       {loading ? (

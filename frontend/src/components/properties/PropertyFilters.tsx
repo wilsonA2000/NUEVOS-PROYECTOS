@@ -44,6 +44,7 @@ import {
  Close as CloseIcon,
 } from '@mui/icons-material';
 import { PropertySearchFilters } from '../../types/property';
+import { vhColors } from '../../theme/tokens';
 
 interface PropertyFiltersProps {
  filters: PropertySearchFilters;
@@ -69,11 +70,11 @@ const PROPERTY_TYPES = [
 ];
 
 const STATUS_OPTIONS = [
- { value: 'available', label: 'Disponible', color: '#4caf50' },
- { value: 'rented', label: 'Arrendada', color: '#ff9800' },
- { value: 'maintenance', label: 'Mantenimiento', color: '#2196f3' },
- { value: 'pending', label: 'Pendiente', color: '#9c27b0' },
- { value: 'inactive', label: 'Inactiva', color: '#f44336' },
+ { value: 'available', label: 'Disponible', color: vhColors.success },
+ { value: 'rented', label: 'Arrendada', color: vhColors.warning },
+ { value: 'maintenance', label: 'Mantenimiento', color: vhColors.accentBlue },
+ { value: 'pending', label: 'Pendiente', color: vhColors.purple },
+ { value: 'inactive', label: 'Inactiva', color: vhColors.error },
 ];
 
 const FEATURE_CHIPS = [

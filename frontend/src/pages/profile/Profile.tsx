@@ -49,6 +49,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 import { api } from '../../services/api';
 import { formatDate } from '../../utils/formatters';
+import { vhColors } from '../../theme/tokens';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -481,11 +482,11 @@ const Profile: React.FC = () => {
                     backgroundColor: 'rgba(0, 0, 0, 0.1)',
                     '& .MuiLinearProgress-bar': {
                       borderRadius: 4,
-                      backgroundColor: calculateCompletionPercentage(formData) === 100 
-                        ? '#4caf50' 
-                        : calculateCompletionPercentage(formData) >= 70 
-                        ? '#ff9800' 
-                        : '#f44336',
+                      backgroundColor: calculateCompletionPercentage(formData) === 100
+                        ? vhColors.success
+                        : calculateCompletionPercentage(formData) >= 70
+                        ? vhColors.warning
+                        : vhColors.error,
                     },
                   }}
                 />

@@ -76,6 +76,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import EnhancedTenantDocumentUpload from './EnhancedTenantDocumentUpload';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import { vhColors } from '../../theme/tokens';
 
 interface TenantContractProcess {
   id: string;
@@ -495,7 +496,7 @@ const TenantContractView: React.FC = () => {
     };
 
     return (
-      <Card sx={{ mb: 3, border: '2px solid #e3f2fd' }}>
+      <Card sx={{ mb: 3, border: vhColors.accentBlueLight }}>
         <CardContent>
           {/* Header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -604,7 +605,7 @@ const TenantContractView: React.FC = () => {
 
           {/* Move-in Date */}
           {process.preferred_move_in_date && (
-            <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: `1px solid ${vhColors.divider}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <CalendarIcon sx={{ color: 'primary.main', mr: 1 }} />
                 <Typography variant="subtitle2" color="text.secondary">

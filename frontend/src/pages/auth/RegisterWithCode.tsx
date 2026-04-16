@@ -46,6 +46,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { RegisterDto } from '../../types/user';
 import TermsModal from '../../components/modals/TermsModal';
 import PrivacyModal from '../../components/modals/PrivacyModal';
+import { vhColors } from '../../theme/tokens';
 
 interface InterviewCodeData {
  code: string;
@@ -396,7 +397,7 @@ export const RegisterWithCode: React.FC = () => {
 </Typography>
 
  {/* Sección del código de entrevista */}
- <Card sx={{ mb: 3, border: codeValidation.isValid ? '2px solid #4caf50' : '1px solid #e0e0e0', borderRadius: 2 }}>
+ <Card sx={{ mb: 3, border: codeValidation.isValid ? `2px solid ${vhColors.success}` : `1px solid ${vhColors.divider}`, borderRadius: 2 }}>
  <CardContent sx={{ pb: 2 }}>
  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: 'text.primary' }}>
  <SecurityIcon sx={{ mr: 1, color: 'primary.main' }}/>

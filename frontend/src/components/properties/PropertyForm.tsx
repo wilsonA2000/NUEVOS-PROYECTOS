@@ -56,6 +56,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../services/api';
 import { TransitionProps } from '@mui/material/transitions';
+import { vhColors } from '../../theme/tokens';
 
 // Componente de transición para el modal de éxito
 const Transition = React.forwardRef(function Transition(
@@ -1185,7 +1186,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
  height: '340px',
  width: '100%',
  borderRadius: '12px',
- border: '1px solid #e0e0e0',
+ border: `1px solid ${vhColors.divider}`,
  backgroundColor: 'grey.100',
  pointerEvents: 'none', // Start disabled
  }}

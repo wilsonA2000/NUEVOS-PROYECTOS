@@ -47,6 +47,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import DialogShell from '../common/DialogShell';
+import { vhColors } from '../../theme/tokens';
 
 interface DocumentType {
   id: string;
@@ -260,7 +261,7 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
       <ListItem
         key={doc.id}
         sx={{
-          border: '1px solid #e0e0e0',
+          border: `1px solid ${vhColors.divider}`,
           borderRadius: 1,
           mb: 1,
           bgcolor: doc.status === 'approved' ? 'success.50' : 

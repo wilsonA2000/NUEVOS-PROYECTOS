@@ -75,6 +75,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { vhColors } from '../../theme/tokens';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -284,10 +285,10 @@ const getStatusGradient = (status: string, theme: any): string => {
 const getStatusIcon = (status: string) => {
  const iconStyle = { fontSize: '1.2rem' };
  switch(status) {
- case 'approved': return <CheckCircleIcon sx={{ ...iconStyle, color: '#4CAF50' }}/>;
- case 'rejected': return <HighlightOffIcon sx={{ ...iconStyle, color: '#F44336' }}/>;
- case 'requires_correction': return <EditIcon sx={{ ...iconStyle, color: '#2196F3' }}/>;
- default: return <AccessTimeIcon sx={{ ...iconStyle, color: '#FF9800' }}/>;
+ case 'approved': return <CheckCircleIcon sx={{ ...iconStyle, color: vhColors.success }}/>;
+ case 'rejected': return <HighlightOffIcon sx={{ ...iconStyle, color: vhColors.error }}/>;
+ case 'requires_correction': return <EditIcon sx={{ ...iconStyle, color: vhColors.accentBlue }}/>;
+ default: return <AccessTimeIcon sx={{ ...iconStyle, color: vhColors.warning }}/>;
  }
 };
 

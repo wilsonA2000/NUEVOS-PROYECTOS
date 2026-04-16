@@ -18,6 +18,7 @@ import {
   Security as SecurityIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 
 interface PrivacyModalProps {
   open: boolean;
@@ -67,8 +68,8 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ open, onClose, onAccept }) 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        borderBottom: '1px solid #e0e0e0',
-        bgcolor: '#f8f9fa',
+        borderBottom: `1px solid ${vhColors.divider}`,
+        bgcolor: vhColors.surfaceMuted,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <SecurityIcon sx={{ color: 'primary.main' }} />
@@ -382,8 +383,8 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ open, onClose, onAccept }) 
 
       <DialogActions sx={{ 
         p: 3, 
-        borderTop: '1px solid #e0e0e0',
-        bgcolor: '#f8f9fa',
+        borderTop: `1px solid ${vhColors.divider}`,
+        bgcolor: vhColors.surfaceMuted,
         justifyContent: 'space-between',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

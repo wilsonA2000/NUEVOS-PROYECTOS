@@ -59,6 +59,7 @@ import {
  Security,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
+import { vhColors } from '../../theme/tokens';
 
 interface GuaranteeDocument {
  id: string;
@@ -325,13 +326,13 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
  {...getRootProps()}
  sx={{
  p: 3,
- border: `2px dashed ${isDragActive ? '#2196f3' : existingDoc?.status === 'uploaded' ? '#4caf50' : '#ccc'}`,
+ border: `2px dashed ${isDragActive ? vhColors.accentBlue : existingDoc?.status === 'uploaded' ? vhColors.success : vhColors.divider}`,
  borderRadius: 2,
  bgcolor: isDragActive ? 'action.hover' : existingDoc?.status === 'uploaded' ? 'success.50' : 'background.paper',
  cursor: disabled ? 'not-allowed' : 'pointer',
  transition: 'all 0.2s ease-in-out',
  '&:hover': disabled ? {} : {
- borderColor: '#2196f3',
+ borderColor: vhColors.accentBlue,
  bgcolor: 'action.hover',
  },
  }}

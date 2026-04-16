@@ -65,6 +65,7 @@ import { usePropertyFilters } from '../../components/properties/hooks/usePropert
 import PropertiesErrorBoundary from '../../components/properties/PropertiesErrorBoundary';
 import { usePerformanceTracking } from '../../utils/performanceMonitor';
 import { SortableColumns, SortOrder } from '../../components/properties/PropertyTable';
+import { vh, vhColors } from '../../theme/tokens';
 
 type ViewMode = 'cards' | 'table';
 
@@ -94,7 +95,7 @@ const UnauthenticatedView: React.FC = () => {
       <LandingNavbar />
 
       {/* HERO */}
-      <Box sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white', pt: 14, pb: 8 }}>
+      <Box sx={{ background: vh.gradients.primary, color: 'white', pt: 14, pb: 8 }}>
         <Container maxWidth="lg" sx={{ textAlign: 'center' }}>
           <Typography variant="h2" component="h1" sx={{ fontWeight: 800, mb: 2 }}>
             Propiedades Verificadas
@@ -139,7 +140,7 @@ const UnauthenticatedView: React.FC = () => {
 
       {/* POR QUE PROPIEDADES VERIFICADAS */}
       <RevealBlock>
-      <Box sx={{ bgcolor: '#f8fafc', py: { xs: 8, md: 10 } }}>
+      <Box sx={{ bgcolor: vhColors.surfaceMuted, py: { xs: 8, md: 10 } }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>&iquest;Por qu&eacute; propiedades verificadas?</Typography>
@@ -207,7 +208,7 @@ const UnauthenticatedView: React.FC = () => {
 
       {/* COMO FUNCIONA PARA ARRENDADORES */}
       <RevealBlock>
-      <Box sx={{ bgcolor: '#f8fafc', py: { xs: 8, md: 10 } }}>
+      <Box sx={{ bgcolor: vhColors.surfaceMuted, py: { xs: 8, md: 10 } }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 700, mb: 1 }}>Si eres propietario</Typography>
@@ -238,7 +239,7 @@ const UnauthenticatedView: React.FC = () => {
       <Divider />
 
       {/* ESTADISTICAS */}
-      <Box sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', py: { xs: 6, md: 8 } }}>
+      <Box sx={{ background: vh.gradients.primary, py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             {[

@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import MaintenanceRequestForm from '../../components/maintenance/MaintenanceRequestForm';
 import MaintenanceRequestList from '../../components/maintenance/MaintenanceRequestList';
 import { requestService, MaintenanceRequest } from '../../services/requestService';
+import { vhColors } from '../../theme/tokens';
 
 interface StatsData {
   total: number;
@@ -38,10 +39,10 @@ interface StatsData {
 }
 
 const STAT_CARDS = [
-  { key: 'total' as const, label: 'Total', icon: <TotalIcon />, color: '#1976d2', bgColor: '#e3f2fd' },
-  { key: 'pending' as const, label: 'Pendientes', icon: <PendingIcon />, color: '#ed6c02', bgColor: '#fff3e0' },
-  { key: 'in_progress' as const, label: 'En Progreso', icon: <InProgressIcon />, color: '#0288d1', bgColor: '#e1f5fe' },
-  { key: 'completed' as const, label: 'Completadas', icon: <CompletedIcon />, color: '#2e7d32', bgColor: '#e8f5e9' },
+  { key: 'total' as const, label: 'Total', icon: <TotalIcon />, color: vhColors.accentBlue, bgColor: vhColors.accentBlueBg },
+  { key: 'pending' as const, label: 'Pendientes', icon: <PendingIcon />, color: vhColors.warning, bgColor: vhColors.warningBg },
+  { key: 'in_progress' as const, label: 'En Progreso', icon: <InProgressIcon />, color: vhColors.info, bgColor: vhColors.infoBg },
+  { key: 'completed' as const, label: 'Completadas', icon: <CompletedIcon />, color: vhColors.success, bgColor: vhColors.successBg },
 ];
 
 const MaintenancePage: React.FC = () => {

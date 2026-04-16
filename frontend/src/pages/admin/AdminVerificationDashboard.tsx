@@ -57,6 +57,7 @@ import {
   Star as StarIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import { vhColors } from '../../theme/tokens';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -432,7 +433,7 @@ const AdminVerificationDashboard: React.FC = () => {
             title="Total Agentes"
             value={stats.total_agents}
             icon={<AgentsIcon fontSize="large" />}
-            color="#2563eb"
+            color={vhColors.accentBlue}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -440,7 +441,7 @@ const AdminVerificationDashboard: React.FC = () => {
             title="Agentes Disponibles"
             value={stats.available_agents}
             icon={<AvailableIcon fontSize="large" />}
-            color="#16a34a"
+            color={vhColors.success}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -448,7 +449,7 @@ const AdminVerificationDashboard: React.FC = () => {
             title="Visitas Hoy"
             value={stats.visits_today}
             icon={<CalendarIcon fontSize="large" />}
-            color="#d97706"
+            color={vhColors.warning}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -456,7 +457,7 @@ const AdminVerificationDashboard: React.FC = () => {
             title="Pendientes de Asignacion"
             value={stats.pending_assignment}
             icon={<PendingIcon fontSize="large" />}
-            color="#dc2626"
+            color={vhColors.error}
           />
         </Grid>
       </Grid>
@@ -540,7 +541,7 @@ const AdminVerificationDashboard: React.FC = () => {
                         <TableCell>{agent.completed_visits}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <StarIcon sx={{ fontSize: 16, color: '#f59e0b' }} />
+                            <StarIcon sx={{ fontSize: 16, color: vhColors.warning }} />
                             <Typography variant="body2">{agent.rating?.toFixed(1)}</Typography>
                           </Box>
                         </TableCell>
@@ -715,7 +716,7 @@ const AdminVerificationDashboard: React.FC = () => {
                         <TableCell>{report.condition}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <StarIcon sx={{ fontSize: 16, color: '#f59e0b' }} />
+                            <StarIcon sx={{ fontSize: 16, color: vhColors.warning }} />
                             <Typography variant="body2">{report.rating?.toFixed(1)}</Typography>
                           </Box>
                         </TableCell>

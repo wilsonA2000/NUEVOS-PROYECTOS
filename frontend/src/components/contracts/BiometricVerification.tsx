@@ -29,6 +29,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { vhColors } from '../../theme/tokens';
 
 interface BiometricVerificationProps {
   onVerificationComplete: (verificationData: BiometricData) => void;
@@ -369,7 +370,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                   width: '100%',
                                   maxWidth: '400px',
                                   borderRadius: '8px',
-                                  border: '2px solid #ddd',
+                                  border: `2px solid ${vhColors.divider}`,
                                 }}
                               />
                               <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -493,7 +494,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                   width: '100%',
                                   maxWidth: '400px',
                                   borderRadius: '8px',
-                                  border: '2px solid #ddd',
+                                  border: `2px solid ${vhColors.divider}`,
                                 }}
                               />
                               {isProcessing && (
