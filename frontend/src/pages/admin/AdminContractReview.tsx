@@ -109,6 +109,7 @@ const AdminContractReview: React.FC = () => {
   const [rejectionModalOpen, setRejectionModalOpen] = useState(
     searchParams.get('action') === 'reject'
   );
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   // Fetch contract detail
   const {
@@ -126,12 +127,23 @@ const AdminContractReview: React.FC = () => {
     mutationFn: (payload: AdminApprovalPayload) =>
       AdminService.approveContract(contractId!, payload),
     onSuccess: () => {
+      setMutationError(null);
       queryClient.invalidateQueries({ queryKey: ['admin-pending-contracts'] });
       queryClient.invalidateQueries({ queryKey: ['admin-contract-stats'] });
       setApprovalModalOpen(false);
       navigate('/app/admin/contracts', {
         state: { message: 'Contrato aprobado exitosamente', type: 'success' },
       });
+    },
+    onError: (err: any) => {
+      setApprovalModalOpen(false);
+      const detail =
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Error al aprobar el contrato';
+      setMutationError(detail);
     },
   });
 
@@ -140,12 +152,23 @@ const AdminContractReview: React.FC = () => {
     mutationFn: (payload: AdminRejectionPayload) =>
       AdminService.rejectContract(contractId!, payload),
     onSuccess: () => {
+      setMutationError(null);
       queryClient.invalidateQueries({ queryKey: ['admin-pending-contracts'] });
       queryClient.invalidateQueries({ queryKey: ['admin-contract-stats'] });
       setRejectionModalOpen(false);
       navigate('/app/admin/contracts', {
         state: { message: 'Contrato devuelto al arrendador', type: 'info' },
       });
+    },
+    onError: (err: any) => {
+      setRejectionModalOpen(false);
+      const detail =
+        err?.response?.data?.non_field_errors?.[0] ||
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Error al rechazar el contrato';
+      setMutationError(detail);
     },
   });
 
@@ -174,6 +197,17 @@ const AdminContractReview: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Error de aprobación/rechazo */}
+      {mutationError && (
+        <Alert
+          severity="error"
+          onClose={() => setMutationError(null)}
+          sx={{ mb: 2 }}
+        >
+          {mutationError}
+        </Alert>
+      )}
+
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link

@@ -73,6 +73,9 @@ const AdminAuditDashboard = lazy(() => import('../pages/admin/AdminAuditDashboar
 const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'));
 const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
+const AdminMaintenance = lazy(() => import('../pages/admin/AdminMaintenance'));
+const AdminTicketsDashboard = lazy(() => import('../pages/admin/AdminTicketsDashboard'));
+const AdminVerificationDashboard = lazy(() => import('../pages/admin/AdminVerificationDashboard'));
 
 // Componentes de loading especializados
 const PageLoader: React.FC = () => (
@@ -278,6 +281,9 @@ return (
         <Route path="security" element={<LazyRoute type="page"><AdminSecurityPanel /></LazyRoute>} />
         <Route path="logs" element={<LazyRoute type="table"><AdminLogsViewer /></LazyRoute>} />
         <Route path="settings" element={<LazyRoute type="form"><AdminSettings /></LazyRoute>} />
+        <Route path="maintenance" element={<LazyRoute type="list"><AdminMaintenance /></LazyRoute>} />
+        <Route path="tickets" element={<LazyRoute type="list"><AdminTicketsDashboard /></LazyRoute>} />
+        <Route path="verification" element={<LazyRoute type="list"><AdminVerificationDashboard /></LazyRoute>} />
       </Route>
 
       {/* Redirecciones para rutas legacy */}

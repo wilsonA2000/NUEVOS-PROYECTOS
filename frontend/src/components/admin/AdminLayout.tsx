@@ -46,6 +46,7 @@ import {
   AccountCircle as AccountIcon,
   Gavel as GavelIcon,
   Warning as WarningIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 
@@ -216,17 +217,27 @@ const AdminLayout: React.FC = () => {
 
       <Divider />
 
-      {/* Footer del drawer */}
-      {drawerOpen && (
-        <Box sx={{ p: 2 }}>
+      {/* Footer del drawer — volver al app principal */}
+      <Box sx={{ p: 1 }}>
+        <ListItemButton
+          onClick={() => handleNavigation('/app/dashboard')}
+          sx={{ borderRadius: 1, mb: 0.5 }}
+        >
+          <ListItemIcon sx={{ minWidth: drawerOpen ? 40 : 'auto', mr: drawerOpen ? 2 : 0, justifyContent: 'center' }}>
+            <ArrowBackIcon fontSize="small" />
+          </ListItemIcon>
+          {drawerOpen && <ListItemText primary="Volver al App" primaryTypographyProps={{ variant: 'body2' }} />}
+        </ListItemButton>
+        {drawerOpen && (
           <Chip
             size="small"
             color={isSuperuser ? 'error' : 'primary'}
             label={isSuperuser ? 'Superuser' : 'Staff'}
             icon={<SecurityIcon />}
+            sx={{ ml: 1 }}
           />
-        </Box>
-      )}
+        )}
+      </Box>
     </Box>
   );
 

@@ -98,6 +98,10 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // Estado local para reactividad inmediata sin esperar cambio de URL
+  const [forcedContextId, setForcedContextId] = useState<string | null>(
+    () => localStorage.getItem(CONTEXT_STORAGE_KEY)
+  );
 
   // Detectar contextos disponibles para el usuario
   const availableContexts = useMemo(() => {
@@ -124,11 +128,11 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
     return contexts;
   }, [user]);
 
-  // Detectar contexto actual basado en URL + localStorage
+  // Detectar contexto actual basado en URL + estado local + localStorage
   const currentContext = useMemo(() => {
     const path = location.pathname;
 
-    // Rutas admin siempre = contexto admin
+    // Rutas admin siempre = contexto admin (anula cualquier override)
     if (path.startsWith('/app/admin')) {
       return CONTEXT_OPTIONS.admin;
     }
@@ -138,10 +142,15 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
       return CONTEXT_OPTIONS.service_provider;
     }
 
+    // Estado local tiene prioridad (se actualiza inmediatamente al hacer clic)
+    if (forcedContextId && CONTEXT_OPTIONS[forcedContextId]) {
+      const hasAccess = availableContexts.some(c => c.id === forcedContextId);
+      if (hasAccess) return CONTEXT_OPTIONS[forcedContextId]!;
+    }
+
     // Leer preferencia guardada de localStorage
     const savedContext = localStorage.getItem(CONTEXT_STORAGE_KEY);
     if (savedContext && CONTEXT_OPTIONS[savedContext]) {
-      // Verificar que el usuario tenga acceso a ese contexto
       const hasAccess = availableContexts.some(c => c.id === savedContext);
       if (hasAccess) {
         return CONTEXT_OPTIONS[savedContext];
@@ -154,7 +163,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
     }
 
     return availableContexts[0] ?? CONTEXT_OPTIONS.landlord!;
-  }, [location.pathname, user?.user_type, availableContexts]) as ContextOption;
+  }, [location.pathname, user?.user_type, availableContexts, forcedContextId]) as ContextOption;
 
   // Si solo tiene un contexto, no mostrar el switcher
   if (availableContexts.length <= 1) {
@@ -170,13 +179,15 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
   };
 
   const handleContextChange = (context: ContextOption) => {
-    // Guardar preferencia en localStorage
     localStorage.setItem(CONTEXT_STORAGE_KEY, context.id);
-
-    // Navegar al path del contexto
-    navigate(context.path);
-
+    setForcedContextId(context.id);
     handleClose();
+    // navigate() es no-op si la URL no cambia; usamos replace para forzar re-render
+    if (location.pathname === context.path) {
+      navigate(context.path, { replace: true, state: { contextSwitch: Date.now() } });
+    } else {
+      navigate(context.path);
+    }
   };
 
   const isOpen = Boolean(anchorEl);
