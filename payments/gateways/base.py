@@ -24,11 +24,12 @@ class PaymentResult:
     error_message: Optional[str] = None
     error_code: Optional[str] = None
     metadata: Dict[str, Any] = None
-    
+    raw_response: Optional[Dict[str, Any]] = None
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -40,7 +41,8 @@ class PaymentResult:
             'status': self.status,
             'error_message': self.error_message,
             'error_code': self.error_code,
-            'metadata': self.metadata
+            'metadata': self.metadata,
+            'raw_response': self.raw_response,
         }
 
 
@@ -168,6 +170,15 @@ class BasePaymentGateway(ABC):
         """
         return int(amount * 100)
     
+    def handle_error(self, error: Exception, extra: Dict[str, Any] = None) -> 'PaymentResult':
+        """Convert an unexpected exception into a failed PaymentResult."""
+        self.log_error(str(error), extra)
+        return PaymentResult(
+            success=False,
+            error_message=str(error),
+            error_code='GATEWAY_ERROR',
+        )
+
     def log_error(self, message: str, extra: Dict[str, Any] = None):
         """Log an error with contextual information."""
         logger.error(
