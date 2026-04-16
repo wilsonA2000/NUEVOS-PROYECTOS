@@ -62,9 +62,21 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ targetType, targetId, showSta
         page: page.toString(),
         page_size: reviewsPerPage.toString(),
       });
-      const response = await api.get(`/ratings/?${params}`);
-      setReviews(response.data.results || response.data);
-      setTotalPages(Math.ceil((response.data.count || reviews.length) / reviewsPerPage));
+      // BUG-FE-RAT-01: URL correcta es /ratings/ratings/ (el router DRF usa
+      // 'ratings' como basename). /ratings/ devolvía el APIRoot de DRF.
+      const response = await api.get(`/ratings/ratings/?${params}`);
+
+      // BUG-FE-RAT-02: validar que la respuesta sea array antes de setear,
+      // si no el .map() crashea. Soporta respuestas paginadas y planas.
+      const data = response.data;
+      const list = Array.isArray(data) ? data : (Array.isArray(data.results) ? data.results : []);
+      setReviews(list);
+
+      // BUG-FE-RAT-03: usar 'list.length' recién calculado en vez del stale
+      // 'reviews.length' del render previo para calcular totalPages.
+      const totalCount = typeof data.count === 'number' ? data.count : list.length;
+      setTotalPages(Math.max(1, Math.ceil(totalCount / reviewsPerPage)));
+
       if (showStats) {
         const statsRes = await api.get(`/ratings/stats/?target_type=${targetType}&target_id=${targetId}`);
         setStats(statsRes.data);

@@ -32,7 +32,12 @@ const RatingForm: React.FC<RatingFormProps> = ({ targetType, targetId, targetNam
       setSuccess(true);
       setTimeout(() => { onSuccess?.(); }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al enviar calificación.');
+      // Fallback chain: backend message → axios error message → generic.
+      const msg = err?.response?.data?.message
+        || err?.response?.data?.detail
+        || err?.message
+        || 'Error al enviar calificación.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

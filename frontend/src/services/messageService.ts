@@ -348,13 +348,16 @@ class MessageService {
 
   // === CACHE Y OPTIMIZATIONS ===
   async preloadThread(threadId: string): Promise<void> {
-    // Precargar datos de la conversación para mejor UX
+    // Precargar datos de la conversación para mejor UX.
+    // Preload falla silenciosamente (warn en consola) porque es un nice-to-have;
+    // la UI recargará los datos cuando el usuario abra el thread de verdad.
     try {
       await Promise.all([
         this.getThread(threadId),
         this.getMessages(threadId, 1, 50), // Cargar primeros 50 mensajes
       ]);
     } catch (error) {
+      console.warn(`[messageService] preloadThread(${threadId}) falló:`, error);
     }
   }
 
