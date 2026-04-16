@@ -60,6 +60,7 @@ import {
   TaskAlt as TaskAltIcon,
 } from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
+import { vhColors } from '../../theme/tokens';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import useMatchRequests from '../../hooks/useMatchRequests';
@@ -307,7 +308,7 @@ const MatchesDashboard: React.FC = () => {
         key={request.id} 
         sx={{ 
           mb: 2, 
-          border: ['pending', 'viewed'].includes(request.status) && isLandlord ? '2px solid #2196F3' : '1px solid #e0e0e0',
+          border: ['pending', 'viewed'].includes(request.status) && isLandlord ? `2px solid ${vhColors.accentBlue}` : `1px solid ${vhColors.divider}`,
           opacity: isExpiredRequest ? 0.7 : 1,
         }}
       >
@@ -649,7 +650,7 @@ const MatchesDashboard: React.FC = () => {
           
           {/* Botones de Aceptar/Rechazar para arrendadores con solicitudes pendientes */}
           {isLandlord && ['pending', 'viewed'].includes(request.status) && (
-            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+            <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${vhColors.divider}` }}>
               <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 2 }}>
                 <Button
                   variant="outlined"
@@ -754,7 +755,7 @@ const MatchesDashboard: React.FC = () => {
               isLandlord ? 'Solicitudes Recibidas' : 'Solicitudes Enviadas',
               statistics?.total_received || statistics?.total_sent || 0,
               <Assignment />,
-              '#2196F3',
+              vhColors.accentBlue,
             )}
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -762,7 +763,7 @@ const MatchesDashboard: React.FC = () => {
               'Pendientes',
               statistics?.pending || 0,
               <Schedule />,
-              '#FF9800',
+              vhColors.warning,
             )}
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -770,7 +771,7 @@ const MatchesDashboard: React.FC = () => {
               'Aceptadas',
               statistics?.accepted || 0,
               <CheckCircle />,
-              '#4CAF50',
+              vhColors.success,
             )}
           </Grid>
         </Grid>

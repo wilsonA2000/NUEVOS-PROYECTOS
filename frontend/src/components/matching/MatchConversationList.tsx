@@ -40,6 +40,7 @@ import {
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { vhColors } from '../../theme/tokens';
 
 // Interfaces del backend
 interface MatchConversation {
@@ -118,43 +119,43 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
     switch (status) {
       case 'pending':
         return {
-          color: '#f59e0b',
-          bgColor: '#fef3c7',
+          color: vhColors.warning,
+          bgColor: vhColors.warningBg,
           label: 'Pendiente',
           icon: <PendingIcon fontSize="small" />,
         };
       case 'viewed':
         return {
-          color: '#3b82f6',
-          bgColor: '#dbeafe',
+          color: vhColors.info,
+          bgColor: vhColors.infoBg,
           label: 'Vista',
           icon: <ViewedIcon fontSize="small" />,
         };
       case 'accepted':
         return {
-          color: '#10b981',
-          bgColor: '#d1fae5',
+          color: vhColors.success,
+          bgColor: vhColors.successBg,
           label: 'Aceptada',
           icon: <AcceptedIcon fontSize="small" />,
         };
       case 'rejected':
         return {
-          color: '#ef4444',
-          bgColor: '#fee2e2',
+          color: vhColors.error,
+          bgColor: vhColors.errorBg,
           label: 'Rechazada',
           icon: <RejectedIcon fontSize="small" />,
         };
       case 'expired':
         return {
-          color: '#6b7280',
-          bgColor: '#f3f4f6',
+          color: vhColors.textSecondary,
+          bgColor: vhColors.surfaceMuted,
           label: 'Expirada',
           icon: <CalendarIcon fontSize="small" />,
         };
       default:
         return {
-          color: '#6b7280',
-          bgColor: '#f3f4f6',
+          color: vhColors.textSecondary,
+          bgColor: vhColors.surfaceMuted,
           label: status,
           icon: <PendingIcon fontSize="small" />,
         };
@@ -164,15 +165,15 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return '#dc2626';
+        return vhColors.error;
       case 'high':
-        return '#ea580c';
+        return vhColors.warning;
       case 'medium':
-        return '#ca8a04';
+        return vhColors.accentBlue;
       case 'low':
-        return '#059669';
+        return vhColors.success;
       default:
-        return '#6b7280';
+        return vhColors.textSecondary;
     }
   };
 
@@ -514,7 +515,7 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                             
                             {conversation.compatibility_score && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                                <StarIcon sx={{ fontSize: 12, color: '#f59e0b' }} />
+                                <StarIcon sx={{ fontSize: 12, color: vhColors.warning }} />
                                 <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
                                   {conversation.compatibility_score}%
                                 </Typography>

@@ -17,6 +17,7 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
 } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 
 interface AuthErrorModalProps {
   open: boolean;
@@ -51,7 +52,7 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: isVerificationError ? '#fff3e0' : '#ffebee',
+        backgroundColor: isVerificationError ? vhColors.warningBg : vhColors.errorBg,
       }}>
         <Box display="flex" alignItems="center" gap={1}>
           <ContactSupportIcon 
@@ -88,21 +89,21 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
         </Alert>
 
         {isVerificationError && (
-          <Box sx={{ 
-            backgroundColor: '#f8f9fa', 
-            borderRadius: 2, 
+          <Box sx={{
+            backgroundColor: vhColors.surfaceMuted,
+            borderRadius: 2,
             p: 3,
-            border: '1px solid #e9ecef',
+            border: `1px solid ${vhColors.divider}`,
           }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2c3e50' }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: vhColors.textPrimary }}>
               ¿Cómo puedo unirme a VeriHome?
             </Typography>
-            
+
             <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 2, color: '#6c757d' }}>
+              <Typography variant="body2" sx={{ mb: 2, color: vhColors.textSecondary }}>
                 Para ser parte de nuestra comunidad, sigue estos pasos:
               </Typography>
-              
+
               <Box component="ol" sx={{ pl: 2, mb: 2 }}>
                 <Typography component="li" variant="body2" sx={{ mb: 1 }}>
                   Completa el formulario de contacto en nuestra página principal
@@ -119,26 +120,26 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
               </Box>
             </Box>
 
-            <Box sx={{ 
-              backgroundColor: '#e3f2fd', 
-              borderRadius: 2, 
+            <Box sx={{
+              backgroundColor: vhColors.accentBlueBg,
+              borderRadius: 2,
               p: 2,
-              border: '1px solid #bbdefb',
+              border: `1px solid ${vhColors.accentBlueLight}`,
             }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#1976d2' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: vhColors.accentBlue }}>
                 Contacto Directo:
               </Typography>
-              
+
               <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
-                <EmailIcon sx={{ fontSize: 16, color: '#1976d2' }} />
-                <Typography variant="body2" sx={{ color: '#1976d2' }}>
+                <EmailIcon sx={{ fontSize: 16, color: vhColors.accentBlue }} />
+                <Typography variant="body2" sx={{ color: vhColors.accentBlue }}>
                   verihomeadmi@gmail.com
                 </Typography>
               </Box>
-              
+
               <Box display="flex" alignItems="center" gap={1}>
-                <PhoneIcon sx={{ fontSize: 16, color: '#1976d2' }} />
-                <Typography variant="body2" sx={{ color: '#1976d2' }}>
+                <PhoneIcon sx={{ fontSize: 16, color: vhColors.accentBlue }} />
+                <Typography variant="body2" sx={{ color: vhColors.accentBlue }}>
                   +57 300 123 4567
                 </Typography>
               </Box>
@@ -168,9 +169,10 @@ const AuthErrorModal: React.FC<AuthErrorModalProps> = ({
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              backgroundColor: '#1976d2',
+              backgroundColor: vhColors.accentBlue,
               '&:hover': {
-                backgroundColor: '#1565c0',
+                backgroundColor: vhColors.accentBlue,
+                filter: 'brightness(0.9)',
               },
             }}
           >

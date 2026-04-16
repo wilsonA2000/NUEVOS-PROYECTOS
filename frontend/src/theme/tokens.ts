@@ -52,6 +52,49 @@ export const vh = {
   },
 } as const;
 
+/**
+ * Paleta semántica para reemplazar hex hardcoded en componentes legacy
+ * (VIS-5 refactor). Preferir `theme.palette.X` cuando se pueda acceder
+ * al theme vía `useTheme()`, y estos tokens cuando no.
+ *
+ * Ejemplo en lugar de `backgroundColor: '#667eea'`:
+ *   import { vhColors } from '@/theme/tokens';
+ *   sx={{ backgroundColor: vhColors.accentBlue }}
+ */
+export const vhColors = {
+  // Surfaces
+  surface: p.background.paper,             // reemplaza '#ffffff'
+  surfaceMuted: p.background.default,      // reemplaza '#f8fafc', '#f8f9fa'
+  surfaceOverlay: p.action.hover,          // hover backgrounds
+
+  // Text
+  textPrimary: p.text.primary,             // reemplaza '#1a1a1a', '#2c3e50'
+  textSecondary: p.text.secondary,         // reemplaza '#6b7280', '#64748b'
+  textDisabled: p.text.disabled,
+
+  // Semantic status
+  accentBlue: p.primary.main,              // reemplaza '#1976d2', '#2196f3', '#2196F3', '#667eea'
+  accentBlueLight: `${p.primary.main}14`,
+  accentBlueBg: `${p.primary.main}08`,
+
+  success: p.success.main,                 // reemplaza '#4caf50', '#4CAF50'
+  successBg: `${p.success.main}14`,
+
+  warning: p.warning.main,                 // reemplaza '#ff9800', '#FF9800', '#f59e0b'
+  warningBg: `${p.warning.main}14`,
+
+  error: p.error.main,                     // reemplaza '#F44336', '#f44336'
+  errorBg: `${p.error.main}14`,
+
+  info: p.info.main,
+  infoBg: `${p.info.main}14`,
+
+  purple: p.secondary.main,                // reemplaza '#9c27b0'
+  purpleBg: `${p.secondary.main}14`,
+
+  divider: p.divider,
+} as const;
+
 export type StageKind =
   | 'pending'
   | 'inProgress'

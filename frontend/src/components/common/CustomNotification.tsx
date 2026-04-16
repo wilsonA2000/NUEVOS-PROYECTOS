@@ -14,6 +14,7 @@ import {
   Warning as WarningIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 
 interface CustomNotificationProps {
   open: boolean;
@@ -52,30 +53,30 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return '#e8f5e8';
+        return vhColors.successBg;
       case 'error':
-        return '#ffebee';
+        return vhColors.errorBg;
       case 'warning':
-        return '#fff3e0';
+        return vhColors.warningBg;
       case 'info':
-        return '#e3f2fd';
+        return vhColors.infoBg;
       default:
-        return '#e3f2fd';
+        return vhColors.infoBg;
     }
   };
 
   const getBorderColor = () => {
     switch (type) {
       case 'success':
-        return '#4caf50';
+        return vhColors.success;
       case 'error':
-        return '#f44336';
+        return vhColors.error;
       case 'warning':
-        return '#ff9800';
+        return vhColors.warning;
       case 'info':
-        return '#2196f3';
+        return vhColors.info;
       default:
-        return '#2196f3';
+        return vhColors.info;
     }
   };
 
@@ -133,10 +134,10 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
               {title}
             </AlertTitle>
           )}
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: '#2c3e50',
+          <Typography
+            variant="body2"
+            sx={{
+              color: vhColors.textPrimary,
               lineHeight: 1.5,
             }}
           >

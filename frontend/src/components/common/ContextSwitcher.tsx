@@ -33,6 +33,7 @@ import {
   ExpandMore as ExpandIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { vhColors } from '../../theme/tokens';
 
 // Tipos de contexto disponibles
 interface ContextOption {
@@ -52,7 +53,7 @@ const CONTEXT_OPTIONS: Record<string, ContextOption> = {
     label: 'Arrendador',
     shortLabel: 'Arrendador',
     icon: <LandlordIcon />,
-    color: '#2196f3',
+    color: vhColors.accentBlue,
     path: '/app/dashboard',
     description: 'Gestiona tus propiedades y contratos',
   },
@@ -61,7 +62,7 @@ const CONTEXT_OPTIONS: Record<string, ContextOption> = {
     label: 'Arrendatario',
     shortLabel: 'Arrendatario',
     icon: <TenantIcon />,
-    color: '#4caf50',
+    color: vhColors.success,
     path: '/app/dashboard',
     description: 'Busca propiedades y gestiona arriendos',
   },
@@ -70,7 +71,7 @@ const CONTEXT_OPTIONS: Record<string, ContextOption> = {
     label: 'Proveedor de Servicios',
     shortLabel: 'Servicios',
     icon: <ServiceIcon />,
-    color: '#ff9800',
+    color: vhColors.warning,
     path: '/app/services',
     description: 'Ofrece tus servicios profesionales',
   },
@@ -79,7 +80,7 @@ const CONTEXT_OPTIONS: Record<string, ContextOption> = {
     label: 'Admin Legal',
     shortLabel: 'Admin',
     icon: <AdminIcon />,
-    color: '#9c27b0',
+    color: vhColors.purple,
     path: '/app/admin',
     description: 'Panel de administración y auditoría',
   },

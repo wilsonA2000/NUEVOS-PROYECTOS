@@ -49,6 +49,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { requestService, MaintenanceRequest, RequestActionData } from '../../services/requestService';
+import { vhColors } from '../../theme/tokens';
 
 type TabStatus = 'all' | 'pending' | 'in_progress' | 'completed';
 
@@ -60,11 +61,11 @@ const TAB_CONFIG: { value: TabStatus; label: string; icon: React.ReactNode }[] =
 ];
 
 const MAINTENANCE_TYPE_MAP: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  emergency: { label: 'Emergencia', icon: <EmergencyIcon />, color: '#d32f2f' },
-  routine: { label: 'Rutinario', icon: <RoutineIcon />, color: '#1976d2' },
-  preventive: { label: 'Preventivo', icon: <PreventiveIcon />, color: '#388e3c' },
-  repair: { label: 'Reparaci\u00f3n', icon: <RepairIcon />, color: '#f57c00' },
-  improvement: { label: 'Mejora', icon: <ImprovementIcon />, color: '#7b1fa2' },
+  emergency: { label: 'Emergencia', icon: <EmergencyIcon />, color: vhColors.error },
+  routine: { label: 'Rutinario', icon: <RoutineIcon />, color: vhColors.accentBlue },
+  preventive: { label: 'Preventivo', icon: <PreventiveIcon />, color: vhColors.success },
+  repair: { label: 'Reparaci\u00f3n', icon: <RepairIcon />, color: vhColors.warning },
+  improvement: { label: 'Mejora', icon: <ImprovementIcon />, color: vhColors.purple },
 };
 
 const STATUS_STEPS = [
@@ -156,7 +157,7 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
   };
 
   const getTypeInfo = (type: string) => {
-    return MAINTENANCE_TYPE_MAP[type] || { label: type, icon: <RepairIcon />, color: '#757575' };
+    return MAINTENANCE_TYPE_MAP[type] || { label: type, icon: <RepairIcon />, color: vhColors.textSecondary };
   };
 
   if (loading) {

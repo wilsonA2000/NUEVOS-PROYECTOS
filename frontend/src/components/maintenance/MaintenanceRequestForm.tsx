@@ -44,6 +44,7 @@ import {
 import { useProperties } from '../../hooks/useProperties';
 import { requestService, CreateMaintenanceRequestData } from '../../services/requestService';
 import UniversalFileUpload from '../common/UniversalFileUpload';
+import { vhColors } from '../../theme/tokens';
 
 interface FileData {
   file: File;
@@ -55,11 +56,11 @@ interface FileData {
 }
 
 const MAINTENANCE_TYPES = [
-  { value: 'emergency', label: 'Emergencia', icon: <EmergencyIcon />, color: '#d32f2f', description: 'Problemas urgentes que requieren atenci\u00f3n inmediata' },
-  { value: 'routine', label: 'Rutinario', icon: <RoutineIcon />, color: '#1976d2', description: 'Mantenimiento regular programado' },
-  { value: 'preventive', label: 'Preventivo', icon: <PreventiveIcon />, color: '#388e3c', description: 'Prevenci\u00f3n de problemas futuros' },
-  { value: 'repair', label: 'Reparaci\u00f3n', icon: <RepairIcon />, color: '#f57c00', description: 'Reparaci\u00f3n de da\u00f1os existentes' },
-  { value: 'improvement', label: 'Mejora', icon: <ImprovementIcon />, color: '#7b1fa2', description: 'Mejoras o actualizaciones del inmueble' },
+  { value: 'emergency', label: 'Emergencia', icon: <EmergencyIcon />, color: vhColors.error, description: 'Problemas urgentes que requieren atenci\u00f3n inmediata' },
+  { value: 'routine', label: 'Rutinario', icon: <RoutineIcon />, color: vhColors.accentBlue, description: 'Mantenimiento regular programado' },
+  { value: 'preventive', label: 'Preventivo', icon: <PreventiveIcon />, color: vhColors.success, description: 'Prevenci\u00f3n de problemas futuros' },
+  { value: 'repair', label: 'Reparaci\u00f3n', icon: <RepairIcon />, color: vhColors.warning, description: 'Reparaci\u00f3n de da\u00f1os existentes' },
+  { value: 'improvement', label: 'Mejora', icon: <ImprovementIcon />, color: vhColors.purple, description: 'Mejoras o actualizaciones del inmueble' },
 ];
 
 const PRIORITY_OPTIONS = [

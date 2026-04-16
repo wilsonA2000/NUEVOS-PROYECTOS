@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { WifiOff as WifiOffIcon } from '@mui/icons-material';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
+import { vhColors } from '../../theme/tokens';
 
 const OfflineIndicator: React.FC = () => {
   const { isOffline } = useServiceWorker();
@@ -18,8 +19,8 @@ const OfflineIndicator: React.FC = () => {
         left: 0,
         right: 0,
         zIndex: 9999,
-        backgroundColor: '#f59e0b',
-        color: '#78350f',
+        backgroundColor: vhColors.warning,
+        color: vhColors.surface,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
