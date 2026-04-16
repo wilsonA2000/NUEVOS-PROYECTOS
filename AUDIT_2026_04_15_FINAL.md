@@ -201,3 +201,15 @@ Tag de cierre sugerido tras merge a main: `post-audit-2026-04-15`.
 - **Backend tests** matching + properties + verification + contracts.test_api: **180/180 OK**
 - **E2E multi-user-contract-signing**: PASS 3.6 min · contrato `active`
 - Header `X-Frame-Options: SAMEORIGIN` verificado con `curl -I`
+
+### Cuarta tanda · cosméticos finales (commit `8e1c5d8`)
+
+- **AUTH-02** (P3): alias SimpleJWT estándar `/api/token/` y `/api/token/refresh/` agregados en `verihome/urls.py`.
+- **SVC-03** (P3): `ServiceViewSet` también registrado como `/services/listings/` (el legacy `/services/services/` sigue activo).
+- **VIS-4** (P3): emojis removidos de 10 archivos UI visibles del frontend (EnhancedTenantDocumentUpload, PropertyForm, PropertyFilters, ChatWindow, NewDashboard, RegisterWithCode, etc.).
+- **VIS-5 parcial** (P3): 12 archivos migrados de hex hardcoded a tokens MUI. Canvas `ctx.fillStyle` se deja (canvas no accede al theme). ~50% de los casos migrados; el resto necesitaría revisión visual.
+
+### Validación cuarta tanda
+- tsc --noEmit: 0 errores
+- Backend: 136/136 OK
+- E2E: PASS · contrato `active`
