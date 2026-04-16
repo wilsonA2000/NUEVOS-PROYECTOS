@@ -31,7 +31,7 @@ const P: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const TermsPage: React.FC = () => (
-  <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh' }}>
+  <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh' }}>
     <LandingNavbar />
 
     <Box sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white', pt: 14, pb: 8 }}>

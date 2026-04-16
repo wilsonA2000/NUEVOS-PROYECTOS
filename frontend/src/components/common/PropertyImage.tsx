@@ -185,7 +185,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
     borderRadius,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'grey.100',
     ...style,
   };
 
@@ -256,7 +256,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#f0f0f0',
+            backgroundColor: 'grey.100',
             color: '#999',
             fontSize: '0.875rem',
             textAlign: 'center',
@@ -282,7 +282,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
               cursor: 'pointer',
               color: '#666',
               '&:hover': {
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'grey.100',
               },
             }}
           >
