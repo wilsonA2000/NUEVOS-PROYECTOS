@@ -33,6 +33,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { paymentService } from '../../services/paymentService';
 import PaymentOrderList, { PaymentOrderRow } from '../../components/payments/PaymentOrderList';
+import PayOrderModal from '../../components/payments/PayOrderModal';
 
 interface OrdersSummary {
   total: number;
@@ -80,6 +81,7 @@ const PaymentDashboardPage: React.FC = () => {
   const [summary, setSummary] = useState<OrdersSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [payModalOrder, setPayModalOrder] = useState<PaymentOrderRow | null>(null);
 
   // Filtros que dependen de la tab + rol
   const buildFilter = useCallback((tabIdx: number) => {
@@ -145,8 +147,13 @@ const PaymentDashboardPage: React.FC = () => {
   const labels = tabsForRole();
 
   const handlePay = (order: PaymentOrderRow) => {
-    // T3.2 implementará el modal de pasarela. Por ahora link al detalle.
-    alert(`Iniciar pago de orden ${order.order_number} por ${order.balance} (T3.2 pendiente).`);
+    setPayModalOrder(order);
+  };
+
+  const handlePaySuccess = () => {
+    // Refrescar el listado y stats; el webhook reconcilia eventualmente.
+    loadOrders(tab);
+    loadSummary();
   };
 
   return (
@@ -207,6 +214,13 @@ const PaymentDashboardPage: React.FC = () => {
           onPay={handlePay}
         />
       )}
+
+      <PayOrderModal
+        open={!!payModalOrder}
+        onClose={() => setPayModalOrder(null)}
+        order={payModalOrder}
+        onSuccess={handlePaySuccess}
+      />
     </Container>
   );
 };
