@@ -11,6 +11,16 @@ import uuid
 
 User = get_user_model()
 
+# === Constantes legales colombianas ===
+# Tope de usura mensual permitido por la Superintendencia Financiera de Colombia.
+# Referencia: tasa de usura ~28% EA → ~2.08% mensual (1.5x del interés bancario corriente).
+# IMPORTANTE: este tope debe revisarse y actualizarse trimestralmente cuando la
+# Superfinanciera publique la nueva certificación. Procedimiento:
+# 1. Consultar tasa de usura vigente en https://www.superfinanciera.gov.co
+# 2. Convertir EA a mensual: (1 + EA)^(1/12) - 1
+# 3. Actualizar esta constante y crear un nuevo registro LegalInterestRate
+MAX_USURY_MONTHLY_RATE = Decimal('0.0208')
+
 # Importar modelos de escrow integration al final del archivo para evitar import circular
 # Los modelos se importan usando __all__ al final
 
@@ -826,6 +836,87 @@ class RentPaymentReminder(models.Model):
         return f"{self.get_reminder_type_display()} - {self.schedule.tenant.get_full_name()}"
 
 
+class LegalInterestRate(models.Model):
+    """Tasa de interés moratorio legal colombiano por mes/año.
+
+    Permite mantener un histórico auditable de las tasas vigentes en cada
+    período, según certificación de la Superintendencia Financiera de
+    Colombia. Cuando se calcula un interés moratorio, el sistema busca la
+    tasa activa para el mes/año correspondiente.
+
+    El tope MAX_USURY_MONTHLY_RATE valida que ninguna tasa exceda el límite
+    legal (artículo 305 del Código Penal colombiano).
+    """
+
+    month = models.PositiveSmallIntegerField('Mes', choices=[(i, i) for i in range(1, 13)])
+    year = models.PositiveIntegerField('Año')
+    monthly_rate = models.DecimalField(
+        'Tasa mensual (decimal, ej. 0.0208 = 2.08%)',
+        max_digits=6,
+        decimal_places=4,
+    )
+    max_usury_rate = models.DecimalField(
+        'Tope de usura mensual vigente al momento del registro',
+        max_digits=6,
+        decimal_places=4,
+        default=MAX_USURY_MONTHLY_RATE,
+    )
+    is_active = models.BooleanField('Activa', default=True)
+    source = models.CharField(
+        'Fuente / certificación',
+        max_length=200,
+        blank=True,
+        help_text='Ej: Resolución SFC-XXXX-2026, Banco de la República',
+    )
+    notes = models.TextField('Notas', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Tasa de Interés Legal'
+        verbose_name_plural = 'Tasas de Interés Legal'
+        ordering = ['-year', '-month']
+        unique_together = [('month', 'year')]
+        indexes = [
+            models.Index(fields=['year', 'month']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        pct = self.monthly_rate * 100
+        return f"{self.month:02d}/{self.year} · {pct:.2f}% mensual"
+
+    def clean(self):
+        """Valida que la tasa no exceda el tope de usura legal."""
+        from django.core.exceptions import ValidationError
+        if self.monthly_rate is None:
+            return
+        if self.monthly_rate < 0:
+            raise ValidationError({'monthly_rate': 'La tasa no puede ser negativa.'})
+        if self.monthly_rate > MAX_USURY_MONTHLY_RATE:
+            raise ValidationError({
+                'monthly_rate': (
+                    f'Tasa {self.monthly_rate} excede el tope de usura legal '
+                    f'({MAX_USURY_MONTHLY_RATE}). Verificar Superfinanciera.'
+                )
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_rate_for(cls, year, month):
+        """Devuelve la tasa activa para un (year, month). Si no existe,
+        retorna la última tasa activa anterior (para no romper cálculos)."""
+        rate = cls.objects.filter(
+            year=year, month=month, is_active=True,
+        ).first()
+        if rate:
+            return rate
+        return cls.objects.filter(is_active=True).order_by('-year', '-month').first()
+
+
 # Importar modelos de escrow integration
 try:
     from .escrow_integration import (
@@ -838,11 +929,13 @@ try:
     __all__ = [
         'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
         'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder',
+        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE',
         'ContractEscrowAccount', 'ContractEscrowTransaction', 'ContractEscrowReleaseRule', 'ContractEscrowService'
     ]
 except ImportError:
     # Si no está disponible escrow integration, solo exportar modelos básicos
     __all__ = [
         'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
-        'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder'
+        'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder',
+        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE',
     ]
