@@ -19,9 +19,16 @@ router.register(r'portfolio-items', api_views.PortfolioItemViewSet, basename='po
 router.register(r'activity-logs', api_views.UserActivityLogViewSet, basename='activity-log')
 
 urlpatterns = [
+    # BUG-USR-01: Las rutas custom de activity-logs DEBEN ir antes del router,
+    # porque el router genera /activity-logs/<pk>/ que eclipsa
+    # /activity-logs/stats/ y /activity-logs/types/ (trata "stats" como pk).
+    path('activity-logs/stats/', api_views.UserActivityStatsAPIView.as_view(), name='api_activity_stats_priority'),
+    path('activity-logs/create/', api_views.CreateActivityLogAPIView.as_view(), name='api_create_activity_log_priority'),
+    path('activity-logs/types/', api_views.ActivityTypesAPIView.as_view(), name='api_activity_types_priority'),
+
     # Incluir rutas del router
     path('', include(router.urls)),
-    
+
     # Autenticación JWT
     path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

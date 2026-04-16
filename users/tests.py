@@ -437,21 +437,71 @@ class UserAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_search_users_authenticated(self):
-        """GET /api/v1/users/search/?q= responds when authenticated.
-
-        NOTE: The view currently has a known bug (self.getattr instead of
-        getattr) that causes an AttributeError. This test documents the bug
-        by catching the exception. Once fixed, it should return 200.
-        """
+        """GET /api/v1/users/search/?q= responds 200 cuando está autenticado."""
         self._make_auth_user(email='searchable@verihome.co')
         _make_user(email='other@verihome.co', first_name='Juanito', last_name='Perez')
-        try:
-            response = self.client.get(f'{self.BASE_URL}search/', {'q': 'Juanito'})
-            # If we get here, the bug has been fixed
-            self.assertIn(response.status_code, [
-                status.HTTP_200_OK,
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-            ])
-        except AttributeError:
-            # Known bug: self.getattr should be getattr in UserSearchAPIView
-            pass
+        response = self.client.get(f'{self.BASE_URL}search/', {'q': 'Juanito'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # ------------------------------------------------------------------
+    # Smoke tests adicionales (BUG-USR-03/04/05 regression)
+    # ------------------------------------------------------------------
+
+    def test_notifications_list_authenticated(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}notifications/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_notifications_unauthenticated_401(self):
+        response = self.client.get(f'{self.BASE_URL}notifications/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_activity_logs_stats_authenticated(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}activity-logs/stats/')
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])
+
+    def test_activity_types_endpoint(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}activity-logs/types/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_public_profile_view(self):
+        target = _make_user(email='target@verihome.co')
+        self._make_auth_user(email='viewer@verihome.co')
+        response = self.client.get(f'{self.BASE_URL}{target.id}/profile/')
+        self.assertIn(response.status_code, [
+            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
+        ])
+
+    def test_public_resume_view_landlord_sees_tenant(self):
+        """Landlord autenticado puede ver hoja de vida de tenant.
+        Si el tenant no tiene UserResume aún, retorna 404."""
+        tenant = _make_user(email='resume-target@verihome.co', user_type='tenant')
+        self._make_auth_user(email='landlord-viewer@verihome.co', user_type='landlord')
+        response = self.client.get(f'{self.BASE_URL}{tenant.id}/resume/')
+        self.assertIn(response.status_code, [
+            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
+        ])
+
+    def test_public_resume_view_tenant_forbidden(self):
+        """Tenant no puede ver hoja de vida (solo landlords)."""
+        tenant = _make_user(email='resume-target2@verihome.co', user_type='tenant')
+        self._make_auth_user(email='tenant-viewer@verihome.co', user_type='tenant')
+        response = self.client.get(f'{self.BASE_URL}{tenant.id}/resume/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_settings_get(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}settings/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_resume_get(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}resume/')
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])
+
+    def test_dashboard_stats(self):
+        self._make_auth_user()
+        response = self.client.get(f'{self.BASE_URL}dashboard/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
