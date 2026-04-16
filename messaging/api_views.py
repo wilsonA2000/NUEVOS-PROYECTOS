@@ -240,7 +240,7 @@ class SearchMessagesAPIView(generics.ListAPIView):
     serializer_class = MessageSerializer
     
     def get_queryset(self):
-        query = self.getattr(request, "query_params", request.GET).get('q', '')
+        query = getattr(self.request, "query_params", self.request.GET).get('q', '')
         return Message.objects.filter(
             thread__participants=self.request.user,
             content__icontains=query

@@ -49,8 +49,8 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class MessageThreadSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
-    last_message = MessageSerializer(read_only=True)
-    
+    last_message = serializers.SerializerMethodField()
+
     class Meta:
         model = MessageThread
         fields = [
@@ -58,6 +58,12 @@ class MessageThreadSerializer(serializers.ModelSerializer):
             'is_priority', 'created_at', 'last_message_at', 'last_message'
         ]
         read_only_fields = ['id', 'created_at', 'last_message_at']
+
+    def get_last_message(self, obj):
+        last = obj.messages.order_by('-sent_at').first() if hasattr(obj, 'messages') else None
+        if last is None:
+            return None
+        return MessageSerializer(last, context=self.context).data
     
     def create(self, validated_data):
         # Get participants from context

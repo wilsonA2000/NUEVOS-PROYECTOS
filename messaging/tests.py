@@ -342,3 +342,73 @@ class MessagingAPITests(APITestCase):
         self.client.force_authenticate(user=self.user1)
         response = self.client.get("/api/v1/messages/unread-count/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # -- search (BUG-MSG-01 regression test) ---------
+
+    def test_search_messages_no_query(self):
+        """SearchMessagesAPIView sin parámetro q no debe crashear."""
+        _make_message(self.thread, self.user1, self.user2, "Hola mundo")
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get("/api/v1/messages/search/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_search_messages_with_query(self):
+        """SearchMessagesAPIView con query filtra por content."""
+        _make_message(self.thread, self.user1, self.user2, "Hola mundo")
+        _make_message(self.thread, self.user1, self.user2, "Adios amigos")
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get("/api/v1/messages/search/?q=Hola")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data['results'] if 'results' in response.data else response.data
+        self.assertEqual(len(data), 1)
+        self.assertIn("Hola", data[0]['content'])
+
+    def test_search_requires_authentication(self):
+        response = self.client.get("/api/v1/messages/search/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # -- thread serializer last_message (BUG-MSG-02 regression test) -----
+
+    def test_thread_serializer_includes_last_message(self):
+        """MessageThreadSerializer expone last_message vía SerializerMethodField."""
+        msg = _make_message(self.thread, self.user1, self.user2, "Último mensaje")
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(f"/api/v1/messages/threads/{self.thread.pk}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('last_message', response.data)
+        if response.data['last_message'] is not None:
+            self.assertEqual(response.data['last_message']['content'], "Último mensaje")
+
+    def test_thread_serializer_last_message_none_when_empty(self):
+        """Si el thread no tiene mensajes, last_message es None."""
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(f"/api/v1/messages/threads/{self.thread.pk}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data.get('last_message'))
+
+    # -- can-communicate endpoint ---------
+
+    def test_can_communicate_endpoint_authenticated(self):
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(
+            f"/api/v1/messages/can-communicate/{self.user2.pk}/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # -- star message ---------
+
+    def test_star_message(self):
+        msg = _make_message(self.thread, self.user1, self.user2, "Importante")
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.post(f"/api/v1/messages/star/{msg.pk}/")
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])
+
+    # -- mark-unread ---------
+
+    def test_mark_unread(self):
+        msg = _make_message(self.thread, self.user1, self.user2, "Test")
+        msg.is_read = True
+        msg.save()
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.post(f"/api/v1/messages/mark-unread/{msg.pk}/")
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])

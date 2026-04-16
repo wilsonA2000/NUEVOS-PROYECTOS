@@ -13,8 +13,8 @@ websocket_urlpatterns = [
     # WebSocket para notificaciones generales
     re_path(r'ws/notifications/$', consumers.NotificationConsumer.as_asgi()),
     
-    # WebSocket para conversaciones específicas
-    re_path(r'ws/messaging/thread/(?P<thread_id>\d+)/$', consumers.ThreadConsumer.as_asgi()),
+    # WebSocket para conversaciones específicas (UUID thread_id)
+    re_path(r'ws/messaging/thread/(?P<thread_id>[0-9a-f\-]+)/$', consumers.ThreadConsumer.as_asgi()),
     
     # WebSocket para estados de usuario (online/offline)
     re_path(r'ws/user-status/$', consumers.UserStatusConsumer.as_asgi()),
