@@ -21,18 +21,18 @@ from core.optimizations import (
     cache_expensive_operation, OptimizedTransactionSerializer
 )
 from .models import (
-    Transaction, PaymentMethod, Invoice, EscrowAccount, 
-    PaymentPlan, PaymentInstallment, RentPaymentSchedule, 
-    RentPaymentReminder
+    Transaction, PaymentMethod, Invoice, EscrowAccount,
+    PaymentPlan, PaymentInstallment, RentPaymentSchedule,
+    RentPaymentReminder, PaymentOrder,
 )
 from .gateways.stripe_gateway import StripeGateway
 from .gateways.base import PaymentResult
 from .serializers import (
     TransactionSerializer, CreateTransactionSerializer,
     PaymentMethodSerializer, InvoiceSerializer, CreateInvoiceSerializer,
-    EscrowAccountSerializer, PaymentPlanSerializer, 
+    EscrowAccountSerializer, PaymentPlanSerializer,
     PaymentInstallmentSerializer, PaymentStatsSerializer, BalanceSerializer,
-    RentPaymentScheduleSerializer
+    RentPaymentScheduleSerializer, PaymentOrderSerializer,
 )
 from users.services import AdminActionLogger
 
@@ -1937,3 +1937,93 @@ from .payment_stats_api import (
     SystemPaymentStatsAPIView,
     ExportPaymentStatsAPIView
 )
+
+
+class PaymentOrderViewSet(viewsets.ModelViewSet):
+    """ViewSet de órdenes de pago con filtros por rol.
+
+    - admin/staff: ve todas las órdenes con filtros opcionales
+    - landlord: ve órdenes donde es payee (cobra) o payer (paga, suscripción)
+    - tenant: ve órdenes donde es payer (paga canon) o payee (raro)
+    - service_provider: ve órdenes donde es payee (cobra servicios) o payer (paga suscripción)
+
+    Filtros opcionales por query: ?status=pending&order_type=rent&overdue=true
+    """
+    serializer_class = PaymentOrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = PaymentOrder.objects.select_related('payer', 'payee', 'created_by')
+
+        # Filtro por rol
+        if user.is_staff or user.is_superuser:
+            pass  # ve todo
+        else:
+            qs = qs.filter(Q(payer=user) | Q(payee=user))
+
+        # Filtros opcionales por query string
+        params = self.request.query_params
+        order_type = params.get('order_type')
+        if order_type:
+            qs = qs.filter(order_type=order_type)
+        status_filter = params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        if params.get('overdue') in ('true', '1'):
+            from datetime import date
+            qs = qs.filter(date_due__lt=date.today()).exclude(
+                status__in=['paid', 'cancelled']
+            )
+
+        return qs.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        order = serializer.save(created_by=self.request.user)
+        order.add_audit_event(
+            'created',
+            f'Orden creada por {self.request.user.email}',
+            actor=self.request.user,
+        )
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancela una orden pendiente. Sólo el creador o admin."""
+        order = self.get_object()
+        user = request.user
+        if not (user.is_staff or order.created_by_id == user.id):
+            return Response(
+                {'error': 'Solo el creador o un admin puede cancelar la orden.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if order.status in ('paid', 'cancelled'):
+            return Response(
+                {'error': f'Orden ya está {order.status}, no se puede cancelar.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        order.status = 'cancelled'
+        order.add_audit_event('cancelled', f'Cancelada por {user.email}', actor=user, save=False)
+        order.save()
+        return Response({'status': 'cancelled', 'order_number': order.order_number})
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Resumen agregado para el dashboard del usuario actual."""
+        qs = self.get_queryset()
+        from datetime import date
+        today = date.today()
+        return Response({
+            'total': qs.count(),
+            'pending': qs.filter(status='pending').count(),
+            'overdue': qs.filter(date_due__lt=today).exclude(
+                status__in=['paid', 'cancelled']
+            ).count(),
+            'paid_this_month': qs.filter(
+                status='paid',
+                paid_at__year=today.year,
+                paid_at__month=today.month,
+            ).count(),
+            'total_amount_pending': qs.filter(status='pending').aggregate(
+                total=Sum('amount')
+            )['total'] or 0,
+        })

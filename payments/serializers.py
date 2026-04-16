@@ -5,7 +5,8 @@ Serializers para la aplicación de pagos de VeriHome.
 from rest_framework import serializers
 from .models import (
     Transaction, PaymentMethod, Invoice, EscrowAccount,
-    PaymentPlan, PaymentInstallment, RentPaymentSchedule, RentPaymentReminder
+    PaymentPlan, PaymentInstallment, RentPaymentSchedule, RentPaymentReminder,
+    PaymentOrder,
 )
 # Importaciones de escrow y payment plans ahora están en models.py
 
@@ -265,4 +266,42 @@ if EscrowReleaseRule:
             if obj.trigger_date:
                 delta = obj.trigger_date - timezone.now().date()
                 return delta.days if delta.days >= 0 else 0
-            return None 
+            return None
+
+
+class PaymentOrderSerializer(serializers.ModelSerializer):
+    """Serializer de PaymentOrder con totales calculados y partes legibles."""
+
+    payer_email = serializers.CharField(source='payer.email', read_only=True)
+    payee_email = serializers.CharField(source='payee.email', read_only=True)
+    payer_name = serializers.SerializerMethodField()
+    payee_name = serializers.SerializerMethodField()
+    total_amount = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    balance = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    order_type_display = serializers.CharField(source='get_order_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = PaymentOrder
+        fields = [
+            'id', 'order_number', 'order_type', 'order_type_display',
+            'status', 'status_display',
+            'payer', 'payer_email', 'payer_name',
+            'payee', 'payee_email', 'payee_name',
+            'amount', 'interest_amount', 'paid_amount',
+            'total_amount', 'balance',
+            'date_due', 'date_grace_end', 'date_max_overdue',
+            'rent_schedule', 'installment', 'invoice', 'transaction',
+            'description', 'audit_log',
+            'created_at', 'updated_at', 'paid_at',
+        ]
+        read_only_fields = [
+            'id', 'order_number', 'paid_amount', 'total_amount', 'balance',
+            'audit_log', 'created_at', 'updated_at', 'paid_at',
+        ]
+
+    def get_payer_name(self, obj):
+        return obj.payer.get_full_name() or obj.payer.email
+
+    def get_payee_name(self, obj):
+        return obj.payee.get_full_name() or obj.payee.email 

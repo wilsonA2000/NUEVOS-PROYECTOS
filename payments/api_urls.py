@@ -19,6 +19,8 @@ router.register(r'payment-plans', api_views.PaymentPlanViewSet, basename='paymen
 router.register(r'installments', api_views.PaymentPlanInstallmentViewSet, basename='payment-installment')
 # router.register(r'escrow-milestones', api_views.EscrowMilestoneViewSet, basename='escrow-milestone')  # Disabled - model not available
 router.register(r'rent-schedules', api_views.RentPaymentScheduleViewSet, basename='rent-schedule')
+# T1.4: Órdenes de pago consecutivas auditables (rent + service + subscription)
+router.register(r'orders', api_views.PaymentOrderViewSet, basename='payment-order')
 
 urlpatterns = [
     # Incluir rutas del router

@@ -995,6 +995,161 @@ class LegalInterestRate(models.Model):
         return cls.objects.filter(is_active=True).order_by('-year', '-month').first()
 
 
+class PaymentOrder(models.Model):
+    """Orden de pago auditable con consecutivo único.
+
+    Unifica las fuentes de cobro (canon, servicio, suscripción, otros)
+    bajo un mismo número consecutivo `PO-YYYY-NNNNNNNN` para que admin,
+    arrendador, arrendatario y prestador puedan rastrear todo desde un
+    único panel.
+
+    Cada PaymentOrder tiene 3 fechas (vencimiento, fin gracia, mora máxima)
+    heredadas de la lógica de RentPaymentSchedule. Los servicios usan solo
+    `date_due` (sin intereses moratorios).
+    """
+
+    ORDER_TYPES = [
+        ('rent', 'Canon de arrendamiento'),
+        ('service', 'Servicio prestado'),
+        ('subscription', 'Suscripción de plataforma'),
+        ('deposit', 'Depósito / garantía'),
+        ('other', 'Otro'),
+    ]
+
+    ORDER_STATUS = [
+        ('pending', 'Pendiente'),
+        ('partial', 'Pagada parcialmente'),
+        ('paid', 'Pagada'),
+        ('overdue', 'En mora'),
+        ('cancelled', 'Cancelada'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order_number = models.CharField(
+        'Número consecutivo',
+        max_length=30,
+        unique=True,
+        db_index=True,
+        help_text='Formato PO-YYYY-NNNNNNNN, generado automáticamente.',
+    )
+    order_type = models.CharField('Tipo de orden', max_length=20, choices=ORDER_TYPES)
+    status = models.CharField('Estado', max_length=20, choices=ORDER_STATUS, default='pending')
+
+    # Partes
+    payer = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        related_name='payment_orders_to_pay',
+        verbose_name='Pagador',
+    )
+    payee = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        related_name='payment_orders_to_receive',
+        verbose_name='Beneficiario',
+    )
+    created_by = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        related_name='payment_orders_created',
+        verbose_name='Creada por',
+    )
+
+    # Montos
+    amount = models.DecimalField('Monto base', max_digits=12, decimal_places=2)
+    interest_amount = models.DecimalField(
+        'Intereses moratorios acumulados',
+        max_digits=12, decimal_places=2, default=Decimal('0.00'),
+    )
+    paid_amount = models.DecimalField(
+        'Monto pagado',
+        max_digits=12, decimal_places=2, default=Decimal('0.00'),
+    )
+
+    # 3 fechas
+    date_due = models.DateField('Fecha de vencimiento')
+    date_grace_end = models.DateField('Fin de período de gracia', null=True, blank=True)
+    date_max_overdue = models.DateField('Tope legal de mora', null=True, blank=True)
+
+    # Relaciones opcionales (una orden viene de algún origen)
+    rent_schedule = models.ForeignKey(
+        RentPaymentSchedule,
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payment_orders',
+    )
+    installment = models.ForeignKey(
+        'PaymentInstallment',
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payment_orders',
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payment_orders',
+    )
+    transaction = models.ForeignKey(
+        'Transaction',
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payment_orders',
+        help_text='Transaction de la pasarela cuando se completa el pago.',
+    )
+
+    # Auditoría
+    description = models.CharField('Descripción', max_length=255, blank=True)
+    audit_log = models.JSONField('Log de eventos', default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Orden de Pago'
+        verbose_name_plural = 'Órdenes de Pago'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['order_number']),
+            models.Index(fields=['order_type', 'status']),
+            models.Index(fields=['payer', 'status']),
+            models.Index(fields=['payee', 'status']),
+            models.Index(fields=['date_due']),
+        ]
+
+    def __str__(self):
+        return f"{self.order_number} · {self.get_order_type_display()} · {self.amount}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            year = timezone.now().year
+            count = PaymentOrder.objects.filter(created_at__year=year).count() + 1
+            self.order_number = f"PO-{year}-{count:08d}"
+        super().save(*args, **kwargs)
+
+    @property
+    def total_amount(self):
+        """Suma del principal + intereses moratorios."""
+        return self.amount + self.interest_amount
+
+    @property
+    def balance(self):
+        """Saldo pendiente."""
+        return self.total_amount - self.paid_amount
+
+    def is_overdue(self, reference_date=None):
+        from datetime import date
+        today = reference_date or date.today()
+        return today > self.date_due and self.status not in ('paid', 'cancelled')
+
+    def add_audit_event(self, event_type, message, actor=None, save=True):
+        """Append a structured event to the audit_log."""
+        entry = {
+            'type': event_type,
+            'message': message,
+            'actor_id': str(actor.id) if actor else None,
+            'timestamp': timezone.now().isoformat(),
+        }
+        if not isinstance(self.audit_log, list):
+            self.audit_log = []
+        self.audit_log.append(entry)
+        if save:
+            self.save(update_fields=['audit_log', 'updated_at'])
+
+
 # Importar modelos de escrow integration
 try:
     from .escrow_integration import (
@@ -1007,7 +1162,7 @@ try:
     __all__ = [
         'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
         'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder',
-        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE',
+        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE', 'PaymentOrder',
         'ContractEscrowAccount', 'ContractEscrowTransaction', 'ContractEscrowReleaseRule', 'ContractEscrowService'
     ]
 except ImportError:
@@ -1015,5 +1170,5 @@ except ImportError:
     __all__ = [
         'PaymentMethod', 'Transaction', 'EscrowAccount', 'Invoice', 'InvoiceItem',
         'PaymentPlan', 'PaymentInstallment', 'RentPaymentSchedule', 'RentPaymentReminder',
-        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE',
+        'LegalInterestRate', 'MAX_USURY_MONTHLY_RATE', 'PaymentOrder',
     ]
