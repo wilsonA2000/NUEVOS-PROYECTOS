@@ -27,6 +27,7 @@ const ContractDetail = lazy(() => import('../components/contracts/ContractDetail
 const PaymentList = lazy(() => import('../components/payments/PaymentList').then(m => ({ default: m.PaymentList })));
 const PaymentForm = lazy(() => import('../components/payments/PaymentForm').then(m => ({ default: m.PaymentForm })));
 const PaymentDetail = lazy(() => import('../components/payments/PaymentDetail').then(m => ({ default: m.PaymentDetail })));
+const PaymentDashboardPage = lazy(() => import('../pages/payments/PaymentDashboardPage'));
 const MessagesMain = lazy(() => import('../pages/messages/MessagesMain'));
 const MessageForm = lazy(() => import('../components/messages/MessageForm').then(m => ({ default: m.MessageForm })));
 const MessageDetail = lazy(() => import('../components/messages/MessageDetail').then((m: any) => ({ default: m.MessageDetail || m.default })));
@@ -209,9 +210,11 @@ return (
           <Route path=":id" element={<LazyRoute type="page"><ContractDetail /></LazyRoute>} />
           <Route path=":id/edit" element={<LazyRoute type="form"><ContractForm /></LazyRoute>} />
         </Route>
-        {/* Payments Routes */}
+        {/* Payments Routes — index ahora es el dashboard unificado T3.1.
+            Las rutas legacy permanecen como /payments/transactions/* */}
         <Route path="payments">
-          <Route index element={<LazyRoute type="table"><PaymentList /></LazyRoute>} />
+          <Route index element={<LazyRoute type="page"><PaymentDashboardPage /></LazyRoute>} />
+          <Route path="transactions" element={<LazyRoute type="table"><PaymentList /></LazyRoute>} />
           <Route path="new" element={<LazyRoute type="form"><PaymentForm /></LazyRoute>} />
           <Route path=":id" element={<LazyRoute type="page"><PaymentDetail /></LazyRoute>} />
           <Route path=":id/edit" element={<LazyRoute type="form"><PaymentForm /></LazyRoute>} />

@@ -578,4 +578,47 @@ export const paymentService = {
     const response = await api.get('/payments/metrics/conversion/', { params });
     return response.data;
   },
+
+  // T1.4 + T3.1 · PaymentOrder consecutivo unificado
+
+  /**
+   * Lista órdenes de pago del usuario actual.
+   * Backend filtra por rol (admin ve todo, partes ven las suyas).
+   */
+  getOrders: async (params?: {
+    order_type?: 'rent' | 'service' | 'subscription' | 'deposit' | 'other';
+    status?: 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled';
+    overdue?: boolean;
+  }): Promise<any> => {
+    const queryParams = new URLSearchParams();
+    if (params?.order_type) queryParams.set('order_type', params.order_type);
+    if (params?.status) queryParams.set('status', params.status);
+    if (params?.overdue) queryParams.set('overdue', 'true');
+    const qs = queryParams.toString();
+    const url = qs ? `/payments/orders/?${qs}` : '/payments/orders/';
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  getOrder: async (id: string): Promise<any> => {
+    const response = await api.get(`/payments/orders/${id}/`);
+    return response.data;
+  },
+
+  /** Resumen agregado del dashboard. */
+  getOrdersSummary: async (): Promise<{
+    total: number;
+    pending: number;
+    overdue: number;
+    paid_this_month: number;
+    total_amount_pending: number;
+  }> => {
+    const response = await api.get('/payments/orders/summary/');
+    return response.data;
+  },
+
+  cancelOrder: async (id: string): Promise<any> => {
+    const response = await api.post(`/payments/orders/${id}/cancel/`);
+    return response.data;
+  },
 }; 
