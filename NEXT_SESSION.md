@@ -1,133 +1,119 @@
-# Próxima sesión · Continuación auditoría 2026-04-15
+# Proxima sesion · Auditoria profunda pre-pruebas manuales
 
-## Estado al cerrar 2026-04-15
+## Estado al cerrar 2026-04-16
 
-- Branch: `fix/audit-2026-04-15` · **10 commits empujados a origin**
-- Rollback: `git checkout pre-audit-2026-04-15`
-- Reporte final: `AUDIT_2026_04_15_FINAL.md`
-- Bitácora detallada: `AUDIT_2026_04_15.md`
-- **12 bugs arreglados y validados** · **13 bugs pendientes documentados**
+- Branch: `main` · PR #1 merged (`f89ee21`)
+- Tag de referencia: `post-audit-2026-04-15`
+- **34 bugs resueltos** en auditoria 2026-04-15/16
+- **0 bugs P0/P1 pendientes**
+- Backend: 664 tests, 2 fails preexistentes (`core.ContactAPITests`)
+- E2E triple firma biometrica: verde
+- tsc --noEmit: 0 errores
 
-## Plan priorizado para la próxima sesión
+## Contexto
 
-### 🔴 PRIORIDAD 1 · Arreglar BIO-02 (P0 bloqueante) · ~45-60 min
+La auditoria del 15/16-abr cubrio **5 viajes de usuario** (tenant busca propiedad, landlord publica, admin revisa, prestador suscribe, agente verifica) y encontro 34 bugs. Se arreglaron todos.
 
-Es el único bug que bloquea el **propósito del refactor del 13-abr**. Sin él, el flujo auto-creado Match→Contract queda a medias y nadie puede llegar a firma biométrica sin pasar por el formulario viejo del landlord.
+Sin embargo, hay apps que **nunca fueron auditadas en profundidad**:
+- `messaging` (28 tests pasan pero endpoints no revisados manualmente)
+- `ratings` (37 tests pasan, nunca auditado)
+- `requests` (0 tests, 0 cobertura)
+- `users` (33 tests, solo se toco impersonation)
+- `core` (2 tests fallando: ContactAPITests)
+- Frontend: messaging UI, ratings UI, admin dashboards, maintenance pages
 
-**Qué hay que hacer**:
+La idea es: **encontrar y arreglar TODO antes de empezar pruebas manuales**, para no perder tiempo debuggeando mientras se prueba visualmente.
 
-1. Leer `matching/models.py:193-218` (método `_ensure_contract_exists`)
-2. Agregar creación de `LandlordControlledContract` sincronizado con el `Contract` legacy
-3. Establecer estado inicial correcto (`ready_for_authentication` o `pending_tenant_biometric` según el flujo que use el frontend)
-4. Validar que `approve_contract` del tenant funcione sin tener que pasar por el formulario manual del landlord
-5. Validar E2E con:
-   ```bash
-   cd frontend
-   npx playwright test --config=playwright.config.e2e-real.ts multi-user-contract-signing
-   ```
-6. Si E2E pasa → commit + push
+## Plan priorizado para la proxima sesion
 
-**Archivos a tocar (predicho)**:
-- `matching/models.py` (método `_ensure_contract_exists`)
-- Posiblemente `contracts/landlord_contract_service.py` para reusar constructor LCC
-- Posiblemente test nuevo en `matching/tests.py`
+### FASE 1: Fix tests fallando (15 min)
+Los 2 tests en `core.tests.test_core_models_api.ContactAPITests` fallan. Arreglarlos primero para tener **664/664 verde**.
 
-**Riesgos**:
-- Si el E2E `multi-user-contract-signing` se rompe, hay que investigar qué estado exacto espera el frontend
-- La tabla `LandlordControlledContract` tiene campos adicionales (basic_terms, guarantee_terms) — hay que decidir defaults razonables
+### FASE 2: Auditoria de `requests` app (30 min)
+- **0 tests**. La app maneja `TenantDocument` y `PropertyInterestRequest`.
+- Revisar modelos, serializers, api_views, endpoints.
+- Escribir tests basicos para endpoints CRUD.
+- Verificar que los endpoints respondan correctamente.
 
-### 🟠 PRIORIDAD 2 · DASH-03 resto (P1) · ~60 min
+### FASE 3: Auditoria de `messaging` endpoints (30 min)
+- 28 tests pasan pero son unitarios, no de integracion API.
+- Hacer smoke test de todos los endpoints REST: threads, messages, mark-read, etc.
+- Verificar WebSocket consumers (al menos que no crasheen al conectar).
 
-Sistema V2 de widgets inaccesible. Son 3 clases que faltan en `dashboard/services.py`:
-- `DashboardDataService`
-- `WidgetDataProvider`
-- `DashboardAnalytics`
+### FASE 4: Auditoria de `ratings` endpoints (20 min)
+- 37 tests pasan. Verificar CRUD de ratings y que las reviews funcionen end-to-end.
 
-**Decisión previa requerida**: ¿las creamos stub mínimas o refactorizamos los endpoints V2 para no depender de ellas? Leer `dashboard/api_views.py` completo primero.
+### FASE 5: Auditoria de `users` endpoints profunda (30 min)
+- Revisar todos los endpoints: profile, resume, settings, activity-logs, notifications.
+- El import roto de `AdminPermission` en `users/admin_views.py` sigue ahi: arreglarlo o eliminarlo.
+- Verificar que el flujo register → email verification → login funcione.
 
-### 🟠 PRIORIDAD 3 · SVC-02 (P1) · requiere decisión de producto
+### FASE 6: Frontend - modulos sin cobertura E2E (45 min)
+- Navegar como tenant: messaging UI, ratings, service requests
+- Navegar como landlord: admin dashboards, verification visits
+- Navegar como admin: audit dashboard, tickets, SLA dashboard
+- Documentar bugs encontrados.
 
-**Gap de modelo de negocio**: prestadores pagan $100K/mes plan Profesional pero no pueden publicar nada.
-
-**Decisión previa requerida** (preguntar a Wilson):
-- **Opción A**: cambiar `ServiceViewSet` a `ModelViewSet` · permitir que el SP agregue ítems al catálogo público
-- **Opción B**: crear modelo nuevo `ServiceListing` vinculado a `ServiceSubscription` · los SP publican listings privados a su perfil
-- **Opción C**: redefinir qué significa "publicar servicios" en el plan Profesional (ej: solo habilita badge verificado + listado destacado)
-
-### 🟡 PRIORIDAD 4 · Bugs P2 menores · ~30 min total
-
-- **FAV-01**: mover `favorites` fuera del router raíz en `properties/api_urls.py`
-- **PROP-07**: permitir POST en `PropertyImageViewSet` con MultiPartParser
-- **VER-01**: agregar `queryset` explícito al `PrimaryKeyRelatedField` de user en VerificationAgentSerializer
-- **DASH-02**: arreglar agregación de `total_value` en `ContractStatsAPIView`
-
-### 🔵 PRIORIDAD 5 · Cosméticos (sesión separada)
-
-- **VIS-4** · barrido emojis en 15 archivos secundarios
-- **VIS-5** · migrar 29 archivos de colores hardcoded a tokens
-- **NAV-01** · documentar convenciones de URLs o agregar redirects
+### FASE 7: Limpieza final (20 min)
+- VIS-5 restante (~50% de archivos con hex)
+- `users/admin_views.py` import roto (`AdminPermission`)
+- NAV-01 si da tiempo
 
 ---
 
-## Prompt para la próxima sesión
+## Prompt para la proxima sesion
 
 ```
-Continúa la auditoría VeriHome iniciada el 2026-04-15.
+Continua la auditoria profunda de VeriHome antes de pruebas manuales.
 
-Branch activa: fix/audit-2026-04-15 (sincronizada con origin).
-Rollback disponible: pre-audit-2026-04-15.
+Branch: main (post-merge PR #1, tag post-audit-2026-04-15).
 
-Lee primero NEXT_SESSION.md en la raíz del proyecto. Luego:
+Lee primero NEXT_SESSION.md en la raiz del proyecto. Luego:
 
-1. Arranca por BIO-02 (P0 bloqueante): modificar
-   matching/models.py:_ensure_contract_exists() para que también cree un
-   LandlordControlledContract sincronizado con el Contract legacy, con estado
-   inicial que permita al tenant approve_contract sin pasar por el formulario
-   manual del landlord. Validar con el E2E multi-user-contract-signing.
+1. Arranca por FASE 1: arreglar los 2 tests fallando en
+   core.tests.test_core_models_api.ContactAPITests. Correr
+   python manage.py test para confirmar 664/664 verde.
 
-2. Tras validar BIO-02, discútele a Wilson las decisiones de producto
-   pendientes (SVC-02 opciones A/B/C) antes de tocar código.
+2. Sigue con FASE 2: auditar requests app (0 tests, 0 cobertura).
+   Revisar modelos/serializers/endpoints, escribir tests basicos.
 
-3. Sigue el mismo patrón que ayer: auditar → arreglar → validar → commit →
-   push → documentar. Un commit por bug (o grupo pequeño coherente).
+3. FASE 3-5: smoke de messaging, ratings y users endpoints.
+   Documentar cualquier bug como BUG-XXX en el mismo patron de la
+   auditoria anterior.
+
+4. FASE 6: si hay tiempo, navegar frontend como tenant/landlord/admin
+   y documentar bugs UI.
 
 Convenciones:
-- Commits en español con formato "fix(módulo): ID · descripción"
-- Bugs tipificados en AUDIT_2026_04_15.md (actualizar esa bitácora)
-- Reporte final se actualiza al cierre (AUDIT_2026_04_15_FINAL.md)
+- Commits en español con formato "fix(modulo): ID . descripcion"
+- Un commit por bug o grupo pequeno coherente
+- Correr tests despues de cada fix
+- Push a origin al terminar cada fase
 
-Contexto de la sesión anterior:
-- 25 bugs descubiertos · 12 arreglados · 13 pendientes
-- Core de la plataforma (triple firma biométrica) sigue verde en E2E
-- 79/79 tests properties OK · tsc --noEmit 0 errores
-
-Al arrancar, verifica el estado de servidores (Django :8000, Vite :5174)
-y corre el E2E base para tener línea de comparación antes de los fixes.
+Contexto:
+- 664 tests backend, 2 fails preexistentes en core.ContactAPITests
+- E2E triple firma verde · tsc 0 errores
+- Servidores dev: Django :8000 / Vite :5174
+- Token GitHub actualizado (ya configurado en remote)
 ```
 
 ---
 
-## Cómo arrancar rápido en la próxima sesión
+## Como arrancar rapido
 
 ```bash
-# 1. Posicionarte en el branch
+# 1. Posicionarte
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git checkout fix/audit-2026-04-15
-git pull origin fix/audit-2026-04-15
+git status  # debe decir "On branch main, up to date"
 
-# 2. Revisar estado
-cat NEXT_SESSION.md
-cat AUDIT_2026_04_15_FINAL.md
-
-# 3. Arrancar servidores (screen)
+# 2. Arrancar servidores
 screen -dmS django bash -c "source venv_ubuntu/bin/activate && python manage.py runserver 0.0.0.0:8000 > /tmp/django.log 2>&1"
 cd frontend && screen -dmS vite bash -c "npm run dev > /tmp/vite.log 2>&1" && cd ..
 
-# 4. Seed users + propiedades
+# 3. Confirmar tests base ANTES de tocar nada
 source venv_ubuntu/bin/activate
-python scripts/testing/seed_e2e_multiuser.py property_ready
-python manage.py seed_subscription_plans
+python manage.py test 2>&1 | tail -5
+# Esperado: 664 tests, 2 failures (ContactAPITests)
 
-# 5. Correr E2E de referencia ANTES de tocar nada
-cd frontend && npx playwright test --config=playwright.config.e2e-real.ts multi-user-contract-signing
+# 4. Empezar por FASE 1
 ```
