@@ -75,4 +75,6 @@ urlpatterns = [
 
     # Recibo de pago PDF
     path('transactions/<uuid:pk>/receipt/', api_views.PaymentReceiptAPIView.as_view(), name='api_payment_receipt'),
+    # T3.3: recibo PDF de PaymentOrder con consecutivo + desglose intereses
+    path('orders/<uuid:pk>/receipt/', api_views.PaymentOrderReceiptAPIView.as_view(), name='api_payment_order_receipt'),
 ]

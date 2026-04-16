@@ -290,6 +290,111 @@ def process_all_reminders():
     return stats
 
 
+# T3.3 · Notificaciones de PaymentOrder con consecutivo
+
+def send_payment_order_reminder(order, reminder_type='upcoming'):
+    """Envía email de recordatorio para una PaymentOrder específica.
+
+    A diferencia de send_payment_reminder (basado en RentPaymentSchedule),
+    este usa PaymentOrder.order_number como referencia auditable y
+    refleja correctamente el desglose monto base + intereses moratorios
+    cuando aplique.
+
+    Args:
+        order: instancia de payments.models.PaymentOrder
+        reminder_type: 'upcoming' (3 días antes), 'overdue' (vencida),
+                       'late_fee' (mora aplicada con saldo actualizado)
+    """
+    payer = order.payer
+    if not payer or not payer.email:
+        logger.info(f'Order {order.order_number} sin payer.email; skip')
+        return False
+
+    payer_name = payer.get_full_name() or payer.email
+    amount_str = f'${order.total_amount:,.0f}'
+    has_interest = order.interest_amount and order.interest_amount > 0
+    interest_str = f'${order.interest_amount:,.0f}' if has_interest else None
+
+    base_footer = (
+        '\n\n---\n'
+        f'Consecutivo auditable: {order.order_number}\n'
+        'Si ya realizó este pago, por favor ignore este mensaje.\n'
+        'VeriHome — Plataforma inmobiliaria.'
+    )
+
+    if reminder_type == 'upcoming':
+        subject = f'[VeriHome] Recordatorio de pago próximo — {order.order_number}'
+        body = (
+            f'Estimado/a {payer_name},\n\n'
+            f'Su orden de pago {order.order_number} vence el '
+            f'{order.date_due.strftime("%d/%m/%Y")}.\n\n'
+            f'  - Tipo: {order.get_order_type_display()}\n'
+            f'  - Monto base: ${order.amount:,.0f}\n'
+            f'  - Total a pagar: {amount_str}\n\n'
+            f'Le recomendamos pagar antes del vencimiento para evitar '
+            f'recargos por mora según la tasa legal vigente.'
+            f'{base_footer}'
+        )
+    elif reminder_type == 'overdue':
+        subject = f'[VeriHome] Pago VENCIDO — {order.order_number}'
+        body = (
+            f'Estimado/a {payer_name},\n\n'
+            f'Su orden de pago {order.order_number} está VENCIDA desde '
+            f'{order.date_due.strftime("%d/%m/%Y")}.\n\n'
+            f'  - Monto base: ${order.amount:,.0f}\n'
+        )
+        if has_interest:
+            body += f'  - Intereses moratorios acumulados: {interest_str}\n'
+        body += (
+            f'  - Total a pagar: {amount_str}\n\n'
+            f'Se aplican intereses diarios según la tasa legal colombiana '
+            f'vigente. Realice el pago a la mayor brevedad para evitar '
+            f'que el saldo siga incrementando.'
+            f'{base_footer}'
+        )
+    elif reminder_type == 'late_fee':
+        subject = f'[VeriHome] Intereses moratorios aplicados — {order.order_number}'
+        body = (
+            f'Estimado/a {payer_name},\n\n'
+            f'Le informamos que se han aplicado intereses moratorios a su '
+            f'orden de pago {order.order_number}:\n\n'
+            f'  - Monto base original: ${order.amount:,.0f}\n'
+            f'  - Intereses moratorios acumulados: {interest_str or "$0"}\n'
+            f'  - SALDO ACTUAL: {amount_str}\n\n'
+            f'El cálculo se realiza diariamente sobre el saldo, según la '
+            f'tasa legal certificada por la Superintendencia Financiera de '
+            f'Colombia, con tope máximo de {order.rent_schedule.legal_grace_days_max if order.rent_schedule else 30} '
+            f'días de mora computable. Pasado ese plazo procede acción jurídica.'
+            f'{base_footer}'
+        )
+    else:
+        subject = f'[VeriHome] Notificación — {order.order_number}'
+        body = (
+            f'Estimado/a {payer_name},\n\n'
+            f'Tiene una orden de pago pendiente: {order.order_number} '
+            f'por {amount_str}.'
+            f'{base_footer}'
+        )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@verihome.co'),
+            recipient_list=[payer.email],
+            fail_silently=False,
+        )
+        order.add_audit_event(
+            f'reminder_sent_{reminder_type}',
+            f'Email enviado a {payer.email}',
+        )
+        logger.info(f'PaymentOrder reminder ({reminder_type}) sent for {order.order_number}')
+        return True
+    except Exception as e:
+        logger.error(f'Failed to send PaymentOrder reminder for {order.order_number}: {e}')
+        return False
+
+
 def escalate_severely_overdue():
     """
     Escala pagos severamente vencidos (más de 15 días).

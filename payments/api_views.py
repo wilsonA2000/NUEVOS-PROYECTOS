@@ -1929,6 +1929,43 @@ class PaymentReceiptAPIView(APIView):
             )
 
 
+class PaymentOrderReceiptAPIView(APIView):
+    """T3.3 · Recibo PDF de una PaymentOrder con consecutivo auditable.
+
+    GET /api/v1/payments/orders/{id}/receipt/
+
+    Solo el payer, payee o admin pueden descargar el recibo.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        from django.http import HttpResponse
+
+        try:
+            order = PaymentOrder.objects.select_related('payer', 'payee').get(pk=pk)
+        except PaymentOrder.DoesNotExist:
+            return Response({'error': 'Orden no encontrada.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        if not (user.is_staff or order.payer_id == user.id or order.payee_id == user.id):
+            return Response({'error': 'Sin permiso para ver esta orden.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            from .receipt_generator import generate_payment_order_receipt
+            pdf_bytes = generate_payment_order_receipt(order)
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            filename = f'recibo_{order.order_number}.pdf'
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
+        except Exception as e:
+            return Response(
+                {'error': f'Error generando recibo: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 # ===== ADVANCED PAYMENT ANALYTICS IMPORTS =====
 
 # Import the advanced payment statistics API views from payment_stats_api module

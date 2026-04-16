@@ -364,3 +364,166 @@ def _get_payment_method_display(payment):
     if payment.gateway_provider:
         return payment.gateway_provider.title()
     return 'No especificado'
+
+
+# T3.3 · Receipt PDF para PaymentOrder con consecutivo + desglose intereses
+
+def generate_payment_order_receipt(order):
+    """
+    Genera un recibo PDF de una PaymentOrder pagada.
+
+    A diferencia de generate_payment_receipt (que se basa en Transaction),
+    este recibo destaca:
+    - El consecutivo único PO-YYYY-NNNNNNNN como referencia auditable
+    - El desglose de monto base + intereses moratorios (cuando aplica)
+    - Las 3 fechas legales (vencimiento, fin gracia, tope mora)
+
+    Args:
+        order: instancia de payments.models.PaymentOrder
+
+    Returns:
+        bytes: contenido del PDF generado.
+    """
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=1.5 * cm,
+        leftMargin=1.5 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+        title=f"Recibo Orden de Pago - {order.order_number}",
+        author="VeriHome Platform",
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'POTitle', parent=styles['Title'], fontSize=22,
+        textColor=VERIHOME_PRIMARY, alignment=TA_CENTER, spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'POSubtitle', parent=styles['Normal'], fontSize=10,
+        textColor=VERIHOME_SECONDARY, alignment=TA_CENTER, spaceAfter=18,
+    )
+    section_style = ParagraphStyle(
+        'POSection', parent=styles['Heading2'], fontSize=12,
+        textColor=VERIHOME_PRIMARY, spaceBefore=14, spaceAfter=6,
+    )
+    label_style = ParagraphStyle(
+        'POLabel', parent=styles['Normal'], fontSize=9, textColor=colors.grey,
+    )
+    value_style = ParagraphStyle(
+        'POValue', parent=styles['Normal'], fontSize=11, textColor=colors.black,
+        spaceAfter=4,
+    )
+
+    elements = []
+
+    # Encabezado con consecutivo destacado
+    elements.append(Paragraph("VERIHOME", title_style))
+    elements.append(Paragraph(
+        f"Recibo de pago · Orden {order.order_number}",
+        subtitle_style,
+    ))
+
+    # Caja con info principal
+    info_rows = [
+        ['Consecutivo:', order.order_number],
+        ['Tipo:', order.get_order_type_display()],
+        ['Estado:', order.get_status_display()],
+        ['Pagador:', order.payer.get_full_name() or order.payer.email],
+        ['Beneficiario:', order.payee.get_full_name() or order.payee.email],
+    ]
+    info_table = Table(info_rows, colWidths=[5 * cm, 11 * cm])
+    info_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(info_table)
+
+    # Sección de fechas legales (3 fechas)
+    elements.append(Paragraph("Fechas legales (Ley 820/2003)", section_style))
+    dates_rows = [
+        ['Vencimiento del canon:', _format_simple_date(order.date_due)],
+        ['Fin del período de gracia:', _format_simple_date(order.date_grace_end)],
+        ['Tope legal de mora:', _format_simple_date(order.date_max_overdue)],
+    ]
+    dates_table = Table(dates_rows, colWidths=[6 * cm, 10 * cm])
+    dates_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.grey),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(dates_table)
+
+    # Desglose de montos
+    elements.append(Paragraph("Desglose del monto", section_style))
+    money_rows = [
+        ['Monto base del canon:', _format_money(order.amount)],
+    ]
+    if order.interest_amount and order.interest_amount > 0:
+        money_rows.append(['Intereses moratorios:', _format_money(order.interest_amount)])
+    money_rows.append(['Total cobrado:', _format_money(order.total_amount)])
+    money_rows.append(['Pagado:', _format_money(order.paid_amount)])
+    money_rows.append(['Saldo:', _format_money(order.balance)])
+
+    money_table = Table(money_rows, colWidths=[6 * cm, 10 * cm])
+    money_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('FONTNAME', (0, -3), (-1, -3), 'Helvetica-Bold'),  # Total
+        ('LINEABOVE', (0, -3), (-1, -3), 0.5, colors.grey),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(money_table)
+
+    # Descripción
+    if order.description:
+        elements.append(Paragraph("Descripción", section_style))
+        elements.append(Paragraph(order.description, value_style))
+
+    # Footer
+    elements.append(Spacer(1, 1 * cm))
+    elements.append(Paragraph(
+        f"Generado automáticamente por VeriHome el "
+        f"{_format_simple_date(timezone.now().date())}. "
+        f"Este recibo tiene validez auditable; consérvelo para sus registros.",
+        ParagraphStyle('POFooter', parent=styles['Normal'], fontSize=8,
+                       textColor=colors.grey, alignment=TA_CENTER),
+    ))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
+
+def _format_simple_date(d):
+    """Formatea una fecha (date, datetime o None) en formato es-CO."""
+    if d is None:
+        return '—'
+    if hasattr(d, 'date'):
+        d = d.date()
+    return d.strftime('%d/%m/%Y')
+
+
+def _format_money(amount):
+    """Formato dinero COP."""
+    from decimal import Decimal
+    if amount is None:
+        return '$0'
+    try:
+        n = Decimal(str(amount))
+    except Exception:
+        return f'${amount}'
+    return f'${n:,.0f}'
