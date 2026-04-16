@@ -12,10 +12,12 @@ from django.utils import timezone
 from datetime import timedelta
 
 from .models import ServiceCategory, Service, ServiceRequest, SubscriptionPlan, ServiceSubscription
+from .models import ServiceOrder, ServicePayment
 from .serializers import (
     ServiceCategorySerializer, ServiceListSerializer, ServiceDetailSerializer,
     CreateServiceRequestSerializer, ServiceRequestSerializer, ServiceStatsSerializer,
-    SubscriptionPlanSerializer, ServiceSubscriptionSerializer
+    SubscriptionPlanSerializer, ServiceSubscriptionSerializer,
+    ServiceOrderSerializer, ServicePaymentSerializer,
 )
 
 
@@ -402,3 +404,136 @@ class ServiceSubscriptionViewSet(viewsets.ModelViewSet):
             'active_subscriptions': active,
             'by_plan': by_plan,
         })
+
+
+class ServiceOrderViewSet(viewsets.ModelViewSet):
+    """T2.2 · ViewSet de órdenes de servicio prestador↔cliente.
+
+    - El prestador crea órdenes en estado 'draft' o 'sent'.
+    - El cliente las acepta o rechaza (acciones accept / reject).
+    - Cuando se acepta, se crea automáticamente una PaymentOrder enlazada
+      (consecutivo PO-YYYY-NNNNNNNN) que el cliente puede pagar vía pasarela.
+    - Validación: el prestador debe tener suscripción activa para crear.
+
+    Permisos por rol:
+    - admin/staff: ve todas
+    - provider: ve órdenes que emitió
+    - client (landlord/tenant): ve órdenes recibidas
+    """
+    serializer_class = ServiceOrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = ServiceOrder.objects.select_related(
+            'provider', 'client', 'service', 'payment_order',
+        ).prefetch_related('payments')
+        if user.is_staff or user.is_superuser:
+            return qs
+        return qs.filter(Q(provider=user) | Q(client=user))
+
+    def perform_create(self, serializer):
+        # Validar suscripción activa del prestador
+        provider = self.request.user
+        if provider.user_type != 'service_provider':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Solo prestadores pueden crear órdenes de servicio.')
+        sub = ServiceSubscription.objects.filter(
+            service_provider=provider, status__in=['trial', 'active'],
+        ).first()
+        if sub is None:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied(
+                'Necesitas una suscripción activa para emitir órdenes de servicio.'
+            )
+        serializer.save(provider=provider)
+
+    @action(detail=True, methods=['post'])
+    def send(self, request, pk=None):
+        """Marca la orden como enviada al cliente."""
+        order = self.get_object()
+        if order.provider_id != request.user.id:
+            return Response({'error': 'Solo el emisor puede enviar.'}, status=status.HTTP_403_FORBIDDEN)
+        if order.status != 'draft':
+            return Response({'error': f'Solo órdenes en draft pueden enviarse (actual: {order.status}).'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        order.status = 'sent'
+        order.sent_at = timezone.now()
+        order.save()
+        return Response(self.get_serializer(order).data)
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        """Cliente acepta la orden y se genera la PaymentOrder."""
+        order = self.get_object()
+        if order.client_id != request.user.id:
+            return Response({'error': 'Solo el cliente puede aceptar.'}, status=status.HTTP_403_FORBIDDEN)
+        if order.status not in ('sent', 'draft'):
+            return Response({'error': f'No se puede aceptar una orden en estado {order.status}.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Crear PaymentOrder enlazada (T1.4)
+        from payments.models import PaymentOrder
+        from datetime import date as _date, timedelta as _td
+        due = order.due_date or (_date.today() + _td(days=15))
+        po = PaymentOrder.objects.create(
+            order_type='service',
+            payer=order.client,
+            payee=order.provider,
+            created_by=order.provider,
+            amount=order.amount,
+            date_due=due,
+            date_grace_end=due,  # sin gracia para servicios
+            date_max_overdue=due,  # sin mora para servicios
+            description=f'Orden de servicio · {order.title}',
+            status='pending',
+        )
+        po.add_audit_event(
+            'service_accepted',
+            f'Orden aceptada por {request.user.email}',
+            actor=request.user,
+        )
+
+        order.status = 'accepted'
+        order.accepted_at = timezone.now()
+        order.payment_order = po
+        order.save()
+        return Response(self.get_serializer(order).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """Cliente rechaza la orden."""
+        order = self.get_object()
+        if order.client_id != request.user.id:
+            return Response({'error': 'Solo el cliente puede rechazar.'}, status=status.HTTP_403_FORBIDDEN)
+        if order.status not in ('sent', 'draft'):
+            return Response({'error': f'No se puede rechazar una orden en estado {order.status}.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        order.status = 'rejected'
+        order.save()
+        return Response(self.get_serializer(order).data)
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancelación por el prestador o admin."""
+        order = self.get_object()
+        user = request.user
+        if not (user.is_staff or order.provider_id == user.id):
+            return Response({'error': 'Solo el prestador o admin pueden cancelar.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        if order.status in ('paid', 'cancelled'):
+            return Response({'error': f'Orden ya está {order.status}.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        order.status = 'cancelled'
+        order.cancelled_at = timezone.now()
+        order.save()
+        # También cancelar la PaymentOrder asociada si existe
+        if order.payment_order and order.payment_order.status not in ('paid', 'cancelled'):
+            order.payment_order.status = 'cancelled'
+            order.payment_order.add_audit_event(
+                'service_cancelled',
+                f'Orden de servicio cancelada por {user.email}',
+                actor=user,
+            )
+            order.payment_order.save()
+        return Response(self.get_serializer(order).data)

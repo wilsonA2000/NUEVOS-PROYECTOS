@@ -862,3 +862,145 @@ class ServicePaymentModelTests(TestCase):
         )
         # Una orden puede tener múltiples pagos
         self.assertEqual(self.order.payments.count(), 2)
+
+
+# ---------------------------------------------------------------------------
+# T2.2 · ServiceOrderViewSet API
+# ---------------------------------------------------------------------------
+
+class ServiceOrderAPITests(APITestCase):
+    """Endpoints CRUD + workflow de ServiceOrder."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create_user(
+            email='admin@svc.com', password='test1234',
+            first_name='A', last_name='X',
+            user_type='landlord', is_staff=True,
+        )
+        self.provider = User.objects.create_user(
+            email='prov@svc.com', password='test1234',
+            first_name='Prov', last_name='X',
+            user_type='service_provider',
+        )
+        self.tenant = User.objects.create_user(
+            email='tt@svc.com', password='test1234',
+            first_name='Ten', last_name='X',
+            user_type='tenant',
+        )
+        # Crear suscripción activa para el provider
+        plan = SubscriptionPlan.objects.create(
+            name='Plan Test', slug='plan-test', description='x',
+            price=Decimal('50000'),
+        )
+        ServiceSubscription.objects.create(
+            service_provider=self.provider, plan=plan, status='active',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+        )
+
+    def test_unauthenticated_returns_401(self):
+        response = self.client.get('/api/v1/services/orders/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_provider_can_create_order(self):
+        self.client.force_authenticate(user=self.provider)
+        response = self.client.post('/api/v1/services/orders/', {
+            'client': str(self.tenant.id),
+            'title': 'Limpieza profunda',
+            'description': 'Apto completo',
+            'amount': '250000',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['status'], 'draft')
+
+    def test_tenant_cannot_create_order(self):
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.post('/api/v1/services/orders/', {
+            'client': str(self.tenant.id),
+            'title': 'X', 'amount': '100000',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_provider_without_subscription_blocked(self):
+        prov2 = User.objects.create_user(
+            email='nosub@svc.com', password='x',
+            first_name='X', last_name='Y',
+            user_type='service_provider',
+        )
+        self.client.force_authenticate(user=prov2)
+        response = self.client.post('/api/v1/services/orders/', {
+            'client': str(self.tenant.id),
+            'title': 'X', 'amount': '100000',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_send_action(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.tenant,
+            title='X', amount=Decimal('100000'),
+        )
+        self.client.force_authenticate(user=self.provider)
+        response = self.client.post(f'/api/v1/services/orders/{order.id}/send/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'sent')
+        self.assertIsNotNone(order.sent_at)
+
+    def test_accept_creates_payment_order(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.tenant,
+            title='Servicio X', amount=Decimal('300000'),
+            status='sent',
+        )
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.post(f'/api/v1/services/orders/{order.id}/accept/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'accepted')
+        self.assertIsNotNone(order.payment_order)
+        self.assertEqual(order.payment_order.amount, Decimal('300000'))
+        self.assertEqual(order.payment_order.order_type, 'service')
+        self.assertTrue(order.payment_order.order_number.startswith('PO-'))
+
+    def test_reject_action(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.tenant,
+            title='X', amount=Decimal('100000'), status='sent',
+        )
+        self.client.force_authenticate(user=self.tenant)
+        response = self.client.post(f'/api/v1/services/orders/{order.id}/reject/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'rejected')
+
+    def test_cancel_by_provider(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.tenant,
+            title='X', amount=Decimal('100000'), status='draft',
+        )
+        self.client.force_authenticate(user=self.provider)
+        response = self.client.post(f'/api/v1/services/orders/{order.id}/cancel/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'cancelled')
+
+    def test_provider_sees_only_own_orders(self):
+        ServiceOrder.objects.create(
+            provider=self.provider, client=self.tenant,
+            title='X', amount=Decimal('100000'),
+        )
+        # Otra orden de otro provider con suscripción
+        other_prov = User.objects.create_user(
+            email='other@svc.com', password='x',
+            first_name='X', last_name='Y',
+            user_type='service_provider',
+        )
+        ServiceOrder.objects.create(
+            provider=other_prov, client=self.tenant,
+            title='Y', amount=Decimal('200000'),
+        )
+        self.client.force_authenticate(user=self.provider)
+        response = self.client.get('/api/v1/services/orders/')
+        data = response.data['results'] if 'results' in response.data else response.data
+        self.assertEqual(len(data), 1)

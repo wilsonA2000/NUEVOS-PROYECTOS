@@ -5,6 +5,7 @@ Serializers para la API de servicios adicionales.
 from rest_framework import serializers
 from .models import SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory
 from .models import ServiceCategory, Service, ServiceImage, ServiceRequest
+from .models import ServiceOrder, ServicePayment
 
 
 class ServiceImageSerializer(serializers.ModelSerializer):
@@ -182,3 +183,50 @@ class ServiceSubscriptionSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'services_published', 'requests_this_month', 'created_at', 'updated_at']
+
+
+# T2.2 · ServiceOrder + ServicePayment serializers
+
+class ServicePaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServicePayment
+        fields = ['id', 'order', 'amount_paid', 'gateway', 'transaction', 'paid_at', 'notes']
+        read_only_fields = ['id', 'paid_at', 'transaction']
+
+
+class ServiceOrderSerializer(serializers.ModelSerializer):
+    """Serializer principal de ServiceOrder con campos derivados."""
+
+    provider = serializers.PrimaryKeyRelatedField(read_only=True)
+    provider_email = serializers.CharField(source='provider.email', read_only=True)
+    client_email = serializers.CharField(source='client.email', read_only=True)
+    provider_name = serializers.SerializerMethodField()
+    client_name = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_order_number = serializers.CharField(
+        source='payment_order.order_number', read_only=True, default=None,
+    )
+    payments = ServicePaymentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ServiceOrder
+        fields = [
+            'id', 'provider', 'provider_email', 'provider_name',
+            'client', 'client_email', 'client_name',
+            'service', 'title', 'description', 'amount', 'due_date',
+            'status', 'status_display',
+            'payment_order', 'payment_order_number', 'payments',
+            'sent_at', 'accepted_at', 'paid_at', 'cancelled_at',
+            'notes', 'created_at', 'updated_at',
+        ]
+        read_only_fields = [
+            'id', 'provider', 'payment_order', 'payment_order_number',
+            'sent_at', 'accepted_at', 'paid_at', 'cancelled_at',
+            'created_at', 'updated_at',
+        ]
+
+    def get_provider_name(self, obj):
+        return obj.provider.get_full_name() or obj.provider.email
+
+    def get_client_name(self, obj):
+        return obj.client.get_full_name() or obj.client.email

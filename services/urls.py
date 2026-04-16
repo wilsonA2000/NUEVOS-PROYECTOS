@@ -9,7 +9,8 @@ from .api_views import (
     ServiceCategoryViewSet, ServiceViewSet, ServiceRequestViewSet,
     PopularServicesListView, FeaturedServicesListView,
     MostRequestedServicesListView, ServicesByCategoryListView,
-    ServiceSearchView, SubscriptionPlanViewSet, ServiceSubscriptionViewSet
+    ServiceSearchView, SubscriptionPlanViewSet, ServiceSubscriptionViewSet,
+    ServiceOrderViewSet,
 )
 
 app_name = 'services'
@@ -25,6 +26,8 @@ router.register(r'services', ServiceViewSet, basename='services')  # legacy alia
 router.register(r'requests', ServiceRequestViewSet, basename='requests')
 router.register(r'subscription-plans', SubscriptionPlanViewSet, basename='subscription-plans')
 router.register(r'subscriptions', ServiceSubscriptionViewSet, basename='subscriptions')
+# T2.2: Órdenes de servicio prestador↔cliente
+router.register(r'orders', ServiceOrderViewSet, basename='service-orders')
 
 urlpatterns = [
     # API endpoints (sin prefijo extra /api/ porque ya está en /api/v1/services/)
