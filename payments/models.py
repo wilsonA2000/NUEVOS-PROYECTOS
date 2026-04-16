@@ -725,9 +725,22 @@ class RentPaymentSchedule(models.Model):
     # Detalles del pago
     rent_amount = models.DecimalField('Monto de renta', max_digits=10, decimal_places=2)
     due_date = models.PositiveIntegerField('Día de vencimiento', default=1)  # Día del mes
-    late_fee_amount = models.DecimalField('Recargo por mora', max_digits=10, decimal_places=2, default=0)
+    # late_fee_amount: monto fijo legacy, ahora actúa como FALLBACK si no hay
+    # LegalInterestRate vigente. Se mantiene por compatibilidad con tests.
+    late_fee_amount = models.DecimalField('Recargo por mora (legacy/fallback)', max_digits=10, decimal_places=2, default=0)
     grace_period_days = models.PositiveIntegerField('Días de gracia', default=5)
-    
+    # Sistema de 3 fechas (Ley 820/2003 + tope de usura colombiano):
+    # 1. Vencimiento = day_of_month (`due_date`)
+    # 2. Fin de gracia = vencimiento + grace_period_days (sin recargo)
+    # 3. Mora máxima = fin_gracia + legal_grace_days_max (cap legal,
+    #    pasado este punto el cálculo de interés se congela y procede
+    #    el proceso jurídico de restitución).
+    legal_grace_days_max = models.PositiveIntegerField(
+        'Días máximos de mora computables',
+        default=30,
+        help_text='Cap legal de días para los que se calcula interés moratorio.',
+    )
+
     # Configuración automática
     auto_charge_enabled = models.BooleanField('Cobro automático habilitado', default=False)
     auto_late_fee_enabled = models.BooleanField('Recargo automático por mora', default=True)
@@ -787,17 +800,82 @@ class RentPaymentSchedule(models.Model):
     def is_payment_overdue(self):
         """Verifica si el pago actual está vencido."""
         from datetime import date, timedelta
-        
+
         due_date = self.get_next_due_date()
         grace_end = due_date + timedelta(days=self.grace_period_days)
-        
+
         return date.today() > grace_end
-    
-    def calculate_late_fee(self):
-        """Calcula el recargo por mora si aplica."""
-        if self.is_payment_overdue() and self.auto_late_fee_enabled:
+
+    # === Sistema de 3 fechas (Ley 820/2003 colombiano) ===
+
+    def get_three_dates(self, reference_date=None):
+        """Devuelve las 3 fechas clave del cobro mensual.
+
+        - date_due: día del mes en que vence el canon
+        - date_grace_end: vencimiento + grace_period_days (sin recargo)
+        - date_max_overdue: fin de gracia + legal_grace_days_max
+          (a partir de aquí el interés moratorio NO sigue creciendo
+          y procede acción jurídica de restitución)
+        """
+        from datetime import timedelta
+
+        date_due = self.get_next_due_date()
+        date_grace_end = date_due + timedelta(days=self.grace_period_days)
+        date_max_overdue = date_grace_end + timedelta(days=self.legal_grace_days_max)
+        return {
+            'date_due': date_due,
+            'date_grace_end': date_grace_end,
+            'date_max_overdue': date_max_overdue,
+        }
+
+    def overdue_days(self, reference_date=None):
+        """Días de mora computables (capados al tope legal).
+
+        Retorna 0 si todavía está dentro del período de gracia.
+        Retorna `legal_grace_days_max` como tope superior.
+        """
+        from datetime import date
+
+        today = reference_date or date.today()
+        dates = self.get_three_dates(today)
+        if today <= dates['date_grace_end']:
+            return 0
+        days = (today - dates['date_grace_end']).days
+        return min(days, self.legal_grace_days_max)
+
+    def calculate_late_fee(self, reference_date=None, principal=None):
+        """Calcula el interés moratorio acumulado a la fecha.
+
+        Fórmula (Ley 820/2003 + Superfinanciera):
+            días_mora_capados = min(today - fin_gracia, legal_grace_days_max)
+            tasa_diaria = tasa_mensual_legal / 30
+            interés = principal * tasa_diaria * días_mora_capados
+
+        Si no hay LegalInterestRate vigente, cae al monto fijo legacy
+        `late_fee_amount` (compatibilidad). Si auto_late_fee_enabled es
+        False, retorna 0.
+        """
+        from decimal import Decimal
+        from datetime import date
+
+        if not self.auto_late_fee_enabled:
+            return Decimal('0.00')
+
+        today = reference_date or date.today()
+        days = self.overdue_days(today)
+        if days == 0:
+            return Decimal('0.00')
+
+        principal = principal if principal is not None else self.rent_amount
+        rate = LegalInterestRate.get_rate_for(today.year, today.month)
+        if rate is None:
+            # Fallback: monto fijo legacy
             return self.late_fee_amount
-        return 0
+
+        daily_rate = rate.monthly_rate / Decimal('30')
+        interest = principal * daily_rate * Decimal(days)
+        # Redondear a 2 decimales (centavos)
+        return interest.quantize(Decimal('0.01'))
 
 
 class RentPaymentReminder(models.Model):
