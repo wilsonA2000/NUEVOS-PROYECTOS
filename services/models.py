@@ -487,3 +487,126 @@ class SubscriptionBillingHistory(models.Model):
 
     def __str__(self):
         return f"{self.subscription.service_provider.get_full_name()} - ${self.amount:,.0f} ({self.get_status_display()})"
+
+
+# T2.1 · Órdenes de pago de servicios prestador↔cliente
+
+class ServiceOrder(models.Model):
+    """Orden de servicio creada por un prestador para cobrar a un cliente.
+
+    El cliente puede ser arrendador o arrendatario. Una vez aceptada,
+    se enlaza una PaymentOrder para pago vía pasarela. Sin intereses
+    moratorios (decisión de producto: los servicios se pagan al contado
+    o al entregar).
+    """
+
+    STATUS_CHOICES = [
+        ('draft', 'Borrador'),
+        ('sent', 'Enviada al cliente'),
+        ('accepted', 'Aceptada (lista para pago)'),
+        ('paid', 'Pagada'),
+        ('rejected', 'Rechazada'),
+        ('cancelled', 'Cancelada'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    provider = models.ForeignKey(
+        'users.User',
+        on_delete=models.PROTECT,
+        related_name='service_orders_issued',
+        limit_choices_to={'user_type': 'service_provider'},
+        verbose_name='Prestador',
+    )
+    client = models.ForeignKey(
+        'users.User',
+        on_delete=models.PROTECT,
+        related_name='service_orders_received',
+        verbose_name='Cliente (arrendador o arrendatario)',
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='orders',
+        help_text='Catálogo de referencia (opcional, puede ser servicio ad-hoc).',
+    )
+    title = models.CharField('Título', max_length=200)
+    description = models.TextField('Descripción del trabajo', blank=True)
+    amount = models.DecimalField('Monto', max_digits=12, decimal_places=2)
+    status = models.CharField('Estado', max_length=20, choices=STATUS_CHOICES, default='draft')
+    due_date = models.DateField('Fecha de pago esperada', null=True, blank=True)
+
+    # Enlace al consecutivo unificado (T1.4)
+    payment_order = models.OneToOneField(
+        'payments.PaymentOrder',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='service_order',
+        help_text='Generada cuando el cliente acepta.',
+    )
+
+    # Auditoría
+    sent_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField('Notas internas', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Orden de Servicio'
+        verbose_name_plural = 'Órdenes de Servicio'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['provider', 'status']),
+            models.Index(fields=['client', 'status']),
+            models.Index(fields=['status', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f'OS · {self.title} · {self.amount} · {self.get_status_display()}'
+
+
+class ServicePayment(models.Model):
+    """Pago realizado contra una ServiceOrder.
+
+    Una orden puede tener varios pagos (parciales) aunque el caso típico
+    es un único pago al monto total. Cada ServicePayment se enlaza a
+    la Transaction de la pasarela cuando el webhook reconcilia.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(
+        ServiceOrder,
+        on_delete=models.CASCADE,
+        related_name='payments',
+    )
+    amount_paid = models.DecimalField('Monto pagado', max_digits=12, decimal_places=2)
+    gateway = models.CharField(
+        'Pasarela',
+        max_length=20,
+        choices=[
+            ('stripe', 'Stripe'),
+            ('wompi', 'Wompi'),
+            ('pse', 'PSE'),
+            ('manual', 'Manual / efectivo'),
+        ],
+    )
+    transaction = models.ForeignKey(
+        'payments.Transaction',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='service_payments',
+        help_text='Transaction de la pasarela cuando el webhook reconcilia.',
+    )
+    paid_at = models.DateTimeField(auto_now_add=True)
+    notes = models.CharField('Referencia', max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = 'Pago de Servicio'
+        verbose_name_plural = 'Pagos de Servicio'
+        ordering = ['-paid_at']
+
+    def __str__(self):
+        return f'Pago {self.amount_paid} a OS {self.order_id} via {self.gateway}'

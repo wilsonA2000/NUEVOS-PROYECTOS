@@ -6,7 +6,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db import models
 from django.forms import Textarea
-from .models import ServiceCategory, Service, ServiceImage, ServiceRequest, SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory
+from .models import (
+    ServiceCategory, Service, ServiceImage, ServiceRequest,
+    SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory,
+    ServiceOrder, ServicePayment,
+)
 
 
 @admin.register(ServiceCategory)
@@ -205,3 +209,40 @@ class ServiceSubscriptionAdmin(admin.ModelAdmin):
         ('Notas', {'fields': ('cancellation_reason', 'admin_notes'), 'classes': ('collapse',)}),
         ('Sistema', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),
     )
+
+
+class ServicePaymentInline(admin.TabularInline):
+    model = ServicePayment
+    extra = 0
+    readonly_fields = ('id', 'amount_paid', 'gateway', 'transaction', 'paid_at')
+
+
+@admin.register(ServiceOrder)
+class ServiceOrderAdmin(admin.ModelAdmin):
+    list_display = ('id_short', 'title', 'provider', 'client', 'amount', 'status', 'due_date', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title', 'description', 'provider__email', 'client__email')
+    readonly_fields = ('id', 'created_at', 'updated_at', 'sent_at',
+                       'accepted_at', 'paid_at', 'cancelled_at', 'payment_order')
+    inlines = [ServicePaymentInline]
+    fieldsets = (
+        ('Identificación', {'fields': ('id', 'status')}),
+        ('Partes', {'fields': ('provider', 'client', 'service')}),
+        ('Detalles', {'fields': ('title', 'description', 'amount', 'due_date')}),
+        ('Pago', {'fields': ('payment_order',)}),
+        ('Notas', {'fields': ('notes',)}),
+        ('Auditoría', {'fields': ('sent_at', 'accepted_at', 'paid_at', 'cancelled_at',
+                                   'created_at', 'updated_at')}),
+    )
+
+    def id_short(self, obj):
+        return str(obj.id)[:8]
+    id_short.short_description = 'ID'
+
+
+@admin.register(ServicePayment)
+class ServicePaymentAdmin(admin.ModelAdmin):
+    list_display = ('order', 'amount_paid', 'gateway', 'paid_at')
+    list_filter = ('gateway', 'paid_at')
+    search_fields = ('order__title', 'notes')
+    readonly_fields = ('id', 'paid_at', 'transaction')

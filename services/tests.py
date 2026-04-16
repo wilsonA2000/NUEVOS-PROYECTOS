@@ -17,7 +17,15 @@ from django.utils import timezone
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
-from .models import ServiceCategory, Service, ServiceRequest, ServiceImage, SubscriptionPlan, ServiceSubscription
+from django.contrib.auth import get_user_model
+
+from .models import (
+    ServiceCategory, Service, ServiceRequest, ServiceImage,
+    SubscriptionPlan, ServiceSubscription,
+    ServiceOrder, ServicePayment,
+)
+
+User = get_user_model()
 
 
 # ---------------------------------------------------------------------------
@@ -768,3 +776,89 @@ class AdditionalListViewAPITests(APITestCase):
             "/api/v1/services/search/", {"search": "Albanileria"}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+# ---------------------------------------------------------------------------
+# T2.1 · ServiceOrder + ServicePayment models
+# ---------------------------------------------------------------------------
+
+class ServiceOrderModelTests(TestCase):
+    """Tests del modelo ServiceOrder."""
+
+    def setUp(self):
+        self.provider = User.objects.create_user(
+            email='prov@test.com', password='test1234',
+            first_name='Pro', last_name='V',
+            user_type='service_provider',
+        )
+        self.client_user = User.objects.create_user(
+            email='client@test.com', password='test1234',
+            first_name='Cli', last_name='Ent',
+            user_type='tenant',
+        )
+
+    def test_create_service_order_default_status_draft(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider,
+            client=self.client_user,
+            title='Limpieza profunda',
+            description='Limpieza del apto completo',
+            amount=Decimal('250000'),
+        )
+        self.assertEqual(order.status, 'draft')
+        self.assertIsNone(order.payment_order)
+
+    def test_str_representation(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.client_user,
+            title='Pintura', amount=Decimal('500000'),
+        )
+        s = str(order)
+        self.assertIn('Pintura', s)
+        self.assertIn('500000', s)
+
+    def test_uuid_primary_key(self):
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.client_user,
+            title='Test', amount=Decimal('100000'),
+        )
+        self.assertIsInstance(order.id, uuid.UUID)
+
+
+class ServicePaymentModelTests(TestCase):
+    """Tests del modelo ServicePayment."""
+
+    def setUp(self):
+        provider = User.objects.create_user(
+            email='prov2@test.com', password='test1234',
+            first_name='X', last_name='Y',
+            user_type='service_provider',
+        )
+        client_user = User.objects.create_user(
+            email='client2@test.com', password='test1234',
+            first_name='X', last_name='Y',
+            user_type='tenant',
+        )
+        self.order = ServiceOrder.objects.create(
+            provider=provider, client=client_user,
+            title='Test', amount=Decimal('300000'),
+        )
+
+    def test_create_payment(self):
+        payment = ServicePayment.objects.create(
+            order=self.order,
+            amount_paid=Decimal('300000'),
+            gateway='stripe',
+        )
+        self.assertEqual(payment.amount_paid, Decimal('300000'))
+        self.assertEqual(payment.gateway, 'stripe')
+
+    def test_payment_order_relation(self):
+        ServicePayment.objects.create(
+            order=self.order, amount_paid=Decimal('100000'), gateway='manual',
+        )
+        ServicePayment.objects.create(
+            order=self.order, amount_paid=Decimal('200000'), gateway='wompi',
+        )
+        # Una orden puede tener múltiples pagos
+        self.assertEqual(self.order.payments.count(), 2)
