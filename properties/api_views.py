@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Avg, Count
 from django.utils import timezone
@@ -58,6 +59,10 @@ class PropertyPagination(PageNumberPagination):
 
 class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.ModelViewSet):
     """ViewSet para propiedades con permisos basados en roles - ALTAMENTE OPTIMIZADO."""
+    # FAV-01: PropertyViewSet está registrado en la raíz del router, así que sin
+    # este regex el DefaultRouter captura URLs como /properties/favorites/ como
+    # "detail de propiedad con pk=favorites" y devuelve 404.
+    lookup_value_regex = r'[0-9a-fA-F-]{36}'
     pagination_class = PropertyPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['property_type', 'listing_type', 'status', 'city', 'state']
@@ -103,8 +108,9 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
     def perform_create(self, serializer):
         """Asigna el landlord al crear la propiedad."""
         property_obj = serializer.save(landlord=self.request.user)
-        
-        # Invalidar cache relacionado con propiedades
+
+        SmartCache.invalidate_pattern('properties:list:v2:*')
+        SmartCache.invalidate_pattern('property:detail:v2:*')
         SmartCache.invalidate_pattern('verihome:properties:*')
         
         request = self.request
@@ -153,10 +159,9 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
                 user=request.user,
                 activity_type='property_edit',
                 description=f'Edición de propiedad {property_obj.title}',
-                details={'property_id': str(property_obj.id)},
+                metadata={'property_id': str(property_obj.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -169,6 +174,8 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
             instance.delete()
             
             # Invalidar cache DESPUÉS de eliminar
+            SmartCache.invalidate_pattern('properties:list:v2:*')
+            SmartCache.invalidate_pattern('property:detail:v2:*')
             SmartCache.invalidate_pattern('verihome:properties:*')
             
             # Logging simple sin errores
@@ -187,6 +194,8 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
                 if hasattr(instance, 'is_active'):
                     instance.is_active = False
                     instance.save(update_fields=['is_active'])
+                    SmartCache.invalidate_pattern('properties:list:v2:*')
+                    SmartCache.invalidate_pattern('property:detail:v2:*')
                     SmartCache.invalidate_pattern('verihome:properties:*')
                     logger.warning(f'Fallback a soft delete para propiedad {property_id}')
                 else:
@@ -273,10 +282,12 @@ class PropertyImageViewSet(viewsets.ModelViewSet):
     queryset = PropertyImage.objects.select_related('property').order_by('order')
     serializer_class = PropertyImageSerializer
     permission_classes = [CanEditProperty]
-    
+    # PROP-07: permitir subida de archivos vía FormData además del JSON estándar.
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
     def get_queryset(self):
-        """Filtra imágenes por propiedad."""
-        property_id = self.kwargs.get('property_pk')
+        """Filtra imágenes por propiedad (nested) o por query param `property`."""
+        property_id = self.kwargs.get('property_pk') or self.request.query_params.get('property')
         if property_id:
             return self.queryset.filter(property_id=property_id)
         return self.queryset.none()
@@ -305,10 +316,9 @@ class PropertyImageViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_image_create',
                 description=f'Agregar imagen a propiedad {image.property.title}',
-                details={'property_id': str(image.property.id), 'image_id': str(image.id)},
+                metadata={'property_id': str(image.property.id), 'image_id': str(image.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -334,10 +344,9 @@ class PropertyImageViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_image_delete',
                 description=f'Eliminar imagen de propiedad {property_title}',
-                details={'deleted_image_id': image_id},
+                metadata={'deleted_image_id': image_id},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
@@ -502,10 +511,9 @@ class PropertyInquiryViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_inquiry_create',
                 description=f'Consulta sobre propiedad {inquiry.property.title}',
-                details={'property_id': str(inquiry.property.id), 'inquiry_id': str(inquiry.id)},
+                metadata={'property_id': str(inquiry.property.id), 'inquiry_id': str(inquiry.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
@@ -551,10 +559,9 @@ class PropertyFavoriteViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_favorite_create',
                 description=f'Agregar propiedad {favorite.property.title} a favoritos',
-                details={'property_id': str(favorite.property.id)},
+                metadata={'property_id': str(favorite.property.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
     
     def perform_destroy(self, instance):
@@ -579,23 +586,22 @@ class PropertyFavoriteViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 activity_type='property_favorite_delete',
                 description=f'Quitar propiedad {property_title} de favoritos',
-                details={'removed_property_id': str(instance.property.id)},
+                metadata={'removed_property_id': str(instance.property.id)},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                performed_by_admin=False
             )
 
 
 class PropertySearchAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para búsqueda básica de propiedades - OPTIMIZADA."""
+    queryset = Property.objects.filter(is_active=True, status='available')
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = PropertyPagination
-    
+
     def get_queryset(self):
         """Filtra propiedades según el rol del usuario - OPTIMIZADO."""
-        # Usar queryset optimizado de la clase base
-        queryset = super().get_queryset().select_related(
+        queryset = Property.objects.filter(is_active=True, status='available').select_related(
             'landlord'
         ).prefetch_related(
             'images',
@@ -659,29 +665,31 @@ class PropertyFiltersAPIView(APIView):
 
 class FeaturedPropertiesAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para obtener propiedades destacadas."""
+    queryset = Property.objects.filter(is_active=True, status='available', is_featured=True)
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        return super().get_queryset().filter(is_featured=True)
+        return Property.objects.filter(is_active=True, status='available', is_featured=True)
 
 
 class TrendingPropertiesAPIView(PropertyAccessMixin, generics.ListAPIView):
     """Vista para obtener propiedades tendencia."""
+    queryset = Property.objects.filter(is_active=True, status='available')
     serializer_class = PropertySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        # Propiedades más vistas en los últimos 30 días
+        # Propiedades más vistas en los últimos 30 días (PropertyView usa viewed_at, no created_at)
         thirty_days_ago = timezone.now() - timedelta(days=30)
         trending_properties = PropertyView.objects.filter(
-            created_at__gte=thirty_days_ago
+            viewed_at__gte=thirty_days_ago
         ).values('property').annotate(
             view_count=Count('id')
         ).order_by('-view_count')[:10]
-        
+
         property_ids = [item['property'] for item in trending_properties]
-        return super().get_queryset().filter(id__in=property_ids)
+        return Property.objects.filter(is_active=True, status='available', id__in=property_ids)
 
 
 class PropertyStatsAPIView(APIView):

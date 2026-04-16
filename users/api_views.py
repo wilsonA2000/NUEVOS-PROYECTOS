@@ -1885,3 +1885,73 @@ class CandidateEvaluationView(APIView):
                 {'error': f'Error interno: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ============================================================================
+# ADM-05: endpoints de impersonación (admin)
+# ============================================================================
+
+class ImpersonationSessionsAPIView(APIView):
+    """Lista las sesiones de impersonación activas/recientes. Solo staff."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        from users.models import AdminImpersonationSession
+        active_only = request.query_params.get('active') == 'true'
+        qs = AdminImpersonationSession.objects.select_related('admin_user', 'impersonated_user').order_by('-started_at')
+        if active_only:
+            qs = qs.filter(ended_at__isnull=True)
+        qs = qs[:100]
+        data = [
+            {
+                'id': str(s.id),
+                'admin': s.admin_user.email if s.admin_user else None,
+                'impersonating': s.impersonated_user.email if s.impersonated_user else None,
+                'started_at': s.started_at.isoformat() if s.started_at else None,
+                'ended_at': s.ended_at.isoformat() if s.ended_at else None,
+                'reason': getattr(s, 'reason', ''),
+            }
+            for s in qs
+        ]
+        return Response({'sessions': data, 'count': len(data)})
+
+
+class StartImpersonationAPIView(APIView):
+    """Inicia una sesión de impersonación. Solo staff."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        from users.models import AdminImpersonationSession
+        target_id = request.data.get('user_id')
+        reason = request.data.get('reason', '')
+        if not target_id:
+            return Response({'error': 'user_id requerido'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            target = User.objects.get(id=target_id)
+        except User.DoesNotExist:
+            return Response({'error': 'Usuario objetivo no existe'}, status=status.HTTP_404_NOT_FOUND)
+        session = AdminImpersonationSession.objects.create(
+            admin_user=request.user,
+            impersonated_user=target,
+            reason=reason,
+            ip_address=request.META.get('REMOTE_ADDR'),
+        )
+        return Response({'session_id': str(session.id), 'impersonating': target.email}, status=status.HTTP_201_CREATED)
+
+
+class StopImpersonationAPIView(APIView):
+    """Termina la sesión de impersonación activa del admin. Solo staff."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        from users.models import AdminImpersonationSession
+        from django.utils import timezone as _tz
+        session = AdminImpersonationSession.objects.filter(
+            admin_user=request.user,
+            ended_at__isnull=True,
+        ).order_by('-started_at').first()
+        if not session:
+            return Response({'detail': 'No hay sesión activa'}, status=status.HTTP_404_NOT_FOUND)
+        session.ended_at = _tz.now()
+        session.save(update_fields=['ended_at'])
+        return Response({'detail': 'Sesión finalizada', 'session_id': str(session.id)})

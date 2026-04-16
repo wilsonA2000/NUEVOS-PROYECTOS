@@ -22,6 +22,32 @@ class IsStaffUser(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 
+class IsStaffOrAssignedAgent(permissions.BasePermission):
+    """
+    Permite acceso a staff (CRUD completo) o al agente asignado para acciones
+    sobre sus propias visitas (start/complete/cancel). VER-03.
+    """
+    AGENT_ACTIONS = {'start', 'complete', 'cancel', 'retrieve', 'list'}
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.is_staff:
+            return True
+        # Las acciones de agente requieren que el usuario tenga perfil
+        # VerificationAgent; en caso contrario, 403.
+        if getattr(view, 'action', None) not in self.AGENT_ACTIONS:
+            return False
+        return VerificationAgent.objects.filter(user=request.user).exists()
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+        # Solo si el usuario es el agente asignado a esta visita
+        agent = getattr(obj, 'agent', None)
+        return bool(agent and getattr(agent, 'user_id', None) == request.user.id)
+
+
 class VerificationAgentViewSet(viewsets.ModelViewSet):
     """CRUD de agentes de verificación. Solo staff."""
     serializer_class = VerificationAgentSerializer
@@ -67,14 +93,17 @@ class VerificationAgentViewSet(viewsets.ModelViewSet):
 
 
 class VerificationVisitViewSet(viewsets.ModelViewSet):
-    """CRUD de visitas de verificación. Solo staff."""
+    """CRUD de visitas de verificación. Staff o agente asignado (para sus visitas)."""
     serializer_class = VerificationVisitSerializer
-    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAssignedAgent]
 
     def get_queryset(self):
         qs = VerificationVisit.objects.select_related(
             'agent', 'agent__user', 'target_user', 'property_ref'
         ).all()
+        # Agentes no-staff solo ven SUS visitas
+        if not self.request.user.is_staff:
+            qs = qs.filter(agent__user=self.request.user)
 
         # Filtros
         status_filter = self.request.query_params.get('status')
@@ -95,7 +124,8 @@ class VerificationVisitViewSet(viewsets.ModelViewSet):
     def assign_agent(self, request, pk=None):
         """Asignar un agente a una visita pendiente."""
         visit = self.get_object()
-        agent_id = request.data.get('agent_id')
+        # VER-02: aceptamos tanto 'agent_id' (legado) como 'agent' (DRF estándar).
+        agent_id = request.data.get('agent_id') or request.data.get('agent')
 
         if visit.status not in ('pending', 'rescheduled'):
             return Response(

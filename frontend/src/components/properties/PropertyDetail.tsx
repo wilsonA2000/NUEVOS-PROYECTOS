@@ -822,7 +822,7 @@ export const PropertyDetail: React.FC = () => {
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                     <LocationIcon sx={{ 
                       fontSize: 18,
-                      color: '#333333',
+                      color: 'grey.900',
                     }} />
                     <Typography 
                       variant="body1" 

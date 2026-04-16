@@ -50,7 +50,7 @@ class PaymentPlan(models.Model):
     
     # Detalles del plan
     total_amount = models.DecimalField('Monto total', max_digits=12, decimal_places=2)
-    currency = models.CharField('Moneda', max_length=3, default='MXN')
+    currency = models.CharField('Moneda', max_length=3, default='COP')
     
     # Configuración de cuotas
     number_of_installments = models.PositiveIntegerField('Número de cuotas')

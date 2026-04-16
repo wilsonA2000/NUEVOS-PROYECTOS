@@ -131,7 +131,7 @@ class StripeGateway(BasePaymentGateway):
             }
             
             if amount:
-                refund_data['amount'] = self.format_amount(amount, 'MXN')
+                refund_data['amount'] = self.format_amount(amount, 'COP')
             
             refund = stripe.Refund.create(**refund_data)
             

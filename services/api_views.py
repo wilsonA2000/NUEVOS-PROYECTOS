@@ -19,6 +19,33 @@ from .serializers import (
 )
 
 
+class IsActiveSubscriberOrReadOnly(permissions.BasePermission):
+    """
+    SVC-02: service_providers con suscripción activa pueden crear/editar
+    servicios propios. Staff tiene CRUD completo. El resto solo lectura.
+    """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        if getattr(request.user, 'user_type', None) != 'service_provider':
+            return False
+        return ServiceSubscription.objects.filter(
+            service_provider=request.user,
+            status='active',
+        ).exists()
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.user.is_staff:
+            return True
+        return obj.provider_id == request.user.id
+
+
 class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para categorías de servicios."""
     queryset = ServiceCategory.objects.filter(is_active=True)
@@ -35,12 +62,15 @@ class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet para servicios."""
-    queryset = Service.objects.filter(is_active=True).select_related('category')
-    permission_classes = [AllowAny]
+class ServiceViewSet(viewsets.ModelViewSet):
+    """
+    SVC-02: CRUD de servicios. Lectura pública; creación/edición solo para
+    service_providers con suscripción activa. Staff CRUD completo.
+    """
+    queryset = Service.objects.filter(is_active=True).select_related('category', 'provider')
+    permission_classes = [IsActiveSubscriberOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'pricing_type', 'difficulty', 'is_featured', 'is_most_requested']
+    filterset_fields = ['category', 'pricing_type', 'difficulty', 'is_featured', 'is_most_requested', 'provider']
     search_fields = ['name', 'short_description', 'full_description']
     ordering_fields = ['name', 'popularity_score', 'views_count', 'requests_count', 'created_at']
     ordering = ['-popularity_score', '-is_featured', 'name']
@@ -49,6 +79,12 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return ServiceDetailSerializer
         return ServiceListSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(provider=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save()
 
     def retrieve(self, request, *args, **kwargs):
         """Obtener detalle del servicio e incrementar contador de vistas."""
@@ -88,6 +124,13 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
             services = self.get_queryset()
 
         serializer = self.get_serializer(services, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def mine(self, request):
+        """Servicios del prestador autenticado."""
+        my_services = Service.objects.filter(provider=request.user).select_related('category')
+        serializer = self.get_serializer(my_services, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])

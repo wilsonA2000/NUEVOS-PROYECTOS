@@ -90,7 +90,7 @@ const UnauthenticatedView: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ bgcolor: '#ffffff', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: 'background.paper', minHeight: '100vh' }}>
       <LandingNavbar />
 
       {/* HERO */}

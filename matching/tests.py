@@ -772,3 +772,48 @@ class MatchSpecialEndpointsAPITests(APITestCase):
         self.client.force_authenticate(user=self.tenant)
         response = self.client.get('/api/v1/matching/check-existing/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+# -- BIO-02: Regression tests para _ensure_contract_exists --------------------
+
+class EnsureContractExistsTests(TestCase):
+    """Regresión BIO-02.
+
+    Al aceptar un match se crea el Contract legacy Y un LandlordControlledContract
+    sincronizado con el mismo UUID y en estado 'BOTH_REVIEWING', para que el tenant
+    pueda ejecutar approve_contract sin pasar por el formulario manual del landlord.
+    """
+
+    def setUp(self):
+        self.landlord = _make_landlord()
+        self.tenant = _make_tenant()
+        self.prop = _make_property(self.landlord)
+        self.mr = _make_match_request(self.tenant, self.landlord, self.prop)
+
+    def test_accept_match_creates_synced_contracts(self):
+        from contracts.models import Contract
+        from contracts.landlord_contract_models import LandlordControlledContract
+
+        self.mr.accept_match(landlord_message='ok')
+
+        legacy = Contract.objects.get(match_request=self.mr)
+        lcc = LandlordControlledContract.objects.get(pk=legacy.id)
+
+        self.assertEqual(legacy.id, lcc.id, 'Contract legacy y LCC deben tener el mismo UUID')
+        self.assertEqual(legacy.status, 'draft')
+        self.assertEqual(lcc.current_state, 'BOTH_REVIEWING')
+        self.assertEqual(lcc.landlord_id, self.landlord.id)
+        self.assertEqual(lcc.tenant_id, self.tenant.id)
+        self.assertEqual(lcc.property_id, self.prop.id)
+        self.assertFalse(lcc.tenant_approved, 'tenant aún no ha aprobado')
+        self.assertTrue(lcc.landlord_approved, 'landlord ya pre-aprobó al aceptar el match')
+
+    def test_ensure_contract_is_idempotent(self):
+        from contracts.models import Contract
+        from contracts.landlord_contract_models import LandlordControlledContract
+
+        self.mr.accept_match(landlord_message='ok')
+        # Llamar dos veces no debe duplicar
+        self.mr._ensure_contract_exists()
+        self.assertEqual(Contract.objects.filter(match_request=self.mr).count(), 1)
+        self.assertEqual(LandlordControlledContract.objects.filter(landlord=self.landlord).count(), 1)

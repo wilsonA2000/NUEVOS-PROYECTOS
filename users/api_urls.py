@@ -92,4 +92,9 @@ urlpatterns = [
     
     # Candidate Evaluation (Nueva vista unificada)
     path('<str:user_id>/evaluation/', api_views.CandidateEvaluationView.as_view(), name='candidate_evaluation'),
+
+    # ADM-05: endpoints de impersonación bajo /api/v1/users/impersonation/
+    path('impersonation/', api_views.ImpersonationSessionsAPIView.as_view(), name='api_impersonation_sessions'),
+    path('impersonation/start/', api_views.StartImpersonationAPIView.as_view(), name='api_impersonation_start'),
+    path('impersonation/stop/', api_views.StopImpersonationAPIView.as_view(), name='api_impersonation_stop'),
 ]

@@ -105,7 +105,7 @@ const LandingPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#ffffff' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.paper' }}>
       <LandingNavbar />
 
       {/* Hero Section */}

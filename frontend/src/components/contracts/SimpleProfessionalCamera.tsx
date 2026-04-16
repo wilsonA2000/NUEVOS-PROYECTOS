@@ -261,7 +261,7 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
         position: 'relative',
         borderRadius: isInModal ? 0 : 2, // Sin bordes en modal
         overflow: 'hidden',
-        bgcolor: '#000000',
+        bgcolor: 'text.primary',
         background: status !== 'active' ? 'linear-gradient(135deg, #455a64 0%, #607d8b 100%)' : '#000000',
       }}>
         {/* Video Element */}
@@ -272,7 +272,7 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
             height: '100%',
             objectFit: 'cover',
             display: status === 'active' ? 'block' : 'none',
-            backgroundColor: '#000000',
+            backgroundColor: 'text.primary',
             border: status === 'active' ? '2px solid #4caf50' : 'none', // Verde cuando activo
           }}
           autoPlay

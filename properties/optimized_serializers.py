@@ -58,11 +58,13 @@ class OptimizedLandlordSerializer(serializers.ModelSerializer):
     def get_profile(self, obj):
         """Use prefetched landlord_profile to avoid N+1."""
         if hasattr(obj, 'landlord_profile') and obj.landlord_profile:
+            profile = obj.landlord_profile
             return {
-                'phone_number': obj.landlord_profile.phone_number,
-                'bio': obj.landlord_profile.bio,
-                'verified': obj.landlord_profile.verified,
-                'rating': obj.landlord_profile.rating,
+                'phone_number': getattr(obj, 'phone_number', None),
+                'bio': getattr(profile, 'bio', ''),
+                'verified': getattr(obj, 'is_verified', False),
+                'company_name': getattr(profile, 'company_name', ''),
+                'years_experience': getattr(profile, 'years_experience', 0),
             }
         return None
 
@@ -680,26 +682,21 @@ class OptimizedPropertyInquirySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PropertyInquiry
+        # PropertyInquiry no define `updated_at`. Lo dejamos fuera para que
+        # el serializer no explote al introspeccionar el modelo.
         fields = [
-            'id', 'message', 'inquirer', 'property_title', 'status',
-            'created_at', 'updated_at'
+            'id', 'property', 'subject', 'message', 'preferred_contact_method',
+            'inquirer', 'property_title', 'status', 'created_at'
         ]
-        read_only_fields = ['id', 'inquirer', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'inquirer', 'created_at']
     
     def get_inquirer(self, obj):
-        """Use prefetched inquirer data."""
-        if hasattr(obj.inquirer, 'tenant_profile') and obj.inquirer.tenant_profile:
-            return {
-                'id': obj.inquirer.id,
-                'name': f"{obj.inquirer.first_name} {obj.inquirer.last_name}",
-                'email': obj.inquirer.email,
-                'phone': obj.inquirer.tenant_profile.phone_number,
-                'verified': obj.inquirer.tenant_profile.verified
-            }
+        """Use prefetched inquirer data. `phone_number` vive en User."""
         return {
             'id': obj.inquirer.id,
             'name': f"{obj.inquirer.first_name} {obj.inquirer.last_name}",
-            'email': obj.inquirer.email
+            'email': obj.inquirer.email,
+            'phone': getattr(obj.inquirer, 'phone_number', '') or '',
         }
 
 

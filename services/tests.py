@@ -7,16 +7,17 @@ transitions, and API endpoints.
 """
 
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
+from django.utils import timezone
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
-from .models import ServiceCategory, Service, ServiceRequest, ServiceImage
+from .models import ServiceCategory, Service, ServiceRequest, ServiceImage, SubscriptionPlan, ServiceSubscription
 
 
 # ---------------------------------------------------------------------------
@@ -641,9 +642,41 @@ class ServiceAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_read_only_no_post(self):
+    def test_anonymous_cannot_post(self):
+        """SVC-02: POST sin auth → 403 (antes era 405 con ReadOnlyModelViewSet)."""
         response = self.client.post("/api/v1/services/services/", {"name": "X"})
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+    def test_subscriber_can_post(self):
+        """SVC-02: prestador con suscripción activa puede crear servicios."""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        sp = User.objects.create_user(
+            email='provider@test.com', password='Test1234!',
+            first_name='Proveedor', last_name='Test', user_type='service_provider',
+        )
+        plan = SubscriptionPlan.objects.first()
+        if not plan:
+            plan = SubscriptionPlan.objects.create(
+                name='Test', slug='test', price=50000, description='Plan test',
+                max_active_services=10,
+            )
+        ServiceSubscription.objects.create(
+            service_provider=sp, plan=plan, status='active',
+            start_date=timezone.now().date(),
+            end_date=(timezone.now() + timedelta(days=30)).date(),
+        )
+        self.client.force_authenticate(user=sp)
+        response = self.client.post("/api/v1/services/services/", {
+            "name": "Limpieza Express",
+            "short_description": "Limpieza profesional",
+            "full_description": "Limpieza profesional de interiores.",
+            "category": str(self.category.id),
+            "pricing_type": "fixed",
+            "base_price": "80000",
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['provider_name'], 'Proveedor Test')
 
 
 class ServiceRequestAPITests(APITestCase):

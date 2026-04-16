@@ -56,7 +56,13 @@ try:
     ]
     
     urlpatterns.extend(advanced_urls)
-    
-except ImportError:
-    # Si no están disponibles los modelos avanzados, continuar sin ellos
-    pass
+
+except ImportError as _dashboard_v2_import_error:
+    # Si los modelos/servicios V2 no están disponibles, loggear para diagnóstico.
+    # El `pass` silencioso anterior ocultó DASH-03 por meses.
+    # Nota 2026-04-15: queda pendiente alinear dashboard/api_views.py con services.py
+    # (faltan DashboardDataService/WidgetDataProvider/DashboardAnalytics).
+    import logging
+    logging.getLogger(__name__).warning(
+        "Dashboard V2 deshabilitado: %s", _dashboard_v2_import_error
+    )

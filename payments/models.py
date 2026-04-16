@@ -160,7 +160,7 @@ class Transaction(models.Model):
     transaction_type = models.CharField('Tipo de transacción', max_length=20, choices=TRANSACTION_TYPES)
     direction = models.CharField('Dirección', max_length=10, choices=PAYMENT_DIRECTION)
     amount = models.DecimalField('Monto', max_digits=12, decimal_places=2)
-    currency = models.CharField('Moneda', max_length=3, default='MXN')
+    currency = models.CharField('Moneda', max_length=3, default='COP')
     
     # Comisiones y tarifas
     platform_fee = models.DecimalField('Comisión de plataforma', max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -298,7 +298,7 @@ class EscrowAccount(models.Model):
     # Información del escrow
     escrow_type = models.CharField('Tipo de escrow', max_length=20, choices=ESCROW_TYPES)
     amount = models.DecimalField('Monto', max_digits=12, decimal_places=2)
-    currency = models.CharField('Moneda', max_length=3, default='MXN')
+    currency = models.CharField('Moneda', max_length=3, default='COP')
     
     # Estado y condiciones
     status = models.CharField('Estado', max_length=20, choices=ESCROW_STATUS, default='pending')
@@ -428,7 +428,7 @@ class Invoice(models.Model):
     tax_amount = models.DecimalField('Impuestos', max_digits=8, decimal_places=2, default=Decimal('0.00'))
     discount_amount = models.DecimalField('Descuentos', max_digits=8, decimal_places=2, default=Decimal('0.00'))
     total_amount = models.DecimalField('Total', max_digits=12, decimal_places=2)
-    currency = models.CharField('Moneda', max_length=3, default='MXN')
+    currency = models.CharField('Moneda', max_length=3, default='COP')
     
     # Estado y fechas
     status = models.CharField('Estado', max_length=20, choices=INVOICE_STATUS, default='draft')

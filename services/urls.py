@@ -15,9 +15,13 @@ from .api_views import (
 app_name = 'services'
 
 # Router para ViewSets
+# SVC-03: el router se monta en /api/v1/services/; para evitar el naming
+# confuso /services/services/, ServiceViewSet se registra como `listings`.
+# Se deja alias legacy `services` para compat con clientes viejos.
 router = DefaultRouter()
 router.register(r'categories', ServiceCategoryViewSet, basename='categories')
-router.register(r'services', ServiceViewSet, basename='services')
+router.register(r'listings', ServiceViewSet, basename='listings')
+router.register(r'services', ServiceViewSet, basename='services')  # legacy alias
 router.register(r'requests', ServiceRequestViewSet, basename='requests')
 router.register(r'subscription-plans', SubscriptionPlanViewSet, basename='subscription-plans')
 router.register(r'subscriptions', ServiceSubscriptionViewSet, basename='subscriptions')

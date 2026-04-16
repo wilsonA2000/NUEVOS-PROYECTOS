@@ -1017,10 +1017,63 @@ class SendInvoiceAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+class DIANInvoiceXMLAPIView(APIView):
+    """DIAN-01: devuelve XML UBL 2.1 de una factura para integración DIAN."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        from django.http import HttpResponse
+        from .dian_invoice_service import generate_dian_xml
+        try:
+            invoice = Invoice.objects.get(id=pk)
+        except Invoice.DoesNotExist:
+            return Response({'detail': 'Factura no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Solo emisor o receptor pueden consultar el XML; staff siempre.
+        if not request.user.is_staff and request.user not in (invoice.issuer, invoice.recipient):
+            return Response({'detail': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        xml = generate_dian_xml(invoice)
+        response = HttpResponse(xml, content_type='application/xml')
+        response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
+        return response
+
+
+class CreateDIANInvoiceAPIView(APIView):
+    """DIAN-01: genera factura DIAN a partir de una transacción completada."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        from .models import Transaction
+        from .dian_invoice_service import create_dian_invoice_from_transaction
+        try:
+            transaction = Transaction.objects.get(id=pk)
+        except Transaction.DoesNotExist:
+            return Response({'detail': 'Transacción no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not request.user.is_staff and request.user not in (transaction.payer, transaction.payee):
+            return Response({'detail': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            invoice = create_dian_invoice_from_transaction(transaction)
+        except ValueError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {
+                'invoice_id': str(invoice.id),
+                'invoice_number': invoice.invoice_number,
+                'status': invoice.status,
+                'xml_url': f'/api/v1/payments/invoices/{invoice.id}/dian-xml/',
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class BalanceAPIView(APIView):
     """Vista para obtener balance de usuario."""
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get(self, request):
         user = request.user
         
@@ -1034,7 +1087,7 @@ class BalanceAPIView(APIView):
             'available_balance': available_balance,
             'pending_balance': pending_balance,
             'total_balance': total_balance,
-            'currency': 'MXN'
+            'currency': 'COP'
         }
         
         return Response(balance_data)

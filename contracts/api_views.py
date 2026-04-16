@@ -539,9 +539,12 @@ class ContractStatsAPIView(APIView):
             status='active'
         ).count()
         
-        # Valor total (solo contratos de arrendamiento)
+        # Valor total (solo contratos de arrendamiento activos).
+        # DASH-02: antes filtraba contract_type='rental' (string inexistente);
+        # los tipos reales son rental_urban, rental_commercial, rental_room,
+        # rental_rural. El filtro por prefijo cubre los 4.
         total_value = user_contracts.filter(
-            contract_type='rental',
+            contract_type__startswith='rental',
             status='active'
         ).aggregate(
             total=models.Sum('monthly_rent')

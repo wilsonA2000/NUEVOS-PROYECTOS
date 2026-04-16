@@ -19,7 +19,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 from .models import DashboardWidget, UserDashboardLayout, UserWidgetConfig, WidgetDataCache
-from properties.models import Property, PropertyImage, Amenity
+from properties.models import Property, PropertyImage, PropertyAmenity
 from contracts.models import Contract
 from payments.models import Transaction, Invoice
 from ratings.models import Rating
@@ -996,3 +996,9 @@ class DashboardAnalyticsEngine:
             return 'poor'
         else:
             return 'critical'
+
+
+# DASH-03 · aliases compat para dashboard/api_views.py (importa sin el prefijo/sufijo).
+DashboardDataService = AdvancedDashboardDataService
+WidgetDataProvider = AdvancedWidgetDataProvider
+DashboardAnalytics = DashboardAnalyticsEngine
