@@ -1,13 +1,13 @@
 /**
  * PayOrderModal — modal para iniciar el pago de una PaymentOrder.
  *
- * T3.2 · Tabs por pasarela disponible:
- * - Stripe: tarjeta de crédito/débito (componente StripePaymentForm existente)
- * - Wompi/PSE: redirect al banco vía Wompi
- * - Wompi/Nequi: pago push a celular
+ * Tabs:
+ * - Bold: checkout completo (PSE · Nequi · Daviplata · Bancolombia QR · Tarjeta · Efecty)
+ * - Wompi/PSE: redirect al banco vía Wompi (legacy, mantenido como alternativa)
+ * - Wompi/Nequi: pago push a celular (legacy)
  *
- * Cuando el usuario confirma, se crea la transacción en backend; el
- * webhook posterior reconcilia automáticamente la PaymentOrder (T2.3).
+ * Flujo Bold: backend crea payment link → frontend redirige al checkout de Bold.
+ * El webhook posterior reconcilia la PaymentOrder automáticamente.
  */
 import React, { useState } from 'react';
 import {
@@ -25,11 +25,14 @@ import {
   Alert,
   CircularProgress,
   Stack,
+  Chip,
 } from '@mui/material';
 import {
   CreditCard as CardIcon,
   AccountBalance as PSEIcon,
   PhoneAndroid as NequiIcon,
+  Bolt as BoldIcon,
+  OpenInNew as ExternalIcon,
 } from '@mui/icons-material';
 import { api } from '../../services/api';
 import type { PaymentOrderRow } from './PaymentOrderList';
@@ -62,12 +65,14 @@ const TabPanel: React.FC<TabPanelProps> = ({ value, index, children }) => (
   </Box>
 );
 
+const BOLD_METHODS = ['PSE', 'Nequi', 'Daviplata', 'Bancolombia QR', 'Tarjeta', 'Efecty'];
+
 const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onSuccess }) => {
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // PSE form state
+  // PSE / Wompi form state
   const [bankCode, setBankCode] = useState('');
   const [documentType, setDocumentType] = useState('CC');
   const [documentNumber, setDocumentNumber] = useState('');
@@ -77,6 +82,43 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
 
   if (!order) return null;
 
+  // ------------------------------------------------------------------
+  // Bold
+  // ------------------------------------------------------------------
+  const handleBold = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.post('/payments/bold/initiate/', {
+        amount: parseFloat(order.balance),
+        description: `Orden ${order.order_number} — ${order.order_type_display}`,
+        reference: order.order_number,
+        redirect_url: `${window.location.origin}/app/payments?pay_status=bold_success&ref=${order.order_number}`,
+      });
+
+      onSuccess?.(response.data);
+
+      const checkoutUrl: string | undefined = response.data?.checkout_url;
+      if (checkoutUrl) {
+        // Redirigir al checkout de Bold en la misma pestaña
+        window.location.href = checkoutUrl;
+      } else {
+        setError('Bold no retornó una URL de checkout. Verifica las credenciales en el dashboard.');
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        'Error iniciando pago con Bold.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // Wompi PSE (legacy)
+  // ------------------------------------------------------------------
   const handlePSE = async () => {
     if (!bankCode || !documentNumber) {
       setError('Selecciona un banco y completa tu número de documento.');
@@ -95,7 +137,6 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
         redirect_url: `${window.location.origin}/app/payments?pay_status=success`,
       });
       onSuccess?.(response.data);
-      // Wompi suele devolver una URL de redirección al banco
       const redirectUrl = response.data?.metadata?.async_payment_url;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -109,6 +150,9 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
     }
   };
 
+  // ------------------------------------------------------------------
+  // Wompi Nequi (legacy)
+  // ------------------------------------------------------------------
   const handleNequi = async () => {
     if (!nequiPhone) {
       setError('Ingresa tu número Nequi.');
@@ -132,10 +176,6 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
     }
   };
 
-  const handleStripe = async () => {
-    setError('El flujo de Stripe (tarjeta) requiere el componente StripePaymentForm con Elements; integración pendiente.');
-  };
-
   return (
     <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
@@ -148,18 +188,59 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
       <DialogContent dividers>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
+        <Tabs value={tab} onChange={(_, v) => { setTab(v); setError(null); }} variant="fullWidth">
+          <Tab icon={<BoldIcon />} label="Bold" />
           <Tab icon={<PSEIcon />} label="PSE" />
           <Tab icon={<NequiIcon />} label="Nequi" />
-          <Tab icon={<CardIcon />} label="Tarjeta" />
         </Tabs>
 
+        {/* ---- Bold ---- */}
         <TabPanel value={tab} index={0}>
           <Stack spacing={2}>
+            <Alert severity="success" icon={false}>
+              <Typography variant="subtitle2" gutterBottom>
+                Paga con Bold — pasarela colombiana de confianza
+              </Typography>
+              <Typography variant="body2">
+                Elige tu método en el checkout seguro de Bold:
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" gap={0.5} mt={1}>
+                {BOLD_METHODS.map((m) => (
+                  <Chip key={m} label={m} size="small" variant="outlined" />
+                ))}
+              </Stack>
+            </Alert>
+
             <Typography variant="body2" color="text.secondary">
-              Pago directo desde tu banco vía PSE. Serás redirigido al portal del banco
-              para autenticarte.
+              Serás redirigido al checkout de Bold. Al completar el pago,
+              regresarás automáticamente a VeriHome y la orden se actualizará.
             </Typography>
+
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleBold}
+              disabled={loading}
+              startIcon={
+                loading ? <CircularProgress size={20} /> : <ExternalIcon />
+              }
+              sx={{ bgcolor: '#00B4D8', '&:hover': { bgcolor: '#0096B7' } }}
+            >
+              {loading
+                ? 'Generando link...'
+                : `Pagar ${formatCOP(order.balance)} con Bold`}
+            </Button>
+          </Stack>
+        </TabPanel>
+
+        {/* ---- Wompi PSE ---- */}
+        <TabPanel value={tab} index={1}>
+          <Stack spacing={2}>
+            <Alert severity="info" icon={false}>
+              <Typography variant="body2">
+                Pago bancario vía PSE (Wompi). Serás redirigido al portal de tu banco.
+              </Typography>
+            </Alert>
             <TextField
               select fullWidth label="Banco"
               value={bankCode} onChange={(e) => setBankCode(e.target.value)}
@@ -199,11 +280,14 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
           </Stack>
         </TabPanel>
 
-        <TabPanel value={tab} index={1}>
+        {/* ---- Wompi Nequi ---- */}
+        <TabPanel value={tab} index={2}>
           <Stack spacing={2}>
-            <Typography variant="body2" color="text.secondary">
-              Recibirás una notificación push en tu app Nequi para autorizar el pago.
-            </Typography>
+            <Alert severity="info" icon={false}>
+              <Typography variant="body2">
+                Recibirás una notificación push en tu app Nequi para autorizar el pago.
+              </Typography>
+            </Alert>
             <TextField
               fullWidth label="Número celular Nequi" placeholder="3001234567"
               value={nequiPhone} onChange={(e) => setNequiPhone(e.target.value)}
@@ -216,18 +300,6 @@ const PayOrderModal: React.FC<PayOrderModalProps> = ({ open, onClose, order, onS
               startIcon={loading ? <CircularProgress size={20} /> : <NequiIcon />}
             >
               {loading ? 'Enviando...' : `Pagar ${formatCOP(order.balance)} con Nequi`}
-            </Button>
-          </Stack>
-        </TabPanel>
-
-        <TabPanel value={tab} index={2}>
-          <Stack spacing={2}>
-            <Alert severity="info">
-              El flujo con tarjeta usa Stripe Elements y requiere el componente
-              StripePaymentForm. Integración pendiente en T3.2.b.
-            </Alert>
-            <Button variant="outlined" onClick={handleStripe} disabled>
-              Pagar con tarjeta (próximamente)
             </Button>
           </Stack>
         </TabPanel>

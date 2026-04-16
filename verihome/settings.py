@@ -822,6 +822,12 @@ WOMPI_PRIVATE_KEY = config('WOMPI_PRIVATE_KEY', default='prv_test_')
 WOMPI_EVENTS_SECRET = config('WOMPI_EVENTS_SECRET', default='')
 WOMPI_SANDBOX_MODE = config('WOMPI_SANDBOX_MODE', default=True, cast=bool)
 
+# Bold Payment Gateway — Plataforma colombiana principal
+# Obtener keys en: https://dashboard.bold.co/developers
+BOLD_API_KEY = config('BOLD_API_KEY', default='')
+BOLD_INTEGRITY_SECRET = config('BOLD_INTEGRITY_SECRET', default='')
+BOLD_SANDBOX_MODE = config('BOLD_SANDBOX_MODE', default=True, cast=bool)
+
 # Stripe Payment Gateway Settings (Legacy - Optional)
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')

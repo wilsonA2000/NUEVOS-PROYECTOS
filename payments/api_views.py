@@ -1174,16 +1174,17 @@ class PaymentWebhookView(APIView):
                 headers={'stripe-signature': sig_header}
             )
             
-            if result['success']:
+            if result.success:
                 # Procesar eventos específicos
-                if result.get('event') == 'payment_succeeded':
-                    self._handle_payment_success(result)
-                elif result.get('event') == 'payment_failed':
-                    self._handle_payment_failure(result)
-                
+                event = result.metadata.get('event', '')
+                if event == 'payment_succeeded':
+                    self._handle_payment_success(result.to_dict())
+                elif event == 'payment_failed':
+                    self._handle_payment_failure(result.to_dict())
+
                 return Response({'status': 'success'})
             else:
-                return Response({'error': result.get('error')}, 
+                return Response({'error': result.error_message},
                               status=status.HTTP_400_BAD_REQUEST)
                 
         except Exception as e:
@@ -1784,6 +1785,135 @@ class WompiWebhookAPIView(APIView):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class BoldInitiatePaymentAPIView(APIView):
+    """
+    Crea un payment link en Bold y retorna la URL de checkout.
+
+    El frontend redirige al usuario a esa URL; Bold gestiona la selección
+    de método de pago (PSE, Nequi, Daviplata, Bancolombia QR, tarjeta, Efecty).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        """
+        Body params:
+            - amount: Monto en COP (entero o decimal)
+            - description: Descripción del cobro
+            - reference: Referencia única (ej. número de orden)
+            - redirect_url (opcional): URL de retorno tras el pago
+            - expiration_hours (opcional): horas de validez del link (default 24)
+        """
+        from .gateways.bold_gateway import BoldGateway
+
+        amount = request.data.get('amount')
+        description = request.data.get('description', 'Pago VeriHome')
+        reference = request.data.get('reference')
+        redirect_url = request.data.get('redirect_url', '')
+        expiration_hours = int(request.data.get('expiration_hours', 24))
+
+        if not amount or not reference:
+            return Response(
+                {'error': 'amount y reference son requeridos'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            gateway = BoldGateway({
+                'api_key': getattr(settings, 'BOLD_API_KEY', ''),
+                'integrity_secret': getattr(settings, 'BOLD_INTEGRITY_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'BOLD_SANDBOX_MODE', True),
+            })
+
+            result = gateway.create_payment(
+                amount=Decimal(str(amount)),
+                currency='COP',
+                customer_email=request.user.email,
+                customer_name=request.user.get_full_name() or request.user.email,
+                description=description,
+                reference=reference,
+                redirect_url=redirect_url,
+                expiration_hours=expiration_hours,
+            )
+
+            if result.success:
+                return Response({
+                    'checkout_url': result.metadata.get('checkout_url'),
+                    'payment_link_id': result.gateway_reference,
+                    'reference': result.transaction_id,
+                    'expires_at': result.metadata.get('expires_at'),
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response(
+                    {'error': result.error_message},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        except Exception as e:
+            logger.error(f"Error iniciando pago Bold: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class BoldWebhookAPIView(APIView):
+    """
+    Recibe notificaciones de Bold cuando cambia el estado de una transacción.
+
+    SECURITY: Verifica firma HMAC-SHA256 ('x-bold-signature') con el
+    integrity_secret configurado en el dashboard Bold.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from .gateways.bold_gateway import BoldGateway
+
+        try:
+            gateway = BoldGateway({
+                'api_key': getattr(settings, 'BOLD_API_KEY', ''),
+                'integrity_secret': getattr(settings, 'BOLD_INTEGRITY_SECRET', ''),
+                'sandbox_mode': getattr(settings, 'BOLD_SANDBOX_MODE', True),
+            })
+
+            headers = {
+                'x-bold-signature': request.META.get('HTTP_X_BOLD_SIGNATURE', ''),
+            }
+
+            result = gateway.handle_webhook(request.data, headers)
+
+            if not result.success and result.error_code == 'INVALID_SIGNATURE':
+                return Response({'error': 'Firma inválida'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Reconciliar con nuestra base de datos
+            if result.transaction_id:
+                try:
+                    transaction = Transaction.objects.get(reference=result.transaction_id)
+                    transaction.status = result.status
+                    if result.gateway_reference:
+                        transaction.gateway_transaction_id = result.gateway_reference
+                    if result.status == 'completed':
+                        transaction.processed_at = timezone.now()
+                    elif result.status == 'failed':
+                        transaction.failure_reason = result.metadata.get('bold_status', 'failed')
+                    transaction.metadata.update(result.metadata)
+                    transaction.save()
+
+                    from .reconciliation_service import reconcile_payment, send_payment_confirmation, send_payment_failure_notification
+                    if result.status == 'completed':
+                        reconcile_payment(transaction)
+                        send_payment_confirmation(transaction)
+                    elif result.status == 'failed':
+                        send_payment_failure_notification(transaction)
+
+                    logger.info(f"Bold webhook reconciliado: {result.transaction_id} → {result.status}")
+
+                except Transaction.DoesNotExist:
+                    logger.warning(f"Bold webhook: transacción {result.transaction_id} no encontrada")
+
+            return Response({'status': 'received'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error procesando Bold webhook: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PSEBanksListAPIView(APIView):

@@ -67,6 +67,10 @@ urlpatterns = [
     path('webhooks/stripe/', api_views.PaymentWebhookView.as_view(), name='api_stripe_webhook'),
     path('webhooks/paypal/', api_views.PayPalWebhookAPIView.as_view(), name='api_paypal_webhook'),
     path('webhooks/wompi/', api_views.WompiWebhookAPIView.as_view(), name='api_wompi_webhook'),
+    path('webhooks/bold/', api_views.BoldWebhookAPIView.as_view(), name='api_bold_webhook'),
+
+    # Bold — pasarela colombiana principal
+    path('bold/initiate/', api_views.BoldInitiatePaymentAPIView.as_view(), name='api_bold_initiate'),
 
     # Wompi / PSE Payments
     path('wompi/initiate/', api_views.WompiInitiatePaymentAPIView.as_view(), name='api_wompi_initiate'),
