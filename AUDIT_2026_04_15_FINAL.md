@@ -213,3 +213,10 @@ Tag de cierre sugerido tras merge a main: `post-audit-2026-04-15`.
 - tsc --noEmit: 0 errores
 - Backend: 136/136 OK
 - E2E: PASS · contrato `active`
+
+### Quinta tanda · SVC-02 (commit `2a2db45`)
+
+- **SVC-02** (P1, decisión producto): Opción A implementada. `ServiceViewSet` cambiado de `ReadOnlyModelViewSet` a `ModelViewSet`. Nuevo permiso `IsActiveSubscriberOrReadOnly`: solo service_providers con suscripción activa pueden crear/editar servicios propios. Staff CRUD completo. Nuevo FK `provider` nullable en `Service`, nuevo action `mine`, serializers actualizados con `provider_name`/`provider_email`. Migration `0003`. Test `test_subscriber_can_post` verifica flujo completo.
+
+### Validación quinta tanda
+- Backend: 224/224 OK (services + matching + properties + verification)
