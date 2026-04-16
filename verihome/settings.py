@@ -126,6 +126,9 @@ import sys
 sys.path.append(str(BASE_DIR / 'scripts' / 'database'))
 from database_config import get_database_config, validate_database_config
 
+# Flag para desactivar throttles y rate limits en tests
+TESTING = 'test' in sys.argv
+
 try:
     # Validate and get database configuration
     validate_database_config()

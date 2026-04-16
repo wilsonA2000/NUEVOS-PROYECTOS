@@ -23,8 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class ContactRateThrottle(AnonRateThrottle):
-    """Limitar a 5 mensajes de contacto por hora por IP."""
+    """Limitar a 5 mensajes de contacto por hora por IP.
+
+    Se desactiva en testing para evitar 429 espurios cuando múltiples
+    test suites hacen POST al endpoint de contacto.
+    """
     rate = '5/hour'
+
+    def allow_request(self, request, view):
+        if getattr(settings, 'TESTING', False):
+            return True
+        return super().allow_request(request, view)
 
 
 class ContactMessageAPIView(APIView):
