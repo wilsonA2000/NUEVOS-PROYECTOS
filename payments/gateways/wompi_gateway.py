@@ -65,18 +65,24 @@ class WompiGateway(BasePaymentGateway):
         self.base_url = self.SANDBOX_URL if self.sandbox_mode else self.PRODUCTION_URL
 
     def validate_config(self):
-        """Validate required Wompi configuration."""
+        """Validate required Wompi configuration.
+
+        BUG-PAY-GW-04 fix: usar self.config.get() en vez de self.public_key
+        porque __init__ llama a super().__init__() (que invoca validate_config)
+        ANTES de asignar self.public_key.
+        """
         required = ['public_key', 'private_key']
         for field in required:
             if not self.config.get(field):
                 raise ValueError(f"Wompi Gateway requires '{field}' in configuration")
 
-        # Validate key prefixes
+        # Validate key prefixes (warning only, no raise)
+        public_key = self.config.get('public_key', '')
         if self.sandbox_mode:
-            if not self.public_key.startswith('pub_test_'):
+            if not public_key.startswith('pub_test_'):
                 logger.warning("Public key should start with 'pub_test_' in sandbox mode")
         else:
-            if not self.public_key.startswith('pub_prod_'):
+            if not public_key.startswith('pub_prod_'):
                 logger.warning("Public key should start with 'pub_prod_' in production mode")
 
     def create_payment(
