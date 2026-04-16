@@ -41,17 +41,20 @@ class ServiceListSerializer(serializers.ModelSerializer):
     """Serializer ligero para listas de servicios."""
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_color = serializers.CharField(source='category.color', read_only=True)
+    provider_name = serializers.CharField(source='provider.get_full_name', read_only=True, default='')
     main_image = serializers.SerializerMethodField()
     price_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
         fields = [
-            'id', 'name', 'slug', 'short_description', 'category_name', 
+            'id', 'name', 'slug', 'short_description', 'category', 'category_name',
             'category_color', 'pricing_type', 'price_display', 'difficulty',
-            'estimated_duration', 'popularity_score', 'is_featured', 
-            'is_most_requested', 'main_image', 'views_count', 'requests_count'
+            'estimated_duration', 'popularity_score', 'is_featured',
+            'is_most_requested', 'main_image', 'views_count', 'requests_count',
+            'provider', 'provider_name',
         ]
+        read_only_fields = ['id', 'slug', 'provider', 'popularity_score', 'views_count', 'requests_count']
 
     def get_main_image(self, obj):
         main_image = obj.images.filter(is_main=True).first()
@@ -68,17 +71,21 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
     category = ServiceCategorySerializer(read_only=True)
     images = ServiceImageSerializer(many=True, read_only=True)
     price_display = serializers.SerializerMethodField()
+    provider_name = serializers.CharField(source='provider.get_full_name', read_only=True, default='')
+    provider_email = serializers.EmailField(source='provider.email', read_only=True, default='')
 
     class Meta:
         model = Service
         fields = [
             'id', 'name', 'slug', 'short_description', 'full_description',
-            'category', 'pricing_type', 'base_price', 'price_range_min', 
+            'category', 'pricing_type', 'base_price', 'price_range_min',
             'price_range_max', 'price_display', 'difficulty', 'estimated_duration',
-            'requirements', 'provider_info', 'contact_email', 'contact_phone',
+            'requirements', 'provider', 'provider_name', 'provider_email',
+            'provider_info', 'contact_email', 'contact_phone',
             'popularity_score', 'views_count', 'requests_count', 'is_featured',
             'is_most_requested', 'images', 'created_at', 'updated_at'
         ]
+        read_only_fields = ['id', 'slug', 'provider', 'popularity_score', 'views_count', 'requests_count']
 
     def get_price_display(self, obj):
         return obj.get_price_display()

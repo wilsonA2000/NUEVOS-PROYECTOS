@@ -138,6 +138,18 @@ class Service(models.Model):
         blank=True
     )
     
+    # SVC-02: proveedor vinculado (opcional para compat con catálogo existente).
+    # Solo service_providers con suscripción activa pueden crear servicios.
+    provider = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='provided_services',
+        verbose_name="Proveedor",
+        limit_choices_to={'user_type': 'service_provider'},
+    )
+
     # Información del proveedor
     provider_info = models.TextField(
         verbose_name="Información del Proveedor",
