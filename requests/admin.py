@@ -5,10 +5,10 @@ Configuración del admin para el sistema de solicitudes.
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    BaseRequest, PropertyInterestRequest, ServiceRequest, 
-    ContractSignatureRequest, MaintenanceRequest, 
+    BaseRequest, PropertyInterestRequest, ServiceRequest,
+    ContractSignatureRequest, MaintenanceRequest,
     RequestAttachment, RequestComment, RequestNotification,
-    TenantDocument
+    TenantDocument, DocumentAccessLog
 )
 
 
@@ -141,7 +141,11 @@ class TenantDocumentAdmin(admin.ModelAdmin):
     document_type_display.short_description = 'Tipo de Documento'
     
     def property_request_display(self, obj):
-        return f"{obj.property_request.property.title} - {obj.property_request.requester.get_full_name()}"
+        if obj.property_request and obj.property_request.property:
+            return f"{obj.property_request.property.title} - {obj.property_request.requester.get_full_name()}"
+        if obj.match_request:
+            return f"Match #{obj.match_request.id}"
+        return "—"
     property_request_display.short_description = 'Proceso/Propiedad'
     
     def uploaded_by_display(self, obj):
@@ -171,3 +175,12 @@ class TenantDocumentAdmin(admin.ModelAdmin):
                 return f"{obj.file_size / (1024 * 1024):.1f} MB"
         return "N/A"
     file_size_display.short_description = 'Tamaño'
+
+
+@admin.register(DocumentAccessLog)
+class DocumentAccessLogAdmin(admin.ModelAdmin):
+    list_display = ('document', 'user', 'action', 'ip_address', 'timestamp')
+    list_filter = ('action', 'timestamp')
+    search_fields = ('document__original_filename', 'user__email')
+    readonly_fields = ('document', 'user', 'action', 'ip_address', 'user_agent', 'timestamp', 'extra_data')
+    ordering = ('-timestamp',)
