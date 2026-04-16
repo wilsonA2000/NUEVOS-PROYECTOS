@@ -213,11 +213,11 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def respond(self, request, pk=None):
-        """Agregar respuesta a un ticket."""
+        """Agregar respuesta a un ticket. ADM-03: acepta `message` o `response`."""
         ticket = self.get_object()
-        message = request.data.get('message', '').strip()
+        message = (request.data.get('message') or request.data.get('response') or '').strip()
         if not message:
-            return Response({'error': 'El mensaje es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'El mensaje es obligatorio (campo `message` o `response`)'}, status=status.HTTP_400_BAD_REQUEST)
         is_internal = request.data.get('is_internal', False) and request.user.is_staff
         response_obj = TicketResponse.objects.create(
             ticket=ticket,
@@ -402,10 +402,95 @@ class MarkAllNotificationsReadAPIView(APIView):
         return Response({'message': 'Todas las notificaciones han sido marcadas como leídas'})
 
 
+class GlobalAuditLogAPIView(generics.ListAPIView):
+    """
+    ADM-04: listar audit trail global (todos los usuarios).
+    Solo accesible a staff; soporta filtros por `user`, `activity_type`,
+    `model_name` y `days` (últimos N días) vía query params.
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_serializer_class(self):
+        from users.serializers import UserActivityLogSerializer
+        return UserActivityLogSerializer
+
+    def get_queryset(self):
+        from users.models.activity import UserActivityLog
+        qs = UserActivityLog.objects.select_related('user').all()
+
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+
+        activity_type = self.request.query_params.get('activity_type')
+        if activity_type:
+            qs = qs.filter(activity_type=activity_type)
+
+        model_name = self.request.query_params.get('model_name')
+        if model_name:
+            qs = qs.filter(model_name=model_name)
+
+        days = self.request.query_params.get('days')
+        if days:
+            try:
+                since = timezone.now() - timedelta(days=int(days))
+                qs = qs.filter(timestamp__gte=since)
+            except (ValueError, TypeError):
+                pass
+
+        return qs.order_by('-timestamp')
+
+
+class SLADashboardAPIView(APIView):
+    """
+    ADM-02: dashboard de cumplimiento SLA de revisión jurídica de contratos.
+    Solo staff. Devuelve contratos en revisión admin con estado del plazo
+    (a tiempo, por vencer, vencido, escalado).
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        from contracts.landlord_contract_models import LandlordControlledContract
+        now = timezone.now()
+
+        in_review = LandlordControlledContract.objects.filter(
+            current_state__in=['PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN']
+        ).select_related('landlord', 'admin_reviewer')
+
+        buckets = {'on_time': [], 'due_soon': [], 'overdue': [], 'escalated': []}
+        for c in in_review:
+            deadline = c.admin_review_deadline
+            entry = {
+                'id': str(c.id),
+                'contract_number': c.contract_number,
+                'landlord_email': c.landlord.email if c.landlord else None,
+                'current_state': c.current_state,
+                'admin_review_deadline': deadline.isoformat() if deadline else None,
+                'admin_review_escalated': c.admin_review_escalated,
+                'review_cycle_count': c.review_cycle_count,
+            }
+            if c.admin_review_escalated:
+                buckets['escalated'].append(entry)
+            elif not deadline:
+                buckets['on_time'].append(entry)
+            elif deadline < now:
+                buckets['overdue'].append(entry)
+            elif (deadline - now).days <= 1:
+                buckets['due_soon'].append(entry)
+            else:
+                buckets['on_time'].append(entry)
+
+        return Response({
+            'generated_at': now.isoformat(),
+            'totals': {k: len(v) for k, v in buckets.items()},
+            'contracts': buckets,
+        })
+
+
 class DashboardStatsAPIView(APIView):
     """Vista para estadísticas del dashboard."""
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get(self, request):
         user = request.user
         

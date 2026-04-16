@@ -41,6 +41,10 @@ urlpatterns = [
     path('invoices/create/', api_views.CreateInvoiceAPIView.as_view(), name='api_create_invoice'),
     path('invoices/<uuid:pk>/pay/', api_views.PayInvoiceAPIView.as_view(), name='api_pay_invoice'),
     path('invoices/<uuid:pk>/send/', api_views.SendInvoiceAPIView.as_view(), name='api_send_invoice'),
+    # DIAN-01: generar XML UBL 2.1 para factura existente
+    path('invoices/<uuid:pk>/dian-xml/', api_views.DIANInvoiceXMLAPIView.as_view(), name='api_dian_invoice_xml'),
+    # DIAN-01: crear factura DIAN a partir de una transacción completada
+    path('transactions/<uuid:pk>/create-dian-invoice/', api_views.CreateDIANInvoiceAPIView.as_view(), name='api_create_dian_invoice'),
     
     # Estadísticas y reportes
     path('stats/balance/', api_views.BalanceAPIView.as_view(), name='api_balance'),

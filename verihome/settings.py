@@ -82,7 +82,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Deshabilitado para permitir iframes en desarrollo
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # SEC-01: emite X-Frame-Options según settings.X_FRAME_OPTIONS
     'allauth.account.middleware.AccountMiddleware',
     # Middleware de impersonación y logging
     'users.middleware.ImpersonationMiddleware',

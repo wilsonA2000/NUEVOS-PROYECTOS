@@ -186,4 +186,18 @@ Tag de cierre sugerido tras merge a main: `post-audit-2026-04-15`.
 
 ### Commits
 - `fcad2a6` fix(matching): BIO-02 · _ensure_contract_exists crea LCC sincronizado
-- commit consolidado de los P1/P2 + regresiones descubiertas (este)
+- `59adcb3` fix(multiple): DASH-03 · FAV-01 · PROP-07 · VER-01 · DASH-02 + regresiones
+
+### Tercera tanda · endpoints admin y DIAN
+
+- **ADM-04** (P1): `GET /api/v1/core/audit-logs/` · solo staff · filtros `user`, `activity_type`, `model_name`, `days`.
+- **DIAN-01** (P2): `GET /api/v1/payments/invoices/<uuid>/dian-xml/` devuelve XML UBL 2.1 adjunto · `POST /api/v1/payments/transactions/<uuid>/create-dian-invoice/` crea factura a partir de transacción completada.
+- **SEC-01** (P3): activado `django.middleware.clickjacking.XFrameOptionsMiddleware` · header `X-Frame-Options: SAMEORIGIN` ya sale en respuestas.
+- **ADM-02** (P3): `GET /api/v1/core/admin/sla-dashboard/` · solo staff · agrupa contratos en revisión en `on_time/due_soon/overdue/escalated`.
+- **ADM-03** (P3): `/core/tickets/<id>/respond/` ahora acepta tanto `message` como `response` en el payload.
+- **ADM-05** (P3): endpoints de impersonación montados en `/api/v1/users/impersonation/` (list/start/stop). NOTA: el `users/admin_urls.py` legacy tiene imports rotos (`AdminPermission` no existe), así que se escribieron vistas nuevas directamente en `users/api_views.py`.
+
+### Validación tercera tanda
+- **Backend tests** matching + properties + verification + contracts.test_api: **180/180 OK**
+- **E2E multi-user-contract-signing**: PASS 3.6 min · contrato `active`
+- Header `X-Frame-Options: SAMEORIGIN` verificado con `curl -I`

@@ -30,6 +30,12 @@ urlpatterns = [
     # Notificaciones
     path('notifications/mark-all-read/', api_views.MarkAllNotificationsReadAPIView.as_view(), name='api_mark_all_notifications_read'),
     
+    # Audit logs globales (admin). ADM-04.
+    path('audit-logs/', api_views.GlobalAuditLogAPIView.as_view(), name='api_audit_logs'),
+
+    # SLA dashboard (admin). ADM-02.
+    path('admin/sla-dashboard/', api_views.SLADashboardAPIView.as_view(), name='api_sla_dashboard'),
+
     # Estadísticas generales
     path('stats/dashboard/', api_views.DashboardStatsAPIView.as_view(), name='api_dashboard_stats'),
     path('stats/overview/', api_views.SystemOverviewAPIView.as_view(), name='api_system_overview'),
