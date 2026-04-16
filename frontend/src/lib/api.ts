@@ -215,29 +215,31 @@ export const deleteServiceRequest = async (id: number) => {
   await api.delete(`/service-requests/${id}/`);
 };
 
-// Ratings
+// Ratings - la URL correcta es /ratings/ratings/ porque el router DRF
+// monta el basename 'ratings' sobre /api/v1/ratings/. Usar /ratings/
+// apunta al APIRoot de DRF, no a la lista de calificaciones.
 export const getRatings = async (filters?: any) => {
-  const { data } = await api.get('/ratings/', { params: filters });
+  const { data } = await api.get('/ratings/ratings/', { params: filters });
   return data;
 };
 
 export const getRating = async (id: number) => {
-  const { data } = await api.get(`/ratings/${id}/`);
+  const { data } = await api.get(`/ratings/ratings/${id}/`);
   return data;
 };
 
 export const createRating = async (rating: any) => {
-  const { data } = await api.post('/ratings/', rating);
+  const { data } = await api.post('/ratings/ratings/', rating);
   return data;
 };
 
 export const updateRating = async (id: number, rating: any) => {
-  const { data } = await api.put(`/ratings/${id}/`, rating);
+  const { data } = await api.put(`/ratings/ratings/${id}/`, rating);
   return data;
 };
 
 export const deleteRating = async (id: number) => {
-  await api.delete(`/ratings/${id}/`);
+  await api.delete(`/ratings/ratings/${id}/`);
 };
 
 // Analytics

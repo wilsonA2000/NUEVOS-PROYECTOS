@@ -89,15 +89,23 @@ const ThreadDetail: React.FC = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await api.get(`/messages/threads/${threadId}/messages/`);
-      setMessages(response.data);
+      // Endpoint correcto: filtrar mensajes por thread vía query param.
+      // La ruta /messages/threads/<id>/messages/ NO existe en el backend.
+      const response = await api.get(`/messages/messages/?thread=${threadId}`);
+      setMessages(response.data.results || response.data);
     } catch (error) {
+      console.warn(`[ThreadDetail] fetchMessages(${threadId}) falló:`, error);
     }
   };
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await api.post(`/messages/threads/${threadId}/messages/`, { content });
+      // Endpoint correcto: /messages/send/ con thread_id en el body.
+      // /messages/threads/<id>/messages/ no existe.
+      const response = await api.post(`/messages/send/`, {
+        thread_id: threadId,
+        content,
+      });
       return response.data;
     },
     onSuccess: () => {
