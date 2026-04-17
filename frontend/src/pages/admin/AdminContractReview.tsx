@@ -80,6 +80,7 @@ import { useAdminAuth } from '../../hooks/useAdminAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ContractApprovalModal from '../../components/admin/ContractApprovalModal';
 import ContractRejectionModal from '../../components/admin/ContractRejectionModal';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
 
 /**
  * Formatear fecha
@@ -496,12 +497,7 @@ const AdminContractReview: React.FC = () => {
                 variant="outlined"
                 fullWidth
                 startIcon={<OpenIcon />}
-                onClick={() =>
-                  window.open(
-                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contractId}/preview-pdf/`,
-                    '_blank'
-                  )
-                }
+                onClick={() => viewContractPDF(contractId!)}
               >
                 Ver PDF del Contrato
               </Button>

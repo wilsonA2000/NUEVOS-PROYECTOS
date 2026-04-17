@@ -315,6 +315,15 @@ def main():
                 result['codeudor_token'] = token.token
                 result['codeudor_token_id'] = str(token.id)
 
+    if mode == 'admin_review':
+        # Crea LCC en PENDING_ADMIN_REVIEW para el flujo de revisión jurídica
+        lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
+        if lcc:
+            lcc.current_state = 'PENDING_ADMIN_REVIEW'
+            lcc.save(update_fields=['current_state'])
+            result['lcc_id'] = str(lcc.id)
+            log(f"LCC set to PENDING_ADMIN_REVIEW: {lcc.id}")
+
     print(json.dumps(result, indent=2))
 
 

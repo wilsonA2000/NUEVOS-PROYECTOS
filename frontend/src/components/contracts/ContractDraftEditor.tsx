@@ -37,6 +37,7 @@ import {
   PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { LandlordContractService } from '../../services/landlordContractService';
+import { viewContractPDF } from '../../utils/contractPdfUtils';
 import {
   LandlordControlledContractData,
   CreateContractPayload,
@@ -497,11 +498,8 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
   const handlePreviewPDF = async () => {
     try {
-      setPreviewDialogOpen(true);
-      // Open PDF preview in new tab using the contract ID
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-      const pdfUrl = `${API_BASE_URL}/contracts/${contractId}/preview-pdf/`;
-      window.open(pdfUrl, '_blank');
+      // Abrir PDF con token JWT (evita 401 en nueva pestaña)
+      await viewContractPDF(contractId);
     } catch (error) {
     }
   };
@@ -1227,14 +1225,11 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ width: '100%', height: '600px' }}>
-            <iframe
-              src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contractId}/preview-pdf/`}
-              width="100%"
-              height="100%"
-              title="Vista Previa del Contrato PDF"
-              style={{ border: 'none', borderRadius: '4px' }}
-            />
+          <Box sx={{ width: '100%', height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+            <PdfIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
+            <Button variant="contained" onClick={() => { setPreviewDialogOpen(false); viewContractPDF(contractId); }}>
+              Abrir PDF en nueva pestaña
+            </Button>
           </Box>
         </DialogContent>
         <DialogActions>

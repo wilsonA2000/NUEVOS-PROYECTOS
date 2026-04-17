@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   testDir: './playwright/tests',
-  testMatch: /(multi-user-contract-signing|full-platform-e2e|button-audit)\.spec\.ts/,
+  testMatch: /(multi-user-contract-signing|full-platform-e2e|button-audit|full-admin-review-flow)\.spec\.ts/,
 
   timeout: 180 * 1000, // 3 min: el flujo completo es largo
   expect: { timeout: 15000 },
