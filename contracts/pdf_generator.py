@@ -639,10 +639,15 @@ class ContractPDFGenerator:
         # NOTA: La cláusula 34 siempre usa el método dinámico especial
         story.extend(self._build_dynamic_guarantee_clause_34(contract))
 
-        story.append(PageBreak())  # Mantener PageBreak antes de firmas
+        # Firmas: fluyen naturalmente en el espacio restante de la última página.
+        # KeepTogether evita que se partan; si no caben, saltan a la siguiente página completa.
+        signatures_elements = self._build_signatures_section_professional(contract, include_signatures, include_biometric)
+        story.append(KeepTogether(signatures_elements))
 
-        # Página final: Firmas y verificación biométrica
-        story.extend(self._build_signatures_section_professional(contract, include_signatures, include_biometric))
+        # UN SOLO salto de página antes de verificación (la verificación no lleva PageBreak propio).
+        story.append(PageBreak())
+
+        # Verificación en página aislada propia
         story.extend(self._build_verification_section_professional(contract))
         
         # Construir PDF con template profesional
@@ -1821,8 +1826,11 @@ class ContractPDFGenerator:
         return story
     
     def _build_verification_section_professional(self, contract):
-        """Construir sección profesional de verificación - Compacta para una sola página"""
+        """Construir sección profesional de verificación - Página aislada propia"""
         verification_elements = []
+
+        # Verificación siempre en página propia
+        verification_elements.append(PageBreak())
 
         # Título de la sección
         verification_elements.append(Paragraph("INFORMACIÓN DE VERIFICACIÓN", self.styles['ContractSubtitle']))
