@@ -551,6 +551,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'payments.tasks.escalate_overdue_payments',
         'schedule': crontab(hour=9, minute=0, day_of_week=1),  # Lunes a las 9:00 AM
     },
+    'check-admin-review-sla': {
+        'task': 'contracts.tasks.check_admin_review_sla',
+        'schedule': crontab(hour=8, minute=30),  # Diario a las 8:30 AM
+    },
+    'check-biometric-expiration': {
+        'task': 'contracts.tasks.check_biometric_expiration',
+        'schedule': 3600.0,  # cada hora
+    },
 }
 
 # Campo de clave primaria por defecto

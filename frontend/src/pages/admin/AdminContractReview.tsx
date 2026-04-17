@@ -40,6 +40,11 @@ import {
   Tooltip,
   Breadcrumbs,
   Link,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  alpha,
 } from '@mui/material';
 import {
   CheckCircle as ApproveIcon,
@@ -53,10 +58,16 @@ import {
   History as HistoryIcon,
   ExpandMore as ExpandIcon,
   Warning as WarningIcon,
+  WarningAmber as WarningAmberIcon,
   Loop as CycleIcon,
   Gavel as GavelIcon,
   OpenInNew as OpenIcon,
+  FingerprintOutlined as BiometricIcon,
+  CheckCircleOutline as DoneStepIcon,
+  RadioButtonUnchecked as PendingStepIcon,
+  RadioButtonChecked as ActiveStepIcon,
 } from '@mui/icons-material';
+import { vhColors } from '../../theme/tokens';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -241,7 +252,7 @@ const AdminContractReview: React.FC = () => {
           <Typography variant="h4" fontWeight="bold" gutterBottom>
             {contract.property_title}
           </Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
             <Chip
               label={contract.current_state === 'RE_PENDING_ADMIN' ? 'Re-Revisión' : 'Pendiente'}
               color={contract.current_state === 'RE_PENDING_ADMIN' ? 'secondary' : 'primary'}
@@ -263,6 +274,14 @@ const AdminContractReview: React.FC = () => {
                 label={`Ciclo de revisión #${contract.review_cycle_count}`}
                 color="info"
                 variant="outlined"
+              />
+            )}
+            {(contract as any).admin_review_escalated && (
+              <Chip
+                icon={<WarningAmberIcon />}
+                label="Escalado — SLA vencido"
+                color="error"
+                size="small"
               />
             )}
           </Stack>
@@ -413,10 +432,18 @@ const AdminContractReview: React.FC = () => {
               {(contract.clauses || []).map((clause, index) => (
                 <Accordion key={clause.key} defaultExpanded={index < 2}>
                   <AccordionSummary expandIcon={<ExpandIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       <Typography fontWeight="medium">{clause.title}</Typography>
                       {clause.is_custom && (
                         <Chip size="small" label="Personalizada" color="warning" />
+                      )}
+                      {(clause as any).legal_reference && (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={(clause as any).legal_reference}
+                          sx={{ fontSize: '0.65rem', height: 20, color: vhColors.accentBlue, borderColor: vhColors.accentBlue }}
+                        />
                       )}
                     </Box>
                   </AccordionSummary>
@@ -479,6 +506,63 @@ const AdminContractReview: React.FC = () => {
                 Ver PDF del Contrato
               </Button>
             </Stack>
+          </Paper>
+
+          {/* Timeline jurídico de estados */}
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <GavelIcon color="primary" />
+              <Typography variant="h6" fontWeight="medium">
+                Flujo del Contrato
+              </Typography>
+            </Box>
+            {(() => {
+              const FLOW_STAGES = [
+                { key: 'PENDING_ADMIN_REVIEW', label: 'Revisión Jurídica', desc: 'Admin revisa y aprueba' },
+                { key: 'DRAFT', label: 'Borrador Aprobado', desc: 'Listo para el arrendatario' },
+                { key: 'BOTH_REVIEWING', label: 'Arrendatario Revisando', desc: 'Tenant acepta contrato' },
+                { key: 'TENANT_AUTHENTICATION', label: 'Firma Biométrica', desc: 'Tenant → Garante → Arrendador' },
+                { key: 'ACTIVE', label: 'Contrato Activo', desc: 'En plena ejecución' },
+              ];
+              const currentIdx = FLOW_STAGES.findIndex(s => s.key === contract.current_state);
+              const activeStep = currentIdx === -1 ? 0 : currentIdx;
+              return (
+                <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
+                  {FLOW_STAGES.map((stage, i) => {
+                    const done = i < activeStep;
+                    const active = i === activeStep;
+                    return (
+                      <Step key={stage.key} completed={done}>
+                        <StepLabel
+                          StepIconComponent={() =>
+                            done ? (
+                              <DoneStepIcon sx={{ color: vhColors.success, fontSize: 20 }} />
+                            ) : active ? (
+                              <ActiveStepIcon sx={{ color: vhColors.accentBlue, fontSize: 20 }} />
+                            ) : (
+                              <PendingStepIcon sx={{ color: 'text.disabled', fontSize: 20 }} />
+                            )
+                          }
+                        >
+                          <Typography
+                            variant="body2"
+                            fontWeight={active ? 700 : 400}
+                            color={done ? 'text.secondary' : active ? 'primary' : 'text.disabled'}
+                          >
+                            {stage.label}
+                          </Typography>
+                        </StepLabel>
+                        <StepContent>
+                          <Typography variant="caption" color="text.secondary">
+                            {stage.desc}
+                          </Typography>
+                        </StepContent>
+                      </Step>
+                    );
+                  })}
+                </Stepper>
+              );
+            })()}
           </Paper>
 
           {/* Historial de workflow */}

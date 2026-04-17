@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { vhColors } from '../../theme/tokens';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
@@ -3625,11 +3626,20 @@ _____________________________
         />
         
         <CardContent>
-          <Stepper activeStep={activeStep} orientation="vertical">
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            sx={{
+              '& .MuiStepLabel-root .Mui-active': { color: vhColors.accentBlue },
+              '& .MuiStepLabel-root .Mui-completed': { color: vhColors.success },
+              '& .MuiStepIcon-root.Mui-active': { color: vhColors.accentBlue },
+              '& .MuiStepIcon-root.Mui-completed': { color: vhColors.success },
+            }}
+          >
             {steps.map((label, index) => (
               <Step key={label}>
                 <StepLabel>
-                  <Typography variant="subtitle1" fontWeight="medium">
+                  <Typography variant="subtitle1" fontWeight={activeStep === index ? 700 : 500}>
                     {label}
                   </Typography>
                 </StepLabel>
@@ -3654,7 +3664,15 @@ _____________________________
                       variant="contained"
                       onClick={index === steps.length - 1 ? handleSubmit : handleNext}
                       loading={loading}
-                      sx={{ mr: 1 }}
+                      sx={{
+                        mr: 1,
+                        ...(index === steps.length - 1 && {
+                          background: `linear-gradient(135deg, ${vhColors.accentBlue} 0%, ${vhColors.purple} 100%)`,
+                          '&:hover': {
+                            background: `linear-gradient(135deg, ${vhColors.accentBlue} 20%, ${vhColors.purple} 100%)`,
+                          },
+                        }),
+                      }}
                       size="large"
                     >
                       {index === steps.length - 1 ? 'Crear Borrador' : 'Continuar'}

@@ -1157,6 +1157,22 @@ class ContractPDFGenerator:
                 El contrato se prorrogará automáticamente por períodos iguales, salvo que alguna de las
                 partes manifieste su intención de terminarlo con una antelación mínima de tres (3) meses."""
             },
+            {
+                'number': 'SÉPTIMA',
+                'title': 'DEPÓSITO DE GARANTÍA (Art. 9, Ley 820 de 2003)',
+                'content': f"""EL ARRENDATARIO entrega en este acto a EL ARRENDADOR, a título de depósito
+                de garantía, la suma de {self._number_to_words(contract_terms.get('security_deposit', 0))}
+                ({self._format_currency(contract_terms.get('security_deposit', 0))} pesos m/cte), equivalente
+                a {contract_terms.get('security_deposit', 0) / max(contract_terms.get('monthly_rent', 1), 1):.1f}
+                mes(es) de canon. El depósito garantiza el cumplimiento de las obligaciones del contrato,
+                incluyendo cánones insolutos, servicios públicos pendientes y daños al inmueble no imputables
+                al uso normal. PARÁGRAFO PRIMERO: El depósito no podrá imputarse como canon de arrendamiento
+                en ningún momento de la vigencia del contrato. PARÁGRAFO SEGUNDO: EL ARRENDADOR devolverá el
+                depósito dentro de los treinta (30) días hábiles siguientes a la restitución del inmueble en
+                buen estado, previa verificación del cumplimiento de todas las obligaciones del ARRENDATARIO.
+                PARÁGRAFO TERCERO: En caso de incumplimiento, EL ARRENDADOR podrá aplicar el depósito a la
+                satisfacción de las deudas, debiendo rendir cuentas documentadas al ARRENDATARIO."""
+            },
         ]
         
         # Agregar cada cláusula
@@ -1177,7 +1193,7 @@ class ContractPDFGenerator:
         
         clauses_part2 = [
             {
-                'number': 'SÉPTIMA',
+                'number': 'OCTAVA',
                 'title': 'OBLIGACIONES DEL ARRENDATARIO',
                 'content': """El ARRENDATARIO se obliga a: a) Pagar cumplidamente el canon de 
                 arrendamiento en la fecha convenida; b) Cuidar el inmueble como un buen padre 
@@ -1188,7 +1204,7 @@ class ContractPDFGenerator:
                 que lo recibió, salvo el deterioro natural por el uso legítimo."""
             },
             {
-                'number': 'OCTAVA',
+                'number': 'NOVENA',
                 'title': 'OBLIGACIONES DEL ARRENDADOR',
                 'content': """El ARRENDADOR se obliga a: a) Entregar el inmueble en condiciones de 
                 servir para el fin convenido; b) Mantener el inmueble en condiciones de servir 
@@ -1198,7 +1214,7 @@ class ContractPDFGenerator:
                 en el uso legítimo del inmueble."""
             },
             {
-                'number': 'NOVENA',
+                'number': 'DÉCIMA',
                 'title': 'SERVICIOS PÚBLICOS',
                 'content': """Los servicios públicos domiciliarios (energía eléctrica, acueducto, 
                 alcantarillado, gas natural, teléfono e internet) serán por cuenta del 
@@ -1207,14 +1223,14 @@ class ContractPDFGenerator:
                 la vigencia del contrato."""
             },
             {
-                'number': 'DÉCIMA',
+                'number': 'DÉCIMA PRIMERA',
                 'title': 'LÍNEA TELEFÓNICA',
                 'content': """Si el inmueble cuenta con línea telefónica, el ARRENDATARIO podrá hacer 
                 uso de ella, asumiendo todos los gastos que se generen. Al terminar el contrato, 
                 deberá entregar la línea telefónica libre de deudas."""
             },
             {
-                'number': 'DÉCIMA PRIMERA',
+                'number': 'DÉCIMA SEGUNDA',
                 'title': 'REPARACIONES LOCATIVAS',
                 'content': """Estarán a cargo del ARRENDATARIO las reparaciones locativas que según 
                 la ley y la costumbre son de su responsabilidad, tales como: el mantenimiento 
@@ -1223,7 +1239,7 @@ class ContractPDFGenerator:
                 por el uso normal."""
             },
             {
-                'number': 'DÉCIMA SEGUNDA',
+                'number': 'DÉCIMA TERCERA',
                 'title': 'REPARACIONES NECESARIAS',
                 'content': """Las reparaciones necesarias para conservar el inmueble en buen estado 
                 que no sean locativas, serán por cuenta del ARRENDADOR. El ARRENDATARIO deberá 
@@ -1231,7 +1247,7 @@ class ContractPDFGenerator:
                 reparación."""
             },
             {
-                'number': 'DÉCIMA TERCERA',
+                'number': 'DÉCIMA CUARTA',
                 'title': 'MEJORAS Y REFORMAS',
                 'content': """El ARRENDATARIO no podrá hacer mejoras, modificaciones o reformas al 
                 inmueble sin autorización previa y escrita del ARRENDADOR. Las mejoras que se 
@@ -1239,14 +1255,14 @@ class ContractPDFGenerator:
                 reembolso alguno."""
             },
             {
-                'number': 'DÉCIMA CUARTA',
+                'number': 'DÉCIMA QUINTA',
                 'title': 'FIJACIÓN DE AVISOS',
                 'content': """El ARRENDATARIO no podrá fijar avisos, carteles, leyendas o hacer 
                 inscripciones en las paredes exteriores del inmueble, ni en las áreas comunes 
                 si las hubiere, sin previa autorización escrita del ARRENDADOR."""
             },
             {
-                'number': 'DÉCIMA QUINTA',
+                'number': 'DÉCIMA SEXTA',
                 'title': 'DEVOLUCIÓN SATISFACTORIA',
                 'content': """Al término del contrato, cualquiera que sea la causa, el ARRENDATARIO 
                 se obliga a restituir el inmueble en perfecto estado de aseo y conservación, 
@@ -1273,29 +1289,30 @@ class ContractPDFGenerator:
         
         clauses_part3 = [
             {
-                'number': 'DÉCIMA SEXTA',
-                'title': 'EFECTOS DEL INCUMPLIMIENTO',
-                'content': """El incumplimiento de cualquiera de las obligaciones contraídas por el 
-                ARRENDATARIO, dará derecho al ARRENDADOR para exigir la terminación inmediata del 
-                contrato y la restitución del inmueble, sin perjuicio de la indemnización de 
-                perjuicios a que haya lugar."""
+                'number': 'DÉCIMA SÉPTIMA',
+                'title': 'EFECTOS DEL INCUMPLIMIENTO (Art. 16, Ley 820 de 2003)',
+                'content': """El incumplimiento de cualquiera de las obligaciones contraídas por el
+                ARRENDATARIO, dará derecho al ARRENDADOR para exigir, conforme al artículo 16 de la
+                Ley 820 de 2003, la terminación del contrato y la restitución del inmueble, con un plazo
+                de treinta (30) días para cumplir la obligación incumplida antes de proceder a la demanda.
+                Lo anterior sin perjuicio de la indemnización de perjuicios a que haya lugar."""
             },
             {
-                'number': 'DÉCIMA SÉPTIMA',
+                'number': 'DÉCIMA OCTAVA',
                 'title': 'EXENCIÓN DE RESPONSABILIDAD',
                 'content': """El ARRENDADOR no será responsable por daños o pérdidas que sufran las 
                 personas o los bienes que se encuentren en el inmueble arrendado, salvo cuando 
                 tales daños o pérdidas provengan de su culpa o dolo."""
             },
             {
-                'number': 'DÉCIMA OCTAVA',
+                'number': 'DÉCIMA NOVENA',
                 'title': 'EXTINCIÓN DEL DERECHO DEL PROPIETARIO',
                 'content': """Si durante la vigencia del contrato el ARRENDADOR enajena el inmueble, 
                 el nuevo propietario no podrá alegar extinción del derecho del ARRENDATARIO 
                 durante el tiempo que falta para el vencimiento del contrato."""
             },
             {
-                'number': 'DÉCIMA NOVENA',
+                'number': 'VIGÉSIMA',
                 'title': 'CLÁUSULA PENAL',
                 'content': """En caso de incumplimiento de las obligaciones por parte del ARRENDATARIO, 
                 éste pagará al ARRENDADOR, a título de cláusula penal, una suma equivalente a 
@@ -1303,14 +1320,14 @@ class ContractPDFGenerator:
                 perjuicio de las demás acciones legales."""
             },
             {
-                'number': 'VIGÉSIMA',
+                'number': 'VIGÉSIMA PRIMERA',
                 'title': 'AUTORIZACIONES',
                 'content': """El ARRENDADOR se obliga a obtener y mantener vigentes todas las
                 autorizaciones, licencias y permisos que sean necesarios para el uso del
                 inmueble como vivienda familiar."""
             },
             {
-                'number': 'VIGÉSIMA PRIMERA',
+                'number': 'VIGÉSIMA SEGUNDA',
                 'title': 'ABANDONO DEL INMUEBLE',
                 'content': """Se considera abandono del inmueble cuando el ARRENDATARIO no lo habite 
                 por un período superior a treinta (30) días consecutivos sin causa justificada 
@@ -1318,28 +1335,43 @@ class ContractPDFGenerator:
                 inmediata del contrato."""
             },
             {
-                'number': 'VIGÉSIMA SEGUNDA',
-                'title': 'COBRO EXTRAJUDICIAL',
-                'content': """Para el cobro extrajudicial de las sumas adeudadas, el ARRENDADOR 
-                podrá acudir a centrales de riesgo crediticio y cobranza extrajudicial, 
-                previa comunicación al ARRENDATARIO con quince (15) días de anticipación."""
-            },
-            {
                 'number': 'VIGÉSIMA TERCERA',
-                'title': 'DEUDORES SOLIDARIOS',
-                'content': """Los deudores solidarios y codeudores que firmen este contrato, 
-                responden solidariamente con el ARRENDATARIO por todas las obligaciones 
-                derivadas del presente contrato, incluso después de su terminación."""
+                'title': 'COBRO EXTRAJUDICIAL Y SERVICIOS (Art. 22, Ley 820 de 2003)',
+                'content': """Para el cobro extrajudicial de las sumas adeudadas, el ARRENDADOR
+                podrá acudir a centrales de riesgo crediticio y cobranza extrajudicial, previa
+                comunicación al ARRENDATARIO con quince (15) días de anticipación. PARÁGRAFO PRIMERO
+                (Cobro de Servicios, Art. 22 Ley 820/2003): Si el ARRENDATARIO incurriere en mora en
+                el pago de los servicios públicos domiciliarios, el ARRENDADOR podrá asumir directamente
+                el pago de los servicios en mora para evitar su suspensión. Las sumas pagadas por el
+                ARRENDADOR se convertirán en deuda exigible al ARRENDATARIO dentro de los cinco (5) días
+                hábiles siguientes a la notificación del pago. PARÁGRAFO SEGUNDO: La mora reiterada en
+                el pago de servicios en dos (2) o más períodos consecutivos constituirá causal autónoma
+                de terminación del contrato por parte del ARRENDADOR."""
             },
             {
                 'number': 'VIGÉSIMA CUARTA',
+                'title': 'DEUDORES SOLIDARIOS (Arts. 13-15, Ley 820 de 2003)',
+                'content': """Los codeudores y deudores solidarios que firmen este contrato responden
+                solidariamente con el ARRENDATARIO por todas las obligaciones derivadas del presente
+                contrato, de conformidad con los artículos 13 a 15 de la Ley 820 de 2003. PARÁGRAFO
+                PRIMERO: La solidaridad de los codeudores no se extingue por la renovación automática
+                del contrato ni por sus prórrogas, y se mantiene vigente por el mismo período del
+                contrato renovado. PARÁGRAFO SEGUNDO: La responsabilidad del codeudor solidario
+                subsistirá por un período de seis (6) meses contados desde la terminación del contrato,
+                para responder por las obligaciones pendientes que se liquiden dentro de dicho término.
+                PARÁGRAFO TERCERO: Toda acción judicial o extrajudicial contra el ARRENDATARIO podrá
+                extenderse simultáneamente contra los codeudores solidarios sin necesidad de beneficio
+                de excusión."""
+            },
+            {
+                'number': 'VIGÉSIMA QUINTA',
                 'title': 'MÉRITO EJECUTIVO',
                 'content': """Este contrato presta mérito ejecutivo para el cobro de todas las 
                 obligaciones que emanen del mismo, de conformidad con lo establecido en el 
                 artículo 422 del Código de Procedimiento Civil."""
             },
             {
-                'number': 'VIGÉSIMA QUINTA',
+                'number': 'VIGÉSIMA SEXTA',
                 'title': 'CESIÓN Y SUBARRIENDO',
                 'content': """El ARRENDATARIO no podrá ceder este contrato ni subarrendar el inmueble 
                 en todo o en parte, sin autorización previa y escrita del ARRENDADOR. La 
@@ -1365,24 +1397,27 @@ class ContractPDFGenerator:
         
         clauses_part4 = [
             {
-                'number': 'VIGÉSIMA SEXTA',
+                'number': 'VIGÉSIMA SÉPTIMA',
                 'title': 'CESIÓN POR EL ARRENDADOR',
                 'content': """El ARRENDADOR podrá ceder libremente sus derechos derivados de este 
                 contrato, caso en el cual deberá informar por escrito al ARRENDATARIO sobre 
                 la persona del nuevo acreedor."""
             },
             {
-                'number': 'VIGÉSIMA SÉPTIMA',
-                'title': 'CAUSALES DE TERMINACIÓN POR EL ARRENDADOR',
-                'content': """El ARRENDADOR podrá dar por terminado este contrato en cualquiera de 
-                los siguientes casos: a) Falta de pago del canon o de los servicios por más 
-                de dos (2) meses; b) Violación de cualquiera de las obligaciones consagradas 
-                en este contrato; c) Subarriendo total o parcial del inmueble; d) Cambio de 
-                destinación del inmueble; e) Destrucción o deterioro grave del inmueble por 
-                culpa del ARRENDATARIO."""
+                'number': 'VIGÉSIMA OCTAVA',
+                'title': 'CAUSALES DE TERMINACIÓN POR EL ARRENDADOR (Arts. 16-17, Ley 820 de 2003)',
+                'content': """El ARRENDADOR podrá dar por terminado este contrato en cualquiera de los
+                siguientes casos, de conformidad con el artículo 16 de la Ley 820 de 2003: a) Falta de
+                pago del canon o de los servicios públicos por más de dos (2) meses; b) Violación de
+                cualquiera de las obligaciones del ARRENDATARIO consagradas en este contrato; c) Subarriendo
+                total o parcial del inmueble sin autorización; d) Cambio de destinación del inmueble;
+                e) Destrucción o deterioro grave del inmueble por culpa del ARRENDATARIO. PARÁGRAFO (Art. 17,
+                Ley 820 de 2003): Para la terminación sin justa causa por parte del ARRENDADOR, éste deberá
+                dar al ARRENDATARIO un preaviso escrito con una antelación mínima de tres (3) meses, so pena
+                de indemnización equivalente a tres (3) meses de canon vigente al momento de la terminación."""
             },
             {
-                'number': 'VIGÉSIMA OCTAVA',
+                'number': 'VIGÉSIMA NOVENA',
                 'title': 'CAUSALES DE TERMINACIÓN POR EL ARRENDATARIO',
                 'content': """El ARRENDATARIO podrá dar por terminado este contrato en cualquiera 
                 de los siguientes casos: a) Cuando el ARRENDADOR no cumpla con las reparaciones 
@@ -1391,28 +1426,33 @@ class ContractPDFGenerator:
                 el fin del contrato."""
             },
             {
-                'number': 'VIGÉSIMA NOVENA',
+                'number': 'TRIGÉSIMA',
                 'title': 'GASTOS',
                 'content': """Los gastos de escrituración, registro y timbre de este contrato serán 
                 por cuenta del ARRENDADOR. Los gastos de terminación del contrato, restitución 
                 del inmueble y demás que se generen serán por cuenta de quien los ocasione."""
             },
             {
-                'number': 'TRIGÉSIMA',
+                'number': 'TRIGÉSIMA PRIMERA',
                 'title': 'COPIA DEL CONTRATO',
                 'content': """Cada una de las partes recibirá una copia de este contrato debidamente 
                 firmada. Para efectos probatorios, cualquiera de las copias tendrá el mismo 
                 valor legal."""
             },
             {
-                'number': 'TRIGÉSIMA PRIMERA',
-                'title': 'VISITAS',
-                'content': """El ARRENDADOR tendrá derecho a inspeccionar el inmueble cuando lo 
-                considere necesario, previa cita con el ARRENDATARIO con una anticipación 
-                mínima de veinticuatro (24) horas, salvo en casos de emergencia."""
+                'number': 'TRIGÉSIMA SEGUNDA',
+                'title': 'VISITAS E INSPECCIONES',
+                'content': """El ARRENDADOR tendrá derecho a inspeccionar el inmueble con una
+                frecuencia máxima de una (1) vez por trimestre, previa notificación escrita al
+                ARRENDATARIO con una antelación mínima de veinticuatro (24) horas. De cada visita
+                de inspección se levantará un acta suscrita por ambas partes, o por testigos si
+                alguna parte se niega a firmar. PARÁGRAFO: En casos de emergencia que impliquen riesgo
+                para la integridad del inmueble o de sus ocupantes (incendio, inundación, daño estructural
+                o similares), el ARRENDADOR podrá ingresar sin previo aviso, dejando constancia escrita
+                de los hechos dentro de las veinticuatro (24) horas siguientes al ingreso."""
             },
             {
-                'number': 'TRIGÉSIMA SEGUNDA',
+                'number': 'TRIGÉSIMA TERCERA',
                 'title': 'NOTIFICACIONES',
                 'content': """Todas las comunicaciones relacionadas con este contrato se harán por 
                 escrito a las direcciones señaladas por las partes en este documento, o a 
@@ -1420,7 +1460,7 @@ class ContractPDFGenerator:
                 notificaciones enviadas a los correos electrónicos registrados."""
             },
             {
-                'number': 'TRIGÉSIMA TERCERA',
+                'number': 'TRIGÉSIMA CUARTA',
                 'title': 'VALIDEZ',
                 'content': """Este contrato reemplaza y deja sin efecto cualquier acuerdo verbal o 
                 escrito anterior entre las partes sobre el mismo objeto. Las modificaciones 
@@ -1453,9 +1493,9 @@ class ContractPDFGenerator:
         # Generar contenido de la cláusula según el tipo de garantía
         clause_content = self._generate_guarantee_clause_content(guarantee_type, guarantee_data)
         
-        # Agregar la cláusula TRIGÉSIMA CUARTA
+        # Agregar la cláusula TRIGÉSIMA QUINTA
         story.append(Paragraph(
-            f"<b>CLÁUSULA TRIGÉSIMA CUARTA - GARANTÍAS DEL CONTRATO:</b> {clause_content}",
+            f"<b>CLÁUSULA TRIGÉSIMA QUINTA - GARANTÍAS DEL CONTRATO:</b> {clause_content}",
             self.styles['ContractClause']
         ))
         

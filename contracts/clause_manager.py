@@ -47,9 +47,31 @@ class ContractClauseManager:
                     'content': 'En caso de mora en el pago del precio del arrendamiento, EL ARRENDATARIO, además del saldo en mora reconocerá y pagará durante ella a EL ARRENDADOR los intereses de mora liquidados a la tasa máxima permitida además de los honorarios por gestión de cobranza.'
                 }
             ]
+        },
+        {
+            'number': 4,
+            'ordinal': 'CUARTA',
+            'title': 'DEPÓSITO DE GARANTÍA (Art. 9, Ley 820 de 2003)',
+            'content': 'EL ARRENDATARIO entrega en este acto a EL ARRENDADOR, a título de depósito de garantía, la suma de {security_deposit_text} ({security_deposit} pesos m/cte), equivalente a {deposit_months} mes(es) de canon. El depósito garantiza el cumplimiento de las obligaciones del contrato, incluyendo cánones insolutos, servicios públicos pendientes y daños al inmueble no imputables al uso normal.',
+            'applies_to': ['all'],
+            'legal_reference': 'Art. 9, Ley 820 de 2003',
+            'paragraphs': [
+                {
+                    'type': 'PARÁGRAFO PRIMERO',
+                    'content': 'El depósito no podrá imputarse como canon de arrendamiento en ningún momento de la vigencia del contrato.'
+                },
+                {
+                    'type': 'PARÁGRAFO SEGUNDO',
+                    'content': 'EL ARRENDADOR devolverá el depósito dentro de los treinta (30) días hábiles siguientes a la restitución del inmueble en buen estado, previa verificación del cumplimiento de todas las obligaciones del ARRENDATARIO.'
+                },
+                {
+                    'type': 'PARÁGRAFO TERCERO',
+                    'content': 'En caso de incumplimiento, EL ARRENDADOR podrá aplicar el depósito a la satisfacción de las deudas, debiendo rendir cuentas documentadas al ARRENDATARIO.'
+                }
+            ]
         }
     ]
-    
+
     # Cláusulas específicas por tipo de contrato
     SPECIFIC_CLAUSES = {
         'rental_urban': [

@@ -323,6 +323,23 @@ class Contract(models.Model):
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error sincronizando con MatchRequest: {e}")
+
+        # ✅ SINCRONIZACIÓN CON LandlordControlledContract (dual workflow)
+        _lcc_state_map = {
+            'pending_tenant_biometric': 'TENANT_AUTHENTICATION',
+            'pending_guarantor_biometric': 'GUARANTOR_AUTHENTICATION',
+            'pending_landlord_biometric': 'LANDLORD_AUTHENTICATION',
+            'active': 'ACTIVE',
+        }
+        if self.status in _lcc_state_map:
+            try:
+                from contracts.landlord_contract_models import LandlordControlledContract as _LCC
+                _LCC.objects.filter(id=self.id).update(
+                    current_state=_lcc_state_map[self.status]
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Error sincronizando LCC dual workflow: {e}")
     
     def is_expired(self):
         """Verifica si el contrato ha expirado."""
@@ -493,7 +510,9 @@ class Contract(models.Model):
         """Retorna el siguiente paso de autenticación biométrica."""
         if not self.tenant_auth_completed:
             return 'tenant'
-        elif self.guarantor and not getattr(self, 'guarantor_auth_completed', False):
+        elif self.guarantor and not BiometricAuthentication.objects.filter(
+            contract=self, user=self.guarantor, status='completed'
+        ).exists():
             return 'guarantor'
         elif not self.landlord_auth_completed:
             return 'landlord'
