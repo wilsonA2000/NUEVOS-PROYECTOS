@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-17 PM (BUG-PAY-GW-01/02/03 · Bold · VIS-5 · E2E 7/7)
+**Última actualización**: 2026-04-18 (Auditoría contratos completa · 6 fases ejecutadas)
 
 ---
 
@@ -8,36 +8,39 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `496488a` |
+| Branch | `main` @ `6457299` |
 | Backend tests | 812 verde · 0 failures · 3 skipped |
-| E2E Playwright | **7/7 verde** (20.2 min) |
+| E2E Playwright | 7/7 verde (existentes) + nuevo full-admin-review-flow |
 | tsc frontend | 0 errores |
 | Servidores dev | backend `:8000` · frontend `:5174` |
 
 ---
 
-## Lo que se hizo esta sesión (2026-04-17 PM)
+## Lo que se hizo esta sesión (2026-04-18)
 
-### BUG-PAY-GW-01/02/03 resueltos (`6c46e2d`)
-- `StripeGateway` implementa `create_payment` + `confirm_payment` (ABC).
-- `PaymentResult` tiene `raw_response: Optional[Dict]`.
-- `format_amount(amount)` sin segundo arg (2 ocurrencias).
-- `BasePaymentGateway.handle_error()` añadido.
-- `PaymentWebhookView`: `result['success']` → `result.success`.
+### Auditoría jurídica del contrato — Ley 820 de 2003 (`6457299`)
 
-### Bold — gateway colombiano primario (`85b5630`)
-- `payments/gateways/bold_gateway.py` — `BoldGateway` completo (14 tests).
-- Montos en COP pesos **enteros** (no centavos — importante).
-- Endpoints: `POST /payments/bold/initiate/` + `POST /payments/webhooks/bold/`.
-- Webhook: HMAC-SHA256 `x-bold-signature` con `BOLD_INTEGRITY_SECRET`.
-- `PayOrderModal.tsx`: Bold tab 0 (primario), PSE/Nequi como alternativas legacy.
-- Settings: `BOLD_API_KEY`, `BOLD_INTEGRITY_SECRET`, `BOLD_SANDBOX_MODE`.
+**Backend — pdf_generator.py + clause_manager.py:**
+- Nueva **CLÁUSULA SÉPTIMA — DEPÓSITO DE GARANTÍA** (Art. 9 Ley 820): antes completamente ausente. 3 párrafos: no imputable como canon, devolución 30 días hábiles, aplicación por incumplimiento.
+- **COBRO EXTRAJUDICIAL** ampliada (Art. 22): arrendador puede asumir servicios en mora, deuda exigible en 5 días hábiles, mora reiterada = causal de terminación.
+- **DEUDORES SOLIDARIOS** ampliada (Arts. 13-15): responsabilidad postcontractual 6 meses, solidaridad no extinta por renovación, sin beneficio de excusión.
+- **CAUSALES TERMINACIÓN ARRENDADOR** (Arts. 16-17): plazo 30 días para cumplimiento + PARÁGRAFO preaviso 3 meses para terminación sin justa causa.
+- **VISITAS E INSPECCIONES**: protocolo formal — máx 1/trimestre, notificación escrita 24h, acta firmada, ingreso emergencia con constancia 24h.
+- Numeración re-secuenciada: SÉPTIMA (depósito) → OCTAVA ... TRIGÉSIMA CUARTA. Cláusula dinámica → TRIGÉSIMA QUINTA.
+- `clause_manager.py`: CUARTA Depósito de Garantía en `BASE_CLAUSES` con `legal_reference`.
+- `settings.py`: `check_admin_review_sla` + `check_biometric_expiration` en `CELERY_BEAT_SCHEDULE`.
 
-### VIS-5 segunda pasada — 21 archivos (`496488a`)
-Hex → `vhColors`/`vh` tokens en: PropertyFilters, UserStatusSelector, Profile, RegisterWithCode, Layout, PropertyForm, LandlordDocumentReview, MaintenancePage, AdminVerificationDashboard, EnhancedTenantDocumentUpload (solo getStatusIcon), GuaranteeDocumentUpload, SimpleProfessionalCamera, TenantContractView, BiometricVerification, PropertyList, CodeudorAuthPage, PrivacyModal, TermsModal, RatingsErrorBoundary, CandidateEvaluationView, PropertyImage, MatchRequestForm.
+**Backend — models.py:**
+- `guarantor_auth_completed`: reemplazado `getattr(self, ..., False)` fallido por `BiometricAuthentication.objects.filter(...).exists()`.
+- `Contract.save()`: sincronización dual workflow → `LandlordControlledContract` se actualiza automáticamente a `TENANT_AUTHENTICATION`, `GUARANTOR_AUTHENTICATION`, `LANDLORD_AUTHENTICATION`, `ACTIVE`.
 
-### E2E Playwright — 7/7 verde
-Contrato finaliza `current_state: active`, confidence 87.7%. 2 FAILs conocidos no regresivos: `toggle-2fa` + `toggle-login-notifications` (timing con checkboxes en accordion Seguridad).
+**Frontend — Visual:**
+- `ContractDetail.tsx`: Estado Banner dinámico (fondo gradiente por estado), mini-cards Grid con `DataCard`, `LinearProgress` de progreso, acciones contextuales por estado, eliminadas listas planas.
+- `AdminContractReview.tsx`: Stepper jurídico vertical (5 etapas del flujo), `legal_reference` chips en accordions de cláusulas, chip "Escalado" con `WarningAmberIcon` cuando `admin_review_escalated`.
+- `LandlordContractForm.tsx`: Tokens `vhColors` en Stepper activo/completado, gradiente en botón "Crear Borrador", font-weight dinámico por paso activo.
+
+**E2E:**
+- Nuevo test `full-admin-review-flow.spec.ts`: 3 actores (juridico/landlord/tenant), flujo completo desde revisión admin hasta biométrica, guard de rol verificado.
 
 ---
 
@@ -45,22 +48,24 @@ Contrato finaliza `current_state: active`, confidence 87.7%. 2 FAILs conocidos n
 
 ### 🔴 P0 — bloqueador de deploy
 1. **Pruebas manuales en browser** — `docs/MANUAL_E2E_CHECKLIST.md` (13 módulos).
-   - Payments (Bold sandbox, PSE Wompi).
-   - Image upload, ratings UI, subscriptions.
-   - Maintenance, DIAN invoice preview.
-   - Admin dashboards (tickets, verification).
-   - Reportar como `BUG-MANUAL-XX` en `docs/MANUAL_E2E_BUGS.md`.
+   - Probar el PDF del contrato con las nuevas cláusulas (SÉPTIMA depósito, etc.)
+   - Verificar visualmente `ContractDetail` con nuevo diseño
+   - Verificar `AdminContractReview` con Stepper jurídico
+   - Payments (Bold sandbox, PSE Wompi)
+   - Image upload, ratings UI, subscriptions
+   - Reportar como `BUG-MANUAL-XX` en `docs/MANUAL_E2E_BUGS.md`
 2. **Arreglar bugs P0/P1** encontrados en pruebas manuales.
 
 ### 🟡 P1 — antes de deploy
 3. `npm audit fix` — vulnerabilidad `yaml` moderate.
 4. **VIS-5 restantes** — ~26 archivos (landing pages, marketing gradients, EnhancedTenantDocumentUpload inline comparisons).
 5. Corregir selector Playwright para `toggle-2fa` / `toggle-login-notifications`.
+6. Ejecutar nuevo test E2E `full-admin-review-flow` y verificar que pasa.
 
 ### 🟢 P2 — post-deploy
-6. **Deploy producción**: Daphne + Celery + PostgreSQL/Redis + SSL + dominio.
-7. **Stripe Elements** (tarjeta) — T3.2.b, `npm install @stripe/react-stripe-js @stripe/stripe-js`.
-8. **DIAN firma digital XAdES** — comprar certificado + integrar.
+7. **Deploy producción**: Daphne + Celery + PostgreSQL/Redis + SSL + dominio.
+8. **Stripe Elements** (tarjeta) — T3.2.b, `npm install @stripe/react-stripe-js @stripe/stripe-js`.
+9. **DIAN firma digital XAdES** — comprar certificado + integrar.
 
 ---
 
@@ -68,42 +73,60 @@ Contrato finaliza `current_state: active`, confidence 87.7%. 2 FAILs conocidos n
 
 ```bash
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git status                                            # limpio en main @ 496488a
+git status                                            # limpio en main @ 6457299
 source venv_ubuntu/bin/activate
 
 # Verificar servidores
 screen -ls
 
-# Re-correr E2E para confirmar estado
+# Generar PDF de prueba (verificar cláusulas nuevas)
+python manage.py shell -c "
+from contracts.pdf_generator import ContractPDFGenerator
+from contracts.models import LandlordControlledContract
+gen = ContractPDFGenerator()
+lcc = LandlordControlledContract.objects.last()
+result = gen.generate_contract_pdf(lcc)
+data = result.read() if hasattr(result, 'read') else bytes(result)
+open('/tmp/test_contract.pdf', 'wb').write(data)
+print(f'PDF OK: {len(data)} bytes')
+"
+
+# Abrir PDF y verificar SÉPTIMA (depósito), VIGÉSIMA TERCERA (cobro servicios), etc.
+# explorer.exe /tmp/test_contract.pdf  # desde WSL
+
+# Correr E2E existentes
 cd frontend && npx playwright test --config=playwright.config.e2e-real.ts
+
+# Correr nuevo test admin-review
+cd frontend && npx playwright test full-admin-review-flow --config=playwright.config.e2e-real.ts
 ```
 
 ---
 
-## Arquitectura de pagos (post-sesión)
+## Arquitectura jurídica del contrato (post-sesión)
 
 ```
-PayOrderModal (frontend)
-├── Tab 0: Bold (primario)  → POST /payments/bold/initiate/ → redirect checkout_url
-├── Tab 1: Wompi PSE        → legacy
-└── Tab 2: Nequi            → legacy
-
-Backend gateways/
-├── bold_gateway.py    ← nuevo · COP enteros · HMAC-SHA256 webhook
-├── stripe_gateway.py  ← ABC completo · COP centavos
-├── wompi.py           ← existente
-└── nequi.py           ← existente
+PDF del Contrato — 35 cláusulas (Ley 820 de 2003):
+PRIMERA    Objeto
+SEGUNDA    Destinación
+TERCERA    Precio (canon)
+CUARTA     Reajuste IPC
+QUINTA     Entrega del inmueble
+SEXTA      Término del contrato
+SÉPTIMA    ✅ NUEVA: Depósito de Garantía (Art. 9)
+OCTAVA     Obligaciones del Arrendatario
+NOVENA     Obligaciones del Arrendador
+DÉCIMA     Servicios Públicos
+...
+VIGÉSIMA TERCERA   ✅ AMPLIADA: Cobro Extrajudicial + Servicios (Art. 22)
+VIGÉSIMA CUARTA    ✅ AMPLIADA: Deudores Solidarios (Arts. 13-15)
+...
+VIGÉSIMA OCTAVA    ✅ AMPLIADA: Causales Terminación Arrendador (Arts. 16-17)
+...
+TRIGÉSIMA SEGUNDA  ✅ AMPLIADA: Inspecciones con protocolo formal
+...
+TRIGÉSIMA QUINTA   Dinámica: Garantías del contrato
 ```
-
----
-
-## Decisiones arquitectónicas confirmadas
-
-1. **Bold** es el gateway primario para Colombia (PSE, Nequi, Daviplata, QR, Efecty en un solo link).
-2. **Tope de usura**: 0.0208/mes (~28% EA). Revisar con Superfinanciera trimestralmente.
-3. **3 fechas legales**: `date_due` + `date_grace_end` (5d) + `date_max_overdue` (30d).
-4. **Servicios NO tienen mora** (pago al contado).
-5. **Stripe** queda para tarjetas internacionales (T3.2.b opcional).
 
 ---
 
@@ -111,10 +134,10 @@ Backend gateways/
 
 ```
 Continúa el desarrollo de VeriHome. Estado:
-- main @ 496488a · 812 tests verde · E2E 7/7 verde
-- Bold integrado como gateway COP primario (POST /payments/bold/initiate/)
-- BUG-PAY-GW-01/02/03 resueltos · VIS-5 segunda pasada 21 archivos
-- Próximo: pruebas manuales browser (MANUAL_E2E_CHECKLIST.md)
-  o npm audit fix / VIS-5 restantes / deploy a producción
+- main @ 6457299 · 812 tests verde · E2E 7/7 verde
+- Auditoría jurídica completa (5 cláusulas Ley 820/2003 corregidas/añadidas)
+- Visual mejorado: ContractDetail (Banner dinámico), AdminContractReview (Stepper jurídico)
+- Nuevo test E2E full-admin-review-flow.spec.ts
+- Próximo: pruebas manuales browser (MANUAL_E2E_CHECKLIST.md), npm audit fix, VIS-5 restantes
 Revisa NEXT_SESSION.md para detalle completo.
 ```
