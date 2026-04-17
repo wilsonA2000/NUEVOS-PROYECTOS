@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Auditoría contratos completa · 6 fases ejecutadas)
+**Última actualización**: 2026-04-18 (npm audit fix · E2E admin-review · VIS-5 · PDF fix · Playwright selectors)
 
 ---
 
@@ -8,64 +8,71 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `6457299` |
+| Branch | `main` @ `64c6c0a` |
 | Backend tests | 812 verde · 0 failures · 3 skipped |
-| E2E Playwright | 7/7 verde (existentes) + nuevo full-admin-review-flow |
+| E2E Playwright | full-admin-review-flow: 1/1 verde |
 | tsc frontend | 0 errores |
+| npm vulnerabilidades | 13 (8 de xlsx sin fix disponible) |
 | Servidores dev | backend `:8000` · frontend `:5174` |
 
 ---
 
-## Lo que se hizo esta sesión (2026-04-18)
+## Lo que se hizo esta sesión (2026-04-18 continuación)
 
-### Auditoría jurídica del contrato — Ley 820 de 2003 (`6457299`)
+### 1. npm audit fix
+- 29 → 13 vulnerabilidades resueltas
+- Restantes: todas de `xlsx` (sin fix del vendor). Se usa en `ExportButton.tsx` y `UniversalFileUpload.tsx`. Para eliminarlas: migrar a `exceljs`.
 
-**Backend — pdf_generator.py + clause_manager.py:**
-- Nueva **CLÁUSULA SÉPTIMA — DEPÓSITO DE GARANTÍA** (Art. 9 Ley 820): antes completamente ausente. 3 párrafos: no imputable como canon, devolución 30 días hábiles, aplicación por incumplimiento.
-- **COBRO EXTRAJUDICIAL** ampliada (Art. 22): arrendador puede asumir servicios en mora, deuda exigible en 5 días hábiles, mora reiterada = causal de terminación.
-- **DEUDORES SOLIDARIOS** ampliada (Arts. 13-15): responsabilidad postcontractual 6 meses, solidaridad no extinta por renovación, sin beneficio de excusión.
-- **CAUSALES TERMINACIÓN ARRENDADOR** (Arts. 16-17): plazo 30 días para cumplimiento + PARÁGRAFO preaviso 3 meses para terminación sin justa causa.
-- **VISITAS E INSPECCIONES**: protocolo formal — máx 1/trimestre, notificación escrita 24h, acta firmada, ingreso emergencia con constancia 24h.
-- Numeración re-secuenciada: SÉPTIMA (depósito) → OCTAVA ... TRIGÉSIMA CUARTA. Cláusula dinámica → TRIGÉSIMA QUINTA.
-- `clause_manager.py`: CUARTA Depósito de Garantía en `BASE_CLAUSES` con `legal_reference`.
-- `settings.py`: `check_admin_review_sla` + `check_biometric_expiration` en `CELERY_BEAT_SCHEDULE`.
+### 2. E2E full-admin-review-flow (1 passed)
+- `seed_e2e_multiuser.py`: nuevo modo `admin_review` que crea LCC en `PENDING_ADMIN_REVIEW`
+- `playwright.config.e2e-real.ts`: `full-admin-review-flow` agregado al `testMatch`
+- Test usa modo `admin_review` → flujo completo: PENDING_ADMIN_REVIEW → approve → DRAFT → biométrica
+- Usuario `juridico@verihome.com` creado en BD (is_staff=True, password=juridico123)
 
-**Backend — models.py:**
-- `guarantor_auth_completed`: reemplazado `getattr(self, ..., False)` fallido por `BiometricAuthentication.objects.filter(...).exists()`.
-- `Contract.save()`: sincronización dual workflow → `LandlordControlledContract` se actualiza automáticamente a `TENANT_AUTHENTICATION`, `GUARANTOR_AUTHENTICATION`, `LANDLORD_AUTHENTICATION`, `ACTIVE`.
+### 3. VIS-5 tokens de diseño
+- `LandingPage.tsx`: `vhColors.background` y tokens en gradients de Stats/CTA
+- `AboutPage.tsx`: gradients del Hero con `vhColors.accentBlue`/`vhColors.primary`
+- `ContactPage.tsx`: idem
+- Los demás archivos ya usaban `theme.palette.*` correctamente (no necesitaban cambio)
 
-**Frontend — Visual:**
-- `ContractDetail.tsx`: Estado Banner dinámico (fondo gradiente por estado), mini-cards Grid con `DataCard`, `LinearProgress` de progreso, acciones contextuales por estado, eliminadas listas planas.
-- `AdminContractReview.tsx`: Stepper jurídico vertical (5 etapas del flujo), `legal_reference` chips en accordions de cláusulas, chip "Escalado" con `WarningAmberIcon` cuando `admin_review_escalated`.
-- `LandlordContractForm.tsx`: Tokens `vhColors` en Stepper activo/completado, gradiente en botón "Crear Borrador", font-weight dinámico por paso activo.
+### 4. Fix selectores Playwright (button-audit)
+- Todos los toggles MUI Switch cambiados de `{ label: /regex/ }` a `{ role: 'checkbox', name: /regex/ }`
+- Aplica a: email-notifications, sms-notifications, newsletter, property-alerts, message-notifications, payment-reminders, toggle-2fa, toggle-login-notifications
 
-**E2E:**
-- Nuevo test `full-admin-review-flow.spec.ts`: 3 actores (juridico/landlord/tenant), flujo completo desde revisión admin hasta biométrica, guard de rol verificado.
+### 5. Fix PDF página vacía
+- `pdf_generator.py`: eliminado `PageBreak()` extra al inicio de `_build_verification_section_professional`
+- Solo queda UN `PageBreak()` en el flujo principal (entre firmas y verificación)
+- `KeepTogether` + `PageBreak()` único = firmas fluyen en página 8, verificación en página 9 (sin vacías)
+
+### 6. Fix PDF preview 401 (ContractDraftEditor)
+- `ContractDraftEditor.tsx`: usa `viewContractPDF(contractId)` en lugar de `window.open(url)` para enviar JWT
 
 ---
 
 ## Pendiente próxima sesión
 
 ### 🔴 P0 — bloqueador de deploy
-1. **Pruebas manuales en browser** — `docs/MANUAL_E2E_CHECKLIST.md` (13 módulos).
-   - Probar el PDF del contrato con las nuevas cláusulas (SÉPTIMA depósito, etc.)
-   - Verificar visualmente `ContractDetail` con nuevo diseño
-   - Verificar `AdminContractReview` con Stepper jurídico
-   - Payments (Bold sandbox, PSE Wompi)
-   - Image upload, ratings UI, subscriptions
+1. **Pruebas manuales browser** — módulos pendientes del `MANUAL_E2E_CHECKLIST.md`:
+   - Payments (Bold sandbox, PSE/Wompi)
+   - Image upload
+   - Ratings UI
+   - Subscriptions
+   - Maintenance requests
+   - DIAN invoice
+   - Admin dashboards (Tickets, Verification)
    - Reportar como `BUG-MANUAL-XX` en `docs/MANUAL_E2E_BUGS.md`
-2. **Arreglar bugs P0/P1** encontrados en pruebas manuales.
+2. **Bugs P0/P1** que encuentres en esas pruebas
 
 ### 🟡 P1 — antes de deploy
-3. `npm audit fix` — vulnerabilidad `yaml` moderate.
-4. **VIS-5 restantes** — ~26 archivos (landing pages, marketing gradients, EnhancedTenantDocumentUpload inline comparisons).
-5. Corregir selector Playwright para `toggle-2fa` / `toggle-login-notifications`.
-6. Ejecutar nuevo test E2E `full-admin-review-flow` y verificar que pasa.
+3. Verificar que button-audit pasa con los nuevos selectores `role=checkbox`
+   - Comando: `cd frontend && npx playwright test button-audit --config=playwright.config.e2e-real.ts`
+4. Migrar `xlsx` a `exceljs` para eliminar las 13 vulnerabilidades restantes
+5. VIS-5 restantes: páginas de menor tráfico (auth pages básicas, admin panels secundarios)
 
 ### 🟢 P2 — post-deploy
-7. **Deploy producción**: Daphne + Celery + PostgreSQL/Redis + SSL + dominio.
-8. **Stripe Elements** (tarjeta) — T3.2.b, `npm install @stripe/react-stripe-js @stripe/stripe-js`.
-9. **DIAN firma digital XAdES** — comprar certificado + integrar.
+6. **Deploy producción**: Daphne + Celery + PostgreSQL/Redis + SSL + dominio
+7. **Stripe Elements** (tarjeta) — T3.2.b
+8. **DIAN firma digital XAdES** — comprar certificado + integrar
 
 ---
 
@@ -73,13 +80,19 @@
 
 ```bash
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git status                                            # limpio en main @ 6457299
+git status                        # limpio en main @ 64c6c0a
 source venv_ubuntu/bin/activate
 
 # Verificar servidores
 screen -ls
 
-# Generar PDF de prueba (verificar cláusulas nuevas)
+# Correr button-audit (verifica fix selectores toggle)
+cd frontend && npx playwright test button-audit --config=playwright.config.e2e-real.ts
+
+# Correr full-admin-review-flow
+cd frontend && npx playwright test full-admin-review-flow --config=playwright.config.e2e-real.ts
+
+# Generar PDF de prueba
 python manage.py shell -c "
 from contracts.pdf_generator import ContractPDFGenerator
 from contracts.models import LandlordControlledContract
@@ -90,42 +103,7 @@ data = result.read() if hasattr(result, 'read') else bytes(result)
 open('/tmp/test_contract.pdf', 'wb').write(data)
 print(f'PDF OK: {len(data)} bytes')
 "
-
-# Abrir PDF y verificar SÉPTIMA (depósito), VIGÉSIMA TERCERA (cobro servicios), etc.
-# explorer.exe /tmp/test_contract.pdf  # desde WSL
-
-# Correr E2E existentes
-cd frontend && npx playwright test --config=playwright.config.e2e-real.ts
-
-# Correr nuevo test admin-review
-cd frontend && npx playwright test full-admin-review-flow --config=playwright.config.e2e-real.ts
-```
-
----
-
-## Arquitectura jurídica del contrato (post-sesión)
-
-```
-PDF del Contrato — 35 cláusulas (Ley 820 de 2003):
-PRIMERA    Objeto
-SEGUNDA    Destinación
-TERCERA    Precio (canon)
-CUARTA     Reajuste IPC
-QUINTA     Entrega del inmueble
-SEXTA      Término del contrato
-SÉPTIMA    ✅ NUEVA: Depósito de Garantía (Art. 9)
-OCTAVA     Obligaciones del Arrendatario
-NOVENA     Obligaciones del Arrendador
-DÉCIMA     Servicios Públicos
-...
-VIGÉSIMA TERCERA   ✅ AMPLIADA: Cobro Extrajudicial + Servicios (Art. 22)
-VIGÉSIMA CUARTA    ✅ AMPLIADA: Deudores Solidarios (Arts. 13-15)
-...
-VIGÉSIMA OCTAVA    ✅ AMPLIADA: Causales Terminación Arrendador (Arts. 16-17)
-...
-TRIGÉSIMA SEGUNDA  ✅ AMPLIADA: Inspecciones con protocolo formal
-...
-TRIGÉSIMA QUINTA   Dinámica: Garantías del contrato
+cp /tmp/test_contract.pdf /mnt/c/Users/wilso/Desktop/test_contrato_firmas.pdf
 ```
 
 ---
@@ -134,10 +112,9 @@ TRIGÉSIMA QUINTA   Dinámica: Garantías del contrato
 
 ```
 Continúa el desarrollo de VeriHome. Estado:
-- main @ 6457299 · 812 tests verde · E2E 7/7 verde
-- Auditoría jurídica completa (5 cláusulas Ley 820/2003 corregidas/añadidas)
-- Visual mejorado: ContractDetail (Banner dinámico), AdminContractReview (Stepper jurídico)
-- Nuevo test E2E full-admin-review-flow.spec.ts
-- Próximo: pruebas manuales browser (MANUAL_E2E_CHECKLIST.md), npm audit fix, VIS-5 restantes
+- main @ 64c6c0a · 812 tests verde
+- npm: 13 vulnerabilidades (todas de xlsx)
+- E2E: full-admin-review-flow 1/1 verde
+- Pruebas manuales browser pendientes (MANUAL_E2E_CHECKLIST.md)
 Revisa NEXT_SESSION.md para detalle completo.
 ```
