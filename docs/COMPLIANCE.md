@@ -36,9 +36,22 @@ Leyes y regulaciones que impactan el modelo de datos y los flujos.
 
 ## Facturación electrónica
 
-- **DIAN UBL 2.1 XML** — generación al cobro de canon.
+- **DIAN UBL 2.1 XML** — generación al cobro de canon
+  (`payments/dian_invoice_service.py`).
 - **Resolución 000042/2020** — schema compliant.
-- Pendiente: firma digital XAdES (planned para producción).
+- **CUFE** — implementado (`calculate_cufe`) en
+  `payments/dian_invoice_service.py`. SHA-384 determinístico, tests en
+  `payments/tests/test_dian_cufe.py`.
+- **XAdES-BES** — stub listo (`sign_invoice_xml`). Para activar en
+  producción:
+  1. Obtener certificado `.p12` de certificador autorizado (Andes
+     SCD, Certicámara, GSE, etc.).
+  2. `pip install signxml`.
+  3. Setear `DIAN_CERTIFICATE_PATH` y `DIAN_CERTIFICATE_PASSWORD` en
+     settings, además de `DIAN_TECHNICAL_KEY` provisto por DIAN en la
+     resolución de habilitación.
+  4. Implementar el bloque TODO dentro de `sign_invoice_xml`.
+  5. Validar contra el ambiente de pruebas DIAN antes de producción.
 
 ---
 

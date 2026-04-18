@@ -8,8 +8,19 @@ NOTA: Este es el esquema base. La integración real con el web service
 de la DIAN requiere certificado digital de firma electrónica y
 habilitación como facturador electrónico. Los XML se generan en formato
 UBL 2.1 estándar colombiano.
+
+### Estado de implementación (2026-04-18)
+
+- ✅ Generación XML UBL 2.1 (stub inicial).
+- ✅ Cálculo CUFE (Código Único de Facturación Electrónica) según la
+  especificación DIAN — determinístico y testeable.
+- ⏳ Firma XAdES-BES (`sign_invoice_xml`): implementada como stub que
+  devuelve el XML con placeholder de firma. La integración real
+  requiere certificado `.p12` + lib `signxml` + web-service DIAN.
+  Ver `docs/COMPLIANCE.md` para ruta de producción.
 """
 
+import hashlib
 import logging
 import uuid
 from decimal import Decimal
@@ -218,6 +229,130 @@ def generate_dian_xml(invoice):
     xml += """
 </Invoice>"""
 
+    return xml
+
+
+def calculate_cufe(invoice, technical_key: str | None = None) -> str:
+    """Calcula el CUFE (Código Único de Facturación Electrónica) de la DIAN.
+
+    Fórmula oficial: SHA-384 de la concatenación de:
+    1. Número de factura
+    2. Fecha de emisión (YYYY-MM-DD)
+    3. Hora de emisión (HH:MM:SS±TZ)
+    4. Valor del subtotal (sin impuestos)
+    5. Código del impuesto (01 = IVA)
+    6. Valor del impuesto
+    7. Valor total
+    8. NIT emisor
+    9. Tipo de documento receptor (13 = CC, 31 = NIT)
+    10. Documento del receptor
+    11. Clave técnica (de la resolución DIAN)
+    12. Tipo de ambiente ('1' producción, '2' pruebas)
+
+    Args:
+        invoice: instancia `payments.Invoice`.
+        technical_key: clave técnica dada por DIAN en la resolución.
+            Si no se provee, toma `settings.DIAN_TECHNICAL_KEY`.
+
+    Returns:
+        str: hash hexadecimal SHA-384 de 96 caracteres.
+    """
+    if technical_key is None:
+        technical_key = getattr(settings, 'DIAN_TECHNICAL_KEY', 'placeholder-technical-key')
+
+    # `metadata` puede no existir en el modelo Invoice (no es un campo
+    # declarado al 2026-04-18); resolver a dict vacío si el attr falta.
+    meta = getattr(invoice, 'metadata', None) or {}
+    ambiente_code = '1' if DIAN_CONFIG['ambiente'] == 'production' else '2'
+
+    issue_date = (invoice.issue_date or invoice.created_at.date()).strftime('%Y-%m-%d')
+    issue_time = invoice.created_at.strftime('%H:%M:%S-05:00')
+
+    # Normalizar montos a 2 decimales sin separadores
+    def _fmt(amount) -> str:
+        return f'{Decimal(amount):.2f}'
+
+    # Receptor: NIT (31) si recipient.profile tiene nit, si no CC (13).
+    recipient_doc_type = '13'
+    recipient_doc = ''
+    if invoice.recipient_id:
+        recipient_doc = str(getattr(invoice.recipient, 'document_number', '') or '')
+        if getattr(invoice.recipient, 'document_type', '') == 'NIT':
+            recipient_doc_type = '31'
+
+    data_string = (
+        f"{invoice.invoice_number}"
+        f"{issue_date}"
+        f"{issue_time}"
+        f"{_fmt(invoice.subtotal)}"
+        f"01"  # Código impuesto IVA
+        f"{_fmt(invoice.tax_amount or 0)}"
+        f"{_fmt(invoice.total_amount)}"
+        f"{meta.get('nit_emisor', DIAN_CONFIG['nit_emisor'])}"
+        f"{recipient_doc_type}"
+        f"{recipient_doc}"
+        f"{technical_key}"
+        f"{ambiente_code}"
+    )
+
+    return hashlib.sha384(data_string.encode('utf-8')).hexdigest()
+
+
+def sign_invoice_xml(xml: str, certificate_path: str | None = None,
+                     certificate_password: str | None = None) -> str:
+    """Firma el XML de una factura con XAdES-BES.
+
+    **Stub de implementación**. La firma real requiere:
+    - Certificado digital `.p12` o `.pfx` emitido por un certificador
+      autorizado en Colombia (Andes SCD, Certicámara, GSE, etc.).
+    - Lib `signxml` (``pip install signxml``) para producir el
+      ``<ds:Signature>`` con el formato XAdES-BES.
+    - Validación contra el ambiente de DIAN (pruebas o producción).
+
+    Args:
+        xml: XML UBL 2.1 generado por ``generate_dian_xml``.
+        certificate_path: ruta al archivo `.p12` (fallback a
+            ``settings.DIAN_CERTIFICATE_PATH``).
+        certificate_password: password del certificado (fallback a
+            ``settings.DIAN_CERTIFICATE_PASSWORD``).
+
+    Returns:
+        str: XML firmado. En modo stub devuelve el mismo XML con un
+            bloque ``<ds:Signature>`` placeholder que documenta el TODO
+            pendiente para producción.
+    """
+    if certificate_path is None:
+        certificate_path = getattr(settings, 'DIAN_CERTIFICATE_PATH', '')
+    if certificate_password is None:
+        certificate_password = getattr(settings, 'DIAN_CERTIFICATE_PASSWORD', '')
+
+    if not certificate_path or not certificate_password:
+        # Modo stub: devolver XML con placeholder de firma.
+        placeholder = (
+            '\n  <!-- XAdES-BES signature pending: set DIAN_CERTIFICATE_PATH '
+            'and DIAN_CERTIFICATE_PASSWORD in settings, then integrate '
+            'signxml lib. See payments.dian_invoice_service.sign_invoice_xml -->'
+        )
+        # Insertar antes del cierre </Invoice>
+        return xml.replace('</Invoice>', f'{placeholder}\n</Invoice>')
+
+    # TODO (producción): integrar signxml real.
+    #   from signxml import XMLSigner, methods
+    #   signer = XMLSigner(
+    #       method=methods.enveloped,
+    #       signature_algorithm='rsa-sha256',
+    #       digest_algorithm='sha256',
+    #   )
+    #   with open(certificate_path, 'rb') as f:
+    #       cert = f.read()
+    #   signed_root = signer.sign(
+    #       xml, key=cert, passphrase=certificate_password.encode(),
+    #   )
+    #   return etree.tostring(signed_root, pretty_print=True).decode()
+    logger.warning(
+        'DIAN_CERTIFICATE_PATH configurado pero signxml no integrado. '
+        'Implementar sign_invoice_xml antes de habilitar facturación real.'
+    )
     return xml
 
 
