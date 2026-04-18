@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Fase 1.9 + Fase 2 + ADM-001 frontend)
+**Última actualización**: 2026-04-18 (Fase 1.9 + Fase 2 + ADM-001 + Fase 4 + xlsx + DIAN CUFE)
 
 ---
 
@@ -8,12 +8,14 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `b6f8a5e` (11+ commits ahead de origin) |
-| Backend tests | 677/677 OK · traceability E2E 2/2 · contract_sync 3/3 |
+| Branch | `main` @ `690a1f4` (14 commits ahead de origin) |
+| Backend tests | 687/687 OK + 3 skip (contracts+matching+services+ratings+messaging+payments+verification+properties) |
+| Tests nuevos sesión | traceability E2E 2/2 · contract_sync 3/3 · DIAN CUFE/XAdES 7/7 |
 | TS frontend | 5 errores pre-existentes (tokens theme) |
-| Raíz limpia | sólo CLAUDE.md + README.md + NEXT_SESSION.md |
-| docs/history/ | 11 archivos históricos archivados |
-| docs/ nuevos | `CONTRACT_ARCHITECTURE.md` (Fase 2) |
+| npm audit | 12 vulns (todas devDeps transitivas, requieren `--force`) |
+| Raíz limpia | CLAUDE.md (703→174) + README.md + NEXT_SESSION.md |
+| docs/ nuevos | ARCHITECTURE, SYSTEMS, PATTERNS, COMPLIANCE, DEPLOYMENT, CHANGELOG + CONTRACT_ARCHITECTURE |
+| memory/archive/ | 8 sesiones marzo 2026 archivadas |
 
 ---
 
@@ -78,17 +80,18 @@
   `check_contract_sync` — `683c1bd`.
 - ✅ `AdminAuditLog.tsx` sobre `/app/admin/audit-logs` — `b6f8a5e`.
 
-### 🟡 P1 — pendiente
-- **Fase 4** Slim `CLAUDE.md` (703 → ~350 líneas) + split en
-  `docs/ARCHITECTURE.md`, `docs/SYSTEMS.md`, `docs/PATTERNS.md`,
-  `docs/COMPLIANCE.md`, `docs/DEPLOYMENT.md`, `docs/CHANGELOG.md`.
-  Consolidar memorias de marzo → `memory/archive/`.
+### ✅ Fase 4 + seguridad deps + DIAN — COMPLETA
+- ✅ Slim CLAUDE.md 703→174 líneas + 6 docs especializados — `8a5ee12`.
+- ✅ xlsx removido (1 high-severity vuln menos) — `75eba17`.
+- ✅ DIAN CUFE SHA-384 + XAdES stub + 7 tests — `690a1f4`.
 
-### 🟢 P2 — ya pendientes previos
-- Pruebas manuales `MANUAL_E2E_CHECKLIST.md`.
-- Migrar `xlsx` → `exceljs` (13 vulnerabilidades).
-- Deploy producción (Daphne + Celery + PostgreSQL/Redis + SSL).
-- DIAN firma digital XAdES.
+### 🟢 P2 — requieren user/ops (no ejecutables en solitario)
+- **Pruebas manuales** `docs/MANUAL_E2E_CHECKLIST.md` — necesita navegador +
+  backend+frontend corriendo en paralelo.
+- **Deploy producción** — infra (Daphne + Celery + PostgreSQL + Redis + SSL).
+- **DIAN XAdES activo** — requiere certificado digital `.p12` emitido
+  por certificador autorizado + `pip install signxml`. Stub listo en
+  `payments/dian_invoice_service.py:sign_invoice_xml`.
 
 ---
 
@@ -96,11 +99,12 @@
 
 ```bash
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git status                               # limpio en main @ b6f8a5e
+git status                               # limpio en main @ 690a1f4
 source venv_ubuntu/bin/activate
-python manage.py migrate                 # 0024 LCC + 0005 services + 0003/0004 ratings + 0006 services + 0003 messaging aplicadas
+python manage.py migrate                 # todas aplicadas
 python manage.py check_contract_sync     # Contract ↔ LCC sync status
-python manage.py test matching contracts services ratings messaging payments verification properties  # 677/677
+python manage.py test matching contracts services ratings messaging payments verification properties
+# → 687/687 OK + 3 skip
 ```
 
 ---
@@ -108,8 +112,9 @@ python manage.py test matching contracts services ratings messaging payments ver
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ b6f8a5e. Fase 1.9 completa (8 items), Fase 2
-completa (doc + check_contract_sync), ADM-001 frontend live
-(/app/admin/audit-logs). Siguiente bloque sugerido: Fase 4 (slim
-CLAUDE.md de 703→350 líneas + split en 6 docs), ver NEXT_SESSION.md.
+Continúa VeriHome. Main @ 690a1f4. Cerraron Fases 1.9 (8 items),
+2, 4 + ADM-001 frontend + xlsx fix + DIAN CUFE/XAdES stub. 14 commits
+ahead de origin. Los pendientes restantes son todos dependientes de
+usuario/infra (manual tests, deploy producción, certificado DIAN real).
+Ver NEXT_SESSION.md para estado detallado.
 ```
