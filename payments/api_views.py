@@ -397,13 +397,30 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     payment.failure_reason = result.get('error', 'Payment failed')
                 
                 payment.save()
-                
-                return Response(TransactionSerializer(payment).data, 
+
+                # 1.9.7: auditoría unificada del pago procesado.
+                from core.audit_service import log_activity
+                log_activity(
+                    request,
+                    action_type='payment.process',
+                    description=f'Pago procesado: {payment.amount} {payment.currency} · {payment.status}',
+                    target_object=payment,
+                    details={
+                        'amount': str(payment.amount),
+                        'currency': payment.currency,
+                        'status': payment.status,
+                        'gateway_success': result.get('success', False),
+                        'transaction_id': payment.transaction_id,
+                    },
+                    success=result.get('success', False),
+                )
+
+                return Response(TransactionSerializer(payment).data,
                               status=status.HTTP_201_CREATED if result['success'] else status.HTTP_400_BAD_REQUEST)
-                
+
         except Exception as e:
             return Response(
-                {'error': f'Error processing payment: {str(e)}'}, 
+                {'error': f'Error processing payment: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

@@ -1532,8 +1532,22 @@ class StartBiometricAuthenticationAPIView(APIView):
             }
             if response_data['demo_mode']:
                 response_data['demo_disclosure'] = DEMO_DISCLOSURE_TEXT
+
+            # 1.9.7: auditoría unificada al iniciar autenticación biométrica.
+            from core.audit_service import log_activity
+            log_activity(
+                request,
+                action_type='contract.biometric_start',
+                description=f'Autenticación biométrica iniciada para contrato {contract.contract_number}',
+                target_object=contract,
+                details={
+                    'authentication_id': str(auth.id),
+                    'contract_status': contract_status,
+                    'demo_mode': response_data['demo_mode'],
+                },
+            )
             return Response(response_data)
-            
+
         except Contract.DoesNotExist:
             return Response(
                 {'error': 'Contrato no encontrado'},

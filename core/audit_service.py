@@ -657,3 +657,53 @@ class AuditService:
 
 # Instancia singleton del servicio
 audit_service = AuditService()
+
+
+# -----------------------------------------------------------------------------
+# 1.9.7 — Helper module-level para instrumentación uniforme en los ViewSets.
+# -----------------------------------------------------------------------------
+
+def log_activity(
+    request,
+    action_type: str,
+    description: str,
+    target_object: Optional[Any] = None,
+    details: Optional[Dict[str, Any]] = None,
+    success: bool = True,
+) -> Optional[ActivityLog]:
+    """Helper para registrar actividad desde un ViewSet/action.
+
+    Extrae IP, user-agent y session key del request y delega en
+    ``audit_service.log_user_activity``. Si falla la auditoría NO rompe
+    el flujo — sólo registra un warning en logs.
+
+    Args:
+        request: DRF ``Request`` o Django ``HttpRequest`` con ``.user``.
+        action_type: tipo canónico (ej: ``contract.biometric_start``).
+        description: texto legible para humanos.
+        target_object: objeto afectado (Contract, ServiceOrder, etc.).
+        details: dict con metadatos adicionales.
+        success: ``False`` para errores lógicos (p. ej. validación).
+    """
+    try:
+        user = getattr(request, 'user', None)
+        if user is None or not getattr(user, 'is_authenticated', False):
+            return None
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() \
+            or request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')
+        session_key = request.session.session_key if hasattr(request, 'session') else ''
+        return audit_service.log_user_activity(
+            user=user,
+            action_type=action_type,
+            description=description,
+            target_object=target_object,
+            details=details,
+            ip_address=ip,
+            user_agent=ua,
+            session_key=session_key or '',
+            success=success,
+        )
+    except Exception as exc:  # pragma: no cover — auditoría nunca rompe el flujo
+        logger.warning('log_activity failed silently: %s', exc)
+        return None

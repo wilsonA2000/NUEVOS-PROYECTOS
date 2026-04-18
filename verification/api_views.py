@@ -220,6 +220,21 @@ class VerificationVisitViewSet(viewsets.ModelViewSet):
             except Exception:
                 pass
 
+        # 1.9.7: auditoría unificada de visitas completadas.
+        from core.audit_service import log_activity
+        log_activity(
+            request,
+            action_type='verification.visit_complete',
+            description=f'Visita {visit.visit_number} completada: {"aprobada" if visit.verification_passed else "rechazada"}',
+            target_object=visit,
+            details={
+                'visit_number': visit.visit_number,
+                'verification_passed': visit.verification_passed,
+                'agent_id': str(visit.agent_id) if visit.agent_id else None,
+            },
+            success=visit.verification_passed,
+        )
+
         return Response(self.get_serializer(visit).data)
 
     @action(detail=True, methods=['post'])

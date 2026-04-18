@@ -355,13 +355,18 @@ class RatingListCreateView(generics.ListCreateAPIView):
                 notify_user=True
             )
         else:
-            UserActivityLog.objects.create(
-                user=request.user,
-                activity_type='rating_create',
-                description=f'Creación de calificación {rating.id}',
-                metadata={'rating_id': str(rating.id)},
-                ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            # 1.9.7: auditoría unificada vía core.audit_service.log_activity.
+            from core.audit_service import log_activity
+            log_activity(
+                request,
+                action_type='rating.create',
+                description=f'Calificación creada: {rating.overall_rating}/10',
+                target_object=rating,
+                details={
+                    'rating_type': rating.rating_type,
+                    'service_order_id': str(rating.service_order_id) if rating.service_order_id else None,
+                    'contract_id': str(rating.contract_id) if rating.contract_id else None,
+                },
             )
 
 

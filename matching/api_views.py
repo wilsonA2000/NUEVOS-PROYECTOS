@@ -190,22 +190,19 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         
         landlord_message = request.data.get('message', '')
         match_request.accept_match(landlord_message)
-        
-        # Registrar actividad de usuario
-        try:
-            from users.models.activity import UserActivityLog
-            UserActivityLog.log_activity(
-                user=request.user,
-                activity_type='other',
-                description=f'Solicitud de match aceptada para {match_request.property.title}',
-                metadata={
-                    'match_code': match_request.match_code,
-                    'tenant_id': str(match_request.tenant.id)
-                },
-                request=request
-            )
-        except Exception as e:
-            logger.warning(f'Error logging match_request_accepted activity: {e}')
+
+        # 1.9.7: auditoría unificada via core.audit_service.log_activity.
+        from core.audit_service import log_activity
+        log_activity(
+            request,
+            action_type='match.accept',
+            description=f'Solicitud de match aceptada para {match_request.property.title}',
+            target_object=match_request,
+            details={
+                'match_code': match_request.match_code,
+                'tenant_id': str(match_request.tenant.id),
+            },
+        )
         
         return Response({
             'message': 'Solicitud aceptada exitosamente',

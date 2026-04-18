@@ -125,10 +125,16 @@ class PropertyViewSet(PropertyAccessMixin, RoleBasedPermissionMixin, viewsets.Mo
                 notify_user=True
             )
         else:
-            # Temporarily disabled activity logging due to schema mismatch
-            # TODO: Run migrations to update UserActivityLog table
-            pass
-    
+            # 1.9.7: auditoría unificada vía core.audit_service.log_activity.
+            from core.audit_service import log_activity
+            log_activity(
+                request,
+                action_type='property.create',
+                description=f'Propiedad creada: {property_obj.title}',
+                target_object=property_obj,
+                details={'city': getattr(property_obj, 'city', None)},
+            )
+
     def perform_update(self, serializer):
         """Actualiza propiedad e invalida cache."""
         property_obj = serializer.save()

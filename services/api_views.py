@@ -535,7 +535,21 @@ class ServiceOrderViewSet(viewsets.ModelViewSet):
         order.status = 'accepted'
         order.accepted_at = timezone.now()
         order.payment_order = po
+        order._updated_by = request.user  # 1.9.5 atribuir signal
         order.save()
+
+        # 1.9.7: auditoría unificada.
+        from core.audit_service import log_activity
+        log_activity(
+            request,
+            action_type='service_order.accept',
+            description=f'Orden de servicio aceptada: {order.title}',
+            target_object=order,
+            details={
+                'amount': str(order.amount),
+                'payment_order_id': str(po.id),
+            },
+        )
         return Response(self.get_serializer(order).data)
 
     @action(detail=True, methods=['post'])
