@@ -97,10 +97,20 @@ class CreateServiceRequestSerializer(serializers.ModelSerializer):
         model = ServiceRequest
         fields = [
             'service', 'requester_name', 'requester_email', 'requester_phone',
-            'message', 'preferred_date', 'budget_range'
+            'message', 'preferred_date', 'budget_range',
+            # 1.9.3: FKs opcionales para trazabilidad.
+            'property', 'contract',
         ]
+        extra_kwargs = {
+            'property': {'required': False, 'allow_null': True},
+            'contract': {'required': False, 'allow_null': True},
+        }
 
     def create(self, validated_data):
+        # 1.9.3: auto-asignar requester si hay usuario autenticado.
+        request = self.context.get('request') if hasattr(self, 'context') else None
+        if request and request.user.is_authenticated and not validated_data.get('requester'):
+            validated_data['requester'] = request.user
         service_request = super().create(validated_data)
         # Incrementar contador de solicitudes del servicio
         service_request.service.increment_requests()
@@ -110,13 +120,23 @@ class CreateServiceRequestSerializer(serializers.ModelSerializer):
 class ServiceRequestSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name', read_only=True)
     category_name = serializers.CharField(source='service.category.name', read_only=True)
+    # 1.9.3: nombres legibles de los FKs relacionales.
+    requester_display = serializers.CharField(
+        source='requester.get_full_name', read_only=True, default=''
+    )
+    property_title = serializers.CharField(
+        source='property.title', read_only=True, default=''
+    )
 
     class Meta:
         model = ServiceRequest
         fields = [
-            'id', 'service', 'service_name', 'category_name', 'requester_name',
-            'requester_email', 'requester_phone', 'message', 'preferred_date',
-            'budget_range', 'status', 'admin_notes', 'created_at', 'updated_at'
+            'id', 'service', 'service_name', 'category_name',
+            'requester', 'requester_display',
+            'property', 'property_title', 'contract',
+            'requester_name', 'requester_email', 'requester_phone',
+            'message', 'preferred_date', 'budget_range',
+            'status', 'admin_notes', 'created_at', 'updated_at',
         ]
         read_only_fields = ['admin_notes', 'status']
 

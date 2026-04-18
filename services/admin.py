@@ -125,20 +125,26 @@ class ServiceImageAdmin(admin.ModelAdmin):
 @admin.register(ServiceRequest)
 class ServiceRequestAdmin(admin.ModelAdmin):
     list_display = [
-        'service', 'requester_name', 'requester_email', 
+        'service', 'requester', 'requester_name', 'property',
         'status', 'preferred_date', 'created_at'
     ]
     list_filter = ['status', 'service__category', 'created_at', 'preferred_date']
     search_fields = [
-        'requester_name', 'requester_email', 'service__name', 'message'
+        'requester_name', 'requester_email', 'requester__email',
+        'service__name', 'message',
     ]
     readonly_fields = ['created_at', 'updated_at']
-    
+    autocomplete_fields = ['requester', 'property', 'contract']
+
     fieldsets = (
         ('Información del Servicio', {
             'fields': ('service', 'status')
         }),
-        ('Datos del Solicitante', {
+        ('Relaciones (trazabilidad 1.9.3)', {
+            'fields': ('requester', 'property', 'contract'),
+            'description': 'FKs opcionales. Las solicitudes anónimas no tienen requester.',
+        }),
+        ('Datos del Solicitante (contacto)', {
             'fields': ('requester_name', 'requester_email', 'requester_phone')
         }),
         ('Detalles de la Solicitud', {

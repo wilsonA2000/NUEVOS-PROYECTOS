@@ -768,6 +768,45 @@ class ServiceRequestAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["requester_name"], "Juan Perez")
 
+    # 1.9.3: FKs User/Property/Contract ---------------------------------
+
+    def test_create_request_anonymous_keeps_requester_null(self):
+        """Solicitud anónima no debe asignar FK requester pero sí datos string."""
+        data = {
+            "service": str(self.service.pk),
+            "requester_name": "Anonimo",
+            "requester_email": "anon@example.com",
+            "requester_phone": "3000000000",
+            "message": "Consulta rapida",
+        }
+        response = self.client.post("/api/v1/services/requests/", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created = ServiceRequest.objects.get(pk=response.data["id"])
+        self.assertIsNone(created.requester)
+        self.assertIsNone(created.property)
+        self.assertIsNone(created.contract)
+        self.assertEqual(created.requester_name, "Anonimo")
+
+    def test_create_request_authenticated_autoassigns_requester(self):
+        """Usuario autenticado → requester se completa automáticamente."""
+        user = User.objects.create_user(
+            email="client@example.com", password="pass12345", user_type="tenant"
+        )
+        self.client.force_authenticate(user=user)
+        data = {
+            "service": str(self.service.pk),
+            "requester_name": "Client Test",
+            "requester_email": "client@example.com",
+            "requester_phone": "3001112222",
+            "message": "Necesito el servicio",
+        }
+        response = self.client.post("/api/v1/services/requests/", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created = ServiceRequest.objects.get(pk=response.data["id"])
+        self.assertEqual(created.requester_id, user.id)
+        # Los strings siguen preservándose para visibilidad histórica.
+        self.assertEqual(created.requester_name, "Client Test")
+
 
 class AdditionalListViewAPITests(APITestCase):
     """Tests for the standalone list view endpoints."""

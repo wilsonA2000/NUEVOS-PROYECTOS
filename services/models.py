@@ -270,11 +270,43 @@ class ServiceRequest(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     service = models.ForeignKey(
-        Service, 
-        on_delete=models.CASCADE, 
+        Service,
+        on_delete=models.CASCADE,
         related_name='service_requests',
         verbose_name="Servicio"
     )
+
+    # 1.9.3: FKs relacionales para trazabilidad end-to-end.
+    # Nullable para preservar solicitudes anónimas (requester_* string fields
+    # siguen siendo la fuente de contacto canónico para esos casos).
+    requester = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='catalog_service_requests',
+        verbose_name='Usuario solicitante',
+        help_text='Usuario autenticado que creó la solicitud (null para anónimas)'
+    )
+    property = models.ForeignKey(
+        'properties.Property',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='catalog_service_requests',
+        verbose_name='Propiedad relacionada',
+        help_text='Propiedad sobre la que recae el servicio (si aplica)'
+    )
+    contract = models.ForeignKey(
+        'contracts.Contract',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='catalog_service_requests',
+        verbose_name='Contrato relacionado',
+        help_text='Contrato de arrendamiento que origina el servicio (ej: mantenimiento bajo contrato)'
+    )
+
     requester_name = models.CharField(max_length=100, verbose_name="Nombre")
     requester_email = models.EmailField(verbose_name="Email")
     requester_phone = models.CharField(max_length=20, verbose_name="Teléfono")
