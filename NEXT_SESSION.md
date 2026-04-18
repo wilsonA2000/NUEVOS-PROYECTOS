@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (fix 7 bugs workflow + Fase 1.9.1 + limpieza)
+**Última actualización**: 2026-04-18 (Fase 1.9.2 completa — JSONField workflow_history deprecado)
 
 ---
 
@@ -8,10 +8,30 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `2fbab97` |
-| Backend tests | `matching` + `contracts/tests/test_biometric_states` + `services` verde |
+| Branch | `main` @ `eac4f68` |
+| Backend tests | `contracts` 122/122 · `matching + services` 165/165 verde |
+| TS frontend | 5 errores pre-existentes (tokens theme), ninguno de 1.9.2 |
 | Raíz limpia | sólo CLAUDE.md + README.md + NEXT_SESSION.md |
 | docs/history/ | 11 archivos históricos archivados |
+
+---
+
+## Lo que se hizo esta sesión (2026-04-18 tarde)
+
+### Fase 1.9.2 — Deprecar `workflow_history` JSONField
+- Migración `0024_bio_1_9_2_backfill_workflow_history.py`: backfill idempotente
+  (dedupe contra signal 1.9.1 por contract+timestamp±1s+action_type).
+- `add_workflow_entry` / `add_workflow_event` ahora persisten en
+  `ContractWorkflowHistory` (misma firma para todos los callers: 8 internos +
+  `biometric_service`, `landlord_api_views`, `tasks`, `tenant_api_views`).
+- `_record_history` en service ya no duplica (antes creaba fila + JSON).
+- Serializers (landlord + tenant): campo `workflow_history` removido; expuesto
+  `history_entries` vía `ContractWorkflowHistorySerializer`.
+- `circular_workflow_status` usa ORM con filtros sobre
+  `metadata.legacy_event_type` (backfilled) + `new_state`.
+- Frontend: `WorkflowHistoryEntry` → `ContractHistoryEntry`, shape alineado al
+  serializer. `AdminContractReview.tsx` renderiza `history_entries`.
+- Columna JSONField conservada en BD (rollback-safe); drop diferido.
 
 ---
 
@@ -43,7 +63,7 @@
 ## Pendiente próxima sesión
 
 ### 🔴 P0 — completar Fase 1.9 (trazabilidad end-to-end)
-1. **1.9.2** Deprecar `LCC.workflow_history` JSONField → `ContractWorkflowHistory` como fuente única (migración de backfill).
+1. ✅ **1.9.2** Deprecar `LCC.workflow_history` JSONField — **DONE** (`eac4f68`).
 2. **1.9.3** `ServiceRequest` FK a `User`/`Property`/`Contract` (migración, preservar campos string).
 3. **1.9.4** `Rating.service_order` FK (migración) + serializer/UI.
 4. **1.9.5** `ServiceOrderHistory` modelo + signal post_save.
@@ -68,9 +88,9 @@
 
 ```bash
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git status                               # limpio en main @ 2fbab97
+git status                               # limpio en main @ eac4f68
 source venv_ubuntu/bin/activate
-python manage.py migrate                 # aplicar 0023_bio_1_9_1_signal_nullable_performed_by
+python manage.py migrate                 # aplicar 0024_bio_1_9_2_backfill_workflow_history
 python manage.py test matching contracts services  # verificar todo verde
 ```
 
@@ -79,8 +99,8 @@ python manage.py test matching contracts services  # verificar todo verde
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ 2fbab97. Última sesión cerró 7 bugs P0/P1 + Fase 1.9.1.
-Pendientes P0: Fase 1.9.2-1.9.8 (FKs ServiceRequest/Rating/MessageThread,
-ServiceOrderHistory, tests E2E trazabilidad).
+Continúa VeriHome. Main @ eac4f68. Fase 1.9.2 cerrada (workflow_history
+deprecado a ContractWorkflowHistory). Sigue 1.9.3: FKs ServiceRequest →
+User/Property/Contract (migración preservando campos string).
 Ver NEXT_SESSION.md para detalle.
 ```
