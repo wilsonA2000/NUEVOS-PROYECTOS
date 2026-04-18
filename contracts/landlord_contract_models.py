@@ -1569,18 +1569,27 @@ class ContractWorkflowHistory(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.action_description} - {self.performed_by.get_full_name()} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
-    
+        who = self.performed_by.get_full_name() if self.performed_by else 'system'
+        return f"{self.action_description} - {who} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
+
     def save(self, *args, **kwargs):
         # Generar hash de integridad
         if not self.integrity_hash:
             self.integrity_hash = self._generate_integrity_hash()
-        
+
         super().save(*args, **kwargs)
-    
+
     def _generate_integrity_hash(self) -> str:
-        """Genera un hash de integridad para verificación."""
-        data_string = f"{self.contract.id}:{self.action_type}:{self.performed_by.id}:{self.timestamp}:{self.action_description}"
+        """Genera un hash de integridad para verificación.
+
+        1.9.1: ``performed_by`` ahora puede ser null (acciones del sistema),
+        por eso usamos ``system`` como fallback.
+        """
+        performer_id = self.performed_by.id if self.performed_by else 'system'
+        data_string = (
+            f"{self.contract.id}:{self.action_type}:{performer_id}:"
+            f"{self.timestamp}:{self.action_description}"
+        )
         return hashlib.sha256(data_string.encode()).hexdigest()
     
     def verify_integrity(self) -> bool:
