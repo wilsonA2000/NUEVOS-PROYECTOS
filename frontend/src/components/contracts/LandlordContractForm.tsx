@@ -402,7 +402,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     landlord_signed: false,
     tenant_signed: false,
     published: false,
-    workflow_history: [],
   });
 
   // Landlord data state

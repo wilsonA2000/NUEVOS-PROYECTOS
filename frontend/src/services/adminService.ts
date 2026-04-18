@@ -59,13 +59,17 @@ export interface AdminContractDetail extends AdminContractSummary {
     is_custom: boolean;
   }[];
 
-  // Historial de workflow
-  workflow_history: {
-    action: string;
-    user_email: string;
+  // 1.9.2: Historial de workflow desde ContractWorkflowHistory
+  history_entries: {
+    id: string;
+    action_type: string;
+    action_description: string;
+    performed_by_name?: string;
+    user_role: 'landlord' | 'tenant' | 'system' | 'admin';
+    old_state?: string;
+    new_state?: string;
     timestamp: string;
-    notes?: string;
-    metadata?: Record<string, unknown>;
+    changes_made?: Record<string, unknown>;
   }[];
 
   // Notas de devolución (si aplica)

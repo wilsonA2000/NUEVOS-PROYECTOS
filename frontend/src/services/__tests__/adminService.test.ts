@@ -101,7 +101,7 @@ describe('AdminService', () => {
         property_address: '123 Main St',
         landlord_name: 'John',
         clauses: [{ key: 'clause-1', title: 'Payment', content: 'Monthly', is_custom: false }],
-        workflow_history: [],
+        history_entries: [],
       };
       mockedApi.get.mockResolvedValueOnce({ data: detail });
 

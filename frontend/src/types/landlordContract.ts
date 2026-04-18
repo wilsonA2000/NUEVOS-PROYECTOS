@@ -276,9 +276,9 @@ export interface LandlordControlledContractData {
   // Estado de publicación
   published: boolean;
   
-  // Historial del workflow (JSON)
-  workflow_history: WorkflowHistoryEntry[];
-  
+  // Historial del workflow (1.9.2: modelo relacional ContractWorkflowHistory)
+  history_entries?: ContractHistoryEntry[];
+
   // Metadatos
   created_by_user_id?: string;
   last_modified_by_user_id?: string;
@@ -286,19 +286,23 @@ export interface LandlordControlledContractData {
   legal_framework_version?: string;
 }
 
-// Entrada del historial de workflow
-export interface WorkflowHistoryEntry {
+// Entrada del historial de workflow (serializada desde ContractWorkflowHistory)
+export interface ContractHistoryEntry {
+  id: string;
+  contract: string;
+  performed_by?: string | null;
+  performed_by_name?: string;
+  action_type: string;
+  action_description: string;
+  old_state?: string;
+  new_state?: string;
+  changes_made?: Record<string, any>;
   timestamp: string;
-  user: string;
-  user_type: 'landlord' | 'tenant' | 'system';
-  action: string;
-  description: string;
-  old_state?: ContractWorkflowState;
-  new_state?: ContractWorkflowState;
-  ip_address?: string;
-  user_agent?: string;
-  additional_data?: Record<string, any>;
+  user_role: 'landlord' | 'tenant' | 'system' | 'admin';
+  related_objection?: string | null;
+  related_guarantee?: string | null;
 }
+
 
 // Objeción del contrato
 export interface ContractObjection {

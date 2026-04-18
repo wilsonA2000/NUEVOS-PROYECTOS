@@ -402,7 +402,6 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         landlord_signed: false,
         tenant_signed: false,
         published: false,
-        workflow_history: contract?.workflow_history || [],
       };
       const updatedContract = await LandlordContractService.updateContractDraft(contractId, updatePayload);
 

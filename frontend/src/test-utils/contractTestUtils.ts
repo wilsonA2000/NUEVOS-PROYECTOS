@@ -129,7 +129,7 @@ export const createMockContract = (
   landlord_signed: false,
   tenant_signed: false,
   published: false,
-  workflow_history: [],
+  history_entries: [],
   ...overrides,
 });
 

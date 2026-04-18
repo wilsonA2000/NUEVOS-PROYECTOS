@@ -768,6 +768,10 @@ class LandlordContractService:
         related_guarantee: LandlordContractGuarantee = None
     ) -> ContractWorkflowHistory:
         """Registrar acción en el historial del workflow."""
+        # 1.9.2: Una sola fuente de verdad — ContractWorkflowHistory.
+        # Antes se duplicaba la escritura al JSONField legacy
+        # ``workflow_history`` vía add_workflow_entry, lo cual generaba
+        # dos registros por cada acción del workflow.
         history_entry = ContractWorkflowHistory.objects.create(
             contract=contract,
             performed_by=user,
@@ -780,19 +784,6 @@ class LandlordContractService:
             related_objection=related_objection,
             related_guarantee=related_guarantee
         )
-        
-        # También agregar al workflow_history JSON del contrato
-        contract.add_workflow_entry(
-            action=action_type,
-            user=user,
-            details={
-                'description': description,
-                'old_state': old_state,
-                'new_state': new_state,
-                'changes': data_changes or {}
-            }
-        )
-        
         return history_entry
 
     def _all_objections_resolved(self, contract: LandlordControlledContract) -> bool:

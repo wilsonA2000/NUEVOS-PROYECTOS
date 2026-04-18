@@ -108,16 +108,23 @@ const mockContract = {
       is_custom: true,
     },
   ],
-  workflow_history: [
+  history_entries: [
     {
-      action: 'Contrato creado',
-      user_email: 'carlos@example.com',
+      id: 'hist-1',
+      action_type: 'CREATE',
+      action_description: 'Contrato creado',
+      performed_by_name: 'Carlos Ramirez',
+      user_role: 'landlord' as const,
       timestamp: '2026-01-15T10:00:00Z',
-      notes: 'Contrato inicial creado por arrendador',
     },
     {
-      action: 'Enviado a revision',
-      user_email: 'carlos@example.com',
+      id: 'hist-2',
+      action_type: 'STATE_CHANGE',
+      action_description: 'Enviado a revision',
+      performed_by_name: 'Carlos Ramirez',
+      user_role: 'landlord' as const,
+      old_state: 'DRAFT',
+      new_state: 'PENDING_ADMIN_REVIEW',
       timestamp: '2026-01-16T09:00:00Z',
     },
   ],
@@ -407,7 +414,7 @@ describe('AdminContractReview', () => {
   it('should show empty history message when no workflow history exists', async () => {
     mockedAdminService.getContractForReview.mockResolvedValue({
       ...mockContract,
-      workflow_history: [],
+      history_entries: [],
     } as any);
 
     renderComponent();

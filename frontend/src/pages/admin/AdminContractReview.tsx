@@ -570,24 +570,24 @@ const AdminContractReview: React.FC = () => {
               </Typography>
             </Box>
             <List dense disablePadding>
-              {(contract.workflow_history || []).map((entry, index) => (
-                <ListItem key={index} disablePadding sx={{ py: 1 }}>
+              {(contract.history_entries || []).map((entry) => (
+                <ListItem key={entry.id} disablePadding sx={{ py: 1 }}>
                   <ListItemIcon sx={{ minWidth: 36 }}>
                     <GavelIcon fontSize="small" color="action" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={entry.action}
+                    primary={entry.action_description || entry.action_type}
                     secondary={
                       <>
                         <Typography variant="caption" display="block">
-                          {entry.user_email}
+                          {entry.performed_by_name || entry.user_role}
                         </Typography>
                         <Typography variant="caption" color="text.disabled">
                           {formatDate(entry.timestamp)}
                         </Typography>
-                        {entry.notes && (
+                        {entry.new_state && entry.old_state && (
                           <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                            "{entry.notes}"
+                            {entry.old_state} → {entry.new_state}
                           </Typography>
                         )}
                       </>
@@ -595,7 +595,7 @@ const AdminContractReview: React.FC = () => {
                   />
                 </ListItem>
               ))}
-              {(!contract.workflow_history || contract.workflow_history.length === 0) && (
+              {(!contract.history_entries || contract.history_entries.length === 0) && (
                 <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                   Sin historial previo
                 </Typography>

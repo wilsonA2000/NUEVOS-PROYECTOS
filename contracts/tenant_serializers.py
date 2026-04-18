@@ -214,9 +214,6 @@ class TenantContractDetailSerializer(serializers.ModelSerializer):
             # Relaciones filtradas
             'my_objections', 'landlord_objections', 'guarantees',
             'recent_activity',
-            
-            # Historial
-            'workflow_history'
         ]
         read_only_fields = [
             'id', 'contract_number', 'created_at', 'updated_at',

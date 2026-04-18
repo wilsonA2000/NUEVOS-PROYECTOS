@@ -452,21 +452,30 @@ class LandlordControlledContract(models.Model):
         return f"VH-{year}-{yearly_count:06d}"
     
     def add_workflow_entry(self, action: str, user: User, details: Dict[str, Any] = None):
-        """Agrega una entrada al historial de workflow."""
-        entry = {
-            'timestamp': timezone.now().isoformat(),
-            'action': action,
-            'user_id': str(user.id),
-            'user_name': user.get_full_name() or user.username,
-            'old_state': self.current_state,
-            'details': details or {}
-        }
-        
-        if not isinstance(self.workflow_history, list):
-            self.workflow_history = []
-        
-        self.workflow_history.append(entry)
-        self.save(update_fields=['workflow_history'])
+        """Registra una entrada en el historial relacional (ContractWorkflowHistory).
+
+        1.9.2: antes escribía al JSONField legacy ``workflow_history``. Ahora
+        delega en el modelo ``ContractWorkflowHistory`` para unificar la
+        trazabilidad. El JSONField permanece en la tabla (sin escritura nueva)
+        hasta su drop diferido.
+        """
+        from contracts.landlord_contract_models import ContractWorkflowHistory
+
+        valid_types = {t for t, _ in ContractWorkflowHistory.ACTION_TYPES}
+        action_type = action if action in valid_types else 'SYSTEM_ACTION'
+        description = (details or {}).get('description') or action or 'Evento de workflow'
+
+        ContractWorkflowHistory.objects.create(
+            contract=self,
+            action_type=action_type,
+            action_description=str(description)[:500],
+            performed_by=user,
+            user_role=getattr(user, 'user_type', 'system') or 'system',
+            old_state=(self.current_state or '')[:30],
+            new_state=str((details or {}).get('new_state') or '')[:30],
+            changes_made=details or {},
+            metadata={'legacy_action': action},
+        )
     
     def can_transition_to(self, new_state: str) -> bool:
         """Verifica si es válida la transición a un nuevo estado."""
@@ -657,35 +666,41 @@ class LandlordControlledContract(models.Model):
 
     def add_workflow_event(self, event_type: str, description: str, performed_by: User,
                            old_state: str = '', new_state: str = '', metadata: Dict = None):
-        """
-        Registra un evento en el workflow con datos completos de auditoría.
+        """Registra un evento en el historial relacional (ContractWorkflowHistory).
+
+        1.9.2: antes escribía al JSONField legacy ``workflow_history``. Ahora
+        persiste en ``ContractWorkflowHistory`` para que la trazabilidad sea
+        consultable por ORM. El signal central (1.9.1) captura los
+        ``STATE_CHANGE`` automáticos; este método añade eventos específicos
+        (aprobaciones, devoluciones, bloqueos, etc.).
 
         Args:
-            event_type: Tipo de evento (ej: 'admin_approval', 'tenant_return')
-            description: Descripción legible del evento
-            performed_by: Usuario que realizó la acción
-            old_state: Estado anterior del contrato
-            new_state: Nuevo estado del contrato
-            metadata: Datos adicionales para auditoría
+            event_type: Tipo de evento (ej: 'admin_approval', 'tenant_return').
+            description: Descripción legible del evento.
+            performed_by: Usuario que realizó la acción.
+            old_state: Estado anterior del contrato.
+            new_state: Nuevo estado del contrato.
+            metadata: Datos adicionales para auditoría.
         """
-        entry = {
-            'timestamp': timezone.now().isoformat(),
-            'event_type': event_type,
-            'description': description,
-            'user_id': str(performed_by.id),
-            'user_email': performed_by.email,
-            'user_name': performed_by.get_full_name() or performed_by.username,
-            'old_state': old_state,
-            'new_state': new_state,
-            'cycle': self.review_cycle_count,
-            'metadata': metadata or {}
-        }
+        from contracts.landlord_contract_models import ContractWorkflowHistory
 
-        if not isinstance(self.workflow_history, list):
-            self.workflow_history = []
+        valid_types = {t for t, _ in ContractWorkflowHistory.ACTION_TYPES}
+        action_type = event_type if event_type in valid_types else 'SYSTEM_ACTION'
 
-        self.workflow_history.append(entry)
-        self.save(update_fields=['workflow_history', 'updated_at'])
+        ContractWorkflowHistory.objects.create(
+            contract=self,
+            action_type=action_type,
+            action_description=str(description)[:500],
+            performed_by=performed_by,
+            user_role=getattr(performed_by, 'user_type', 'system') or 'system',
+            old_state=str(old_state or '')[:30],
+            new_state=str(new_state or '')[:30],
+            changes_made=metadata or {},
+            metadata={
+                'cycle': self.review_cycle_count,
+                'legacy_event_type': event_type,
+            },
+        )
 
     def return_to_landlord(self, tenant_user: User, notes: str) -> bool:
         """

@@ -9,7 +9,10 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 
-from contracts.landlord_contract_models import LandlordControlledContract
+from contracts.landlord_contract_models import (
+    ContractWorkflowHistory,
+    LandlordControlledContract,
+)
 from properties.models import Property
 
 User = get_user_model()
@@ -323,31 +326,47 @@ class LandlordContractWorkflowTest(TestCase):
     # ------------------------------------------------------------------
 
     def test_add_workflow_entry(self):
-        """Test que se pueden agregar entradas al historial de workflow."""
-        contract = self._create_contract(state='DRAFT')
-        contract.add_workflow_entry(
-            action='state_change',
-            user=self.landlord,
-            details={'new_state': 'LANDLORD_COMPLETING'},
-        )
-        contract.refresh_from_db()
+        """Test que se pueden agregar entradas al historial de workflow.
 
-        self.assertEqual(len(contract.workflow_history), 1)
-        entry = contract.workflow_history[0]
-        self.assertEqual(entry['action'], 'state_change')
-        self.assertEqual(entry['user_id'], str(self.landlord.id))
-        self.assertEqual(entry['old_state'], 'DRAFT')
+        1.9.2: add_workflow_entry ahora persiste en ContractWorkflowHistory.
+        """
+        contract = self._create_contract(state='DRAFT')
+        entries_before = ContractWorkflowHistory.objects.filter(contract=contract).count()
+
+        contract.add_workflow_entry(
+            action='STATE_CHANGE',
+            user=self.landlord,
+            details={'new_state': 'LANDLORD_COMPLETING', 'description': 'test'},
+        )
+
+        entries_after = ContractWorkflowHistory.objects.filter(contract=contract).count()
+        self.assertEqual(entries_after - entries_before, 1)
+        entry = ContractWorkflowHistory.objects.filter(
+            contract=contract
+        ).order_by('-timestamp').first()
+        self.assertEqual(entry.action_type, 'STATE_CHANGE')
+        self.assertEqual(entry.performed_by_id, self.landlord.id)
+        self.assertEqual(entry.old_state, 'DRAFT')
+        self.assertEqual(entry.new_state, 'LANDLORD_COMPLETING')
 
     def test_workflow_history_preserves_entries(self):
-        """Test que multiples entradas se preservan en el historial."""
+        """Test que multiples entradas se preservan en ContractWorkflowHistory."""
         contract = self._create_contract(state='DRAFT')
-        contract.add_workflow_entry(action='entry_1', user=self.landlord)
-        contract.add_workflow_entry(action='entry_2', user=self.tenant)
+        entries_before = ContractWorkflowHistory.objects.filter(contract=contract).count()
 
-        contract.refresh_from_db()
-        self.assertEqual(len(contract.workflow_history), 2)
-        self.assertEqual(contract.workflow_history[0]['action'], 'entry_1')
-        self.assertEqual(contract.workflow_history[1]['action'], 'entry_2')
+        contract.add_workflow_entry(action='APPROVE', user=self.landlord)
+        contract.add_workflow_entry(action='SIGN', user=self.tenant)
+
+        entries_after = ContractWorkflowHistory.objects.filter(contract=contract).count()
+        self.assertEqual(entries_after - entries_before, 2)
+        action_types = list(
+            ContractWorkflowHistory.objects.filter(
+                contract=contract,
+                action_type__in=['APPROVE', 'SIGN'],
+            ).values_list('action_type', flat=True)
+        )
+        self.assertIn('APPROVE', action_types)
+        self.assertIn('SIGN', action_types)
 
     # ------------------------------------------------------------------
     # Test: Cancelacion desde cualquier estado editable

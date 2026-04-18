@@ -159,6 +159,8 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
     objections = ContractObjectionSerializer(many=True, read_only=True)
     guarantees = LandlordContractGuaranteeSerializer(many=True, read_only=True)
     recent_history = serializers.SerializerMethodField()
+    # 1.9.2: historial completo desde ContractWorkflowHistory (reemplaza JSONField)
+    history_entries = serializers.SerializerMethodField()
 
     # Estadísticas
     total_objections = serializers.SerializerMethodField()
@@ -225,8 +227,8 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             # Estadísticas
             'total_objections', 'pending_objections', 'approved_objections',
 
-            # Historial
-            'workflow_history'
+            # Historial (1.9.2: modelo ContractWorkflowHistory, no JSONField)
+            'history_entries',
         ]
         read_only_fields = [
             'id', 'contract_number', 'created_at', 'updated_at',
@@ -330,8 +332,14 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
         return obj.current_state == 'FULLY_SIGNED'
     
     def get_recent_history(self, obj):
-        # Simplificar historial - usar workflow_history JSONField en lugar de objetos relacionados
-        return obj.workflow_history[-10:] if obj.workflow_history else []
+        """1.9.2: últimos 10 eventos desde ContractWorkflowHistory (modelo relacional)."""
+        queryset = obj.history_entries.order_by('-timestamp')[:10]
+        return ContractWorkflowHistorySerializer(queryset, many=True, context=self.context).data
+
+    def get_history_entries(self, obj):
+        """1.9.2: historial completo del workflow (ordenado más reciente primero)."""
+        queryset = obj.history_entries.order_by('-timestamp')
+        return ContractWorkflowHistorySerializer(queryset, many=True, context=self.context).data
     
     def get_total_objections(self, obj):
         return obj.objections.count()

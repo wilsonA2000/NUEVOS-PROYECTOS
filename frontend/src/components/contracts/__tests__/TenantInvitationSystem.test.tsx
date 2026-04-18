@@ -76,7 +76,7 @@ const mockContract = {
   landlord_signed: false,
   tenant_signed: false,
   published: false,
-  workflow_history: [],
+  history_entries: [],
 };
 
 const defaultProps = {

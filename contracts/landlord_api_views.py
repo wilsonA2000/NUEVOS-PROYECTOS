@@ -1377,18 +1377,27 @@ VeriHome - Plataforma de Gestión Inmobiliaria
         """
         contract = self.get_object()
 
-        # Obtener historial de eventos circulares
-        circular_events = []
-        workflow_history = contract.workflow_history or []
-
-        for event in workflow_history:
-            event_type = event.get('event_type', '')
-            if event_type in [
-                'TENANT_RETURN', 'LANDLORD_START_CORRECTION',
-                'RESUBMIT_FOR_ADMIN_REVIEW', 'SPECIFIC_CONCERNS_ADDED',
-                'DETAILED_CHANGES_ADDED'
-            ]:
-                circular_events.append(event)
+        # 1.9.2: eventos circulares desde ContractWorkflowHistory (ORM).
+        # Antes se iteraba el JSONField legacy; ahora combinamos los
+        # STATE_CHANGE de estados del ciclo + metadatos legacy conservados
+        # durante el backfill.
+        circular_qs = contract.history_entries.filter(
+            Q(
+                action_type='STATE_CHANGE',
+                new_state__in=['TENANT_RETURNED', 'LANDLORD_CORRECTING', 'RE_PENDING_ADMIN'],
+            )
+            | Q(
+                metadata__legacy_event_type__in=[
+                    'TENANT_RETURN', 'LANDLORD_START_CORRECTION',
+                    'RESUBMIT_FOR_ADMIN_REVIEW', 'SPECIFIC_CONCERNS_ADDED',
+                    'DETAILED_CHANGES_ADDED', 'tenant_return', 'landlord_correction_start',
+                    'resubmit_for_review',
+                ]
+            )
+        ).order_by('-timestamp')
+        circular_events = ContractWorkflowHistorySerializer(
+            circular_qs, many=True, context={'request': request}
+        ).data
 
         # Determinar siguiente acción recomendada
         next_action = None
