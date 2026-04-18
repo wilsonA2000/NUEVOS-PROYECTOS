@@ -56,6 +56,16 @@ class MessageThread(models.Model):
         blank=True,
         related_name='message_threads'
     )
+    # 1.9.6: FK opcional a orden de servicio para hilos tipo `service`.
+    service_order = models.ForeignKey(
+        'services.ServiceOrder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='message_threads',
+        verbose_name='Orden de servicio',
+        help_text='Vincula la conversación a una orden de servicio específica.',
+    )
     
     # Estado y metadatos
     status = models.CharField('Estado', max_length=20, choices=THREAD_STATUS, default='active')

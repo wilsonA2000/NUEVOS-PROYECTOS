@@ -55,7 +55,9 @@ class MessageThreadSerializer(serializers.ModelSerializer):
         model = MessageThread
         fields = [
             'id', 'subject', 'thread_type', 'participants', 'status',
-            'is_priority', 'created_at', 'last_message_at', 'last_message'
+            'is_priority', 'created_at', 'last_message_at', 'last_message',
+            # 1.9.6: FKs relacionales opcionales para trazabilidad.
+            'property', 'contract', 'service_order',
         ]
         read_only_fields = ['id', 'created_at', 'last_message_at']
 
