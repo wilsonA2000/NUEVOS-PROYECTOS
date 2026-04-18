@@ -102,6 +102,8 @@ interface BiometricData {
   progress?: number;
   completedSteps?: Partial<CompletedSteps>;
   confidenceScores?: Partial<ConfidenceScores>;
+  demoMode?: boolean;
+  demoDisclosure?: string;
 }
 
 const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = ({
@@ -202,6 +204,8 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         voiceText: response.voice_text,
         expiresAt: response.expires_at,
         progress: response.progress || 0,
+        demoMode: Boolean(response.demo_mode),
+        demoDisclosure: response.demo_disclosure,
       });
       
       setActiveStep(0);
@@ -591,8 +595,8 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
         }}
       >
         {error && (
-          <Alert 
-            severity="error" 
+          <Alert
+            severity="error"
             sx={{ m: 2, mb: 0 }}
             action={
               <Button color="inherit" size="small" onClick={handleRestart} startIcon={<Refresh />}>
@@ -601,6 +605,15 @@ const BiometricAuthenticationFlow: React.FC<BiometricAuthenticationFlowProps> = 
             }
           >
             {error}
+          </Alert>
+        )}
+
+        {biometricData.demoMode && (
+          <Alert severity="warning" variant="outlined" sx={{ m: 2, mb: 0 }}>
+            <strong>Modo demostración</strong>
+            {' — '}
+            {biometricData.demoDisclosure ||
+              'La verificación biométrica está simulada. En producción se integra con un proveedor ML real.'}
           </Alert>
         )}
 

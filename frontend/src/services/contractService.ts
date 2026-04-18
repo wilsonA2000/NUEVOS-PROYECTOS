@@ -529,44 +529,6 @@ const createContractFromMatch = async (matchId: string, contractData: any) => {
   }
 };
 
-const verifyIdentityForContract = async (contractId: string, documents: any) => {
-  try {
-    const response = await api.post(`/matching/contracts/${contractId}/verify-identity/`, documents);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-const generateLegalClauses = async (contractId: string) => {
-  try {
-    const response = await api.post(`/matching/contracts/${contractId}/generate-clauses/`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-const downloadContractPDF = async (contractId: string) => {
-  try {
-    const response = await api.get(`/matching/contracts/${contractId}/download-pdf/`, {
-      responseType: 'blob',
-    });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-const getContractMilestones = async (contractId: string) => {
-  try {
-    const response = await api.get(`/matching/contracts/${contractId}/milestones/`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 // ===== CONTRACT WORKFLOW ACTIONS =====
 
 /**
@@ -728,14 +690,10 @@ export const contractService = {
   verifyIdentityDocument,
   verifyFacialRecognition,
   
-  // Colombian Contract Integration
+  // Match → Contract integration
   validateMatchForContract,
   createContractFromMatch,
-  verifyIdentityForContract,
-  generateLegalClauses,
-  downloadContractPDF,
-  getContractMilestones,
-  
+
   // Contract Workflow Actions
   sendContractForReview,
   

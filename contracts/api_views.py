@@ -1086,36 +1086,71 @@ class ContractAdditionalClausesAPIView(APIView):
             )
     
     def put(self, request, contract_id, clause_id):
-        """Actualizar una cláusula adicional existente."""
+        """Actualizar una cláusula adicional existente.
+
+        ABOG-001: además del arrendador, un usuario `is_staff` puede editar
+        cláusulas cuando el LandlordControlledContract asociado está en
+        revisión jurídica (`PENDING_ADMIN_REVIEW` / `RE_PENDING_ADMIN`).
+        Cada edición queda registrada en `ContractWorkflowHistory`.
+        """
         try:
             from .models import Contract, ContractAdditionalClause
-            
-            contract = Contract.objects.get(
-                id=contract_id,
-                primary_party=request.user,
-                status__in=['pending_tenant_review', 'draft', 'tenant_changes_requested']
+            from .landlord_contract_models import (
+                LandlordControlledContract,
+                ContractWorkflowHistory,
             )
-            
+
+            if request.user.is_staff:
+                contract = Contract.objects.get(id=contract_id)
+                lcc = LandlordControlledContract.objects.filter(pk=contract.id).first()
+                admin_states = {'PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN', 'BOTH_REVIEWING'}
+                if lcc is None or lcc.current_state not in admin_states:
+                    return Response(
+                        {'error': 'El contrato no está en revisión jurídica'},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                contract = Contract.objects.get(
+                    id=contract_id,
+                    primary_party=request.user,
+                    status__in=['pending_tenant_review', 'draft', 'tenant_changes_requested'],
+                )
+
             clause = ContractAdditionalClause.objects.get(
                 id=clause_id,
                 contract=contract,
-                is_active=True
+                is_active=True,
             )
-            
+
             title = request.data.get('title', '').strip()
             content = request.data.get('content', '').strip()
-            
+
             if not title or not content:
                 return Response(
                     {'error': 'Título y contenido son requeridos'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-            
-            # Actualizar cláusula
+
+            previous_content = clause.content
             clause.title = title
             clause.content = content
             clause.save()
-            
+
+            if request.user.is_staff:
+                lcc = LandlordControlledContract.objects.filter(pk=contract.id).first()
+                if lcc is not None:
+                    ContractWorkflowHistory.objects.create(
+                        contract=lcc,
+                        action='CLAUSE_EDITED',
+                        performed_by=request.user,
+                        notes=(
+                            f'Cláusula {clause.ordinal_text}: {clause.title}. '
+                            f'Longitud previa: {len(previous_content)} → {len(content)}.'
+                        ),
+                        from_state=lcc.current_state,
+                        to_state=lcc.current_state,
+                    )
+
             print(f"✅ Cláusula actualizada: {clause.ordinal_text}. {clause.title}")
             
             return Response({
@@ -1483,7 +1518,8 @@ class StartBiometricAuthenticationAPIView(APIView):
             # Obtener status del contrato correcto
             contract_status = contract_for_biometric.status if hasattr(contract_for_biometric, 'status') else 'pending_biometric'
 
-            return Response({
+            from .biometric_flags import is_demo_biometric_mode, DEMO_DISCLOSURE_TEXT
+            response_data = {
                 'success': True,
                 'message': 'Autenticación biométrica iniciada',
                 'authentication_id': str(auth.id),
@@ -1491,8 +1527,12 @@ class StartBiometricAuthenticationAPIView(APIView):
                 'expires_at': auth.expires_at.isoformat(),
                 'voice_text': auth.voice_text,
                 'next_step': 'face_capture',
-                'progress': auth.get_progress_percentage()
-            })
+                'progress': auth.get_progress_percentage(),
+                'demo_mode': is_demo_biometric_mode(),
+            }
+            if response_data['demo_mode']:
+                response_data['demo_disclosure'] = DEMO_DISCLOSURE_TEXT
+            return Response(response_data)
             
         except Contract.DoesNotExist:
             return Response(

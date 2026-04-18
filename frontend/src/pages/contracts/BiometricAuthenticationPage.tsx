@@ -142,10 +142,15 @@ const BiometricAuthenticationPage: React.FC = () => {
     'draft',
     'pending_tenant_review',
     'pdf_generated',
-    // Flujo secuencial backend:
+    // Flujo secuencial backend (nuevo vocabulario):
     'pending_tenant_biometric',
     'pending_guarantor_biometric',
     'pending_landlord_biometric',
+    // BIO-001: variantes legacy sin prefix (Contract.STATUS_CHOICES y
+    // unified_contract_api.py siguen usándolas hasta el refactor UX-E2E-02).
+    'tenant_biometric',
+    'guarantor_biometric',
+    'landlord_biometric',
   ];
 
   if (!validStatesForAuth.includes(contract.status)) {

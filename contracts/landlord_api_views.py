@@ -1150,6 +1150,66 @@ VeriHome - Plataforma de Gestión Inmobiliaria
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['post'], url_path='reopen_negotiation')
+    def reopen_negotiation(self, request, pk=None):
+        """TENANT-001: arrendador reabre negociación tras rechazo del arrendatario.
+
+        Saca el contrato del limbo `REJECTED_BY_TENANT` y lo devuelve a
+        `DRAFT` para poder editarlo. Requiere una nota que explique los
+        cambios propuestos (se registra en ContractWorkflowHistory).
+
+        Estados permitidos: REJECTED_BY_TENANT
+        Estado resultante: DRAFT
+        """
+        contract = self.get_object()
+
+        if contract.landlord_id != request.user.id:
+            return Response(
+                {'error': 'Solo el arrendador puede reabrir la negociación'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if contract.current_state != 'REJECTED_BY_TENANT':
+            return Response(
+                {
+                    'error': f'No se puede reabrir desde el estado {contract.current_state}',
+                    'allowed_states': ['REJECTED_BY_TENANT'],
+                    'current_state': contract.current_state,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        note = (request.data.get('note') or '').strip()
+        if not note:
+            return Response(
+                {'error': 'Debes incluir una nota explicando los ajustes propuestos.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        previous_state = contract.current_state
+        contract.current_state = 'DRAFT'
+        contract.tenant_approved = False
+        contract.landlord_approved = False
+        contract.save(update_fields=['current_state', 'tenant_approved', 'landlord_approved'])
+
+        ContractWorkflowHistory.objects.create(
+            contract=contract,
+            action='LANDLORD_REOPENED',
+            performed_by=request.user,
+            notes=note,
+            from_state=previous_state,
+            to_state='DRAFT',
+        )
+
+        return Response(
+            {
+                'message': 'Negociación reabierta. El borrador vuelve a DRAFT para edición.',
+                'contract_id': str(contract.id),
+                'new_state': contract.current_state,
+            },
+            status=status.HTTP_200_OK,
+        )
+
     @action(detail=True, methods=['post'], url_path='resubmit_for_admin_review')
     def resubmit_for_admin_review(self, request, pk=None):
         """

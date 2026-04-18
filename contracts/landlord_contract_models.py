@@ -1454,12 +1454,14 @@ class ContractWorkflowHistory(models.Model):
         help_text='Descripción breve de lo que ocurrió'
     )
     
-    # Usuario que realizó la acción
+    # Usuario que realizó la acción (nullable para acciones del sistema, 1.9.1)
     performed_by = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='contract_actions',
-        verbose_name='Realizado por'
+        verbose_name='Realizado por',
+        null=True,
+        blank=True,
     )
     user_role = models.CharField(
         'Rol del usuario',
@@ -1469,7 +1471,8 @@ class ContractWorkflowHistory(models.Model):
             ('tenant', 'Arrendatario'),
             ('system', 'Sistema'),
             ('admin', 'Administrador')
-        ]
+        ],
+        default='system',
     )
     
     # Estados del contrato

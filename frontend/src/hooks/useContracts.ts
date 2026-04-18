@@ -200,32 +200,6 @@ export const useContracts = () => {
     },
   });
 
-  const verifyIdentityForContract = useMutation({
-    mutationFn: ({ contractId, documents }: { contractId: string; documents: any }) =>
-      contractService.verifyIdentityForContract(contractId, documents),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-    },
-  });
-
-  const generateLegalClauses = useMutation({
-    mutationFn: ({ contractId }: { contractId: string }) =>
-      contractService.generateLegalClauses(contractId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contracts'] });
-    },
-  });
-
-  const downloadContractPDF = useMutation({
-    mutationFn: ({ contractId }: { contractId: string }) =>
-      contractService.downloadContractPDF(contractId),
-  });
-
-  const getContractMilestones = useMutation({
-    mutationFn: ({ contractId }: { contractId: string }) =>
-      contractService.getContractMilestones(contractId),
-  });
-
   return {
     // Datos
     contracts,
@@ -255,13 +229,8 @@ export const useContracts = () => {
     createTermination,
     uploadDocument,
     
-    // Nuevas funcionalidades para contratos colombianos
+    // Integración Match → Contrato
     validateMatchForContract,
     createContractFromMatch,
-    verifyIdentityForContract,
-    generateLegalClauses,
-    downloadContractPDF,
-    getContractMilestones,
   };
-}; 
-/* FORCE RELOAD 1754456937819 - USE_CONTRACTS_HOOK - Nuclear fix applied */
+};

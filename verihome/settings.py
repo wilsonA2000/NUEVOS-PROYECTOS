@@ -63,9 +63,6 @@ INSTALLED_APPS = [
     'services.apps.ServicesConfig',
     'dashboard.apps.DashboardConfig',
     'verification.apps.VerificationConfig',
-    # 'analytics.apps.AnalyticsConfig',  # Comentado temporalmente
-    # 'maintenance.apps.MaintenanceConfig',  # Comentado temporalmente
-    # 'notifications.apps.NotificationsConfig',  # Comentado temporalmente
 ]
 
 MIDDLEWARE = [

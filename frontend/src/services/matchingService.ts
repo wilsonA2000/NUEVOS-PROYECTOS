@@ -293,28 +293,6 @@ class MatchingServiceFixed {
     return api.post(`${this.baseUrl}/requests/${matchId}/advance-to-contract-stage/`);
   }
 
-  async verifyIdentityForContract(contractId: string, documents: any) {
-    return api.post(`${this.baseUrl}/contracts/${contractId}/verify-identity/`, documents);
-  }
-
-  async generateLegalClauses(contractId: string) {
-    return api.post(`${this.baseUrl}/contracts/${contractId}/generate-clauses/`);
-  }
-
-  async signMatchContract(contractId: string, signatureData: any) {
-    return api.post(`${this.baseUrl}/contracts/${contractId}/sign/`, signatureData);
-  }
-
-  async downloadMatchContractPDF(contractId: string) {
-    return api.get(`${this.baseUrl}/contracts/${contractId}/download-pdf/`, {
-      responseType: 'blob',
-    });
-  }
-
-  async getContractMilestones(contractId: string) {
-    return api.get(`${this.baseUrl}/contracts/${contractId}/milestones/`);
-  }
-
   // Contract Status Utilities
   getContractStatusColor(status: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
     switch (status) {

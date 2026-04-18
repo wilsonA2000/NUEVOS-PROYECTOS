@@ -817,3 +817,50 @@ class EnsureContractExistsTests(TestCase):
         self.mr._ensure_contract_exists()
         self.assertEqual(Contract.objects.filter(match_request=self.mr).count(), 1)
         self.assertEqual(LandlordControlledContract.objects.filter(landlord=self.landlord).count(), 1)
+
+
+# -- MATCH-001: regression para MatchContractIntegrationService --------------
+
+class MatchContractIntegrationServiceTests(TestCase):
+    """Antes de este fix, create_contract_from_match lanzaba NameError por usar
+    una variable `match_data` inexistente. Ahora delega a _ensure_contract_exists
+    y devuelve el Contract legacy ligado al match.
+    """
+
+    def setUp(self):
+        self.landlord = _make_landlord()
+        self.tenant = _make_tenant()
+        self.tenant.is_verified = True
+        self.tenant.save(update_fields=['is_verified'])
+        self.landlord.is_verified = True
+        self.landlord.save(update_fields=['is_verified'])
+        self.prop = _make_property(self.landlord)
+        self.mr = _make_match_request(self.tenant, self.landlord, self.prop)
+        self.mr.status = 'accepted'
+        self.mr.save(update_fields=['status'])
+
+    def test_create_contract_from_match_returns_contract_and_lcc_sync(self):
+        from matching.contract_integration import MatchContractIntegrationService
+        from contracts.models import Contract
+        from contracts.landlord_contract_models import LandlordControlledContract
+
+        contract = MatchContractIntegrationService.create_contract_from_match(self.mr)
+
+        self.assertIsInstance(contract, Contract)
+        self.assertEqual(contract.match_request_id, self.mr.id)
+
+        lcc = LandlordControlledContract.objects.get(pk=contract.id)
+        self.assertEqual(lcc.id, contract.id, 'Contract y LCC deben compartir UUID')
+
+        self.mr.refresh_from_db()
+        self.assertTrue(self.mr.has_contract)
+
+    def test_create_contract_rejects_non_accepted_match(self):
+        from django.core.exceptions import ValidationError
+        from matching.contract_integration import MatchContractIntegrationService
+
+        self.mr.status = 'pending'
+        self.mr.save(update_fields=['status'])
+
+        with self.assertRaises(ValidationError):
+            MatchContractIntegrationService.create_contract_from_match(self.mr)

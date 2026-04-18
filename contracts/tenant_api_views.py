@@ -399,19 +399,21 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             with transaction.atomic():
-                # Update contract state
+                # Update contract state. TENANT-001: usar el valor canónico de
+                # LandlordControlledContract.WORKFLOW_STATES (`REJECTED_BY_TENANT`),
+                # no `TENANT_REJECTED` que nunca estuvo en choices.
                 contract.tenant_approved = False
-                contract.current_state = 'TENANT_REJECTED'
+                previous_state = contract.current_state
+                contract.current_state = 'REJECTED_BY_TENANT'
                 contract.save()
 
-                # Record in workflow history
                 ContractWorkflowHistory.objects.create(
                     contract=contract,
                     action='TENANT_REJECTED',
                     performed_by=request.user,
                     notes=reason,
-                    from_state='BOTH_REVIEWING',
-                    to_state='TENANT_REJECTED'
+                    from_state=previous_state,
+                    to_state='REJECTED_BY_TENANT'
                 )
 
                 # Update MatchRequest if exists

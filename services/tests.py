@@ -686,6 +686,36 @@ class ServiceAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['provider_name'], 'Proveedor Test')
 
+    def test_subscriber_respects_max_active_services(self):
+        """SVC-001: al alcanzar el tope del plan, la creación debe rechazarse."""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        sp = User.objects.create_user(
+            email='provider_cap@test.com', password='Test1234!',
+            first_name='Cap', last_name='Provider', user_type='service_provider',
+        )
+        plan = SubscriptionPlan.objects.create(
+            name='Mini', slug='mini', price=10000,
+            description='Plan con 1 slot', max_active_services=1,
+        )
+        ServiceSubscription.objects.create(
+            service_provider=sp, plan=plan, status='active',
+            start_date=timezone.now().date(),
+            end_date=(timezone.now() + timedelta(days=30)).date(),
+            services_published=1,  # cupo ya consumido
+        )
+        self.client.force_authenticate(user=sp)
+        response = self.client.post("/api/v1/services/services/", {
+            "name": "Servicio Extra",
+            "short_description": "No debería crearse",
+            "full_description": "Debería rechazarse por cupo.",
+            "category": str(self.category.id),
+            "pricing_type": "fixed",
+            "base_price": "50000",
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('máximo', str(response.data).lower())
+
 
 class ServiceRequestAPITests(APITestCase):
     """Tests for the ServiceRequest ViewSet endpoints."""

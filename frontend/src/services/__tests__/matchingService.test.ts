@@ -263,18 +263,6 @@ describe('MatchingService', () => {
     });
   });
 
-  describe('downloadMatchContractPDF', () => {
-    it('should request PDF with blob responseType', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: new Blob() });
-
-      await matchingService.downloadMatchContractPDF('c-1');
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/matching/contracts/c-1/download-pdf/', {
-        responseType: 'blob',
-      });
-    });
-  });
-
   // ===== UTILITY FUNCTIONS =====
 
   describe('getMatchStatusColor', () => {

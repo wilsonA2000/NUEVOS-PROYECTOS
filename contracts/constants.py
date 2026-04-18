@@ -61,7 +61,12 @@ class MatchWorkflowStatus(models.TextChoices):
     ALL_BIOMETRICS_COMPLETED = 'all_biometrics_completed', 'Biometrías Completas'
 
 
-# Agrupaciones útiles (usar en whitelists de los ApiViews)
+# Agrupaciones útiles (usar en whitelists de los ApiViews).
+# BIO-001: durante la migración al vocabulario `pending_*` coexisten en DB
+# las variantes viejas (`tenant_biometric`, `guarantor_biometric`,
+# `landlord_biometric`) escritas por `unified_contract_api.py` y
+# `codeudor_public_api.py`. Ambas deben aceptarse hasta que se consolide el
+# refactor (UX-E2E-02 fase 2).
 STATES_READY_FOR_BIOMETRIC = frozenset([
     ContractState.PDF_GENERATED.value,
     ContractState.READY_FOR_AUTHENTICATION.value,
@@ -70,6 +75,10 @@ STATES_READY_FOR_BIOMETRIC = frozenset([
     ContractState.PENDING_TENANT_BIOMETRIC.value,
     ContractState.PENDING_GUARANTOR_BIOMETRIC.value,
     ContractState.PENDING_LANDLORD_BIOMETRIC.value,
+    # Variantes legacy sin prefix (Contract.STATUS_CHOICES)
+    'tenant_biometric',
+    'guarantor_biometric',
+    'landlord_biometric',
 ])
 
 STATES_EDITABLE_BY_TENANT = frozenset([

@@ -38,6 +38,44 @@ def _track_previous_state(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=LandlordControlledContract)
+def record_state_transition(sender, instance, created, **kwargs):
+    """1.9.1: registra automáticamente cada transición en ContractWorkflowHistory.
+
+    Antes, cada view debía llamar a `add_workflow_entry()` manualmente y si se
+    olvidaba, la transición quedaba sin huella. Con este signal la trazabilidad
+    se hace independiente del código de negocio.
+    """
+    previous = getattr(instance, '_previous_state', None)
+
+    # Si no hay cambio real de estado, no hacer nada.
+    if created:
+        new_state_entry = instance.current_state
+        previous = None
+    elif previous == instance.current_state:
+        return
+    else:
+        new_state_entry = instance.current_state
+
+    try:
+        from contracts.landlord_contract_models import ContractWorkflowHistory
+
+        performed_by = getattr(instance, '_updated_by', None)
+        ContractWorkflowHistory.objects.create(
+            contract=instance,
+            action_type='STATE_CHANGE',
+            action_description=(
+                f'Transición automática: {previous or "—"} → {new_state_entry}'
+            ),
+            performed_by=performed_by,
+            user_role=getattr(performed_by, 'user_type', 'system') or 'system',
+            old_state=previous or '',
+            new_state=new_state_entry or '',
+        )
+    except Exception as exc:  # pragma: no cover — la trazabilidad no debe romper el guardado
+        logger.warning('No se pudo registrar transición en ContractWorkflowHistory: %s', exc)
+
+
+@receiver(post_save, sender=LandlordControlledContract)
 def generate_payment_schedule_on_activation(sender, instance, created, **kwargs):
     """Genera cronograma de pagos cuando el contrato pasa a ACTIVE."""
     if instance.current_state != 'ACTIVE':

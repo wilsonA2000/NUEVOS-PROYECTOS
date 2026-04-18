@@ -56,15 +56,16 @@ class BiometricAuthenticationService:
             if user not in allowed_users:
                 raise ValueError("El usuario no es parte de este contrato")
 
-            # Verificar que el contrato esté en estado correcto
-            # BUG-E2E-01: permitir estados del flujo secuencial (tenant->guarantor->landlord)
-            valid_states_for_auth = {
-                'ready_for_authentication', 'pending_authentication', 'pending_biometric',
-                'pending_tenant_biometric', 'pending_guarantor_biometric',
-                'pending_landlord_biometric',
-            }
-            if contract.status not in valid_states_for_auth:
-                raise ValueError(f"El contrato no está en estado válido para autenticación: {contract.status}")
+            # Verificar que el contrato esté en estado correcto.
+            # BIO-001: se acepta tanto el vocabulario nuevo (`pending_*`) como
+            # el legacy (`tenant_biometric`, etc.), porque otros endpoints
+            # (unified_contract_api, codeudor_public_api) siguen escribiendo
+            # los valores sin prefix.
+            from contracts.constants import STATES_READY_FOR_BIOMETRIC
+            if contract.status not in STATES_READY_FOR_BIOMETRIC:
+                raise ValueError(
+                    f"El contrato no está en estado válido para autenticación: {contract.status}"
+                )
             
             # Verificar si ya existe una autenticación (cualquier estado)
             existing_auth = BiometricAuthentication.objects.filter(

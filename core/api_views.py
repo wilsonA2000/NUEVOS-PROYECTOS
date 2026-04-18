@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import Count, Q
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 from django.conf import settings
@@ -444,6 +444,21 @@ class GlobalAuditLogAPIView(generics.ListAPIView):
             try:
                 since = timezone.now() - timedelta(days=int(days))
                 qs = qs.filter(timestamp__gte=since)
+            except (ValueError, TypeError):
+                pass
+
+        # ADM-001: rango explícito de fechas (ISO 8601).
+        date_from = self.request.query_params.get('date_from')
+        if date_from:
+            try:
+                qs = qs.filter(timestamp__gte=datetime.fromisoformat(date_from))
+            except (ValueError, TypeError):
+                pass
+
+        date_to = self.request.query_params.get('date_to')
+        if date_to:
+            try:
+                qs = qs.filter(timestamp__lte=datetime.fromisoformat(date_to))
             except (ValueError, TypeError):
                 pass
 

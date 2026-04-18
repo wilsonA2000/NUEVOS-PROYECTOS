@@ -455,12 +455,9 @@ class MatchRequest(models.Model):
         return True
     
     def get_contract(self):
-        """Obtiene el contrato asociado si existe."""
-        try:
-            from contracts.colombian_contracts import ColombianContract
-            return ColombianContract.objects.get(match_request=self)
-        except:
-            return None
+        """Obtiene el Contract (legacy) asociado si existe."""
+        from contracts.models import Contract
+        return Contract.objects.filter(match_request=self).first()
 
     def auto_create_contract(self):
         """

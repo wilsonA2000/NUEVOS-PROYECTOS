@@ -83,10 +83,48 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return ServiceListSerializer
 
     def perform_create(self, serializer):
-        serializer.save(provider=self.request.user)
+        """SVC-001: respetar `max_active_services` del plan del prestador.
 
-    def perform_update(self, serializer):
-        serializer.save()
+        Staff puede crear sin límite (p.ej. semillas y administración);
+        prestadores reales se validan contra `ServiceSubscription.can_publish_service`.
+        """
+        from rest_framework.exceptions import PermissionDenied
+
+        user = self.request.user
+        if not user.is_staff:
+            subscription = ServiceSubscription.objects.filter(
+                service_provider=user,
+                status__in=('trial', 'active'),
+            ).select_related('plan').first()
+            if subscription is None:
+                raise PermissionDenied('Se requiere una suscripción activa para publicar servicios.')
+            if not subscription.can_publish_service:
+                raise PermissionDenied(
+                    f'Has alcanzado el máximo de {subscription.plan.max_active_services} servicios '
+                    f'activos de tu plan ({subscription.plan.name}).'
+                )
+
+        service = serializer.save(provider=user)
+
+        # Incrementar contador de servicios publicados cuando aplica.
+        if not user.is_staff:
+            subscription.services_published = (subscription.services_published or 0) + 1
+            subscription.save(update_fields=['services_published'])
+
+        return service
+
+    def perform_destroy(self, instance):
+        """Al eliminar (o desactivar vía DELETE) liberar espacio del plan."""
+        provider = instance.provider
+        super().perform_destroy(instance)
+        if provider and not provider.is_staff:
+            subscription = ServiceSubscription.objects.filter(
+                service_provider=provider,
+                status__in=('trial', 'active'),
+            ).first()
+            if subscription and subscription.services_published:
+                subscription.services_published = max(0, subscription.services_published - 1)
+                subscription.save(update_fields=['services_published'])
 
     def retrieve(self, request, *args, **kwargs):
         """Obtener detalle del servicio e incrementar contador de vistas."""
