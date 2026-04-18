@@ -67,7 +67,16 @@ class ContractTemplate(models.Model):
 
 
 class Contract(models.Model):
-    """Modelo principal para contratos digitales."""
+    """Modelo legacy de contratos digitales.
+
+    **Ver `docs/CONTRACT_ARCHITECTURE.md`** — VeriHome tiene 3 modelos
+    de contrato coexistentes. Este es el legacy; el frontend trabaja
+    sobre `LandlordControlledContract` y la sincronización por UUID
+    compartido la realiza `contracts.services.matching_integration`.
+
+    Biometric flow y pagos siguen dependiendo de este modelo, por lo
+    que no puede retirarse sin refactor profundo.
+    """
     
     CONTRACT_TYPES = [
         ('rental_urban', 'Arrendamiento de Vivienda Urbana'),

@@ -24,6 +24,18 @@ class LandlordControlledContract(models.Model):
     """
     Contrato controlado completamente por el arrendador.
     Implementa workflow paso a paso con responsabilidades claras.
+
+    **Ver `docs/CONTRACT_ARCHITECTURE.md`** — VeriHome tiene 3 modelos
+    de contrato (Contract legacy, LandlordControlledContract y
+    ColombianContract). Este es el modelo "moderno" sobre el que
+    trabaja el frontend y el admin. Comparte UUID con el `Contract`
+    legacy para mantener la coherencia de FK transversales.
+
+    Trazabilidad de transiciones: signal automático en
+    `contracts/signals.py` registra cada cambio de `current_state`
+    en `ContractWorkflowHistory` (Fase 1.9.1/1.9.2). Para atribuir
+    la acción a un usuario concreto, setear
+    ``instance._updated_by = request.user`` antes de ``save()``.
     """
     
     WORKFLOW_STATES = [

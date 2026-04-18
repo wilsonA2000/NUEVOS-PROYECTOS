@@ -52,7 +52,13 @@ class LegalClause(models.Model):
         unique_together = ['contract_type', 'clause_number']
 
 class ColombianContract(models.Model):
-    """Contrato robusto con cumplimiento legal colombiano"""
+    """Contrato robusto con cumplimiento legal colombiano.
+
+    **Ver `docs/CONTRACT_ARCHITECTURE.md`** — uso aislado: sólo lo
+    consume `payments.escrow_integration` para escrow. El flujo
+    biométrico, pagos regulares y ratings usan `Contract` o
+    `LandlordControlledContract`.
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     # Relación con Match (OBLIGATORIO)
