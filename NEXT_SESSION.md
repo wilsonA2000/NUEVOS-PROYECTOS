@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Fase 1.9.2 completa — JSONField workflow_history deprecado)
+**Última actualización**: 2026-04-18 (Fase 1.9 + Fase 2 + ADM-001 frontend)
 
 ---
 
@@ -8,11 +8,12 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `eac4f68` |
-| Backend tests | `contracts` 122/122 · `matching + services` 165/165 verde |
-| TS frontend | 5 errores pre-existentes (tokens theme), ninguno de 1.9.2 |
+| Branch | `main` @ `b6f8a5e` (11+ commits ahead de origin) |
+| Backend tests | 677/677 OK · traceability E2E 2/2 · contract_sync 3/3 |
+| TS frontend | 5 errores pre-existentes (tokens theme) |
 | Raíz limpia | sólo CLAUDE.md + README.md + NEXT_SESSION.md |
 | docs/history/ | 11 archivos históricos archivados |
+| docs/ nuevos | `CONTRACT_ARCHITECTURE.md` (Fase 2) |
 
 ---
 
@@ -62,19 +63,26 @@
 
 ## Pendiente próxima sesión
 
-### 🔴 P0 — completar Fase 1.9 (trazabilidad end-to-end)
-1. ✅ **1.9.2** Deprecar `LCC.workflow_history` JSONField — **DONE** (`eac4f68`).
-2. **1.9.3** `ServiceRequest` FK a `User`/`Property`/`Contract` (migración, preservar campos string).
-3. **1.9.4** `Rating.service_order` FK (migración) + serializer/UI.
-4. **1.9.5** `ServiceOrderHistory` modelo + signal post_save.
-5. **1.9.6** `MessageThread.service_order` FK.
-6. **1.9.7** Usar `core.audit_service.log_user_activity()` en 7 módulos.
-7. **1.9.8** 2 tests E2E (`test_full_traceability`, `test_service_traceability`).
+### ✅ Fase 1.9 (trazabilidad end-to-end) — COMPLETA
+1. ✅ **1.9.1** Signal central ContractWorkflowHistory (sesión anterior).
+2. ✅ **1.9.2** Deprecar `LCC.workflow_history` JSONField — `eac4f68`.
+3. ✅ **1.9.3** `ServiceRequest` FK a User/Property/Contract — `70d5afd`.
+4. ✅ **1.9.4** `Rating.service_order` FK + uniqueness parcial — `bb68dbe`.
+5. ✅ **1.9.5** `ServiceOrderHistory` modelo + signal post_save — `85411ae`.
+6. ✅ **1.9.6** `MessageThread.service_order` FK — `e269a5e`.
+7. ✅ **1.9.7** `core.audit_service.log_activity()` en 7 módulos — `a9a6e60`.
+8. ✅ **1.9.8** 2 tests E2E de trazabilidad — `60e3a22`.
 
-### 🟡 P1 — plan original restante
-- **Fase 2** Documentar dual contract system (ver plan): `docs/CONTRACT_ARCHITECTURE.md`, comentarios en modelos, `check_contract_sync` management command, test dual sync.
-- **Fase 4** Slim `CLAUDE.md` (703 → ~350 líneas) + split en `docs/ARCHITECTURE.md`, `docs/SYSTEMS.md`, `docs/PATTERNS.md`, `docs/COMPLIANCE.md`, `docs/DEPLOYMENT.md`, `docs/CHANGELOG.md`. Consolidar memorias de marzo → `memory/archive/`.
-- **ADM-001 frontend** Crear `AdminAuditLog.tsx` bajo `/app/admin/audit-logs`.
+### ✅ Fase 2 + ADM-001 frontend — COMPLETA
+- ✅ `docs/CONTRACT_ARCHITECTURE.md` + docstrings en 3 modelos + comando
+  `check_contract_sync` — `683c1bd`.
+- ✅ `AdminAuditLog.tsx` sobre `/app/admin/audit-logs` — `b6f8a5e`.
+
+### 🟡 P1 — pendiente
+- **Fase 4** Slim `CLAUDE.md` (703 → ~350 líneas) + split en
+  `docs/ARCHITECTURE.md`, `docs/SYSTEMS.md`, `docs/PATTERNS.md`,
+  `docs/COMPLIANCE.md`, `docs/DEPLOYMENT.md`, `docs/CHANGELOG.md`.
+  Consolidar memorias de marzo → `memory/archive/`.
 
 ### 🟢 P2 — ya pendientes previos
 - Pruebas manuales `MANUAL_E2E_CHECKLIST.md`.
@@ -88,10 +96,11 @@
 
 ```bash
 cd "/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS"
-git status                               # limpio en main @ eac4f68
+git status                               # limpio en main @ b6f8a5e
 source venv_ubuntu/bin/activate
-python manage.py migrate                 # aplicar 0024_bio_1_9_2_backfill_workflow_history
-python manage.py test matching contracts services  # verificar todo verde
+python manage.py migrate                 # 0024 LCC + 0005 services + 0003/0004 ratings + 0006 services + 0003 messaging aplicadas
+python manage.py check_contract_sync     # Contract ↔ LCC sync status
+python manage.py test matching contracts services ratings messaging payments verification properties  # 677/677
 ```
 
 ---
@@ -99,8 +108,8 @@ python manage.py test matching contracts services  # verificar todo verde
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ eac4f68. Fase 1.9.2 cerrada (workflow_history
-deprecado a ContractWorkflowHistory). Sigue 1.9.3: FKs ServiceRequest →
-User/Property/Contract (migración preservando campos string).
-Ver NEXT_SESSION.md para detalle.
+Continúa VeriHome. Main @ b6f8a5e. Fase 1.9 completa (8 items), Fase 2
+completa (doc + check_contract_sync), ADM-001 frontend live
+(/app/admin/audit-logs). Siguiente bloque sugerido: Fase 4 (slim
+CLAUDE.md de 703→350 líneas + split en 6 docs), ver NEXT_SESSION.md.
 ```
