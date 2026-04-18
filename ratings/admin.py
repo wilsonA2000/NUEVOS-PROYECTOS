@@ -10,14 +10,15 @@ from .models import Rating, RatingCategory, RatingResponse, RatingReport, UserRa
 class RatingAdmin(admin.ModelAdmin):
     """Administración de calificaciones."""
     
-    list_display = ('id', 'reviewer_name', 'reviewee_name', 'overall_rating', 
-                    'rating_type', 'is_verified', 'created_at')
-    list_filter = ('rating_type', 'is_verified', 'is_public', 'is_anonymous', 
+    list_display = ('id', 'reviewer_name', 'reviewee_name', 'overall_rating',
+                    'rating_type', 'service_order', 'is_verified', 'created_at')
+    list_filter = ('rating_type', 'is_verified', 'is_public', 'is_anonymous',
                    'moderation_status', 'created_at')
     search_fields = ('reviewer__first_name', 'reviewer__last_name', 'reviewer__email',
                      'reviewee__first_name', 'reviewee__last_name', 'reviewee__email',
                      'title', 'review_text')
     readonly_fields = ('created_at', 'updated_at')
+    autocomplete_fields = ('reviewer', 'reviewee', 'contract', 'property', 'service_order')
     date_hierarchy = 'created_at'
     
     def reviewer_name(self, obj):

@@ -72,6 +72,18 @@ class Rating(models.Model):
         blank=True,
         related_name='ratings'
     )
+    # 1.9.4: FK a ServiceOrder para calificaciones de servicios entre
+    # cliente y prestador. Nullable — las calificaciones contractuales
+    # (landlord↔tenant) siguen usando sólo `contract`.
+    service_order = models.ForeignKey(
+        'services.ServiceOrder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ratings',
+        verbose_name='Orden de servicio',
+        help_text='Vincula la calificación a la orden de servicio facturada.',
+    )
     
     # Contenido de la reseña
     title = models.CharField('Título de la reseña', max_length=200, blank=True)
@@ -107,7 +119,23 @@ class Rating(models.Model):
     class Meta:
         verbose_name = 'Calificación'
         verbose_name_plural = 'Calificaciones'
-        unique_together = ['reviewer', 'reviewee', 'contract']
+        # 1.9.4: uniques parciales para preservar semántica original
+        # (una calificación por contrato) y añadir la nueva (una por
+        # orden de servicio). Las generales (ambos FK nulos) no tienen
+        # restricción de unicidad, como ya era el caso antes del cambio
+        # por el comportamiento de NULL en unique_together.
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reviewer', 'reviewee', 'contract'],
+                condition=models.Q(contract__isnull=False, service_order__isnull=True),
+                name='uniq_rating_per_contract',
+            ),
+            models.UniqueConstraint(
+                fields=['reviewer', 'reviewee', 'service_order'],
+                condition=models.Q(service_order__isnull=False),
+                name='uniq_rating_per_service_order',
+            ),
+        ]
         ordering = ['-created_at']
         
     def __str__(self):
@@ -125,10 +153,15 @@ class Rating(models.Model):
         super().save(*args, **kwargs)
     
     def can_rate(self):
-        """Verifica si el usuario puede calificar basado en relaciones contractuales."""
+        """Verifica si el usuario puede calificar basado en relaciones contractuales.
+
+        1.9.4: también valida contra ServiceOrder (client/provider).
+        """
+        if self.service_order:
+            parties = [self.service_order.client, self.service_order.provider]
+            return self.reviewer in parties and self.reviewee in parties
         if not self.contract:
             return True  # Para calificaciones generales
-        
         # Verificar que ambas partes estén relacionadas con el contrato
         contract_parties = [self.contract.primary_party, self.contract.secondary_party]
         return self.reviewer in contract_parties and self.reviewee in contract_parties

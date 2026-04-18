@@ -180,7 +180,11 @@ class RatingModelTests(TestCase):
 
     # 11
     def test_unique_together_constraint(self):
-        """Same reviewer + reviewee + contract combination raises IntegrityError."""
+        """Rating único por contrato (reviewer + reviewee + contract).
+
+        1.9.4: la restricción ahora es parcial — sólo aplica cuando
+        contract != NULL AND service_order == NULL (caso contractual).
+        """
         with self.assertRaises(IntegrityError):
             _make_rating(
                 reviewer=self.tenant,

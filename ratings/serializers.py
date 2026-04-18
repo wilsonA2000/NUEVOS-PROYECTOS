@@ -58,20 +58,22 @@ class RatingReportSerializer(serializers.ModelSerializer):
 
 class RatingSerializer(serializers.ModelSerializer):
     """Serializador para calificaciones (versión lista)."""
-    
+
     reviewer = UserBasicSerializer(read_only=True)
     reviewee = UserBasicSerializer(read_only=True)
     rating_type_display = serializers.CharField(source='get_rating_type_display', read_only=True)
     stars_display = serializers.CharField(source='get_stars_display', read_only=True)
     has_response = serializers.SerializerMethodField()
-    
+    # 1.9.4: expone la orden de servicio relacionada (si aplica).
+    service_order = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Rating
         fields = [
             'id', 'reviewer', 'reviewee', 'rating_type', 'rating_type_display',
             'overall_rating', 'stars_display', 'title', 'review_text',
             'is_anonymous', 'is_public', 'is_verified', 'created_at',
-            'has_response'
+            'has_response', 'service_order',
         ]
         read_only_fields = ['id', 'reviewer', 'rating_type', 'created_at', 'is_verified']
     
@@ -95,11 +97,11 @@ class RatingDetailSerializer(serializers.ModelSerializer):
             'id', 'reviewer', 'reviewee', 'rating_type', 'rating_type_display',
             'overall_rating', 'stars_display', 'title', 'review_text',
             'is_anonymous', 'is_public', 'is_verified', 'created_at',
-            'categories', 'response', 'contract', 'property'
+            'categories', 'response', 'contract', 'property', 'service_order',
         ]
         read_only_fields = [
             'id', 'reviewer', 'reviewee', 'rating_type', 'created_at',
-            'is_verified', 'contract', 'property'
+            'is_verified', 'contract', 'property', 'service_order',
         ]
 
 
