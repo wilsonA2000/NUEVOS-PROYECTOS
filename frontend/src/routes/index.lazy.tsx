@@ -72,6 +72,7 @@ const AdminContractReview = lazy(() => import('../pages/admin/AdminContractRevie
 const AdminAuditDashboard = lazy(() => import('../pages/admin/AdminAuditDashboard'));
 const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'));
 const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
+const AdminAuditLog = lazy(() => import('../pages/admin/AdminAuditLog'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 const AdminMaintenance = lazy(() => import('../pages/admin/AdminMaintenance'));
 const AdminTicketsDashboard = lazy(() => import('../pages/admin/AdminTicketsDashboard'));
@@ -280,6 +281,7 @@ return (
         <Route path="audit" element={<LazyRoute type="page"><AdminAuditDashboard /></LazyRoute>} />
         <Route path="security" element={<LazyRoute type="page"><AdminSecurityPanel /></LazyRoute>} />
         <Route path="logs" element={<LazyRoute type="table"><AdminLogsViewer /></LazyRoute>} />
+        <Route path="audit-logs" element={<LazyRoute type="table"><AdminAuditLog /></LazyRoute>} />
         <Route path="settings" element={<LazyRoute type="form"><AdminSettings /></LazyRoute>} />
         <Route path="maintenance" element={<LazyRoute type="list"><AdminMaintenance /></LazyRoute>} />
         <Route path="tickets" element={<LazyRoute type="list"><AdminTicketsDashboard /></LazyRoute>} />

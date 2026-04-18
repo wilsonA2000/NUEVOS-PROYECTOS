@@ -95,6 +95,12 @@ const adminMenuItems = [
     path: '/app/admin/logs',
   },
   {
+    id: 'audit-logs',
+    label: 'Audit Trail',
+    icon: <AuditIcon />,
+    path: '/app/admin/audit-logs',
+  },
+  {
     id: 'maintenance',
     label: 'Mantenimiento',
     icon: <WarningIcon />,

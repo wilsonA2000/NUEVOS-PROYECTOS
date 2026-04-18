@@ -11,6 +11,7 @@
  * /app/admin/audit         → AdminAuditDashboard (reportes)
  * /app/admin/security      → AdminSecurityPanel (análisis seguridad)
  * /app/admin/logs          → AdminLogsViewer (logs del sistema)
+ * /app/admin/audit-logs    → AdminAuditLog (audit trail ADM-001 · Fase 1.9.7)
  * /app/admin/settings      → AdminSettings (configuración)
  */
 
@@ -27,6 +28,7 @@ const AdminContractReview = lazy(() => import('../pages/admin/AdminContractRevie
 const AdminAuditDashboard = lazy(() => import('../pages/admin/AdminAuditDashboard'));
 const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'));
 const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
+const AdminAuditLog = lazy(() => import('../pages/admin/AdminAuditLog'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 const AdminMaintenance = lazy(() => import('../pages/admin/AdminMaintenance'));
 const AdminVerificationDashboard = lazy(() => import('../pages/admin/AdminVerificationDashboard'));
@@ -75,6 +77,9 @@ const AdminRoutes: React.FC = () => {
 
           {/* Logs */}
           <Route path="logs" element={<AdminLogsViewer />} />
+
+          {/* Audit trail global (ADM-001 · Fase 1.9.7) */}
+          <Route path="audit-logs" element={<AdminAuditLog />} />
 
           {/* Configuración */}
           <Route path="settings" element={<AdminSettings />} />

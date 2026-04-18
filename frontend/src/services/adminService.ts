@@ -274,6 +274,64 @@ export const exportLogs = async (params: {
   return response.data;
 };
 
+// ============================================================================
+// ADM-001 — Audit log global (ADM-001, Fase 1.9.7)
+// ============================================================================
+
+export interface AuditLogEntry {
+  id: string;
+  user: string;
+  user_name: string;
+  activity_type: string;
+  activity_type_display: string;
+  description: string;
+  model_name?: string;
+  object_id?: string;
+  object_repr?: string;
+  metadata: Record<string, unknown>;
+  ip_address?: string;
+  user_agent?: string;
+  session_key?: string;
+  timestamp: string;
+  formatted_timestamp?: string;
+  time_since?: string;
+}
+
+export interface AuditLogPage {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AuditLogEntry[];
+}
+
+export interface AuditLogFilters {
+  user?: string;
+  activity_type?: string;
+  model_name?: string;
+  days?: number;
+  date_from?: string;  // ISO 8601
+  date_to?: string;    // ISO 8601
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Lista paginada del audit trail global (solo staff).
+ * Backend: `/api/v1/core/audit-logs/` (GlobalAuditLogAPIView).
+ */
+export const getAuditLogs = async (
+  filters: AuditLogFilters = {}
+): Promise<AuditLogPage> => {
+  const params: Record<string, string | number> = {};
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '' && value !== null) {
+      params[key] = value as string | number;
+    }
+  });
+  const response = await api.get('/core/audit-logs/', { params });
+  return response.data;
+};
+
 /**
  * Limpiar logs antiguos (con dry-run opcional)
  */
@@ -369,6 +427,7 @@ export const AdminService = {
   getSecurityAnalysis,
   exportLogs,
   cleanupLogs,
+  getAuditLogs,
 
   // Document Access
   getDocumentAccessHistory,
