@@ -600,6 +600,82 @@ class ServiceOrder(models.Model):
         return f'OS · {self.title} · {self.amount} · {self.get_status_display()}'
 
 
+class ServiceOrderHistory(models.Model):
+    """Historial relacional de cambios en ServiceOrder (Fase 1.9.5).
+
+    Cada transición de ``status`` se registra automáticamente vía signal
+    (``services.signals.record_service_order_state_transition``). También
+    se puede registrar manualmente desde el código usando
+    ``ServiceOrderHistory.objects.create(...)`` para eventos no-estado
+    (p. ej. edición de notas, reenvío al cliente).
+    """
+
+    ACTION_TYPES = [
+        ('CREATE', 'Crear orden'),
+        ('STATE_CHANGE', 'Cambio de estado'),
+        ('SEND', 'Enviada al cliente'),
+        ('ACCEPT', 'Aceptada'),
+        ('REJECT', 'Rechazada'),
+        ('CANCEL', 'Cancelada'),
+        ('PAY', 'Pagada'),
+        ('UPDATE', 'Actualización'),
+        ('SYSTEM_ACTION', 'Acción del sistema'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(
+        ServiceOrder,
+        on_delete=models.CASCADE,
+        related_name='history_entries',
+        verbose_name='Orden de servicio',
+    )
+    action_type = models.CharField(
+        'Tipo de acción', max_length=20, choices=ACTION_TYPES
+    )
+    action_description = models.CharField(
+        'Descripción de la acción', max_length=500,
+        help_text='Texto legible para auditoría.',
+    )
+    performed_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='service_order_actions',
+        verbose_name='Realizado por',
+        help_text='Null cuando lo ejecuta el sistema (signal / cron).',
+    )
+    user_role = models.CharField(
+        'Rol del usuario', max_length=20,
+        choices=[
+            ('service_provider', 'Prestador'),
+            ('client', 'Cliente'),
+            ('system', 'Sistema'),
+            ('admin', 'Administrador'),
+        ],
+        default='system',
+    )
+    old_status = models.CharField('Estado anterior', max_length=20, blank=True)
+    new_status = models.CharField('Estado nuevo', max_length=20, blank=True)
+    metadata = models.JSONField(
+        'Metadatos', default=dict, blank=True,
+        help_text='Información adicional: monto, notas, payment_order_id, etc.',
+    )
+    timestamp = models.DateTimeField('Fecha', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Historial de Orden de Servicio'
+        verbose_name_plural = 'Historial de Órdenes de Servicio'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['order', '-timestamp']),
+            models.Index(fields=['action_type', '-timestamp']),
+        ]
+
+    def __str__(self):
+        return f'OSH · {self.action_type} · OS {self.order_id} · {self.timestamp:%Y-%m-%d %H:%M}'
+
+
 class ServicePayment(models.Model):
     """Pago realizado contra una ServiceOrder.
 

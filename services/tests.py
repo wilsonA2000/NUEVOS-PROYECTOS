@@ -22,7 +22,7 @@ from django.contrib.auth import get_user_model
 from .models import (
     ServiceCategory, Service, ServiceRequest, ServiceImage,
     SubscriptionPlan, ServiceSubscription,
-    ServiceOrder, ServicePayment,
+    ServiceOrder, ServicePayment, ServiceOrderHistory,
 )
 
 User = get_user_model()
@@ -892,6 +892,48 @@ class ServiceOrderModelTests(TestCase):
             title='Test', amount=Decimal('100000'),
         )
         self.assertIsInstance(order.id, uuid.UUID)
+
+    # --- 1.9.5: ServiceOrderHistory signal --------------------------------
+
+    def test_signal_records_creation_entry(self):
+        """Al crear una orden, signal registra una fila CREATE."""
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.client_user,
+            title='Signal create', amount=Decimal('100000'),
+        )
+        entries = ServiceOrderHistory.objects.filter(order=order)
+        self.assertEqual(entries.count(), 1)
+        self.assertEqual(entries.first().action_type, 'CREATE')
+        self.assertEqual(entries.first().new_status, 'draft')
+
+    def test_signal_records_status_transitions(self):
+        """Cada cambio de status añade una fila al historial."""
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.client_user,
+            title='Signal transition', amount=Decimal('200000'),
+        )
+        order.status = 'sent'
+        order.save()
+        order.status = 'accepted'
+        order.save()
+
+        entries = ServiceOrderHistory.objects.filter(order=order).order_by('timestamp')
+        self.assertEqual(entries.count(), 3)  # CREATE + SEND + ACCEPT
+        self.assertEqual([e.action_type for e in entries],
+                         ['CREATE', 'SEND', 'ACCEPT'])
+        self.assertEqual(entries[2].old_status, 'sent')
+        self.assertEqual(entries[2].new_status, 'accepted')
+
+    def test_signal_noop_when_status_unchanged(self):
+        """Guardar sin cambiar status no duplica filas."""
+        order = ServiceOrder.objects.create(
+            provider=self.provider, client=self.client_user,
+            title='Signal noop', amount=Decimal('300000'),
+        )
+        order.notes = 'sólo metadatos'
+        order.save()
+        entries = ServiceOrderHistory.objects.filter(order=order)
+        self.assertEqual(entries.count(), 1)  # sólo CREATE
 
 
 class ServicePaymentModelTests(TestCase):

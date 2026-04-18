@@ -9,7 +9,7 @@ from django.forms import Textarea
 from .models import (
     ServiceCategory, Service, ServiceImage, ServiceRequest,
     SubscriptionPlan, ServiceSubscription, SubscriptionBillingHistory,
-    ServiceOrder, ServicePayment,
+    ServiceOrder, ServicePayment, ServiceOrderHistory,
 )
 
 
@@ -252,3 +252,17 @@ class ServicePaymentAdmin(admin.ModelAdmin):
     list_filter = ('gateway', 'paid_at')
     search_fields = ('order__title', 'notes')
     readonly_fields = ('id', 'paid_at', 'transaction')
+
+
+@admin.register(ServiceOrderHistory)
+class ServiceOrderHistoryAdmin(admin.ModelAdmin):
+    """Historial automático de transiciones de ServiceOrder (Fase 1.9.5)."""
+    list_display = ('order', 'action_type', 'old_status', 'new_status',
+                    'performed_by', 'timestamp')
+    list_filter = ('action_type', 'user_role', 'timestamp')
+    search_fields = ('order__title', 'action_description',
+                     'performed_by__email')
+    readonly_fields = ('id', 'order', 'action_type', 'action_description',
+                       'performed_by', 'user_role',
+                       'old_status', 'new_status', 'metadata', 'timestamp')
+    date_hierarchy = 'timestamp'
