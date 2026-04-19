@@ -56,7 +56,11 @@ import {
   Verified as VerifiedIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+// Fase H1: usar la instancia axios configurada (`services/api`) que ya
+// inyecta baseURL de `VITE_API_URL` y el interceptor de Authorization.
+// Antes se importaba axios raw y los GET iban a `:5174/api/v1/...` en
+// lugar de `:8000/api/v1/...`, provocando 401 "no credentials provided".
+import api from '../../services/api';
 import { vhColors } from '../../theme/tokens';
 
 // ---------------------------------------------------------------------------
@@ -235,7 +239,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('/api/v1/verification/agents/stats/');
+      const res = await api.get('/verification/agents/stats/');
       setStats(res.data);
     } catch {
       // stats will remain at defaults
@@ -244,7 +248,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const fetchAgents = async () => {
     try {
-      const res = await axios.get('/api/v1/verification/agents/');
+      const res = await api.get('/verification/agents/');
       setAgents(res.data?.results ?? res.data ?? []);
     } catch {
       setError('No se pudieron cargar los agentes.');
@@ -253,7 +257,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const fetchVisits = async () => {
     try {
-      const res = await axios.get('/api/v1/verification/visits/');
+      const res = await api.get('/verification/visits/');
       setVisits(res.data?.results ?? res.data ?? []);
     } catch {
       setError('No se pudieron cargar las visitas.');
@@ -262,7 +266,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const fetchReports = async () => {
     try {
-      const res = await axios.get('/api/v1/verification/reports/');
+      const res = await api.get('/verification/reports/');
       setReports(res.data?.results ?? res.data ?? []);
     } catch {
       setError('No se pudieron cargar los reportes.');
@@ -271,7 +275,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const fetchAvailableAgents = async () => {
     try {
-      const res = await axios.get('/api/v1/verification/agents/available/');
+      const res = await api.get('/verification/agents/available/');
       setAvailableAgents(res.data?.results ?? res.data ?? []);
     } catch {
       // non-critical
@@ -294,7 +298,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleToggleAvailability = async (agentId: string | number, current: boolean) => {
     try {
-      await axios.patch(`/api/v1/verification/agents/${agentId}/`, {
+      await api.patch(`/verification/agents/${agentId}/`, {
         is_available: !current,
       });
       setAgents((prev) =>
@@ -322,7 +326,7 @@ const AdminVerificationDashboard: React.FC = () => {
     if (!selectedVisitId || !selectedAgentId) return;
     setAssignLoading(true);
     try {
-      await axios.post(`/api/v1/verification/visits/${selectedVisitId}/assign_agent/`, {
+      await api.post(`/verification/visits/${selectedVisitId}/assign_agent/`, {
         agent_id: selectedAgentId,
       });
       setSuccessMessage('Agente asignado correctamente.');
@@ -338,7 +342,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleStartVisit = async (visitId: string | number) => {
     try {
-      await axios.post(`/api/v1/verification/visits/${visitId}/start/`);
+      await api.post(`/verification/visits/${visitId}/start/`);
       setSuccessMessage('Visita iniciada.');
       fetchVisits();
     } catch {
@@ -348,7 +352,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleCompleteVisit = async (visitId: string | number) => {
     try {
-      await axios.post(`/api/v1/verification/visits/${visitId}/complete/`);
+      await api.post(`/verification/visits/${visitId}/complete/`);
       setSuccessMessage('Visita completada.');
       fetchVisits();
       fetchStats();
@@ -359,7 +363,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleCancelVisit = async (visitId: string | number) => {
     try {
-      await axios.patch(`/api/v1/verification/visits/${visitId}/`, { status: 'cancelled' });
+      await api.patch(`/verification/visits/${visitId}/`, { status: 'cancelled' });
       setSuccessMessage('Visita cancelada.');
       fetchVisits();
       fetchStats();
@@ -374,7 +378,7 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleApproveReport = async (reportId: string | number) => {
     try {
-      await axios.post(`/api/v1/verification/reports/${reportId}/approve/`);
+      await api.post(`/verification/reports/${reportId}/approve/`);
       setSuccessMessage('Reporte aprobado exitosamente.');
       fetchReports();
     } catch {

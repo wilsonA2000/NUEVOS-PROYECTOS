@@ -368,6 +368,24 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'ticket_ready':
+        # Un SupportTicket abierto del tenant, listo para el flujo de
+        # asignación + respuesta + resolución (Fase H2).
+        from core.models import SupportTicket
+        SupportTicket.objects.filter(
+            subject__startswith='E2E · ',
+        ).delete()
+        ticket = SupportTicket.objects.create(
+            subject='E2E · Error al generar PDF del contrato',
+            description='Al descargar el PDF aparece un 500 intermitente.',
+            category='technical',
+            priority='high',
+            created_by=tenant,
+            status='open',
+        )
+        result['ticket_id'] = str(ticket.id)
+        log(f"SupportTicket seeded: {ticket.id}")
+
     if mode == 'interview_code_ready':
         # Crea dos InterviewCodes: uno válido, uno expirado.
         from users.models.interview import InterviewCode
