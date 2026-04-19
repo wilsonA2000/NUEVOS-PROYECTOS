@@ -368,6 +368,39 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'interview_code_ready':
+        # Crea dos InterviewCodes: uno válido, uno expirado.
+        from users.models.interview import InterviewCode
+
+        InterviewCode.objects.filter(
+            code__in=['E2EVALID', 'E2EEXPIR'],
+        ).delete()
+
+        ts = int(timezone.now().timestamp())
+        valid_code = InterviewCode.objects.create(
+            code='E2EVALID',
+            user_type='tenant',
+            email=f'nuevo.tenant.{ts}@e2e.local',
+            valid_from=timezone.now() - timedelta(hours=1),
+            valid_until=timezone.now() + timedelta(days=7),
+            created_by=admin,
+            max_uses=1,
+        )
+        expired_code = InterviewCode.objects.create(
+            code='E2EEXPIR',
+            user_type='tenant',
+            email=f'expirado.{ts}@e2e.local',
+            valid_from=timezone.now() - timedelta(days=14),
+            valid_until=timezone.now() - timedelta(days=1),
+            created_by=admin,
+            max_uses=1,
+        )
+        result['interview_code_valid'] = valid_code.code
+        result['interview_code_expired'] = expired_code.code
+        result['interview_email_valid'] = valid_code.email
+        result['interview_email_expired'] = expired_code.email
+        log(f"Interview codes seeded: valid={valid_code.code}, expired={expired_code.code}")
+
     if mode == 'rent_paid':
         # contract_active + una transacción confirmada + reconciliación.
         # Simula que el webhook de la pasarela marcó una PaymentOrder

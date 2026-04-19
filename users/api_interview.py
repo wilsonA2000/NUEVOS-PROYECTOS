@@ -204,6 +204,9 @@ class RegisterWithCodeView(APIView):
             
             # Crear el usuario
             with transaction.atomic():
+                # Sólo pasar campos que el modelo realmente acepta.
+                # `address` del body se mapea a `current_address` (nombre
+                # real del field en User).
                 user_data = {
                     'email': data['email'],
                     'password': data['password'],
@@ -212,10 +215,10 @@ class RegisterWithCodeView(APIView):
                     'user_type': data['user_type'],
                     'phone_number': data.get('phone_number', ''),
                     'city': data.get('city', ''),
-                    'address': data.get('address', ''),
+                    'current_address': data.get('address') or data.get('current_address', ''),
                     'is_verified': True,  # Pre-verificado por el código de entrevista
                 }
-                
+
                 # Crear el usuario
                 user = User.objects.create_user(**user_data)
                 
