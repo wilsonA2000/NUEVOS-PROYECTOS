@@ -110,6 +110,7 @@ const LandingFooter: React.FC = () => {
                 href="https://facebook.com/verihome"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Facebook de VeriHome"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -122,6 +123,7 @@ const LandingFooter: React.FC = () => {
                 href="https://twitter.com/verihome"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Twitter de VeriHome"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -134,6 +136,7 @@ const LandingFooter: React.FC = () => {
                 href="https://linkedin.com/company/verihome"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="LinkedIn de VeriHome"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -146,6 +149,7 @@ const LandingFooter: React.FC = () => {
                 href="https://instagram.com/verihome"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Instagram de VeriHome"
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
