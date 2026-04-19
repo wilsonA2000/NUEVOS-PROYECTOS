@@ -13,8 +13,11 @@ from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from django.conf import settings
 from decimal import Decimal
+import logging
 import stripe
 import json
+
+logger = logging.getLogger(__name__)
 # Import optimizations
 from core.optimizations import (
     QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin,

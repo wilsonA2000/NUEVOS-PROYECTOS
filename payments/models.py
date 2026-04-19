@@ -3,11 +3,13 @@ Sistema de pagos y transacciones para VeriHome.
 Incluye pasarela de pagos, escrow, historial y facturación.
 """
 
+from datetime import timedelta
+from decimal import Decimal
+import uuid
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from decimal import Decimal
-import uuid
 
 User = get_user_model()
 

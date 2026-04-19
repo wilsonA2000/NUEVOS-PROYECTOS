@@ -2,24 +2,35 @@
 Vistas de API REST para la aplicación core de VeriHome.
 """
 
-from rest_framework import viewsets, generics, permissions, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.decorators import action, api_view, permission_classes
-from django.db.models import Count, Q
-from django.utils import timezone
+import json
+import logging
 from datetime import datetime, timedelta
-from django.http import JsonResponse
-from rest_framework.permissions import AllowAny
-from django.conf import settings
 
+from django.conf import settings
+from django.core.mail import send_mail
+from django.db.models import Count, Q
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
+from rest_framework import viewsets, generics, permissions, status
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
+
+from .audit_service import audit_service
 from .models import Notification, ActivityLog, SystemAlert, ContactMessage, SupportTicket, TicketResponse, FAQ
 from .serializers import NotificationSerializer, ActivityLogSerializer, SystemAlertSerializer, SupportTicketSerializer, TicketResponseSerializer
-from django.core.mail import send_mail
-from rest_framework.throttling import AnonRateThrottle
-import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_client_ip(request):
+    """Devuelve la IP real del cliente respetando X-Forwarded-For."""
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
 
 
 class ContactRateThrottle(AnonRateThrottle):

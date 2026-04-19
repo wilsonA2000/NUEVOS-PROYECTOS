@@ -14,6 +14,7 @@ from django.core.files.base import ContentFile
 from datetime import timedelta
 from typing import Dict, Any
 import json
+import uuid
 
 from .models import (
     MessageThread, Message, MessageAttachment, ThreadParticipant, 
@@ -38,16 +39,16 @@ class AdvancedMessageThreadViewSet(viewsets.ModelViewSet):
         queryset = MessageThread.objects.filter(participants=self.request.user)
         
         # Filtros opcionales
-        status_filter = self.getattr(request, "query_params", request.GET).get('status')
+        status_filter = getattr(self.request, "query_params", self.request.GET).get('status')
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         
-        thread_type = self.getattr(request, "query_params", request.GET).get('type')
+        thread_type = getattr(self.request, "query_params", self.request.GET).get('type')
         if thread_type:
             queryset = queryset.filter(thread_type=thread_type)
         
         # Filtro de búsqueda
-        search = self.getattr(request, "query_params", request.GET).get('search')
+        search = getattr(self.request, "query_params", self.request.GET).get('search')
         if search:
             queryset = queryset.filter(
                 Q(subject__icontains=search) |
@@ -200,12 +201,12 @@ class AdvancedMessageViewSet(viewsets.ModelViewSet):
         )
         
         # Filtro por hilo
-        thread_id = self.getattr(request, "query_params", request.GET).get('thread_id')
+        thread_id = getattr(self.request, "query_params", self.request.GET).get('thread_id')
         if thread_id:
             queryset = queryset.filter(thread_id=thread_id)
         
         # Filtro por estado de lectura
-        is_read = self.getattr(request, "query_params", request.GET).get('is_read')
+        is_read = getattr(self.request, "query_params", self.request.GET).get('is_read')
         if is_read is not None:
             queryset = queryset.filter(is_read=is_read.lower() == 'true')
         

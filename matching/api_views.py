@@ -1483,19 +1483,12 @@ class CheckExistingMatchRequestAPIView(APIView):
                 {'error': 'No se encontró una solicitud cancelable'},
                 status=status.HTTP_404_NOT_FOUND
             )
-            
-        except MatchRequest.DoesNotExist:
-            return Response(
-                {'error': 'No se encontró solicitud de match entre este tenant y propiedad'},
-                status=status.HTTP_404_NOT_FOUND
-            )
         except MatchRequest.MultipleObjectsReturned:
-            # Si hay múltiples, devolver el más reciente
             match_request = MatchRequest.objects.filter(
-                tenant_id=tenant_id,
+                tenant=request.user,
                 property_id=property_id
             ).order_by('-created_at').first()
-            
+
             return Response({
                 'match_request_id': str(match_request.id),
                 'match_code': match_request.match_code,

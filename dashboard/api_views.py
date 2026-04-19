@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404

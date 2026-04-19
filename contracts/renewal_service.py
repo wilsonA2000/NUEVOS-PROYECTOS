@@ -11,12 +11,16 @@ Referencia legal: Artículo 20, Ley 820 de 2003.
 import logging
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from core.notification_service import NotificationService
+
+if TYPE_CHECKING:
+    from contracts.landlord_contract_models import LandlordControlledContract
+    from contracts.models import Contract
 
 logger = logging.getLogger(__name__)
 
