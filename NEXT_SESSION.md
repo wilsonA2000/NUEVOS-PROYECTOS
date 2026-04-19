@@ -271,8 +271,21 @@ python manage.py test matching contracts services ratings messaging payments ver
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ 17fea39 + Fase L1 local (profile/resume API
-spec verde, 10 assertions). 25/25 moleculares OK. Pendiente principal
-es ci-cd.yml (1371 errores ESLint + 13 ruff backend) — no quick win.
-Biometric UI E2E real sigue de sesión fresca. Ver NEXT_SESSION.md.
+Continúa VeriHome. Main @ d5971f7. Sesión anterior cerró 5 commits
+(L1 profile/resume E2E · M1 best-practices 0.78→1.00 · N1 TS 5→0
++ ruff verihome 13→0 · N2 ruff backend F541+E402 1197→743).
+25/25 moleculares OK · TS frontend 0 errors · Lighthouse a11y/bp/seo
+verdes.
+
+Próximos candidatos en orden de scope:
+  1. ruff F401 backend audit (553 unused-imports) — riesgo Django
+     signals side-effects, NO mass-fix ciego.
+  2. ruff F821 backend (51 undefined-name) — potenciales bugs reales,
+     merece auditoría caso-por-caso.
+  3. Biometric UI real (camera + voice E2E) — scope grande dedicado.
+  4. Frontend ESLint (1371 errores) — staged con autofix + relajar
+     reglas a warn, varias sesiones.
+
+Deuda CI pendiente: security-scan + test-backend + test-frontend
+(frontend lint sigue rojo). Ver NEXT_SESSION.md.
 ```
