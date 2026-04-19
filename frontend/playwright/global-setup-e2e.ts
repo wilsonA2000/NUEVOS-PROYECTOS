@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function httpPing(url: string, timeoutMs = 3000): Promise<boolean> {
+function httpPing(url: string, timeoutMs = 15000): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.get(url, (res) => {
       // Cualquier respuesta (incluso 401/404) indica que el servidor esta vivo
@@ -70,7 +70,7 @@ async function globalSetup(): Promise<void> {
     stdout = execSync(`"${pythonBin}" "${seedScript}"`, {
       cwd: projectRoot,
       encoding: 'utf8',
-      timeout: 60000,
+      timeout: 180000,
       shell: '/bin/bash',
     });
   } catch (err: unknown) {

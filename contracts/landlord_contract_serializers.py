@@ -17,29 +17,36 @@ User = get_user_model()
 
 
 class ContractObjectionSerializer(serializers.ModelSerializer):
-    """Serializer para objeciones de contrato."""
-    
-    objected_by_name = serializers.CharField(source='objected_by.get_full_name', read_only=True)
-    responded_by_name = serializers.CharField(source='responded_by.get_full_name', read_only=True)
+    """Serializer para objeciones de contrato.
+
+    Alineado con el modelo real `ContractObjection` (Fase A3): el modelo
+    no tiene `objected_by`, `responded_by`, `response_note` ni
+    `responded_at`; usa `field_reference`, `proposed_modification`,
+    `objection_text`, `landlord_response`, `resolved_at`.
+    """
+
     age_in_days = serializers.SerializerMethodField()
     is_overdue = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = ContractObjection
         fields = [
-            'id', 'contract', 'objected_by', 'objected_by_name',
-            'field_name', 'current_value', 'proposed_value',
-            'justification', 'priority', 'status',
-            'response_note', 'responded_by', 'responded_by_name',
-            'submitted_at', 'responded_at', 'age_in_days', 'is_overdue'
+            'id', 'contract',
+            'objection_type', 'field_reference',
+            'current_value', 'proposed_modification',
+            'objection_text', 'priority', 'status',
+            'landlord_response', 'landlord_counter_proposal',
+            'final_resolution',
+            'submitted_at', 'reviewed_at', 'resolved_at',
+            'age_in_days', 'is_overdue',
         ]
-        read_only_fields = ['id', 'submitted_at', 'responded_at']
-    
+        read_only_fields = ['id', 'submitted_at', 'reviewed_at', 'resolved_at']
+
     def get_age_in_days(self, obj):
-        return obj.get_age_in_days()
-    
+        return obj.get_age_in_days() if hasattr(obj, 'get_age_in_days') else None
+
     def get_is_overdue(self, obj):
-        return obj.is_overdue()
+        return obj.is_overdue() if hasattr(obj, 'is_overdue') else None
 
 
 class LandlordContractGuaranteeSerializer(serializers.ModelSerializer):
@@ -194,6 +201,11 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
             # Estados y workflow
             'current_state', 'current_state_display', 'progress_percentage',
             'days_in_current_state', 'can_be_published',
+            # Flujo circular de revisión (Plan Maestro V2.0)
+            'review_cycle_count', 'tenant_return_notes',
+            'is_locked', 'locked_at', 'locked_reason',
+            'admin_reviewed', 'admin_reviewed_at', 'admin_review_notes',
+            'admin_review_deadline', 'admin_review_escalated',
 
             # Datos del contrato (JSONFields editables)
             'contract_terms', 'economic_terms', 'property_data', 'special_clauses',

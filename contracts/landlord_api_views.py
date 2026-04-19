@@ -1480,17 +1480,33 @@ class ContractGuaranteeViewSet(viewsets.ModelViewSet):
 
 
 class ContractWorkflowHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet para consultar historial de workflow."""
-    
+    """ViewSet para consultar historial de workflow.
+
+    Acceso:
+      - Staff (abogados/admin): ve todo el historial, útil para el flujo
+        circular de revisión.
+      - Usuarios comunes: sólo filas de contratos donde son parte
+        (landlord o tenant).
+
+    Query params:
+      - ?contract=<uuid>  filtra por contrato específico.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ContractWorkflowHistorySerializer
-    
+
     def get_queryset(self):
-        """Filtrar historial donde el usuario es parte del contrato."""
-        return ContractWorkflowHistory.objects.filter(
-            Q(contract__landlord=self.request.user) | 
-            Q(contract__tenant=self.request.user)
-        ).select_related(
+        user = self.request.user
+        if user.is_staff:
+            qs = ContractWorkflowHistory.objects.all()
+        else:
+            qs = ContractWorkflowHistory.objects.filter(
+                Q(contract__landlord=user) | Q(contract__tenant=user)
+            )
+        contract_id = self.request.query_params.get('contract')
+        if contract_id:
+            qs = qs.filter(contract_id=contract_id)
+        return qs.select_related(
             'contract', 'performed_by', 'related_objection', 'related_guarantee'
         ).order_by('-timestamp')
 

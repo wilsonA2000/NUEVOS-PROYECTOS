@@ -199,7 +199,9 @@ class AdminContractApprovalView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if contract.current_state != 'PENDING_ADMIN_REVIEW':
+        # El admin aprueba tanto en la primera revisión como en las
+        # re-revisiones del ciclo circular (Fase A1).
+        if contract.current_state not in ('PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN'):
             return Response(
                 {'error': f'El contrato no está en estado de revisión. Estado actual: {contract.get_current_state_display()}'},
                 status=status.HTTP_400_BAD_REQUEST

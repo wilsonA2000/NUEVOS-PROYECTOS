@@ -79,8 +79,9 @@ test('Fase A2 · admin rechaza contrato → CANCELLED', async () => {
   });
   expect(rejectResp.ok).toBe(true);
 
-  // Verificar estado final
-  const detail = await apiGet(adminToken, `/contracts/landlord/contracts/${lccId}/`);
+  // Verificar estado final consultando como landlord (el admin no está en
+  // el queryset de LandlordContractViewSet, que filtra por request.user).
+  const detail = await apiGet(landlordToken, `/contracts/landlord/contracts/${lccId}/`);
   const body = detail.body as Record<string, unknown>;
   expect(body.current_state).toBe('CANCELLED');
   expect(body.admin_reviewed).toBe(true);

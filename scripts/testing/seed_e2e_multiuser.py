@@ -69,6 +69,19 @@ def ensure_user(email, user_type, first_name, last_name, is_staff=False):
     if not user.last_name:
         user.last_name = last_name
     user.save()
+
+    # El login pasa por allauth que valida EmailAddress.verified=True,
+    # no sólo user.is_verified. Crear/actualizar la entrada.
+    try:
+        from allauth.account.models import EmailAddress  # noqa: WPS433
+        EmailAddress.objects.update_or_create(
+            user=user,
+            email=email,
+            defaults={'primary': True, 'verified': True},
+        )
+    except Exception as exc:  # pragma: no cover
+        log(f"warn: EmailAddress create failed for {email}: {exc}")
+
     suffix = ' [staff]' if is_staff else ''
     log(f"user {'created' if created else 'ensured'}: {email} ({user_type}){suffix}")
     return user
