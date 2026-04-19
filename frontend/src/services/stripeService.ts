@@ -1,4 +1,4 @@
-import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
+import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js/pure';
 import { api } from './api';
 import { loggingService, LogLevel, LogCategory } from './loggingService';
 

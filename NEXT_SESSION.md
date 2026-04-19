@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 noche (Fase L1 · profile/resume API verde)
+**Última actualización**: 2026-04-19 noche (Fase L1 + M1 · best-practices 0.78→1.00)
 
 ---
 
@@ -12,7 +12,7 @@
 | Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
 | Playwright moleculares | **25/25 verde** (Fase A-J + G5 + L1 · ~38 min total) |
 | CI/CD | 9 jobs (backend/frontend fallan por lint pre-existente) + Lighthouse **verde** |
-| Lighthouse score | a11y ≥0.9 ✅ · perf OK · best-practices 0.74 (warn) · SEO OK |
+| Lighthouse score | a11y ≥0.9 ✅ · perf OK · **best-practices 1.00** ✅ · SEO OK |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
 | npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
@@ -20,6 +20,26 @@
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 noche)
+
+### Fase M1 — Lighthouse best-practices 0.78 → 1.00
+- Root cause: `@stripe/stripe-js` standard import tiene side-effect de
+  auto-cargar `https://js.stripe.com/basil/stripe.js` al mero import
+  del módulo. Eso dispara `POST m.stripe.com/6` (health ping) y el
+  audit `third-party-cookies` (weight 5) + `inspector-issues` (weight 1).
+- Fix: cambiar 2 imports a `@stripe/stripe-js/pure` (API idéntica, sin
+  auto-load · documentado oficialmente):
+  - `src/services/stripeService.ts:1`
+  - `src/components/payments/PaymentForm.tsx:29`
+- Mock del test actualizado para `/pure`:
+  - `src/components/payments/__tests__/PaymentForm.test.tsx:43`
+- Validado con Lighthouse 12.8 local (preset desktop, headless):
+  - `/` best-practices **0.78 → 1.00** · audits 0 fallas
+  - `/login` best-practices **1.00**
+- Probe network en landing: stripe ya no aparece en external requests.
+- Bonus side-effect: reduce requests externas del landing (3 → 0 de
+  stripe), menor TBT.
+- **Nota**: los tests Jest quedan sin re-validar en esta sesión (WSL
+  cuelga Jest por issue pre-existente con MSW). Build Vite pasa.
 
 ### Fase L1 — Profile & Resume API flows (nueva spec molecular)
 - `fase-l1-profile-resume.spec.ts` · 10 assertions end-to-end en 1.1 min:
@@ -182,8 +202,7 @@
   `performanceMonitor.ts`, `videoUtils.ts`), `lint-check` (black
   backend diff en `verihome/urls.py`, `wsgi.py`), `security-scan`,
   `test-backend`. Scope: fix de lints acumulados.
-- **Lighthouse best-practices 0.74** · warn (no bloquea). Probable
-  causa: cookies sin Secure, CSP, etc. Investigar.
+- ✅ **Lighthouse best-practices** — resuelto en Fase M1 (0.78→1.00).
 - **i18next**: grep rápido arroja **~664 strings hardcoded** en 100+
   archivos (vs ~628 `t()` existentes). NO es quick win — proyecto de
   varias sesiones para internacionalizar completo.

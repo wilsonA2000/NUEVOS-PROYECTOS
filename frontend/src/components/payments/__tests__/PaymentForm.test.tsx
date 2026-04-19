@@ -39,8 +39,8 @@ jest.mock('../../../hooks/usePaymentProcessing', () => ({
   }),
 }));
 
-// Mock stripe
-jest.mock('@stripe/stripe-js', () => ({
+// Mock stripe (usamos /pure en source para evitar auto-load de js.stripe.com)
+jest.mock('@stripe/stripe-js/pure', () => ({
   loadStripe: jest.fn().mockResolvedValue(null),
 }));
 

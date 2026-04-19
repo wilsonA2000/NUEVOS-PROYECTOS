@@ -26,7 +26,7 @@ import {
   Security as SecurityIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 import { usePayments } from '../../hooks/usePayments';
 import { usePaymentProcessing } from '../../hooks/usePaymentProcessing';
 import { Payment, CreatePaymentDto, UpdatePaymentDto } from '../../types/payment';
