@@ -1,0 +1,91 @@
+# Pre-commit hooks para VeriHome.
+#
+# Instalación:
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit install --hook-type commit-msg
+#
+# Saltar un commit puntualmente (sólo con autorización):
+#   SKIP=hook-id git commit -m "..."
+#   git commit --no-verify -m "..."
+#
+# Hooks:
+#   1. Archivos genéricos (trailing whitespace, EOF, YAML, JSON, merge conflicts)
+#   2. ruff (lint + format Python, reemplaza flake8/isort/black)
+#   3. prettier (frontend/src/**)
+#   4. eslint local (si frontend/node_modules existe)
+#   5. commitizen (validar mensajes conventional commits)
+
+repos:
+  # Archivos genéricos
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.svg$|\.md$'
+      - id: end-of-file-fixer
+        exclude: '\.svg$|\.pdf$|\.jpg$|\.png$'
+      - id: check-merge-conflict
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: check-json
+        exclude: 'frontend/tsconfig.*\.json|\.vscode/'
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Python — ruff hace lint + format en una sola pasada (sustituye
+  # black+flake8+isort). Fast y estable.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: ['--fix', '--exit-non-zero-on-fix']
+        exclude: '^(frontend/|venv/|venv_ubuntu/|node_modules/|.*/migrations/)'
+      - id: ruff-format
+        exclude: '^(frontend/|venv/|venv_ubuntu/|node_modules/|.*/migrations/)'
+
+  # Prettier — sólo archivos frontend controlados por nosotros.
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: '^frontend/src/.*\.(ts|tsx|js|jsx|json|css|md)$'
+        additional_dependencies:
+          - prettier@3.2.5
+
+  # ESLint local — si frontend/node_modules existe lo usa. Evita romper
+  # dev cuando aún no instalan deps.
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: eslint (frontend/src)
+        language: system
+        entry: bash -c 'if [ -d frontend/node_modules ]; then cd frontend && npx eslint --report-unused-disable-directives --ext ts,tsx src; else echo "eslint skipped (frontend/node_modules no instalado)"; fi'
+        files: '^frontend/src/.*\.(ts|tsx)$'
+        pass_filenames: false
+
+  # Conventional commits — hook en el stage commit-msg
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - perf
+          - test
+          - build
+          - ci
+          - chore
+          - revert
+
+# Configuración global
+default_stages: [pre-commit]
+fail_fast: false

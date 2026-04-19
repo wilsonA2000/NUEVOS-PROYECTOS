@@ -82,6 +82,38 @@ python manage.py runserver
 
 ---
 
+## 🧰 Dev setup (pre-commit hooks)
+
+Para mantener el repo limpio y pasar CI en el primer intento:
+
+```bash
+pip install pre-commit
+pre-commit install                     # hooks en cada `git commit`
+pre-commit install --hook-type commit-msg   # valida mensajes conventional
+# Correr todos los hooks contra todo el repo (primera vez):
+pre-commit run --all-files
+```
+
+Los hooks corren automáticamente ruff/prettier/eslint/trailing-whitespace y
+validan que el mensaje del commit sea conventional (`feat:`, `fix:`, `docs:`…).
+
+Para saltar un hook puntualmente (sólo si el usuario lo autoriza):
+
+```bash
+SKIP=eslint-frontend git commit -m "..."    # saltar uno
+git commit --no-verify -m "..."             # saltar todos
+```
+
+### Ejecutar tests con cobertura
+
+```bash
+pytest                        # usa pytest.ini (cov-fail-under=60)
+pytest -m "not slow"          # omitir tests marcados slow
+pytest --cov-report=html      # genera htmlcov/ navegable
+```
+
+---
+
 ## 🐳 Despliegue con Docker
 
 ### 1. Build y levantar servicios

@@ -76,7 +76,6 @@ jobs:
 
     - name: Run Django tests
       run: python manage.py test --parallel --keepdb
-      continue-on-error: true
 
   # Job 2: Frontend Tests
   test-frontend:
@@ -99,15 +98,42 @@ jobs:
 
     - name: Run frontend linting
       working-directory: ./frontend
-      run: npx eslint src --ext ts,tsx --report-unused-disable-directives || true
+      run: npx eslint src --ext ts,tsx --report-unused-disable-directives
 
     - name: Run frontend tests
       working-directory: ./frontend
-      run: npm run test:coverage || true
+      run: npm run test:coverage
 
     - name: Build frontend
       working-directory: ./frontend
       run: npm run build
+
+  # Job 2b: Lint via pre-commit hooks (ruff, prettier, eslint, commitlint)
+  lint-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies (para eslint local hook)
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run pre-commit hooks
+      uses: pre-commit/action@v3.0.1
 
   # Job 3: Security Scanning
   security-scan:
@@ -123,21 +149,67 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Run Bandit security scan
+      # Bandit informa, sigue aunque encuentre findings; el gate real
+      # está en "Fail on HIGH/CRITICAL findings" más abajo.
       run: |
         pip install bandit
         bandit -r . -x ./venv/,./frontend/,./node_modules/,./.git/ -ll -f json -o bandit-report.json || true
 
+    - name: Fail on Bandit HIGH/CRITICAL findings
+      run: |
+        python -c "
+        import json, sys
+        try:
+            data = json.load(open('bandit-report.json'))
+        except FileNotFoundError:
+            print('No bandit report; skipping gate.'); sys.exit(0)
+        blocking = [r for r in data.get('results', []) if r.get('issue_severity') in ('HIGH', 'CRITICAL')]
+        if blocking:
+            for r in blocking:
+                print(f\"[HIGH/CRITICAL] {r.get('filename')}:{r.get('line_number')} - {r.get('test_id')} {r.get('issue_text')}\")
+            sys.exit(1)
+        print('No HIGH/CRITICAL findings.')
+        "
+
     - name: Run pip-audit check
       run: |
         pip install pip-audit
-        pip-audit -r requirements.txt --desc || true
+        # pip-audit exit=1 on any vuln; lo queremos informativo primero.
+        pip-audit -r requirements.txt --desc --format json --output pip-audit.json || true
+
+    - name: Fail on pip-audit HIGH/CRITICAL
+      run: |
+        python -c "
+        import json, sys
+        try:
+            data = json.load(open('pip-audit.json'))
+        except FileNotFoundError:
+            print('No pip-audit report; skipping gate.'); sys.exit(0)
+        deps = data if isinstance(data, list) else data.get('dependencies', [])
+        blocking = []
+        for dep in deps:
+            for v in dep.get('vulns', []) or []:
+                fix_versions = v.get('fix_versions') or []
+                # Consideramos bloqueante si hay fix y la severity aliasa HIGH/CRITICAL.
+                sev = (v.get('severity') or '').upper()
+                aliases = ' '.join(v.get('aliases', []))
+                if sev in ('HIGH', 'CRITICAL') or 'CVE' in aliases:
+                    blocking.append((dep.get('name'), v.get('id'), sev, fix_versions))
+        if blocking:
+            for name, vid, sev, fix in blocking:
+                print(f'[BLOCKING] {name} :: {vid} severity={sev} fix={fix}')
+            sys.exit(1)
+        print('No HIGH/CRITICAL pip-audit findings.')
+        "
 
     - name: Upload security reports
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: security-reports
-        path: bandit-report.json
+        path: |
+          bandit-report.json
+          pip-audit.json
 
   # Job 4: Database Migration Check
   migration-check:
@@ -187,7 +259,7 @@ jobs:
       run: python manage.py migrate --noinput
 
     - name: Check for missing migrations
-      run: python manage.py makemigrations --check || true
+      run: python manage.py makemigrations --check --dry-run
 
   # Job 5: Dependency Security Check
   dependency-check:
@@ -216,7 +288,7 @@ jobs:
 
     - name: Frontend dependency check
       working-directory: ./frontend
-      run: npm audit --audit-level=critical || true
+      run: npm audit --audit-level=critical
 
   # Job 6: Performance Tests (only when backend and frontend pass)
   performance-test:
@@ -397,7 +469,6 @@ jobs:
     - name: Run Playwright E2E suite
       working-directory: ./frontend
       run: npx playwright test --config=playwright.config.e2e-real.ts
-      continue-on-error: true  # no bloquear la rama hasta que esté estable
 
     - name: Upload Playwright report on failure
       uses: actions/upload-artifact@v4
@@ -424,7 +495,9 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend, security-scan]
+    # Deploy requiere que absolutamente TODO esté verde, incluida la
+    # suite E2E Playwright, lint y la comprobación de migraciones.
+    needs: [test-backend, test-frontend, lint-check, security-scan, migration-check, dependency-check, test-e2e-playwright]
     environment: production
 
     steps:
