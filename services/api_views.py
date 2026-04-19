@@ -343,7 +343,13 @@ class ServiceSubscriptionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def subscribe(self, request):
-        """Suscribirse a un plan."""
+        """Suscribirse a un plan.
+
+        El modelo `ServiceSubscription` es OneToOne por proveedor. Si el
+        proveedor ya tiene una suscripción en estado no-activo (cancelled,
+        expired, etc.), reactivamos la existente en lugar de crear otra
+        (la OneToOne prohíbe duplicados).
+        """
         plan_id = request.data.get('plan_id')
         if not plan_id:
             return Response({'error': 'plan_id es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
@@ -354,11 +360,11 @@ class ServiceSubscriptionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Plan no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         # Verificar que no tenga suscripción activa
-        existing = ServiceSubscription.objects.filter(
+        existing_active = ServiceSubscription.objects.filter(
             service_provider=request.user,
             status__in=['trial', 'active'],
         ).first()
-        if existing:
+        if existing_active:
             return Response({'error': 'Ya tiene una suscripción activa. Cancele primero para cambiar de plan.'}, status=status.HTTP_400_BAD_REQUEST)
 
         now = timezone.now()
@@ -370,16 +376,23 @@ class ServiceSubscriptionViewSet(viewsets.ModelViewSet):
         else:
             end_date = now + timedelta(days=365)
 
-        sub = ServiceSubscription.objects.create(
+        defaults = {
+            'plan': plan,
+            'status': 'trial',
+            'start_date': now,
+            'end_date': end_date,
+            'trial_end_date': now + timedelta(days=7),
+            'next_billing_date': (now + timedelta(days=7)).date(),
+            'auto_renew': True,
+            'cancelled_at': None,
+            'cancellation_reason': '',
+        }
+        sub, created = ServiceSubscription.objects.update_or_create(
             service_provider=request.user,
-            plan=plan,
-            status='trial',
-            start_date=now,
-            end_date=end_date,
-            trial_end_date=now + timedelta(days=7),
-            next_billing_date=(now + timedelta(days=7)).date(),
+            defaults=defaults,
         )
-        return Response(ServiceSubscriptionSerializer(sub).data, status=status.HTTP_201_CREATED)
+        response_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return Response(ServiceSubscriptionSerializer(sub).data, status=response_status)
 
     @action(detail=False, methods=['post'])
     def cancel(self, request):
