@@ -8,7 +8,7 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `5facd71` + 1 commit G5 |
+| Branch | `main` @ `dcbffa4` (G5 + K1 + CI fix · +3 commits post-push) |
 | Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
 | Playwright moleculares | **24/24 verde** (Fase A-J + G5 · ~37 min total) |
 | CI/CD | 9 jobs sin masking + `lint-check` (pre-commit) + Lighthouse opcional |
@@ -19,6 +19,20 @@
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 tarde)
+
+### Fase J3-real · Lighthouse CI validado en PR real
+- PR #2 `lighthouse-ci-validation` disparó `.github/workflows/lighthouse.yml`.
+- Workflow corrió end-to-end: checkout → npm ci → build → LHCI → upload.
+- Scores medidos en `/` (2 runs) + `/login` (2 runs), preset desktop:
+  - `/` performance OK · **accessibility 0.89** (umbral 0.9 → falla · bloqueante)
+  - `/` best-practices 0.74 (warn) · SEO OK
+  - `/login` best-practices 0.74 (warn)
+- **Finding a11y**: 2 audits fallando en landing (`heading-order`,
+  `link-name`). Fix trivial, pendiente para próxima sesión.
+- Side-fixes del commit `dcbffa4`:
+  - `ci-cd.yml` + `lighthouse.yml` Node 18 → 22 (vite 8 requiere ≥20.19).
+  - `frontend/.npmrc` `legacy-peer-deps=true` (vite 8 + plugin-react 6
+    + typescript-eslint 8 requieren flag para resolver peers).
 
 ### Fase K1 — npm audit clean (12 → 0 vulns)
 - `vite` 5.1.0 → **8.0.8** (3 majors · incluye Rolldown interno).
