@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 tarde (Fase G5 · preview-pdf validation verde)
+**Última actualización**: 2026-04-19 noche (Fase L1 · profile/resume API verde)
 
 ---
 
@@ -8,14 +8,34 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `3f2eb40` (PR #2 merged) |
+| Branch | `main` @ `17fea39` + Fase L1 |
 | Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
-| Playwright moleculares | **24/24 verde** (Fase A-J + G5 · ~37 min total) |
+| Playwright moleculares | **25/25 verde** (Fase A-J + G5 + L1 · ~38 min total) |
 | CI/CD | 9 jobs (backend/frontend fallan por lint pre-existente) + Lighthouse **verde** |
 | Lighthouse score | a11y ≥0.9 ✅ · perf OK · best-practices 0.74 (warn) · SEO OK |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
 | npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
+
+---
+
+## Lo que se hizo esta sesión (2026-04-19 noche)
+
+### Fase L1 — Profile & Resume API flows (nueva spec molecular)
+- `fase-l1-profile-resume.spec.ts` · 10 assertions end-to-end en 1.1 min:
+  - `GET /users/profile/` anon → 401
+  - `GET /users/profile/` landlord → 200 + `email` correcto
+  - `PATCH /users/profile/` `phone_number` → 200 + persiste (re-GET)
+  - `GET /users/profile/` tenant → 200 + `email` correcto
+  - `POST /users/avatar/` sin file → 400
+  - `GET /users/resume/` tenant → 200 (o 404 si primera corrida, entonces POST 201)
+  - `PUT /users/resume/` `current_employer` + `education_level` → 200 + persiste
+  - `GET /users/{tenant_id}/resume/` landlord → 200
+  - `GET /users/{tenant_id}/resume/` service_provider → 403
+- Seed `minimal` suficiente (solo usuarios, sin contratos).
+- **Hallazgo**: `UserProfileSerializer` no expone `user_type` en el
+  payload (solo el `UserSerializer`). El frontend toma `user_type` del
+  `useAuth()` context, no del endpoint `/users/profile/`.
 
 ---
 
@@ -169,8 +189,9 @@
   varias sesiones para internacionalizar completo.
 - **Biometric UI real** (camera + voice E2E): scope grande · sesión
   fresca dedicada.
-- **Profile/resume UI E2E**: medium · puede ser 1-2 specs moleculares
-  nuevas tipo G5.
+- ✅ **Profile/resume UI E2E** — cerrado con Fase L1 (API-level, 10
+  assertions). UI navegación directa sobre `/app/profile` y
+  `/app/resume` queda como opcional (Jest ya cubre render).
 
 ---
 
@@ -191,9 +212,8 @@ python manage.py test matching contracts services ratings messaging payments ver
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ 690a1f4. Cerraron Fases 1.9 (8 items),
-2, 4 + ADM-001 frontend + xlsx fix + DIAN CUFE/XAdES stub. 14 commits
-ahead de origin. Los pendientes restantes son todos dependientes de
-usuario/infra (manual tests, deploy producción, certificado DIAN real).
-Ver NEXT_SESSION.md para estado detallado.
+Continúa VeriHome. Main @ 17fea39 + Fase L1 local (profile/resume API
+spec verde, 10 assertions). 25/25 moleculares OK. Pendiente principal
+es ci-cd.yml (1371 errores ESLint + 13 ruff backend) — no quick win.
+Biometric UI E2E real sigue de sesión fresca. Ver NEXT_SESSION.md.
 ```
