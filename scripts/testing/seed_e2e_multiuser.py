@@ -368,6 +368,61 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'service_order_ready':
+        # Prestador con suscripción activa, listo para emitir órdenes a clientes.
+        from services.models import (
+            ServiceCategory, Service, ServiceSubscription, SubscriptionPlan,
+        )
+
+        plan, _ = SubscriptionPlan.objects.get_or_create(
+            slug='plan-e2e-basico',
+            defaults={
+                'name': 'Plan E2E básico',
+                'description': 'Seed para tests E2E',
+                'billing_cycle': 'monthly',
+                'price': Decimal('50000'),
+                'max_active_services': 5,
+                'max_monthly_requests': 50,
+                'is_active': True,
+            },
+        )
+        ServiceSubscription.objects.update_or_create(
+            service_provider=service_provider,
+            defaults={
+                'plan': plan,
+                'status': 'active',
+                'start_date': timezone.now() - timedelta(days=1),
+                'end_date': timezone.now() + timedelta(days=365),
+                'auto_renew': True,
+            },
+        )
+        category, _ = ServiceCategory.objects.get_or_create(
+            slug='e2e-plumbing',
+            defaults={
+                'name': 'E2E · Plomería',
+                'description': 'Seed de servicios para tests',
+                'is_active': True,
+            },
+        )
+        service, _ = Service.objects.get_or_create(
+            slug='e2e-reparacion-grifo',
+            defaults={
+                'category': category,
+                'name': 'E2E · Reparación de grifo',
+                'short_description': 'Servicio seed',
+                'full_description': 'Reparación estándar de grifo',
+                'pricing_type': 'fixed',
+                'base_price': Decimal('150000'),
+                'difficulty': 'easy',
+                'estimated_duration': '1h',
+                'is_active': True,
+                'provider': service_provider,
+            },
+        )
+        result['service_id'] = str(service.id)
+        result['subscription_plan_id'] = str(plan.id)
+        log(f"ServiceSubscription activa para prestador: {service_provider.email}")
+
     print(json.dumps(result, indent=2))
 
 
