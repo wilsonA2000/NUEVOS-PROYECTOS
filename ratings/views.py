@@ -309,26 +309,50 @@ class RatingListCreateView(generics.ListCreateAPIView):
         """Personalizar la creación de calificaciones."""
         contract_id = self.request.data.get('contract')
         reviewee_id = self.request.data.get('reviewee')
-        
+        service_order_id = self.request.data.get('service_order')
+
         if contract_id:
             contract = get_object_or_404(Contract, id=contract_id)
-            
+
             # Verificar que el usuario sea parte del contrato
             if self.request.user not in [contract.primary_party, contract.secondary_party]:
                 raise permissions.PermissionDenied("No tienes permiso para calificar este contrato.")
-            
+
             # Determinar el tipo de calificación
             if self.request.user == contract.primary_party:
                 rating_type = 'landlord_to_tenant' if self.request.user.user_type == 'landlord' else 'tenant_to_landlord'
             else:
                 rating_type = 'tenant_to_landlord' if self.request.user.user_type == 'tenant' else 'landlord_to_tenant'
-            
+
             # Guardar la calificación
             rating = serializer.save(
                 reviewer=self.request.user,
                 rating_type=rating_type,
                 contract=contract,
                 property=contract.property
+            )
+        elif service_order_id:
+            # 1.9.4: calificación vinculada a ServiceOrder (cliente↔prestador).
+            from services.models import ServiceOrder
+            order = get_object_or_404(ServiceOrder, id=service_order_id)
+
+            if self.request.user not in (order.client, order.provider):
+                raise permissions.PermissionDenied(
+                    "Sólo las partes de la orden pueden calificar."
+                )
+
+            if self.request.user == order.client:
+                reviewee = order.provider
+                rating_type = 'client_to_service_provider'
+            else:
+                reviewee = order.client
+                rating_type = 'service_provider_to_client'
+
+            rating = serializer.save(
+                reviewer=self.request.user,
+                reviewee=reviewee,
+                rating_type=rating_type,
+                service_order=order,
             )
         elif reviewee_id:
             # Calificación general con reviewee explícito
@@ -340,7 +364,7 @@ class RatingListCreateView(generics.ListCreateAPIView):
             )
         else:
             raise serializers.ValidationError(
-                {"detail": "Se requiere 'contract' o 'reviewee' para crear una calificación."}
+                {"detail": "Se requiere 'contract', 'service_order' o 'reviewee' para crear una calificación."}
             )
         
         # Logging automático
