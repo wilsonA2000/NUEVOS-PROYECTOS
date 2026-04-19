@@ -368,6 +368,74 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'rent_paid':
+        # contract_active + una transacción confirmada + reconciliación.
+        # Simula que el webhook de la pasarela marcó una PaymentOrder
+        # como paid, disparando el reconcile y la factura DIAN.
+        lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
+        if lcc:
+            from datetime import date as _date
+            from dateutil.relativedelta import relativedelta
+            lcc.start_date = _date.today()
+            lcc.end_date = lcc.start_date + relativedelta(months=3)
+            lcc.economic_terms = {
+                'monthly_rent': '1500000',
+                'security_deposit': '1500000',
+            }
+            lcc.save(update_fields=['start_date', 'end_date', 'economic_terms'])
+            lcc._updated_by = landlord
+            lcc.current_state = 'ACTIVE'
+            lcc.save(update_fields=['current_state'])
+            result['lcc_id'] = str(lcc.id)
+
+            from payments.models import PaymentOrder, Transaction
+            from payments.reconciliation_service import reconcile_payment
+
+            po = PaymentOrder.objects.filter(
+                payer=tenant, payee=landlord, order_type='rent',
+                status='pending', rent_schedule__isnull=False,
+            ).order_by('date_due', 'created_at').first()
+            result['payment_order_id'] = str(po.id) if po else None
+            log(f"Seed picked PaymentOrder {po.id if po else None}")
+
+            # Crear Transaction directa con type='rent_payment'.
+            tx = Transaction.objects.create(
+                transaction_type='rent_payment',
+                amount=po.total_amount if po else Decimal('1500000'),
+                currency='COP',
+                payer=tenant,
+                payee=landlord,
+                contract=contract,
+                status='completed',
+                processed_at=timezone.now(),
+                description='Seed E2E: pago canon simulado webhook',
+            )
+            result['transaction_id'] = str(tx.id)
+
+            from payments.models import RentPaymentSchedule
+            sched_count = RentPaymentSchedule.objects.filter(
+                contract=contract, is_active=True).count()
+            log(f"RentPaymentSchedule count for contract {contract.id}: {sched_count}")
+            try:
+                ok = reconcile_payment(tx)
+                log(f"reconcile_payment returned: {ok}")
+            except Exception as exc:
+                log(f"warn: reconcile_payment failed: {exc}")
+
+            # Verificar cuál PO quedó paid después del reconcile
+            paid_po = PaymentOrder.objects.filter(
+                payer=tenant, payee=landlord, order_type='rent', status='paid',
+            ).order_by('-paid_at').first()
+            if paid_po:
+                log(f"Reconcile pagó PaymentOrder {paid_po.id}")
+                # Usar la orden efectivamente pagada como referencia del test
+                result['payment_order_id'] = str(paid_po.id)
+                result['payment_order_status_after'] = paid_po.status
+            elif po:
+                po.refresh_from_db()
+                result['payment_order_status_after'] = po.status
+                log(f"PaymentOrder {po.id} status after reconcile: {po.status}")
+
     if mode == 'contract_active':
         # Crea LCC en ACTIVE. El signal genera automáticamente
         # RentPaymentSchedule + PaymentInstallments + PaymentOrders.
