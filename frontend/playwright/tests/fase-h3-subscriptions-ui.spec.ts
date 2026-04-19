@@ -31,6 +31,13 @@ async function loginViaLocalStorage(
   refreshToken: string,
 ): Promise<void> {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  // Evitar que un service worker previo sirva bundles cacheados.
+  await page.evaluate(async () => {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+  });
   await page.evaluate(
     ({ access, refresh }) => {
       window.localStorage.setItem('access_token', access);

@@ -79,6 +79,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.2",
     "@esbuild/linux-x64": "0.25.5",
     "@playwright/test": "^1.56.1",
     "@rollup/rollup-linux-x64-gnu": "4.44.2",

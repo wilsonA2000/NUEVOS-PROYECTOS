@@ -368,6 +368,42 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'property_search_ready':
+        # 4 propiedades en 3 ciudades y rangos de precio distintos para
+        # ejercitar los filtros de la API (Fase I2).
+        from properties.models import Property
+        Property.objects.filter(title__startswith='E2E Search Property').delete()
+
+        fixtures = [
+            ('E2E Search Property · Chapinero', 'Bogotá', Decimal('1500000')),
+            ('E2E Search Property · Cedritos', 'Bogotá', Decimal('2800000')),
+            ('E2E Search Property · El Poblado', 'Medellín', Decimal('900000')),
+            ('E2E Search Property · Ciudad Jardín', 'Cali', Decimal('1200000')),
+        ]
+        created_ids = []
+        for title, city, price in fixtures:
+            p, _ = Property.objects.get_or_create(
+                landlord=landlord,
+                title=title,
+                defaults={
+                    'description': f'Seed E2E search · {city}',
+                    'property_type': 'apartment',
+                    'listing_type': 'rent',
+                    'status': 'available',
+                    'address': f'Carrera X #{len(created_ids)+1}-00',
+                    'city': city,
+                    'state': 'Colombia',
+                    'total_area': Decimal('60.00'),
+                    'rent_price': price,
+                    'is_active': True,
+                    'bedrooms': 2,
+                    'bathrooms': 1,
+                },
+            )
+            created_ids.append(str(p.id))
+        result['property_search_ids'] = created_ids
+        log(f"property_search_ready: created {len(created_ids)} properties")
+
     if mode == 'ticket_ready':
         # Un SupportTicket abierto del tenant, listo para el flujo de
         # asignación + respuesta + resolución (Fase H2).
