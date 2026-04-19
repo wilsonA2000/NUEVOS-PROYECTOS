@@ -485,13 +485,15 @@ class RatingResponseCreateView(generics.CreateAPIView):
         if self.request.user != rating.reviewee:
             raise permissions.PermissionDenied("No puedes responder a una calificación que no es tuya.")
         
-        # Verificar que no exista ya una respuesta
+        # Verificar que no exista ya una respuesta.
+        # Nota (Fase I1): `return Response(...)` desde perform_create NO
+        # aborta la creación (DRF ignora el return value y sigue al save).
+        # Lanzamos ValidationError para que DRF devuelva 400 real.
         if hasattr(rating, 'response'):
-            return Response(
-                {"detail": "Ya has respondido a esta calificación."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            raise serializers.ValidationError({
+                'detail': 'Ya has respondido a esta calificación.',
+            })
+
         response = serializer.save(rating=rating, responder=self.request.user)
         
         # Logging automático
@@ -533,11 +535,12 @@ class RatingReportCreateView(generics.CreateAPIView):
         ).first()
         
         if existing_report:
-            return Response(
-                {"detail": "Ya has reportado esta calificación."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            # Mismo patrón que RatingResponseCreateView: usar
+            # ValidationError para abortar 400.
+            raise serializers.ValidationError({
+                'detail': 'Ya has reportado esta calificación.',
+            })
+
         # Guardar el reporte y marcar la calificación
         report = serializer.save(rating=rating, reporter=self.request.user)
         rating.is_flagged = True
