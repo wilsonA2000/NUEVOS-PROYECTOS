@@ -8,10 +8,11 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `dcbffa4` (G5 + K1 + CI fix · +3 commits post-push) |
+| Branch | `main` @ `3f2eb40` (PR #2 merged) |
 | Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
 | Playwright moleculares | **24/24 verde** (Fase A-J + G5 · ~37 min total) |
-| CI/CD | 9 jobs sin masking + `lint-check` (pre-commit) + Lighthouse opcional |
+| CI/CD | 9 jobs (backend/frontend fallan por lint pre-existente) + Lighthouse **verde** |
+| Lighthouse score | a11y ≥0.9 ✅ · perf OK · best-practices 0.74 (warn) · SEO OK |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
 | npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
@@ -19,6 +20,14 @@
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 tarde)
+
+### a11y landing (PR #2 merged · `3f2eb40`)
+- `LandingPage.tsx:242` · Typography h6 → `component="h4"` (fix
+  heading-order: venía h3 → h6 saltándose h4/h5).
+- `LandingFooter.tsx` · aria-label en 4 IconButtons de Facebook/Twitter/
+  LinkedIn/Instagram (link-name).
+- Lighthouse CI re-run en `66a0c50` · accessibility subió 0.89 → ≥0.9
+  (assertion bloqueante pasa).
 
 ### Fase J3-real · Lighthouse CI validado en PR real
 - PR #2 `lighthouse-ci-validation` disparó `.github/workflows/lighthouse.yml`.
@@ -146,6 +155,22 @@
 - **Deploy producción** — infra (Daphne + Celery + PostgreSQL + Redis + SSL).
 - **DIAN XAdES activo** — certificado `.p12` + signxml lib. Stub en
   `payments/dian_invoice_service.py:sign_invoice_xml`.
+
+### 🟡 Pendientes detectados en esta sesión (para próxima)
+- **ci-cd.yml failing**: `test-frontend` (ESLint --max-warnings 0 con
+  warnings pre-existentes en `utils/imageOptimization.ts`,
+  `performanceMonitor.ts`, `videoUtils.ts`), `lint-check` (black
+  backend diff en `verihome/urls.py`, `wsgi.py`), `security-scan`,
+  `test-backend`. Scope: fix de lints acumulados.
+- **Lighthouse best-practices 0.74** · warn (no bloquea). Probable
+  causa: cookies sin Secure, CSP, etc. Investigar.
+- **i18next**: grep rápido arroja **~664 strings hardcoded** en 100+
+  archivos (vs ~628 `t()` existentes). NO es quick win — proyecto de
+  varias sesiones para internacionalizar completo.
+- **Biometric UI real** (camera + voice E2E): scope grande · sesión
+  fresca dedicada.
+- **Profile/resume UI E2E**: medium · puede ser 1-2 specs moleculares
+  nuevas tipo G5.
 
 ---
 
