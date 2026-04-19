@@ -22,13 +22,14 @@ class PropertyAmenitySerializer(serializers.ModelSerializer):
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     """Serializador para imágenes de propiedades."""
-    
+
     image_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = PropertyImage
         fields = [
-            'id', 'image', 'image_url', 'caption', 'is_main', 'order', 'created_at'
+            'id', 'property', 'image', 'image_url', 'caption', 'is_main',
+            'order', 'created_at',
         ]
     
     def get_image_url(self, obj):

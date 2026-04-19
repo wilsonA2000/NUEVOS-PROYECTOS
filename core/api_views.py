@@ -603,12 +603,83 @@ class SystemOverviewAPIView(APIView):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    """Endpoint de prueba para verificar la conexión al backend"""
-    return Response({
-        'status': 'ok',
-        'message': 'Backend is running',
-        'timestamp': '2024-01-01T00:00:00Z'
-    })
+    """Health check profundo que valida BD, Redis y Celery.
+
+    Devuelve 200 si todos los componentes críticos responden, 503 si
+    alguno falla. Útil como liveness/readiness probe en Kubernetes o
+    loadbalancers.
+
+    El campo `checks` describe el resultado de cada verificación:
+      - `db`: consulta simple a PostgreSQL / SQLite.
+      - `redis`: set/get sobre el cache default.
+      - `celery`: inspect.ping() con timeout corto.
+    """
+    import time
+
+    checks: dict = {}
+    failed: list = []
+
+    # --- Database ---
+    try:
+        from django.db import connection
+        start = time.time()
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        checks['db'] = {
+            'ok': True,
+            'latency_ms': round((time.time() - start) * 1000, 1),
+        }
+    except Exception as exc:
+        checks['db'] = {'ok': False, 'error': str(exc)}
+        failed.append('db')
+
+    # --- Redis / cache ---
+    try:
+        from django.core.cache import cache
+        start = time.time()
+        cache.set('__health_check_probe__', 'ok', 10)
+        value = cache.get('__health_check_probe__')
+        if value != 'ok':
+            raise RuntimeError('cache.get devolvió un valor inesperado')
+        checks['redis'] = {
+            'ok': True,
+            'latency_ms': round((time.time() - start) * 1000, 1),
+        }
+    except Exception as exc:
+        checks['redis'] = {'ok': False, 'error': str(exc)}
+        failed.append('redis')
+
+    # --- Celery ---
+    # En dev sin workers Celery no debe hacer fallar el probe porque
+    # el arriendo y los jobs asíncronos degradan pero no rompen la app.
+    # Marcamos `ok=True` con `active_workers=0` en ese caso.
+    try:
+        from celery import current_app
+        inspector = current_app.control.inspect(timeout=2)
+        active = inspector.active() if inspector else None
+        worker_count = len(active) if active else 0
+        checks['celery'] = {
+            'ok': True,
+            'active_workers': worker_count,
+        }
+    except Exception as exc:
+        checks['celery'] = {'ok': False, 'error': str(exc)}
+        failed.append('celery')
+
+    # --- Decisión ---
+    # Requeridos: db + redis. celery degrada pero no falla.
+    required_failed = [name for name in failed if name in ('db', 'redis')]
+    status_overall = 'healthy' if not required_failed else 'unhealthy'
+    http_status = status.HTTP_200_OK if not required_failed else status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return Response(
+        {
+            'status': status_overall,
+            'checks': checks,
+            'failed': required_failed,
+        },
+        status=http_status,
+    )
 
 
 @api_view(['GET'])

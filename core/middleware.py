@@ -167,14 +167,49 @@ class PerformanceMonitoringMiddleware(MiddlewareMixin):
         """Registra métricas de performance."""
         if hasattr(request, '_start_time'):
             duration = time.time() - request._start_time
-            
+
             # Log requests lentas
             if duration > 2.0:  # Más de 2 segundos
                 logger.warning(
                     f"Slow request: {request.method} {request.path} "
                     f"took {duration:.2f}s from IP {self.get_client_ip(request)}"
                 )
-            
+
+            # --- Slow query logging (Fase 3.2) ---
+            # Cuando DEBUG=True o SLOW_QUERY_LOG=true en env, cada query
+            # SQL que haya tardado más de SLOW_QUERY_THRESHOLD_MS se
+            # loggea con tag `slow_query`. Útil para localizar N+1
+            # problems y queries que hay que mover a raw SQL o caché.
+            enabled = bool(
+                getattr(settings, 'DEBUG', False)
+                or getattr(settings, 'SLOW_QUERY_LOG', False)
+            )
+            if enabled:
+                try:
+                    from django.db import connection
+                    threshold_ms = float(
+                        getattr(settings, 'SLOW_QUERY_THRESHOLD_MS', 500)
+                    )
+                    for q in connection.queries:
+                        q_time_ms = float(q.get('time', 0)) * 1000
+                        if q_time_ms >= threshold_ms:
+                            sql_preview = (q.get('sql') or '')[:500]
+                            logger.warning(
+                                'slow_query %s %s %.1fms · %s',
+                                request.method,
+                                request.path,
+                                q_time_ms,
+                                sql_preview,
+                                extra={
+                                    'slow_query': True,
+                                    'duration_ms': q_time_ms,
+                                    'method': request.method,
+                                    'path': request.path,
+                                },
+                            )
+                except Exception:  # pragma: no cover
+                    pass
+
             # Agregar header de timing
             response['X-Response-Time'] = f"{duration:.3f}s"
             
