@@ -368,6 +368,37 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'contract_active':
+        # Crea LCC en ACTIVE. El signal genera automáticamente
+        # RentPaymentSchedule + PaymentInstallments + PaymentOrders.
+        lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
+        if lcc:
+            # set start/end dates para que el signal tenga fechas
+            from datetime import date as _date
+            from dateutil.relativedelta import relativedelta
+            lcc.start_date = _date.today()
+            lcc.end_date = lcc.start_date + relativedelta(months=6)
+            lcc.economic_terms = {
+                'monthly_rent': '1500000',
+                'security_deposit': '1500000',
+            }
+            lcc.save(update_fields=['start_date', 'end_date', 'economic_terms'])
+            lcc._updated_by = landlord
+            lcc.current_state = 'ACTIVE'
+            lcc.save(update_fields=['current_state'])
+            result['lcc_id'] = str(lcc.id)
+
+            # Contar PaymentOrders generadas por el signal
+            try:
+                from payments.models import PaymentOrder
+                po_count = PaymentOrder.objects.filter(
+                    payer=tenant, payee=landlord, order_type='rent',
+                ).count()
+                result['payment_orders_count'] = po_count
+                log(f"LCC set to ACTIVE: {lcc.id} · generadas {po_count} PaymentOrders rent")
+            except Exception as exc:
+                log(f"warn: no se pudo contar PaymentOrders: {exc}")
+
     if mode == 'verification_ready':
         from verification.models import VerificationAgent, VerificationVisit
 
