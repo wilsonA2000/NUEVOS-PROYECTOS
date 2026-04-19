@@ -34,6 +34,10 @@ User = get_user_model()
 LANDLORD_EMAIL = 'admin@verihome.com'
 TENANT_EMAIL = 'letefon100@gmail.com'
 GUARANTOR_EMAIL = 'guarantor.e2e@verihome.com'
+# 2026-04-18: actores adicionales para tests moleculares Fase A-F
+ADMIN_EMAIL = 'abogado.e2e@verihome.com'
+SERVICE_PROVIDER_EMAIL = 'prestador.e2e@verihome.com'
+VERIFICATION_AGENT_EMAIL = 'agente.e2e@verihome.com'
 PASSWORD = 'admin123'
 PROPERTY_TITLE = 'E2E Test Property - Playwright'
 
@@ -42,7 +46,7 @@ def log(msg):
     print(f'[seed] {msg}', file=sys.stderr)
 
 
-def ensure_user(email, user_type, first_name, last_name):
+def ensure_user(email, user_type, first_name, last_name, is_staff=False):
     user, created = User.objects.get_or_create(
         email=email,
         defaults={
@@ -51,18 +55,22 @@ def ensure_user(email, user_type, first_name, last_name):
             'user_type': user_type,
             'is_verified': True,
             'is_active': True,
+            'is_staff': is_staff,
         },
     )
     user.set_password(PASSWORD)
     user.is_verified = True
     user.is_active = True
     user.user_type = user_type
+    # is_staff: forzar siempre para idempotencia del seed
+    user.is_staff = is_staff
     if not user.first_name:
         user.first_name = first_name
     if not user.last_name:
         user.last_name = last_name
     user.save()
-    log(f"user {'created' if created else 'ensured'}: {email} ({user_type})")
+    suffix = ' [staff]' if is_staff else ''
+    log(f"user {'created' if created else 'ensured'}: {email} ({user_type}){suffix}")
     return user
 
 
@@ -275,15 +283,28 @@ def main():
     landlord = ensure_user(LANDLORD_EMAIL, 'landlord', 'Admin', 'VeriHome')
     tenant = ensure_user(TENANT_EMAIL, 'tenant', 'Leidy', 'Tenant')
     guarantor = ensure_user(GUARANTOR_EMAIL, 'tenant', 'Garante', 'Solidario')
+    admin = ensure_user(ADMIN_EMAIL, 'landlord', 'Abogado', 'VeriHome', is_staff=True)
+    service_provider = ensure_user(
+        SERVICE_PROVIDER_EMAIL, 'service_provider', 'Prestador', 'E2E'
+    )
+    verification_agent = ensure_user(
+        VERIFICATION_AGENT_EMAIL, 'landlord', 'Agente', 'Verificacion', is_staff=True
+    )
 
     result = {
         'mode': mode,
         'landlord_id': str(landlord.id),
         'tenant_id': str(tenant.id),
         'guarantor_id': str(guarantor.id),
+        'admin_id': str(admin.id),
+        'service_provider_id': str(service_provider.id),
+        'verification_agent_id': str(verification_agent.id),
         'landlord_email': LANDLORD_EMAIL,
         'tenant_email': TENANT_EMAIL,
         'guarantor_email': GUARANTOR_EMAIL,
+        'admin_email': ADMIN_EMAIL,
+        'service_provider_email': SERVICE_PROVIDER_EMAIL,
+        'verification_agent_email': VERIFICATION_AGENT_EMAIL,
         'password': PASSWORD,
         'timestamp': timezone.now().isoformat(),
     }
@@ -323,6 +344,16 @@ def main():
             lcc.save(update_fields=['current_state'])
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to PENDING_ADMIN_REVIEW: {lcc.id}")
+
+    if mode == 'tenant_reviewing':
+        # LCC en TENANT_REVIEWING para testar devolución circular / objeciones
+        lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
+        if lcc:
+            lcc.current_state = 'TENANT_REVIEWING'
+            lcc.review_cycle_count = 0
+            lcc.save(update_fields=['current_state', 'review_cycle_count'])
+            result['lcc_id'] = str(lcc.id)
+            log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
     print(json.dumps(result, indent=2))
 

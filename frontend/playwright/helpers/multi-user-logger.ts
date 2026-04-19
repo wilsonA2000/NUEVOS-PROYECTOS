@@ -18,7 +18,14 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export type Actor = 'tenant' | 'landlord';
+export type Actor =
+  | 'tenant'
+  | 'landlord'
+  | 'admin'
+  | 'guarantor'
+  | 'service_provider'
+  | 'verification_agent'
+  | 'system';
 
 export interface RunContext {
   runDir: string;
