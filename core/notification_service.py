@@ -166,7 +166,7 @@ class NotificationService:
             text_template = template_name.replace('.html', '.txt')
             try:
                 text_content = render_to_string(text_template, context)
-            except:
+            except Exception:
                 # Fallback a texto plano básico
                 text_content = f"""{notification.title}
 

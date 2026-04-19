@@ -279,7 +279,7 @@ class MatchCriteriaSerializer(serializers.ModelSerializer):
         """Obtiene el número de propiedades que coinciden con los criterios."""
         try:
             return obj.find_matching_properties().count()
-        except:
+        except Exception:
             return 0
     
     def validate_max_price(self, value):

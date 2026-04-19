@@ -211,7 +211,7 @@ class WompiGateway(BasePaymentGateway):
             error_data = {}
             try:
                 error_data = e.response.json()
-            except:
+            except Exception:
                 pass
 
             error_message = error_data.get('error', {}).get('reason', str(e))
@@ -290,7 +290,7 @@ class WompiGateway(BasePaymentGateway):
             error_data = {}
             try:
                 error_data = e.response.json()
-            except:
+            except Exception:
                 pass
 
             self.log_error(f"Wompi confirmation request failed: {str(e)}", {'error': error_data})
@@ -358,7 +358,7 @@ class WompiGateway(BasePaymentGateway):
             error_data = {}
             try:
                 error_data = e.response.json()
-            except:
+            except Exception:
                 pass
 
             self.log_error(f"Wompi void request failed: {str(e)}", {'error': error_data})

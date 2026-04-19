@@ -237,7 +237,7 @@ class ProfessionalPageTemplate(PageTemplate):
         try:
             # Intento con caracteres Unicode de laurel
             canvas.drawCentredString(letter[0]/2, letter[1] - 15, laurel_pattern[:80])
-        except:
+        except Exception:
             # Fallback con caracteres simples
             simple_pattern = "* ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~"
             canvas.drawCentredString(letter[0]/2, letter[1] - 15, simple_pattern[:80])
@@ -245,7 +245,7 @@ class ProfessionalPageTemplate(PageTemplate):
         # === BORDE INFERIOR ===
         try:
             canvas.drawCentredString(letter[0]/2, 10, laurel_pattern[:80])
-        except:
+        except Exception:
             canvas.drawCentredString(letter[0]/2, 10, simple_pattern[:80])
         
         # === BORDES LATERALES (VERTICALES) ===
@@ -255,7 +255,7 @@ class ProfessionalPageTemplate(PageTemplate):
         lateral_pattern = "❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦ ⚘ ❦"
         try:
             canvas.drawCentredString(letter[1]/2, -8, lateral_pattern[:60])
-        except:
+        except Exception:
             simple_lateral = "* ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~ * ~"
             canvas.drawCentredString(letter[1]/2, -8, simple_lateral[:60])
         
@@ -264,7 +264,7 @@ class ProfessionalPageTemplate(PageTemplate):
         # Borde derecho (rotado al revés)
         try:
             canvas.drawCentredString(-letter[1]/2, letter[0] - 8, lateral_pattern[:60])
-        except:
+        except Exception:
             canvas.drawCentredString(-letter[1]/2, letter[0] - 8, simple_lateral[:60])
         
         canvas.restoreState()
@@ -368,7 +368,7 @@ class ProfessionalPageTemplate(PageTemplate):
                     return "VeriHome - CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA"
             else:
                 return "VeriHome - CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA"
-        except:
+        except Exception:
             return "VeriHome - CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA"
     
     def _draw_corner_qr_codes(self, canvas):
@@ -479,7 +479,7 @@ class ContractPDFGenerator:
             from reportlab.pdfbase import pdfmetrics
             pdfmetrics.getFont(font_name)
             return True
-        except:
+        except Exception:
             return False
     
     def _setup_custom_styles(self):
@@ -2921,7 +2921,7 @@ class ContractPDFGenerator:
                 return "CONTRATO DE ARRENDAMIENTO COMERCIAL"
             else:
                 return "CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA"
-        except:
+        except Exception:
             return "CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA"
     
     def _get_biometric_auth_data(self, contract, party_type):

@@ -85,7 +85,7 @@ def test_endpoint(session, method, endpoint, name, data=None):
                 try:
                     error_data = response.json()
                     print(f"  Error: {json.dumps(error_data, indent=2)}")
-                except:
+                except Exception:
                     print(f"  Error: {response.text[:200]}")
             return False
     except requests.exceptions.ConnectionError:

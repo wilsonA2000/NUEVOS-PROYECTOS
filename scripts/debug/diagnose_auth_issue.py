@@ -134,7 +134,7 @@ print(f'Usuario creado: {user.email}')
         print(f"   CORS Allow All: {cors_allow_all}")
         if cors_allowed:
             print(f"   CORS Allowed Origins: {len(cors_allowed)} configurados")
-    except:
+    except Exception:
         print("   CORS: No configurado")
     
     # 6. URLs de testing

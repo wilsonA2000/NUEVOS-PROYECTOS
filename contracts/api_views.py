@@ -3269,7 +3269,7 @@ class TenantContractReviewAPIView(APIView):
                     print("🔍 Contract exists but with different parties:")
                     print(f"   - Primary party: {debug_contract.primary_party.email if debug_contract.primary_party else 'None'}")
                     print(f"   - Secondary party: {debug_contract.secondary_party.email if debug_contract.secondary_party else 'None'}")
-                except:
+                except Exception:
                     print(f"❌ Contract {contract_id} does not exist at all")
                 
                 return Response(

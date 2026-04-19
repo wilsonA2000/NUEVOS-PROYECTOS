@@ -244,7 +244,7 @@ class CreatePropertySerializer(serializers.ModelSerializer):
             if field in validated_data and isinstance(validated_data[field], str):
                 try:
                     validated_data[field] = eval(validated_data[field]) if validated_data[field] else []
-                except:
+                except Exception:
                     validated_data[field] = []
         
         # Convertir campos booleanos
@@ -391,7 +391,7 @@ class UpdatePropertySerializer(serializers.ModelSerializer):
                 try:
                     import json
                     validated_data[field] = json.loads(validated_data[field]) if validated_data[field] else []
-                except:
+                except Exception:
                     validated_data[field] = []
         
         # Convertir campos booleanos

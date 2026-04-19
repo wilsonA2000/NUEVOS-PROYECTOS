@@ -638,7 +638,7 @@ class PotentialMatchesAPIView(APIView):
             try:
                 criteria = request.user.match_criteria
                 score = criteria.get_match_score(property)
-            except:
+            except Exception:
                 pass
             
             matches_data.append({
@@ -701,7 +701,7 @@ class PotentialMatchesAPIView(APIView):
             if criteria.pets_required and property.pets_allowed:
                 reasons.append("Permite mascotas")
                 
-        except:
+        except Exception:
             # Si no tiene criterios, usar razones genéricas
             reasons = ["Propiedad disponible", "Buena ubicación"]
         
@@ -1492,98 +1492,3 @@ class CheckExistingMatchRequestAPIView(APIView):
                 'status': match_request.status,
                 'created_at': match_request.created_at
             })
-
-
-class CheckExistingMatchRequestAPIView(APIView):
-    """Vista para verificar si ya existe una solicitud de match para una propiedad."""
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get(self, request):
-        """Verifica si el usuario ya tiene una solicitud para una propiedad específica."""
-        property_id = request.query_params.get('property_id')
-        
-        if not property_id:
-            return Response(
-                {'error': 'Se requiere property_id como parámetro'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Solo permitir a tenants verificar sus propias solicitudes
-        if request.user.user_type != 'tenant':
-            return Response(
-                {'error': 'Solo los arrendatarios pueden usar esta funcionalidad'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        try:
-            from properties.models import Property
-            property_obj = Property.objects.get(id=property_id)
-        except Property.DoesNotExist:
-            return Response(
-                {'error': 'Propiedad no encontrada'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Buscar solicitud existente
-        existing_request = MatchRequest.objects.filter(
-            tenant=request.user,
-            property=property_obj,
-            status__in=['pending', 'viewed', 'accepted']
-        ).first()
-        
-        if existing_request:
-            return Response({
-                'has_existing_request': True,
-                'request': {
-                    'id': str(existing_request.id),
-                    'match_code': existing_request.match_code,
-                    'status': existing_request.status,
-                    'priority': existing_request.priority,
-                    'created_at': existing_request.created_at,
-                    'tenant_message': existing_request.tenant_message[:100] + '...' if len(existing_request.tenant_message) > 100 else existing_request.tenant_message,
-                    'can_update': existing_request.status == 'pending',
-                    'can_cancel': existing_request.status in ['pending', 'viewed']
-                }
-            })
-        else:
-            return Response({
-                'has_existing_request': False,
-                'can_create_new': True
-            })
-    
-    def delete(self, request):
-        """Permite cancelar una solicitud existente."""
-        property_id = request.query_params.get('property_id')
-        
-        if not property_id:
-            return Response(
-                {'error': 'Se requiere property_id como parámetro'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if request.user.user_type != 'tenant':
-            return Response(
-                {'error': 'Solo los arrendatarios pueden cancelar solicitudes'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        try:
-            existing_request = MatchRequest.objects.get(
-                tenant=request.user,
-                property_id=property_id,
-                status__in=['pending', 'viewed']
-            )
-            
-            existing_request.status = 'cancelled'
-            existing_request.save()
-            
-            return Response({
-                'message': 'Solicitud cancelada exitosamente',
-                'match_code': existing_request.match_code
-            })
-            
-        except MatchRequest.DoesNotExist:
-            return Response(
-                {'error': 'No se encontró una solicitud cancelable'},
-                status=status.HTTP_404_NOT_FOUND
-            )

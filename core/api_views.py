@@ -521,46 +521,6 @@ class SLADashboardAPIView(APIView):
         })
 
 
-class DashboardStatsAPIView(APIView):
-    """Vista para estadísticas del dashboard."""
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        
-        # Notificaciones no leídas
-        unread_notifications = Notification.objects.filter(
-            user=user,
-            is_read=False
-        ).count()
-        
-        # Actividad reciente
-        recent_activity = ActivityLog.objects.filter(
-            user=user
-        ).count()
-        
-        # Estadísticas según el tipo de usuario
-        stats = {
-            'unread_notifications': unread_notifications,
-            'recent_activity': recent_activity,
-        }
-        
-        if user.user_type == 'landlord':
-            from properties.models import Property
-            stats.update({
-                'total_properties': Property.objects.filter(landlord=user).count(),
-                'active_properties': Property.objects.filter(landlord=user, is_active=True).count(),
-            })
-        elif user.user_type == 'tenant':
-            from contracts.models import Contract
-            stats.update({
-                'active_contracts': Contract.objects.filter(tenant=user, status='active').count(),
-                'pending_contracts': Contract.objects.filter(tenant=user, status='pending').count(),
-            })
-        
-        return Response(stats)
-
-
 class SystemOverviewAPIView(APIView):
     """Vista para estadísticas generales del sistema."""
     permission_classes = [permissions.IsAdminUser]

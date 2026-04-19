@@ -108,7 +108,7 @@ class APITester:
         except urllib.error.HTTPError as e:
             try:
                 response_data = json.loads(e.read().decode('utf-8'))
-            except:
+            except Exception:
                 response_data = {'error': e.reason}
             return e.code, response_data
 

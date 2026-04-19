@@ -249,7 +249,7 @@ class User(AbstractUser):
         """Verifica si el usuario tiene un perfil creado."""
         try:
             return self.get_profile() is not None
-        except:
+        except Exception:
             return False
     
     def save(self, *args, **kwargs):

@@ -630,7 +630,7 @@ class RatingAPITests(APITestCase):
         response = self.client.get(f'/api/v1/ratings/ratings/{self.rating.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_user_rating_profile(self):
+    def test_user_rating_profile_smoke(self):
         self.client.force_authenticate(user=self.tenant)
         url = f'/api/v1/ratings/users/{self.landlord.id}/rating-profile/'
         response = self.client.get(url)

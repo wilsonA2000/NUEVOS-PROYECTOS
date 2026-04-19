@@ -212,7 +212,7 @@ class MatchRecommendationService:
         # Obtener criterios del arrendatario si existen
         try:
             criteria = tenant.match_criteria
-        except:
+        except Exception:
             criteria = None
         
         # Buscar propiedades disponibles
@@ -286,7 +286,7 @@ class MatchRecommendationService:
                     score = criteria.calculate_compatibility_score(property)
                     if score >= 60:  # Solo incluir matches con buena compatibilidad
                         potential_matches.append((tenant, score))
-            except:
+            except Exception:
                 continue
         
         # Ordenar por puntuación
@@ -580,7 +580,7 @@ class MatchingRecommendationService:
         try:
             criteria = tenant.match_criteria
             properties = criteria.find_matching_properties()
-        except:
+        except Exception:
             # Si no tiene criterios, usar propiedades disponibles básicas
             from properties.models import Property
             properties = Property.objects.filter(
@@ -593,7 +593,7 @@ class MatchingRecommendationService:
         for property in properties[:limit * 2]:  # Buffer para filtrado
             try:
                 score = criteria.get_match_score(property) if hasattr(tenant, 'match_criteria') else 50
-            except:
+            except Exception:
                 score = 50  # Score default
             
             if score >= 40:  # Umbral mínimo
@@ -667,7 +667,7 @@ class MatchingRecommendationService:
             if criteria.pets_required and property.pets_allowed:
                 reasons.append("Acepta mascotas")
                 
-        except:
+        except Exception:
             reasons = ["Propiedad disponible", "Buena opción"]
         
         return reasons[:3]

@@ -47,7 +47,7 @@ def test_turn_validation():
                 if "current_turn" in data and data["current_turn"] == "tenant":
                     colored_print("✅ Correct turn data returned", "green")
                     return True
-            except:
+            except Exception:
                 pass
 
         colored_print(f"❌ Unexpected response: {response.status_code}", "red")

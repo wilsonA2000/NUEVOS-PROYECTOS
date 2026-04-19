@@ -122,7 +122,7 @@ def test_registration_flow():
             try:
                 error_data = response.json()
                 print(f"📄 Error Data: {json.dumps(error_data, indent=2)}")
-            except:
+            except Exception:
                 print(f"📄 Error Text: {response.text}")
         
         else:

@@ -13,7 +13,6 @@ from properties.models import Property, PropertyFavorite, PropertyView
 from contracts.models import Contract
 from payments.models import Transaction
 from ratings.models import Rating
-from users.models import User
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

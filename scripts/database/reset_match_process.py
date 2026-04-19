@@ -89,7 +89,7 @@ def reset_match_process():
         landlord = User.objects.get(email='admin@verihome.com')
         landlord_matches = MatchRequest.objects.filter(landlord=landlord).count()
         print(f"   Arrendador (admin@verihome.com): {landlord_matches} matches activos")
-    except:
+    except Exception:
         pass
     
     # Arrendatario
@@ -97,7 +97,7 @@ def reset_match_process():
         tenant = User.objects.get(email='letefon100@gmail.com')
         tenant_matches = MatchRequest.objects.filter(tenant=tenant).count()
         print(f"   Arrendatario (letefon100@gmail.com): {tenant_matches} matches activos")
-    except:
+    except Exception:
         pass
     
     total_contracts = Contract.objects.filter(

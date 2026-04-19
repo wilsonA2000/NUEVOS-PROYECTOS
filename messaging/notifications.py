@@ -354,7 +354,7 @@ class MessageNotificationManager:
             text_template = template_name.replace('.html', '.txt')
             try:
                 text_content = render_to_string(text_template, context)
-            except:
+            except Exception:
                 text_content = f"Mensaje de {context.get('platform_name', 'VeriHome')}"
             
             # Enviar email

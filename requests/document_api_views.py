@@ -254,12 +254,12 @@ class DocumentChecklistAPIView(generics.GenericAPIView):
             property_request = MatchRequestWrapper(match_request)
             print(f"🔄 CONSOLIDACIÓN: Using MatchRequest {process_id} for documents")
             
-        except:
+        except Exception:
             # 2. Fallback a PropertyInterestRequest si MatchRequest no existe
             try:
                 property_request = get_object_or_404(PropertyInterestRequest, id=process_id)
                 print(f"🔄 FALLBACK: Using PropertyInterestRequest {process_id} for documents")
-            except:
+            except Exception:
                 return Response(
                     {'error': 'Proceso no encontrado.'},
                     status=status.HTTP_404_NOT_FOUND

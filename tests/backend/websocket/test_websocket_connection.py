@@ -146,7 +146,7 @@ async def test_server_availability():
                 else:
                     print(f"⚠️  Servidor responde con código: {response.status}")
                     return False
-    except:
+    except Exception:
         # Fallback usando websockets para verificar puerto
         try:
             # Intentar conectar a cualquier endpoint WebSocket
@@ -156,7 +156,7 @@ async def test_server_availability():
             # Si obtenemos un error de estado, el servidor está disponible
             print("✅ Servidor disponible en puerto 8000")
             return True
-        except:
+        except Exception:
             print("❌ Servidor no disponible en puerto 8000")
             print("💡 Ejecuta: python manage.py runserver")
             return False

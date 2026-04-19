@@ -482,7 +482,7 @@ class DatabaseOptimizer:
                 """)
                 
                 return cursor.fetchall()
-            except:
+            except Exception:
                 return []
     
     @staticmethod

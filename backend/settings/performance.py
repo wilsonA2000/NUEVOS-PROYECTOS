@@ -415,7 +415,7 @@ def apply_performance_settings(settings_dict):
         redis_client = redis.Redis(host='localhost', port=6379, db=0)
         redis_client.ping()
         settings_dict['CACHES'] = CACHE_CONFIGURATIONS['redis_optimized']
-    except:
+    except Exception:
         # Mantener configuración de cache existente
         pass
     

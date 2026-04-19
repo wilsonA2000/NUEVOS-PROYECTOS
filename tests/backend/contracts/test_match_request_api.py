@@ -110,7 +110,7 @@ def test_match_request_api():
                                 try:
                                     error_data = match_response.json()
                                     print(f"   Error details: {error_data}")
-                                except:
+                                except Exception:
                                     print(f"   Error text: {match_response.text}")
                         else:
                             print("   ❌ No properties found")
@@ -125,7 +125,7 @@ def test_match_request_api():
             try:
                 error_data = login_response.json()
                 print(f"   Error: {error_data}")
-            except:
+            except Exception:
                 print(f"   Error text: {login_response.text}")
                 
     except requests.exceptions.RequestException as e:

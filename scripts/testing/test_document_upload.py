@@ -66,7 +66,7 @@ def test_upload_document(token, process_id):
         print(f"📄 Response text: {response.text}")
         try:
             print(f"📄 Response JSON: {json.dumps(response.json(), indent=2)}")
-        except:
+        except Exception:
             pass
 
 def get_match_request(token):

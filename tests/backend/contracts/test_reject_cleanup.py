@@ -72,7 +72,7 @@ def test_reject_cleanup():
         ).distinct().first()
         if thread:
             messages_before = Message.objects.filter(thread=thread).count()
-    except:
+    except Exception:
         pass
     
     print(f"   📄 Contratos: {contracts_before}")
@@ -119,7 +119,7 @@ def test_reject_cleanup():
         ).distinct().first()
         if thread:
             messages_after = Message.objects.filter(thread=thread).count()
-    except:
+    except Exception:
         pass
     
     print("📊 DATOS DESPUÉS DEL RECHAZO:")

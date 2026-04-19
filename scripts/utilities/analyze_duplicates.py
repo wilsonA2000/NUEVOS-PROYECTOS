@@ -30,7 +30,7 @@ def count_lines(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return len(f.readlines())
-    except:
+    except Exception:
         return 0
 
 def find_duplicates(components):

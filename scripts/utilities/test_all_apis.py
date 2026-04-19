@@ -132,7 +132,7 @@ class APITester:
             # Intentar parsear JSON
             try:
                 response_data = response.json()
-            except:
+            except Exception:
                 response_data = {'raw': response.text[:200]}
 
             # Mensaje de resultado
