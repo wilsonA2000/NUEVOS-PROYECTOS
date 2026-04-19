@@ -221,7 +221,16 @@ class MessageConsumer(AsyncWebsocketConsumer):
     async def new_message(self, event):
         """Envía nuevo mensaje en tiempo real."""
         await self.send(text_data=json.dumps(event))
-    
+
+    async def notification_new(self, event):
+        """Fase G1: el signal `broadcast_new_message` emite
+        `type=notification.new` al grupo `user_<id>` cuando llega un
+        mensaje nuevo para el inbox del usuario."""
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'notification': event.get('notification', {}),
+        }))
+
     async def typing_notification(self, event):
         """Envía notificación de escritura."""
         await self.send(text_data=json.dumps(event))
@@ -569,8 +578,20 @@ class ThreadConsumer(AsyncWebsocketConsumer):
     
     # Handlers para eventos del grupo
     async def new_thread_message(self, event):
-        """Envía nuevo mensaje a la conversación."""
+        """Envía nuevo mensaje a la conversación (origen: WS `send_message`)."""
         await self.send(text_data=json.dumps(event))
+
+    async def message_new(self, event):
+        """Fase G1: envía mensaje creado vía REST al WS conectado.
+
+        El signal `broadcast_new_message` de `messaging/signals.py`
+        publica al grupo `thread_<id>` con type=`message.new`. Django
+        Channels convierte el `.` en `_` para llamar este handler.
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'new_message',
+            'message': event.get('message', {}),
+        }))
     
     async def typing_indicator(self, event):
         """Envía indicador de escritura."""

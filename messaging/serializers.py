@@ -50,12 +50,22 @@ class MessageSerializer(serializers.ModelSerializer):
 class MessageThreadSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
     last_message = serializers.SerializerMethodField()
+    # Fase G1: aceptar una lista de UUIDs en el POST body para añadir
+    # participantes adicionales al crear el thread. Antes se leía sólo
+    # del context, lo cual bloqueaba cualquier cliente REST estándar.
+    participant_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        required=False,
+        write_only=True,
+        help_text='UUIDs de usuarios adicionales a incluir en el hilo.',
+    )
 
     class Meta:
         model = MessageThread
         fields = [
-            'id', 'subject', 'thread_type', 'participants', 'status',
-            'is_priority', 'created_at', 'last_message_at', 'last_message',
+            'id', 'subject', 'thread_type', 'participants', 'participant_ids',
+            'status', 'is_priority', 'created_at', 'last_message_at',
+            'last_message',
             # 1.9.6: FKs relacionales opcionales para trazabilidad.
             'property', 'contract', 'service_order',
         ]
@@ -66,28 +76,30 @@ class MessageThreadSerializer(serializers.ModelSerializer):
         if last is None:
             return None
         return MessageSerializer(last, context=self.context).data
-    
+
     def create(self, validated_data):
-        # Get participants from context
-        participants_data = self.context.get('participants', [])
-        
+        # Combinar participantes del body y del context (back-compat).
+        body_participants = validated_data.pop('participant_ids', [])
+        ctx_participants = self.context.get('participants', [])
+        participant_ids = list({*map(str, body_participants), *map(str, ctx_participants)})
+
         # Create the thread
         thread = MessageThread.objects.create(
             **validated_data,
             created_by=self.context['request'].user
         )
-        
-        # Add the creator as a participant
+
+        # Añadir al creador como participante.
         thread.participants.add(self.context['request'].user)
-        
-        # Add other participants
-        for participant_id in participants_data:
+
+        # Añadir los adicionales.
+        for participant_id in participant_ids:
             try:
                 participant = User.objects.get(id=participant_id)
                 thread.participants.add(participant)
             except User.DoesNotExist:
                 pass
-        
+
         return thread
 
 class MessageFolderSerializer(serializers.ModelSerializer):

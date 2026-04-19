@@ -22,6 +22,9 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,tes
 # Definición de aplicaciones
 INSTALLED_APPS = [
     'debug_toolbar',  # Django Debug Toolbar para monitoreo de queries
+    # daphne DEBE ir antes de django.contrib.staticfiles en Channels 4
+    # para que `runserver` sirva WebSocket sin necesitar daphne aparte.
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    
+
     # Third party apps
     'channels',
     'rest_framework',

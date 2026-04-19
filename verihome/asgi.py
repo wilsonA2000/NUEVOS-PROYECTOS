@@ -13,17 +13,20 @@ django.setup()
 
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from messaging.routing import websocket_urlpatterns
+from users.channels_auth import JWTAuthMiddlewareStack
 
 application = ProtocolTypeRouter({
     # Django HTTP handling
     "http": get_asgi_application(),
-    
+
     # WebSocket handling
+    # JWTAuthMiddlewareStack lee ?token=<jwt> del query string (frontend
+    # usa websocketService.ts con ese patrón). Si no hay token, cae al
+    # AuthMiddlewareStack (sesión).
     "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
+        JWTAuthMiddlewareStack(
             URLRouter(websocket_urlpatterns)
         )
     ),
