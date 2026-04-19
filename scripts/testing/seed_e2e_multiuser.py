@@ -368,6 +368,40 @@ def main():
             result['lcc_id'] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
+    if mode == 'verification_ready':
+        from verification.models import VerificationAgent, VerificationVisit
+
+        agent_profile, _ = VerificationAgent.objects.get_or_create(
+            user=verification_agent,
+            defaults={
+                'specialization': 'both',
+                'is_available': True,
+                'max_weekly_visits': 20,
+                'service_areas': ['Cabecera', 'San Francisco'],
+            },
+        )
+        agent_profile.is_available = True
+        agent_profile.save(update_fields=['is_available'])
+
+        # Visita pendiente de asignación (para Fase C test)
+        visit = VerificationVisit.objects.create(
+            visit_type='tenant',
+            target_user=tenant,
+            status='pending',
+            visit_address='Calle 34 #27-18',
+            visit_city='Bucaramanga',
+            scheduled_date=timezone.now().date() + timedelta(days=3),
+            scheduled_time='10:00',
+        )
+        # visit_number se genera en save, asegurar que esté
+        if not visit.visit_number:
+            from uuid import uuid4
+            visit.visit_number = f'VV-E2E-{str(uuid4())[:6].upper()}'
+            visit.save(update_fields=['visit_number'])
+        result['agent_profile_id'] = str(agent_profile.id)
+        result['visit_id'] = str(visit.id)
+        log(f"VerificationAgent profile ready: {agent_profile.agent_code} · visit {visit.visit_number}")
+
     if mode == 'service_order_ready':
         # Prestador con suscripción activa, listo para emitir órdenes a clientes.
         from services.models import (
