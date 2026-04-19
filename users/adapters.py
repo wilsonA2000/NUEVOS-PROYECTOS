@@ -103,7 +103,7 @@ class VeriHomeAccountAdapter(DefaultAccountAdapter):
             
             # Enviar el email
             self.send_mail(email_template, emailconfirmation.email_address.email, ctx)
-            print(f"✅ Email enviado exitosamente vía adaptador personalizado")
+            print("✅ Email enviado exitosamente vía adaptador personalizado")
             
         except Exception as e:
             print(f"❌ Error en send_confirmation_mail: {e}")

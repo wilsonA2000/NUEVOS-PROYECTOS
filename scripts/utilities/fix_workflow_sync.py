@@ -40,10 +40,10 @@ try:
     match.workflow_status = 'contract_pending_tenant_approval'
     match.save()
     
-    print(f"\n✅ WORKFLOW SINCRONIZADO")
+    print("\n✅ WORKFLOW SINCRONIZADO")
     print(f"   Nuevo status: {match.workflow_status}")
     print(f"   Contract data: {match.workflow_data.get('contract_created')}")
-    print(f"\n🎉 El arrendatario ahora podrá ver y aprobar el contrato!")
+    print("\n🎉 El arrendatario ahora podrá ver y aprobar el contrato!")
     
 except MatchRequest.DoesNotExist:
     print(f"\n❌ Match request no encontrado: {match_id}")

@@ -85,7 +85,7 @@ def test_registration_flow():
         
         if response.status_code == 201:
             response_data = response.json()
-            print(f"✅ Registro exitoso!")
+            print("✅ Registro exitoso!")
             print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
             
             # Verificar que el usuario fue creado
@@ -148,7 +148,7 @@ def test_registration_flow():
         
         if confirmations.exists():
             confirmation = confirmations.first()
-            print(f"✅ Email de confirmación encontrado")
+            print("✅ Email de confirmación encontrado")
             print(f"🔑 Key: {confirmation.key}")
             print(f"📅 Creado: {confirmation.created}")
             print(f"🕐 Expira: {confirmation.key_expired()}")

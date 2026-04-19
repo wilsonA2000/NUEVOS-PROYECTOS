@@ -54,7 +54,7 @@ def main():
     ).first()
     
     if existing:
-        print(f"\n⚠️ YA EXISTE una solicitud para esta propiedad:")
+        print("\n⚠️ YA EXISTE una solicitud para esta propiedad:")
         print(f"   - Match Code: {existing.match_code}")
         print(f"   - Status: {existing.status}")
         print(f"   - Created: {existing.created_at}")

@@ -85,7 +85,7 @@ def test_property_creation():
             'is_active': True,
         }
         
-        print(f"\n📝 Datos de propiedad a crear:")
+        print("\n📝 Datos de propiedad a crear:")
         print(json.dumps({k: str(v) for k, v in property_data.items()}, indent=2, ensure_ascii=False))
         
         # 3. Crear request mock para simular contexto de la API
@@ -107,7 +107,7 @@ def test_property_creation():
         print("✅ Propiedad creada en base de datos")
         
         # 5. Verificar estructura de respuesta
-        print(f"\n🔍 Verificando estructura de la propiedad creada:")
+        print("\n🔍 Verificando estructura de la propiedad creada:")
         print(f"   - ID: {created_property.id}")
         print(f"   - Título: {created_property.title}")
         print(f"   - Tipo: {created_property.get_property_type_display()}")
@@ -120,7 +120,7 @@ def test_property_creation():
         # El CreatePropertySerializer devuelve automáticamente la representación usando PropertySerializer
         response_data = serializer.to_representation(created_property)
         
-        print(f"\n📤 Datos de respuesta de la API:")
+        print("\n📤 Datos de respuesta de la API:")
         print(f"   - ID para navegación: {response_data.get('id')}")
         print(f"   - Título: {response_data.get('title')}")
         print(f"   - Landlord ID: {response_data.get('landlord', {}).get('id')}")
@@ -128,9 +128,9 @@ def test_property_creation():
         
         # 7. Test de navegación - verificar que el ID sea válido
         property_id = str(created_property.id)
-        print(f"\n🔗 Testing navegación:")
+        print("\n🔗 Testing navegación:")
         print(f"   - URL para Ver Propiedad: /app/properties/{property_id}")
-        print(f"   - URL para Lista: /app/properties")
+        print("   - URL para Lista: /app/properties")
         print(f"   - ID es UUID válido: {len(property_id) == 36 and property_id.count('-') == 4}")
         
         # 8. Verificar que la propiedad se puede recuperar
@@ -138,15 +138,15 @@ def test_property_creation():
             retrieved_property = Property.objects.get(id=created_property.id)
             print(f"✅ Propiedad recuperable por ID: {retrieved_property.title}")
         except Property.DoesNotExist:
-            print(f"❌ No se pudo recuperar la propiedad por ID")
+            print("❌ No se pudo recuperar la propiedad por ID")
             return False
         
-        print(f"\n🎉 TEST PROPERTY CREATION COMPLETADO EXITOSAMENTE")
-        print(f"📊 Status: EXITOSO")
-        print(f"💡 La propiedad ahora debería:")
-        print(f"   - Aparecer en la lista de propiedades")
-        print(f"   - Ser navegable desde el modal de éxito")
-        print(f"   - Actualizar el cache del frontend automáticamente")
+        print("\n🎉 TEST PROPERTY CREATION COMPLETADO EXITOSAMENTE")
+        print("📊 Status: EXITOSO")
+        print("💡 La propiedad ahora debería:")
+        print("   - Aparecer en la lista de propiedades")
+        print("   - Ser navegable desde el modal de éxito")
+        print("   - Actualizar el cache del frontend automáticamente")
         
         return True
         
@@ -158,7 +158,7 @@ def test_property_creation():
 
 def test_property_endpoints():
     """Test específico para endpoints de propiedades."""
-    print(f"\n🌐 TESTING PROPERTY ENDPOINTS")
+    print("\n🌐 TESTING PROPERTY ENDPOINTS")
     print("=" * 30)
     
     try:
@@ -198,7 +198,7 @@ def test_property_endpoints():
 
 def test_frontend_structure():
     """Test de estructura esperada en el frontend."""
-    print(f"\n🎨 TESTING FRONTEND STRUCTURE")
+    print("\n🎨 TESTING FRONTEND STRUCTURE")
     print("=" * 30)
     
     try:
@@ -265,7 +265,7 @@ def main():
         print(f"📊 Resultado: {'✅ PASS' if result else '❌ FAIL'}")
     
     # Resumen final
-    print(f"\n📋 RESUMEN DE TESTS")
+    print("\n📋 RESUMEN DE TESTS")
     print("=" * 40)
     passed = sum(1 for _, result in results if result)
     total = len(results)

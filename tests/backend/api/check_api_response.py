@@ -49,10 +49,10 @@ def check_api_response():
         
         print(f"✅ Property found: {data.get('title', 'NO TITLE')}")
         print(f"   ID: {data.get('id')}")
-        print(f"\n🔍 MAIN IMAGE URL:")
+        print("\n🔍 MAIN IMAGE URL:")
         print(f"   main_image_url: {data.get('main_image_url', 'NO MAIN IMAGE URL')}")
         
-        print(f"\n🔍 IMAGES ARRAY:")
+        print("\n🔍 IMAGES ARRAY:")
         images = data.get('images', [])
         print(f"   Images count: {len(images)}")
         

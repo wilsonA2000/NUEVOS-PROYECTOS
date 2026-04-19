@@ -91,7 +91,7 @@ class Command(BaseCommand):
             
             if stats['total_notifications'] > 0:
                 self.stdout.write(
-                    self.style.SUCCESS(f'\\n[OK] Proceso completado exitosamente')
+                    self.style.SUCCESS('\\n[OK] Proceso completado exitosamente')
                 )
             else:
                 self.stdout.write(

@@ -2673,7 +2673,7 @@ class ContractPDFGenerator:
         special_clauses = getattr(contract, 'special_clauses', None)
         if special_clauses:
             story.append(Paragraph(
-                f"<b>CLÁUSULAS ESPECIALES:</b>",
+                "<b>CLÁUSULAS ESPECIALES:</b>",
                 self.styles['ContractNormal']
             ))
             for clause in special_clauses:

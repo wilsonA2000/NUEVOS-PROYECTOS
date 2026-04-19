@@ -43,12 +43,12 @@ def test_pdf_generation():
                 allowed_users.append(contract.tenant)
 
             if tenant in allowed_users:
-                print(f"   ✅ Tenant TIENE permisos")
+                print("   ✅ Tenant TIENE permisos")
             else:
-                print(f"   ❌ Tenant NO tiene permisos")
+                print("   ❌ Tenant NO tiene permisos")
 
         # Intentar generar PDF
-        print(f"\n📄 Generando PDF...")
+        print("\n📄 Generando PDF...")
         pdf_generator = ContractPDFGenerator()
         pdf_content = pdf_generator.generate_contract_pdf(contract)
         print(f"✅ PDF generado exitosamente: {len(pdf_content):,} bytes")

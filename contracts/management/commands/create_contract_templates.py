@@ -83,7 +83,7 @@ class Command(BaseCommand):
         
         if created_count > 0 or updated_count > 0:
             self.stdout.write(
-                self.style.SUCCESS(f'\\n[OK] Proceso completado exitosamente')
+                self.style.SUCCESS('\\n[OK] Proceso completado exitosamente')
             )
     
     def _get_templates_data(self):

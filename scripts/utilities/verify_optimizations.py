@@ -75,7 +75,7 @@ try:
     )
     size = du_result.stdout.split()[0]
     print(f"   📊 Tamaño actual: {size}")
-    print(f"   📊 Tamaño anterior: 473M")
+    print("   📊 Tamaño anterior: 473M")
     if 'M' in size:
         current_mb = int(size.replace('M', ''))
         reduction = 473 - current_mb
@@ -95,7 +95,7 @@ try:
     )
     package_count = len(ls_result.stdout.strip().split('\n'))
     print(f"   📦 Packages actuales: {package_count}")
-    print(f"   📦 Packages eliminados: 33 (Leaflet + Recharts)")
+    print("   📦 Packages eliminados: 33 (Leaflet + Recharts)")
     results['frontend']['package_count'] = package_count
 except Exception as e:
     print(f"   ⚠️  No se pudo contar: {e}")

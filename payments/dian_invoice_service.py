@@ -135,7 +135,7 @@ def create_dian_invoice_from_transaction(transaction):
     )
 
     # Crear línea de factura
-    description = f'Canon de arrendamiento' if transaction.transaction_type == 'rent_payment' else f'{transaction.get_transaction_type_display()}'
+    description = 'Canon de arrendamiento' if transaction.transaction_type == 'rent_payment' else f'{transaction.get_transaction_type_display()}'
     if transaction.contract:
         description += f' - Contrato {transaction.contract.contract_number if hasattr(transaction.contract, "contract_number") else transaction.contract_id}'
 

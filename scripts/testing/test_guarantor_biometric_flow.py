@@ -121,7 +121,7 @@ def check_biometric_states():
                 print("\n📊 No hay progreso biométrico registrado aún")
 
         # Mostrar usuarios permitidos
-        print(f"\n👥 Usuarios autorizados:")
+        print("\n👥 Usuarios autorizados:")
         print(f"  - Arrendador: {contract.primary_party.email}")
         print(f"  - Arrendatario: {contract.secondary_party.email}")
         if contract.guarantor:

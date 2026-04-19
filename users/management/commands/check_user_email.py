@@ -19,7 +19,7 @@ class Command(BaseCommand):
         # 1. Verificar si existe el usuario
         try:
             user = User.objects.get(email=email)
-            self.stdout.write(self.style.SUCCESS(f'✅ Usuario encontrado:'))
+            self.stdout.write(self.style.SUCCESS('✅ Usuario encontrado:'))
             self.stdout.write(f'   - ID: {user.id}')
             self.stdout.write(f'   - Email: {user.email}')
             self.stdout.write(f'   - Tipo: {user.user_type}')
@@ -30,7 +30,7 @@ class Command(BaseCommand):
             # 2. Verificar EmailAddress
             try:
                 email_address = EmailAddress.objects.get(user=user)
-                self.stdout.write(self.style.SUCCESS(f'\n✅ EmailAddress encontrado:'))
+                self.stdout.write(self.style.SUCCESS('\n✅ EmailAddress encontrado:'))
                 self.stdout.write(f'   - Email: {email_address.email}')
                 self.stdout.write(f'   - Primario: {email_address.primary}')
                 self.stdout.write(f'   - Verificado: {email_address.verified}')

@@ -77,7 +77,7 @@ def test_profile_update():
             'marketing_consent': True,
         }
         
-        print(f"\n📝 Datos a actualizar:")
+        print("\n📝 Datos a actualizar:")
         print(json.dumps({k: str(v) for k, v in update_data.items()}, indent=2, ensure_ascii=False))
         
         # 3. Serializar y validar
@@ -98,7 +98,7 @@ def test_profile_update():
         print("✅ Usuario actualizado en base de datos")
         
         # 5. Verificar cambios
-        print(f"\n🔍 Verificando cambios:")
+        print("\n🔍 Verificando cambios:")
         print(f"   - Nombre: {updated_user.first_name} {updated_user.last_name}")
         print(f"   - Teléfono: {updated_user.phone_number}")
         print(f"   - WhatsApp: {updated_user.whatsapp}")
@@ -115,7 +115,7 @@ def test_profile_update():
         response_serializer = UserProfileSerializer(updated_user)
         response_data = response_serializer.data
         
-        print(f"\n📤 Datos de respuesta (serializados):")
+        print("\n📤 Datos de respuesta (serializados):")
         print(json.dumps({k: str(v) for k, v in response_data.items()}, indent=2, ensure_ascii=False))
         
         # 7. Verificar campos críticos
@@ -135,7 +135,7 @@ def test_profile_update():
         if all_updated:
             print("✅ Todos los campos críticos se actualizaron correctamente")
         
-        print(f"\n🎉 TEST PROFILE UPDATE COMPLETADO")
+        print("\n🎉 TEST PROFILE UPDATE COMPLETADO")
         print(f"📊 Status: {'EXITOSO' if all_updated else 'PARCIAL'}")
         return all_updated
         
@@ -147,7 +147,7 @@ def test_profile_update():
 
 def test_avatar_field():
     """Test específico para campo avatar."""
-    print(f"\n🖼️  TESTING AVATAR FIELD")
+    print("\n🖼️  TESTING AVATAR FIELD")
     print("=" * 30)
     
     try:
@@ -178,7 +178,7 @@ def test_avatar_field():
 
 def test_date_fields():
     """Test específico para campos de fecha."""
-    print(f"\n📅 TESTING DATE FIELDS")
+    print("\n📅 TESTING DATE FIELDS")
     print("=" * 30)
     
     try:
@@ -232,7 +232,7 @@ def main():
         print(f"📊 Resultado: {'✅ PASS' if result else '❌ FAIL'}")
     
     # Resumen final
-    print(f"\n📋 RESUMEN DE TESTS")
+    print("\n📋 RESUMEN DE TESTS")
     print("=" * 40)
     passed = sum(1 for _, result in results if result)
     total = len(results)

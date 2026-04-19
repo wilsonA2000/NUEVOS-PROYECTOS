@@ -24,7 +24,7 @@ def main():
     print(f"🔍 Buscando contrato: {contract_id}")
     try:
         contract = LandlordControlledContract.objects.get(id=contract_id)
-        print(f"✅ Contrato encontrado!")
+        print("✅ Contrato encontrado!")
         print(f"   - ID: {contract.id}")
         print(f"   - Current State: {contract.current_state}")
         print(f"   - Landlord: {contract.landlord.email}")

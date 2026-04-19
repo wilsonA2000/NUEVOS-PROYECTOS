@@ -24,7 +24,7 @@ def clean_all_workflow_data():
     contract_count = Contract.objects.count()
     landlord_contract_count = LandlordControlledContract.objects.count()
 
-    print(f"📊 Estado actual:")
+    print("📊 Estado actual:")
     print(f"  - MatchRequests: {match_count}")
     print(f"  - TenantDocuments: {doc_count}")
     print(f"  - Contracts: {contract_count}")

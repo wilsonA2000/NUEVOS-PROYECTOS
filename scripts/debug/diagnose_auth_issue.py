@@ -79,25 +79,25 @@ def diagnose_auth_system():
         
         print(f"   Usuario de prueba: {test_user.email}")
         print(f"   Tipo de usuario: {test_user.user_type}")
-        print(f"   🎫 Token de acceso:")
+        print("   🎫 Token de acceso:")
         print(f"      {access_token[:50]}...")
         
         # Instrucciones para prueba manual
-        print(f"\n📝 INSTRUCCIONES PARA PRUEBA MANUAL:")
-        print(f"   1. Copia este token de acceso:")
+        print("\n📝 INSTRUCCIONES PARA PRUEBA MANUAL:")
+        print("   1. Copia este token de acceso:")
         print(f"      {access_token}")
-        print(f"\n   2. En tu navegador, abre DevTools (F12)")
-        print(f"   3. Ve a Console y ejecuta:")
+        print("\n   2. En tu navegador, abre DevTools (F12)")
+        print("   3. Ve a Console y ejecuta:")
         print(f"      localStorage.setItem('token', '{access_token}');")
         print(f"      localStorage.setItem('refresh', '{refresh_token}');")
-        print(f"   4. Recarga la página")
+        print("   4. Recarga la página")
         
         # Verificar validez del token
         from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
         try:
             # Verificar si el token está en la blacklist
             is_valid = True
-            print(f"\n✅ Token generado exitosamente y es válido")
+            print("\n✅ Token generado exitosamente y es válido")
         except Exception as e:
             print(f"\n❌ Error verificando token: {e}")
     else:

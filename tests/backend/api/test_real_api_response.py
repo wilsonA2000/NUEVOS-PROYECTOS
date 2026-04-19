@@ -62,7 +62,7 @@ def test_real_api_response():
             images = first_property.get('images', [])
             if images:
                 first_image = images[0]
-                print(f"   First image:")
+                print("   First image:")
                 print(f"     - ID: {first_image.get('id')}")
                 print(f"     - Is main: {first_image.get('is_main')}")
                 print(f"     - URL: {first_image.get('image_url')}")
@@ -70,11 +70,11 @@ def test_real_api_response():
                 # Check URL structure
                 image_url = first_image.get('image_url', '')
                 if 'localhost:8000' in image_url:
-                    print(f"   ✅ URL uses localhost:8000")
+                    print("   ✅ URL uses localhost:8000")
                 elif 'testserver' in image_url:
-                    print(f"   ⚠️ URL uses testserver")
+                    print("   ⚠️ URL uses testserver")
                 else:
-                    print(f"   ❓ URL uses unknown host")
+                    print("   ❓ URL uses unknown host")
             else:
                 print("   ❌ No images in first property")
         else:

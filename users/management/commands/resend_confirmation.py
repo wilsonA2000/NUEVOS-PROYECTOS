@@ -54,7 +54,7 @@ class Command(BaseCommand):
                 ).order_by('-created').first()
                 
                 if confirmation:
-                    self.stdout.write(f'\nDetalles de confirmación:')
+                    self.stdout.write('\nDetalles de confirmación:')
                     self.stdout.write(f'- Key: {confirmation.key}')
                     self.stdout.write(f'- URL: http://localhost:3000/confirm-email/{confirmation.key}')
                 else:

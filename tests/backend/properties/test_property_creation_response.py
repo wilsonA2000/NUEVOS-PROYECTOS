@@ -100,20 +100,20 @@ def test_property_creation_response():
             context={'request': request}
         )
         
-        print(f"📝 Validating serializer data...")
+        print("📝 Validating serializer data...")
         if serializer.is_valid():
             print("✅ Serializer validation passed")
             
             # Save the property
-            print(f"💾 Creating property...")
+            print("💾 Creating property...")
             property_instance = serializer.save()
             print(f"✅ Property created: {property_instance.id}")
             
             # Get the response representation
-            print(f"📤 Getting response representation...")
+            print("📤 Getting response representation...")
             response_data = serializer.to_representation(property_instance)
             
-            print(f"\n🔍 RESPONSE DATA ANALYSIS:")
+            print("\n🔍 RESPONSE DATA ANALYSIS:")
             print(f"   - Has 'id' field: {'id' in response_data}")
             print(f"   - Has 'short_id' field: {'short_id' in response_data}")
             print(f"   - Has 'images' field: {'images' in response_data}")
@@ -132,14 +132,14 @@ def test_property_creation_response():
             images_count = PropertyImage.objects.filter(property=property_instance).count()
             print(f"   - Images in DB: {images_count}")
             
-            print(f"\n✅ SUCCESS: Property creation response includes all required data!")
+            print("\n✅ SUCCESS: Property creation response includes all required data!")
             
             # Clean up
             property_instance.delete()
-            print(f"🧹 Test property cleaned up")
+            print("🧹 Test property cleaned up")
             
         else:
-            print(f"❌ Serializer validation failed:")
+            print("❌ Serializer validation failed:")
             for field, errors in serializer.errors.items():
                 print(f"   - {field}: {errors}")
                 

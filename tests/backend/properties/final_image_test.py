@@ -68,7 +68,7 @@ def test_final_images():
                     except Exception as e:
                         print(f"      ❌ Error accediendo imagen: {str(e)}")
                 else:
-                    print(f"      ❌ Sin imagen principal")
+                    print("      ❌ Sin imagen principal")
     else:
         print(f"❌ Error en lista: {response.status_code}")
     

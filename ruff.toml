@@ -1,5 +1,12 @@
 [lint.per-file-ignores]
 # Imports despues de django.setup() / sys.path.append() son patrones Django
-# validos: no aplica E402 en los modulos de bootstrap del proyecto.
+# validos en modulos de bootstrap, scripts standalone y tests ad-hoc.
 "verihome/asgi.py" = ["E402"]
 "verihome/settings.py" = ["E402"]
+"scripts/**" = ["E402"]
+"tests/**" = ["E402"]
+"utils/**" = ["E402"]
+# Tests ad-hoc dentro de apps (no usan Django TestRunner, cargan settings manualmente).
+"**/test_*.py" = ["E402"]
+# api_urls.py declaran `app_name = 'x'` antes de los imports (patron Django).
+"**/api_urls.py" = ["E402"]

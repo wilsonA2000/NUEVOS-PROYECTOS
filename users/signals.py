@@ -38,7 +38,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 user=instance,
                 defaults={
                     'company_name': f'{instance.get_full_name()} Services',
-                    'bio': f'Proveedor de servicios profesionales en VeriHome.',
+                    'bio': 'Proveedor de servicios profesionales en VeriHome.',
                 }
             )
         

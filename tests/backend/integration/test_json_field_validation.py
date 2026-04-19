@@ -67,7 +67,7 @@ def test_json_field_validation():
         'transportation': 'metrolinea'
     }
     
-    print(f"📝 Testing with string values:")
+    print("📝 Testing with string values:")
     print(f"   - utilities_included: '{property_data['utilities_included']}'")
     print(f"   - property_features: '{property_data['property_features']}'")
     print(f"   - nearby_amenities: '{property_data['nearby_amenities']}'")
@@ -76,13 +76,13 @@ def test_json_field_validation():
     # Create serializer
     serializer = CreatePropertySerializer(data=property_data, context={'request': request})
     
-    print(f"\n📤 Validating serializer...")
+    print("\n📤 Validating serializer...")
     if serializer.is_valid():
         print("✅ Serializer validation passed!")
         
         # Check validated data
         validated_data = serializer.validated_data
-        print(f"\n🔍 VALIDATED DATA ANALYSIS:")
+        print("\n🔍 VALIDATED DATA ANALYSIS:")
         
         for field in ['utilities_included', 'property_features', 'nearby_amenities', 'transportation']:
             original = property_data[field]
@@ -91,7 +91,7 @@ def test_json_field_validation():
             print(f"     Original: '{original}' (type: {type(original).__name__})")
             print(f"     Validated: {validated} (type: {type(validated).__name__})")
         
-        print(f"\n✅ SUCCESS: All JSON fields validated correctly!")
+        print("\n✅ SUCCESS: All JSON fields validated correctly!")
         
         # Optional: Test actual creation (commented out to avoid DB changes)
         # property_instance = serializer.save()
@@ -99,7 +99,7 @@ def test_json_field_validation():
         # property_instance.delete()  # Clean up
         
     else:
-        print(f"❌ Serializer validation failed:")
+        print("❌ Serializer validation failed:")
         for field, errors in serializer.errors.items():
             print(f"   - {field}: {errors}")
 

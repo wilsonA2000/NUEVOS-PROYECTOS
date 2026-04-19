@@ -47,7 +47,7 @@ def test_selective_update():
         print(f"   - Empleador actual: '{test_user.employer_name}'")
         
         # 2. Test 1: Actualizar solo campos básicos (no strings opcionales)
-        print(f"\n📝 Test 1: Actualizar solo campos básicos")
+        print("\n📝 Test 1: Actualizar solo campos básicos")
         update_data_1 = {
             'first_name': 'Wilson Modificado',
             'city': 'Bogotá',
@@ -65,13 +65,13 @@ def test_selective_update():
             return False
         
         updated_user = serializer.save()
-        print(f"✅ Test 1 exitoso")
+        print("✅ Test 1 exitoso")
         print(f"   - Nombre actualizado: {updated_user.first_name}")
         print(f"   - Ciudad actualizada: {updated_user.city}")
         print(f"   - Familia actualizada: {updated_user.family_size}")
         
         # 3. Test 2: Actualizar solo strings opcionales con strings vacíos
-        print(f"\n📝 Test 2: Actualizar strings opcionales con valores vacíos")
+        print("\n📝 Test 2: Actualizar strings opcionales con valores vacíos")
         update_data_2 = {
             'current_address': '',
             'employer_name': '',
@@ -89,13 +89,13 @@ def test_selective_update():
             return False
         
         updated_user = serializer.save()
-        print(f"✅ Test 2 exitoso - Campos opcionales aceptan strings vacíos")
+        print("✅ Test 2 exitoso - Campos opcionales aceptan strings vacíos")
         print(f"   - Dirección: '{updated_user.current_address}'")
         print(f"   - Empleador: '{updated_user.employer_name}'")
         print(f"   - Cargo: '{updated_user.job_title}'")
         
         # 4. Test 3: Actualizar strings opcionales con valores
-        print(f"\n📝 Test 3: Actualizar strings opcionales con valores")
+        print("\n📝 Test 3: Actualizar strings opcionales con valores")
         update_data_3 = {
             'current_address': 'Calle 123 #45-67, Zona Rosa',
             'employer_name': 'TechCorp S.A.S.',
@@ -113,13 +113,13 @@ def test_selective_update():
             return False
         
         updated_user = serializer.save()
-        print(f"✅ Test 3 exitoso - Strings opcionales con valores")
+        print("✅ Test 3 exitoso - Strings opcionales con valores")
         print(f"   - Dirección: '{updated_user.current_address}'")
         print(f"   - Empleador: '{updated_user.employer_name}'")
         print(f"   - Cargo: '{updated_user.job_title}'")
         
         # 5. Test 4: Fechas opcionales
-        print(f"\n📝 Test 4: Actualizar fechas opcionales")
+        print("\n📝 Test 4: Actualizar fechas opcionales")
         update_data_4 = {
             'date_of_birth': '1989-01-23',
             'move_in_date': None  # Este debe ser manejado como null
@@ -136,11 +136,11 @@ def test_selective_update():
             return False
         
         updated_user = serializer.save()
-        print(f"✅ Test 4 exitoso - Fechas opcionales")
+        print("✅ Test 4 exitoso - Fechas opcionales")
         print(f"   - Fecha nacimiento: {updated_user.date_of_birth}")
         print(f"   - Fecha ingreso: {updated_user.move_in_date}")
         
-        print(f"\n🎉 TODOS LOS TESTS DE ACTUALIZACIÓN SELECTIVA PASARON")
+        print("\n🎉 TODOS LOS TESTS DE ACTUALIZACIÓN SELECTIVA PASARON")
         return True
         
     except Exception as e:
@@ -151,7 +151,7 @@ def test_selective_update():
 
 def test_completion_percentage():
     """Test del cálculo de porcentaje de completitud."""
-    print(f"\n📊 TESTING COMPLETION PERCENTAGE CALCULATION")
+    print("\n📊 TESTING COMPLETION PERCENTAGE CALCULATION")
     print("=" * 50)
     
     # Simular datos de formulario con diferentes niveles de completitud
@@ -225,7 +225,7 @@ def test_completion_percentage():
             print(f"   ⚠️  Esperaba porcentaje mayor pero obtuvo {percentage}%")
             all_passed = False
         else:
-            print(f"   ✅ Porcentaje correcto")
+            print("   ✅ Porcentaje correcto")
     
     return all_passed
 
@@ -248,7 +248,7 @@ def main():
         print(f"📊 Resultado: {'✅ PASS' if result else '❌ FAIL'}")
     
     # Resumen final
-    print(f"\n📋 RESUMEN DE TESTS")
+    print("\n📋 RESUMEN DE TESTS")
     print("=" * 40)
     passed = sum(1 for _, result in results if result)
     total = len(results)

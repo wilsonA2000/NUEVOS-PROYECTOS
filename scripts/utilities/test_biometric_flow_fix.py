@@ -93,7 +93,7 @@ def test_biometric_flow():
     print(f"   Fecha inicio: {contract.start_date}")
     print(f"   Fecha fin: {contract.end_date}")
 
-    print(f"\n   👥 PARTES DEL CONTRATO:")
+    print("\n   👥 PARTES DEL CONTRATO:")
     print(f"   Arrendador: {contract.primary_party.email}")
     print(f"   Arrendatario: {contract.secondary_party.email}")
     print(f"   Garante: {contract.guarantor.email if contract.guarantor else 'No tiene'}")
@@ -127,7 +127,7 @@ def test_biometric_flow():
 
             # Verificar workflow_data
             if match.workflow_data and 'biometric_progress' in match.workflow_data:
-                print(f"\n   📊 Progreso biométrico:")
+                print("\n   📊 Progreso biométrico:")
                 bp = match.workflow_data['biometric_progress']
                 for key, value in bp.items():
                     print(f"      {key}: {value}")
@@ -169,7 +169,7 @@ def test_biometric_flow():
         print(f"   👤 Login como: {contract.primary_party.email}")
     else:
         print("\n   ✅ FLUJO COMPLETADO - Ambas partes han completado la autenticación")
-        print(f"   Estado esperado del contrato: 'active'")
+        print("   Estado esperado del contrato: 'active'")
         print(f"   Estado actual del contrato: '{contract.status}'")
 
         if contract.status == 'active':

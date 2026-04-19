@@ -303,7 +303,7 @@ class AuditService:
         }
         
         logger.info(
-            f"Security analysis completed",
+            "Security analysis completed",
             extra={
                 'analysis': analysis,
                 'period_hours': analysis['period_hours']
@@ -440,7 +440,7 @@ class AuditService:
             report['sections']['performance_metrics'] = self._get_performance_stats(start_date, end_date)
         
         logger.info(
-            f"Audit report generated",
+            "Audit report generated",
             extra={
                 'report_id': report['report_id'],
                 'period_days': report['period']['days'],

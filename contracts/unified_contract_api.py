@@ -145,7 +145,7 @@ class UnifiedContractViewSet(viewsets.ModelViewSet):
         
         if contract.status != 'draft':
             return Response(
-                {'error': f'Solo contratos en borrador pueden enviarse a revisión'},
+                {'error': 'Solo contratos en borrador pueden enviarse a revisión'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         

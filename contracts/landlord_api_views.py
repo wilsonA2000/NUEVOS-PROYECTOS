@@ -170,7 +170,7 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
                 contract=contract,
                 performed_by=user,
                 action_type='CONTRACT_CREATED_COMPLETE',
-                action_description=f"Contrato creado con datos completos del formulario",
+                action_description="Contrato creado con datos completos del formulario",
                 old_state='',
                 new_state='DRAFT',
                 changes_made=data_summary,

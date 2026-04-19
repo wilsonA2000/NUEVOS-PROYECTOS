@@ -80,10 +80,10 @@ def test_pdf_generation():
                 # Verificar que el archivo se creó
                 if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
                     print(f"  ✅ PDF generado exitosamente: {os.path.getsize(temp_path)} bytes")
-                    print(f"  ✅ Incluye cláusula de garantía #34 (codeudor salario)")
+                    print("  ✅ Incluye cláusula de garantía #34 (codeudor salario)")
                     return True
                 else:
-                    print(f"  ❌ Error: PDF no se generó correctamente")
+                    print("  ❌ Error: PDF no se generó correctamente")
                     return False
                     
             finally:
@@ -136,7 +136,7 @@ def test_biometric_flow():
     for i, step in enumerate(biometric_steps, 1):
         print(f"  ✅ Paso {i}: {step}")
     
-    print(f"  ✅ Flujo biométrico independiente del arrendatario")
+    print("  ✅ Flujo biométrico independiente del arrendatario")
     return True
 
 def test_notarial_design():

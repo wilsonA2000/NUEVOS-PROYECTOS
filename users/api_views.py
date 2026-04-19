@@ -888,7 +888,7 @@ class SimpleRegistrationView(APIView):
                 print(f"🔍 Request object: {request}")
                 
                 try:
-                    print(f"🔄 Llamando send_email_confirmation...")
+                    print("🔄 Llamando send_email_confirmation...")
                     
                     # SOLUCIÓN: Crear manualmente el EmailConfirmation porque send_email_confirmation no lo está haciendo
                     from allauth.account.models import EmailConfirmation
@@ -897,7 +897,7 @@ class SimpleRegistrationView(APIView):
                     from django.utils.crypto import get_random_string
                     
                     # Crear el EmailConfirmation manualmente
-                    print(f"🔧 Creando EmailConfirmation manualmente...")
+                    print("🔧 Creando EmailConfirmation manualmente...")
                     confirmation_key = get_random_string(64).lower()
                     email_confirmation = EmailConfirmation.objects.create(
                         email_address=email_address,
@@ -913,7 +913,7 @@ class SimpleRegistrationView(APIView):
                     adapter_class = import_string(adapter)
                     adapter_instance = adapter_class()
                     
-                    print(f"📧 Enviando email con adaptador personalizado...")
+                    print("📧 Enviando email con adaptador personalizado...")
                     adapter_instance.send_confirmation_mail(request, email_confirmation, signup=True)
                     
                     # Marcar como enviado
@@ -921,7 +921,7 @@ class SimpleRegistrationView(APIView):
                     email_confirmation.sent = timezone.now()
                     email_confirmation.save()
                     
-                    print(f"✅ Email de confirmación enviado correctamente")
+                    print("✅ Email de confirmación enviado correctamente")
                     print(f"🔑 Key creada: {confirmation_key}")
                     
                     # Verificar que se creó correctamente
@@ -935,7 +935,7 @@ class SimpleRegistrationView(APIView):
                     print(f"❌ Tipo de error: {type(e).__name__}")
                     print(f"❌ Error args: {e.args}")
                     import traceback
-                    print(f"❌ Stack trace completo:")
+                    print("❌ Stack trace completo:")
                     traceback.print_exc()
                     
                     # IMPORTANTE: Fallar el registro si el email no se puede enviar

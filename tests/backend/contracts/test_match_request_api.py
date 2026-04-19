@@ -40,7 +40,7 @@ def test_match_request_api():
         if login_response.status_code == 200:
             token_data = login_response.json()
             access_token = token_data.get('access')
-            print(f"   ✅ Login successful! Token received.")
+            print("   ✅ Login successful! Token received.")
             
             # Headers for authenticated requests
             headers = {
@@ -49,7 +49,7 @@ def test_match_request_api():
             }
             
             # Get user info to verify tenant status
-            print(f"2. Verifying user is tenant...")
+            print("2. Verifying user is tenant...")
             me_url = "http://localhost:8000/api/v1/users/auth/me/"
             me_response = requests.get(me_url, headers=headers)
             
@@ -62,7 +62,7 @@ def test_match_request_api():
                     print("   ✅ User is tenant - can send match requests")
                     
                     # Get available properties
-                    print(f"3. Getting available properties...")
+                    print("3. Getting available properties...")
                     props_url = "http://localhost:8000/api/v1/properties/"
                     props_response = requests.get(props_url, headers=headers)
                     
@@ -78,7 +78,7 @@ def test_match_request_api():
                             print(f"   Testing with property: {property_title} (ID: {property_id})")
                             
                             # Create match request
-                            print(f"4. Creating match request...")
+                            print("4. Creating match request...")
                             match_url = "http://localhost:8000/api/v1/matching/requests/"
                             
                             match_data = {
@@ -97,18 +97,18 @@ def test_match_request_api():
                             
                             if match_response.status_code == 201:
                                 match_result = match_response.json()
-                                print(f"   ✅ Match request created successfully!")
+                                print("   ✅ Match request created successfully!")
                                 print(f"   Match ID: {match_result.get('id')}")
                                 print(f"   Status: {match_result.get('status')}")
                             elif match_response.status_code == 400:
                                 error_data = match_response.json()
                                 if "Ya has enviado una solicitud" in str(error_data):
-                                    print(f"   ℹ️ Match request already exists for this property")
-                                    print(f"   This is expected behavior - duplicate prevention working!")
+                                    print("   ℹ️ Match request already exists for this property")
+                                    print("   This is expected behavior - duplicate prevention working!")
                                 else:
                                     print(f"   ❌ Bad request error: {error_data}")
                             else:
-                                print(f"   ❌ Error creating match request")
+                                print("   ❌ Error creating match request")
                                 try:
                                     error_data = match_response.json()
                                     print(f"   Error details: {error_data}")
@@ -119,7 +119,7 @@ def test_match_request_api():
                     else:
                         print(f"   ❌ Failed to get properties: {props_response.status_code}")
                 else:
-                    print(f"   ❌ User is not tenant, cannot test match requests")
+                    print("   ❌ User is not tenant, cannot test match requests")
             else:
                 print(f"   ❌ Failed to get user info: {me_response.status_code}")
         else:

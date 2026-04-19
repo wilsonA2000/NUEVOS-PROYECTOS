@@ -100,11 +100,11 @@ def test_create_and_display():
         print(f"✅ Images in DB: {images_count}")
         
         # Now test PropertySerializer response
-        print(f"\n📤 Testing PropertySerializer response...")
+        print("\n📤 Testing PropertySerializer response...")
         prop_serializer = PropertySerializer(property_instance, context={'request': request})
         data = prop_serializer.data
         
-        print(f"🔍 API RESPONSE ANALYSIS:")
+        print("🔍 API RESPONSE ANALYSIS:")
         print(f"   - Property ID: {data.get('id')}")
         print(f"   - Has 'images' field: {'images' in data}")
         print(f"   - Images count in response: {len(data.get('images', []))}")
@@ -125,15 +125,15 @@ def test_create_and_display():
         
         # Clean up
         property_instance.delete()
-        print(f"\n🧹 Test property cleaned up")
+        print("\n🧹 Test property cleaned up")
         
         if data.get('images') and len(data['images']) > 0:
-            print(f"\n✅ SUCCESS: Images are displaying correctly!")
+            print("\n✅ SUCCESS: Images are displaying correctly!")
         else:
-            print(f"\n❌ FAILURE: Images are NOT displaying in API response!")
+            print("\n❌ FAILURE: Images are NOT displaying in API response!")
         
     else:
-        print(f"❌ Property creation failed:")
+        print("❌ Property creation failed:")
         for field, errors in serializer.errors.items():
             print(f"   - {field}: {errors}")
 

@@ -282,7 +282,7 @@ class LandlordControlledContractDetailSerializer(serializers.ModelSerializer):
                             existing_codeudor = existing_data.get('codeudor_data', {})
                             merged_data['codeudor_data'] = {**existing_codeudor, **incoming_data['codeudor_data']}
 
-                        logger.info(f"[CONTRACT UPDATE] Merging contract_terms:")
+                        logger.info("[CONTRACT UPDATE] Merging contract_terms:")
                         logger.info(f"  - guarantee_type: {merged_data.get('guarantee_type')}")
                         logger.info(f"  - guarantor_required: {merged_data.get('guarantor_required')}")
                         logger.info(f"  - guests_policy: {merged_data.get('guests_policy')}")

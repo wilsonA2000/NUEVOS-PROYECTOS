@@ -112,7 +112,7 @@ def main():
             }
         )
 
-        print(f"✅ Contrato creado exitosamente:")
+        print("✅ Contrato creado exitosamente:")
         print(f"   - ID: {contract.id}")
         print(f"   - Estado: {contract.current_state}")
         print(f"   - Landlord: {contract.landlord.email}")

@@ -348,7 +348,7 @@ class MatchRequest(models.Model):
         
         # 4. LIMPIAR DATOS DEL WORKFLOW EN EL MATCH
         if hasattr(self, 'workflow_data') and self.workflow_data:
-            print(f"   🔄 Limpiando datos de workflow")
+            print("   🔄 Limpiando datos de workflow")
             self.workflow_data = {}
             self.current_stage = 1  # Resetear a etapa inicial
             self.save(update_fields=['workflow_data', 'current_stage'])
@@ -363,10 +363,10 @@ class MatchRequest(models.Model):
         print(f"   • {contract_count} contratos eliminados")
         print(f"   • {prop_request_count} solicitudes de propiedad eliminadas")
         print(f"   • {doc_count} documentos de inquilino eliminados")
-        print(f"   • Mensajes del hilo de conversación limpiados")
-        print(f"   • Propiedad liberada para nuevas solicitudes")
-        print(f"   • Datos de workflow reiniciados")
-        print(f"🎯 El inquilino puede solicitar nuevamente sin datos residuales")
+        print("   • Mensajes del hilo de conversación limpiados")
+        print("   • Propiedad liberada para nuevas solicitudes")
+        print("   • Datos de workflow reiniciados")
+        print("🎯 El inquilino puede solicitar nuevamente sin datos residuales")
     
     def is_expired(self):
         """Verifica si la solicitud ha expirado."""

@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 noche (Fase L1 + M1 + N1 · TS 0 + ruff verde)
+**Última actualización**: 2026-04-19 noche (Fase L1 + M1 + N1 + N2 · ruff backend 1197→743)
 
 ---
 
@@ -20,6 +20,24 @@
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 noche)
+
+### Fase N2 — ruff backend full (scope seguro · 1197→743)
+- Scope full backend (excl. verihome/ ya limpio en N1 + venv + frontend
+  + node_modules + migrations + staticfiles).
+- **F541 f-string sin placeholders**: 254 auto-fix (100% safe · solo
+  remueve `f` prefix en strings sin `{...}`). 61 archivos modificados.
+- **E402 module-import-not-at-top-of-file**: 216→16 · via
+  `ruff.toml` per-file-ignores ampliados para:
+  - `scripts/**`, `tests/**`, `utils/**` (scripts standalone).
+  - `**/test_*.py` (tests ad-hoc dentro de apps).
+  - `**/api_urls.py` (patrón Django `app_name = 'x'` antes de imports).
+- Restante (743 errors, **NO** tocados · scope mayor para otra sesión):
+  - 553 F401 unused-import (⚠️ riesgo side-effects Django signals).
+  - 54 F841 unused-variable.
+  - 51 F821 undefined-name ⚠️ **potenciales bugs** · requiere auditoría.
+  - 45 E722 bare-except (style).
+  - 30+ resto menores.
+- Validado: `python manage.py check` OK · ratings app tests 41/41 OK.
 
 ### Fase N1 — Cleanup: TS 5→0 + ruff backend 13→0
 - **TS frontend 5→0**:

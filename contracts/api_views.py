@@ -1872,7 +1872,7 @@ class CompleteAuthenticationAPIView(APIView):
         except Exception as e:
             import traceback
             error_traceback = traceback.format_exc()
-            print(f"❌ ERROR COMPLETO en complete-auth:")
+            print("❌ ERROR COMPLETO en complete-auth:")
             print(error_traceback)
             return Response(
                 {'error': f'Error completando autenticación: {str(e)}', 'traceback': error_traceback},
@@ -2911,7 +2911,7 @@ www.verihome.com | soporte@verihome.com
                             else:
                                 print(f"⚠️ No approved documents found for migration to contract {real_contract.id}")
                         else:
-                            print(f"⚠️ No MatchRequest found for document migration")
+                            print("⚠️ No MatchRequest found for document migration")
                             
                     except Exception as doc_migration_error:
                         print(f"❌ Error migrating documents to contract: {doc_migration_error}")
@@ -3253,7 +3253,7 @@ class TenantContractReviewAPIView(APIView):
                 )
             
             if action == 'request_changes' and not comments.strip():
-                print(f"❌ Request changes without comments")
+                print("❌ Request changes without comments")
                 return Response(
                     {'error': 'Los comentarios son requeridos cuando se solicitan cambios'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -3272,7 +3272,7 @@ class TenantContractReviewAPIView(APIView):
                 # Intentar buscar sin filtro de usuario para debug
                 try:
                     debug_contract = Contract.objects.get(id=contract_id)
-                    print(f"🔍 Contract exists but with different parties:")
+                    print("🔍 Contract exists but with different parties:")
                     print(f"   - Primary party: {debug_contract.primary_party.email if debug_contract.primary_party else 'None'}")
                     print(f"   - Secondary party: {debug_contract.secondary_party.email if debug_contract.secondary_party else 'None'}")
                 except:
@@ -3315,7 +3315,7 @@ class TenantContractReviewAPIView(APIView):
                 # Manejar diferentes estados
                 if contract.status == 'pending_biometric':
                     # Ya está en biométrico, no hacer cambios
-                    print(f"   ℹ️ Contract already in biometric phase, no status change needed")
+                    print("   ℹ️ Contract already in biometric phase, no status change needed")
                     result_message = "ℹ️ El contrato ya fue aprobado y está en fase de autenticación biométrica."
                 elif contract.status == 'ready_for_authentication':
                     # Ya está aprobado, avanzar a firma biométrica

@@ -263,23 +263,23 @@ class Command(BaseCommand):
         
         if 'cleanup' in results:
             cleanup = results['cleanup']
-            self.stdout.write(f'LIMPIEZA DE LOGS:')
+            self.stdout.write('LIMPIEZA DE LOGS:')
             self.stdout.write(f'  Total de logs procesados: {cleanup["total"]}')
         
         if 'security' in results:
             security = results['security']
-            self.stdout.write(f'ANÁLISIS DE SEGURIDAD:')
+            self.stdout.write('ANÁLISIS DE SEGURIDAD:')
             self.stdout.write(f'  Risk score: {security["risk_score"]}/100')
             self.stdout.write(f'  IPs sospechosas: {len(security["suspicious_ips"])}')
         
         if 'alerts' in results:
             alerts = results['alerts']
-            self.stdout.write(f'GENERACIÓN DE ALERTAS:')
+            self.stdout.write('GENERACIÓN DE ALERTAS:')
             self.stdout.write(f'  Alertas creadas: {alerts["alerts_created"]}')
         
         if 'optimization' in results:
             opt = results['optimization']
-            self.stdout.write(f'OPTIMIZACIONES:')
+            self.stdout.write('OPTIMIZACIONES:')
             self.stdout.write(f'  Alertas auto-resueltas: {opt["auto_resolved_alerts"]}')
         
         self.stdout.write(f'\nTiempo total de ejecución: {duration:.2f} segundos')

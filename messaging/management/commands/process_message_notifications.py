@@ -41,7 +41,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.SUCCESS(
-                f'Iniciando procesamiento de notificaciones de mensajería...'
+                'Iniciando procesamiento de notificaciones de mensajería...'
             )
         )
         
@@ -110,7 +110,7 @@ class Command(BaseCommand):
             
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'Procesamiento de notificaciones completado exitosamente'
+                    'Procesamiento de notificaciones completado exitosamente'
                 )
             )
             
@@ -155,7 +155,7 @@ class Command(BaseCommand):
                 sent_at__gte=week_ago
             ).count()
             
-            self.stdout.write(f'\nActividad de los últimos 7 días:')
+            self.stdout.write('\nActividad de los últimos 7 días:')
             self.stdout.write(f'Nuevas conversaciones: {recent_threads}')
             self.stdout.write(f'Mensajes enviados: {recent_messages}')
             self.stdout.write('='*50 + '\n')

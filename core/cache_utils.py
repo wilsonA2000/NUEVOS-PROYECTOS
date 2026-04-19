@@ -76,11 +76,11 @@ class CacheManager:
         """Invalida el cache relacionado con una propiedad específica."""
         patterns = [
             f"property_detail_{property_id}",
-            f"property_list_*",
-            f"property_search_*",
-            f"featured_properties",
-            f"trending_properties",
-            f"property_stats_*",
+            "property_list_*",
+            "property_search_*",
+            "featured_properties",
+            "trending_properties",
+            "property_stats_*",
         ]
         
         for pattern in patterns:

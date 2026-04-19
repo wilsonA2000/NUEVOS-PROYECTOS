@@ -353,8 +353,8 @@ def main():
         print(f"✅ Propiedades: {len(properties)}")
         print(f"✅ Contratos: {len(contracts)}")
         print(f"✅ Mensajes: {len(messages)}")
-        print(f"✅ Pagos: 1")
-        print(f"✅ Facturas: 1")
+        print("✅ Pagos: 1")
+        print("✅ Facturas: 1")
         print(f"✅ Calificaciones: {len(ratings)}")
         
         print("\n📝 Credenciales de prueba:")

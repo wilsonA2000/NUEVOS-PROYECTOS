@@ -476,7 +476,7 @@ class APITester:
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write("# REPORTE DE TESTING DE APIs - VERIHOME\n\n")
             f.write(f"**Fecha:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-            f.write(f"**Agente:** AGENTE 1 - BACKEND API TESTING\n\n")
+            f.write("**Agente:** AGENTE 1 - BACKEND API TESTING\n\n")
 
             f.write("## RESUMEN EJECUTIVO\n\n")
             f.write(f"- **Total de endpoints testeados:** {total}\n")

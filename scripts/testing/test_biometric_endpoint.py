@@ -39,14 +39,14 @@ def test_biometric_endpoint():
         print(f"📝 Headers de respuesta: {dict(response.headers)}")
 
         if response.status_code == 200:
-            print(f"✅ Respuesta exitosa:")
+            print("✅ Respuesta exitosa:")
             print(json.dumps(response.json(), indent=2))
         elif response.status_code == 404:
-            print(f"❌ Error 404: El endpoint no existe")
-            print(f"📄 Respuesta HTML (primeras 500 caracteres):")
+            print("❌ Error 404: El endpoint no existe")
+            print("📄 Respuesta HTML (primeras 500 caracteres):")
             print(response.text[:500])
         elif response.status_code == 401:
-            print(f"⚠️ Error 401: No autorizado (esto es esperado sin token)")
+            print("⚠️ Error 401: No autorizado (esto es esperado sin token)")
         else:
             print(f"❌ Error {response.status_code}:")
             print(response.text[:500])
@@ -54,7 +54,7 @@ def test_biometric_endpoint():
     except requests.exceptions.ConnectionError:
         print(f"❌ Error de conexión: El servidor no está respondiendo en {BASE_URL}")
     except requests.exceptions.Timeout:
-        print(f"❌ Timeout: La petición tardó demasiado")
+        print("❌ Timeout: La petición tardó demasiado")
     except Exception as e:
         print(f"❌ Error inesperado: {str(e)}")
 

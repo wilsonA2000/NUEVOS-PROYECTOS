@@ -117,7 +117,7 @@ class TenantDocumentUploadAPIView(generics.CreateAPIView):
                 property=match_request.property,
                 request_type='property_interest',
                 title=f"Documentos para {match_request.property.title}",
-                description=f"Proceso de documentos generado automáticamente para la solicitud de match.",
+                description="Proceso de documentos generado automáticamente para la solicitud de match.",
                 status='in_progress',
                 priority='high',
                 # Copiar información relevante del MatchRequest
@@ -269,7 +269,7 @@ class DocumentChecklistAPIView(generics.GenericAPIView):
                 )
         
         # Debug logging para permisos
-        print(f"🔍 CHECKLIST DEBUG:")
+        print("🔍 CHECKLIST DEBUG:")
         print(f"  - Process ID: {process_id}")
         print(f"  - Request User: {request.user.email} (ID: {request.user.id})")
         print(f"  - Requester: {property_request.requester.email if property_request.requester else 'None'} (ID: {property_request.requester.id if property_request.requester else 'None'})")

@@ -872,7 +872,7 @@ class LandlordContractService:
                 user=recipient,
                 notification_type='contract',
                 title='Nueva Objeción Recibida',
-                message=f'Se ha presentado una nueva objeción en tu contrato. Revisa y responde para continuar con el proceso.',
+                message='Se ha presentado una nueva objeción en tu contrato. Revisa y responde para continuar con el proceso.',
                 priority='high',
                 action_url=f'/app/contracts/review/{contract.id}/objections',
                 action_label='Ver Objeciones',

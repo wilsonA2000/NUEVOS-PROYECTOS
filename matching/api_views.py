@@ -73,7 +73,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         try:
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
-            logger.info(f"✅ Match request created successfully")
+            logger.info("✅ Match request created successfully")
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         except serializers.ValidationError as e:
             logger.error(f"❌ Validation error in perform_create: {str(e)}")
@@ -471,7 +471,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         import logging
         logger = logging.getLogger(__name__)
 
-        logger.info(f"🔥🔥🔥 ENDPOINT LLAMADO: advance_to_contract_stage")
+        logger.info("🔥🔥🔥 ENDPOINT LLAMADO: advance_to_contract_stage")
         logger.info(f"🔥 Match ID (pk): {pk}")
         logger.info(f"🔥 User: {request.user.email}")
 
@@ -487,7 +487,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         # Solo el landlord puede avanzar la etapa
         logger.info(f"🔍 Verificando permisos: User={request.user.email}, Landlord={match_request.landlord.email}")
         if request.user != match_request.landlord:
-            logger.warning(f"❌ PERMISO DENEGADO: Usuario no es el landlord")
+            logger.warning("❌ PERMISO DENEGADO: Usuario no es el landlord")
             return Response(
                 {'error': 'Solo el arrendador puede avanzar la etapa'},
                 status=status.HTTP_403_FORBIDDEN
@@ -507,7 +507,7 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
         logger.info(f"🔍 Documentos encontrados: {documents.count()}")
 
         if not documents.exists():
-            logger.warning(f"❌ NO HAY DOCUMENTOS")
+            logger.warning("❌ NO HAY DOCUMENTOS")
             return Response(
                 {'error': 'No hay documentos subidos para este match'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -532,26 +532,26 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             )
 
         # Avanzar a etapa 3
-        logger.info(f"✅ AVANZANDO A ETAPA 3...")
+        logger.info("✅ AVANZANDO A ETAPA 3...")
         match_request.workflow_stage = 3
         match_request.workflow_status = 'documents_approved'
         match_request.workflow_data['documents_approved_at'] = timezone.now().isoformat()
         match_request.workflow_data['all_documents_approved'] = True
         match_request.save()
-        logger.info(f"✅ Match actualizado a etapa 3")
+        logger.info("✅ Match actualizado a etapa 3")
 
         # Notificar al arrendatario
         try:
             create_match_notification(
                 match_request,
                 'stage_advanced',
-                custom_message=f"El arrendador ha aprobado todos tus documentos. El proceso avanza a Etapa 3: Creación del Contrato"
+                custom_message="El arrendador ha aprobado todos tus documentos. El proceso avanza a Etapa 3: Creación del Contrato"
             )
-            logger.info(f"✅ Notificación enviada")
+            logger.info("✅ Notificación enviada")
         except Exception as e:
             logger.error(f"⚠️ Error enviando notificación: {e}")
 
-        logger.info(f"🎉 ÉXITO TOTAL - Retornando respuesta")
+        logger.info("🎉 ÉXITO TOTAL - Retornando respuesta")
         return Response({
             'success': True,
             'message': 'Workflow avanzado exitosamente a Etapa 3',

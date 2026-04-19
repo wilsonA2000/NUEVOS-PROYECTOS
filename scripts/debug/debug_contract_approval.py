@@ -36,7 +36,7 @@ def debug_contract_approval():
         print(f"   - Updated: {contract.updated_at}")
 
         # 2. Verificar MatchRequest relacionado
-        print(f"\n🔗 Looking for related MatchRequest...")
+        print("\n🔗 Looking for related MatchRequest...")
         match_requests = MatchRequest.objects.filter(
             workflow_data__contract_created__contract_id=str(contract.id)
         )
@@ -56,7 +56,7 @@ def debug_contract_approval():
             print("   ❌ No MatchRequest found for this contract")
 
         # 3. Verificar users
-        print(f"\n👥 USER VERIFICATION:")
+        print("\n👥 USER VERIFICATION:")
         users = User.objects.filter(user_type__in=['tenant', 'candidate'])
 
         for user in users:
@@ -66,12 +66,12 @@ def debug_contract_approval():
 
             # Verificar si este user es secondary_party del contrato
             if contract.secondary_party and contract.secondary_party.id == user.id:
-                print(f"     ✅ This user IS the secondary party of the contract")
+                print("     ✅ This user IS the secondary party of the contract")
             else:
-                print(f"     ❌ This user is NOT the secondary party")
+                print("     ❌ This user is NOT the secondary party")
 
         # 4. Sugerir fix si es necesario
-        print(f"\n🔧 POSSIBLE FIXES:")
+        print("\n🔧 POSSIBLE FIXES:")
 
         if not contract.secondary_party:
             print("   1. Contract has no secondary_party - need to assign tenant")
@@ -94,9 +94,9 @@ def debug_contract_approval():
                             mr.workflow_data['contract_created']['tenant_assigned'] = True
                             mr.workflow_data['contract_created']['tenant_email'] = tenant_user.email
                             mr.save()
-                            print(f"   ✅ MatchRequest updated with tenant assignment")
+                            print("   ✅ MatchRequest updated with tenant assignment")
 
-        print(f"\n✅ DEBUG COMPLETE")
+        print("\n✅ DEBUG COMPLETE")
 
     except Contract.DoesNotExist:
         print("❌ Contract VH-2025-000001 not found")

@@ -27,7 +27,7 @@ def sync_contract_for_biometric():
     # 1. Verificar si existe en LandlordControlledContract
     try:
         landlord_contract = LandlordControlledContract.objects.get(id=contract_id)
-        print(f"✅ Contrato encontrado en LandlordControlledContract:")
+        print("✅ Contrato encontrado en LandlordControlledContract:")
         print(f"   - Estado: {landlord_contract.current_state}")
         print(f"   - Título: {landlord_contract.title}")
         print(f"   - Arrendador: {landlord_contract.landlord.get_full_name()}")
@@ -39,7 +39,7 @@ def sync_contract_for_biometric():
     # 2. Verificar si existe en Contract (sistema viejo)
     try:
         old_contract = Contract.objects.get(id=contract_id)
-        print(f"✅ Contrato YA existe en sistema viejo:")
+        print("✅ Contrato YA existe en sistema viejo:")
         print(f"   - Estado: {old_contract.status}")
     except Contract.DoesNotExist:
         print("⚠️ Contrato NO existe en sistema viejo - Creando...")
@@ -67,7 +67,7 @@ def sync_contract_for_biometric():
         print(f"✅ Estado actualizado a: {old_contract.status}")
 
     # 4. Verificar usuarios involucrados
-    print(f"\n👥 Usuarios involucrados:")
+    print("\n👥 Usuarios involucrados:")
     print(f"   - Arrendador: {old_contract.primary_party.get_full_name()} ({old_contract.primary_party.email})")
     print(f"   - Arrendatario: {old_contract.secondary_party.get_full_name()} ({old_contract.secondary_party.email})")
 
@@ -79,7 +79,7 @@ def sync_contract_for_biometric():
         ).first()
 
         if match_request:
-            print(f"\n📋 MatchRequest encontrado:")
+            print("\n📋 MatchRequest encontrado:")
             print(f"   - ID: {match_request.id}")
             print(f"   - Workflow Stage: {match_request.workflow_stage}")
             print(f"   - Workflow Status: {match_request.workflow_status}")
@@ -89,7 +89,7 @@ def sync_contract_for_biometric():
     except Exception as e:
         print(f"❌ Error buscando MatchRequest: {e}")
 
-    print(f"\n🎉 Sincronización completada!")
+    print("\n🎉 Sincronización completada!")
     print(f"✅ El contrato {contract_id} ahora está listo para autenticación biométrica")
 
     return old_contract

@@ -1065,14 +1065,14 @@ Tu participación es esencial para activar el contrato de arrendamiento.
                 if match_request.workflow_status == 'pending_landlord_biometric':
                     landlord_contract.workflow_stage = 'biometric_authentication'
                     landlord_contract.workflow_status = 'pending_landlord_biometric'
-                    logger.info(f"🔄 LandlordContract: Esperando autenticación del landlord")
+                    logger.info("🔄 LandlordContract: Esperando autenticación del landlord")
 
                 elif match_request.workflow_status == 'all_biometrics_completed':
                     landlord_contract.workflow_stage = 'contract_active'
                     landlord_contract.workflow_status = 'active'
                     landlord_contract.is_active = True
                     landlord_contract.activation_date = timezone.now()
-                    logger.info(f"🎉 LandlordContract: ACTIVADO - Nace a la vida jurídica")
+                    logger.info("🎉 LandlordContract: ACTIVADO - Nace a la vida jurídica")
 
                     # =======================================================
                     # 🔒 INMUTABILIDAD POST-BIOMÉTRICA (Plan Maestro V2.0)

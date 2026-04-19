@@ -60,11 +60,11 @@ def test_images_display():
     request.user = property_obj.landlord
     
     # Test with PropertySerializer
-    print(f"\n📤 Testing PropertySerializer...")
+    print("\n📤 Testing PropertySerializer...")
     serializer = PropertySerializer(property_obj, context={'request': request})
     data = serializer.data
     
-    print(f"🔍 SERIALIZER DATA ANALYSIS:")
+    print("🔍 SERIALIZER DATA ANALYSIS:")
     print(f"   - Has 'images' field: {'images' in data}")
     print(f"   - Images count in response: {len(data.get('images', []))}")
     
@@ -81,7 +81,7 @@ def test_images_display():
         print(f"   - Main image URL: {data['main_image_url']}")
     
     # Test individual PropertyImage serialization
-    print(f"\n📷 Testing individual PropertyImage...")
+    print("\n📷 Testing individual PropertyImage...")
     if property_obj.images.exists():
         first_image = property_obj.images.first()
         from properties.serializers import PropertyImageSerializer
@@ -93,7 +93,7 @@ def test_images_display():
         print(f"   - Image URL in serializer: {img_data.get('image_url', 'NO URL!')}")
         print(f"   - Direct image.url: {first_image.image.url if first_image.image else 'NO URL!'}")
     
-    print(f"\n✅ Test completed! Check URLs above for image display issues.")
+    print("\n✅ Test completed! Check URLs above for image display issues.")
 
 if __name__ == '__main__':
     test_images_display()

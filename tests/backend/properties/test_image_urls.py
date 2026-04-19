@@ -51,7 +51,7 @@ def test_image_urls():
     serializer = PropertySerializer(property_obj, context={'request': request})
     data = serializer.data
     
-    print(f"\n📤 SERIALIZER RESPONSE:")
+    print("\n📤 SERIALIZER RESPONSE:")
     print(f"   - Images count: {len(data.get('images', []))}")
     print(f"   - Main image URL: {data.get('main_image_url', 'NO MAIN IMAGE')}")
     
@@ -74,10 +74,10 @@ def test_image_urls():
             print(f"      - File size: {file_size} bytes")
             print(f"      - Image.url: {img_obj.image.url}")
         else:
-            print(f"      - ❌ No image file attached!")
+            print("      - ❌ No image file attached!")
     
     # Check Django settings for media files
-    print(f"\n⚙️  DJANGO MEDIA SETTINGS:")
+    print("\n⚙️  DJANGO MEDIA SETTINGS:")
     print(f"   - MEDIA_URL: {settings.MEDIA_URL}")
     print(f"   - MEDIA_ROOT: {settings.MEDIA_ROOT}")
     

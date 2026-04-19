@@ -47,7 +47,7 @@ def debug_video_issue():
             continue
         
         # Revisar cada video
-        print(f"\n📹 DETALLES DE VIDEOS:")
+        print("\n📹 DETALLES DE VIDEOS:")
         for j, video in enumerate(property.videos.all(), 1):
             print(f"     Video {j}:")
             print(f"       ID: {video.id}")
@@ -58,7 +58,7 @@ def debug_video_issue():
             
             # Diagnosticar el problema específico
             if video.youtube_url:
-                print(f"       🔍 ANÁLISIS DE URL DE YOUTUBE:")
+                print("       🔍 ANÁLISIS DE URL DE YOUTUBE:")
                 print(f"         URL original: {video.youtube_url}")
                 
                 # Extraer video ID usando la misma lógica del frontend
@@ -83,11 +83,11 @@ def debug_video_issue():
                     print(f"         ❌ Video ID inválido (longitud: {len(video_id)})")
                     print(f"         ❌ Contiene caracteres especiales: {not video_id.isalnum()}")
             else:
-                print(f"       ⚠️ No tiene YouTube URL")
+                print("       ⚠️ No tiene YouTube URL")
             print()
     
     # 3. Verificar estructura de datos que llega al frontend
-    print(f"\n🔍 ESTRUCTURA DE DATOS PARA EL FRONTEND:")
+    print("\n🔍 ESTRUCTURA DE DATOS PARA EL FRONTEND:")
     latest_property = properties.first()
     
     if latest_property and latest_property.videos.exists():
@@ -111,11 +111,11 @@ def debug_video_issue():
             }
             property_data['videos'].append(video_data)
         
-        print(f"   Datos JSON que llegan al frontend:")
+        print("   Datos JSON que llegan al frontend:")
         print(json.dumps(property_data, indent=2, default=str))
     
     # 4. Sugerencias de solución
-    print(f"\n💡 DIAGNÓSTICO Y SOLUCIONES:")
+    print("\n💡 DIAGNÓSTICO Y SOLUCIONES:")
     
     youtube_videos = PropertyVideo.objects.filter(youtube_url__isnull=False).exclude(youtube_url='')
     
@@ -128,11 +128,11 @@ def debug_video_issue():
             
             # Validar URL
             if not url.startswith(('http://', 'https://')):
-                print(f"     ❌ URL no tiene protocolo válido")
+                print("     ❌ URL no tiene protocolo válido")
             elif 'youtube.com' not in url and 'youtu.be' not in url:
-                print(f"     ❌ URL no es de YouTube")
+                print("     ❌ URL no es de YouTube")
             else:
-                print(f"     ✅ URL parece válida")
+                print("     ✅ URL parece válida")
                 
                 # Sugerir URL de prueba corregida si es necesario
                 if 'watch?v=' in url:
@@ -140,15 +140,15 @@ def debug_video_issue():
                     embed_url = f"https://www.youtube.com/embed/{video_id}"
                     print(f"     🎯 URL de embed correcta: {embed_url}")
     else:
-        print(f"   ❌ No se encontraron videos de YouTube")
+        print("   ❌ No se encontraron videos de YouTube")
     
-    print(f"\n📋 ACCIONES RECOMENDADAS:")
-    print(f"   1. Verificar que la URL de YouTube es válida")
-    print(f"   2. Comprobar que el frontend está recibiendo youtube_url correctamente")
-    print(f"   3. Validar la función getYouTubeEmbedUrl en PropertyDetail.tsx")
-    print(f"   4. Verificar configuraciones de CORS para embeds de YouTube")
+    print("\n📋 ACCIONES RECOMENDADAS:")
+    print("   1. Verificar que la URL de YouTube es válida")
+    print("   2. Comprobar que el frontend está recibiendo youtube_url correctamente")
+    print("   3. Validar la función getYouTubeEmbedUrl en PropertyDetail.tsx")
+    print("   4. Verificar configuraciones de CORS para embeds de YouTube")
     
-    print(f"\n✨ DIAGNÓSTICO COMPLETADO")
+    print("\n✨ DIAGNÓSTICO COMPLETADO")
     print("=" * 70)
 
 if __name__ == "__main__":

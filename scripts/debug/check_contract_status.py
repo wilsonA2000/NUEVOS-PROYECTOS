@@ -37,7 +37,7 @@ def check_contract_status():
 
         # Verificar datos del workflow
         if hasattr(contract, 'workflow_data'):
-            print(f"\n📊 Workflow Data:")
+            print("\n📊 Workflow Data:")
             import json
             print(json.dumps(contract.workflow_data, indent=2))
 
@@ -58,7 +58,7 @@ def check_contract_status():
 
         if contract.primary_party:
             user = contract.primary_party
-            print(f"\nArrendador (primary_party):")
+            print("\nArrendador (primary_party):")
             print(f"  - Email: {user.email}")
             print(f"  - ID: {user.id}")
             print(f"  - Tipo: {user.user_type}")
@@ -66,7 +66,7 @@ def check_contract_status():
 
         if contract.secondary_party:
             user = contract.secondary_party
-            print(f"\nArrendatario (secondary_party):")
+            print("\nArrendatario (secondary_party):")
             print(f"  - Email: {user.email}")
             print(f"  - ID: {user.id}")
             print(f"  - Tipo: {user.user_type}")
@@ -110,9 +110,9 @@ if __name__ == "__main__":
         print("📌 RESUMEN")
         print("=" * 80)
         if contract.status not in ['pdf_generated', 'ready_for_authentication']:
-            print(f"⚠️ El contrato NO está en un estado válido para autenticación.")
+            print("⚠️ El contrato NO está en un estado válido para autenticación.")
             print(f"   Estado actual: {contract.status}")
-            print(f"   Cambiar a: 'ready_for_authentication' o 'pdf_generated'")
+            print("   Cambiar a: 'ready_for_authentication' o 'pdf_generated'")
         else:
-            print(f"✅ El contrato está listo para autenticación biométrica")
+            print("✅ El contrato está listo para autenticación biométrica")
             print(f"   Estado: {contract.status}")

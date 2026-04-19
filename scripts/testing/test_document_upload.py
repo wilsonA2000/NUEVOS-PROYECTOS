@@ -59,10 +59,10 @@ def test_upload_document(token, process_id):
     print(f"📨 Response headers: {dict(response.headers)}")
 
     if response.status_code in [200, 201]:
-        print(f"✅ Document upload successful!")
+        print("✅ Document upload successful!")
         print(f"📄 Response: {json.dumps(response.json(), indent=2)}")
     else:
-        print(f"❌ Document upload failed!")
+        print("❌ Document upload failed!")
         print(f"📄 Response text: {response.text}")
         try:
             print(f"📄 Response JSON: {json.dumps(response.json(), indent=2)}")

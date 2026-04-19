@@ -40,7 +40,7 @@ def clean_properties_completely():
         return
     
     # 2. Mostrar detalles de las propiedades a eliminar
-    print(f"\n📋 PROPIEDADES A ELIMINAR:")
+    print("\n📋 PROPIEDADES A ELIMINAR:")
     properties = Property.objects.all()
     
     for i, prop in enumerate(properties, 1):
@@ -81,7 +81,7 @@ def clean_properties_completely():
         # Eliminar propiedades (esto eliminará imágenes y videos en cascada)
         deleted_count, deletion_details = Property.objects.all().delete()
         
-        print(f"\n✅ ELIMINACIÓN COMPLETADA:")
+        print("\n✅ ELIMINACIÓN COMPLETADA:")
         print(f"   - Propiedades eliminadas: {deletion_details.get('properties.Property', 0)}")
         print(f"   - Imágenes eliminadas: {deletion_details.get('properties.PropertyImage', 0)}")
         print(f"   - Videos eliminados: {deletion_details.get('properties.PropertyVideo', 0)}")
@@ -93,7 +93,7 @@ def clean_properties_completely():
             print(f"   - Otros elementos: {other_deleted}")
     
     # 5. Verificar estado final
-    print(f"\n📊 ESTADO FINAL DE LA BASE DE DATOS:")
+    print("\n📊 ESTADO FINAL DE LA BASE DE DATOS:")
     final_properties = Property.objects.count()
     final_images = PropertyImage.objects.count()
     final_videos = PropertyVideo.objects.count()
@@ -103,7 +103,7 @@ def clean_properties_completely():
     print(f"   Videos restantes: {final_videos}")
     
     # 6. Mostrar información de usuarios para testing manual
-    print(f"\n👥 USUARIOS DISPONIBLES PARA TESTING MANUAL:")
+    print("\n👥 USUARIOS DISPONIBLES PARA TESTING MANUAL:")
     landlord_users = User.objects.filter(user_type='landlord', is_active=True)
     
     for i, user in enumerate(landlord_users, 1):
@@ -114,18 +114,18 @@ def clean_properties_completely():
         print()
     
     # 7. Instrucciones para testing manual
-    print(f"📝 INSTRUCCIONES PARA TESTING MANUAL:")
-    print(f"   1. La base de datos está completamente limpia")
+    print("📝 INSTRUCCIONES PARA TESTING MANUAL:")
+    print("   1. La base de datos está completamente limpia")
     print(f"   2. Usa cualquiera de los {landlord_users.count()} usuarios arrendadores arriba")
-    print(f"   3. Ve a http://localhost:5173 y autentica usando la solución HTML")
-    print(f"   4. Crea propiedades manualmente para probar:")
-    print(f"      - Formulario de creación")
-    print(f"      - Validaciones")
-    print(f"      - Carga de imágenes y videos")
-    print(f"      - Eliminación (ahora funcionará porque serás el creador)")
-    print(f"   5. Verificar que el rendimiento mejore sin datos de prueba")
+    print("   3. Ve a http://localhost:5173 y autentica usando la solución HTML")
+    print("   4. Crea propiedades manualmente para probar:")
+    print("      - Formulario de creación")
+    print("      - Validaciones")
+    print("      - Carga de imágenes y videos")
+    print("      - Eliminación (ahora funcionará porque serás el creador)")
+    print("   5. Verificar que el rendimiento mejore sin datos de prueba")
     
-    print(f"\n✨ LIMPIEZA COMPLETADA EXITOSAMENTE!")
+    print("\n✨ LIMPIEZA COMPLETADA EXITOSAMENTE!")
     print("=" * 70)
 
 if __name__ == "__main__":

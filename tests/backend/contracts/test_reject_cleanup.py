@@ -34,7 +34,7 @@ def test_reject_cleanup():
     # Tomar el primer match disponible
     test_match = matches.first()
     
-    print(f"🎯 MATCH SELECCIONADO PARA PRUEBA:")
+    print("🎯 MATCH SELECCIONADO PARA PRUEBA:")
     print(f"   Match Code: {test_match.match_code}")
     print(f"   Status: {test_match.status}")
     print(f"   Arrendador: {test_match.landlord.get_full_name()}")
@@ -122,7 +122,7 @@ def test_reject_cleanup():
     except:
         pass
     
-    print(f"📊 DATOS DESPUÉS DEL RECHAZO:")
+    print("📊 DATOS DESPUÉS DEL RECHAZO:")
     print(f"   📄 Contratos: {contracts_after} (antes: {contracts_before})")
     print(f"   📋 Solicitudes de propiedad: {prop_requests_after} (antes: {prop_requests_before})")
     print(f"   📎 Documentos de inquilino: {docs_after} (antes: {docs_before})")
@@ -131,7 +131,7 @@ def test_reject_cleanup():
     
     # VERIFICAR STATUS DEL MATCH
     test_match.refresh_from_db()
-    print(f"📋 ESTADO DEL MATCH:")
+    print("📋 ESTADO DEL MATCH:")
     print(f"   Status: {test_match.status}")
     print(f"   Workflow Data: {test_match.workflow_data}")
     print(f"   Current Stage: {test_match.current_stage}")

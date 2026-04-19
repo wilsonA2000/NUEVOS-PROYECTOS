@@ -24,14 +24,14 @@ def main():
     try:
         request = MatchRequest.objects.get(match_code=match_code)
         
-        print(f"📋 Solicitud encontrada:")
+        print("📋 Solicitud encontrada:")
         print(f"   - ID: {request.id}")
         print(f"   - Tenant: {request.tenant.email}")
         print(f"   - Property: {request.property.title}")
         print(f"   - Status: {request.status}")
         print(f"   - Created: {request.created_at}")
         
-        print(f"\n🗑️ Eliminando solicitud...")
+        print("\n🗑️ Eliminando solicitud...")
         request.delete()
         print(f"✅ Solicitud {match_code} eliminada exitosamente")
         

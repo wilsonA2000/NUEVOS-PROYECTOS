@@ -44,7 +44,7 @@ def test_property_edit_flow():
         
         landlord = property_obj.landlord
         
-        print(f"✅ Propiedad para editar encontrada:")
+        print("✅ Propiedad para editar encontrada:")
         print(f"   - ID: {property_obj.id}")
         print(f"   - Título: {property_obj.title}")
         print(f"   - Landlord: {landlord.email}")
@@ -62,7 +62,7 @@ def test_property_edit_flow():
             'status': 'available',
         }
         
-        print(f"\n📝 Datos de actualización:")
+        print("\n📝 Datos de actualización:")
         print(json.dumps({k: str(v) for k, v in update_data.items()}, indent=2, ensure_ascii=False))
         
         # 3. Crear request mock para simular contexto de la API
@@ -89,7 +89,7 @@ def test_property_edit_flow():
         print("✅ Propiedad actualizada en base de datos")
         
         # 6. Verificar cambios
-        print(f"\n🔍 Verificando cambios aplicados:")
+        print("\n🔍 Verificando cambios aplicados:")
         print(f"   - Título original: {original_title}")
         print(f"   - Título actualizado: {updated_property.title}")
         print(f"   - Precio original: ${original_price:,.0f} COP")
@@ -100,7 +100,7 @@ def test_property_edit_flow():
         response_serializer = PropertySerializer(updated_property, context=context)
         response_data = response_serializer.data
         
-        print(f"\n📤 Verificando respuesta de API:")
+        print("\n📤 Verificando respuesta de API:")
         print(f"   - ID: {response_data.get('id')}")
         print(f"   - Título: {response_data.get('title')}")
         print(f"   - Landlord ID: {response_data.get('landlord', {}).get('id')}")
@@ -108,9 +108,9 @@ def test_property_edit_flow():
         
         # 8. Verificar navegación después de edición
         property_id = str(updated_property.id)
-        print(f"\n🔗 Testing navegación después de edición:")
+        print("\n🔗 Testing navegación después de edición:")
         print(f"   - URL de detalle: /app/properties/{property_id}")
-        print(f"   - URL de lista: /app/properties")
+        print("   - URL de lista: /app/properties")
         print(f"   - ID válido: {len(property_id) == 36 and property_id.count('-') == 4}")
         
         # 9. Verificar que se puede recuperar la propiedad actualizada
@@ -132,17 +132,17 @@ def test_property_edit_flow():
                 return False
                 
         except Property.DoesNotExist:
-            print(f"❌ No se pudo recuperar la propiedad actualizada")
+            print("❌ No se pudo recuperar la propiedad actualizada")
             return False
         
-        print(f"\n🎉 TEST PROPERTY EDIT COMPLETADO EXITOSAMENTE")
-        print(f"📊 Status: EXITOSO")
-        print(f"💡 La funcionalidad de edición ahora debería:")
-        print(f"   - Cargar datos existentes en el formulario")
-        print(f"   - Mostrar 'Editar Propiedad' como título")
-        print(f"   - Actualizar la propiedad al enviar")
-        print(f"   - Redirigir al detalle después de guardar")
-        print(f"   - Actualizar el cache automáticamente")
+        print("\n🎉 TEST PROPERTY EDIT COMPLETADO EXITOSAMENTE")
+        print("📊 Status: EXITOSO")
+        print("💡 La funcionalidad de edición ahora debería:")
+        print("   - Cargar datos existentes en el formulario")
+        print("   - Mostrar 'Editar Propiedad' como título")
+        print("   - Actualizar la propiedad al enviar")
+        print("   - Redirigir al detalle después de guardar")
+        print("   - Actualizar el cache automáticamente")
         
         return True
         
@@ -154,7 +154,7 @@ def test_property_edit_flow():
 
 def test_permissions():
     """Test de permisos de edición."""
-    print(f"\n🔒 TESTING EDIT PERMISSIONS")
+    print("\n🔒 TESTING EDIT PERMISSIONS")
     print("=" * 30)
     
     try:
@@ -168,7 +168,7 @@ def test_permissions():
         property1 = properties[0]
         property2 = properties[1]
         
-        print(f"📋 Propiedades para test:")
+        print("📋 Propiedades para test:")
         print(f"   - Propiedad 1: {property1.title} (Owner: {property1.landlord.email})")
         print(f"   - Propiedad 2: {property2.title} (Owner: {property2.landlord.email})")
         
@@ -197,7 +197,7 @@ def test_permissions():
             'other_user_cannot_edit': property1.landlord.id != property2.landlord.id,
         }
         
-        print(f"🎨 Frontend permissions logic:")
+        print("🎨 Frontend permissions logic:")
         for check, result in frontend_permissions.items():
             status = "✅" if result else "❌"
             print(f"   {status} {check}: {result}")
@@ -211,7 +211,7 @@ def test_permissions():
 
 def test_frontend_integration():
     """Test de integración con frontend."""
-    print(f"\n🎨 TESTING FRONTEND INTEGRATION")
+    print("\n🎨 TESTING FRONTEND INTEGRATION")
     print("=" * 35)
     
     try:
@@ -245,7 +245,7 @@ def test_frontend_integration():
             'error': None
         }
         
-        print(f"\n📋 Props structure for edit mode:")
+        print("\n📋 Props structure for edit mode:")
         for prop, value in mock_edit_props.items():
             print(f"   - {prop}: {value}")
         
@@ -276,7 +276,7 @@ def main():
         print(f"📊 Resultado: {'✅ PASS' if result else '❌ FAIL'}")
     
     # Resumen final
-    print(f"\n📋 RESUMEN DE TESTS")
+    print("\n📋 RESUMEN DE TESTS")
     print("=" * 40)
     passed = sum(1 for _, result in results if result)
     total = len(results)
