@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 noche (Fase L1 + M1 · best-practices 0.78→1.00)
+**Última actualización**: 2026-04-19 noche (Fase L1 + M1 + N1 · TS 0 + ruff verde)
 
 ---
 
@@ -14,12 +14,35 @@
 | CI/CD | 9 jobs (backend/frontend fallan por lint pre-existente) + Lighthouse **verde** |
 | Lighthouse score | a11y ≥0.9 ✅ · perf OK · **best-practices 1.00** ✅ · SEO OK |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
-| TS frontend | 5 errores pre-existentes |
+| TS frontend | **0 errores** ✅ (N1: theme tokens + stripe import type) |
 | npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
 
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 noche)
+
+### Fase N1 — Cleanup: TS 5→0 + ruff backend 13→0
+- **TS frontend 5→0**:
+  - `LandingPage.tsx`, `AboutPage.tsx`, `ContactPage.tsx`: `vhColors.primary`
+    (no existía) → `vhColors.purple` (secondary.main) en gradients hero/stats.
+    Consistente con `gradients.hero` de tokens.ts.
+  - `LandingPage.tsx`: `vhColors.background` → `vhColors.surfaceMuted`
+    (p.background.default) en 2 sitios.
+  - `stripeService.ts`: tipos `Stripe, StripeElements, StripeCardElement`
+    movidos a `import type` desde `@stripe/stripe-js` (pure no exporta tipos,
+    solo `loadStripe`).
+- **Backend ruff check 13→0**:
+  - 2 auto-fix: `settings.py:631 import os` duplicado eliminado;
+    `urls.py:12 from core.views import index` removido (no se usaba).
+  - `settings.py:745 import channels_redis` marcado `# noqa: F401`
+    (probe intencional de disponibilidad).
+  - Nuevo `ruff.toml` en raíz con `per-file-ignores` para E402 en
+    `asgi.py` + `settings.py` (11 imports post-django.setup()/sys.path.append()
+    son patrones Django válidos).
+- **Backend ruff format**: 6 archivos reformateados (`__init__.py`,
+  `asgi.py`, `celery.py`, `settings.py`, `urls.py`, `wsgi.py`) — solo
+  cotizaciones y whitespace, sin cambio semántico.
+- Validado: `python manage.py check` OK · `npm run build` OK 3m 18s.
 
 ### Fase M1 — Lighthouse best-practices 0.78 → 1.00
 - Root cause: `@stripe/stripe-js` standard import tiene side-effect de
@@ -197,11 +220,10 @@
   `payments/dian_invoice_service.py:sign_invoice_xml`.
 
 ### 🟡 Pendientes detectados en esta sesión (para próxima)
-- **ci-cd.yml failing**: `test-frontend` (ESLint --max-warnings 0 con
-  warnings pre-existentes en `utils/imageOptimization.ts`,
-  `performanceMonitor.ts`, `videoUtils.ts`), `lint-check` (black
-  backend diff en `verihome/urls.py`, `wsgi.py`), `security-scan`,
-  `test-backend`. Scope: fix de lints acumulados.
+- **ci-cd.yml failing**: `test-frontend` (ESLint: **1371 errores + 1317
+  warnings** en src/, mayoría `no-unused-vars`/`no-explicit-any` —
+  scope varias sesiones), `security-scan`, `test-backend`.
+  ✅ `lint-check` (ruff): resuelto en N1.
 - ✅ **Lighthouse best-practices** — resuelto en Fase M1 (0.78→1.00).
 - **i18next**: grep rápido arroja **~664 strings hardcoded** en 100+
   archivos (vs ~628 `t()` existentes). NO es quick win — proyecto de

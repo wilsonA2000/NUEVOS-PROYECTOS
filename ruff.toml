@@ -1,0 +1,5 @@
+[lint.per-file-ignores]
+# Imports despues de django.setup() / sys.path.append() son patrones Django
+# validos: no aplica E402 en los modulos de bootstrap del proyecto.
+"verihome/asgi.py" = ["E402"]
+"verihome/settings.py" = ["E402"]

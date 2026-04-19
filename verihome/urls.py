@@ -9,8 +9,12 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from users.views import ResendVerificationEmailView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from core.views import index, ReactAppView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from core.views import ReactAppView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 
 # Personalizar la información del admin
 admin.site.site_header = "VeriHome Administración"
@@ -19,64 +23,82 @@ admin.site.index_title = "Panel de Administración"
 
 urlpatterns = [
     # Administración
-    path('admin/', admin.site.urls),
-    
+    path("admin/", admin.site.urls),
     # Autenticación (Django Allauth)
-    path('accounts/', include('allauth.urls')),
-    
+    path("accounts/", include("allauth.urls")),
     # Aplicaciones principales
-    path('', include('core.urls')),
-    path('usuarios/', include('users.urls')),
-    path('propiedades/', include('properties.urls')),
-    path('contratos/', include('contracts.urls')),
-    path('mensajes/', include('messaging.urls')),
-    path('pagos/', include('payments.urls')),
-    path('calificaciones/', include('ratings.urls')),
-    path('matching/', include('matching.urls')),
-    path('solicitudes/', include('requests.urls')),
-    path('servicios/', include('services.urls')),
-    
-    
+    path("", include("core.urls")),
+    path("usuarios/", include("users.urls")),
+    path("propiedades/", include("properties.urls")),
+    path("contratos/", include("contracts.urls")),
+    path("mensajes/", include("messaging.urls")),
+    path("pagos/", include("payments.urls")),
+    path("calificaciones/", include("ratings.urls")),
+    path("matching/", include("matching.urls")),
+    path("solicitudes/", include("requests.urls")),
+    path("servicios/", include("services.urls")),
     # Ruta para reenviar correo de verificación
-    path('reenviar-verificacion/', ResendVerificationEmailView.as_view(), name='account_email_verification_resend'),
-    
+    path(
+        "reenviar-verificacion/",
+        ResendVerificationEmailView.as_view(),
+        name="account_email_verification_resend",
+    ),
     # API Documentation (OpenAPI/Swagger)
-    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/v1/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
+    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/v1/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "api/v1/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"
+    ),
     # AUTH-02: aliases SimpleJWT en los paths estándar (/api/token/refresh/,
     # /api/token/). El path actual /api/v1/users/auth/refresh/ sigue vigente.
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair_std'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh_std'),
-
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair_std"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh_std"),
     # API REST
-    path('api/v1/', include([
-        path('users/', include('users.api_urls')),
-        path('properties/', include('properties.api_urls')),
-        path('contracts/', include('contracts.api_urls')),
-        path('messages/', include('messaging.api_urls')),
-        path('payments/', include('payments.api_urls')),
-        path('ratings/', include('ratings.api_urls')),
-        path('matching/', include('matching.urls', namespace='api-matching')),
-        path('requests/', include('requests.urls', namespace='api-requests')),
-        path('services/', include('services.urls', namespace='api-services')),
-        path('core/', include('core.api_urls')),
-        path('dashboard/', include('dashboard.urls')),
-        path('verification/', include('verification.api_urls')),
-    ])),
-    
+    path(
+        "api/v1/",
+        include(
+            [
+                path("users/", include("users.api_urls")),
+                path("properties/", include("properties.api_urls")),
+                path("contracts/", include("contracts.api_urls")),
+                path("messages/", include("messaging.api_urls")),
+                path("payments/", include("payments.api_urls")),
+                path("ratings/", include("ratings.api_urls")),
+                path("matching/", include("matching.urls", namespace="api-matching")),
+                path("requests/", include("requests.urls", namespace="api-requests")),
+                path("services/", include("services.urls", namespace="api-services")),
+                path("core/", include("core.api_urls")),
+                path("dashboard/", include("dashboard.urls")),
+                path("verification/", include("verification.api_urls")),
+            ]
+        ),
+    ),
     # Páginas especiales
-    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
-    path('sitemap.xml', TemplateView.as_view(template_name='sitemap.xml', content_type='application/xml')),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
+    path(
+        "sitemap.xml",
+        TemplateView.as_view(
+            template_name="sitemap.xml", content_type="application/xml"
+        ),
+    ),
 ]
 
 # Rutas del frontend React (catch-all para SPA)
 # Estas rutas deben ir al final para no interferir con las rutas de la API
 # Ahora funciona tanto en desarrollo como en producción
 urlpatterns += [
-    re_path(r'^(?!api/|admin/|accounts/|usuarios/|propiedades/|contratos/|mensajes/|pagos/|calificaciones/|registro-directo/|reenviar-verificacion/|robots\.txt|sitemap\.xml|static/|media/|dashboard/|notificaciones/|soporte/|acerca-de/|contacto/|preguntas-frecuentes/|terminos-y-condiciones/|politica-de-privacidad/|buscar/|analytics/|estado/).*$', 
-            ReactAppView.as_view(), name='react_app'),
+    re_path(
+        r"^(?!api/|admin/|accounts/|usuarios/|propiedades/|contratos/|mensajes/|pagos/|calificaciones/|registro-directo/|reenviar-verificacion/|robots\.txt|sitemap\.xml|static/|media/|dashboard/|notificaciones/|soporte/|acerca-de/|contacto/|preguntas-frecuentes/|terminos-y-condiciones/|politica-de-privacidad/|buscar/|analytics/|estado/).*$",
+        ReactAppView.as_view(),
+        name="react_app",
+    ),
 ]
 
 # Servir archivos multimedia en desarrollo
@@ -88,8 +110,9 @@ if settings.DEBUG:
 if settings.DEBUG:
     try:
         import debug_toolbar
+
         urlpatterns = [
-            path('__debug__/', include(debug_toolbar.urls)),
+            path("__debug__/", include(debug_toolbar.urls)),
         ] + urlpatterns
     except ImportError:
         pass
