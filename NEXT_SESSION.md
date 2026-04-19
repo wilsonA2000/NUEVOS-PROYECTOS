@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Plan hardening · CI duro + Fase G + observability · 6 bugs más fixeados)
+**Última actualización**: 2026-04-19 (Fase H admin UI + I1/I2 + J1/J2/J3 · 2 bugs más + axe-core + lighthouse)
 
 ---
 
@@ -8,14 +8,13 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `52195e5` (8 commits post-push ahead de origin) |
-| Backend tests | 687/687 OK + 3 skip |
-| Playwright moleculares | **17/17 verde** (Fase A-G · ~26 min total runtime) |
-| CI/CD | 8 jobs sin `continue-on-error` (excepto Locust experimental) · `lint-check` con pre-commit en cada PR |
-| pytest cobertura | configurada 60% floor (`pytest.ini` + `pytest-cov`) |
+| Branch | `main` @ `69a0be6` (17+ commits post-push) |
+| Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
+| Playwright moleculares | **23/23 verde** (Fase A-J · ~35 min total) |
+| CI/CD | 9 jobs sin masking + `lint-check` (pre-commit) + Lighthouse opcional |
+| Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
-| Health check | `/api/v1/core/health/` profundo (DB+Redis+Celery) con 503 si falla alguno |
-| Slow queries | logging cuando `DEBUG=True` o `SLOW_QUERY_LOG=True` (umbral 500 ms) |
+| npm audit | 12 vulns devDeps transitivas (K1 intentado, descartado por vite 7 break) |
 
 ---
 
