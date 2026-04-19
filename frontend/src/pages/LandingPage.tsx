@@ -239,7 +239,7 @@ const LandingPage: React.FC = () => {
                     <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 2 }}>
                       Paso {index + 1}
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mt: 1, mb: 1.5 }}>
+                    <Typography variant="h6" component="h4" sx={{ color: 'text.primary', fontWeight: 600, mt: 1, mb: 1.5 }}>
                       {step.title}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
