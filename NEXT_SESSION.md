@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Fase 1.9 + 2 + 4 + ADM-001 + xlsx + DIAN CUFE + 13 Playwright moleculares)
+**Última actualización**: 2026-04-18 (Plan hardening · CI duro + Fase G + observability · 6 bugs más fixeados)
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `6758977` (21+ commits ahead de origin) |
+| Branch | `main` @ `52195e5` (8 commits post-push ahead de origin) |
 | Backend tests | 687/687 OK + 3 skip |
-| Playwright moleculares | **13/13 verde** (Fase A-F · ~22 min total runtime) |
-| TS frontend | 5 errores pre-existentes (tokens theme) |
-| npm audit | 12 vulns (todas devDeps transitivas) |
-| Raíz limpia | CLAUDE.md (174) + README + NEXT_SESSION |
-| docs/ | ARCHITECTURE, SYSTEMS, PATTERNS, COMPLIANCE, DEPLOYMENT, CHANGELOG + CONTRACT_ARCHITECTURE |
-| memory/archive/ | 8 sesiones marzo 2026 archivadas |
+| Playwright moleculares | **17/17 verde** (Fase A-G · ~26 min total runtime) |
+| CI/CD | 8 jobs sin `continue-on-error` (excepto Locust experimental) · `lint-check` con pre-commit en cada PR |
+| pytest cobertura | configurada 60% floor (`pytest.ini` + `pytest-cov`) |
+| TS frontend | 5 errores pre-existentes |
+| Health check | `/api/v1/core/health/` profundo (DB+Redis+Celery) con 503 si falla alguno |
+| Slow queries | logging cuando `DEBUG=True` o `SLOW_QUERY_LOG=True` (umbral 500 ms) |
 
 ---
 
