@@ -210,7 +210,7 @@ const LandingPage: React.FC = () => {
       </Container>
 
       {/* How It Works */}
-      <Box sx={{ bgcolor: vhColors.background, py: { xs: 8, md: 12 } }}>
+      <Box sx={{ bgcolor: vhColors.surfaceMuted, py: { xs: 8, md: 12 } }}>
         <Container maxWidth="lg">
           <ScrollRevealBox>
             <SectionTitle subtitle="Tres pasos para comenzar a gestionar tus propiedades de forma profesional.">
@@ -254,7 +254,7 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Stats Section */}
-      <Box sx={{ background: `linear-gradient(135deg, ${vhColors.accentBlue} 0%, ${vhColors.primary} 100%)`, py: { xs: 6, md: 8 } }}>
+      <Box sx={{ background: `linear-gradient(135deg, ${vhColors.accentBlue} 0%, ${vhColors.purple} 100%)`, py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
           <ScrollRevealBox>
             <Grid container spacing={4}>
@@ -276,7 +276,7 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Final CTA */}
-      <Box sx={{ bgcolor: vhColors.background, py: { xs: 8, md: 10 } }}>
+      <Box sx={{ bgcolor: vhColors.surfaceMuted, py: { xs: 8, md: 10 } }}>
         <Container maxWidth="md">
           <ScrollRevealBox>
             <Box sx={{ textAlign: 'center' }}>

@@ -138,7 +138,7 @@ const AboutPage: React.FC = () => {
       <Fade in timeout={800}>
         <Box
           sx={{
-            background: `linear-gradient(135deg, ${vhColors.accentBlue} 0%, ${vhColors.primary} 100%)`,
+            background: `linear-gradient(135deg, ${vhColors.accentBlue} 0%, ${vhColors.purple} 100%)`,
             color: 'white',
             pt: 12,
             pb: 8,
