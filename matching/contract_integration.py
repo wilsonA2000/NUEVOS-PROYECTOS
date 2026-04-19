@@ -44,10 +44,6 @@ class MatchContractIntegrationService:
             errors.append("La propiedad no está disponible")
         
         # Validación 4: Documentos requeridos
-        required_docs = {
-            'tenant': ['cedula', 'carta_laboral', 'referencias'],
-            'landlord': ['cedula', 'certificado_tradicion', 'paz_salvo_administracion']
-        }
         
         # Aquí verificarías los documentos subidos
         

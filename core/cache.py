@@ -8,7 +8,7 @@ from functools import wraps
 import logging
 
 # Importar todo desde cache_utils para mantener compatibilidad
-from .cache_utils import *
+from .cache_utils import *  # noqa: F401, F403  (re-export para retrocompatibilidad)
 
 logger = logging.getLogger(__name__)
 

@@ -122,7 +122,7 @@ class ContractPDFGeneratorTest(TestCase):
             self.assertGreater(len(pdf_bytes), 0)
             # Verificar que empieza con la firma PDF
             self.assertTrue(pdf_bytes[:5] == b'%PDF-')
-        except Exception as e:
+        except Exception:
             # Algunos generadores requieren configuración específica de fuentes
             # El test verifica que al menos la clase se instancia correctamente
             self.assertIsNotNone(generator)

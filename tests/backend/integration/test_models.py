@@ -190,7 +190,7 @@ class PropertyModelTestCase(TestCase):
             image='path/to/image1.jpg',
             is_main=True
         )
-        image2 = PropertyImage.objects.create(
+        PropertyImage.objects.create(
             property=property_obj,
             image='path/to/image2.jpg',
             is_main=False
@@ -586,7 +586,7 @@ class MessageModelTestCase(TestCase):
         conversation.participants.add(self.user1, self.user2)
         
         # Create messages
-        message1 = Message.objects.create(
+        Message.objects.create(
             conversation=conversation,
             sender=self.user1,
             content='First message',

@@ -127,7 +127,7 @@ class TransactionModelTests(TestCase):
         self.assertRegex(tx.transaction_number, r'^TX-\d{4}-\d{8}$')
 
     def test_auto_calculate_total_amount(self):
-        tx = Transaction.objects.create(
+        Transaction.objects.create(
             payer=self.payer,
             payee=self.payee,
             transaction_type='rent_payment',

@@ -670,7 +670,7 @@ class AdvancedWidgetDataProvider:
         
         if self.user_type == 'landlord':
             properties_data = monthly_data.get('properties', {})
-            revenue_data = monthly_data.get('revenue', {})
+            monthly_data.get('revenue', {})
             
             advanced_stats = [
                 {

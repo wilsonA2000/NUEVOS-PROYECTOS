@@ -65,7 +65,7 @@ def create_test_users():
     for user_data in test_users:
         email = user_data['email']
         if not User.objects.filter(email=email).exists():
-            user = User.objects.create_user(**user_data)
+            User.objects.create_user(**user_data)
             print(f"✅ Created user: {email}")
         else:
             print(f"ℹ️  User already exists: {email}")

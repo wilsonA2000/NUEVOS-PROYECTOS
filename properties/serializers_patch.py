@@ -123,8 +123,7 @@ def handle_video_files(property_instance, video_files, video_metadata, delete_mi
         # Obtener metadatos del video
         title = video_metadata.get(f'video_{i}_title', video_file.name)
         description = video_metadata.get(f'video_{i}_description', '')
-        order = int(video_metadata.get(f'video_{i}_order', i))
-        
+
         # Como los archivos de video no tienen una URL única para comparar,
         # siempre creamos nuevos cuando se suben archivos
         # (No podemos actualizar archivos existentes sin un identificador único confiable)

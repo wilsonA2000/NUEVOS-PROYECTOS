@@ -74,9 +74,9 @@ def clean_properties_completely():
     # 4. Eliminar todo en una transacción
     with transaction.atomic():
         # Contar elementos antes de eliminar
-        images_to_delete = PropertyImage.objects.count()
-        videos_to_delete = PropertyVideo.objects.count()
-        properties_to_delete = Property.objects.count()
+        PropertyImage.objects.count()
+        PropertyVideo.objects.count()
+        Property.objects.count()
         
         # Eliminar propiedades (esto eliminará imágenes y videos en cascada)
         deleted_count, deletion_details = Property.objects.all().delete()

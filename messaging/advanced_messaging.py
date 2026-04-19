@@ -613,7 +613,7 @@ class AdvancedMessagingService:
                 
                 analytics.save()
             
-        except Exception as e:
+        except Exception:
             # Log error but don't fail the message sending
             pass
     
@@ -639,7 +639,7 @@ class AdvancedMessagingService:
                     }
                 )
                 
-        except Exception as e:
+        except Exception:
             # Log error but don't fail
             pass
     

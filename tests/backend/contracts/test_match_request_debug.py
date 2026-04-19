@@ -114,8 +114,7 @@ def test_match_request_validation():
             
     # Verificar campos requeridos según el modelo
     print("\n📋 Verificando campos del modelo MatchRequest:")
-    from matching.models import MatchRequest
-    
+
     for field in MatchRequest._meta.fields:
         if not field.blank and not field.null and field.name not in ['id', 'created_at', 'updated_at']:
             value = request_data.get(field.name, 'NOT PROVIDED')

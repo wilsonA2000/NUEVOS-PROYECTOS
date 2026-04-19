@@ -351,7 +351,7 @@ class ProcessDocumentVerificationTests(TestCase):
         }
         mock_save.return_value = ContentFile(b'doc', name='doc.jpg')
 
-        result = self.service.process_document_verification(
+        self.service.process_document_verification(
             str(self.auth.id),
             self.test_image_base64,
             'cedula_ciudadania',

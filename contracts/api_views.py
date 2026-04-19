@@ -1841,7 +1841,7 @@ class CompleteAuthenticationAPIView(APIView):
 
             # 4. Digital Signature
             if 'digital_signature' in data and data['digital_signature']:
-                sig_data = data['digital_signature']
+                data['digital_signature']
                 # La firma digital se maneja en el modelo Contract, no aquí
                 # Pero podemos registrar que se completó
                 pass
@@ -3345,7 +3345,6 @@ class TenantContractReviewAPIView(APIView):
                         print(f"✅ MatchRequest {property_request.id} advanced to stage 4 (Authentication)")
                     
                     # 2. CRÍTICO: También actualizar MatchRequest
-                    from matching.models import MatchRequest
                     match_request = MatchRequest.objects.filter(
                         tenant=request.user,
                         property=contract.property

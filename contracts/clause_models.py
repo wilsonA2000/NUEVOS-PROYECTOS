@@ -162,7 +162,7 @@ class EditableContractClause(models.Model):
         """
         try:
             return self.content.format(**context)
-        except KeyError as e:
+        except KeyError:
             # Si falta una variable, retornar con placeholder visible
             return self.content.replace('{', '[FALTA: ').replace('}', ']')
 

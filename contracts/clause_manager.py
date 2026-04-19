@@ -212,7 +212,7 @@ class ContractClauseManager:
         """Formatea el contenido de una cláusula con las variables del contexto."""
         try:
             return clause_content.format(**context)
-        except KeyError as e:
+        except KeyError:
             # Si falta alguna variable, devolver el contenido sin formatear
             return clause_content
     

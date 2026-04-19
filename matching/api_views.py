@@ -2,22 +2,21 @@
 Vistas API para el sistema de matching de VeriHome.
 """
 
-from rest_framework import viewsets, permissions, status, serializers
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.decorators import action
+import logging
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from decimal import Decimal
-import logging
-
-logger = logging.getLogger(__name__)
+from rest_framework import viewsets, permissions, status, serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import (
     MatchRequest, MatchCriteria, MatchNotification
 )
 from .serializers import (
-    MatchRequestSerializer, MatchCriteriaSerializer, 
+    MatchRequestSerializer, MatchCriteriaSerializer,
     MatchNotificationSerializer, CreateMatchRequestSerializer,
     MatchRequestDetailSerializer
 )
@@ -26,6 +25,8 @@ from .utils import (
     get_landlord_match_recommendations, create_match_notification,
     auto_apply_matches, get_match_statistics
 )
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 

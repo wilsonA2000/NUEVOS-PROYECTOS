@@ -2,25 +2,26 @@
 Vistas para el sistema de calificaciones de VeriHome.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Avg, Q
-from django.core.paginator import Paginator
-from rest_framework import generics, permissions, serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Avg, Q
+from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework import generics, permissions, serializers
 
-User = get_user_model()
+from contracts.models import Contract
+from users.models import UserActivityLog
+from users.services import AdminActionLogger
 
-from .models import Rating, RatingCategory, RatingReport, UserRatingProfile
 from .forms import RatingForm, RatingResponseForm, RatingReportForm
+from .models import Rating, RatingCategory, RatingReport, UserRatingProfile
 from .serializers import (
     RatingSerializer, RatingDetailSerializer, RatingCategorySerializer,
     RatingResponseSerializer, RatingReportSerializer, UserRatingProfileSerializer
 )
-from contracts.models import Contract
-from users.services import AdminActionLogger
-from users.models import UserActivityLog
+
+User = get_user_model()
 
 
 # Vistas web
@@ -67,7 +68,6 @@ def user_ratings(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
     # Verificar si el usuario puede ver las calificaciones
-    can_view = True  # Por defecto permitimos ver calificaciones públicas
     
     # Obtener calificaciones públicas
     ratings = Rating.objects.filter(

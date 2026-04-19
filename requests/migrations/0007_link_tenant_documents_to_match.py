@@ -89,7 +89,7 @@ def link_tenant_documents_to_match_requests(apps, schema_editor):
             doc.save(update_fields=['match_request'])
             linked_count += 1
 
-    print(f"\n✅ Migration complete:")
+    print("\n✅ Migration complete:")
     print(f"   - Created {created_count} new MatchRequest(s)")
     print(f"   - Linked {linked_count} TenantDocument(s)")
 
@@ -99,7 +99,6 @@ def reverse_link(apps, schema_editor):
     Reverse migration - set match_request back to NULL for migrated documents.
     """
     TenantDocument = apps.get_model('requests', 'TenantDocument')
-    MatchRequest = apps.get_model('matching', 'MatchRequest')
 
     # Find MatchRequests created by this migration (they should have workflow_data from PropertyInterestRequest)
     migrated_docs = TenantDocument.objects.filter(

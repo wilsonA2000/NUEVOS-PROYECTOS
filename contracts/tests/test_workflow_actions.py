@@ -122,7 +122,7 @@ class WorkflowActionEndpointTests(APITestCase):
     def test_reject_action_deletes_completely(self):
         """Test: Rechazar candidato elimina MatchRequest y cascades a TenantDocuments"""
         # Crear TenantDocument asociado
-        document = TenantDocument.objects.create(
+        TenantDocument.objects.create(
             uploaded_by=self.tenant,
             match_request=self.match_request,
             document_type='cedula',
@@ -498,7 +498,7 @@ class ActivityLogTests(APITestCase):
             'rejection_reason': 'Test logging'
         }
 
-        response = self.client.post(url, data, format='json')
+        self.client.post(url, data, format='json')
 
         # Verificar que se intentó crear log
         self.assertTrue(mock_activity_log.objects.create.called)

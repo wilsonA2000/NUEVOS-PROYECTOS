@@ -106,7 +106,6 @@ class BaseRequestViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def dashboard_stats(self, request):
         """Estadísticas para el dashboard."""
-        user = request.user
         queryset = self.get_queryset()
         
         stats = {

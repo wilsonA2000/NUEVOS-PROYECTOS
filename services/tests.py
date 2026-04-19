@@ -529,7 +529,7 @@ class ServiceImageModelTests(TestCase):
         self.assertTrue(self.image.is_main)
 
     def test_ordering_main_first(self):
-        img2 = ServiceImage.objects.create(
+        ServiceImage.objects.create(
             service=self.service,
             image=_tiny_gif(),
             is_main=False,

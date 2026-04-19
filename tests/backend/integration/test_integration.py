@@ -396,7 +396,7 @@ class PropertyLifecycleIntegrationTest(APITestCase):
                     }
                     
                     images_url = reverse('api:property-images-list')
-                    image_response = self.client.post(images_url, image_data, format='multipart')
+                    self.client.post(images_url, image_data, format='multipart')
                     # May fail if file handling is not fully configured
                     # self.assertEqual(image_response.status_code, status.HTTP_201_CREATED)
         
@@ -577,7 +577,7 @@ class PaymentFlowIntegrationTest(APITestCase):
         
         rent_response = self.client.post(self.payments_url, rent_payment_data)
         self.assertEqual(rent_response.status_code, status.HTTP_201_CREATED)
-        rent_payment_id = rent_response.data['id']
+        rent_response.data['id']
         
         # 5. VERIFY PAYMENT HISTORY
         self.client.force_authenticate(user=self.tenant)

@@ -208,13 +208,7 @@ class PerformanceMonitoringMiddleware(MiddlewareMixin):
 
             # Agregar header de timing
             response['X-Response-Time'] = f"{duration:.3f}s"
-            
-            # Métricas para Sentry/APM
-            if hasattr(request, 'user') and request.user.is_authenticated:
-                user_type = getattr(request.user, 'user_type', 'unknown')
-            else:
-                user_type = 'anonymous'
-            
+
             # Cache de métricas agregadas
             metrics_key = f"metrics:{request.method}:{request.path.split('?')[0]}"
             current_metrics = cache.get(metrics_key, {

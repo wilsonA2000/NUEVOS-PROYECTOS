@@ -128,7 +128,7 @@ class AutoSchedulerSignalTests(TestCase):
             total_area=60, bedrooms=2, bathrooms=1,
             city='Bucaramanga', state='Santander', address='X',
         )
-        lcc = LandlordControlledContract.objects.create(
+        LandlordControlledContract.objects.create(
             landlord=landlord, tenant=tenant, property=prop,
             current_state='ACTIVE',
             economic_terms={'monthly_rent': '1500000'},

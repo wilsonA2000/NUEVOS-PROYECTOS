@@ -3,36 +3,38 @@ Vistas de API REST para la aplicación de pagos de VeriHome.
 OPTIMIZED with performance monitoring and intelligent caching.
 """
 
-from rest_framework import viewsets, generics, permissions, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.decorators import action
+import logging
+from decimal import Decimal
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models, transaction as db_transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
-from django.conf import settings
-from decimal import Decimal
-import logging
+from rest_framework import viewsets, generics, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-logger = logging.getLogger(__name__)
-# Import optimizations
 from core.optimizations import (
     QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin
 )
+from users.services import AdminActionLogger
+
+from .gateways.stripe_gateway import StripeGateway
 from .models import (
     Transaction, PaymentMethod, Invoice, EscrowAccount,
     PaymentPlan, PaymentInstallment, RentPaymentSchedule,
     PaymentOrder,
 )
-from .gateways.stripe_gateway import StripeGateway
 from .serializers import (
     TransactionSerializer, CreateTransactionSerializer,
     PaymentMethodSerializer, InvoiceSerializer, CreateInvoiceSerializer,
     EscrowAccountSerializer, PaymentPlanSerializer,
     PaymentOrderSerializer,
 )
-from users.services import AdminActionLogger
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -630,7 +632,7 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
         """Pagar una cuota específica."""
         plan = self.get_object()
         installment_number = request.data.get('installment_number')
-        payment_method_id = request.data.get('payment_method_id')
+        request.data.get('payment_method_id')
         
         if not installment_number:
             return Response(
@@ -1090,7 +1092,6 @@ class BalanceAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = request.user
         
         # Calcular balance (implementación simplificada)
         # En un sistema real, esto vendría de una cuenta bancaria o wallet

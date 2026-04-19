@@ -7,6 +7,8 @@ del proceso de creación de contratos, con workflow paso a paso.
 """
 
 from django.db import models
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -552,7 +554,6 @@ class LandlordControlledContract(models.Model):
             'TENANT_RETURNED'  # 🔄 NUEVO: Arrendatario devolvió (transición)
         ]
         # Estados del sistema (sin intervención humana directa)
-        system_states = ['TENANT_INVITED', 'PUBLISHED', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'CANCELLED']
 
         if self.current_state in admin_states:
             return 'admin'
@@ -1640,8 +1641,6 @@ class ContractWorkflowHistory(models.Model):
 
 
 # Señales para mantener sincronización
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
 
 @receiver(pre_save, sender=LandlordControlledContract)
 def update_objections_count(sender, instance, **kwargs):

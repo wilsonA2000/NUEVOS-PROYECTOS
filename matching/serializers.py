@@ -75,7 +75,6 @@ class MatchRequestSerializer(serializers.ModelSerializer):
                 'email': getattr(obj, 'tenant_email', ''),
             }
         return None
-        read_only_fields = ['id', 'match_code', 'created_at', 'viewed_at', 'responded_at']
     
     def get_compatibility_score(self, obj):
         return obj.get_compatibility_score()

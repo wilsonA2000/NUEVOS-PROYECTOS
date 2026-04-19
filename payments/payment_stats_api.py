@@ -581,7 +581,7 @@ class PaymentStatsAPIView(APIView):
         dispute_rate = (disputed_count / total_transactions) * 100
         
         # Late payments (for rent payments)
-        rent_transactions = transactions.filter(transaction_type__in=['monthly_rent', 'rent_payment'])
+        transactions.filter(transaction_type__in=['monthly_rent', 'rent_payment'])
         # This would need more complex logic to determine lateness
         
         return {
@@ -948,7 +948,7 @@ class ExportPaymentStatsAPIView(APIView):
     def post(self, request):
         """Export payment statistics in specified format."""
         export_format = request.data.get('format', 'json')  # json, csv, excel
-        date_range = request.data.get('date_range', '30d')
+        request.data.get('date_range', '30d')
         include_details = request.data.get('include_details', False)
         
         if export_format not in ['json', 'csv', 'excel']:

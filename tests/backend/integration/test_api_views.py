@@ -81,7 +81,7 @@ class AuthenticationAPITestCase(APITestCase):
     def test_user_login_success(self):
         """Test successful user login"""
         # Create and verify user first
-        user = User.objects.create_user(
+        User.objects.create_user(
             email=self.user_data['email'],
             password=self.user_data['password'],
             first_name=self.user_data['first_name'],

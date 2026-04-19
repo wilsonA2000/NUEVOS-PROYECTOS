@@ -459,12 +459,17 @@ class BiometricAuthenticationService:
             # Verificar que todos los pasos estén completos
             if not auth.is_complete():
                 missing_steps = []
-                if not auth.face_front_image: missing_steps.append('face_front')
-                if not auth.face_side_image: missing_steps.append('face_side')
-                if not auth.document_image: missing_steps.append('document')
-                if not auth.document_with_face_image: missing_steps.append('combined')
-                if not auth.voice_recording: missing_steps.append('voice')
-                
+                if not auth.face_front_image:
+                    missing_steps.append('face_front')
+                if not auth.face_side_image:
+                    missing_steps.append('face_side')
+                if not auth.document_image:
+                    missing_steps.append('document')
+                if not auth.document_with_face_image:
+                    missing_steps.append('combined')
+                if not auth.voice_recording:
+                    missing_steps.append('voice')
+
                 raise ValueError(f"Autenticación incompleta. Faltan pasos: {', '.join(missing_steps)}")
             
             # Calcular puntuación general de confianza

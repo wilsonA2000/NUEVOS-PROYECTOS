@@ -266,7 +266,6 @@ class MatchRequest(models.Model):
         
         with transaction.atomic():
             # 1. Cambiar status del match
-            old_status = self.status
             self.status = 'rejected'
             self.responded_at = timezone.now()
             self.landlord_response = landlord_message

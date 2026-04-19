@@ -92,7 +92,6 @@ def diagnose_auth_system():
         # Verificar validez del token
         try:
             # Verificar si el token está en la blacklist
-            is_valid = True
             print("\n✅ Token generado exitosamente y es válido")
         except Exception as e:
             print(f"\n❌ Error verificando token: {e}")

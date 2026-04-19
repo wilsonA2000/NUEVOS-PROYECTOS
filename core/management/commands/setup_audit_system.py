@@ -244,7 +244,7 @@ class Command(BaseCommand):
         
         # Test 2: Crear alerta del sistema
         try:
-            alert = audit_service.create_system_alert(
+            audit_service.create_system_alert(
                 title='Test de alerta del sistema',
                 description='Esta es una alerta de prueba creada durante la configuración',
                 level='info',

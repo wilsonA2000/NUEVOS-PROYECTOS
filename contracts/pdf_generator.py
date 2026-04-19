@@ -278,7 +278,6 @@ class ProfessionalPageTemplate(PageTemplate):
         canvas.setFillColor(colors.HexColor('#DAA520'))
         canvas.setLineWidth(1)
         
-        corner_size = 25
         
         # === ESQUINA SUPERIOR IZQUIERDA ===
         # Roseta ornamental
@@ -427,9 +426,6 @@ class ProfessionalPageTemplate(PageTemplate):
         canvas.setFillColor(colors.HexColor('#1565C0'))
 
         page_num = canvas.getPageNumber()
-        # Usar el número real de páginas del documento
-        # Note: doc.page es el contador actual durante la construcción
-        total_pages = getattr(doc, '_total_pages', page_num)
         text = f"Página {page_num}"
 
         # Agregar fondo blanco semitransparente para legibilidad

@@ -581,10 +581,6 @@ class OptimizedUpdatePropertySerializer(OptimizedCreatePropertySerializer):
                     order=instance.images.count() + i
                 )
         
-        # MEJORAR LÓGICA DE ARCHIVOS DE VIDEO - evitar duplicación
-        # Verificar si se están enviando archivos de video
-        has_video_files_data = any(key.startswith('video_') or key == 'video_files' for key in (request.data.keys() if request else []))
-        
         # Si se detectan campos de video en el request, solo agregar los nuevos (no eliminar existentes)
         # Los videos existentes se eliminan individualmente mediante la API deleteVideo
         if video_files:

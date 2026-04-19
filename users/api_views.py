@@ -205,7 +205,6 @@ class UserDashboardStatsAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = request.user
         # Implementar lógica de estadísticas
         return Response({
             'total_contracts': 0,
@@ -1144,7 +1143,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         try:
             data = super().validate(attrs)
             return data
-        except Exception as e:
+        except Exception:
             raise serializers.ValidationError({
                 'detail': 'Error generando tokens de autenticación. Intenta nuevamente.',
                 'error_type': 'token_generation_error'
@@ -1188,7 +1187,7 @@ class EmailConfirmationView(APIView):
             return Response({
                 'detail': 'Enlace de confirmación inválido.'
             }, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
+        except Exception:
             return Response({
                 'detail': 'Error al confirmar el email.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1237,7 +1236,7 @@ class MarkNotificationReadAPIView(APIView):
             notification.save()
             
             return Response({'success': True, 'message': 'Notificación marcada como leída'})
-        except Exception as e:
+        except Exception:
             return Response(
                 {'error': 'No se pudo marcar la notificación como leída'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -1263,7 +1262,7 @@ class MarkAllNotificationsReadAPIView(APIView):
                 'success': True, 
                 'message': f'{unread_notifications.count()} notificaciones marcadas como leídas'
             })
-        except Exception as e:
+        except Exception:
             return Response(
                 {'error': 'No se pudieron marcar las notificaciones como leídas'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -1522,7 +1521,7 @@ class ForgotPasswordView(APIView):
                 {'message': 'Si el email existe en nuestro sistema, recibirás instrucciones para restablecer tu contraseña'},
                 status=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return Response(
                 {'error': 'Error al enviar el email. Por favor, intenta nuevamente.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1590,7 +1589,7 @@ class ResetPasswordView(APIView):
                 {'error': 'Token inválido'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        except Exception as e:
+        except Exception:
             return Response(
                 {'error': 'Error al restablecer la contraseña'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

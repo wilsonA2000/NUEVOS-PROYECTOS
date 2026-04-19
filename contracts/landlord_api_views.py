@@ -364,7 +364,7 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
         """
         Responder a una objeción presentada por la otra parte.
         """
-        contract = self.get_object()
+        self.get_object()
         objection_id = request.data.get('objection_id')
         
         if not objection_id:

@@ -3,11 +3,14 @@ Señales mejoradas para el sistema de calificaciones de VeriHome.
 Incluye automatización de notificaciones y actualizaciones.
 """
 
+import logging
+
+from django.apps import AppConfig, apps
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
 from .models import Rating, RatingResponse, RatingReport, UserRatingProfile
 from .notifications import RatingNotificationManager
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -130,8 +133,6 @@ def _check_and_notify_milestones(user, profile, old_avg_rating, old_total):
 
 
 # Signal para contratos completados
-from django.apps import apps
-
 def setup_contract_signals():
     """
     Configura signals para contratos completados (se ejecuta después de que las apps se cargan).
@@ -177,8 +178,6 @@ def setup_contract_signals():
 
 
 # Configurar signals de contratos cuando la app esté lista
-from django.apps import AppConfig
-
 class RatingsAppConfig(AppConfig):
     """Configuración de la app de calificaciones."""
     default_auto_field = 'django.db.models.BigAutoField'

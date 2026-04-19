@@ -366,12 +366,12 @@ class EscrowService:
             scheduled_for__lte=datetime.now()
         )
         
-        for transaction in pending_releases:
+        for escrow_txn in pending_releases:
             try:
-                if transaction.related_milestone:
+                if escrow_txn.related_milestone:
                     EscrowService.release_funds_for_milestone(
-                        milestone=transaction.related_milestone,
-                        release_amount=transaction.amount
+                        milestone=escrow_txn.related_milestone,
+                        release_amount=escrow_txn.amount
                     )
             except Exception as e:
                 # Log error pero continúa con otras transacciones

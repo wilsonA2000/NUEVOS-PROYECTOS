@@ -224,7 +224,7 @@ class PerformanceMonitor:
     
     def _check_alerts(self):
         """Verifica si alguna métrica supera los thresholds."""
-        current_time = datetime.now()
+        datetime.now()
         
         for metric_name, threshold in self.thresholds.items():
             if metric_name in self.metrics and self.metrics[metric_name]:

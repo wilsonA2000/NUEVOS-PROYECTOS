@@ -124,7 +124,7 @@ class FAQModelTests(TestCase):
         self.assertEqual(faq.helpful_count, 0)
 
     def test_ordering_by_category_and_order(self):
-        faq1 = _make_faq(category='payments', order=2, question='Q2')
+        _make_faq(category='payments', order=2, question='Q2')
         faq2 = _make_faq(category='general', order=1, question='Q1')
         faqs = list(FAQ.objects.all())
         # general comes before payments alphabetically

@@ -324,7 +324,7 @@ class MessageNotificationManager:
             # Implementar integración con servicio de push notifications
             # Por ejemplo: Firebase Cloud Messaging, OneSignal, etc.
             
-            notification_data = {
+            {
                 'title': f"Nuevo mensaje de {message.sender.get_full_name()}",
                 'body': message.content[:100] + '...' if len(message.content) > 100 else message.content,
                 'data': {

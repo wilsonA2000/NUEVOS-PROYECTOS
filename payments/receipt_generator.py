@@ -415,9 +415,6 @@ def generate_payment_order_receipt(order):
         'POSection', parent=styles['Heading2'], fontSize=12,
         textColor=VERIHOME_PRIMARY, spaceBefore=14, spaceAfter=6,
     )
-    label_style = ParagraphStyle(
-        'POLabel', parent=styles['Normal'], fontSize=9, textColor=colors.grey,
-    )
     value_style = ParagraphStyle(
         'POValue', parent=styles['Normal'], fontSize=11, textColor=colors.black,
         spaceAfter=4,

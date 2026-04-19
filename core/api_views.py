@@ -323,7 +323,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         return Response({'message': f'Marked {updated} notifications as read'})
     
     def perform_create(self, serializer):
-        notification = serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user)
         
         # Log actividad (comentado temporalmente)
         # audit_service.log_user_activity(

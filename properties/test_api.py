@@ -190,7 +190,7 @@ class PropertyModelTests(TestCase):
 
     def test_property_ordering(self):
         """Properties are ordered by -created_at by default."""
-        prop2 = _create_property(self.landlord, title="Segundo")
+        _create_property(self.landlord, title="Segundo")
         qs = Property.objects.all()
         self.assertEqual(qs.first().title, "Segundo")
 

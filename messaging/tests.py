@@ -370,7 +370,7 @@ class MessagingAPITests(APITestCase):
 
     def test_thread_serializer_includes_last_message(self):
         """MessageThreadSerializer expone last_message vía SerializerMethodField."""
-        msg = _make_message(self.thread, self.user1, self.user2, "Último mensaje")
+        _make_message(self.thread, self.user1, self.user2, "Último mensaje")
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/messages/threads/{self.thread.pk}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)

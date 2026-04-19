@@ -84,7 +84,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         interview_code = attrs.get('interview_code')
         if interview_code:
             try:
-                code_obj = InterviewCode.objects.get(
+                InterviewCode.objects.get(
                     interview_code=interview_code,
                     candidate_email=attrs['email'],
                     status='active'
