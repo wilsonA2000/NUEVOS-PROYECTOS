@@ -14,12 +14,20 @@ class HealthCheckTest(APITestCase):
     """Tests para el endpoint público de health check."""
 
     def test_health_check_returns_ok(self):
-        """Test que el health check público retorna status ok."""
+        """Test que el health check público retorna status saludable.
+
+        El endpoint `/api/v1/core/health/` es un probe liveness/readiness
+        (Kubernetes-friendly): devuelve `status='healthy'` si db + redis
+        responden, `unhealthy` (503) en caso contrario. El payload incluye
+        `checks` y `failed` para diagnóstico.
+        """
         response = self.client.get('/api/v1/core/health/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'ok')
-        self.assertIn('message', response.data)
+        self.assertEqual(response.data['status'], 'healthy')
+        self.assertIn('checks', response.data)
+        self.assertIn('failed', response.data)
+        self.assertEqual(response.data['failed'], [])
 
     def test_health_check_no_auth_required(self):
         """Test que el health check no requiere autenticación."""
