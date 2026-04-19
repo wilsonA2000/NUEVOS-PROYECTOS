@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-18 (Fase 1.9 + Fase 2 + ADM-001 + Fase 4 + xlsx + DIAN CUFE)
+**Última actualización**: 2026-04-18 (Fase 1.9 + 2 + 4 + ADM-001 + xlsx + DIAN CUFE + 13 Playwright moleculares)
 
 ---
 
@@ -8,13 +8,13 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `690a1f4` (14 commits ahead de origin) |
-| Backend tests | 687/687 OK + 3 skip (contracts+matching+services+ratings+messaging+payments+verification+properties) |
-| Tests nuevos sesión | traceability E2E 2/2 · contract_sync 3/3 · DIAN CUFE/XAdES 7/7 |
+| Branch | `main` @ `6758977` (21+ commits ahead de origin) |
+| Backend tests | 687/687 OK + 3 skip |
+| Playwright moleculares | **13/13 verde** (Fase A-F · ~22 min total runtime) |
 | TS frontend | 5 errores pre-existentes (tokens theme) |
-| npm audit | 12 vulns (todas devDeps transitivas, requieren `--force`) |
-| Raíz limpia | CLAUDE.md (703→174) + README.md + NEXT_SESSION.md |
-| docs/ nuevos | ARCHITECTURE, SYSTEMS, PATTERNS, COMPLIANCE, DEPLOYMENT, CHANGELOG + CONTRACT_ARCHITECTURE |
+| npm audit | 12 vulns (todas devDeps transitivas) |
+| Raíz limpia | CLAUDE.md (174) + README + NEXT_SESSION |
+| docs/ | ARCHITECTURE, SYSTEMS, PATTERNS, COMPLIANCE, DEPLOYMENT, CHANGELOG + CONTRACT_ARCHITECTURE |
 | memory/archive/ | 8 sesiones marzo 2026 archivadas |
 
 ---
@@ -85,12 +85,27 @@
 - ✅ xlsx removido (1 high-severity vuln menos) — `75eba17`.
 - ✅ DIAN CUFE SHA-384 + XAdES stub + 7 tests — `690a1f4`.
 
-### 🟢 P2 — requieren user/ops (no ejecutables en solitario)
-- **Pruebas manuales** `docs/MANUAL_E2E_CHECKLIST.md` — necesita navegador +
-  backend+frontend corriendo en paralelo.
+### ✅ Playwright moleculares Fase A-F — COMPLETA (13/13 verde)
+- A (3): ciclo circular · admin reject · tenant objection — `82a91ae` + `278fadf`.
+- B (2): ServiceOrder · ServiceRequest anon/auth — `f2d6d93`.
+- C (1): verificación presencial end-to-end — `c979579`.
+- D (1): cronograma canon auto — `1559c78`.
+- E (3): rating service_order · thread contexts · audit trail — `6056989`.
+- F (3): renewal IPC · tickets · subscriptions — `6758977`.
+
+**7 bugs producción arreglados** durante la suite:
+- AdminContractApprovalView no aceptaba `RE_PENDING_ADMIN`.
+- ContractWorkflowHistoryViewSet filtraba staff + sin filtro `?contract=`.
+- ContractObjectionSerializer fields desincronizados del modelo.
+- Seed no creaba `EmailAddress(verified=True)` → login fallaba.
+- Seed ampliado con admin/service_provider/verification_agent.
+- RatingListCreateView.perform_create ahora soporta `service_order`.
+- ServiceSubscriptionViewSet.subscribe usa `update_or_create`
+  (OneToOne impedía re-subscribe tras cancel).
+
+### 🟢 P2 — requieren user/ops
 - **Deploy producción** — infra (Daphne + Celery + PostgreSQL + Redis + SSL).
-- **DIAN XAdES activo** — requiere certificado digital `.p12` emitido
-  por certificador autorizado + `pip install signxml`. Stub listo en
+- **DIAN XAdES activo** — certificado `.p12` + signxml lib. Stub en
   `payments/dian_invoice_service.py:sign_invoice_xml`.
 
 ---
