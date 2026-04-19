@@ -14,11 +14,25 @@
 | CI/CD | 9 jobs sin masking + `lint-check` (pre-commit) + Lighthouse opcional |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
-| npm audit | 12 vulns devDeps transitivas (K1 intentado, descartado por vite 7 break) |
+| npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
 
 ---
 
 ## Lo que se hizo esta sesión (2026-04-19 tarde)
+
+### Fase K1 — npm audit clean (12 → 0 vulns)
+- `vite` 5.1.0 → **8.0.8** (3 majors · incluye Rolldown interno).
+- `@vitejs/plugin-react` 4 → **6.0.1** (requerido por vite 8).
+- `@typescript-eslint/parser` + `eslint-plugin` 6.21.0 → **8.58.2**
+  (cierra cadena minimatch ReDoS).
+- `vite.config.ts`: quitado `splitVendorChunkPlugin` (removido en vite 6).
+  `manualChunks` explícito ya cubría el caso.
+- `overrides.serialize-javascript` ^7.0.5 (cierra cadena
+  workbox-build → @rollup/plugin-terser → serialize-javascript).
+- `@testing-library/dom` ^10.4.1 instalado explícito (vite 8 rompió
+  resolución transitiva; peer de `@testing-library/react@16`).
+- Validado: `npm run build` OK 2m 56s · dev server OK · Playwright
+  G5+A1+H1 verdes · tsc con 5 errores pre-existentes (theme tokens).
 
 ### Fase G5 — Contract PDF preview validation
 - Nueva spec `fase-g5-contract-pdf-preview.spec.ts`:
