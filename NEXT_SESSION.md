@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 noche (Fase L1 + M1 + N1 + N2 · ruff backend 1197→743)
+**Última actualización**: 2026-04-19 cierre (Fase O1 · ruff F821 51→0 · 743→711)
 
 ---
 
@@ -16,6 +16,48 @@
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | **0 errores** ✅ (N1: theme tokens + stripe import type) |
 | npm audit | **0 vulns** (K1 resuelto · vite 5→8 + typescript-eslint 6→8 + override serialize-javascript) |
+
+---
+
+## Lo que se hizo esta sesión (2026-04-19 cierre · Fase O1)
+
+### Fase O1 — ruff F821 51→0 (bugs reales + imports)
+Scope completo backend. De los 51 F821, 50 eran imports faltantes y
+1 fue bug real en `matching/api_views.py`:
+
+- **`contracts/renewal_service.py` (5)**: forward refs
+  `LandlordControlledContract` + `Contract` en type hints con imports
+  lazy dentro de métodos → `TYPE_CHECKING` block al top.
+- **`core/api_views.py` (12)**: `audit_service`, `HttpResponse`, `json`,
+  `get_client_ip` fantasma. Agregados imports + helper local
+  `get_client_ip(request)` (patrón X-Forwarded-For).
+- **`dashboard/api_views.py` (1)**: `models.Max` en `perform_create`
+  sin `from django.db import models`.
+- **`matching/api_views.py` (1)** — **bug real**: `except DoesNotExist`
+  duplicado (dead code) + `MultipleObjectsReturned` usaba `tenant_id`
+  y `property_id` undefined. Fix: usar `request.user` + `property_id`
+  del scope del método `delete`.
+- **`messaging/advanced_api_views.py` (11)**: antipatrón
+  `self.getattr(request, "query_params", request.GET)` (5x) — confirma
+  `feedback_getattr_antipattern.md`. Corregido a
+  `getattr(self.request, "query_params", self.request.GET)`. Import `uuid`.
+- **`payments/api_views.py` (4)**: `import logging` + logger module-level.
+- **`payments/escrow_integration.py` (9)**: `User` forward-ref en 9
+  type hints → `TYPE_CHECKING` block.
+- **`payments/models.py` (4)**: `from datetime import timedelta`
+  (usado en `PaymentPlan.get_next_payment_date`).
+- **`users/services.py` (3)**: `Count` + `AdminImpersonationSession`.
+
+**Validación**:
+- `ruff --select F821` → **0 errors**.
+- `ruff --statistics` → 743 → **711** total.
+- `manage.py check` → sin issues.
+- `manage.py test matching contracts payments messaging users core dashboard`
+  → **564/565 OK** + 3 skipped. La 1 falla (`test_health_check_returns_ok`
+  espera `'ok'` recibe `'healthy'`) es **pre-existente** — confirmado
+  contra `main` limpio vía `git stash`.
+
+Commit: `984387b` — 9 archivos · +50 / -30.
 
 ---
 
@@ -271,21 +313,22 @@ python manage.py test matching contracts services ratings messaging payments ver
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ d5971f7. Sesión anterior cerró 5 commits
-(L1 profile/resume E2E · M1 best-practices 0.78→1.00 · N1 TS 5→0
-+ ruff verihome 13→0 · N2 ruff backend F541+E402 1197→743).
-25/25 moleculares OK · TS frontend 0 errors · Lighthouse a11y/bp/seo
-verdes.
+Continúa VeriHome. Main @ 984387b. Sesión anterior cerró Fase O1
+(ruff F821 51→0 · 1 bug real en matching/api_views.py delete +
+10 imports faltantes · 743→711 ruff total).
+TS frontend 0 · 25/25 moleculares · Lighthouse a11y/bp/seo verde.
 
 Próximos candidatos en orden de scope:
   1. ruff F401 backend audit (553 unused-imports) — riesgo Django
-     signals side-effects, NO mass-fix ciego.
-  2. ruff F821 backend (51 undefined-name) — potenciales bugs reales,
-     merece auditoría caso-por-caso.
+     signals side-effects, NO mass-fix ciego. Approach: split por app,
+     probar cada una con manage.py check + app tests.
+  2. ruff F841 (56 unused-variable) + E722 (45 bare-except) — cosmético
+     pero requiere lectura caso-por-caso.
   3. Biometric UI real (camera + voice E2E) — scope grande dedicado.
   4. Frontend ESLint (1371 errores) — staged con autofix + relajar
      reglas a warn, varias sesiones.
 
-Deuda CI pendiente: security-scan + test-backend + test-frontend
-(frontend lint sigue rojo). Ver NEXT_SESSION.md.
+Deuda CI pendiente: security-scan + test-backend (1 pre-existente
+test_health_check 'healthy' vs 'ok') + test-frontend (ESLint rojo).
+Ver NEXT_SESSION.md.
 ```
