@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-19 (Fase H admin UI + I1/I2 + J1/J2/J3 · 2 bugs más + axe-core + lighthouse)
+**Última actualización**: 2026-04-19 tarde (Fase G5 · preview-pdf validation verde)
 
 ---
 
@@ -8,13 +8,25 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `69a0be6` (17+ commits post-push) |
+| Branch | `main` @ `5facd71` + 1 commit G5 |
 | Backend tests | 690/690 OK (incluye 3 nuevos de Sentry J1) |
-| Playwright moleculares | **23/23 verde** (Fase A-J · ~35 min total) |
+| Playwright moleculares | **24/24 verde** (Fase A-J + G5 · ~37 min total) |
 | CI/CD | 9 jobs sin masking + `lint-check` (pre-commit) + Lighthouse opcional |
 | Observability | Sentry guard-tested · slow-query log · health deep · axe-core WCAG |
 | TS frontend | 5 errores pre-existentes |
 | npm audit | 12 vulns devDeps transitivas (K1 intentado, descartado por vite 7 break) |
+
+---
+
+## Lo que se hizo esta sesión (2026-04-19 tarde)
+
+### Fase G5 — Contract PDF preview validation
+- Nueva spec `fase-g5-contract-pdf-preview.spec.ts`:
+  - Landlord + tenant reciben 200 + `application/pdf` + `%PDF-` + >10KB
+  - Anon → 401 · service_provider → 403
+- Endpoint validado: `GET /api/v1/contracts/{id}/preview-pdf/`
+  (ContractPreviewPDFAPIView acepta LCC o Contract legacy con mismo UUID).
+- PDF real pesa ~43KB con cláusulas + branding + Diosa Temis watermark.
 
 ---
 
