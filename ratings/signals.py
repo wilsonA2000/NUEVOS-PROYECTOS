@@ -5,7 +5,6 @@ Incluye automatización de notificaciones y actualizaciones.
 
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.utils import timezone
 from .models import Rating, RatingResponse, RatingReport, UserRatingProfile
 from .notifications import RatingNotificationManager
 import logging

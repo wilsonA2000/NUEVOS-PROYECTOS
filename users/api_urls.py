@@ -4,7 +4,7 @@ URLs de la API REST para la aplicación de usuarios de VeriHome.
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import api_views
 from .api_views import CustomTokenObtainPairView
 from .api_interview import ValidateInterviewCodeView, RegisterWithCodeView, ContactRequestView

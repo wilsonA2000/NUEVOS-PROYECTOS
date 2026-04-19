@@ -4,15 +4,13 @@ Se integra con los modelos existentes y proporciona funcionalidades adicionales.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Count, Q, F
+from django.db.models import Count, F
 from django.utils import timezone
-from django.conf import settings
-import json
 import uuid
 
 from .models import ActivityLog, SystemAlert, SystemMetrics

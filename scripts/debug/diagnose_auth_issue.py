@@ -5,8 +5,6 @@ Diagnóstico del problema de autenticación 401 en VeriHome
 import os
 import sys
 import django
-import json
-from datetime import datetime, timedelta
 
 # Configurar Django
 sys.path.append('/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS')
@@ -16,7 +14,6 @@ django.setup()
 from django.contrib.auth import get_user_model
 from properties.models import Property
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.utils import timezone
 
 User = get_user_model()
 
@@ -93,7 +90,6 @@ def diagnose_auth_system():
         print("   4. Recarga la página")
         
         # Verificar validez del token
-        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
         try:
             # Verificar si el token está en la blacklist
             is_valid = True

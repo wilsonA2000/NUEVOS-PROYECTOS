@@ -4,11 +4,11 @@ Vistas para el dashboard de VeriHome.
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions, status
+from rest_framework import permissions
 from django.core.cache import cache
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
-from datetime import timedelta, datetime
+from datetime import timedelta
 from properties.models import Property, PropertyFavorite, PropertyView
 from contracts.models import Contract
 from payments.models import Transaction

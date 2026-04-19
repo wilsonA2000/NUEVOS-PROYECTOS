@@ -14,8 +14,6 @@ Version: 1.0
 import os
 import sys
 import django
-import json
-from decimal import Decimal
 
 # Configurar Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

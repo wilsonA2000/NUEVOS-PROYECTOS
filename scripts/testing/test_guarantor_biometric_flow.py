@@ -4,7 +4,6 @@ Script para probar el flujo biométrico completo con garante.
 Flujo: Tenant → Guarantor → Landlord
 """
 import os
-import sys
 import django
 
 # Setup Django

@@ -6,7 +6,6 @@ Test simplificado para verificar el error 400 en match request
 import os
 import sys
 import django
-import json
 
 # Configurar Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")

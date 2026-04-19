@@ -4,8 +4,6 @@ Configuración del admin para el sistema de códigos de entrevista.
 
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
-from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.http import HttpResponse
 from django.template.response import TemplateResponse

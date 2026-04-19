@@ -7,7 +7,6 @@ import os
 import sys
 import django
 import json
-from decimal import Decimal
 
 # Configurar Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
@@ -114,7 +113,6 @@ def test_match_request_validation():
             
     # Verificar campos requeridos según el modelo
     print("\n📋 Verificando campos del modelo MatchRequest:")
-    from matching.models import MatchRequest
     
     # Revisar campos requeridos que podrían estar faltando
     required_fields = [

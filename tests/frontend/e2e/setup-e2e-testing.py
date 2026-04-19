@@ -7,7 +7,6 @@ Configures and prepares the environment for end-to-end testing
 import os
 import sys
 import subprocess
-import json
 from pathlib import Path
 
 # Add Django project to path
@@ -23,10 +22,9 @@ django.setup()
 def create_test_fixtures():
     """Create test data fixtures for E2E testing"""
     from django.contrib.auth import get_user_model
-    from properties.models import Property, PropertyImage, Amenity
+    from properties.models import Property, Amenity
     from contracts.models import Contract
     from messaging.models import Conversation, Message
-    from payments.models import Transaction, Invoice
     
     User = get_user_model()
     

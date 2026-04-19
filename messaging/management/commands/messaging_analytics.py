@@ -4,7 +4,7 @@ Proporciona estadísticas detalladas sobre el uso y rendimiento del sistema.
 """
 
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Avg, Max, Min, Q
+from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 import json
@@ -80,7 +80,6 @@ class Command(BaseCommand):
     def _generate_analytics(self, start_date, end_date, user_id=None):
         """Genera datos de analíticas del sistema de mensajería."""
         from messaging.models import MessageThread, Message, MessageReaction
-        from users.models import User
         
         analytics = {
             'period': {
@@ -168,7 +167,6 @@ class Command(BaseCommand):
     def _get_user_analytics(self, start_date, end_date):
         """Obtiene analíticas de usuarios."""
         from messaging.models import Message
-        from users.models import User
         
         # Usuarios más activos enviando mensajes
         top_senders = Message.objects.filter(

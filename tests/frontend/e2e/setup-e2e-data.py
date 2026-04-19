@@ -20,9 +20,7 @@ import django
 django.setup()
 
 from django.contrib.auth import get_user_model
-from properties.models import Property, PropertyImage, PropertyAmenity, PropertyAmenityRelation
-from contracts.models import Contract
-from users.models.user import User
+from properties.models import Property, PropertyAmenity, PropertyAmenityRelation
 
 def create_test_users():
     """Create test users for E2E testing"""

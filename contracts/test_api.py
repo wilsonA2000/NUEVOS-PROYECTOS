@@ -6,7 +6,6 @@ Contract CRUD API, biometric authentication endpoints, PDF preview,
 and permission checks.
 """
 
-import unittest
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
@@ -19,13 +18,10 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from contracts.models import (
     Contract,
-    ContractTemplate,
-    ContractSignature,
     BiometricAuthentication,
 )
 from contracts.landlord_contract_models import (
     LandlordControlledContract,
-    ContractWorkflowHistory,
 )
 from properties.models import Property
 

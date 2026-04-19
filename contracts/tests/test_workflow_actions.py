@@ -3,11 +3,11 @@ Tests comprehensivos para el módulo de contratos.
 Incluye tests para workflow-action endpoint y sistema de eliminación completa.
 """
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TransactionTestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import uuid
 
 from contracts.models import Contract, LandlordControlledContract

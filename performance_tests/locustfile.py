@@ -1,8 +1,5 @@
 from locust import HttpUser, task, between
-import json
 import random
-from datetime import date, timedelta
-import base64
 
 
 class VeriHomeUser(HttpUser):

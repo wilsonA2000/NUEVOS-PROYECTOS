@@ -104,8 +104,6 @@ class SmartCache:
     def invalidate_pattern(pattern):
         """Invalidar keys que coincidan con el patrón de manera eficiente."""
         try:
-            from django.core.cache.backends.base import BaseCache
-            from django.core.cache.backends.redis import RedisCache
             
             # Verificar si tenemos Redis disponible
             if hasattr(cache, '_cache') and hasattr(cache._cache, 'get_client'):

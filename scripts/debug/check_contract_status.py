@@ -3,7 +3,6 @@
 Verificar el estado del contrato y el flujo biométrico.
 """
 import os
-import sys
 import django
 
 # Setup Django

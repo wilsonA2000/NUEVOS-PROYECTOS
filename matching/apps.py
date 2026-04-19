@@ -7,4 +7,4 @@ class MatchingConfig(AppConfig):
     verbose_name = 'Sistema de Matching'
     
     def ready(self):
-        import matching.signals
+        import matching.signals  # noqa: F401  (registra signal receivers)

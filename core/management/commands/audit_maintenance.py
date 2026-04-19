@@ -5,7 +5,6 @@ Ejecuta tareas de limpieza, optimización y reportes automáticos.
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.conf import settings
 from datetime import timedelta
 import logging
 

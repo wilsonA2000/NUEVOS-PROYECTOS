@@ -2,21 +2,19 @@
 Vistas API para el sistema de matching de VeriHome.
 """
 
-from rest_framework import viewsets, generics, permissions, status, serializers
+from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
 
 from .models import (
-    MatchRequest, MatchCriteria, MatchNotification, MatchAnalytics
+    MatchRequest, MatchCriteria, MatchNotification
 )
 from .serializers import (
     MatchRequestSerializer, MatchCriteriaSerializer, 
@@ -1229,7 +1227,6 @@ class SmartMatchingAPIView(APIView):
     
     def _standard_matching_algorithm(self, criteria, limit, min_score):
         """Algoritmo de matching estándar basado en criterios."""
-        from properties.models import Property
         
         # Obtener propiedades que cumplan criterios básicos
         properties = criteria.find_matching_properties()[:limit * 2]  # Buffer para filtrado

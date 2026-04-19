@@ -17,7 +17,6 @@ sí funcionan: refund_payment, get_transaction_status (parcial) y
 handle_webhook con signature inválida.
 """
 
-from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import stripe

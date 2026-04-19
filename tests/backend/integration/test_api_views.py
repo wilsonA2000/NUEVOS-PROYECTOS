@@ -1,11 +1,9 @@
-import pytest
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from decimal import Decimal
 from datetime import date, timedelta
-import json
 
 from properties.models import Property
 from contracts.models import Contract

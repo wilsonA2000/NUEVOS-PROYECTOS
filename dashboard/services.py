@@ -5,27 +5,21 @@ Sistema completo de procesamiento de datos, analytics y gestión de widgets.
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Avg, Q, F, Case, When, Value, IntegerField, FloatField
-from django.db.models.functions import TruncDate, TruncHour, Extract, Coalesce
+from django.db.models.functions import TruncDate, Extract, Coalesce
 from django.utils import timezone
 from django.core.cache import cache
-from django.conf import settings
 from datetime import timedelta, datetime
-import json
-import hashlib
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from collections import defaultdict
+from typing import Dict, List, Any
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 from .models import DashboardWidget, UserDashboardLayout, UserWidgetConfig, WidgetDataCache
-from properties.models import Property, PropertyImage, PropertyAmenity
+from properties.models import Property
 from contracts.models import Contract
-from payments.models import Transaction, Invoice
-from ratings.models import Rating
-from matching.models import MatchRequest, MatchNotification, MatchCriteria
+from payments.models import Transaction
+from matching.models import MatchRequest
 from users.models import UserActivityLog
-from messaging.models import Message, MessageThread
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

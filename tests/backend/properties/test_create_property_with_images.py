@@ -6,7 +6,6 @@ Create Property with Images and Test Display
 import os
 import sys
 import django
-from pathlib import Path
 
 # Setup Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,7 +13,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from properties.models import Property, PropertyImage
+from properties.models import PropertyImage
 from properties.serializers import PropertySerializer, CreatePropertySerializer
 from django.test import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile

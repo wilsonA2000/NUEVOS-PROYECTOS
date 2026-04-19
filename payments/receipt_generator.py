@@ -5,20 +5,17 @@ Produce recibos profesionales con branding de VeriHome usando ReportLab.
 
 import io
 import logging
-from datetime import datetime
-from decimal import Decimal
 
 from django.utils import timezone
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch, cm
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+from reportlab.lib.units import cm
+from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 )
-from reportlab.pdfgen import canvas
 
 logger = logging.getLogger('payments')
 
@@ -389,7 +386,7 @@ def generate_payment_order_receipt(order):
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import cm
     from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from reportlab.lib.enums import TA_CENTER
 
     buffer = io.BytesIO()
 

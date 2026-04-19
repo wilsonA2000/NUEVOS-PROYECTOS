@@ -3,23 +3,16 @@ Servicio avanzado de autenticación biométrica para contratos digitales de Veri
 Implementa verificación facial, documento de identidad, y grabación de voz con análisis ML.
 """
 
-import os
-import io
 import base64
-import hashlib
-import json
-from typing import Dict, List, Optional, Tuple, Any
-from datetime import datetime, timedelta
+from typing import Dict, Any
+from datetime import timedelta
 import logging
 
-from django.conf import settings
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.db import transaction
-from PIL import Image, ImageEnhance, ImageFilter
-import numpy as np
 
-from .models import Contract, BiometricAuthentication, ContractSignature
+from .models import Contract, BiometricAuthentication
 
 logger = logging.getLogger(__name__)
 

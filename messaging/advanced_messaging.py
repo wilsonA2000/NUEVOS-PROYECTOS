@@ -6,13 +6,9 @@ Incluye WebSocket, notificaciones, análisis de contenido y funcionalidades avan
 from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.core.files.base import ContentFile
 from datetime import timedelta
-from typing import Dict, List, Any, Optional, Tuple
-import json
+from typing import Dict, List, Any, Optional
 import re
-import uuid
-from decimal import Decimal
 
 from .models import MessageThread, Message, MessageAttachment, ThreadParticipant
 from .notifications import MessageNotificationManager

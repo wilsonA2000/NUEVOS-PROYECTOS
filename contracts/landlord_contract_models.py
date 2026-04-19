@@ -10,7 +10,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from decimal import Decimal
 import uuid
 import hashlib
 import secrets

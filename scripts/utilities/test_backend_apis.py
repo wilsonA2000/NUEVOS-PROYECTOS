@@ -12,7 +12,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 from datetime import datetime
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from collections import defaultdict
 
 # Configurar Django

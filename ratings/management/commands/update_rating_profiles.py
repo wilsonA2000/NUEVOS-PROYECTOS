@@ -5,8 +5,7 @@ Comando de gestión para actualizar perfiles de calificaciones.
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.db.models import Count
-from ratings.models import UserRatingProfile, Rating
+from ratings.models import UserRatingProfile
 from ratings.analytics import RatingAnalytics
 from users.models import User
 import logging

@@ -8,9 +8,8 @@ from datetime import timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Q
 
-from .models import Transaction, RentPaymentSchedule, RentPaymentReminder
+from .models import Transaction
 
 logger = logging.getLogger('payments')
 

@@ -8,17 +8,16 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from django.db.models import Q, Count, Avg, Sum, F, ExpressionWrapper, DurationField
+from django.db.models import Q, Count, Avg
 from django.db import models
 from django.db import transaction
 from django.core.exceptions import ValidationError, PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
-import os
 
 from .landlord_contract_models import (
     LandlordControlledContract,

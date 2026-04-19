@@ -2,7 +2,7 @@
 Vistas API para el sistema de solicitudes de VeriHome.
 """
 
-from rest_framework import viewsets, generics, permissions, status, filters
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,16 +12,15 @@ from django.utils import timezone
 from .models import (
     BaseRequest, PropertyInterestRequest, ServiceRequest,
     ContractSignatureRequest, MaintenanceRequest,
-    RequestAttachment, RequestComment, RequestNotification
+    RequestComment, RequestNotification
 )
 from .serializers import (
     BaseRequestSerializer, CreateBaseRequestSerializer,
     PropertyInterestRequestSerializer, CreatePropertyInterestRequestSerializer,
     ServiceRequestSerializer, CreateServiceRequestSerializer,
     ContractSignatureRequestSerializer, MaintenanceRequestSerializer,
-    CreateMaintenanceRequestSerializer, RequestAttachmentSerializer,
-    RequestCommentSerializer, RequestNotificationSerializer,
-    RequestStatsSerializer, RequestActionSerializer
+    CreateMaintenanceRequestSerializer, RequestCommentSerializer, RequestNotificationSerializer,
+    RequestActionSerializer
 )
 
 

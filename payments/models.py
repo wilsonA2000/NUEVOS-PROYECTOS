@@ -771,7 +771,7 @@ class RentPaymentSchedule(models.Model):
     
     def get_next_due_date(self):
         """Obtiene la próxima fecha de vencimiento."""
-        from datetime import date, timedelta
+        from datetime import date
         from calendar import monthrange
         
         today = date.today()

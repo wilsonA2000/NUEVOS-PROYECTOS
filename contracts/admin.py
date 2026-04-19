@@ -8,8 +8,6 @@ Sistema Control Molecular: Permite edición de cláusulas con historial completo
 from django.contrib import admin
 from django.utils.html import format_html, mark_safe
 from django.urls import reverse
-from django.utils import timezone
-from django.db.models import Count, Q
 from django.http import HttpResponse
 import csv
 
@@ -30,8 +28,7 @@ except ImportError:
 
 from .models import (
     Contract, ContractTemplate, ContractSignature,
-    ContractAmendment, ContractTermination, ContractRenewal,
-    ContractDocument
+    ContractAmendment, ContractDocument
 )
 from .clause_models import (
     EditableContractClause, ClauseVersion,

@@ -6,7 +6,6 @@ Evita problemas de compatibilidad de paquetes.
 import os
 import sys
 import django
-from pathlib import Path
 
 # Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')

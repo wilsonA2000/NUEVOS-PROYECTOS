@@ -5,12 +5,8 @@ Vistas de API REST para la aplicación de usuarios de VeriHome.
 from rest_framework import viewsets, generics, permissions, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 import json
 from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, UserResume, UserSettings, InterviewCode, PortfolioItem, UserActivityLog
 from .candidate_evaluation_service import CandidateEvaluationService
@@ -21,11 +17,7 @@ from .serializers import (
     PortfolioItemSerializer, UserActivityLogSerializer, UserActivityStatsSerializer
 )
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from allauth.account.models import EmailAddress
 from allauth.account.utils import send_email_confirmation
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -892,8 +884,6 @@ class SimpleRegistrationView(APIView):
                     
                     # SOLUCIÓN: Crear manualmente el EmailConfirmation porque send_email_confirmation no lo está haciendo
                     from allauth.account.models import EmailConfirmation
-                    from allauth.utils import generate_unique_username
-                    import uuid
                     from django.utils.crypto import get_random_string
                     
                     # Crear el EmailConfirmation manualmente

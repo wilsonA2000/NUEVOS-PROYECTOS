@@ -1,19 +1,16 @@
-import pytest
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from decimal import Decimal
 from datetime import date, timedelta
-import json
 import tempfile
 from PIL import Image
 
-from properties.models import Property, PropertyImage
-from contracts.models import Contract, ContractSignature
-from payments.models import Payment, Transaction
+from properties.models import Property
+from contracts.models import Contract
 from ratings.models import Rating
-from messaging.models import Conversation, Message
+from messaging.models import Conversation
 
 User = get_user_model()
 

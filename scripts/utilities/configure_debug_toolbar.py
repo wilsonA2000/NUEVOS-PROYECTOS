@@ -1,7 +1,6 @@
 """
 Script para configurar Django Debug Toolbar automáticamente
 """
-import os
 
 settings_file = 'verihome/settings.py'
 urls_file = 'verihome/urls.py'

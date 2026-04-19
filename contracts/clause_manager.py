@@ -3,7 +3,7 @@ Sistema de gestión de cláusulas dinámicas por tipo de contrato.
 Permite personalizar las cláusulas según el tipo de propiedad y contrato.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 class ContractClauseManager:

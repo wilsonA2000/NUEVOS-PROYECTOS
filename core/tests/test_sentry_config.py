@@ -11,7 +11,7 @@ monkey-patching para simular ambos escenarios.
 """
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 
 class InitSentryGuardsTests(TestCase):

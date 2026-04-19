@@ -3,7 +3,7 @@ Servicio de notificaciones para VeriHome.
 Maneja la creación y envío de notificaciones a usuarios.
 """
 
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone

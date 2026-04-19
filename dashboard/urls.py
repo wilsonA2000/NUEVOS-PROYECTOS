@@ -19,8 +19,7 @@ urlpatterns = [
 # Sistema avanzado de widgets (se importa solo si está disponible)
 try:
     from . import api_views
-    from .models import DashboardWidget, UserDashboardLayout
-    
+
     # Router para ViewSets de widgets
     router = DefaultRouter()
     router.register(r'widgets', api_views.DashboardWidgetViewSet, basename='widgets')

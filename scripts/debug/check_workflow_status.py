@@ -3,7 +3,6 @@
 Script para verificar el estado actual del workflow entre arrendador y arrendatario
 """
 import os
-import sys
 import django
 
 # Configurar Django

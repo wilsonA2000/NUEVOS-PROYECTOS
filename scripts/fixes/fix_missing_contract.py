@@ -4,9 +4,7 @@ Script para crear el registro LandlordControlledContract faltante
 basado en los datos del workflow
 """
 import os
-import sys
 import django
-from django.utils import timezone
 
 # Configurar Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
@@ -14,7 +12,6 @@ django.setup()
 
 from contracts.models import LandlordControlledContract
 from matching.models import MatchRequest
-from properties.models import Property
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

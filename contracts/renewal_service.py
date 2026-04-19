@@ -11,9 +11,9 @@ Referencia legal: Artículo 20, Ley 820 de 2003.
 import logging
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from core.notification_service import NotificationService
@@ -291,7 +291,6 @@ class RenewalAlertService:
                         elegible para renovación.
         """
         from contracts.landlord_contract_models import LandlordControlledContract
-        from contracts.models import Contract
 
         new_terms = new_terms or {}
         source = cls._find_source_contract(contract_id)

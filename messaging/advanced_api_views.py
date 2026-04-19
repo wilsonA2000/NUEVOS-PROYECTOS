@@ -8,23 +8,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Count, Avg, Max
+from django.db.models import Q
 from django.utils import timezone
-from django.core.files.base import ContentFile
 from datetime import timedelta
-from typing import Dict, Any
-import json
 import uuid
 
 from .models import (
-    MessageThread, Message, MessageAttachment, ThreadParticipant, 
-    MessageFolder, MessageTemplate, ConversationAnalytics, MessageReaction
+    MessageThread, Message, ThreadParticipant, 
+    MessageReaction
 )
 from .advanced_messaging import AdvancedMessagingService
 from .notifications import MessageNotificationManager
 from .serializers import (
-    MessageThreadSerializer, MessageSerializer, MessageAttachmentSerializer,
-    MessageFolderSerializer, MessageTemplateSerializer
+    MessageThreadSerializer, MessageSerializer
 )
 from users.models import User
 

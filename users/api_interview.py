@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import logging
 
-from .models import InterviewCode, ContactRequest, InterviewSession
+from .models import InterviewCode, ContactRequest
 from .serializers import UserSerializer
 
 User = get_user_model()

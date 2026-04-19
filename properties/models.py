@@ -5,7 +5,6 @@ Incluye propiedades, imágenes, amenidades y características.
 
 from django.db import models, transaction
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
 from PIL import Image
 import uuid
 

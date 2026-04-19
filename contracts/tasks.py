@@ -2,7 +2,6 @@
 Tareas asíncronas de Celery para el módulo de contratos de VeriHome.
 """
 
-import logging
 from celery import shared_task
 from celery.utils.log import get_task_logger
 

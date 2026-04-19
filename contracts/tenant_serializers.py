@@ -6,10 +6,7 @@ Vista optimizada desde la perspectiva del tenant en el workflow.
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .landlord_contract_models import (
-    LandlordControlledContract,
-    ContractObjection,
-    LandlordContractGuarantee,
-    ContractWorkflowHistory
+    LandlordControlledContract
 )
 
 User = get_user_model()

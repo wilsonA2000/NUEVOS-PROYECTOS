@@ -7,10 +7,9 @@ raise unittest.SkipTest("Módulo desactualizado - BiometricService refactorizado
 
 import base64
 import io
-import json
 import uuid
 from datetime import timedelta
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch
 from PIL import Image
 
 from django.test import TestCase, RequestFactory
@@ -18,7 +17,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.files.base import ContentFile
 
-from contracts.models import Contract, BiometricAuthentication, ContractSignature
+from contracts.models import Contract, BiometricAuthentication
 from contracts.biometric_service import BiometricAuthenticationService
 from properties.models import Property
 

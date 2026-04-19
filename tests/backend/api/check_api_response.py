@@ -7,7 +7,6 @@ import os
 import sys
 import django
 import json
-from pathlib import Path
 
 # Setup Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,7 +15,6 @@ django.setup()
 
 from django.test import Client
 from django.contrib.auth import get_user_model
-from properties.models import Property
 
 User = get_user_model()
 

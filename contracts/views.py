@@ -2,7 +2,6 @@
 Vistas para la aplicación de contratos de VeriHome.
 """
 
-from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models

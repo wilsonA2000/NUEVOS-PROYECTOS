@@ -12,12 +12,12 @@ from django.utils import timezone
 from datetime import timedelta
 
 from .models import ServiceCategory, Service, ServiceRequest, SubscriptionPlan, ServiceSubscription
-from .models import ServiceOrder, ServicePayment
+from .models import ServiceOrder
 from .serializers import (
     ServiceCategorySerializer, ServiceListSerializer, ServiceDetailSerializer,
     CreateServiceRequestSerializer, ServiceRequestSerializer, ServiceStatsSerializer,
     SubscriptionPlanSerializer, ServiceSubscriptionSerializer,
-    ServiceOrderSerializer, ServicePaymentSerializer,
+    ServiceOrderSerializer,
 )
 
 

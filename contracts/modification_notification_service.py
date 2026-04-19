@@ -6,11 +6,10 @@ Maneja el envío de emails cuando:
 - Un arrendador responde a una solicitud (aprueba/rechaza)
 """
 
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.html import strip_tags
-from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)

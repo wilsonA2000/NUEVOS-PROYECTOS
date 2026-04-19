@@ -284,7 +284,6 @@ class MatchRequest(models.Model):
     
     def _cleanup_associated_data(self):
         """Limpia todos los datos asociados a este match cuando es rechazado."""
-        from django.db import transaction
         
         print(f"🧹 INICIANDO LIMPIEZA COMPLETA para match {self.match_code}")
         

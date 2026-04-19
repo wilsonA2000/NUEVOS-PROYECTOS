@@ -3,14 +3,9 @@ Adaptador personalizado para django-allauth en VeriHome.
 """
 
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account import app_settings
 from allauth.account.models import EmailAddress
-from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from allauth.utils import build_absolute_uri
 
 
 class VeriHomeAccountAdapter(DefaultAccountAdapter):

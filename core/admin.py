@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ContactMessage, SiteConfiguration, Notification, ActivityLog, SystemAlert, FAQ, SupportTicket, TicketResponse, EmailTemplate, SystemMetrics
+from .models import ContactMessage, SiteConfiguration, Notification, FAQ, SupportTicket, TicketResponse
 
 
 @admin.register(ContactMessage)

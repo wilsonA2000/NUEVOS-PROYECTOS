@@ -10,20 +10,13 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Count
 from django.utils import timezone
-from django.core.cache import cache
-from django.conf import settings
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 # Importar utilidades de cache optimizadas
 from core.cache import (
-    cache_manager, 
-    cache_api_response,
-    cache_property_list,
-    cache_property_detail,
-    SmartCache,
-    CACHE_TIMEOUTS
+    SmartCache
 )
 
 from .models import (
@@ -31,8 +24,7 @@ from .models import (
     PropertyInquiry, PropertyFavorite, PropertyView
 )
 from .serializers import (
-    PropertyImageSerializer, PropertyVideoSerializer, PropertyAmenitySerializer,
-    PropertyViewSerializer, PropertySearchSerializer, PropertyStatsSerializer
+    PropertyImageSerializer, PropertyVideoSerializer, PropertyAmenitySerializer
 )
 from .optimized_serializers import (
     OptimizedPropertySerializer as PropertySerializer,
@@ -45,8 +37,7 @@ from .optimized_serializers import (
 )
 from users.services import AdminActionLogger
 from users.permissions import (
-    CanViewProperty, CanCreateProperty, CanEditProperty, CanDeleteProperty,
-    CanContactLandlord, PropertyAccessMixin, RoleBasedPermissionMixin
+    CanEditProperty, CanContactLandlord, PropertyAccessMixin, RoleBasedPermissionMixin
 )
 
 

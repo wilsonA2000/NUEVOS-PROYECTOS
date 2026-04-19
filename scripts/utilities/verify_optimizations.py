@@ -1,7 +1,6 @@
 """
 Script de verificación automática de optimizaciones aplicadas
 """
-import os
 import subprocess
 
 print("=" * 70)

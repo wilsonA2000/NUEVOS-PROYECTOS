@@ -2,7 +2,6 @@
 Script para analizar y detectar componentes duplicados en el proyecto.
 """
 
-import os
 import re
 from pathlib import Path
 from collections import defaultdict

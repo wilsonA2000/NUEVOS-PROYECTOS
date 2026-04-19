@@ -10,7 +10,6 @@ from django.conf import settings
 from datetime import timedelta
 from typing import Dict, List, Any, Optional
 import logging
-import json
 
 from .models import MessageThread, Message, ThreadParticipant
 from users.models import User

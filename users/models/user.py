@@ -5,7 +5,7 @@ Contains the custom User model with authentication and basic information.
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator
 from django.utils import timezone
 import uuid
 from ..managers import UserManager

@@ -13,19 +13,15 @@ Características:
 import os
 import io
 import base64
-import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any, List
-from decimal import Decimal
+from typing import Dict, Any, List
 
 from django.conf import settings
-from django.template.loader import render_to_string
-from django.utils import timezone
 from django.core.files.base import ContentFile
 
 # Importar modelos de cláusulas editables (Sistema Control Molecular)
 try:
-    from .clause_models import EditableContractClause, ContractTypeTemplate
+    from .clause_models import ContractTypeTemplate
     EDITABLE_CLAUSES_AVAILABLE = True
 except ImportError:
     EDITABLE_CLAUSES_AVAILABLE = False
@@ -33,26 +29,22 @@ except ImportError:
 # Importar librerías para PDF
 try:
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch, cm, mm
-    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT, TA_LEFT
+    from reportlab.lib.units import inch
+    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
     from reportlab.platypus import (
-        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+        Paragraph, Spacer, Table, TableStyle,
         PageBreak, Image, KeepTogether, Frame, PageTemplate,
-        BaseDocTemplate, Flowable, NextPageTemplate, FrameBreak
+        BaseDocTemplate, Flowable,
     )
-    from reportlab.pdfgen import canvas
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.graphics.shapes import Drawing, Circle, Line, Polygon
-    from reportlab.graphics import renderPDF
 except ImportError:
     raise ImportError("reportlab es requerido. Instalar con: pip install reportlab")
 
 try:
     import qrcode
-    from PIL import Image as PILImage
 except ImportError:
     raise ImportError("qrcode y Pillow son requeridos. Instalar con: pip install qrcode pillow")
 
@@ -735,7 +727,6 @@ class ContractPDFGenerator:
         ]
         
         # Usar Paragraph para texto largo que pueda necesitar wrap
-        from reportlab.platypus import Paragraph as Para
         summary_data_wrapped = []
         for row in summary_data:
             wrapped_row = []

@@ -4,14 +4,13 @@ Utilidades para la aplicación de usuarios de VeriHome.
 
 import random
 import string
-import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils import timezone
 from django.db import models
-from .models import InterviewCode, User
+from .models import InterviewCode
 
 
 def generate_interview_code():

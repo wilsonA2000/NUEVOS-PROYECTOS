@@ -9,9 +9,8 @@ from .models import (
     User, LandlordProfile, TenantProfile, ServiceProviderProfile, PortfolioItem, UserResume
 )
 # Importar los admin de entrevistas
-from .admin_interview import InterviewCodeAdmin
 # Importar modelos de allauth para email confirmation
-from allauth.account.models import EmailConfirmation, EmailAddress
+from allauth.account.models import EmailConfirmation
 
 
 @admin.register(User)

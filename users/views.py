@@ -2,7 +2,7 @@
 Vistas para la aplicación de usuarios de VeriHome.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseRedirect
 
-from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, InterviewCode, UserResume
+from .models import LandlordProfile, TenantProfile, ServiceProviderProfile, UserResume
 from .forms import (
     UserRegistrationForm, InterviewCodeVerificationForm, UserProfileForm,
     LandlordProfileForm, TenantProfileForm, ServiceProviderProfileForm, UserResumeForm

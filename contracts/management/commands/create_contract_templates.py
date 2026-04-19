@@ -5,7 +5,6 @@ Crea plantillas estándar para diferentes tipos de contratos inmobiliarios.
 
 from django.core.management.base import BaseCommand
 from contracts.models import ContractTemplate
-import json
 
 
 class Command(BaseCommand):

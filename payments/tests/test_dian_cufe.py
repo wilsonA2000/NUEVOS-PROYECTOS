@@ -7,16 +7,14 @@ Estos tests validan:
 - cambios en cualquier input producen hashes distintos
 - el stub de firma inyecta el placeholder cuando no hay certificado
 """
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from payments.dian_invoice_service import (
-    DIAN_CONFIG,
     calculate_cufe,
     sign_invoice_xml,
 )

@@ -3,7 +3,7 @@ Formularios para el sistema de calificaciones de VeriHome.
 """
 
 from django import forms
-from .models import Rating, RatingResponse, RatingReport, RatingCategory
+from .models import Rating, RatingResponse, RatingReport
 
 
 class RatingForm(forms.ModelForm):

@@ -4,8 +4,8 @@ Incluye índices, queries optimizadas, connection pooling y monitoreo.
 """
 
 import logging
-from django.db import connection, connections, models
-from django.db.models import Index, Q, Count, Avg, Sum, Min, Max
+from django.db import connection, models
+from django.db.models import Q, Count, Avg
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from typing import List, Dict, Any, Optional

@@ -3,16 +3,12 @@ Middleware personalizado para VeriHome - Seguridad y Performance
 """
 
 import time
-import json
 import logging
 from django.http import JsonResponse, HttpResponse
 from django.core.cache import cache
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
-from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
-from datetime import timedelta
 import re
 
 User = get_user_model()

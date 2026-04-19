@@ -4,7 +4,7 @@ Covers models (VerificationAgent, VerificationVisit, VerificationReport)
 and API endpoints (agents, visits, reports).
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError

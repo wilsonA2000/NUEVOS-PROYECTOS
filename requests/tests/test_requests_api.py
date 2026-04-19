@@ -10,8 +10,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from properties.models import Property
 from requests.models import (
-    BaseRequest, MaintenanceRequest, ServiceRequest,
-    RequestNotification, RequestComment,
+    BaseRequest, RequestNotification, RequestComment,
 )
 
 User = get_user_model()

@@ -3,8 +3,6 @@ Configuraciones de rendimiento para VeriHome.
 Incluye optimizaciones de database, cache, y configuraciones de producción.
 """
 
-import os
-from pathlib import Path
 
 # Database optimization settings
 DATABASE_OPTIMIZATION = {

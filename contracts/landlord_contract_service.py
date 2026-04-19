@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 import secrets
 import uuid
 from datetime import timedelta

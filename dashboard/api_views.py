@@ -2,34 +2,24 @@
 Vistas API para el sistema de widgets del dashboard de VeriHome.
 """
 
-from rest_framework import viewsets, generics, permissions, status
+from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from django.core.cache import cache
-from datetime import timedelta, datetime
-import json
 
 from .models import DashboardWidget, UserDashboardLayout, UserWidgetConfig, WidgetDataCache
 from .serializers import (
     DashboardWidgetSerializer, UserDashboardLayoutSerializer, UserWidgetConfigSerializer,
-    WidgetDataCacheSerializer, WidgetDataSerializer, DashboardStatsSerializer,
-    ChartDataSerializer, DashboardLayoutUpdateSerializer, CreateWidgetSerializer,
+    WidgetDataCacheSerializer, DashboardLayoutUpdateSerializer, CreateWidgetSerializer,
     WidgetAnalyticsSerializer, DashboardPerformanceSerializer
 )
 from .services import DashboardDataService, WidgetDataProvider, DashboardAnalytics
 
 # Import related models
-from properties.models import Property
-from contracts.models import Contract
-from payments.models import Transaction
-from ratings.models import Rating
-from matching.models import MatchRequest
 
 User = get_user_model()
 

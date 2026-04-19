@@ -21,17 +21,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.utils import timezone
-from django.conf import settings
-from django.core.files.base import ContentFile
-import base64
 
 from .landlord_contract_models import (
-    LandlordControlledContract,
-    LandlordContractGuarantee,
     CodeudorAuthToken,
 )
-from .models import Contract, BiometricAuthentication
-from .biometric_service import BiometricAuthenticationService
+from .models import Contract
 
 logger = logging.getLogger(__name__)
 

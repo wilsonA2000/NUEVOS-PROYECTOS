@@ -24,7 +24,6 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from users.serializers import UserProfileSerializer
-from django.test import RequestFactory
 
 User = get_user_model()
 

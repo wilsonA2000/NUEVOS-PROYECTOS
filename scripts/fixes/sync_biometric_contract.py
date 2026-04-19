@@ -6,7 +6,6 @@ Script para sincronizar contrato específico para autenticación biométrica
 import os
 import sys
 import django
-from datetime import datetime
 
 # Configurar Django
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +14,6 @@ django.setup()
 
 from contracts.models import Contract, LandlordControlledContract
 from matching.models import MatchRequest
-from users.models import User
 
 def sync_contract_for_biometric():
     """Sincronizar el contrato específico para permitir autenticación biométrica"""

@@ -5,18 +5,14 @@ Vistas para el sistema de calificaciones de VeriHome.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils import timezone
-from django.http import JsonResponse
 from django.db.models import Avg, Q
 from django.core.paginator import Paginator
-from rest_framework import generics, permissions, status, serializers
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics, permissions, serializers
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-from .models import Rating, RatingCategory, RatingResponse, RatingReport, UserRatingProfile
+from .models import Rating, RatingCategory, RatingReport, UserRatingProfile
 from .forms import RatingForm, RatingResponseForm, RatingReportForm
 from .serializers import (
     RatingSerializer, RatingDetailSerializer, RatingCategorySerializer,

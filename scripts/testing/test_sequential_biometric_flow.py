@@ -5,8 +5,6 @@ Verifica que el flujo secuencial de autenticación biométrica funcione correcta
 """
 
 import requests
-import json
-import time
 from datetime import datetime
 
 # Configuración

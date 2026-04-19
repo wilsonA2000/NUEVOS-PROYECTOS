@@ -5,8 +5,7 @@ Envía alertas por vencimientos, firmas pendientes y otros eventos importantes.
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.db.models import Q
-from datetime import timedelta, datetime
+from datetime import timedelta
 import logging
 
 from contracts.models import Contract, ContractSignature, ContractRenewal

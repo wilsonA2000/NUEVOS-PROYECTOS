@@ -3,7 +3,6 @@
 Script para debugging específico del contrato 404
 """
 import os
-import sys
 import django
 
 # Configurar Django

@@ -270,7 +270,6 @@ class MatchRecommendationService:
         """
         Encuentra arrendatarios potencialmente calificados para una propiedad.
         """
-        from django.db.models import Q
         
         # Buscar arrendatarios que podrían estar interesados
         qualified_tenants = User.objects.filter(

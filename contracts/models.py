@@ -10,19 +10,23 @@ from decimal import Decimal
 import uuid
 from datetime import timedelta
 import hashlib
-import json
 
 User = get_user_model()
 
-# Importar modelos colombianos
-from .colombian_contracts import ColombianContract, ColombianContractType, ContractStatus, LegalClause
-
-# Importar modelos del sistema de workflow de contratos controlado por arrendador
-from .landlord_contract_models import (
-    LandlordControlledContract, 
-    ContractObjection, 
-    LandlordContractGuarantee, 
-    ContractWorkflowHistory
+# Re-exports: estos submódulos definen modelos que otros módulos importan
+# históricamente desde `contracts.models`. Mantener el import para no romper
+# `from contracts.models import LandlordControlledContract`, etc.
+from .colombian_contracts import (  # noqa: F401, E402
+    ColombianContract,
+    ColombianContractType,
+    ContractStatus,
+    LegalClause,
+)
+from .landlord_contract_models import (  # noqa: F401, E402
+    ContractObjection,
+    ContractWorkflowHistory,
+    LandlordContractGuarantee,
+    LandlordControlledContract,
 )
 
 

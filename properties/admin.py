@@ -3,7 +3,6 @@ Configuración del panel de administración para la aplicación de propiedades.
 """
 
 from django.contrib import admin
-from django.utils.html import format_html
 from .models import (
     Property, PropertyImage, PropertyVideo, PropertyAmenity, 
     PropertyAmenityRelation, PropertyFavorite, PropertyView, PropertyInquiry

@@ -10,11 +10,9 @@ from datetime import date, timedelta
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from unittest.mock import patch, MagicMock
 
 from contracts.renewal_service import RenewalAlertService, ALERT_THRESHOLDS
 from contracts.landlord_contract_models import LandlordControlledContract
-from contracts.models import Contract
 from properties.models import Property
 
 User = get_user_model()

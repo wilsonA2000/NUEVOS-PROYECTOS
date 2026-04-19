@@ -2,8 +2,6 @@
 Script para verificar si los componentes eliminados estaban siendo usados
 """
 
-import os
-import re
 from pathlib import Path
 
 # Componentes que eliminé

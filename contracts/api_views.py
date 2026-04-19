@@ -13,11 +13,9 @@ from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import timedelta
 # Import optimizations
 from core.optimizations import (
-    QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin,
-    cache_expensive_operation, OptimizedContractSerializer
+    QueryOptimizationMixin, OptimizedPagination, PerformanceTrackingMixin
 )
 from .models import (
     Contract, ContractTemplate, ContractSignature, ContractAmendment,
@@ -26,8 +24,7 @@ from .models import (
 from .serializers import (
     ContractSerializer, CreateContractSerializer, UpdateContractSerializer,
     ContractTemplateSerializer, ContractSignatureSerializer, ContractAmendmentSerializer,
-    ContractRenewalSerializer, ContractTerminationSerializer, ContractDocumentSerializer,
-    ContractStatsSerializer
+    ContractRenewalSerializer, ContractTerminationSerializer, ContractDocumentSerializer
 )
 from users.services import AdminActionLogger
 from matching.models import MatchRequest
@@ -1754,7 +1751,6 @@ class CompleteAuthenticationAPIView(APIView):
             from .biometric_service import biometric_service
             from .models import BiometricAuthentication
             import base64
-            import io
             from django.core.files.base import ContentFile
 
             # Helper function to convert base64 to Django file
@@ -1935,7 +1931,6 @@ class TenantProcessesAPIView(generics.ListAPIView):
         """Obtiene todos los procesos de arrendamiento del inquilino/candidato actual."""
         try:
             from matching.models import MatchRequest
-            from django.db import models
             
             # Debug info del usuario actual
             print(f"🔍 TenantProcesses - User: {request.user.email}, Type: {request.user.user_type}, ID: {request.user.id}")
@@ -2288,7 +2283,6 @@ C.C.                                    C.C.
             from messaging.models import Message
             from django.core.mail import send_mail
             from django.conf import settings
-            import json
             
             match_request_id = request.data.get('match_request_id')
             action = request.data.get('action')

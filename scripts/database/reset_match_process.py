@@ -5,7 +5,6 @@ Elimina el match actual y el contrato asociado para empezar limpio
 """
 
 import os
-import sys
 import django
 
 # Setup Django

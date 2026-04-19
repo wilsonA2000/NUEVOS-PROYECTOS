@@ -4,7 +4,6 @@ Script para probar la actualización de perfil de usuario.
 """
 
 import requests
-import json
 
 # Test data
 LOGIN_DATA = {

@@ -4,14 +4,13 @@ Manejo automático de liberación de fondos según hitos del contrato.
 """
 
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, TYPE_CHECKING
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 import uuid
 
 from contracts.colombian_contracts import ColombianContract, ContractMilestone
-from payments.models import Transaction
 
 if TYPE_CHECKING:
     from django.contrib.auth import get_user_model

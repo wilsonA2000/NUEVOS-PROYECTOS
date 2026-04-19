@@ -2,13 +2,12 @@
 Vistas para la aplicación de pagos de VeriHome.
 """
 
-from django.shortcuts import render
 from django.views.generic import TemplateView, ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.db import models
 
-from .models import Transaction, PaymentMethod, Invoice, EscrowAccount
+from .models import Transaction, Invoice, EscrowAccount
 
 
 class PaymentDashboardView(LoginRequiredMixin, TemplateView):

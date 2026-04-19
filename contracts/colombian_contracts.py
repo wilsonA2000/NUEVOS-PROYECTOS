@@ -5,10 +5,7 @@ Integrado con sistema de matching para garantizar seguridad en las transacciones
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from decimal import Decimal
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 class ColombianContractType(models.TextChoices):
     """Tipos de contratos según legislación colombiana"""

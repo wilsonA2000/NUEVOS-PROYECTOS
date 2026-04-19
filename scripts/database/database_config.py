@@ -3,7 +3,6 @@ Database Configuration Manager for VeriHome
 Handles dual database setup (SQLite for development, PostgreSQL for production)
 """
 
-import os
 from decouple import config
 from pathlib import Path
 

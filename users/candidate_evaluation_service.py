@@ -3,11 +3,8 @@ Servicio de Evaluación de Candidatos para VeriHome.
 Proporciona scoring automático y análisis de candidatos para arrendadores.
 """
 
-from decimal import Decimal
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 from django.utils import timezone
-from django.db.models import Avg, Count, Q
 
 
 class CandidateEvaluationService:

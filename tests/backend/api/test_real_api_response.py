@@ -6,7 +6,6 @@ Test Real API Response - Test actual API response from running server
 import os
 import sys
 import django
-from pathlib import Path
 
 # Setup Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

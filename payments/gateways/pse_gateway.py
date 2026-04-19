@@ -9,7 +9,6 @@ import hmac
 from decimal import Decimal
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
-import json
 import logging
 
 from .base import BasePaymentGateway, PaymentResult

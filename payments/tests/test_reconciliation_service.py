@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from payments.models import (
-    PaymentOrder, RentPaymentSchedule, Transaction, PaymentMethod,
+    PaymentOrder, RentPaymentSchedule, Transaction,
 )
 from payments.reconciliation_service import reconcile_payment
 from contracts.models import Contract

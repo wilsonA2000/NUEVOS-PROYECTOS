@@ -5,9 +5,7 @@ Administrable desde el panel de Django Admin.
 
 import uuid
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
-from django.urls import reverse
 
 
 class ServiceCategory(models.Model):

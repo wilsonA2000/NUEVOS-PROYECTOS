@@ -6,10 +6,8 @@ Incluye sistema de seguimiento, reenvío automático y expiración de tokens
 
 import secrets
 import hashlib
-import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional, Dict, Any, List, Tuple
-from decimal import Decimal
 
 from django.conf import settings
 from django.core.mail import send_mail

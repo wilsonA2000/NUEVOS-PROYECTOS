@@ -3,12 +3,9 @@ Sistema de analíticas avanzado para calificaciones de VeriHome.
 Incluye métricas, tendencias y detección de patrones.
 """
 
-from django.db import models
-from django.db.models import Avg, Count, Q, F
+from django.db.models import Avg, Count, Q
 from django.utils import timezone
 from datetime import timedelta, date
-from decimal import Decimal
-import json
 from typing import Dict, List, Any, Optional
 
 from .models import Rating, RatingCategory, UserRatingProfile

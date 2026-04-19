@@ -6,15 +6,11 @@ Proporciona múltiples niveles de cache y estrategias optimizadas.
 import json
 import hashlib
 import logging
-from datetime import timedelta
-from typing import Any, Optional, Dict, List, Union, Callable
+from typing import Any, Optional, Dict, List, Callable
 from functools import wraps
-from django.core.cache import cache, caches
+from django.core.cache import caches
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.conf import settings
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_headers
 from django.core.serializers.json import DjangoJSONEncoder
 import redis
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -370,7 +366,6 @@ def warm_up_cache():
     try:
         # Importar aquí para evitar dependencias circulares
         from properties.models import Property
-        from users.models import User
         
         # Cachear propiedades más vistas
         featured_properties = Property.objects.filter(is_featured=True)[:10]

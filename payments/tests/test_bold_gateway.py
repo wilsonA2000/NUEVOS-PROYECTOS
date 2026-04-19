@@ -17,7 +17,6 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 
 from payments.gateways.bold_gateway import BoldGateway
-from payments.gateways.base import PaymentResult
 
 CONFIG = {
     'api_key': 'test_api_key_123',

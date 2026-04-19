@@ -5,8 +5,6 @@ Verifica la generación de PDFs con datos completos y mínimos.
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from unittest.mock import patch, MagicMock
 from datetime import date, timedelta
 
 from contracts.landlord_contract_models import LandlordControlledContract

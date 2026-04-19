@@ -8,7 +8,6 @@ import requests
 import hashlib
 from decimal import Decimal
 from typing import Dict, Any, Optional, List
-from datetime import datetime
 import logging
 
 from .base import BasePaymentGateway, PaymentResult

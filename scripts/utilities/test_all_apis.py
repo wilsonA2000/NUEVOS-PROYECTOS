@@ -6,9 +6,8 @@ AGENTE 1 - BACKEND API TESTING
 
 import os
 import sys
-import json
 from datetime import datetime
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from collections import defaultdict
 
 # Configurar Django ANTES de importar requests

@@ -9,9 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Count, Case, When, IntegerField
-from django.http import FileResponse, Http404
-from django.utils import timezone
+from django.http import FileResponse
 
 from .models import TenantDocument, PropertyInterestRequest, DocumentAccessLog
 from .serializers import (
@@ -201,7 +199,6 @@ class TenantDocumentReviewAPIView(generics.UpdateAPIView):
 
             # Verificar si todos los documentos están aprobados
             if document.match_request:
-                from matching.models import MatchRequest
                 match_request = document.match_request
 
                 # Contar documentos

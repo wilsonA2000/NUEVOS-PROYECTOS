@@ -4,7 +4,6 @@ Utilidades de caching para VeriHome - Sistema de caching inteligente.
 
 from django.core.cache import cache
 from django.conf import settings
-from django.utils.encoding import force_str
 from functools import wraps
 import hashlib
 import json

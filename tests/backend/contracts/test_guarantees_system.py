@@ -11,17 +11,13 @@ import os
 import sys
 import django
 import tempfile
-from datetime import datetime
 
 # Configurar Django
 sys.path.append('/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
 django.setup()
 
-from contracts.models import LandlordControlledContract
 from contracts.pdf_generator import ContractPDFGenerator
-from users.models import User
-from properties.models import Property
 
 def test_guarantee_types():
     """Prueba los 3 tipos de garantías"""

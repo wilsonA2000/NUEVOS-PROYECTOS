@@ -3,7 +3,7 @@ Routing WebSocket para la aplicación de mensajería.
 Define las rutas WebSocket para diferentes tipos de conexiones en tiempo real.
 """
 
-from django.urls import re_path, path
+from django.urls import re_path
 from . import consumers
 
 websocket_urlpatterns = [

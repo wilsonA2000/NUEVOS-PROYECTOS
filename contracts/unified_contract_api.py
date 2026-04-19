@@ -9,12 +9,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db import transaction
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied
 import logging
 
-from .models import Contract, ContractObjection, BiometricAuthentication
+from .models import Contract, ContractObjection
 from .serializers import ContractSerializer
-from users.models import User
 
 logger = logging.getLogger(__name__)
 

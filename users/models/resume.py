@@ -4,8 +4,6 @@ Contains UserResume with detailed verification and PortfolioItem for work sample
 """
 
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils import timezone
 from .user import User
 
 

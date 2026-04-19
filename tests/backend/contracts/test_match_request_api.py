@@ -10,10 +10,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
 django.setup()
 
 import requests
-import json
 
 from django.contrib.auth import get_user_model
-from properties.models import Property
 
 User = get_user_model()
 

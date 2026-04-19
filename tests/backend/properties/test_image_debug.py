@@ -3,7 +3,6 @@
 import os
 import sys
 import django
-from django.conf import settings
 
 # Setup Django
 sys.path.append('/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS')

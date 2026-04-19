@@ -22,23 +22,18 @@ Features:
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
-from django.db import models
-from django.db.models import Q, Sum, Count, Avg, F, Case, When
+from django.db.models import Q, Sum, Count, Avg, Case, When
 from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
 from django.utils import timezone
 from django.core.cache import cache
-from decimal import Decimal
-from datetime import datetime, timedelta, date
-import json
+from datetime import timedelta
 import logging
 
 from .models import (
     Transaction, PaymentMethod, Invoice, EscrowAccount, 
-    PaymentPlan, PaymentInstallment, RentPaymentSchedule
+    PaymentPlan, RentPaymentSchedule
 )
-from .serializers import PaymentStatsSerializer
 from core.cache import SmartCache
 
 User = get_user_model()

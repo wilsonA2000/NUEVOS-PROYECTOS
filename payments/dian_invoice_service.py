@@ -22,9 +22,7 @@ UBL 2.1 estándar colombiano.
 
 import hashlib
 import logging
-import uuid
 from decimal import Decimal
-from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 

@@ -3,12 +3,10 @@ Tareas asíncronas de Celery para el módulo core de VeriHome.
 """
 
 import os
-import logging
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.management import call_command
 from django.contrib.sessions.models import Session
-from django.db import transaction
 from celery import shared_task
 from celery.utils.log import get_task_logger
 

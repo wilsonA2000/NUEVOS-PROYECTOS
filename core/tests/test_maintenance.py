@@ -3,12 +3,9 @@ Tests para los endpoints de mantenimiento del sistema.
 Verifica health check, limpieza de logs, cache y permisos de acceso.
 """
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from datetime import timedelta
 
 User = get_user_model()
 

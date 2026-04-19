@@ -8,17 +8,15 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg
 from django.utils import timezone
 from datetime import timedelta
-from typing import Dict, Any
 
 from .models import Rating, UserRatingProfile, RatingInvitation, RatingReport
 from .analytics import RatingAnalytics, RatingRecommendationEngine
 from .notifications import RatingNotificationManager
 from .serializers import (
-    RatingSerializer, UserRatingProfileSerializer, 
-    RatingDetailSerializer, RatingReportSerializer
+    RatingSerializer, RatingDetailSerializer, RatingReportSerializer
 )
 from users.models import User
 from contracts.models import Contract

@@ -4,12 +4,10 @@ Maneja conexiones WebSocket para notificaciones instantáneas y chat en vivo.
 """
 
 import json
-import asyncio
-from datetime import datetime, timezone
+from datetime import datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.utils import timezone as django_timezone
 import logging
 

@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
 from datetime import timedelta
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 import logging
 
 from .models import Rating, RatingInvitation, UserRatingProfile, RatingReport

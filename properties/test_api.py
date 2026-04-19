@@ -6,14 +6,12 @@ search/filter functionality, image upload, permission checks,
 and public vs authenticated property listing.
 """
 
-import io
 import uuid
 from decimal import Decimal
 
 from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APITestCase, APIClient
-from rest_framework import status as http_status
 
 # Cache override that includes all backends the project needs (default + sessions)
 _TEST_CACHES = {
@@ -36,8 +34,8 @@ _TEST_CACHES = {
 }
 
 from .models import (
-    Property, PropertyImage, PropertyAmenity,
-    PropertyFavorite, PropertyView, PropertyInquiry,
+    Property, PropertyAmenity,
+    PropertyFavorite,
 )
 
 from django.contrib.auth import get_user_model

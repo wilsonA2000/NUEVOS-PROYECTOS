@@ -4,14 +4,12 @@ Uses annotations and prefetched data to eliminate all N+1 query problems
 """
 
 from rest_framework import serializers
-from django.db.models import Avg, Count
 from django.contrib.auth import get_user_model
 
 from .models import (
     Property, PropertyImage, PropertyVideo, PropertyAmenity, 
-    PropertyInquiry, PropertyFavorite, PropertyView, PropertyAmenityRelation
+    PropertyInquiry, PropertyFavorite, PropertyAmenityRelation
 )
-from users.serializers import LandlordProfileSerializer
 
 User = get_user_model()
 

@@ -1,14 +1,13 @@
-import pytest
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date, timedelta
 
-from users.models import UserProfile, TenantProfile, LandlordProfile, ServiceProviderProfile
-from properties.models import Property, PropertyImage, PropertyFeature
-from contracts.models import Contract, ContractSignature
-from payments.models import Payment, Transaction, Invoice
+from users.models import UserProfile, TenantProfile, LandlordProfile
+from properties.models import Property, PropertyImage
+from contracts.models import Contract
+from payments.models import Payment
 from ratings.models import Rating, RatingProfile
 from messaging.models import Conversation, Message
 

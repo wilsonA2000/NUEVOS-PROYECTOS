@@ -4,11 +4,10 @@ Middleware para el sistema de impersonación de usuarios y logging de actividade
 
 import time
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.urls import reverse, resolve
+from django.urls import resolve
 from django.utils import timezone
 from .models import AdminImpersonationSession
 

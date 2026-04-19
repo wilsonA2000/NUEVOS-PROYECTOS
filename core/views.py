@@ -3,13 +3,13 @@ Vistas para la aplicación core de VeriHome.
 Incluye la página principal y funcionalidades transversales.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse_lazy
-from django.db.models import Count, Q, Sum, Avg
+from django.db.models import Q, Sum, Avg
 from django.utils import timezone
 from datetime import timedelta
 import django.db.models
@@ -17,8 +17,7 @@ import os
 from django.conf import settings
 
 from .models import (
-    SiteConfiguration, Notification, ActivityLog, SystemAlert, 
-    FAQ, SupportTicket, TicketResponse
+    SiteConfiguration, Notification, ActivityLog, FAQ, SupportTicket
 )
 from users.models import User
 from properties.models import Property

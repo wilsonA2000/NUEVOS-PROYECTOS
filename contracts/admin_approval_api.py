@@ -15,15 +15,14 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 
 from .landlord_contract_models import LandlordControlledContract
-from .clause_models import ContractTypeTemplate, EditableContractClause
+from .clause_models import ContractTypeTemplate
 
 logger = logging.getLogger(__name__)
 

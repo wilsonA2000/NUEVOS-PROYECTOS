@@ -10,7 +10,6 @@ from django.core.management.base import BaseCommand
 from django.core.cache import cache
 from django.db import connection
 from django.conf import settings
-import json
 import logging
 from datetime import datetime, timedelta
 from collections import defaultdict, deque

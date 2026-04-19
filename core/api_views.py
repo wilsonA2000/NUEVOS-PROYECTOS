@@ -8,8 +8,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Count, Q
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes

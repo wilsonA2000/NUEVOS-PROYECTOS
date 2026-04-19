@@ -8,20 +8,18 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from django.db.models import Q, Count, Avg, Sum, F, ExpressionWrapper, DurationField
+from django.db.models import Q, Count, Avg
 from django.db import models
 from django.db import transaction
 from django.core.exceptions import ValidationError, PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 import logging
 
 from .landlord_contract_models import (
     LandlordControlledContract,
-    ContractObjection,
-    LandlordContractGuarantee,
     ContractWorkflowHistory
 )
 from .landlord_contract_service import LandlordContractService

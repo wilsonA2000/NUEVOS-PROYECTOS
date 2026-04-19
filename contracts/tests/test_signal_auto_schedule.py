@@ -13,7 +13,7 @@ from django.test import TestCase
 from contracts.landlord_contract_models import LandlordControlledContract
 from contracts.models import Contract
 from payments.models import (
-    RentPaymentSchedule, PaymentInstallment, PaymentOrder, PaymentPlan,
+    RentPaymentSchedule, PaymentInstallment, PaymentOrder,
 )
 from properties.models import Property
 

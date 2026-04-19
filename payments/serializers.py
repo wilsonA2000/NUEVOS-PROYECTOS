@@ -5,8 +5,7 @@ Serializers para la aplicación de pagos de VeriHome.
 from rest_framework import serializers
 from .models import (
     Transaction, PaymentMethod, Invoice, EscrowAccount,
-    PaymentPlan, PaymentInstallment, RentPaymentSchedule, RentPaymentReminder,
-    PaymentOrder,
+    PaymentPlan, PaymentInstallment, RentPaymentSchedule, PaymentOrder,
 )
 # Importaciones de escrow y payment plans ahora están en models.py
 

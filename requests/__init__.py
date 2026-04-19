@@ -5,7 +5,6 @@
 # libraries that do 'import requests' still work. Django's relative imports
 # (e.g., 'from .models import ...') still resolve to the local app's modules
 # because Django manages app imports via its own registry.
-import importlib.util as _util
 import sys as _sys
 import os as _os
 

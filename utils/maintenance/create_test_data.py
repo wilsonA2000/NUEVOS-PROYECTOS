@@ -3,9 +3,8 @@
 Script para crear datos de prueba en VeriHome.
 """
 import os
-import sys
 import django
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 # Configurar Django
@@ -14,8 +13,8 @@ django.setup()
 
 # Importar modelos
 from django.contrib.auth import get_user_model
-from properties.models import Property, PropertyImage, PropertyAmenity, PropertyAmenityRelation
-from contracts.models import Contract, ContractTemplate
+from properties.models import Property, PropertyAmenity, PropertyAmenityRelation
+from contracts.models import Contract
 from messaging.models import MessageThread, Message
 from payments.models import Transaction, Invoice
 from ratings.models import Rating
