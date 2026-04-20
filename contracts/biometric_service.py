@@ -17,14 +17,18 @@ from .biometric_providers import (
     DocumentProvider,
     FaceAnalysis,
     FacialProvider,
+    VoiceAnalysis,
+    VoiceProvider,
     get_document_provider,
     get_facial_provider,
+    get_voice_provider,
 )
 from .models import Contract, BiometricAuthentication
 
 logger = logging.getLogger(__name__)
 
 _DOC_CACHE_MAX = 8
+_VOICE_CACHE_MAX = 8
 
 
 class BiometricAuthenticationService:
@@ -34,6 +38,7 @@ class BiometricAuthenticationService:
         self,
         facial_provider: FacialProvider | None = None,
         document_provider: DocumentProvider | None = None,
+        voice_provider: VoiceProvider | None = None,
     ):
         self.min_confidence_threshold = 0.7
         self.image_quality_threshold = 0.8
@@ -47,10 +52,12 @@ class BiometricAuthenticationService:
         self._document_provider: DocumentProvider = (
             document_provider or get_document_provider()
         )
-        # Cache por sesión para evitar dos llamadas al provider desde
-        # `_process_document_image` y `_extract_document_info` (la API
-        # real cobra por cada invocación).
+        # P0.3: análisis de voz delegado al VoiceProvider activo.
+        self._voice_provider: VoiceProvider = voice_provider or get_voice_provider()
+        # Caches por sesión para evitar llamadas duplicadas al provider
+        # desde los 3 métodos que consumen el mismo análisis.
         self._document_cache: Dict[str, DocumentAnalysis] = {}
+        self._voice_cache: Dict[str, VoiceAnalysis] = {}
 
     def initiate_authentication(
         self, contract: Contract, user, request
@@ -925,6 +932,27 @@ class BiometricAuthenticationService:
         blob = f"{document_type}:{image_data or ''}".encode("utf-8", errors="ignore")
         return hashlib.sha256(blob).hexdigest()
 
+    def _get_voice_analysis(
+        self, audio_data: str, expected_text: str | None = None
+    ) -> VoiceAnalysis:
+        """Invoca el VoiceProvider cacheando por (audio_data, expected_text)."""
+        key = self._voice_cache_key(audio_data, expected_text)
+        cached = self._voice_cache.get(key)
+        if cached is not None:
+            return cached
+        analysis = self._voice_provider.analyze_voice(audio_data, expected_text)
+        if len(self._voice_cache) >= _VOICE_CACHE_MAX:
+            self._voice_cache.pop(next(iter(self._voice_cache)))
+        self._voice_cache[key] = analysis
+        return analysis
+
+    @staticmethod
+    def _voice_cache_key(audio_data: str, expected_text: str | None) -> str:
+        blob = f"{expected_text or ''}::{audio_data or ''}".encode(
+            "utf-8", errors="ignore"
+        )
+        return hashlib.sha256(blob).hexdigest()
+
     def _calculate_document_confidence(
         self, document_analysis: Dict, ocr_results: Dict, validation_results: Dict
     ) -> float:
@@ -994,14 +1022,11 @@ class BiometricAuthenticationService:
         return 0.87  # Simulado
 
     def _process_voice_recording(self, voice_data: str) -> Dict[str, Any]:
-        """Simula el análisis de grabación de voz."""
-        return {
-            "duration": 8.5,  # segundos
-            "sample_rate": 44100,
-            "channels": 1,
-            "format": "wav",
-            "file_size": 150000,  # bytes
-        }
+        """Métricas de audio vía el proveedor activo."""
+        analysis = self._get_voice_analysis(voice_data)
+        payload = analysis.to_audio_analysis_dict()
+        payload["provider"] = analysis.provider
+        return payload
 
     def _verify_audio_duration(self, voice_analysis: Dict) -> Dict[str, Any]:
         """Verifica la duración del audio."""
@@ -1016,17 +1041,28 @@ class BiometricAuthenticationService:
         }
 
     def _analyze_audio_quality(self, voice_analysis: Dict) -> Dict[str, Any]:
-        """Analiza la calidad del audio."""
-        return {"score": 0.84, "clarity": 0.88, "noise_level": 0.15, "acceptable": True}
+        """Métricas de calidad del audio vía el proveedor activo.
+
+        El caller pasa `voice_analysis` (dict de audio_analysis) pero el
+        provider ya calculó quality/clarity/noise en el mismo llamado.
+        """
+        del voice_analysis
+        cached = next(iter(self._voice_cache.values()), None)
+        if cached is None:
+            return {
+                "score": 0.0,
+                "clarity": 0.0,
+                "noise_level": 0.0,
+                "acceptable": False,
+            }
+        return cached.to_quality_dict()
 
     def _transcribe_voice(self, voice_data: str) -> Dict[str, Any]:
-        """Simula la transcripción de voz a texto."""
-        # En producción usaría Google Speech-to-Text, Azure Speech, etc.
-        return {
-            "text": "He firmado digitalmente el contrato número VH-2025-000123 el día 4 de agosto de 2025",
-            "confidence": 0.92,
-            "language_detected": "es-CO",
-        }
+        """Transcripción vía el proveedor activo (speech-to-text)."""
+        analysis = self._get_voice_analysis(voice_data)
+        payload = analysis.to_transcription_dict()
+        payload["provider"] = analysis.provider
+        return payload
 
     def _compare_transcription(
         self, transcribed_text: str, expected_text: str
@@ -1043,16 +1079,27 @@ class BiometricAuthenticationService:
         return len(intersection) / len(words_expected)
 
     def _analyze_voice_characteristics(self, voice_analysis: Dict) -> Dict[str, Any]:
-        """Simula el análisis de características vocales."""
-        return {
-            "features": {
-                "pitch_average": 150.5,  # Hz
-                "tone_stability": 0.87,
-                "speech_rate": 4.2,  # palabras por segundo
-                "voice_uniqueness": 0.89,
-            },
-            "biometric_score": 0.85,
-        }
+        """Características biométricas vocales vía el proveedor activo.
+
+        El caller pasa el dict de `_process_voice_recording` (audio_analysis);
+        lo ignoramos y reusamos el análisis cacheado por el provider que
+        ya calculó pitch/tono/rate/uniqueness en el mismo llamado.
+        """
+        del voice_analysis  # shape por compat; el cache evita doble llamada
+        cached = next(iter(self._voice_cache.values()), None)
+        if cached is None:
+            # Nunca debería pasar si el flujo llama primero process_voice,
+            # pero fallback defensivo: retorna shape vacía.
+            return {
+                "features": {
+                    "pitch_average": 0.0,
+                    "tone_stability": 0.0,
+                    "speech_rate": 0.0,
+                    "voice_uniqueness": 0.0,
+                },
+                "biometric_score": 0.0,
+            }
+        return cached.to_characteristics_dict()
 
     def _calculate_voice_confidence(
         self,
