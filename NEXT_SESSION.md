@@ -1,6 +1,6 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-20 (Fases O1-O4 + P1 + P2 · ruff backend 1197→0 · ESLint frontend 1371→0 · 8 commits)
+**Última actualización**: 2026-04-20 (Fases O1-O4 + P1 + P2 + P3 · ruff backend 1197→0 · ESLint frontend 1371→0 · createDropzone refactor · 9 commits)
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Indicador | Valor |
 |-----------|-------|
-| Branch | `main` @ `b4ffd74` (O1+O2+O3+O4 + P1 + P2) |
+| Branch | `main` @ `2180b1b` (O1-O4 + P1-P3 + docs) |
 | Backend tests | **855/855 OK** + 3 skipped (0 fallos) |
 | Frontend lint | **0 errors** + 2351 warnings (baseline aceptable) |
 | Frontend build | **OK 4m 48s** (PWA 103 entries · vite 8) |
@@ -21,7 +21,32 @@
 
 ---
 
-## Lo que se hizo esta sesión (2026-04-20 · Fases P1+P2)
+## Lo que se hizo esta sesión (2026-04-20 · Fases P1+P2+P3)
+
+### Fase P3 — refactor createDropzone → <DropzoneBlock/>
+Cierra la deuda técnica dejada en P2: extrae la función helper
+`createDropzone(docType)` en un componente React real `DropzoneBlock`
+que recibe props. Elimina el `// eslint-disable-next-line
+react-hooks/rules-of-hooks` y respeta las rules-of-hooks naturalmente.
+
+- **Antes**: `createDropzone` llamaba `useDropzone()` dentro. Al
+  invocarse desde `.map()` sobre `requiredDocs`/`optionalDocs`, cada
+  iteración creaba un hook en distinta posición — técnicamente ilegal
+  (funcionaba por lista de largo constante).
+- **Ahora**: `<DropzoneBlock docType={...} existingDoc={...}
+  onDrop={...} onPreview={...} onRemove={...} disabled={...} />`.
+
+Props interface `DropzoneBlockProps` con callbacks explícitos. Sin
+cambio visual ni funcional para el usuario final.
+
+Validación:
+- `npx tsc --noEmit` → 0 errors.
+- ESLint del archivo: 0 errors (+11 warnings pre-existentes).
+- `npm run build` → OK 2m 56s.
+
+Commit: `2180b1b`
+
+
 
 ### Fase P2 — frontend ESLint 1371→0 errors
 - `npm run lint:fix` autofix (47 errors): comma-dangle, quotes,
@@ -422,23 +447,24 @@ python manage.py test matching contracts services ratings messaging payments ver
 ## Prompt para reanudar
 
 ```
-Continúa VeriHome. Main @ b4ffd74. Última sesión cerró 8 fases:
-ruff backend 1197→0 (O1-O4) · ESLint frontend 1371→0 (P2) ·
-test_health_check fix (P1). Full stack CI-green: lint + type
-check + 855 tests backend + build. TS 0 errors. 25/25 moleculares.
+Continúa VeriHome. Main @ 2180b1b (9 commits sesión anterior,
+NO pusheados). Sesión anterior cerró 10 fases: ruff backend 1197→0,
+ESLint frontend 1371→0, test_health_check fix, DropzoneBlock
+refactor. Full CI-green: lint + tsc + 855 tests + build.
+
+CI real último run (en d2daed6 pre-commits): 4/6 jobs rojo —
+test-frontend, test-backend, lint-check, security-scan. Los
+primeros 3 deberían pasar tras el push. security-scan requiere
+investigación específica.
 
 Próximos candidatos en orden de scope:
-  1. i18next completo (~664 strings hardcoded) — varias sesiones,
-     no quick win pero desbloqueará mercados no-español.
-  2. Biometric UI real (camera + voice E2E) — scope grande dedicado
-     con hardware real o mocks avanzados.
-  3. Reducir 2351 warnings frontend a 0: resolver unused-vars uno
-     por uno (eliminar o prefix con _), tipar any explícito, quitar
-     useless-catch. Larga pero pura salud del código.
-  4. Refactor `createDropzone` en GuaranteeDocumentUpload a
-     `<DropzoneBlock />` componente (quita eslint-disable y cierra
-     deuda técnica react-hooks).
+  1. `git push` + revisar CI en GitHub (pendiente confirmación user).
+  2. security-scan debug (si sigue rojo tras push).
+  3. i18next completo (~664 strings hardcoded) — varias sesiones.
+  4. Biometric UI real (camera + voice E2E) — scope grande dedicado.
+  5. Reducir 2351 warnings frontend (exhaustive-deps 89,
+     no-unused-vars imports, no-explicit-any). Larga pero
+     puramente salud del código.
 
-Deuda CI pendiente: security-scan (si sigue rojo revisar).
 Ver NEXT_SESSION.md.
 ```
