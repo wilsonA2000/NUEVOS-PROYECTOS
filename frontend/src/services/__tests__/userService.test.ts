@@ -29,20 +29,28 @@ describe('UserService', () => {
 
   describe('updateProfile', () => {
     it('should update user profile with PATCH', async () => {
-      const updateData = { first_name: 'Updated', phone_number: '+573009876543' };
+      const updateData = {
+        first_name: 'Updated',
+        phone_number: '+573009876543',
+      };
       const mockUser = { id: '1', email: 'test@test.com', ...updateData };
       mockedApi.patch.mockResolvedValueOnce({ data: mockUser });
 
       const result = await userService.updateProfile(updateData as any);
 
-      expect(mockedApi.patch).toHaveBeenCalledWith('/users/profile/', updateData);
+      expect(mockedApi.patch).toHaveBeenCalledWith(
+        '/users/profile/',
+        updateData
+      );
       expect(result.first_name).toBe('Updated');
     });
 
     it('should propagate errors on profile update', async () => {
       mockedApi.patch.mockRejectedValueOnce(new Error('Validation Error'));
 
-      await expect(userService.updateProfile({} as any)).rejects.toThrow('Validation Error');
+      await expect(userService.updateProfile({} as any)).rejects.toThrow(
+        'Validation Error'
+      );
     });
   });
 
@@ -50,8 +58,12 @@ describe('UserService', () => {
 
   describe('uploadAvatar', () => {
     it('should upload avatar with multipart form data', async () => {
-      const mockFile = new File(['test-image'], 'avatar.jpg', { type: 'image/jpeg' });
-      const mockResponse = { avatar_url: 'https://example.com/avatars/avatar.jpg' };
+      const mockFile = new File(['test-image'], 'avatar.jpg', {
+        type: 'image/jpeg',
+      });
+      const mockResponse = {
+        avatar_url: 'https://example.com/avatars/avatar.jpg',
+      };
       mockedApi.post.mockResolvedValueOnce({ data: mockResponse });
 
       const result = await userService.uploadAvatar(mockFile);
@@ -59,7 +71,7 @@ describe('UserService', () => {
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/users/avatar/',
         expect.any(FormData),
-        { headers: { 'Content-Type': 'multipart/form-data' } },
+        { headers: { 'Content-Type': 'multipart/form-data' } }
       );
       expect(result.avatar_url).toBe('https://example.com/avatars/avatar.jpg');
     });
@@ -68,7 +80,9 @@ describe('UserService', () => {
       const mockFile = new File(['test'], 'avatar.jpg');
       mockedApi.post.mockRejectedValueOnce(new Error('File too large'));
 
-      await expect(userService.uploadAvatar(mockFile)).rejects.toThrow('File too large');
+      await expect(userService.uploadAvatar(mockFile)).rejects.toThrow(
+        'File too large'
+      );
     });
   });
 
@@ -94,7 +108,10 @@ describe('UserService', () => {
 
   describe('updateResume', () => {
     it('should update resume with PUT', async () => {
-      const resumeData = { bio: 'Updated bio', skills: ['React', 'TypeScript'] };
+      const resumeData = {
+        bio: 'Updated bio',
+        skills: ['React', 'TypeScript'],
+      };
       const mockResume = { id: 'r-1', ...resumeData };
       mockedApi.put.mockResolvedValueOnce({ data: mockResume });
 
@@ -120,7 +137,9 @@ describe('UserService', () => {
     it('should propagate errors on resume creation', async () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Duplicate resume'));
 
-      await expect(userService.createResume({} as any)).rejects.toThrow('Duplicate resume');
+      await expect(userService.createResume({} as any)).rejects.toThrow(
+        'Duplicate resume'
+      );
     });
   });
 
@@ -146,14 +165,19 @@ describe('UserService', () => {
 
       const result = await userService.updateSettings(settingsData as any);
 
-      expect(mockedApi.put).toHaveBeenCalledWith('/users/settings/', settingsData);
+      expect(mockedApi.put).toHaveBeenCalledWith(
+        '/users/settings/',
+        settingsData
+      );
       expect(result.notifications_enabled).toBe(false);
     });
 
     it('should propagate errors on settings update', async () => {
       mockedApi.put.mockRejectedValueOnce(new Error('Invalid settings'));
 
-      await expect(userService.updateSettings({} as any)).rejects.toThrow('Invalid settings');
+      await expect(userService.updateSettings({} as any)).rejects.toThrow(
+        'Invalid settings'
+      );
     });
   });
 
@@ -164,12 +188,18 @@ describe('UserService', () => {
       const mockResponse = { valid: true, message: 'Code is valid' };
       mockedApi.post.mockResolvedValueOnce({ data: mockResponse });
 
-      const result = await userService.verifyInterviewCode('ABC123', 'user@test.com');
+      const result = await userService.verifyInterviewCode(
+        'ABC123',
+        'user@test.com'
+      );
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/users/verify-interview-code/', {
-        code: 'ABC123',
-        email: 'user@test.com',
-      });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/users/verify-interview-code/',
+        {
+          code: 'ABC123',
+          email: 'user@test.com',
+        }
+      );
       expect(result.valid).toBe(true);
     });
 
@@ -177,7 +207,10 @@ describe('UserService', () => {
       const mockResponse = { valid: false, message: 'Invalid code' };
       mockedApi.post.mockResolvedValueOnce({ data: mockResponse });
 
-      const result = await userService.verifyInterviewCode('WRONG', 'user@test.com');
+      const result = await userService.verifyInterviewCode(
+        'WRONG',
+        'user@test.com'
+      );
 
       expect(result.valid).toBe(false);
     });
@@ -186,7 +219,7 @@ describe('UserService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Server Error'));
 
       await expect(
-        userService.verifyInterviewCode('CODE', 'user@test.com'),
+        userService.verifyInterviewCode('CODE', 'user@test.com')
       ).rejects.toThrow('Server Error');
     });
   });
@@ -209,12 +242,17 @@ describe('UserService', () => {
 
       const result = await userService.registerWithCode(registrationData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/users/register/', registrationData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/users/register/',
+        registrationData
+      );
       expect(result.email).toBe('new@test.com');
     });
 
     it('should propagate errors for invalid registration data', async () => {
-      mockedApi.post.mockRejectedValueOnce(new Error('Email already registered'));
+      mockedApi.post.mockRejectedValueOnce(
+        new Error('Email already registered')
+      );
 
       await expect(
         userService.registerWithCode({
@@ -225,7 +263,7 @@ describe('UserService', () => {
           user_type: 'tenant',
           phone_number: '+57300',
           interview_code: 'CODE',
-        }),
+        })
       ).rejects.toThrow('Email already registered');
     });
   });
@@ -242,7 +280,9 @@ describe('UserService', () => {
     it('should propagate server errors', async () => {
       mockedApi.patch.mockRejectedValueOnce(new Error('Internal Server Error'));
 
-      await expect(userService.updateProfile({} as any)).rejects.toThrow('Internal Server Error');
+      await expect(userService.updateProfile({} as any)).rejects.toThrow(
+        'Internal Server Error'
+      );
     });
   });
 });

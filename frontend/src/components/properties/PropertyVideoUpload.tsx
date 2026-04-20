@@ -4,7 +4,7 @@
  * Inspired by the PropertyImageUpload success but optimized for video content
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -15,9 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Grid,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
   LinearProgress,
@@ -26,12 +24,7 @@ import {
   Alert,
   Tabs,
   Tab,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Tooltip,
-  Fab,
   Collapse,
   Switch,
   FormControlLabel,
@@ -55,7 +48,12 @@ import {
   Add as AddIcon,
   Movie as MovieIcon,
 } from '@mui/icons-material';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
 import { toast } from 'react-toastify';
 import VideoProcessor from '../../utils/videoUtils';
 
@@ -101,18 +99,29 @@ interface PropertyVideo {
 class VideoUtils {
   static readonly MAX_SIZE = 100 * 1024 * 1024; // 100MB
   static readonly MAX_DURATION = 600; // 10 minutes
-  static readonly ALLOWED_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/avi'];
+  static readonly ALLOWED_TYPES = [
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+    'video/avi',
+  ];
   static readonly TARGET_MAX_SIZE = 50 * 1024 * 1024; // Target 50MB after compression
 
   static validateVideo(file: File): { valid: boolean; error?: string } {
     if (!this.ALLOWED_TYPES.includes(file.type)) {
-      return { valid: false, error: 'Formato no soportado. Use MP4, WebM, QuickTime o AVI.' };
+      return {
+        valid: false,
+        error: 'Formato no soportado. Use MP4, WebM, QuickTime o AVI.',
+      };
     }
-    
+
     if (file.size > this.MAX_SIZE) {
-      return { valid: false, error: `El archivo es muy grande. Máximo ${this.MAX_SIZE / (1024 * 1024)}MB.` };
+      return {
+        valid: false,
+        error: `El archivo es muy grande. Máximo ${this.MAX_SIZE / (1024 * 1024)}MB.`,
+      };
     }
-    
+
     return { valid: true };
   }
 
@@ -121,7 +130,7 @@ class VideoUtils {
     resolution: string;
     thumbnail: string;
   }> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const video = document.createElement('video');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -132,7 +141,7 @@ class VideoUtils {
       video.onloadedmetadata = () => {
         const duration = video.duration;
         const resolution = `${video.videoWidth}x${video.videoHeight}`;
-        
+
         // Generate thumbnail at 2 seconds or 25% of video
         video.currentTime = Math.min(2, duration * 0.25);
       };
@@ -140,18 +149,18 @@ class VideoUtils {
       video.onseeked = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        
+
         if (ctx) {
           ctx.drawImage(video, 0, 0);
           const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
-          
+
           resolve({
             duration: video.duration,
             resolution: `${video.videoWidth}x${video.videoHeight}`,
             thumbnail,
           });
         }
-        
+
         URL.revokeObjectURL(video.src);
       };
 
@@ -166,15 +175,18 @@ class VideoUtils {
     });
   }
 
-  static async compressVideo(file: File, options: {
-    maxSize?: number;
-    quality?: number;
-    maxDuration?: number;
-  } = {}): Promise<VideoFile> {
+  static async compressVideo(
+    file: File,
+    options: {
+      maxSize?: number;
+      quality?: number;
+      maxDuration?: number;
+    } = {},
+  ): Promise<VideoFile> {
     // For now, return original file with compression flag
     // In production, you'd use libraries like FFmpeg.wasm
     const { maxSize = this.TARGET_MAX_SIZE } = options;
-    
+
     if (file.size <= maxSize) {
       return Object.assign(file, {
         compressed: false,
@@ -186,7 +198,7 @@ class VideoUtils {
     // Simulate compression (in production, use FFmpeg.wasm)
     const compressionRatio = maxSize / file.size;
     const simulatedCompressedSize = Math.floor(file.size * compressionRatio);
-    
+
     return Object.assign(file, {
       compressed: true,
       originalSize: file.size,
@@ -199,12 +211,12 @@ class VideoUtils {
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
       /^([a-zA-Z0-9_-]{11})$/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match) return match[1] ?? null;
     }
-    
+
     return null;
   }
 
@@ -213,7 +225,7 @@ class VideoUtils {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
   static formatDuration(seconds: number): string {
@@ -239,13 +251,15 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
   const [activeTab, setActiveTab] = useState(0); // 0: Upload, 1: YouTube
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [uploadProgress, setUploadProgress] = useState<{
+    [key: string]: number;
+  }>({});
   const [previewVideo, setPreviewVideo] = useState<PropertyVideo | null>(null);
   const [editingVideo, setEditingVideo] = useState<PropertyVideo | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [autoCompress, setAutoCompress] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
@@ -274,7 +288,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
     e.stopPropagation();
     setIsDragging(false);
 
-    const files = Array.from(e.dataTransfer.files).filter(file => 
+    const files = Array.from(e.dataTransfer.files).filter(file =>
       file.type.startsWith('video/'),
     );
 
@@ -337,7 +351,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
         setUploadProgress(prev => ({ ...prev, [fileId]: 100 }));
         onChange([...videos, newVideo]);
-        
+
         toast.success(`Video "${file.name}" procesado exitosamente`);
 
         // Cleanup progress after delay
@@ -347,7 +361,6 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
             return rest;
           });
         }, 2000);
-
       } catch (error) {
         toast.error(`Error procesando ${file.name}`);
       }
@@ -400,7 +413,6 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       onChange([...videos, newVideo]);
       setYoutubeUrl('');
       toast.success('Video de YouTube agregado exitosamente');
-
     } catch (error) {
       toast.error('Error agregando video de YouTube');
     } finally {
@@ -416,13 +428,17 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
     if (video.id) {
       try {
         setIsProcessing(true);
-        
+
         // Importar el servicio
-        const { propertyVideoService } = await import('../../services/propertyVideoService');
-        
+        const { propertyVideoService } = await import(
+          '../../services/propertyVideoService'
+        );
+
         // Obtener propertyId (necesitamos añadir esta prop al componente)
-        const propertyId = (video as any).property || (window.location.pathname.match(/properties\/([^\/]+)/) || [])[1];
-        
+        const propertyId =
+          (video as any).property ||
+          (window.location.pathname.match(/properties\/([^\/]+)/) || [])[1];
+
         if (propertyId) {
           await propertyVideoService.deleteVideo(propertyId, video.id);
           toast.success('Video eliminado del servidor');
@@ -434,13 +450,16 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
         setIsProcessing(false);
       }
     }
-    
+
     // Eliminar del estado local
     const newVideos = videos.filter((_, i) => i !== index);
     // Update order
-    const reorderedVideos = newVideos.map((video, i) => ({ ...video, order: i }));
+    const reorderedVideos = newVideos.map((video, i) => ({
+      ...video,
+      order: i,
+    }));
     onChange(reorderedVideos);
-    
+
     if (!video.id) {
       toast.success('Video eliminado');
     }
@@ -454,7 +473,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
   const handleSaveEdit = () => {
     if (!editingVideo) return;
 
-    const updatedVideos = videos.map(video => 
+    const updatedVideos = videos.map(video =>
       video.id === editingVideo.id ? editingVideo : video,
     );
     onChange(updatedVideos);
@@ -487,23 +506,29 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
   const renderVideoCard = (video: PropertyVideo, index: number) => {
     const isFile = video.type === 'file' && video.file;
     const isYouTube = video.type === 'youtube' && video.youtube;
-    
+
     return (
-      <Card 
+      <Card
         elevation={2}
-        sx={{ 
+        sx={{
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.2s',
-          '&:hover': { 
+          '&:hover': {
             elevation: 4,
             transform: 'translateY(-2px)',
           },
         }}
       >
         {/* Video Thumbnail/Preview */}
-        <Box sx={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
+        <Box
+          sx={{
+            position: 'relative',
+            paddingTop: '56.25%',
+            overflow: 'hidden',
+          }}
+        >
           {isFile && video.metadata?.thumbnail && (
             <img
               src={video.metadata?.thumbnail || ''}
@@ -518,7 +543,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
               }}
             />
           )}
-          
+
           {isYouTube && video.youtube?.thumbnail && (
             <img
               src={video.youtube.thumbnail}
@@ -554,7 +579,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
           {/* Video type indicator */}
           <Chip
             label={isYouTube ? 'YouTube' : 'Archivo'}
-            size="small"
+            size='small'
             color={isYouTube ? 'error' : 'primary'}
             icon={isYouTube ? <YouTubeIcon /> : <MovieIcon />}
             sx={{
@@ -573,7 +598,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)' },
             }}
-            size="small"
+            size='small'
           >
             <DragIcon />
           </IconButton>
@@ -581,44 +606,42 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
         {/* Video Info */}
         <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-          <Typography variant="subtitle2" noWrap gutterBottom>
+          <Typography variant='subtitle2' noWrap gutterBottom>
             {video.title}
           </Typography>
-          
-          <Box display="flex" flexWrap="wrap" gap={0.5} mb={1}>
+
+          <Box display='flex' flexWrap='wrap' gap={0.5} mb={1}>
             {isFile && video.metadata?.duration && (
-              <Chip 
+              <Chip
                 label={VideoUtils.formatDuration(video.metadata?.duration || 0)}
-                size="small"
-                variant="outlined"
+                size='small'
+                variant='outlined'
               />
             )}
-            
+
             {isFile && video.metadata?.resolution && (
-              <Chip 
+              <Chip
                 label={video.metadata?.resolution || 'Unknown'}
-                size="small"
-                variant="outlined"
+                size='small'
+                variant='outlined'
               />
             )}
-            
+
             {isFile && video.file?.compressed && (
-              <Chip 
-                label="Comprimido"
-                size="small"
-                color="success"
-                variant="outlined"
+              <Chip
+                label='Comprimido'
+                size='small'
+                color='success'
+                variant='outlined'
               />
             )}
           </Box>
 
           {isFile && video.file && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               Tamaño: {VideoUtils.formatFileSize(video.file?.size || 0)}
               {video.file && video.metadata && (
-                <span style={{ color: 'green' }}>
-                  {' '}Video procesado
-                </span>
+                <span style={{ color: 'green' }}> Video procesado</span>
               )}
             </Typography>
           )}
@@ -627,23 +650,26 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
         {/* Actions */}
         <CardActions sx={{ pt: 0, justifyContent: 'space-between' }}>
           <Box>
-            <Tooltip title="Vista previa">
-              <IconButton size="small" onClick={() => handlePreviewVideo(video)}>
+            <Tooltip title='Vista previa'>
+              <IconButton
+                size='small'
+                onClick={() => handlePreviewVideo(video)}
+              >
                 <PlayIcon />
               </IconButton>
             </Tooltip>
-            
-            <Tooltip title="Editar información">
-              <IconButton size="small" onClick={() => handleEditVideo(video)}>
+
+            <Tooltip title='Editar información'>
+              <IconButton size='small' onClick={() => handleEditVideo(video)}>
                 <EditIcon />
               </IconButton>
             </Tooltip>
           </Box>
-          
-          <Tooltip title="Eliminar video">
-            <IconButton 
-              size="small" 
-              color="error"
+
+          <Tooltip title='Eliminar video'>
+            <IconButton
+              size='small'
+              color='error'
               onClick={() => handleRemoveVideo(index)}
             >
               <DeleteIcon />
@@ -656,17 +682,25 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
   return (
     <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <VideoIcon color="primary" />
+      <Box
+        display='flex'
+        alignItems='center'
+        justifyContent='space-between'
+        mb={2}
+      >
+        <Typography
+          variant='h6'
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <VideoIcon color='primary' />
           Videos de la Propiedad
-          <Chip label={`${videos.length}/${maxVideos}`} size="small" />
+          <Chip label={`${videos.length}/${maxVideos}`} size='small' />
         </Typography>
-        
-        <Box display="flex" gap={1}>
-          <Tooltip title="Configuración avanzada">
-            <IconButton 
-              size="small" 
+
+        <Box display='flex' gap={1}>
+          <Tooltip title='Configuración avanzada'>
+            <IconButton
+              size='small'
               onClick={() => setShowAdvanced(!showAdvanced)}
               color={showAdvanced ? 'primary' : 'default'}
             >
@@ -678,32 +712,36 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
       {/* Advanced Settings */}
       <Collapse in={showAdvanced}>
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Box display="flex" flexDirection="column" gap={1}>
+        <Alert severity='info' sx={{ mb: 2 }}>
+          <Box display='flex' flexDirection='column' gap={1}>
             <FormControlLabel
               control={
                 <Switch
                   checked={autoCompress}
-                  onChange={(e) => setAutoCompress(e.target.checked)}
-                  size="small"
+                  onChange={e => setAutoCompress(e.target.checked)}
+                  size='small'
                 />
               }
-              label="Compresión automática (recomendado para archivos >50MB)"
+              label='Compresión automática (recomendado para archivos >50MB)'
             />
-            <Typography variant="caption" color="text.secondary">
-              • Máximo {maxVideos} videos por propiedad
-              • Tamaño máximo: {VideoUtils.MAX_SIZE / (1024 * 1024)}MB por video
-              • Duración máxima: {VideoUtils.MAX_DURATION / 60} minutos
-              • Formatos: MP4, WebM, QuickTime, AVI
+            <Typography variant='caption' color='text.secondary'>
+              • Máximo {maxVideos} videos por propiedad • Tamaño máximo:{' '}
+              {VideoUtils.MAX_SIZE / (1024 * 1024)}MB por video • Duración
+              máxima: {VideoUtils.MAX_DURATION / 60} minutos • Formatos: MP4,
+              WebM, QuickTime, AVI
             </Typography>
           </Box>
         </Alert>
       </Collapse>
 
       {/* Tabs for Upload Methods */}
-      <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} sx={{ mb: 2 }}>
-        <Tab label="Subir Archivos" icon={<UploadIcon />} />
-        <Tab label="YouTube" icon={<YouTubeIcon />} />
+      <Tabs
+        value={activeTab}
+        onChange={(_, newValue) => setActiveTab(newValue)}
+        sx={{ mb: 2 }}
+      >
+        <Tab label='Subir Archivos' icon={<UploadIcon />} />
+        <Tab label='YouTube' icon={<YouTubeIcon />} />
       </Tabs>
 
       {/* File Upload Tab */}
@@ -729,26 +767,31 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              '&:hover': disabled ? {} : {
-                borderColor: 'primary.main',
-                backgroundColor: 'primary.50',
-              },
+              '&:hover': disabled
+                ? {}
+                : {
+                    borderColor: 'primary.main',
+                    backgroundColor: 'primary.50',
+                  },
             }}
             onClick={() => !disabled && fileInputRef.current?.click()}
           >
             <VideoIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-            <Typography variant="subtitle1" gutterBottom>
-              {isDragging ? 'Suelta los videos aquí' : 'Arrastra videos o haz click para seleccionar'}
+            <Typography variant='subtitle1' gutterBottom>
+              {isDragging
+                ? 'Suelta los videos aquí'
+                : 'Arrastra videos o haz click para seleccionar'}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Soporta: MP4, WebM, QuickTime, AVI • Máximo {VideoUtils.MAX_SIZE / (1024 * 1024)}MB
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+              Soporta: MP4, WebM, QuickTime, AVI • Máximo{' '}
+              {VideoUtils.MAX_SIZE / (1024 * 1024)}MB
             </Typography>
-            
+
             {autoCompress && (
               <Chip
-                label="Compresión automática activada"
-                size="small"
-                color="success"
+                label='Compresión automática activada'
+                size='small'
+                color='success'
                 icon={<CompressIcon />}
                 sx={{ mt: 1 }}
               />
@@ -757,9 +800,9 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
 
           <input
             ref={fileInputRef}
-            type="file"
+            type='file'
             multiple
-            accept="video/*"
+            accept='video/*'
             onChange={handleFileInputChange}
             style={{ display: 'none' }}
             disabled={disabled}
@@ -771,24 +814,22 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       {activeTab === 1 && (
         <Box>
           <Paper sx={{ p: 3, mb: 2 }}>
-            <Box display="flex" alignItems="center" gap={2} mb={2}>
-              <YouTubeIcon color="error" sx={{ fontSize: 32 }} />
-              <Typography variant="h6">
-                Agregar Video de YouTube
-              </Typography>
+            <Box display='flex' alignItems='center' gap={2} mb={2}>
+              <YouTubeIcon color='error' sx={{ fontSize: 32 }} />
+              <Typography variant='h6'>Agregar Video de YouTube</Typography>
             </Box>
-            
-            <Box display="flex" gap={2} mb={2}>
+
+            <Box display='flex' gap={2} mb={2}>
               <TextField
                 fullWidth
-                label="URL de YouTube"
-                placeholder="https://www.youtube.com/watch?v=..."
+                label='URL de YouTube'
+                placeholder='https://www.youtube.com/watch?v=...'
                 value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
+                onChange={e => setYoutubeUrl(e.target.value)}
                 disabled={disabled}
               />
               <Button
-                variant="contained"
+                variant='contained'
                 onClick={handleAddYouTubeVideo}
                 disabled={!youtubeUrl || isProcessing || disabled}
                 startIcon={isProcessing ? <LinearProgress /> : <AddIcon />}
@@ -796,9 +837,10 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
                 Agregar
               </Button>
             </Box>
-            
-            <Typography variant="caption" color="text.secondary">
-              Puedes agregar videos directamente desde YouTube sin subirlos a tu servidor
+
+            <Typography variant='caption' color='text.secondary'>
+              Puedes agregar videos directamente desde YouTube sin subirlos a tu
+              servidor
             </Typography>
           </Paper>
         </Box>
@@ -807,14 +849,14 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       {/* Processing Indicator */}
       {isProcessing && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" gutterBottom>
+          <Typography variant='body2' gutterBottom>
             Procesando videos...
           </Typography>
           {Object.entries(uploadProgress).map(([fileId, progress]) => (
-            <LinearProgress 
+            <LinearProgress
               key={fileId}
-              variant="determinate" 
-              value={progress} 
+              variant='determinate'
+              value={progress}
               sx={{ mb: 1 }}
             />
           ))}
@@ -824,19 +866,20 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       {/* Videos Grid */}
       {videos.length > 0 && (
         <Box>
-          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, mb: 1 }}>
+          <Typography variant='subtitle1' gutterBottom sx={{ mt: 2, mb: 1 }}>
             Videos ({videos.length})
           </Typography>
-          
+
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="videos" direction="horizontal">
-              {(provided) => (
+            <Droppable droppableId='videos' direction='horizontal'>
+              {provided => (
                 <Box
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   sx={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                    gridTemplateColumns:
+                      'repeat(auto-fill, minmax(300px, 1fr))',
                     gap: 2,
                   }}
                 >
@@ -852,7 +895,9 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           sx={{
-                            transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
+                            transform: snapshot.isDragging
+                              ? 'rotate(5deg)'
+                              : 'none',
                             opacity: snapshot.isDragging ? 0.8 : 1,
                           }}
                         >
@@ -879,10 +924,10 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
           }}
         >
           <VideoIcon sx={{ fontSize: 64, mb: 2, opacity: 0.5 }} />
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             No hay videos agregados
           </Typography>
-          <Typography variant="body2">
+          <Typography variant='body2'>
             Agrega videos para mostrar mejor tu propiedad
           </Typography>
         </Box>
@@ -892,12 +937,10 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       <Dialog
         open={!!previewVideo}
         onClose={() => setPreviewVideo(null)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          Vista Previa: {previewVideo?.title}
-        </DialogTitle>
+        <DialogTitle>Vista Previa: {previewVideo?.title}</DialogTitle>
         <DialogContent>
           {previewVideo?.type === 'file' && previewVideo.metadata?.preview && (
             <video
@@ -906,7 +949,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
               src={previewVideo.metadata.preview}
             />
           )}
-          
+
           {previewVideo?.type === 'youtube' && previewVideo.youtube?.id && (
             <Box sx={{ position: 'relative', paddingTop: '56.25%' }}>
               <iframe
@@ -919,7 +962,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
                   height: '100%',
                   border: 'none',
                 }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                 allowFullScreen
               />
             </Box>
@@ -934,7 +977,7 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
       <Dialog
         open={!!editingVideo}
         onClose={() => setEditingVideo(null)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>Editar Video</DialogTitle>
@@ -942,24 +985,32 @@ export const PropertyVideoUpload: React.FC<PropertyVideoUploadProps> = ({
           <Box sx={{ pt: 1 }}>
             <TextField
               fullWidth
-              label="Título del video"
+              label='Título del video'
               value={editingVideo?.title || ''}
-              onChange={(e) => setEditingVideo(prev => prev ? { ...prev, title: e.target.value } : null)}
+              onChange={e =>
+                setEditingVideo(prev =>
+                  prev ? { ...prev, title: e.target.value } : null,
+                )
+              }
               sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
-              label="Descripción"
+              label='Descripción'
               multiline
               rows={3}
               value={editingVideo?.description || ''}
-              onChange={(e) => setEditingVideo(prev => prev ? { ...prev, description: e.target.value } : null)}
+              onChange={e =>
+                setEditingVideo(prev =>
+                  prev ? { ...prev, description: e.target.value } : null,
+                )
+              }
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditingVideo(null)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSaveEdit}>
+          <Button variant='contained' onClick={handleSaveEdit}>
             Guardar
           </Button>
         </DialogActions>

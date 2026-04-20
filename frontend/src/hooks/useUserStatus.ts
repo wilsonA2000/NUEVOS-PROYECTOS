@@ -19,30 +19,36 @@ export interface UserStatus {
 export interface UseUserStatusReturn {
   // Current user status
   myStatus: UserStatus | null;
-  setMyStatus: (status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => void;
-  
+  setMyStatus: (
+    status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>
+  ) => void;
+
   // Other users status
   userStatuses: Map<string, UserStatus>;
   getUserStatus: (userId: string) => UserStatus | null;
   getOnlineUsers: () => UserStatus[];
   getOfflineUsers: () => UserStatus[];
-  
+
   // Status counts
   onlineCount: number;
   totalUsersCount: number;
-  
+
   // Connection state
   isConnected: boolean;
-  
+
   // Event handlers
   onUserStatusChange: (callback: (status: UserStatus) => void) => () => void;
 }
 
 export const useUserStatus = (): UseUserStatusReturn => {
   const { user } = useAuth();
-  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(new Map());
+  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(
+    new Map(),
+  );
   const [myStatus, setMyStatusState] = useState<UserStatus | null>(null);
-  const [statusChangeCallbacks, setStatusChangeCallbacks] = useState<Set<(status: UserStatus) => void>>(new Set());
+  const [statusChangeCallbacks, setStatusChangeCallbacks] = useState<
+    Set<(status: UserStatus) => void>
+  >(new Set());
 
   // No WebSocket connection - static status
   const isConnected = false;
@@ -68,26 +74,36 @@ export const useUserStatus = (): UseUserStatusReturn => {
   // WebSocket event handlers disabled
 
   // Simple status setter without WebSocket
-  const setMyStatus = useCallback((statusUpdate: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => {
-    if (!user) return;
+  const setMyStatus = useCallback(
+    (statusUpdate: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => {
+      if (!user) return;
 
-    // Update local state only
-    setMyStatusState(prev => prev ? {
-      ...prev,
-      ...statusUpdate,
-      lastSeen: new Date().toISOString(),
-    } : null);
-    
-    // Save to localStorage for persistence
-    if (statusUpdate.status) {
-      localStorage.setItem('userStatus', statusUpdate.status);
-    }
-  }, [user]);
+      // Update local state only
+      setMyStatusState(prev =>
+        prev
+          ? {
+              ...prev,
+              ...statusUpdate,
+              lastSeen: new Date().toISOString(),
+            }
+          : null,
+      );
+
+      // Save to localStorage for persistence
+      if (statusUpdate.status) {
+        localStorage.setItem('userStatus', statusUpdate.status);
+      }
+    },
+    [user],
+  );
 
   // Get specific user status
-  const getUserStatus = useCallback((userId: string): UserStatus | null => {
-    return userStatuses.get(userId) || null;
-  }, [userStatuses]);
+  const getUserStatus = useCallback(
+    (userId: string): UserStatus | null => {
+      return userStatuses.get(userId) || null;
+    },
+    [userStatuses],
+  );
 
   // Get online users
   const getOnlineUsers = useCallback((): UserStatus[] => {
@@ -100,17 +116,20 @@ export const useUserStatus = (): UseUserStatusReturn => {
   }, [userStatuses]);
 
   // Register status change callback
-  const onUserStatusChange = useCallback((callback: (status: UserStatus) => void) => {
-    setStatusChangeCallbacks(prev => new Set(prev.add(callback)));
-    
-    return () => {
-      setStatusChangeCallbacks(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(callback);
-        return newSet;
-      });
-    };
-  }, []);
+  const onUserStatusChange = useCallback(
+    (callback: (status: UserStatus) => void) => {
+      setStatusChangeCallbacks(prev => new Set(prev.add(callback)));
+
+      return () => {
+        setStatusChangeCallbacks(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(callback);
+          return newSet;
+        });
+      };
+    },
+    [],
+  );
 
   // Offline status handler disabled
 

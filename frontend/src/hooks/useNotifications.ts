@@ -1,13 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
-import { useWebSocket } from './useWebSocket';
+
 import { useNavigate } from 'react-router-dom';
 
 export interface Notification {
   id: string;
   title: string;
   message: string;
-  notification_type: 'message' | 'contract' | 'payment' | 'property' | 'rating' | 'inquiry' | 'system' | 'reminder' | 'welcome' | 'verification';
+  notification_type:
+    | 'message'
+    | 'contract'
+    | 'payment'
+    | 'property'
+    | 'rating'
+    | 'inquiry'
+    | 'system'
+    | 'reminder'
+    | 'welcome'
+    | 'verification';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   is_read: boolean;
   created_at: string;
@@ -22,7 +32,7 @@ export const useNotifications = () => {
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
-  
+
   // WebSocket para notificaciones en tiempo real - TEMPORALMENTE DESHABILITADO
   // const { sendMessage, lastMessage, isConnected } = useWebSocket('/ws/notifications/');
   const sendMessage = () => {};
@@ -35,7 +45,7 @@ export const useNotifications = () => {
       const response = await api.get('/core/notifications/');
       const data = response.data.results || response.data || [];
       setNotifications(Array.isArray(data) ? data : []);
-      
+
       // Actualizar contador de no leídas
       const unread = data.filter((n: Notification) => !n.is_read).length;
       setUnreadCount(unread);
@@ -47,24 +57,26 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await api.patch(`/core/notifications/${notificationId}/`, { is_read: true });
-      setNotifications(prev => 
-        prev.map(notif => 
+      await api.patch(`/core/notifications/${notificationId}/`, {
+        is_read: true,
+      });
+      setNotifications(prev =>
+        prev.map(notif =>
           notif.id === notificationId ? { ...notif, is_read: true } : notif,
         ),
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const markAllAsRead = async () => {
     try {
       await api.post('/core/notifications/mark_all_read/');
-      setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
+      setNotifications(prev =>
+        prev.map(notif => ({ ...notif, is_read: true })),
+      );
       setUnreadCount(0);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const deleteNotification = async (notificationId: string) => {
@@ -77,8 +89,7 @@ export const useNotifications = () => {
         }
         return prev.filter(n => n.id !== notificationId);
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -124,9 +135,12 @@ export const useNotifications = () => {
           // Agregar nueva notificación al principio
           setNotifications(prev => [data.notification, ...prev]);
           setUnreadCount(prev => prev + 1);
-          
+
           // Mostrar notificación del navegador si está permitido
-          if ('Notification' in window && Notification.permission === 'granted') {
+          if (
+            'Notification' in window &&
+            Notification.permission === 'granted'
+          ) {
             new Notification(data.notification.title, {
               body: data.notification.message,
               icon: '/logo192.png',
@@ -135,18 +149,19 @@ export const useNotifications = () => {
         } else if (data.type === 'notification.update') {
           // Actualizar notificación existente
           setNotifications(prev =>
-            prev.map(n => n.id === data.notification.id ? data.notification : n),
+            prev.map(n =>
+              n.id === data.notification.id ? data.notification : n,
+            ),
           );
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   }, [lastMessage]);
 
   // Cargar notificaciones al montar
   useEffect(() => {
     fetchNotifications();
-    
+
     // Solicitar permisos de notificación del navegador
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
@@ -173,4 +188,4 @@ export const useNotifications = () => {
     deleteNotification,
     handleNotificationClick,
   };
-}; 
+};

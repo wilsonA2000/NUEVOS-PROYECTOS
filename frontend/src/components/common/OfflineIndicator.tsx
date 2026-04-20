@@ -30,8 +30,8 @@ const OfflineIndicator: React.FC = () => {
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}
     >
-      <WifiOffIcon fontSize="small" />
-      <Typography variant="body2" fontWeight={600}>
+      <WifiOffIcon fontSize='small' />
+      <Typography variant='body2' fontWeight={600}>
         Sin conexion - Modo offline
       </Typography>
     </Box>

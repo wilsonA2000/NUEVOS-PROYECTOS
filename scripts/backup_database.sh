@@ -71,23 +71,23 @@ PGPASSWORD=$DB_PASSWORD pg_dump \
 
 if [ $? -eq 0 ]; then
     print_message "Backup creado exitosamente"
-    
+
     # Comprimir backup
     print_message "Comprimiendo backup..."
     gzip $BACKUP_DIR/$BACKUP_FILE
-    
+
     # Mostrar información del backup
     BACKUP_SIZE=$(du -h $BACKUP_DIR/$COMPRESSED_FILE | cut -f1)
     print_message "Backup comprimido: $COMPRESSED_FILE ($BACKUP_SIZE)"
-    
+
     # Limpiar backups antiguos (mantener últimos 7 días)
     print_message "Limpiando backups antiguos..."
     find $BACKUP_DIR -name "verihome_backup_*.sql.gz" -mtime +7 -delete
-    
+
     # Mostrar backups disponibles
     print_message "Backups disponibles:"
     ls -lh $BACKUP_DIR/verihome_backup_*.sql.gz 2>/dev/null || print_warning "No hay backups previos"
-    
+
     print_message "✅ Backup completado exitosamente!"
 else
     print_error "Error al crear el backup"

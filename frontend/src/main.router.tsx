@@ -14,7 +14,9 @@ import { useNotification } from './hooks/useNotification';
 import { AppRoutes } from './routes/index.lazy';
 
 // Componente wrapper para las notificaciones
-const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { customNotification, hideCustomNotification } = useNotification();
 
   return (
@@ -74,7 +76,7 @@ if (import.meta.hot) {
   const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement,
   );
-  
+
   root.render(
     <React.StrictMode>
       <MainWithRouter />

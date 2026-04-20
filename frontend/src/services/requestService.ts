@@ -21,7 +21,13 @@ export interface BaseRequest {
     full_name: string;
     user_type: string;
   };
-  status: 'pending' | 'in_progress' | 'completed' | 'rejected' | 'cancelled' | 'on_hold';
+  status:
+    | 'pending'
+    | 'in_progress'
+    | 'completed'
+    | 'rejected'
+    | 'cancelled'
+    | 'on_hold';
   status_display: string;
   status_color: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
@@ -185,7 +191,13 @@ export interface CreateMaintenanceRequestData {
 }
 
 export interface RequestActionData {
-  action: 'accept' | 'reject' | 'complete' | 'cancel' | 'assign' | 'update_status';
+  action:
+    | 'accept'
+    | 'reject'
+    | 'complete'
+    | 'cancel'
+    | 'assign'
+    | 'update_status';
   message?: string;
   assignee_id?: string;
   new_status?: string;
@@ -234,10 +246,10 @@ class RequestService {
 
   // Nueva función para evaluación unificada de candidatos
   async getCandidateEvaluation(userId: string, propertyId?: string) {
-    const url = propertyId 
+    const url = propertyId
       ? `/users/${userId}/evaluation/?property_id=${propertyId}`
       : `/users/${userId}/evaluation/`;
-    
+
     return api.get(url);
   }
 
@@ -285,10 +297,13 @@ class RequestService {
     return api.get(`${this.baseUrl}/maintenance/`);
   }
 
-  async createMaintenanceRequest(data: CreateMaintenanceRequestData | FormData) {
-    const config = data instanceof FormData
-      ? { headers: { 'Content-Type': 'multipart/form-data' } }
-      : undefined;
+  async createMaintenanceRequest(
+    data: CreateMaintenanceRequestData | FormData,
+  ) {
+    const config =
+      data instanceof FormData
+        ? { headers: { 'Content-Type': 'multipart/form-data' } }
+        : undefined;
     return api.post(`${this.baseUrl}/maintenance/`, data, config);
   }
 
@@ -301,7 +316,11 @@ class RequestService {
     return api.get(`${this.baseUrl}/base/${requestId}/comments/`);
   }
 
-  async addRequestComment(requestId: string, content: string, isInternal = false) {
+  async addRequestComment(
+    requestId: string,
+    content: string,
+    isInternal = false,
+  ) {
     return api.post(`${this.baseUrl}/base/${requestId}/comments/`, {
       content,
       is_internal: isInternal,
@@ -322,7 +341,16 @@ class RequestService {
   }
 
   // Utility functions
-  getStatusColor(status: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
+  getStatusColor(
+    status: string,
+  ):
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'warning'
+    | 'info'
+    | 'success' {
     switch (status) {
       case 'pending':
         return 'warning';
@@ -360,7 +388,16 @@ class RequestService {
     }
   }
 
-  getPriorityColor(priority: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
+  getPriorityColor(
+    priority: string,
+  ):
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'warning'
+    | 'info'
+    | 'success' {
     switch (priority) {
       case 'urgent':
         return 'error';
@@ -434,7 +471,10 @@ class RequestService {
   }
 
   isOverdue(dueDateString: string, status: string): boolean {
-    if (!dueDateString || ['completed', 'rejected', 'cancelled'].includes(status)) {
+    if (
+      !dueDateString ||
+      ['completed', 'rejected', 'cancelled'].includes(status)
+    ) {
       return false;
     }
     return new Date(dueDateString) < new Date();

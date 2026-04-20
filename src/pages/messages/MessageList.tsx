@@ -24,4 +24,4 @@ const MessageList: React.FC = () => {
   );
 };
 
-export default MessageList; 
+export default MessageList;

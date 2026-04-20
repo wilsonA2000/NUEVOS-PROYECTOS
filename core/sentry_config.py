@@ -16,7 +16,7 @@ def init_sentry():
     Initialize Sentry SDK if SENTRY_DSN environment variable is set.
     Safe to call even if sentry-sdk is not installed.
     """
-    dsn = os.environ.get('SENTRY_DSN', '')
+    dsn = os.environ.get("SENTRY_DSN", "")
     if not dsn:
         return
 
@@ -26,13 +26,13 @@ def init_sentry():
         from sentry_sdk.integrations.celery import CeleryIntegration
     except ImportError:
         logger.warning(
-            'sentry-sdk is not installed. Sentry monitoring disabled. '
-            'Install with: pip install sentry-sdk[django]'
+            "sentry-sdk is not installed. Sentry monitoring disabled. "
+            "Install with: pip install sentry-sdk[django]"
         )
         return
 
-    environment = os.environ.get('SENTRY_ENVIRONMENT', 'development')
-    release = os.environ.get('SENTRY_RELEASE', 'latest')
+    environment = os.environ.get("SENTRY_ENVIRONMENT", "development")
+    release = os.environ.get("SENTRY_RELEASE", "latest")
 
     sentry_sdk.init(
         dsn=dsn,
@@ -40,7 +40,7 @@ def init_sentry():
         release=release,
         integrations=[
             DjangoIntegration(
-                transaction_style='url',
+                transaction_style="url",
                 middleware_spans=True,
                 signals_spans=True,
                 cache_spans=True,
@@ -58,8 +58,8 @@ def init_sentry():
         send_default_pii=False,
         # Only trace API transactions
         before_send_transaction=lambda event, hint: (
-            event if event.get('transaction', '').startswith('/api/') else None
+            event if event.get("transaction", "").startswith("/api/") else None
         ),
     )
 
-    logger.info('Sentry initialized for environment: %s', environment)
+    logger.info("Sentry initialized for environment: %s", environment)

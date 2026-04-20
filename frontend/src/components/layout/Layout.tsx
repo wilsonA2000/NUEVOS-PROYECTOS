@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Box, 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Typography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   IconButton,
   Breadcrumbs,
   Link,
@@ -22,7 +22,6 @@ import {
   ListItemButton,
   CssBaseline,
   SwipeableDrawer,
-  Fab,
   BottomNavigation,
   BottomNavigationAction,
 } from '@mui/material';
@@ -69,12 +68,20 @@ const baseMenuItems = [
 
 // Items adicionales por rol
 const serviceProviderItems = [
-  { key: 'Suscripciones', icon: <CardMembership />, path: '/app/subscriptions' },
+  {
+    key: 'Suscripciones',
+    icon: <CardMembership />,
+    path: '/app/subscriptions',
+  },
 ];
 
 const adminItems = [
   { key: 'Admin Panel', icon: <AdminPanelSettings />, path: '/app/admin' },
-  { key: 'Verificaciones', icon: <VerifiedUser />, path: '/app/admin/verification' },
+  {
+    key: 'Verificaciones',
+    icon: <VerifiedUser />,
+    path: '/app/admin/verification',
+  },
   { key: 'Tickets', icon: <ConfirmationNumber />, path: '/app/admin/tickets' },
 ];
 
@@ -83,7 +90,7 @@ const Layout: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  
+
   const { t } = useTranslation('common');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -145,14 +152,16 @@ const Layout: React.FC = () => {
   };
 
   const getBreadcrumbs = () => {
-    const pathnames = location.pathname.split('/').filter((x) => x);
+    const pathnames = location.pathname.split('/').filter(x => x);
     const breadcrumbs = pathnames.map((name, index) => {
       const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;
       const isLast = index === pathnames.length - 1;
-      
+
       const menuItem = menuItems.find(item => item.path === routeTo);
-      const displayName = menuItem ? menuItem.text : name.charAt(0).toUpperCase() + name.slice(1);
-      
+      const displayName = menuItem
+        ? menuItem.text
+        : name.charAt(0).toUpperCase() + name.slice(1);
+
       return {
         name: displayName,
         route: routeTo,
@@ -166,11 +175,11 @@ const Layout: React.FC = () => {
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
-        <Typography 
-          variant="h6" 
-          noWrap 
-          component="div" 
-          sx={{ 
+        <Typography
+          variant='h6'
+          noWrap
+          component='div'
+          sx={{
             fontWeight: 'bold',
             fontSize: { xs: '1.1rem', sm: '1.25rem' },
           }}
@@ -180,10 +189,14 @@ const Layout: React.FC = () => {
       </Toolbar>
       <Divider />
       <List sx={{ flexGrow: 1, py: { xs: 0, sm: 1 } }}>
-        {menuItems.map((item) => {
+        {menuItems.map(item => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.text} disablePadding sx={{ px: { xs: 1, sm: 0 } }}>
+            <ListItem
+              key={item.text}
+              disablePadding
+              sx={{ px: { xs: 1, sm: 0 } }}
+            >
               <ListItemButton
                 onClick={() => handleNavigation(item.path)}
                 selected={isActive}
@@ -202,13 +215,15 @@ const Layout: React.FC = () => {
               >
                 <ListItemIcon
                   sx={{
-                    color: isActive ? theme.palette.primary.contrastText : 'inherit',
+                    color: isActive
+                      ? theme.palette.primary.contrastText
+                      : 'inherit',
                     minWidth: { xs: 32, sm: 56 },
                   }}
                 >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
                     fontSize: { xs: '0.875rem', sm: '1rem' },
@@ -225,10 +240,10 @@ const Layout: React.FC = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      
+
       {/* AppBar */}
       <AppBar
-        position="fixed"
+        position='fixed'
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
@@ -241,22 +256,24 @@ const Layout: React.FC = () => {
       >
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 3 } }}>
           <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
+            color='inherit'
+            aria-label='open drawer'
+            edge='start'
             onClick={handleDrawerToggle}
             sx={{ mr: { xs: 1, sm: 2 }, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          
-          <Box sx={{ 
-            flexGrow: 1, 
-            overflow: 'hidden',
-            display: { xs: 'none', sm: 'block' },
-          }}>
-            <Breadcrumbs 
-              separator={<ChevronRight fontSize="small" />}
+
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflow: 'hidden',
+              display: { xs: 'none', sm: 'block' },
+            }}
+          >
+            <Breadcrumbs
+              separator={<ChevronRight fontSize='small' />}
               sx={{
                 '& .MuiBreadcrumbs-ol': {
                   flexWrap: 'nowrap',
@@ -264,13 +281,13 @@ const Layout: React.FC = () => {
               }}
             >
               <Link
-                color="inherit"
-                href="#"
-                onClick={(e) => {
+                color='inherit'
+                href='#'
+                onClick={e => {
                   e.preventDefault();
                   navigate('/');
                 }}
-                sx={{ 
+                sx={{
                   textDecoration: 'none',
                   fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 }}
@@ -278,10 +295,10 @@ const Layout: React.FC = () => {
                 {t('nav.home')}
               </Link>
               {getBreadcrumbs().map((breadcrumb, index) => (
-                <Typography 
-                  key={index} 
+                <Typography
+                  key={index}
                   color={breadcrumb.isLast ? 'text.primary' : 'text.secondary'}
-                  sx={{ 
+                  sx={{
                     fontSize: { xs: '0.8rem', sm: '0.875rem' },
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -296,33 +313,45 @@ const Layout: React.FC = () => {
           </Box>
 
           {/* Mobile Title */}
-          <Box sx={{ 
-            flexGrow: 1, 
-            display: { xs: 'block', sm: 'none' },
-            textAlign: 'center',
-          }}>
-            <Typography 
-              variant="h6" 
-              noWrap
-              sx={{ fontSize: '1rem' }}
-            >
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: { xs: 'block', sm: 'none' },
+              textAlign: 'center',
+            }}
+          >
+            <Typography variant='h6' noWrap sx={{ fontSize: '1rem' }}>
               VeriHome
             </Typography>
           </Box>
 
           {/* Context Switcher - Cambio de rol */}
-          <Box sx={{ mr: { xs: 1, sm: 2 }, display: { xs: 'none', sm: 'flex' } }}>
+          <Box
+            sx={{ mr: { xs: 1, sm: 2 }, display: { xs: 'none', sm: 'flex' } }}
+          >
             <ContextSwitcher compact={isMobile} />
           </Box>
 
           {/* User Status & WebSocket Control */}
-          <Box sx={{ mr: { xs: 0.5, sm: 1 }, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              mr: { xs: 0.5, sm: 1 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <UserStatusSelector compact={true} showLabel={false} />
             <OptimizedWebSocketStatus compact={true} showControls={!isMobile} />
           </Box>
 
           {/* Language Selector */}
-          <Box sx={{ display: { xs: 'none', sm: 'block' }, mr: { xs: 0.5, sm: 1 } }}>
+          <Box
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              mr: { xs: 0.5, sm: 1 },
+            }}
+          >
             <LanguageSelector />
           </Box>
 
@@ -336,18 +365,19 @@ const Layout: React.FC = () => {
             onClick={handleProfileMenuOpen}
             sx={{ p: 0.5, ml: { xs: 0.5, sm: 1 } }}
           >
-            <Avatar sx={{ 
-              width: { xs: 28, sm: 32 }, 
-              height: { xs: 28, sm: 32 }, 
-              bgcolor: theme.palette.primary.main,
-              fontSize: { xs: '0.8rem', sm: '1rem' },
-            }}>
+            <Avatar
+              sx={{
+                width: { xs: 28, sm: 32 },
+                height: { xs: 28, sm: 32 },
+                bgcolor: theme.palette.primary.main,
+                fontSize: { xs: '0.8rem', sm: '1rem' },
+              }}
+            >
               {user?.first_name?.charAt(0) || 'U'}
             </Avatar>
           </IconButton>
         </Toolbar>
       </AppBar>
-
 
       {/* Profile Menu */}
       <Menu
@@ -358,21 +388,36 @@ const Layout: React.FC = () => {
           sx: { width: 220 },
         }}
       >
-        <MenuItem onClick={() => { navigate('/app/profile'); handleProfileMenuClose(); }}>
+        <MenuItem
+          onClick={() => {
+            navigate('/app/profile');
+            handleProfileMenuClose();
+          }}
+        >
           <ListItemIcon>
-            <Person fontSize="small" />
+            <Person fontSize='small' />
           </ListItemIcon>
           <ListItemText>{t('nav.profile')}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { navigate('/app/resume'); handleProfileMenuClose(); }}>
+        <MenuItem
+          onClick={() => {
+            navigate('/app/resume');
+            handleProfileMenuClose();
+          }}
+        >
           <ListItemIcon>
-            <Description fontSize="small" />
+            <Description fontSize='small' />
           </ListItemIcon>
           <ListItemText>{t('nav.resume')}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { navigate('/app/settings'); handleProfileMenuClose(); }}>
+        <MenuItem
+          onClick={() => {
+            navigate('/app/settings');
+            handleProfileMenuClose();
+          }}
+        >
           <ListItemIcon>
-            <Settings fontSize="small" />
+            <Settings fontSize='small' />
           </ListItemIcon>
           <ListItemText>{t('nav.settings')}</ListItemText>
         </MenuItem>
@@ -381,18 +426,24 @@ const Layout: React.FC = () => {
           <>
             <Divider />
             <MenuItem
-              onClick={() => { navigate('/app/admin'); handleProfileMenuClose(); }}
+              onClick={() => {
+                navigate('/app/admin');
+                handleProfileMenuClose();
+              }}
               sx={{
                 bgcolor: 'rgba(156, 39, 176, 0.08)',
                 '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.15)' },
               }}
             >
               <ListItemIcon>
-                <Assessment fontSize="small" sx={{ color: vhColors.purple }} />
+                <Assessment fontSize='small' sx={{ color: vhColors.purple }} />
               </ListItemIcon>
               <ListItemText
                 primary={t('nav.adminLegal')}
-                primaryTypographyProps={{ fontWeight: 500, color: vhColors.purple }}
+                primaryTypographyProps={{
+                  fontWeight: 500,
+                  color: vhColors.purple,
+                }}
               />
             </MenuItem>
           </>
@@ -400,7 +451,7 @@ const Layout: React.FC = () => {
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <Logout fontSize='small' />
           </ListItemIcon>
           <ListItemText>{t('auth.logout')}</ListItemText>
         </MenuItem>
@@ -408,12 +459,12 @@ const Layout: React.FC = () => {
 
       {/* Drawer */}
       <Box
-        component="nav"
+        component='nav'
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
         {/* Mobile Swipeable Drawer */}
         <SwipeableDrawer
-          variant="temporary"
+          variant='temporary'
           open={mobileOpen}
           onClose={handleDrawerToggle}
           onOpen={() => setMobileOpen(true)}
@@ -424,8 +475,8 @@ const Layout: React.FC = () => {
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: { xs: drawerWidth * 0.85, sm: drawerWidth },
               maxWidth: '85vw',
             },
@@ -433,14 +484,14 @@ const Layout: React.FC = () => {
         >
           {drawer}
         </SwipeableDrawer>
-        
+
         {/* Desktop Permanent Drawer */}
         <Drawer
-          variant="permanent"
+          variant='permanent'
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: drawerWidth,
               borderRight: `1px solid ${theme.palette.divider}`,
             },
@@ -453,7 +504,7 @@ const Layout: React.FC = () => {
 
       {/* Main Content */}
       <Box
-        component="main"
+        component='main'
         sx={{
           flexGrow: 1,
           p: { xs: 1, sm: 2, md: 3 },
@@ -524,9 +575,8 @@ const Layout: React.FC = () => {
           <PushNotificationCenter />
         </Box>
       )}
-
     </Box>
   );
 };
 
-export default Layout; 
+export default Layout;

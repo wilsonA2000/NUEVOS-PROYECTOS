@@ -118,4 +118,3 @@ Si algo falla, reporta:
 **Tiempo total estimado**: 20-30 minutos
 
 **¿Listo para empezar?** Abre las 2 terminales y sigue las instrucciones!
-

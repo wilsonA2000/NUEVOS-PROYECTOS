@@ -37,33 +37,39 @@ jest.mock('../../services/api', () => ({
 }));
 
 // Mock recharts (may not be installed)
-try { require.resolve('recharts'); } catch (e) {
+try {
+  require.resolve('recharts');
+} catch (e) {
   // recharts not installed, mock it
 }
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-  PieChart: ({ children }: any) => <div>{children}</div>,
-  Pie: () => null,
-  Cell: () => null,
-  BarChart: ({ children }: any) => <div>{children}</div>,
-  Bar: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
-  Legend: () => null,
-  LineChart: ({ children }: any) => <div>{children}</div>,
-  Line: () => null,
-  AreaChart: ({ children }: any) => <div>{children}</div>,
-  Area: () => null,
-}), { virtual: true });
+jest.mock(
+  'recharts',
+  () => ({
+    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    PieChart: ({ children }: any) => <div>{children}</div>,
+    Pie: () => null,
+    Cell: () => null,
+    BarChart: ({ children }: any) => <div>{children}</div>,
+    Bar: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Tooltip: () => null,
+    Legend: () => null,
+    LineChart: ({ children }: any) => <div>{children}</div>,
+    Line: () => null,
+    AreaChart: ({ children }: any) => <div>{children}</div>,
+    Area: () => null,
+  }),
+  { virtual: true }
+);
 
 // Mock the NewDashboard component to avoid deep dependency issues
 jest.mock('../dashboard/NewDashboard', () => {
   return {
     __esModule: true,
     default: () => (
-      <div data-testid="dashboard">
+      <div data-testid='dashboard'>
         <h1>Dashboard</h1>
         <div>Bienvenido, Juan</div>
         <div>test@example.com</div>
@@ -81,9 +87,7 @@ const combinedWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BrowserRouter>{children}</BrowserRouter>
     </QueryClientProvider>
   );
 };

@@ -66,7 +66,7 @@ const DialogShell: React.FC<DialogShellProps> = ({
       }}
     >
       <DialogTitle
-        component="div"
+        component='div'
         sx={{
           px: 3,
           py: 2.5,
@@ -74,7 +74,7 @@ const DialogShell: React.FC<DialogShellProps> = ({
           borderBottom: vh.border.subtle,
         }}
       >
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack direction='row' alignItems='center' spacing={2}>
           {icon && (
             <Box
               sx={{
@@ -92,20 +92,24 @@ const DialogShell: React.FC<DialogShellProps> = ({
             </Box>
           )}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+            <Typography variant='h6' sx={{ fontWeight: 700, lineHeight: 1.3 }}>
               {title}
             </Typography>
             {subtitle && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ mt: 0.25 }}
+              >
                 {subtitle}
               </Typography>
             )}
           </Box>
           {!hideCloseButton && onClose && (
             <IconButton
-              size="small"
+              size='small'
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label='Cerrar'
               sx={{ ml: 'auto' }}
             >
               <CloseIcon />
@@ -117,7 +121,9 @@ const DialogShell: React.FC<DialogShellProps> = ({
       <DialogContent sx={{ px: 3, py: 3 }}>{children}</DialogContent>
 
       {actions && (
-        <DialogActions sx={{ px: 3, py: 2, borderTop: vh.border.subtle, gap: 1 }}>
+        <DialogActions
+          sx={{ px: 3, py: 2, borderTop: vh.border.subtle, gap: 1 }}
+        >
           {actions}
         </DialogActions>
       )}

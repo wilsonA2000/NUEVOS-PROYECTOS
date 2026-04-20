@@ -51,16 +51,19 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
     }
   }, [open]);
 
-  const handleEvaluate = useCallback(async (approved: boolean) => {
-    setLoading(true);
-    try {
-      await onEvaluate(approved, notes);
-      onClose();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  }, [notes, onEvaluate, onClose]);
+  const handleEvaluate = useCallback(
+    async (approved: boolean) => {
+      setLoading(true);
+      try {
+        await onEvaluate(approved, notes);
+        onClose();
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    },
+    [notes, onEvaluate, onClose],
+  );
 
   const handleClose = useCallback(() => {
     if (!loading) {
@@ -69,15 +72,16 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
   }, [loading, onClose]);
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
       <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Evaluar Visita</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Typography variant='h6'>Evaluar Visita</Typography>
           <IconButton onClick={handleClose} disabled={loading}>
             <CloseIcon />
           </IconButton>
@@ -87,60 +91,59 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
           {/* Información de la visita */}
-          <Alert severity="info">
+          <Alert severity='info'>
             <AlertTitle>Información de la Visita</AlertTitle>
-            <Typography variant="body2">
+            <Typography variant='body2'>
               <strong>Candidato:</strong> {candidateName}
             </Typography>
-            <Typography variant="body2">
+            <Typography variant='body2'>
               <strong>Propiedad:</strong> {propertyTitle}
             </Typography>
-            <Typography variant="body2">
-              <strong>Fecha programada:</strong> {new Date(visitDate).toLocaleDateString('es-CO', {
+            <Typography variant='body2'>
+              <strong>Fecha programada:</strong>{' '}
+              {new Date(visitDate).toLocaleDateString('es-CO', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
-              })} a las {visitTime}
+              })}{' '}
+              a las {visitTime}
             </Typography>
           </Alert>
 
           {/* Pregunta principal */}
-          <Alert severity="warning" icon={<WarningIcon />}>
+          <Alert severity='warning' icon={<WarningIcon />}>
             <AlertTitle>¿La visita se realizó satisfactoriamente?</AlertTitle>
-            <Typography variant="body2">
-              Si apruebas, el candidato avanzará a la siguiente etapa (Revisión de Documentos).
-              Si rechazas, el candidato será descartado del proceso.
+            <Typography variant='body2'>
+              Si apruebas, el candidato avanzará a la siguiente etapa (Revisión
+              de Documentos). Si rechazas, el candidato será descartado del
+              proceso.
             </Typography>
           </Alert>
 
           {/* Notas opcionales */}
           <TextField
             fullWidth
-            label="Notas de la visita (opcional)"
+            label='Notas de la visita (opcional)'
             multiline
             rows={3}
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ej: El candidato llegó puntual, mostró interés genuino en la propiedad..."
+            onChange={e => setNotes(e.target.value)}
+            placeholder='Ej: El candidato llegó puntual, mostró interés genuino en la propiedad...'
             disabled={loading}
           />
         </Stack>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button
-          onClick={handleClose}
-          disabled={loading}
-          variant="outlined"
-        >
+        <Button onClick={handleClose} disabled={loading} variant='outlined'>
           Cancelar
         </Button>
         <Button
           onClick={() => handleEvaluate(false)}
           disabled={loading}
-          variant="outlined"
-          color="error"
+          variant='outlined'
+          color='error'
           startIcon={loading ? <CircularProgress size={20} /> : <RejectIcon />}
         >
           Rechazar Candidato
@@ -148,8 +151,8 @@ const VisitEvaluationModal: React.FC<VisitEvaluationModalProps> = ({
         <Button
           onClick={() => handleEvaluate(true)}
           disabled={loading}
-          variant="contained"
-          color="success"
+          variant='contained'
+          color='success'
           startIcon={loading ? <CircularProgress size={20} /> : <ApproveIcon />}
         >
           Aprobar y Continuar

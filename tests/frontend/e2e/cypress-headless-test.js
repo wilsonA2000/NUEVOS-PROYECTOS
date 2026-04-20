@@ -39,10 +39,10 @@ function log(message, color = 'reset') {
 // Check if servers are running
 async function checkServers() {
   log('🔍 Checking server status...', 'yellow');
-  
+
   try {
     const http = require('http');
-    
+
     // Check Django backend
     await new Promise((resolve, reject) => {
       const req = http.get('http://localhost:8000/api/v1/properties/', (res) => {
@@ -84,7 +84,7 @@ async function checkServers() {
 // Validate test structure
 function validateTestStructure() {
   log('📁 Validating test structure...', 'yellow');
-  
+
   const requiredFiles = [
     'cypress.config.js',
     'cypress/e2e/smoke/smoke-tests.cy.js',
@@ -118,7 +118,7 @@ function validateTestStructure() {
 // Count test cases
 function countTests() {
   log('📊 Analyzing test coverage...', 'yellow');
-  
+
   const testFiles = [
     'cypress/e2e/smoke/smoke-tests.cy.js',
     'cypress/e2e/auth/authentication-flow.cy.js',
@@ -153,33 +153,33 @@ function countTests() {
 // Validate test data
 function validateTestData() {
   log('🔧 Validating test data...', 'yellow');
-  
+
   try {
     // Check test users
     const users = JSON.parse(fs.readFileSync('cypress/fixtures/test-users.json', 'utf8'));
     const requiredUsers = ['landlord', 'tenant', 'service_provider'];
-    
+
     for (const userType of requiredUsers) {
       if (!users[userType] || !users[userType].email || !users[userType].password) {
         log(`❌ Missing or invalid ${userType} user data`, 'red');
         return false;
       }
     }
-    
+
     log('✅ Test user data valid', 'green');
-    
+
     // Check test properties
     const properties = JSON.parse(fs.readFileSync('cypress/fixtures/test-properties.json', 'utf8'));
     const propertyCount = Object.keys(properties).length;
-    
+
     if (propertyCount === 0) {
       log('❌ No test properties found', 'red');
       return false;
     }
-    
+
     log(`✅ ${propertyCount} test properties available`, 'green');
     return true;
-    
+
   } catch (error) {
     log(`❌ Error validating test data: ${error.message}`, 'red');
     return false;
@@ -190,7 +190,7 @@ function validateTestData() {
 function generateTestReport() {
   log('\n🎯 VeriHome E2E Testing Suite - Comprehensive Report', 'blue');
   log('='.repeat(60), 'blue');
-  
+
   const report = {
     timestamp: new Date().toISOString(),
     environment: {
@@ -221,22 +221,22 @@ function generateTestReport() {
   log(`   Structure Valid: ${report.structure ? '✅' : '❌'}`, report.structure ? 'green' : 'red');
   log(`   Test Data Valid: ${report.testData ? '✅' : '❌'}`, report.testData ? 'green' : 'red');
   log(`   Total Test Cases: ${report.testCount}`, 'cyan');
-  
+
   log(`\n🎯 Test Coverage:`, 'green');
   Object.entries(report.capabilities).forEach(([key, value]) => {
     log(`   ${key}: ${value}`, 'cyan');
   });
-  
+
   log(`\n📈 Development Benefits:`, 'green');
   Object.entries(report.benefits).forEach(([key, value]) => {
     log(`   ${key}: ${value}`, 'cyan');
   });
-  
+
   log(`\n💡 WSL2 Status:`, 'yellow');
   log(`   Environment: ${report.environment.wsl}`, 'cyan');
   log(`   GUI Dependencies: Limited (expected in WSL2)`, 'cyan');
   log(`   Alternative Solution: Test validation via structure analysis`, 'cyan');
-  
+
   return report;
 }
 
@@ -244,17 +244,17 @@ function generateTestReport() {
 async function main() {
   log('🚀 VeriHome E2E Testing Suite Validator', 'blue');
   log('======================================', 'blue');
-  
+
   // Check if servers are running
   const serversRunning = await checkServers();
-  
+
   // Generate comprehensive report
   const report = generateTestReport();
-  
+
   if (report.structure && report.testData && report.testCount > 0) {
     log('\n🎉 E2E Testing Suite Status: FULLY FUNCTIONAL', 'green');
     log('✨ All components validated and ready for execution', 'green');
-    
+
     if (serversRunning) {
       log('\n🚀 Ready to run tests when GUI dependencies are available', 'green');
       log('💡 In Windows environment, use: run-tests.bat smoke', 'cyan');
@@ -264,11 +264,11 @@ async function main() {
   } else {
     log('\n❌ E2E Testing Suite has issues that need to be resolved', 'red');
   }
-  
+
   // Save report
   fs.writeFileSync('e2e-test-report.json', JSON.stringify(report, null, 2));
   log(`\n📋 Detailed report saved to: e2e-test-report.json`, 'cyan');
-  
+
   return report;
 }
 

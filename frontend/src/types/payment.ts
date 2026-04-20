@@ -48,4 +48,4 @@ export interface PaymentFilters {
   min_amount?: number;
   max_amount?: number;
   contract_id?: number;
-} 
+}

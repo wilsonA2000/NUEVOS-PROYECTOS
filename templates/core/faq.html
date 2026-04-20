@@ -44,22 +44,22 @@
 
         <!-- Categorías de FAQ -->
         <div class="flex flex-wrap justify-center gap-4 mb-10" id="category-tabs">
-            <button class="category-tab active px-6 py-3 rounded-full border-2 border-primary-500 font-medium text-primary-600 bg-primary-50" 
+            <button class="category-tab active px-6 py-3 rounded-full border-2 border-primary-500 font-medium text-primary-600 bg-primary-50"
                    data-category="general">General</button>
-            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700"
                    data-category="arrendadores">Arrendadores</button>
-            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700"
                    data-category="arrendatarios">Arrendatarios</button>
-            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700"
                    data-category="servicios">Servicios</button>
-            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700" 
+            <button class="category-tab px-6 py-3 rounded-full border-2 border-gray-300 font-medium text-gray-700"
                    data-category="pagos">Pagos y Contratos</button>
         </div>
 
         <!-- Buscador de FAQ -->
         <div class="max-w-2xl mx-auto mb-10">
             <div class="relative">
-                <input type="text" id="faq-search" placeholder="Buscar preguntas..." 
+                <input type="text" id="faq-search" placeholder="Buscar preguntas..."
                        class="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
                 <div class="absolute right-4 top-4 text-gray-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,18 +349,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Funcionalidad de pestañas para categorías
     const categoryTabs = document.querySelectorAll('.category-tab');
     const faqCategories = document.querySelectorAll('.faq-category');
-    
+
     categoryTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             // Desactivar todas las pestañas
             categoryTabs.forEach(t => t.classList.remove('active'));
             categoryTabs.forEach(t => t.classList.remove('border-primary-500', 'text-primary-600', 'bg-primary-50'));
             categoryTabs.forEach(t => t.classList.add('border-gray-300', 'text-gray-700'));
-            
+
             // Activar la pestaña actual
             this.classList.add('active', 'border-primary-500', 'text-primary-600', 'bg-primary-50');
             this.classList.remove('border-gray-300', 'text-gray-700');
-            
+
             // Mostrar la categoría correspondiente
             const category = this.getAttribute('data-category');
             faqCategories.forEach(cat => {
@@ -377,26 +377,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('faq-search');
     searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
-        
+
         if (searchTerm.length < 2) {
             // Restaurar vista original
             categoryTabs[0].click();
             return;
         }
-        
+
         // Ocultar todas las categorías
         faqCategories.forEach(cat => cat.classList.add('hidden'));
-        
+
         // Mostrar todos los FAQs para buscar
         const allFaqs = document.querySelectorAll('.faq-accordion');
         allFaqs.forEach(faq => {
             const question = faq.querySelector('h3').textContent.toLowerCase();
             const answer = faq.querySelector('.faq-answer').textContent.toLowerCase();
-            
+
             if (question.includes(searchTerm) || answer.includes(searchTerm)) {
                 faq.style.display = 'block';
                 faq.parentElement.classList.remove('hidden');
-                
+
                 // Destacar el término de búsqueda (opcional)
                 if (!faq.classList.contains('active')) {
                     faq.classList.add('active');
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const faqContainer = document.getElementById('faq-container');
     faqContainer.style.opacity = '0';
     faqContainer.style.transform = 'translateY(20px)';
-    
+
     setTimeout(() => {
         faqContainer.style.transition = 'all 0.6s ease';
         faqContainer.style.opacity = '1';

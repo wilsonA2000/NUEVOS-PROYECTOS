@@ -40,7 +40,7 @@ export function useInfiniteScroll<T>({
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
@@ -48,7 +48,13 @@ export function useInfiniteScroll<T>({
 
   // Función para cargar más datos
   const loadMore = useCallback(async () => {
-    if (!enabled || isLoading || isFetchingNextPage || !hasNextPage || loadingRef.current) {
+    if (
+      !enabled ||
+      isLoading ||
+      isFetchingNextPage ||
+      !hasNextPage ||
+      loadingRef.current
+    ) {
       return;
     }
 
@@ -61,7 +67,8 @@ export function useInfiniteScroll<T>({
       const newData = await fetchNextPage();
       setData(prev => [...prev, ...newData]);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Error al cargar más datos');
+      const error =
+        err instanceof Error ? err : new Error('Error al cargar más datos');
       setIsError(true);
       setError(error);
       onError?.(error);
@@ -69,14 +76,21 @@ export function useInfiniteScroll<T>({
       setIsFetchingNextPage(false);
       loadingRef.current = false;
     }
-  }, [enabled, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, onError]);
+  }, [
+    enabled,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    onError,
+  ]);
 
   // Debounced loadMore
   const debouncedLoadMore = useCallback(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     debounceTimerRef.current = setTimeout(() => {
       loadMore();
     }, debounceMs);
@@ -90,7 +104,7 @@ export function useInfiniteScroll<T>({
     }
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const [entry] = entries;
         if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           debouncedLoadMore();
@@ -118,8 +132,12 @@ export function useInfiniteScroll<T>({
 
     const container = containerRef.current;
     const { scrollTop, scrollHeight, clientHeight } = container;
-    
-    if (scrollHeight - scrollTop - clientHeight < threshold && hasNextPage && !isFetchingNextPage) {
+
+    if (
+      scrollHeight - scrollTop - clientHeight < threshold &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
       debouncedLoadMore();
     }
   }, [enabled, threshold, hasNextPage, isFetchingNextPage, debouncedLoadMore]);
@@ -176,14 +194,20 @@ export function useInfiniteProperties(filters?: Record<string, any>) {
       // Importar dinámicamente para evitar dependencias circulares
       const { propertyService } = await import('../services/propertyService');
 
-      const response = await propertyService.getProperties({
+      const response = (await propertyService.getProperties({
         ...filters,
         page,
         page_size: 12,
-      }) as any;
+      })) as any;
 
-      const newProperties = Array.isArray(response) ? response : ((response as any)?.results || []);
-      const hasNextPage = Array.isArray(response) ? newProperties.length === 12 : ((response as any)?.next ? true : false);
+      const newProperties = Array.isArray(response)
+        ? response
+        : (response as any)?.results || [];
+      const hasNextPage = Array.isArray(response)
+        ? newProperties.length === 12
+        : (response as any)?.next
+          ? true
+          : false;
 
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
@@ -210,7 +234,9 @@ export function useInfiniteProperties(filters?: Record<string, any>) {
     hasNextPage: hasMore,
     isLoading: false,
     threshold: 200,
-    onError: () => { /* Infinite scroll error handled */ },
+    onError: () => {
+      /* Infinite scroll error handled */
+    },
   });
 
   return {
@@ -231,12 +257,20 @@ export function useInfiniteMessages(conversationId?: number) {
     try {
       const { messageService } = await import('../services/messageService');
 
-      const response = await messageService.getMessages(String(conversationId), page, 20) as any;
+      const response = (await messageService.getMessages(
+        String(conversationId),
+        page,
+        20,
+      )) as any;
 
-      const newMessages = Array.isArray(response) ? response : ((response as any)?.results || []);
+      const newMessages = Array.isArray(response)
+        ? response
+        : (response as any)?.results || [];
       const hasNextPage = Array.isArray(response)
         ? newMessages.length === 20
-        : ((response as any)?.next ? true : false);
+        : (response as any)?.next
+          ? true
+          : false;
 
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
@@ -276,10 +310,16 @@ export function useInfiniteContracts(filters?: Record<string, any>) {
     try {
       const { contractService } = await import('../services/contractService');
 
-      const response = await contractService.getContracts(filters) as any;
+      const response = (await contractService.getContracts(filters)) as any;
 
-      const newContracts = Array.isArray(response) ? response : ((response as any)?.results || []);
-      const hasNextPage = Array.isArray(response) ? newContracts.length === 15 : ((response as any)?.next ? true : false);
+      const newContracts = Array.isArray(response)
+        ? response
+        : (response as any)?.results || [];
+      const hasNextPage = Array.isArray(response)
+        ? newContracts.length === 15
+        : (response as any)?.next
+          ? true
+          : false;
 
       setHasMore(hasNextPage);
       setPage(prev => prev + 1);
@@ -337,9 +377,7 @@ export const InfiniteScrollTrigger = React.forwardRef<
       }}
     >
       {children || (
-        <div>
-          {isFetchingNextPage ? 'Cargando más...' : 'Cargar más'}
-        </div>
+        <div>{isFetchingNextPage ? 'Cargando más...' : 'Cargar más'}</div>
       )}
     </div>
   );

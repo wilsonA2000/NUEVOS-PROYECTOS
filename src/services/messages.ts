@@ -31,4 +31,4 @@ export const updateMessage = async (id: number, message: Partial<Omit<Message, '
     console.error('Error updating message:', error);
     throw error;
   }
-}; 
+};

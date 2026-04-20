@@ -42,7 +42,7 @@ import {
   Person as PersonIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import BiometricAuthenticationFlow from './BiometricAuthenticationFlow';
+
 import DigitalSignaturePad from './DigitalSignaturePad';
 
 interface DigitalSignatureFlowProps {
@@ -71,7 +71,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
   contractTitle,
   signerName,
   signerRole,
-  contractData,
+
   onSigningComplete,
   onCancel,
   isOpen,
@@ -82,7 +82,9 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [biometricData, setBiometricData] = useState<any>(null);
   const [signatureData, setSignatureData] = useState<any>(null);
-  const [verificationLevel, setVerificationLevel] = useState<'basic' | 'enhanced' | 'maximum'>('basic');
+  const [verificationLevel, setVerificationLevel] = useState<
+    'basic' | 'enhanced' | 'maximum'
+  >('basic');
   const [showContractPreview, setShowContractPreview] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState<string>('');
@@ -146,14 +148,17 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
   const handleFinalSubmission = async () => {
     setIsLoading(true);
     setError('');
-    
+
     try {
       if (!signatureData || !user) {
         throw new Error('Datos de firma o usuario no disponibles');
       }
 
       // Llamar al servicio real para firmar el contrato
-      const result = await contractService.signContract(contractId, signatureData);
+      const result = await contractService.signContract(
+        contractId,
+        signatureData,
+      );
 
       const completeData: CompleteSignatureData = {
         contractId,
@@ -164,43 +169,62 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
         timestamp: new Date(),
         verificationLevel,
       };
-      
+
       onSigningComplete(completeData);
-      
     } catch (error: any) {
-      setError(error.response?.data?.detail || error.message || 'Error al firmar el contrato');
+      setError(
+        error.response?.data?.detail ||
+          error.message ||
+          'Error al firmar el contrato',
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const getStepIcon = (stepIndex: number) => {
-    if (stepIndex < activeStep) return <CheckIcon color="success" />;
+    if (stepIndex < activeStep) return <CheckIcon color='success' />;
     if (stepIndex === activeStep) return steps[stepIndex]?.icon;
     return steps[stepIndex]?.icon;
   };
 
   const getVerificationIcon = () => {
     switch (verificationLevel) {
-      case 'maximum': return <SecurityIcon color="success" />;
-      case 'enhanced': return <FingerprintIcon color="primary" />;
-      default: return <PersonIcon color="action" />;
+      case 'maximum':
+        return <SecurityIcon color='success' />;
+      case 'enhanced':
+        return <FingerprintIcon color='primary' />;
+      default:
+        return <PersonIcon color='action' />;
     }
   };
 
   const getVerificationLabel = () => {
     switch (verificationLevel) {
-      case 'maximum': return 'Verificación Máxima';
-      case 'enhanced': return 'Verificación Mejorada';
-      default: return 'Verificación Básica';
+      case 'maximum':
+        return 'Verificación Máxima';
+      case 'enhanced':
+        return 'Verificación Mejorada';
+      default:
+        return 'Verificación Básica';
     }
   };
 
-  const getVerificationColor = (): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
+  const getVerificationColor = ():
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'info'
+    | 'success'
+    | 'warning' => {
     switch (verificationLevel) {
-      case 'maximum': return 'success';
-      case 'enhanced': return 'primary';
-      default: return 'default';
+      case 'maximum':
+        return 'success';
+      case 'enhanced':
+        return 'primary';
+      default:
+        return 'default';
     }
   };
 
@@ -208,7 +232,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
     <Dialog
       open={isOpen}
       onClose={onCancel}
-      maxWidth="lg"
+      maxWidth='lg'
       fullWidth
       PaperProps={{
         sx: { minHeight: '80vh' },
@@ -218,17 +242,26 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
         <VerifiedIcon sx={{ mr: 1 }} />
         Firma Digital del Contrato
       </DialogTitle>
-      
+
       <DialogContent sx={{ p: 3 }}>
         {/* Contract Info Header */}
-        <Paper elevation={1} sx={{ p: 2, mb: 3, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-          <Grid container spacing={2} alignItems="center">
+        <Paper
+          elevation={1}
+          sx={{
+            p: 2,
+            mb: 3,
+            bgcolor: 'primary.light',
+            color: 'primary.contrastText',
+          }}
+        >
+          <Grid container spacing={2} alignItems='center'>
             <Grid item xs={12} md={8}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 {contractTitle}
               </Typography>
-              <Typography variant="body2">
-                Firmante: <strong>{signerName}</strong> ({signerRole === 'landlord' ? 'Arrendador' : 'Arrendatario'})
+              <Typography variant='body2'>
+                Firmante: <strong>{signerName}</strong> (
+                {signerRole === 'landlord' ? 'Arrendador' : 'Arrendatario'})
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
@@ -239,7 +272,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                   color={getVerificationColor()}
                   sx={{ mb: 1 }}
                 />
-                <Typography variant="caption" display="block">
+                <Typography variant='caption' display='block'>
                   Nivel de Seguridad
                 </Typography>
               </Box>
@@ -251,11 +284,13 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((step, index) => (
             <Step key={step.label}>
-              <StepLabel 
+              <StepLabel
                 icon={getStepIcon(index)}
-                optional={step.optional ? (
-                  <Typography variant="caption">Opcional</Typography>
-                ) : null}
+                optional={
+                  step.optional ? (
+                    <Typography variant='caption'>Opcional</Typography>
+                  ) : null
+                }
               >
                 {step.label}
               </StepLabel>
@@ -268,41 +303,44 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
           {/* Step 0: Contract Review */}
           {activeStep === 0 && (
             <Box>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Revisión del Contrato de Arrendamiento
               </Typography>
-              
-              <Alert severity="info" sx={{ mb: 3 }}>
-                Por favor, revise cuidadosamente todos los términos y condiciones 
-                antes de proceder con la firma digital.
+
+              <Alert severity='info' sx={{ mb: 3 }}>
+                Por favor, revise cuidadosamente todos los términos y
+                condiciones antes de proceder con la firma digital.
               </Alert>
 
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant='subtitle2' gutterBottom>
                         Información del Contrato:
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography variant='body2' sx={{ mb: 1 }}>
                         <strong>Título:</strong> {contractTitle}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography variant='body2' sx={{ mb: 1 }}>
                         <strong>Tipo:</strong> Contrato de Arrendamiento
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Fecha:</strong> {new Date().toLocaleDateString()}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Fecha:</strong>{' '}
+                        {new Date().toLocaleDateString()}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant='subtitle2' gutterBottom>
                         Partes del Contrato:
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Arrendador:</strong> {signerRole === 'landlord' ? signerName : 'Por definir'}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Arrendador:</strong>{' '}
+                        {signerRole === 'landlord' ? signerName : 'Por definir'}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Arrendatario:</strong> {signerRole === 'tenant' ? signerName : 'Por definir'}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Arrendatario:</strong>{' '}
+                        {signerRole === 'tenant' ? signerName : 'Por definir'}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -311,7 +349,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
 
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={() => setShowContractPreview(true)}
                   startIcon={<ContractIcon />}
                 >
@@ -319,36 +357,45 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                 </Button>
               </Box>
 
-              <Alert severity="warning" sx={{ mb: 2 }}>
-                <Typography variant="body2" gutterBottom>
+              <Alert severity='warning' sx={{ mb: 2 }}>
+                <Typography variant='body2' gutterBottom>
                   <strong>Términos y Condiciones:</strong>
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   Al firmar este contrato, usted acepta que:
                 </Typography>
                 <ul>
                   <li>Ha leído y comprende todos los términos del contrato</li>
-                  <li>Acepta los métodos de verificación de identidad utilizados</li>
-                  <li>Su firma digital tendrá la misma validez legal que una firma manuscrita</li>
-                  <li>Los datos biométricos se utilizarán únicamente para verificación</li>
+                  <li>
+                    Acepta los métodos de verificación de identidad utilizados
+                  </li>
+                  <li>
+                    Su firma digital tendrá la misma validez legal que una firma
+                    manuscrita
+                  </li>
+                  <li>
+                    Los datos biométricos se utilizarán únicamente para
+                    verificación
+                  </li>
                 </ul>
               </Alert>
 
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  onChange={e => setAgreedToTerms(e.target.checked)}
                   style={{ marginRight: '8px' }}
                 />
-                <Typography variant="body2">
-                  Acepto los términos y condiciones del contrato y del proceso de firma digital
+                <Typography variant='body2'>
+                  Acepto los términos y condiciones del contrato y del proceso
+                  de firma digital
                 </Typography>
               </Box>
 
               <Box sx={{ textAlign: 'right' }}>
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={handleContractReview}
                   disabled={!agreedToTerms}
                   startIcon={<CheckIcon />}
@@ -362,27 +409,34 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
           {/* Step 1: Biometric Verification */}
           {activeStep === 1 && (
             <Box>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Verificación de Identidad (Opcional)
               </Typography>
-              
-              <Alert severity="info" sx={{ mb: 3 }}>
-                La verificación biométrica es opcional pero aumenta significativamente 
-                la seguridad y validez legal de su firma.
+
+              <Alert severity='info' sx={{ mb: 3 }}>
+                La verificación biométrica es opcional pero aumenta
+                significativamente la seguridad y validez legal de su firma.
               </Alert>
 
               <Grid container spacing={3}>
                 <Grid item xs={12} md={8}>
                   <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <SecurityIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
+                    <SecurityIcon
+                      sx={{ fontSize: 64, color: 'primary.main', mb: 2 }}
+                    />
+                    <Typography variant='h6' gutterBottom>
                       Verificación Biométrica Opcional
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      Para mayor seguridad, puede completar la verificación biométrica completa.
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                    >
+                      Para mayor seguridad, puede completar la verificación
+                      biométrica completa.
                     </Typography>
                     <Button
-                      variant="contained"
+                      variant='contained'
                       onClick={() => {
                         // Aquí se abriría el BiometricAuthenticationFlow completo si es necesario
                         // Por ahora simulamos datos biométricos
@@ -410,7 +464,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                       Iniciar Verificación Biométrica
                     </Button>
                     <Button
-                      variant="outlined"
+                      variant='outlined'
                       onClick={handleSkipBiometric}
                       startIcon={<SignatureIcon />}
                     >
@@ -421,47 +475,48 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                 <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant='subtitle2' gutterBottom>
                         Niveles de Verificación:
                       </Typography>
-                      
+
                       <Timeline>
                         <TimelineItem>
                           <TimelineSeparator>
-                            <TimelineDot color="primary">
+                            <TimelineDot color='primary'>
                               <PersonIcon />
                             </TimelineDot>
                             <TimelineConnector />
                           </TimelineSeparator>
                           <TimelineContent>
-                            <Typography variant="body2">
+                            <Typography variant='body2'>
                               <strong>Básica:</strong> Solo firma digital
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
-                        
+
                         <TimelineItem>
                           <TimelineSeparator>
-                            <TimelineDot color="primary">
+                            <TimelineDot color='primary'>
                               <SecurityIcon />
                             </TimelineDot>
                             <TimelineConnector />
                           </TimelineSeparator>
                           <TimelineContent>
-                            <Typography variant="body2">
-                              <strong>Mejorada:</strong> + Reconocimiento facial + Documento
+                            <Typography variant='body2'>
+                              <strong>Mejorada:</strong> + Reconocimiento facial
+                              + Documento
                             </Typography>
                           </TimelineContent>
                         </TimelineItem>
-                        
+
                         <TimelineItem>
                           <TimelineSeparator>
-                            <TimelineDot color="success">
+                            <TimelineDot color='success'>
                               <FingerprintIcon />
                             </TimelineDot>
                           </TimelineSeparator>
                           <TimelineContent>
-                            <Typography variant="body2">
+                            <Typography variant='body2'>
                               <strong>Máxima:</strong> + Huella digital
                             </Typography>
                           </TimelineContent>
@@ -471,7 +526,7 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
                       <Divider sx={{ my: 2 }} />
 
                       <Button
-                        variant="outlined"
+                        variant='outlined'
                         fullWidth
                         onClick={handleSkipBiometric}
                         startIcon={<SignatureIcon />}
@@ -488,12 +543,12 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
           {/* Step 2: Digital Signature */}
           {activeStep === 2 && (
             <Box>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Firma Digital del Contrato
               </Typography>
 
               <DigitalSignaturePad
-                onSign={(signatureData) => {
+                onSign={signatureData => {
                   setSignatureData(signatureData);
                   handleSignatureComplete(signatureData);
                 }}
@@ -508,78 +563,93 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
           {/* Step 3: Confirmation */}
           {activeStep === 3 && (
             <Box>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                <CheckIcon color="success" sx={{ mr: 1 }} />
+              <Typography
+                variant='h6'
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center' }}
+              >
+                <CheckIcon color='success' sx={{ mr: 1 }} />
                 Confirmación de Firma
               </Typography>
 
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Su firma ha sido capturada exitosamente. Por favor, revise los detalles 
-                antes de finalizar el proceso.
+              <Alert severity='success' sx={{ mb: 3 }}>
+                Su firma ha sido capturada exitosamente. Por favor, revise los
+                detalles antes de finalizar el proceso.
               </Alert>
 
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant='subtitle2' gutterBottom>
                         Datos de la Firma:
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography variant='body2' sx={{ mb: 1 }}>
                         <strong>Firmante:</strong> {signerName}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Rol:</strong> {signerRole === 'landlord' ? 'Arrendador' : 'Arrendatario'}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Rol:</strong>{' '}
+                        {signerRole === 'landlord'
+                          ? 'Arrendador'
+                          : 'Arrendatario'}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Fecha y Hora:</strong> {new Date().toLocaleString()}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Fecha y Hora:</strong>{' '}
+                        {new Date().toLocaleString()}
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Nivel de Verificación:</strong> {getVerificationLabel()}
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>Nivel de Verificación:</strong>{' '}
+                        {getVerificationLabel()}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
-                
+
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant='subtitle2' gutterBottom>
                         Métodos de Verificación Utilizados:
                       </Typography>
-                      
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 1,
+                        }}
+                      >
                         <Chip
                           icon={<SignatureIcon />}
-                          label="Firma Digital"
-                          color="primary"
-                          size="small"
+                          label='Firma Digital'
+                          color='primary'
+                          size='small'
                         />
-                        
+
                         {biometricData?.facialRecognition && (
                           <Chip
                             icon={<SecurityIcon />}
-                            label="Reconocimiento Facial"
-                            color="primary"
-                            size="small"
+                            label='Reconocimiento Facial'
+                            color='primary'
+                            size='small'
                           />
                         )}
-                        
+
                         {biometricData?.documentVerification && (
                           <Chip
                             icon={<PersonIcon />}
-                            label="Verificación de Documento"
-                            color="primary"
-                            size="small"
+                            label='Verificación de Documento'
+                            color='primary'
+                            size='small'
                           />
                         )}
-                        
+
                         {biometricData?.fingerprint && (
                           <Chip
                             icon={<FingerprintIcon />}
-                            label="Huella Digital"
-                            color="success"
-                            size="small"
+                            label='Huella Digital'
+                            color='success'
+                            size='small'
                           />
                         )}
                       </Box>
@@ -589,29 +659,35 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
               </Grid>
 
               {error && (
-                <Alert severity="error" sx={{ mt: 3, mb: 2 }}>
+                <Alert severity='error' sx={{ mt: 3, mb: 2 }}>
                   {error}
                 </Alert>
               )}
 
-              <Alert severity="warning" sx={{ mt: 3, mb: 2 }}>
-                Una vez finalizado el proceso, su firma tendrá validez legal completa 
-                y no podrá ser modificada.
+              <Alert severity='warning' sx={{ mt: 3, mb: 2 }}>
+                Una vez finalizado el proceso, su firma tendrá validez legal
+                completa y no podrá ser modificada.
               </Alert>
 
               <Box sx={{ textAlign: 'right' }}>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={() => setActiveStep(2)}
                   sx={{ mr: 1 }}
                 >
                   Revisar Firma
                 </Button>
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={handleFinalSubmission}
                   disabled={isLoading}
-                  startIcon={isLoading ? <CircularProgress size={20} /> : <VerifiedIcon />}
+                  startIcon={
+                    isLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <VerifiedIcon />
+                    )
+                  }
                 >
                   {isLoading ? 'Finalizando...' : 'Finalizar Firma'}
                 </Button>
@@ -625,12 +701,15 @@ const DigitalSignatureFlow: React.FC<DigitalSignatureFlowProps> = ({
       <Dialog
         open={showContractPreview}
         onClose={() => setShowContractPreview(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle>Vista Previa del Contrato</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontFamily: 'monospace' }}>
+          <Typography
+            variant='body2'
+            sx={{ whiteSpace: 'pre-line', fontFamily: 'monospace' }}
+          >
             {`CONTRATO DE ARRENDAMIENTO
 
 Entre ${signerRole === 'landlord' ? signerName : '[ARRENDADOR]'} y ${signerRole === 'tenant' ? signerName : '[ARRENDATARIO]'}
@@ -648,9 +727,7 @@ El canon de arrendamiento será de...
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowContractPreview(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setShowContractPreview(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Dialog>

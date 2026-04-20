@@ -20,9 +20,11 @@ jest.mock('../../services/matchingService', () => ({
     getMatchStatusText: jest.fn().mockReturnValue('Pendiente'),
     getPriorityColor: jest.fn().mockReturnValue('warning'),
     getPriorityText: jest.fn().mockReturnValue('Media'),
-    formatCurrency: jest.fn().mockImplementation((amount: number | null) =>
-      amount ? `$${amount.toLocaleString()}` : '$0',
-    ),
+    formatCurrency: jest
+      .fn()
+      .mockImplementation((amount: number | null) =>
+        amount ? `$${amount.toLocaleString()}` : '$0'
+      ),
     calculateDaysUntilExpiry: jest.fn().mockReturnValue(5),
     isMatchExpiringSoon: jest.fn().mockReturnValue(false),
   },
@@ -44,7 +46,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return React.createElement(
     QueryClientProvider,
     { client: queryClient },
-    children,
+    children
   );
 };
 
@@ -101,7 +103,15 @@ describe('useMatchRequests Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
-      user: { id: 1, email: 'landlord@example.com', first_name: 'Test', last_name: 'Landlord', role: 'landlord', user_type: 'landlord', is_verified: true },
+      user: {
+        id: 1,
+        email: 'landlord@example.com',
+        first_name: 'Test',
+        last_name: 'Landlord',
+        role: 'landlord',
+        user_type: 'landlord',
+        is_verified: true,
+      },
       isAuthenticated: true,
       isLoading: false,
       login: jest.fn() as any,
@@ -116,7 +126,12 @@ describe('useMatchRequests Hook', () => {
       data: mockStatistics,
     });
     (matchingService.getDashboardData as jest.Mock).mockResolvedValue({
-      data: { user_type: 'landlord', recent_requests: [], unread_notifications: 0, statistics: mockStatistics },
+      data: {
+        user_type: 'landlord',
+        recent_requests: [],
+        unread_notifications: 0,
+        statistics: mockStatistics,
+      },
     });
   });
 
@@ -164,7 +179,15 @@ describe('useMatchRequests Hook', () => {
 
   it('should separate sent requests for tenant users', async () => {
     mockUseAuth.mockReturnValue({
-      user: { id: 2, email: 'tenant@example.com', first_name: 'Test', last_name: 'Tenant', role: 'tenant', user_type: 'tenant', is_verified: true },
+      user: {
+        id: 2,
+        email: 'tenant@example.com',
+        first_name: 'Test',
+        last_name: 'Tenant',
+        role: 'tenant',
+        user_type: 'tenant',
+        is_verified: true,
+      },
       isAuthenticated: true,
       isLoading: false,
       login: jest.fn() as any,
@@ -183,7 +206,9 @@ describe('useMatchRequests Hook', () => {
   });
 
   it('should accept a match request', async () => {
-    (matchingService.acceptMatchRequest as jest.Mock).mockResolvedValue({ data: { success: true } });
+    (matchingService.acceptMatchRequest as jest.Mock).mockResolvedValue({
+      data: { success: true },
+    });
 
     const { result } = renderHook(() => useMatchRequests(), {
       wrapper: TestWrapper,
@@ -197,11 +222,15 @@ describe('useMatchRequests Hook', () => {
       await result.current.acceptRequest('match-1', 'Bienvenido');
     });
 
-    expect(matchingService.acceptMatchRequest).toHaveBeenCalledWith('match-1', { message: 'Bienvenido' });
+    expect(matchingService.acceptMatchRequest).toHaveBeenCalledWith('match-1', {
+      message: 'Bienvenido',
+    });
   });
 
   it('should reject a match request', async () => {
-    (matchingService.rejectMatchRequest as jest.Mock).mockResolvedValue({ data: { success: true } });
+    (matchingService.rejectMatchRequest as jest.Mock).mockResolvedValue({
+      data: { success: true },
+    });
 
     const { result } = renderHook(() => useMatchRequests(), {
       wrapper: TestWrapper,
@@ -215,11 +244,15 @@ describe('useMatchRequests Hook', () => {
       await result.current.rejectRequest('match-1', 'No cumple requisitos');
     });
 
-    expect(matchingService.rejectMatchRequest).toHaveBeenCalledWith('match-1', { message: 'No cumple requisitos' });
+    expect(matchingService.rejectMatchRequest).toHaveBeenCalledWith('match-1', {
+      message: 'No cumple requisitos',
+    });
   });
 
   it('should create a match request', async () => {
-    (matchingService.createMatchRequest as jest.Mock).mockResolvedValue({ data: { id: 'match-3' } });
+    (matchingService.createMatchRequest as jest.Mock).mockResolvedValue({
+      data: { id: 'match-3' },
+    });
 
     const { result } = renderHook(() => useMatchRequests(), {
       wrapper: TestWrapper,

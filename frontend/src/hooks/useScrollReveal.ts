@@ -14,7 +14,9 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
     const element = ref.current;
     if (!element) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     if (prefersReducedMotion) {
       setIsVisible(true);
       return;
@@ -28,7 +30,7 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
     }
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const entry = entries[0];
         if (entry && entry.isIntersecting) {
           setIsVisible(true);

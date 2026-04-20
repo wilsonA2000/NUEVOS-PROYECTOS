@@ -1,6 +1,6 @@
 /**
  * Flujo de autenticación biométrica específico para CODEUDOR
- * 
+ *
  * Extends BiometricAuthenticationFlow with codeudor-specific features:
  * - Independent biometric session for cosigner
  * - Integration with guarantee system
@@ -28,8 +28,6 @@ import {
   useMediaQuery,
   Paper,
   IconButton,
-  Tooltip,
-  Fade,
   CircularProgress,
   Divider,
 } from '@mui/material';
@@ -37,23 +35,19 @@ import {
   CameraAlt,
   DocumentScanner,
   RecordVoiceOver,
-  Draw,
   CheckCircle,
   Error,
-  Info,
   Close,
   Refresh,
-  Security,
   Timer,
   Verified,
-  AccountCircle,
   Shield,
 } from '@mui/icons-material';
 
 import CameraCaptureSimple from './CameraCaptureSimple';
 import EnhancedDocumentVerification from './EnhancedDocumentVerification';
 import VoiceRecorder from './VoiceRecorder';
-import DigitalSignaturePad from './DigitalSignaturePad';
+
 import { contractService } from '../../services/contractService';
 
 interface CodeudorBiometricFlowProps {
@@ -189,7 +183,9 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
       setTimeRemaining(prev => {
         if (prev <= 1) {
           setSessionExpired(true);
-          onError('La sesión de autenticación biométrica del codeudor ha expirado');
+          onError(
+            'La sesión de autenticación biométrica del codeudor ha expirado',
+          );
           return 0;
         }
         return prev - 1;
@@ -213,13 +209,16 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
       // Create specialized payload for codeudor biometric authentication
       // Note: contractService.startBiometricAuthentication expects just contractId
       // Codeudor info would need to be sent separately or stored in contract metadata
-      const response = await contractService.startBiometricAuthentication(contractId);
+      const response =
+        await contractService.startBiometricAuthentication(contractId);
 
       if (response.authentication_id) {
         setBiometricData(prev => ({
           ...prev,
           codeudorAuthenticationId: response.authentication_id,
-          voiceText: response.voice_text || `Como codeudor ${codeudorData.guarantee_type === 'codeudor_salario' ? 'personal' : 'con finca raíz'}, acepto solidariamente las obligaciones del contrato de arrendamiento número ${response.contract_number}`,
+          voiceText:
+            response.voice_text ||
+            `Como codeudor ${codeudorData.guarantee_type === 'codeudor_salario' ? 'personal' : 'con finca raíz'}, acepto solidariamente las obligaciones del contrato de arrendamiento número ${response.contract_number}`,
           expiresAt: response.expires_at,
         }));
       }
@@ -230,106 +229,116 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
     }
   };
 
-  const handleStepCompletion = useCallback(async (stepId: number, data?: any) => {
-    try {
-      setLoading(true);
-      
-      let response;
-      let stepName = '';
+  const handleStepCompletion = useCallback(
+    async (stepId: number, data?: any) => {
+      try {
+        setLoading(true);
 
-      switch (stepId) {
-        case 0: // Face front capture
-          stepName = 'codeudor_face_front';
-          // Store front image for later combined submission
-          setBiometricData(prev => ({ ...prev, frontImage: data.imageData }));
-          response = { success: true, confidence_score: 0.9, message: 'Front face captured' };
-          break;
+        let response;
+        let stepName = '';
 
-        case 1: // Face side capture
-          stepName = 'codeudor_face_side';
-          // Now submit both front and side images together
-          response = await contractService.processFaceCapture(
-            contractId,
-            biometricData.frontImage || data.imageData,
-            data.imageData,
-          );
-          break;
+        switch (stepId) {
+          case 0: // Face front capture
+            stepName = 'codeudor_face_front';
+            // Store front image for later combined submission
+            setBiometricData(prev => ({ ...prev, frontImage: data.imageData }));
+            response = {
+              success: true,
+              confidence_score: 0.9,
+              message: 'Front face captured',
+            };
+            break;
 
-        case 2: // Document verification
-          stepName = 'codeudor_document';
-          response = await contractService.processDocumentVerification(
-            contractId,
-            data.documentImage,
-            codeudorData.document_type,
-            codeudorData.document_number,
-          );
-          break;
+          case 1: // Face side capture
+            stepName = 'codeudor_face_side';
+            // Now submit both front and side images together
+            response = await contractService.processFaceCapture(
+              contractId,
+              biometricData.frontImage || data.imageData,
+              data.imageData,
+            );
+            break;
 
-        case 3: // Combined capture
-          stepName = 'codeudor_combined';
-          response = await contractService.processCombinedVerification(
-            contractId,
-            data.combinedImage,
-          );
-          break;
+          case 2: // Document verification
+            stepName = 'codeudor_document';
+            response = await contractService.processDocumentVerification(
+              contractId,
+              data.documentImage,
+              codeudorData.document_type,
+              codeudorData.document_number,
+            );
+            break;
 
-        case 4: // Voice recording
-          stepName = 'codeudor_voice';
-          response = await contractService.processVoiceVerification(
-            contractId,
-            data.audioBlob,
-            biometricData.voiceText,
-          );
-          break;
-      }
+          case 3: // Combined capture
+            stepName = 'codeudor_combined';
+            response = await contractService.processCombinedVerification(
+              contractId,
+              data.combinedImage,
+            );
+            break;
 
-      if (response && (response.success || response.status === 'success')) {
-        // Update completed steps
-        setBiometricData(prev => ({
-          ...prev,
-          completedSteps: {
-            ...prev.completedSteps!,
-            [stepName]: true,
-          },
-          confidenceScores: {
-            ...prev.confidenceScores!,
-            [`${stepName}_confidence`]: response.confidence_score || 0,
-          },
-          progress: Math.round(((activeStep + 1) / steps.length) * 100),
-        }));
-
-        // Update step status
-        setSteps(prev => prev.map(step =>
-          step.id === stepId
-            ? { ...step, completed: true, error: undefined }
-            : step,
-        ));
-
-        // Move to next step or complete
-        if (stepId < steps.length - 1) {
-          setActiveStep(stepId + 1);
-        } else {
-          await completeCodeudorBiometricAuth();
+          case 4: // Voice recording
+            stepName = 'codeudor_voice';
+            response = await contractService.processVoiceVerification(
+              contractId,
+              data.audioBlob,
+              biometricData.voiceText,
+            );
+            break;
         }
-      } else {
-        const errorMessage = (response as any)?.message || `Error en paso ${stepId + 1}`;
-        throw new globalThis.Error(errorMessage);
+
+        if (response && (response.success || response.status === 'success')) {
+          // Update completed steps
+          setBiometricData(prev => ({
+            ...prev,
+            completedSteps: {
+              ...prev.completedSteps!,
+              [stepName]: true,
+            },
+            confidenceScores: {
+              ...prev.confidenceScores!,
+              [`${stepName}_confidence`]: response.confidence_score || 0,
+            },
+            progress: Math.round(((activeStep + 1) / steps.length) * 100),
+          }));
+
+          // Update step status
+          setSteps(prev =>
+            prev.map(step =>
+              step.id === stepId
+                ? { ...step, completed: true, error: undefined }
+                : step,
+            ),
+          );
+
+          // Move to next step or complete
+          if (stepId < steps.length - 1) {
+            setActiveStep(stepId + 1);
+          } else {
+            await completeCodeudorBiometricAuth();
+          }
+        } else {
+          const errorMessage =
+            (response as any)?.message || `Error en paso ${stepId + 1}`;
+          throw new globalThis.Error(errorMessage);
+        }
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof globalThis.Error ? err.message : String(err);
+
+        setSteps(prev =>
+          prev.map(step =>
+            step.id === stepId ? { ...step, error: errorMessage } : step,
+          ),
+        );
+
+        onError(`Error en el paso ${stepId + 1}: ${errorMessage}`);
+      } finally {
+        setLoading(false);
       }
-
-    } catch (err: unknown) {
-      const errorMessage = err instanceof globalThis.Error ? err.message : String(err);
-
-      setSteps(prev => prev.map(step =>
-        step.id === stepId
-          ? { ...step, error: errorMessage }
-          : step,
-      ));
-
-      onError(`Error en el paso ${stepId + 1}: ${errorMessage}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeStep, biometricData, codeudorData, steps.length, onError]);
+    },
+    [activeStep, biometricData, codeudorData, steps.length, onError],
+  );
 
   const completeCodeudorBiometricAuth = async () => {
     try {
@@ -339,8 +348,12 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
 
       if (response.success) {
         // Calculate overall confidence
-        const overallConfidence = Object.values(biometricData.confidenceScores!).reduce((a, b) => a + b, 0) / 4;
-        
+        const overallConfidence =
+          Object.values(biometricData.confidenceScores!).reduce(
+            (a, b) => a + b,
+            0,
+          ) / 4;
+
         const finalBiometricData = {
           ...biometricData,
           confidenceScores: {
@@ -349,7 +362,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
           },
         };
         onSuccess(finalBiometricData);
-        
+
         // Close dialog after success
         setTimeout(() => {
           onClose();
@@ -363,11 +376,11 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
   };
 
   const handleRetryStep = (stepId: number) => {
-    setSteps(prev => prev.map(step => 
-      step.id === stepId 
-        ? { ...step, error: undefined }
-        : step,
-    ));
+    setSteps(prev =>
+      prev.map(step =>
+        step.id === stepId ? { ...step, error: undefined } : step,
+      ),
+    );
   };
 
   const formatTime = (seconds: number): string => {
@@ -379,9 +392,9 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
   const renderStepContent = (stepId: number) => {
     if (loading) {
       return (
-        <Box display="flex" flexDirection="column" alignItems="center" py={4}>
+        <Box display='flex' flexDirection='column' alignItems='center' py={4}>
           <CircularProgress size={60} />
-          <Typography variant="body2" sx={{ mt: 2 }}>
+          <Typography variant='body2' sx={{ mt: 2 }}>
             Procesando verificación biométrica del codeudor...
           </Typography>
         </Box>
@@ -391,12 +404,12 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
     const currentStep = steps[stepId];
     if (currentStep?.error) {
       return (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          <Typography variant="body2" gutterBottom>
+        <Alert severity='error' sx={{ mb: 2 }}>
+          <Typography variant='body2' gutterBottom>
             {currentStep.error}
           </Typography>
-          <Button 
-            size="small" 
+          <Button
+            size='small'
             startIcon={<Refresh />}
             onClick={() => handleRetryStep(stepId)}
           >
@@ -411,28 +424,34 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
       case 1:
         return (
           <CameraCaptureSimple
-            onCapture={(imageData) => handleStepCompletion(stepId, { imageData })}
+            onCapture={imageData => handleStepCompletion(stepId, { imageData })}
           />
         );
 
       case 2:
         return (
           <EnhancedDocumentVerification
-            onVerify={(data) => handleStepCompletion(stepId, { documentImage: data.frontPhotoWithFace || '' })}
+            onVerify={data =>
+              handleStepCompletion(stepId, {
+                documentImage: data.frontPhotoWithFace || '',
+              })
+            }
           />
         );
 
       case 3:
         return (
           <CameraCaptureSimple
-            onCapture={(imageData) => handleStepCompletion(stepId, { combinedImage: imageData })}
+            onCapture={imageData =>
+              handleStepCompletion(stepId, { combinedImage: imageData })
+            }
           />
         );
 
       case 4:
         return (
           <VoiceRecorder
-            onRecord={(audioBlob) => handleStepCompletion(stepId, { audioBlob })}
+            onRecord={audioBlob => handleStepCompletion(stepId, { audioBlob })}
             expectedText={biometricData.voiceText || ''}
           />
         );
@@ -444,21 +463,21 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
 
   if (sessionExpired) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
         <DialogTitle>
-          <Box display="flex" alignItems="center">
-            <Error color="error" sx={{ mr: 1 }} />
+          <Box display='flex' alignItems='center'>
+            <Error color='error' sx={{ mr: 1 }} />
             Sesión Expirada
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Alert severity="error">
-            La sesión de autenticación biométrica del codeudor ha expirado.
-            Por favor, inicie el proceso nuevamente.
+          <Alert severity='error'>
+            La sesión de autenticación biométrica del codeudor ha expirado. Por
+            favor, inicie el proceso nuevamente.
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} color="primary">
+          <Button onClick={onClose} color='primary'>
             Cerrar
           </Button>
         </DialogActions>
@@ -467,61 +486,66 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
   }
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
-      maxWidth="lg"
+      maxWidth='lg'
       fullWidth
       fullScreen={isMobile}
       disableEscapeKeyDown
     >
       <DialogTitle>
-        <Box display="flex" justifyContent="between" alignItems="center">
-          <Box display="flex" alignItems="center">
-            <Shield color="primary" sx={{ mr: 2 }} />
+        <Box display='flex' justifyContent='between' alignItems='center'>
+          <Box display='flex' alignItems='center'>
+            <Shield color='primary' sx={{ mr: 2 }} />
             <Box>
-              <Typography variant="h6" component="div">
+              <Typography variant='h6' component='div'>
                 Verificación Biométrica del Codeudor
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {codeudorData.full_name} • {codeudorData.document_type} {codeudorData.document_number}
+              <Typography variant='body2' color='text.secondary'>
+                {codeudorData.full_name} • {codeudorData.document_type}{' '}
+                {codeudorData.document_number}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Garantía: {codeudorData.guarantee_type === 'codeudor_salario' ? 'Personal con Salario' : 'Real con Finca Raíz'}
+              <Typography variant='caption' color='text.secondary'>
+                Garantía:{' '}
+                {codeudorData.guarantee_type === 'codeudor_salario'
+                  ? 'Personal con Salario'
+                  : 'Real con Finca Raíz'}
               </Typography>
             </Box>
           </Box>
-          
+
           {/* Timer and progress */}
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box display='flex' alignItems='center' gap={2}>
             <Chip
               icon={<Timer />}
               label={formatTime(timeRemaining)}
               color={timeRemaining < 300 ? 'error' : 'default'}
-              size="small"
+              size='small'
             />
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={onClose} size='small'>
               <Close />
             </IconButton>
           </Box>
         </Box>
-        
+
         {/* Progress indicator */}
         <Box sx={{ mt: 2 }}>
-          <LinearProgress 
-            variant="determinate" 
+          <LinearProgress
+            variant='determinate'
             value={biometricData.progress || 0}
             sx={{ height: 6, borderRadius: 3 }}
           />
-          <Typography variant="caption" color="text.secondary">
-            Progreso: {biometricData.progress || 0}% • Paso {activeStep + 1} de {steps.length}
+          <Typography variant='caption' color='text.secondary'>
+            Progreso: {biometricData.progress || 0}% • Paso {activeStep + 1} de{' '}
+            {steps.length}
           </Typography>
         </Box>
       </DialogTitle>
 
       <DialogContent sx={{ p: 0 }}>
-        <Stepper 
-          activeStep={activeStep} 
+        <Stepper
+          activeStep={activeStep}
           orientation={isMobile ? 'vertical' : 'horizontal'}
           sx={{ p: 3 }}
         >
@@ -531,22 +555,20 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
                 error={!!step.error}
                 icon={
                   step.completed ? (
-                    <CheckCircle color="success" />
+                    <CheckCircle color='success' />
                   ) : step.error ? (
-                    <Error color="error" />
+                    <Error color='error' />
                   ) : (
                     step.icon
                   )
                 }
               >
-                <Typography variant="subtitle2">
-                  {step.label}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='subtitle2'>{step.label}</Typography>
+                <Typography variant='body2' color='text.secondary'>
                   {step.description}
                 </Typography>
               </StepLabel>
-              
+
               {isMobile && (
                 <StepContent>
                   {index === activeStep && renderStepContent(index)}
@@ -558,7 +580,10 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
 
         {/* Desktop step content */}
         {!isMobile && (
-          <Paper elevation={0} sx={{ p: 3, m: 3, mt: 0, bgcolor: 'background.default' }}>
+          <Paper
+            elevation={0}
+            sx={{ p: 3, m: 3, mt: 0, bgcolor: 'background.default' }}
+          >
             {renderStepContent(activeStep)}
           </Paper>
         )}
@@ -567,29 +592,44 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
         {Object.values(biometricData.completedSteps || {}).some(Boolean) && (
           <Box sx={{ p: 3 }}>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant='subtitle2' gutterBottom>
               Puntuaciones de Confianza del Codeudor
             </Typography>
-            <Box display="flex" gap={2} flexWrap="wrap">
+            <Box display='flex' gap={2} flexWrap='wrap'>
               {biometricData.completedSteps?.codeudor_face_front && (
-                <Chip 
-                  size="small" 
+                <Chip
+                  size='small'
                   label={`Rostro: ${Math.round((biometricData.confidenceScores?.codeudor_face_confidence || 0) * 100)}%`}
-                  color={biometricData.confidenceScores!.codeudor_face_confidence > 0.8 ? 'success' : 'warning'}
+                  color={
+                    biometricData.confidenceScores!.codeudor_face_confidence >
+                    0.8
+                      ? 'success'
+                      : 'warning'
+                  }
                 />
               )}
               {biometricData.completedSteps?.codeudor_document && (
-                <Chip 
-                  size="small" 
+                <Chip
+                  size='small'
                   label={`Documento: ${Math.round((biometricData.confidenceScores?.codeudor_document_confidence || 0) * 100)}%`}
-                  color={biometricData.confidenceScores!.codeudor_document_confidence > 0.8 ? 'success' : 'warning'}
+                  color={
+                    biometricData.confidenceScores!
+                      .codeudor_document_confidence > 0.8
+                      ? 'success'
+                      : 'warning'
+                  }
                 />
               )}
               {biometricData.completedSteps?.codeudor_voice && (
-                <Chip 
-                  size="small" 
+                <Chip
+                  size='small'
                   label={`Voz: ${Math.round((biometricData.confidenceScores?.codeudor_voice_confidence || 0) * 100)}%`}
-                  color={biometricData.confidenceScores!.codeudor_voice_confidence > 0.8 ? 'success' : 'warning'}
+                  color={
+                    biometricData.confidenceScores!.codeudor_voice_confidence >
+                    0.8
+                      ? 'success'
+                      : 'warning'
+                  }
                 />
               )}
             </Box>
@@ -598,27 +638,23 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>
-        <Button 
-          onClick={onClose} 
-          disabled={loading}
-          color="inherit"
-        >
+        <Button onClick={onClose} disabled={loading} color='inherit'>
           Cancelar
         </Button>
-        
+
         {activeStep > 0 && (
-          <Button 
+          <Button
             onClick={() => setActiveStep(prev => prev - 1)}
             disabled={loading}
           >
             Anterior
           </Button>
         )}
-        
+
         {/* Show completion status */}
         {steps.every(step => step.completed) && (
-          <Alert severity="success" sx={{ ml: 2 }}>
-            <Typography variant="body2">
+          <Alert severity='success' sx={{ ml: 2 }}>
+            <Typography variant='body2'>
               Verificación biométrica del codeudor completada exitosamente
             </Typography>
           </Alert>

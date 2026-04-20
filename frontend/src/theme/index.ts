@@ -147,9 +147,11 @@ const theme = createTheme({
           borderRadius: 8,
           background: '#ffffff',
           border: '1px solid #e0e0e0',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
+          boxShadow:
+            '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.16)',
+            boxShadow:
+              '0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.16)',
             transition: 'box-shadow 0.2s ease-in-out',
           },
         },
@@ -160,7 +162,8 @@ const theme = createTheme({
         root: {
           background: '#ffffff',
           border: '1px solid #e0e0e0',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
+          boxShadow:
+            '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
         },
       },
     },
@@ -173,7 +176,8 @@ const theme = createTheme({
           textTransform: 'none',
           boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+            boxShadow:
+              '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
           },
         },
         contained: {
@@ -314,4 +318,4 @@ const theme = createTheme({
   },
 });
 
-export default theme; 
+export default theme;

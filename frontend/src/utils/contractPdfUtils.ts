@@ -3,24 +3,30 @@
  * Solves JWT authentication issues when opening PDFs in new tabs
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 export const viewContractPDF = async (contractId: string): Promise<void> => {
   try {
     // Obtener el token de localStorage
     const token = localStorage.getItem('access_token');
     if (!token) {
-      throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
+      throw new Error(
+        'No hay sesión activa. Por favor inicia sesión nuevamente.',
+      );
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`${API_BASE_URL}/contracts/${contractId}/preview-pdf/`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': '*/*',
+    const response = await fetch(
+      `${API_BASE_URL}/contracts/${contractId}/preview-pdf/`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: '*/*',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -42,32 +48,44 @@ export const viewContractPDF = async (contractId: string): Promise<void> => {
     }, 60000);
 
     if (!newWindow) {
-      throw new Error('No se pudo abrir el PDF. Por favor verifica que no esté bloqueado por el navegador.');
+      throw new Error(
+        'No se pudo abrir el PDF. Por favor verifica que no esté bloqueado por el navegador.',
+      );
     }
   } catch (error) {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Error al cargar el contrato profesional. Por favor intenta nuevamente.');
+    throw new Error(
+      'Error al cargar el contrato profesional. Por favor intenta nuevamente.',
+    );
   }
 };
 
-export const downloadContractPDF = async (contractId: string, filename?: string): Promise<void> => {
+export const downloadContractPDF = async (
+  contractId: string,
+  filename?: string,
+): Promise<void> => {
   try {
     // Obtener el token de localStorage
     const token = localStorage.getItem('access_token');
     if (!token) {
-      throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
+      throw new Error(
+        'No hay sesión activa. Por favor inicia sesión nuevamente.',
+      );
     }
 
     // Realizar fetch con headers de autorización
-    const response = await fetch(`${API_BASE_URL}/contracts/${contractId}/preview-pdf/`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': '*/*',
+    const response = await fetch(
+      `${API_BASE_URL}/contracts/${contractId}/preview-pdf/`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: '*/*',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -94,6 +112,8 @@ export const downloadContractPDF = async (contractId: string, filename?: string)
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Error al descargar el contrato. Por favor intenta nuevamente.');
+    throw new Error(
+      'Error al descargar el contrato. Por favor intenta nuevamente.',
+    );
   }
 };

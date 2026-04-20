@@ -23,7 +23,7 @@
       <!-- Formulario de inicio de sesión -->
       <form class="login space-y-6" method="POST" action="{% url 'account_login' %}">
         {% csrf_token %}
-        
+
         {% if form.errors %}
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
           <p class="font-medium">Por favor corrige los siguientes errores:</p>
@@ -39,14 +39,14 @@
           </ul>
         </div>
         {% endif %}
-        
+
         <!-- Campo de correo electrónico -->
         <div>
           <label for="id_login" class="block text-sm font-medium text-gray-700 mb-2">{% trans "Correo Electrónico" %}</label>
           <input type="email" name="login" id="id_login" placeholder="tu@correo.com" required
                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
         </div>
-        
+
         <!-- Campo de contraseña -->
         <div>
           <div class="flex items-center justify-between mb-2">
@@ -58,7 +58,7 @@
           <input type="password" name="password" id="id_password" placeholder="••••••••" required
                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
         </div>
-        
+
         <!-- Recordarme -->
         <div class="flex items-center">
           <input type="checkbox" name="remember" id="id_remember" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
@@ -66,11 +66,11 @@
             {% trans "Recordarme" %}
           </label>
         </div>
-        
+
         {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
         {% endif %}
-        
+
         <!-- Botón de inicio de sesión -->
         <button type="submit" class="w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
           {% trans "Iniciar Sesión" %}
@@ -85,14 +85,14 @@
             {% trans "Regístrate" %}
           </a>
         </p>
-        
+
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
         <div class="mt-6">
           <p class="text-sm text-gray-500 mb-4">{% trans "O inicia sesión con:" %}</p>
           <div class="flex justify-center space-x-4">
             {% for provider in socialaccount_providers %}
-            <a href="{% provider_login_url provider.id process='login' %}" 
+            <a href="{% provider_login_url provider.id process='login' %}"
                class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
               {% if provider.name == 'Google' %}
               <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">

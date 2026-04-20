@@ -32,7 +32,10 @@ interface ContractsErrorBoundaryProps {
   showDetails?: boolean;
 }
 
-class ContractsErrorBoundary extends Component<ContractsErrorBoundaryProps, ContractsErrorBoundaryState> {
+class ContractsErrorBoundary extends Component<
+  ContractsErrorBoundaryProps,
+  ContractsErrorBoundaryState
+> {
   constructor(props: ContractsErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -43,10 +46,12 @@ class ContractsErrorBoundary extends Component<ContractsErrorBoundaryProps, Cont
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ContractsErrorBoundaryState> {
+  static getDerivedStateFromError(
+    error: Error,
+  ): Partial<ContractsErrorBoundaryState> {
     // Generar ID único para el error
     const errorId = `contracts-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
@@ -112,7 +117,9 @@ class ContractsErrorBoundary extends Component<ContractsErrorBoundaryProps, Cont
   };
 
   private handleReportBug = () => {
-    const subject = encodeURIComponent(`Error en Módulo de Contratos - ${this.state.errorId}`);
+    const subject = encodeURIComponent(
+      `Error en Módulo de Contratos - ${this.state.errorId}`,
+    );
     const body = encodeURIComponent(`
 Descripción del error:
 ${this.state.error?.message || 'Error desconocido'}
@@ -124,13 +131,13 @@ URL: ${window.location.href}
 Por favor describe qué estabas haciendo cuando ocurrió el error:
 [Describe aquí las acciones que realizaste]
     `);
-    
+
     window.open(`mailto:soporte@verihome.com?subject=${subject}&body=${body}`);
   };
 
   private getErrorCategory = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch')) {
       return 'Conectividad';
     }
@@ -146,26 +153,26 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
     if (message.includes('permission') || message.includes('auth')) {
       return 'Autorización';
     }
-    
+
     return 'Sistema';
   };
 
   private getErrorSeverity = (error: Error): 'error' | 'warning' => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('critical') || message.includes('fatal')) {
       return 'error';
     }
     if (message.includes('validation') || message.includes('required')) {
       return 'warning';
     }
-    
+
     return 'error';
   };
 
   private getUserFriendlyMessage = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch')) {
       return 'Error de conectividad. Verifica tu conexión a internet y vuelve a intentar.';
     }
@@ -184,7 +191,7 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
     if (message.includes('permission') || message.includes('auth')) {
       return 'No tienes permisos suficientes para realizar esta acción. Contacta al administrador.';
     }
-    
+
     return 'Ha ocurrido un error inesperado en el módulo de contratos. Nuestro equipo ha sido notificado.';
   };
 
@@ -227,7 +234,10 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
                 <ErrorIcon
                   sx={{
                     fontSize: 64,
-                    color: errorSeverity === 'error' ? 'var(--color-error)' : 'var(--color-warning)',
+                    color:
+                      errorSeverity === 'error'
+                        ? 'var(--color-error)'
+                        : 'var(--color-warning)',
                     mb: 2,
                   }}
                 />
@@ -241,7 +251,7 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
               </Box>
 
               {/* Error Title */}
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              <Typography variant='h5' sx={{ fontWeight: 600, mb: 2 }}>
                 Error en Módulo de Contratos
               </Typography>
 
@@ -249,10 +259,16 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
               <Box sx={{ mb: 3 }}>
                 <Chip
                   label={errorCategory}
-                  size="small"
+                  size='small'
                   sx={{
-                    backgroundColor: errorSeverity === 'error' ? 'var(--color-error-light)' : 'var(--color-warning-light)',
-                    color: errorSeverity === 'error' ? 'var(--color-error-dark)' : 'var(--color-warning-dark)',
+                    backgroundColor:
+                      errorSeverity === 'error'
+                        ? 'var(--color-error-light)'
+                        : 'var(--color-warning-light)',
+                    color:
+                      errorSeverity === 'error'
+                        ? 'var(--color-error-dark)'
+                        : 'var(--color-warning-dark)',
                     fontWeight: 500,
                   }}
                 />
@@ -269,48 +285,60 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
                   },
                 }}
               >
-                <Typography variant="body2">
-                  {userFriendlyMessage}
-                </Typography>
+                <Typography variant='body2'>{userFriendlyMessage}</Typography>
               </Alert>
 
               {/* Error ID */}
-              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'var(--color-text-secondary)', mb: 3 }}
+              >
                 ID del error: <code>{this.state.errorId}</code>
               </Typography>
 
               {/* Technical details (solo si showDetails está habilitado) */}
-              {this.props.showDetails && process.env.NODE_ENV === 'development' && (
-                <>
-                  <Divider sx={{ my: 3 }} />
-                  <Box sx={{ textAlign: 'left', mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                      Detalles Técnicos:
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      component="pre"
-                      sx={{
-                        backgroundColor: 'var(--color-background)',
-                        p: 2,
-                        borderRadius: 1,
-                        fontSize: '0.75rem',
-                        overflow: 'auto',
-                        maxHeight: 200,
-                        border: '1px solid var(--color-border)',
-                      }}
-                    >
-                      {error.message}
-                      {error.stack && `\n\nStack trace:\n${error.stack}`}
-                    </Typography>
-                  </Box>
-                </>
-              )}
+              {this.props.showDetails &&
+                process.env.NODE_ENV === 'development' && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Box sx={{ textAlign: 'left', mb: 3 }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 600, mb: 1 }}
+                      >
+                        Detalles Técnicos:
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        component='pre'
+                        sx={{
+                          backgroundColor: 'var(--color-background)',
+                          p: 2,
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          overflow: 'auto',
+                          maxHeight: 200,
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        {error.message}
+                        {error.stack && `\n\nStack trace:\n${error.stack}`}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Button
-                  variant="contained"
+                  variant='contained'
                   startIcon={<RefreshIcon />}
                   onClick={this.handleRetry}
                   sx={{
@@ -324,7 +352,7 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
                 </Button>
 
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<HomeIcon />}
                   onClick={this.handleGoHome}
                   sx={{
@@ -339,7 +367,7 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
                 </Button>
 
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<BugIcon />}
                   onClick={this.handleReportBug}
                   sx={{
@@ -356,14 +384,23 @@ Por favor describe qué estabas haciendo cuando ocurrió el error:
               </Box>
 
               {/* Support info */}
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid var(--color-border)' }}>
-                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+              <Box
+                sx={{
+                  mt: 4,
+                  pt: 3,
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'var(--color-text-secondary)', mb: 1 }}
+                >
                   Si el problema persiste, contacta nuestro soporte:
                 </Typography>
                 <Button
-                  variant="text"
+                  variant='text'
                   startIcon={<SupportIcon />}
-                  href="mailto:soporte@verihome.com"
+                  href='mailto:soporte@verihome.com'
                   sx={{
                     color: 'var(--color-primary)',
                     textTransform: 'none',

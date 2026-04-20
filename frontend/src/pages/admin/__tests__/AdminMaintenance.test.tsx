@@ -38,7 +38,9 @@ jest.mock('../../../services/api', () => {
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 import api from '../../../services/api';
 
-const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<typeof useAdminAuth>;
+const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<
+  typeof useAdminAuth
+>;
 const mockedApi = api as jest.Mocked<typeof api>;
 
 const theme = createTheme();
@@ -51,9 +53,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(AdminMaintenance),
-      ),
-    ),
+        React.createElement(AdminMaintenance)
+      )
+    )
   );
 };
 
@@ -83,7 +85,9 @@ describe('AdminMaintenance', () => {
     renderComponent();
 
     expect(screen.getByText('Mantenimiento del Sistema')).toBeInTheDocument();
-    expect(screen.getByText(/Operaciones de mantenimiento/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Operaciones de mantenimiento/i)
+    ).toBeInTheDocument();
   });
 
   it('should render all 5 maintenance cards', () => {
@@ -172,12 +176,16 @@ describe('AdminMaintenance', () => {
 
     // Dialog should close (MUI Dialog may animate out)
     await waitFor(() => {
-      expect(screen.queryByText(/Se eliminaran los logs/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Se eliminaran los logs/i)
+      ).not.toBeInTheDocument();
     });
   });
 
   it('should execute clear-logs action after confirmation', async () => {
-    mockedApi.post.mockResolvedValueOnce({ data: { message: 'Logs limpiados exitosamente' } });
+    mockedApi.post.mockResolvedValueOnce({
+      data: { message: 'Logs limpiados exitosamente' },
+    });
 
     renderComponent();
 
@@ -188,11 +196,15 @@ describe('AdminMaintenance', () => {
     fireEvent.click(screen.getByText('Confirmar'));
 
     await waitFor(() => {
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/maintenance/clear-logs/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/maintenance/clear-logs/'
+      );
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Logs limpiados exitosamente')).toBeInTheDocument();
+      expect(
+        screen.getByText('Logs limpiados exitosamente')
+      ).toBeInTheDocument();
     });
   });
 
@@ -211,7 +223,9 @@ describe('AdminMaintenance', () => {
     const sessionButton = screen.getByText('Limpiar Sesiones Expiradas');
     fireEvent.click(sessionButton);
 
-    expect(screen.getByText(/Se cerraran todas las sesiones/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Se cerraran todas las sesiones/i)
+    ).toBeInTheDocument();
   });
 
   it('should show error message when API call fails', async () => {
@@ -224,12 +238,16 @@ describe('AdminMaintenance', () => {
     fireEvent.click(screen.getByText('Ejecutar Health Check'));
 
     await waitFor(() => {
-      expect(screen.getByText('Error de conexion a la base de datos')).toBeInTheDocument();
+      expect(
+        screen.getByText('Error de conexion a la base de datos')
+      ).toBeInTheDocument();
     });
   });
 
   it('should show success message after successful action', async () => {
-    mockedApi.post.mockResolvedValueOnce({ data: { message: 'Operacion completada exitosamente' } });
+    mockedApi.post.mockResolvedValueOnce({
+      data: { message: 'Operacion completada exitosamente' },
+    });
 
     renderComponent();
 
@@ -238,7 +256,9 @@ describe('AdminMaintenance', () => {
     fireEvent.click(screen.getByText('Confirmar'));
 
     await waitFor(() => {
-      expect(screen.getByText('Operacion completada exitosamente')).toBeInTheDocument();
+      expect(
+        screen.getByText('Operacion completada exitosamente')
+      ).toBeInTheDocument();
     });
   });
 });

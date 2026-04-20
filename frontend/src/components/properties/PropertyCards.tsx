@@ -55,7 +55,9 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
   userType,
   currentUser,
 }) => {
-  const getStatusColor = (status: string): 'success' | 'primary' | 'warning' | 'error' => {
+  const getStatusColor = (
+    status: string,
+  ): 'success' | 'primary' | 'warning' | 'error' => {
     switch (status) {
       case 'available':
         return 'success';
@@ -95,11 +97,11 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
 
   if (properties.length === 0) {
     return (
-      <Box textAlign="center" py={8}>
-        <Typography variant="h6" color="text.secondary" gutterBottom>
+      <Box textAlign='center' py={8}>
+        <Typography variant='h6' color='text.secondary' gutterBottom>
           No se encontraron propiedades
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant='body2' color='text.secondary'>
           Intenta ajustar los filtros o buscar con otros términos
         </Typography>
       </Box>
@@ -109,7 +111,7 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
   return (
     <>
       <Grid container spacing={3}>
-        {properties.map((property) => (
+        {properties.map(property => (
           <Grid item xs={12} sm={6} md={4} key={property.id}>
             <Card
               elevation={2}
@@ -128,23 +130,25 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
               <Box sx={{ position: 'relative', height: 200 }}>
                 <PropertyImage
                   src={
-                    property.main_image_url || 
-                    (property.images && property.images.length > 0 
-                      ? property.images[0]?.image_url || property.images[0]?.image || '/placeholder-property.jpg'
+                    property.main_image_url ||
+                    (property.images && property.images.length > 0
+                      ? property.images[0]?.image_url ||
+                        property.images[0]?.image ||
+                        '/placeholder-property.jpg'
                       : '/placeholder-property.jpg')
                   }
                   alt={property.title}
-                  width="100%"
+                  width='100%'
                   height={200}
                   style={{ objectFit: 'cover', cursor: 'pointer' }}
                   onClick={() => onView(property.id.toString())}
                 />
-                
+
                 {/* Status Badge */}
                 <Chip
                   label={getStatusText(property.status)}
                   color={getStatusColor(property.status)}
-                  size="small"
+                  size='small'
                   sx={{
                     position: 'absolute',
                     top: 8,
@@ -165,13 +169,13 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                         backgroundColor: 'rgba(255, 255, 255, 1)',
                       },
                     }}
-                    size="small"
+                    size='small'
                     onClick={() => onToggleFavorite(property.id.toString())}
                   >
                     {property.is_favorited ? (
-                      <FavoriteIcon fontSize="small" color="error" />
+                      <FavoriteIcon fontSize='small' color='error' />
                     ) : (
-                      <FavoriteBorderIcon fontSize="small" />
+                      <FavoriteBorderIcon fontSize='small' />
                     )}
                   </IconButton>
                 )}
@@ -181,8 +185,8 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
               <CardContent sx={{ flexGrow: 1, pb: 1 }}>
                 {/* Title and Price */}
                 <Typography
-                  variant="h6"
-                  component="h3"
+                  variant='h6'
+                  component='h3'
                   gutterBottom
                   sx={{
                     fontSize: '1.1rem',
@@ -198,41 +202,57 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                 </Typography>
 
                 <Typography
-                  variant="h5"
-                  color="primary"
+                  variant='h5'
+                  color='primary'
                   sx={{ fontWeight: 'bold', mb: 1 }}
                 >
                   {formatPrice(property.rent_price || property.sale_price || 0)}
                   {(property as any).price_type === 'rent' && (
-                    <Typography component="span" variant="body2" color="text.secondary">
+                    <Typography
+                      component='span'
+                      variant='body2'
+                      color='text.secondary'
+                    >
                       /mes
                     </Typography>
                   )}
                 </Typography>
 
                 {/* Location */}
-                <Box display="flex" alignItems="center" mb={1}>
-                  <LocationIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                  <Typography variant="body2" color="text.secondary">
+                <Box display='flex' alignItems='center' mb={1}>
+                  <LocationIcon
+                    fontSize='small'
+                    color='action'
+                    sx={{ mr: 0.5 }}
+                  />
+                  <Typography variant='body2' color='text.secondary'>
                     {property.city}
                   </Typography>
                 </Box>
 
                 {/* Property Details */}
-                <Box display="flex" alignItems="center" gap={2} mb={1}>
-                  <Box display="flex" alignItems="center">
-                    <HomeIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2">
+                <Box display='flex' alignItems='center' gap={2} mb={1}>
+                  <Box display='flex' alignItems='center'>
+                    <HomeIcon
+                      fontSize='small'
+                      color='action'
+                      sx={{ mr: 0.5 }}
+                    />
+                    <Typography variant='body2'>
                       {property.bedrooms} hab
                     </Typography>
                   </Box>
-                  <Box display="flex" alignItems="center">
-                    <BathtubIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2">
+                  <Box display='flex' alignItems='center'>
+                    <BathtubIcon
+                      fontSize='small'
+                      color='action'
+                      sx={{ mr: 0.5 }}
+                    />
+                    <Typography variant='body2'>
                       {property.bathrooms} baños
                     </Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     {property.total_area} m²
                   </Typography>
                 </Box>
@@ -240,15 +260,15 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                 {/* Property Type */}
                 <Chip
                   label={property.property_type}
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                   sx={{ mb: 1 }}
                 />
 
                 {/* Description */}
                 <Typography
-                  variant="body2"
-                  color="text.secondary"
+                  variant='body2'
+                  color='text.secondary'
                   sx={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -261,34 +281,39 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
               </CardContent>
 
               {/* Actions */}
-              <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+              <CardActions
+                sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}
+              >
                 <Button
-                  variant="outlined"
-                  size="small"
+                  variant='outlined'
+                  size='small'
                   startIcon={<ViewIcon />}
                   onClick={() => onView(property.id.toString())}
                 >
                   Ver Detalles
                 </Button>
 
-                {userType === 'landlord' && (currentUser?.email === property.landlord?.email || currentUser?.is_superuser || currentUser?.role === 'admin') && (
-                  <Box>
-                    <IconButton
-                      size="small"
-                      onClick={() => onEdit(property.id.toString())}
-                      sx={{ mr: 1 }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => onDelete(property.id.toString())}
-                      color="error"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                )}
+                {userType === 'landlord' &&
+                  (currentUser?.email === property.landlord?.email ||
+                    currentUser?.is_superuser ||
+                    currentUser?.role === 'admin') && (
+                    <Box>
+                      <IconButton
+                        size='small'
+                        onClick={() => onEdit(property.id.toString())}
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        onClick={() => onDelete(property.id.toString())}
+                        color='error'
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Box>
+                  )}
               </CardActions>
             </Card>
           </Grid>
@@ -297,12 +322,12 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <Box display="flex" justifyContent="center" mt={4}>
+        <Box display='flex' justifyContent='center' mt={4}>
           <Pagination
             count={totalPages}
             page={page}
             onChange={onPageChange}
-            color="primary"
+            color='primary'
             showFirstButton
             showLastButton
           />

@@ -52,7 +52,7 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = ev => {
       const result = ev.target?.result as string;
       if (result) onCapture(result);
     };
@@ -61,22 +61,32 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
   };
 
   return (
-    <Box sx={{ 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      bgcolor: 'grey.50',
-    }}>
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'grey.50',
+      }}
+    >
       {/* Header con contexto */}
-      <Paper elevation={1} sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
+      <Paper
+        elevation={1}
+        sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}
+      >
         <Box sx={{ p: 2 }}>
           {/* Navegación superior */}
-          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Box display="flex" alignItems="center" gap={2}>
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+            sx={{ mb: 2 }}
+          >
+            <Box display='flex' alignItems='center' gap={2}>
               {onCancel && (
                 <Button
-                  variant="outlined"
-                  size="small"
+                  variant='outlined'
+                  size='small'
                   onClick={onCancel}
                   startIcon={<CloseIcon />}
                 >
@@ -84,10 +94,10 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
                 </Button>
               )}
               <Box>
-                <Typography variant="h6" fontWeight="600">
+                <Typography variant='h6' fontWeight='600'>
                   {stepName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Paso {currentStep} de {totalSteps}
                 </Typography>
               </Box>
@@ -95,13 +105,16 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
           </Box>
 
           {/* Instrucciones */}
-          <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 0 }}>
-            <Typography variant="body2" sx={{ mb: 1 }}>
+          <Alert severity='info' icon={<InfoIcon />} sx={{ mb: 0 }}>
+            <Typography variant='body2' sx={{ mb: 1 }}>
               <strong>Tome una foto frontal clara de su rostro</strong>
             </Typography>
-            <Box component="ul" sx={{ m: 0, pl: 2, fontSize: '0.875rem' }}>
+            <Box component='ul' sx={{ m: 0, pl: 2, fontSize: '0.875rem' }}>
               <li>Mantenga su rostro centrado y bien iluminado</li>
-              <li>Retire gafas oscuras, gorras o cualquier objeto que cubra su cara</li>
+              <li>
+                Retire gafas oscuras, gorras o cualquier objeto que cubra su
+                cara
+              </li>
               <li>Mire directamente a la cámara con expresión neutra</li>
               <li>Asegúrese de que todo su rostro sea visible</li>
             </Box>
@@ -110,42 +123,50 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
       </Paper>
 
       {/* Área de cámara optimizada - Compacta y centrada */}
-      <Box sx={{ 
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center', // Centrar horizontalmente
-        p: 1,
-        height: '320px',
-      }}>
-        <Box sx={{ 
-          width: '100%',
-          maxWidth: '400px', // Ancho máximo del área de cámara
-          height: '100%',
-        }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center', // Centrar horizontalmente
+          p: 1,
+          height: '320px',
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: '400px', // Ancho máximo del área de cámara
+            height: '100%',
+          }}
+        >
           <SimpleProfessionalCamera
             onCapture={onCapture}
             onError={onError}
-            instructions="Tome una foto frontal clara de su rostro"
+            instructions='Tome una foto frontal clara de su rostro'
           />
         </Box>
 
         {/* BUG-E2E-08: fallback upload si la cámara no está disponible */}
         <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ display: 'block', mb: 1 }}
+          >
             ¿Problemas con la cámara?
           </Typography>
           <Button
-            component="label"
-            variant="outlined"
-            size="small"
+            component='label'
+            variant='outlined'
+            size='small'
             startIcon={<UploadFileIcon />}
             disabled={loading}
           >
             Subir foto desde archivo
             <input
-              type="file"
+              type='file'
               hidden
-              accept="image/jpeg,image/png,image/webp"
+              accept='image/jpeg,image/png,image/webp'
               onChange={handleFileUpload}
             />
           </Button>
@@ -153,28 +174,33 @@ const EnhancedFaceCapture: React.FC<EnhancedFaceCaptureProps> = ({
       </Box>
 
       {/* Footer con información adicional */}
-      <Paper elevation={2} sx={{ 
-        borderRadius: '12px 12px 0 0',
-        p: 2,
-        bgcolor: 'background.paper',
-      }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
+      <Paper
+        elevation={2}
+        sx={{
+          borderRadius: '12px 12px 0 0',
+          p: 2,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
           <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              <PhotoCameraIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 0.5 }}>
+              <PhotoCameraIcon
+                sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }}
+              />
               Esta foto se usará para verificar su identidad
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               Sus datos están protegidos y se procesan de forma segura
             </Typography>
           </Box>
-          
+
           {/* Indicador de progreso */}
-          <Box textAlign="right">
-            <Typography variant="body2" fontWeight="600" color="primary.main">
+          <Box textAlign='right'>
+            <Typography variant='body2' fontWeight='600' color='primary.main'>
               {Math.round((currentStep / totalSteps) * 100)}% Completado
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               Siguiente: Verificación de Documento
             </Typography>
           </Box>

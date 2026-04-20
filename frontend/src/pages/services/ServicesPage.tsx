@@ -92,55 +92,62 @@ const ServicesPage: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {user?.role === 'service_provider' ? 'Mis Servicios' : 'Servicios Disponibles'}
+        <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 1 }}>
+          {user?.role === 'service_provider'
+            ? 'Mis Servicios'
+            : 'Servicios Disponibles'}
         </Typography>
-        <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-          {user?.role === 'service_provider' 
+        <Typography
+          variant='body1'
+          sx={{ color: theme.palette.text.secondary }}
+        >
+          {user?.role === 'service_provider'
             ? 'Gestiona tus servicios y solicitudes de clientes'
-            : 'Encuentra profesionales para tus necesidades'
-          }
+            : 'Encuentra profesionales para tus necesidades'}
         </Typography>
       </Box>
 
       {user?.role === 'service_provider' && (
         <Box sx={{ mb: 4 }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ mb: 2 }}
-          >
+          <Button variant='contained' startIcon={<AddIcon />} sx={{ mb: 2 }}>
             Agregar Nuevo Servicio
           </Button>
         </Box>
       )}
 
       <Grid container spacing={3}>
-        {services.map((service) => (
+        {services.map(service => (
           <Grid item xs={12} md={6} lg={4} key={service.id}>
-            <Card sx={{ 
-              borderRadius: '12px', 
-              boxShadow: 3,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: 6,
-              },
-            }}>
+            <Card
+              sx={{
+                borderRadius: '12px',
+                boxShadow: 3,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 6,
+                },
+              }}
+            >
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ 
-                    bgcolor: `${getCategoryColor(service.category)}.light`,
-                    color: `${getCategoryColor(service.category)}.main`,
-                    mr: 2,
-                  }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: `${getCategoryColor(service.category)}.light`,
+                      color: `${getCategoryColor(service.category)}.main`,
+                      mr: 2,
+                    }}
+                  >
                     <BuildIcon />
                   </Avatar>
                   <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
                       {service.name}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: theme.palette.text.secondary }}
+                    >
                       {service.provider}
                     </Typography>
                   </Box>
@@ -150,28 +157,43 @@ const ServicesPage: React.FC = () => {
                   <Chip
                     label={getCategoryLabel(service.category)}
                     color={getCategoryColor(service.category) as any}
-                    size="small"
+                    size='small'
                     sx={{ mr: 1 }}
                   />
                   <Chip
                     label={service.available ? 'Disponible' : 'No disponible'}
                     color={service.available ? 'success' : 'default'}
-                    size="small"
+                    size='small'
                   />
                 </Box>
 
-                <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 2, color: theme.palette.text.secondary }}
+                >
                   {service.description}
                 </Typography>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 2,
+                  }}
+                >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <StarIcon sx={{ color: 'warning.main', fontSize: 20, mr: 0.5 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    <StarIcon
+                      sx={{ color: 'warning.main', fontSize: 20, mr: 0.5 }}
+                    />
+                    <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                       {service.rating}
                     </Typography>
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                  >
                     {service.price}
                   </Typography>
                 </Box>
@@ -179,7 +201,7 @@ const ServicesPage: React.FC = () => {
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {user?.role === 'tenant' ? (
                     <Button
-                      variant="contained"
+                      variant='contained'
                       fullWidth
                       disabled={!service.available}
                     >
@@ -187,18 +209,10 @@ const ServicesPage: React.FC = () => {
                     </Button>
                   ) : (
                     <>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{ flex: 1 }}
-                      >
+                      <Button variant='outlined' size='small' sx={{ flex: 1 }}>
                         Editar
                       </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{ flex: 1 }}
-                      >
+                      <Button variant='outlined' size='small' sx={{ flex: 1 }}>
                         Ver Solicitudes
                       </Button>
                     </>
@@ -213,4 +227,4 @@ const ServicesPage: React.FC = () => {
   );
 };
 
-export default ServicesPage; 
+export default ServicesPage;

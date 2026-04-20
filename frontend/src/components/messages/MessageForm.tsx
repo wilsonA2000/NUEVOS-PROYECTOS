@@ -20,9 +20,11 @@ export const MessageForm: React.FC = () => {
     content: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -33,44 +35,43 @@ export const MessageForm: React.FC = () => {
     try {
       await createMessage.mutateAsync(formData as any);
       navigate('/app/messages');
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   return (
     <Card>
       <CardContent>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant='h5' component='h2' gutterBottom>
           Nuevo Mensaje
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate>
+        <Box component='form' onSubmit={handleSubmit} noValidate>
           <TextField
-            margin="normal"
+            margin='normal'
             required
             fullWidth
-            id="recipientId"
-            label="ID del Destinatario"
-            name="recipientId"
+            id='recipientId'
+            label='ID del Destinatario'
+            name='recipientId'
             value={formData.recipientId}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
+            margin='normal'
             required
             fullWidth
-            id="subject"
-            label="Asunto"
-            name="subject"
+            id='subject'
+            label='Asunto'
+            name='subject'
             value={formData.subject}
             onChange={handleChange}
           />
           <TextField
-            margin="normal"
+            margin='normal'
             required
             fullWidth
-            id="content"
-            label="Contenido"
-            name="content"
+            id='content'
+            label='Contenido'
+            name='content'
             multiline
             rows={4}
             value={formData.content}
@@ -78,15 +79,15 @@ export const MessageForm: React.FC = () => {
           />
           <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
             <Button
-              type="button"
-              variant="outlined"
+              type='button'
+              variant='outlined'
               onClick={() => navigate('/app/messages')}
             >
               Cancelar
             </Button>
             <Button
-              type="submit"
-              variant="contained"
+              type='submit'
+              variant='contained'
               disabled={createMessage.isPending}
             >
               {createMessage.isPending ? 'Enviando...' : 'Enviar'}
@@ -96,4 +97,4 @@ export const MessageForm: React.FC = () => {
       </CardContent>
     </Card>
   );
-}; 
+};

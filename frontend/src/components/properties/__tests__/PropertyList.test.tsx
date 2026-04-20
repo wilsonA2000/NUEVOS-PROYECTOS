@@ -69,9 +69,9 @@ jest.mock('mapbox-gl', () => ({
 jest.mock('../PropertyCards', () => ({
   __esModule: true,
   default: ({ properties }: any) => (
-    <div data-testid="property-cards">
+    <div data-testid='property-cards'>
       {properties?.map((p: any) => (
-        <div key={p.id} data-testid="property-card">
+        <div key={p.id} data-testid='property-card'>
           <span>{p.title}</span>
         </div>
       ))}
@@ -83,10 +83,8 @@ jest.mock('../PropertyCards', () => ({
 jest.mock('../PropertyTable', () => ({
   __esModule: true,
   default: ({ properties }: any) => (
-    <div data-testid="property-table">
-      {properties?.map((p: any) => (
-        <div key={p.id}>{p.title}</div>
-      ))}
+    <div data-testid='property-table'>
+      {properties?.map((p: any) => <div key={p.id}>{p.title}</div>)}
     </div>
   ),
 }));
@@ -94,7 +92,7 @@ jest.mock('../PropertyTable', () => ({
 // Mock PropertyFilters
 jest.mock('../PropertyFilters', () => ({
   __esModule: true,
-  default: () => <div data-testid="property-filters">Filters</div>,
+  default: () => <div data-testid='property-filters'>Filters</div>,
 }));
 
 // Mock the PropertyList component from pages (the actual location)
@@ -110,7 +108,8 @@ jest.mock('../../../pages/properties/PropertyList', () => {
       const [error, setError] = React.useState<string | null>(null);
 
       React.useEffect(() => {
-        propertyService.getProperties()
+        propertyService
+          .getProperties()
           .then((data: any) => {
             setProperties(data.results || []);
             setLoading(false);
@@ -123,10 +122,11 @@ jest.mock('../../../pages/properties/PropertyList', () => {
 
       if (loading) return <div>Cargando propiedades...</div>;
       if (error) return <div>{error}</div>;
-      if (properties.length === 0) return <div>No se encontraron propiedades</div>;
+      if (properties.length === 0)
+        return <div>No se encontraron propiedades</div>;
 
       return (
-        <div data-testid="property-list">
+        <div data-testid='property-list'>
           {properties.map((p: any) => (
             <div key={p.id}>{p.title}</div>
           ))}
@@ -139,7 +139,9 @@ jest.mock('../../../pages/properties/PropertyList', () => {
 import PropertyList from '../../../pages/properties/PropertyList';
 import { propertyService } from '../../../services/propertyService';
 
-const mockGetProperties = propertyService.getProperties as jest.MockedFunction<typeof propertyService.getProperties>;
+const mockGetProperties = propertyService.getProperties as jest.MockedFunction<
+  typeof propertyService.getProperties
+>;
 
 const createWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
@@ -151,9 +153,7 @@ const createWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BrowserRouter>{children}</BrowserRouter>
     </QueryClientProvider>
   );
 };
@@ -173,7 +173,7 @@ describe('PropertyList Component', () => {
 
   it('shows loading state while fetching properties', () => {
     mockGetProperties.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 10000))
+      () => new Promise(resolve => setTimeout(resolve, 10000))
     );
 
     render(<PropertyList />, { wrapper: createWrapper });
@@ -192,17 +192,23 @@ describe('PropertyList Component', () => {
     render(<PropertyList />, { wrapper: createWrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/no se encontraron propiedades/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no se encontraron propiedades/i)
+      ).toBeInTheDocument();
     });
   });
 
   it('handles error state', async () => {
-    mockGetProperties.mockRejectedValueOnce(new Error('Error al cargar propiedades'));
+    mockGetProperties.mockRejectedValueOnce(
+      new Error('Error al cargar propiedades')
+    );
 
     render(<PropertyList />, { wrapper: createWrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/error al cargar las propiedades/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/error al cargar las propiedades/i)
+      ).toBeInTheDocument();
     });
   });
 });

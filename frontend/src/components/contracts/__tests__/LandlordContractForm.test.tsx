@@ -25,7 +25,9 @@ jest.mock('../../../hooks/useProperties', () => ({
 }));
 
 import { useProperties } from '../../../hooks/useProperties';
-const mockUseProperties = useProperties as jest.MockedFunction<typeof useProperties>;
+const mockUseProperties = useProperties as jest.MockedFunction<
+  typeof useProperties
+>;
 
 // Mock react-router-dom navigate
 const mockNavigate = jest.fn();
@@ -46,7 +48,9 @@ jest.mock('../../../services/landlordContractService', () => ({
 }));
 
 import { LandlordContractService } from '../../../services/landlordContractService';
-const mockedLandlordContractService = LandlordContractService as jest.Mocked<typeof LandlordContractService>;
+const mockedLandlordContractService = LandlordContractService as jest.Mocked<
+  typeof LandlordContractService
+>;
 
 // Mock propertyService
 jest.mock('../../../services/propertyService', () => ({
@@ -91,14 +95,19 @@ jest.mock('../../../hooks/useConfirmDialog', () => ({
 // Mock CodeudorBiometricFlow sub-component
 jest.mock('../CodeudorBiometricFlow', () => {
   return function MockCodeudorBiometricFlow() {
-    return <div data-testid="codeudor-biometric-flow">Codeudor Biometric Mock</div>;
+    return (
+      <div data-testid='codeudor-biometric-flow'>Codeudor Biometric Mock</div>
+    );
   };
 });
 
 // Mock date-fns to avoid locale issues
 jest.mock('date-fns', () => ({
   format: jest.fn(() => '01/01/2026'),
-  addMonths: jest.fn((date: Date, months: number) => new Date(date.getTime() + months * 30 * 86400000)),
+  addMonths: jest.fn(
+    (date: Date, months: number) =>
+      new Date(date.getTime() + months * 30 * 86400000)
+  ),
   differenceInMonths: jest.fn(() => 12),
 }));
 
@@ -179,7 +188,9 @@ const defaultAuthValue = {
   hideErrorModal: jest.fn(),
 };
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof LandlordContractForm>> = {}) => {
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof LandlordContractForm>> = {}
+) => {
   const queryClient = createQueryClient();
 
   return render(
@@ -189,7 +200,7 @@ const renderComponent = (props: Partial<React.ComponentProps<typeof LandlordCont
           <LandlordContractForm {...props} />
         </ThemeProvider>
       </BrowserRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 };
 
@@ -220,14 +231,16 @@ describe('LandlordContractForm', () => {
   it('should render loading state when contract data is being fetched', async () => {
     // Simulate edit mode with a contractId so loadContractData triggers loading
     mockedLandlordContractService.getContracts.mockImplementation(
-      () => new Promise(() => {}), // Never resolves to keep loading active
+      () => new Promise(() => {}) // Never resolves to keep loading active
     );
 
     renderComponent({ isEdit: true, contractId: 'contract-edit-123' });
 
     // The component shows LinearProgress with "Cargando..." text while loading
     await waitFor(() => {
-      expect(screen.getByText(/Cargando información del contrato/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Cargando información del contrato/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -418,7 +431,9 @@ describe('LandlordContractForm', () => {
       id: 'new-contract-123',
       current_state: 'DRAFT',
     };
-    mockedLandlordContractService.createContractDraft.mockResolvedValue(mockResult as any);
+    mockedLandlordContractService.createContractDraft.mockResolvedValue(
+      mockResult as any
+    );
 
     const onSuccess = jest.fn();
     renderComponent({ onSuccess });
@@ -436,7 +451,7 @@ describe('LandlordContractForm', () => {
   // -----------------------------------------------------------------------
   it('should display error messages when contract creation fails', async () => {
     mockedLandlordContractService.createContractDraft.mockRejectedValue(
-      new Error('Error de servidor al crear el contrato'),
+      new Error('Error de servidor al crear el contrato')
     );
 
     renderComponent();
@@ -469,7 +484,7 @@ describe('LandlordContractForm', () => {
 
     await waitFor(() => {
       const pageText = getPageText();
-      expectedSteps.forEach((stepLabel) => {
+      expectedSteps.forEach(stepLabel => {
         expect(pageText).toContain(stepLabel);
       });
     });
@@ -496,7 +511,9 @@ describe('LandlordContractForm', () => {
   // Additional: Edit mode renders with different title
   // -----------------------------------------------------------------------
   it('should render edit title when isEdit prop is true', async () => {
-    mockedLandlordContractService.getContracts.mockResolvedValue({ results: [] } as any);
+    mockedLandlordContractService.getContracts.mockResolvedValue({
+      results: [],
+    } as any);
 
     renderComponent({ isEdit: true, contractId: 'edit-123' });
 

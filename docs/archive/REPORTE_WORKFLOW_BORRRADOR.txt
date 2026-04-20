@@ -26,4 +26,3 @@ Necesito verificar en el código frontend si existe algún botón específico qu
 3. Que esté en MatchedCandidatesView o LandlordDocumentReview
 
 BÚSQUEDA PENDIENTE: Revisar el código frontend para confirmar
-

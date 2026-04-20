@@ -20,8 +20,8 @@ const StatusChip: React.FC<StatusChipProps> = ({ kind, sx, ...rest }) => {
   const token = stageToken(kind);
   return (
     <Chip
-      size="small"
-      variant="outlined"
+      size='small'
+      variant='outlined'
       sx={{
         color: token.color,
         backgroundColor: token.bg,

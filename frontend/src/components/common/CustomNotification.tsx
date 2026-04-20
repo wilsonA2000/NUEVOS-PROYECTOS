@@ -113,29 +113,31 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
         action={
           showCloseButton ? (
             <IconButton
-              aria-label="close"
-              color="inherit"
-              size="small"
+              aria-label='close'
+              color='inherit'
+              size='small'
               onClick={onClose}
               sx={{ color: getBorderColor() }}
             >
-              <CloseIcon fontSize="inherit" />
+              <CloseIcon fontSize='inherit' />
             </IconButton>
           ) : undefined
         }
       >
         <Box>
           {title && (
-            <AlertTitle sx={{ 
-              fontWeight: 600, 
-              mb: 1,
-              color: getBorderColor(),
-            }}>
+            <AlertTitle
+              sx={{
+                fontWeight: 600,
+                mb: 1,
+                color: getBorderColor(),
+              }}
+            >
               {title}
             </AlertTitle>
           )}
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               color: vhColors.textPrimary,
               lineHeight: 1.5,
@@ -149,4 +151,4 @@ const CustomNotification: React.FC<CustomNotificationProps> = ({
   );
 };
 
-export default CustomNotification; 
+export default CustomNotification;

@@ -8,7 +8,7 @@ import sys
 import django
 
 # Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
@@ -19,9 +19,10 @@ import uuid
 
 User = get_user_model()
 
+
 def test_pdf_generation():
     """Probar generación de PDF"""
-    contract_id = uuid.UUID('055e0039-fbaa-4d07-a2f9-5a6e3f1cc6f1')
+    contract_id = uuid.UUID("055e0039-fbaa-4d07-a2f9-5a6e3f1cc6f1")
 
     try:
         # Obtener contrato
@@ -55,7 +56,7 @@ def test_pdf_generation():
 
         # Guardar PDF de prueba
         output_file = "test_contract_output.pdf"
-        with open(output_file, 'wb') as f:
+        with open(output_file, "wb") as f:
             f.write(pdf_content)
         print(f"✅ PDF guardado en: {output_file}")
 
@@ -64,10 +65,12 @@ def test_pdf_generation():
     except Exception as e:
         print(f"❌ ERROR: {type(e).__name__}: {str(e)}")
         import traceback
+
         traceback.print_exc()
         return False
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("=" * 60)
     print("PRUEBA DE GENERACIÓN DE PDF DE CONTRATO")
     print("=" * 60)

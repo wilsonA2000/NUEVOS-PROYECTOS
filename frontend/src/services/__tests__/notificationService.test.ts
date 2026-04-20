@@ -22,8 +22,8 @@ describe('NotificationService', () => {
     updated_at: '2024-01-01T00:00:00Z',
     data: {
       message_id: 'msg_123',
-      sender_name: 'John Doe'
-    }
+      sender_name: 'John Doe',
+    },
   };
 
   describe('getNotifications', () => {
@@ -50,7 +50,9 @@ describe('NotificationService', () => {
     it('should handle API errors', async () => {
       mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
 
-      await expect(notificationService.getNotifications()).rejects.toThrow('API Error');
+      await expect(notificationService.getNotifications()).rejects.toThrow(
+        'API Error'
+      );
     });
   });
 
@@ -77,7 +79,10 @@ describe('NotificationService', () => {
 
       const result = await notificationService.createNotification(createData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/notifications/', createData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/notifications/',
+        createData
+      );
       expect(result).toEqual(mockNotification);
     });
 
@@ -86,7 +91,9 @@ describe('NotificationService', () => {
 
       mockedApi.post.mockRejectedValueOnce(mockError);
 
-      await expect(notificationService.createNotification({})).rejects.toThrow('Validation failed');
+      await expect(notificationService.createNotification({})).rejects.toThrow(
+        'Validation failed'
+      );
     });
   });
 
@@ -95,9 +102,13 @@ describe('NotificationService', () => {
       const updatedNotification = { ...mockNotification, title: 'Updated' };
       mockedApi.put.mockResolvedValueOnce({ data: updatedNotification });
 
-      const result = await notificationService.updateNotification('1', { title: 'Updated' });
+      const result = await notificationService.updateNotification('1', {
+        title: 'Updated',
+      });
 
-      expect(mockedApi.put).toHaveBeenCalledWith('/core/notifications/1/', { title: 'Updated' });
+      expect(mockedApi.put).toHaveBeenCalledWith('/core/notifications/1/', {
+        title: 'Updated',
+      });
       expect(result).toEqual(updatedNotification);
     });
   });
@@ -109,7 +120,9 @@ describe('NotificationService', () => {
 
       const result = await notificationService.markAsRead('1');
 
-      expect(mockedApi.patch).toHaveBeenCalledWith('/core/notifications/1/', { is_read: true });
+      expect(mockedApi.patch).toHaveBeenCalledWith('/core/notifications/1/', {
+        is_read: true,
+      });
       expect(result).toEqual(readNotification);
     });
   });
@@ -120,7 +133,9 @@ describe('NotificationService', () => {
 
       await notificationService.markAllAsRead();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/notifications/mark-all-read/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/notifications/mark-all-read/'
+      );
     });
   });
 
@@ -140,7 +155,9 @@ describe('NotificationService', () => {
 
       const result = await notificationService.getUnreadCount();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/core/notifications/unread_count/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/core/notifications/unread_count/'
+      );
       expect(result).toEqual({ count: 7 });
     });
 
@@ -155,7 +172,9 @@ describe('NotificationService', () => {
 
   describe('getActivityLogs', () => {
     it('should fetch activity logs successfully', async () => {
-      const logs = [{ id: '1', action: 'login', timestamp: '2024-01-01T00:00:00Z' }];
+      const logs = [
+        { id: '1', action: 'login', timestamp: '2024-01-01T00:00:00Z' },
+      ];
       mockedApi.get.mockResolvedValueOnce({ data: logs });
 
       const result = await notificationService.getActivityLogs();
@@ -172,14 +191,19 @@ describe('NotificationService', () => {
 
       const result = await notificationService.createActivityLog(logData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/activity-logs/', logData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/activity-logs/',
+        logData
+      );
       expect(result).toEqual({ id: '1', ...logData });
     });
   });
 
   describe('getSystemAlerts', () => {
     it('should fetch system alerts successfully', async () => {
-      const alerts = [{ id: '1', message: 'System update scheduled', severity: 'info' }];
+      const alerts = [
+        { id: '1', message: 'System update scheduled', severity: 'info' },
+      ];
       mockedApi.get.mockResolvedValueOnce({ data: alerts });
 
       const result = await notificationService.getSystemAlerts();
@@ -196,7 +220,10 @@ describe('NotificationService', () => {
 
       const result = await notificationService.createSystemAlert(alertData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/system-alerts/', alertData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/system-alerts/',
+        alertData
+      );
       expect(result).toEqual({ id: '1', ...alertData });
     });
   });

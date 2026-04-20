@@ -32,6 +32,9 @@ export interface PaymentFilters {
   paymentMethod?: string;
 }
 
-export type PaymentFormData = Omit<Payment, 'id' | 'created_at' | 'updated_at' | 'contract'> & {
+export type PaymentFormData = Omit<
+  Payment,
+  'id' | 'created_at' | 'updated_at' | 'contract'
+> & {
   contract_id: number;
-}; 
+};

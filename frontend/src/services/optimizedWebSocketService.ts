@@ -3,8 +3,6 @@
  * Designed to prevent connection spam and optimize real-time communication
  */
 
-import { toast } from 'react-toastify';
-
 export interface WebSocketMessage {
   type: string;
   message?: string;
@@ -48,12 +46,12 @@ class OptimizedWebSocketService {
 
   // Optimized configuration to prevent spam
   private readonly config: ConnectionConfig = {
-    maxReconnectAttempts: 3,        // Reduced from 5
-    reconnectDelay: 30000,          // 30 seconds between attempts
-    pingInterval: 45000,            // 45 seconds ping interval
-    connectionTimeout: 10000,       // 10 second connection timeout
-    rateLimitWindow: 60000,         // 1 minute window
-    maxConnectionsPerWindow: 2,     // Max 2 connection attempts per minute
+    maxReconnectAttempts: 3, // Reduced from 5
+    reconnectDelay: 30000, // 30 seconds between attempts
+    pingInterval: 45000, // 45 seconds ping interval
+    connectionTimeout: 10000, // 10 second connection timeout
+    rateLimitWindow: 60000, // 1 minute window
+    maxConnectionsPerWindow: 2, // Max 2 connection attempts per minute
   };
 
   constructor() {
@@ -152,7 +150,7 @@ class OptimizedWebSocketService {
           resolve();
         };
 
-        ws.onmessage = (event) => {
+        ws.onmessage = event => {
           try {
             const message: WebSocketMessage = JSON.parse(event.data);
             this.handleMessage(endpoint, message);
@@ -161,7 +159,7 @@ class OptimizedWebSocketService {
           }
         };
 
-        ws.onclose = (event) => {
+        ws.onclose = event => {
           clearTimeout(timeoutId);
           this.handleDisconnection(endpoint, event.code, event.reason);
         };
@@ -176,7 +174,6 @@ class OptimizedWebSocketService {
           });
           reject(new Error(`WebSocket error on ${endpoint}`));
         };
-
       } catch (error) {
         this.setConnectionStatus(endpoint, {
           connected: false,
@@ -226,7 +223,8 @@ class OptimizedWebSocketService {
     }
 
     // Exponential backoff: 30s, 60s, 120s
-    const delay = this.config.reconnectDelay * Math.pow(2, status.reconnectAttempts);
+    const delay =
+      this.config.reconnectDelay * Math.pow(2, status.reconnectAttempts);
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -321,7 +319,12 @@ class OptimizedWebSocketService {
     const intervalId = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         try {
-          ws.send(JSON.stringify({ type: 'ping', timestamp: new Date().toISOString() }));
+          ws.send(
+            JSON.stringify({
+              type: 'ping',
+              timestamp: new Date().toISOString(),
+            }),
+          );
         } catch {
           this.stopPing(endpoint);
         }
@@ -376,7 +379,8 @@ class OptimizedWebSocketService {
   private getWebSocketBaseUrl(): string {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
-    const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
+    const port =
+      process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
     return `${protocol}//${host}:${port}`;
   }
 
@@ -384,7 +388,10 @@ class OptimizedWebSocketService {
     return localStorage.getItem('access_token');
   }
 
-  private setConnectionStatus(endpoint: string, status: Partial<ConnectionStatus>): void {
+  private setConnectionStatus(
+    endpoint: string,
+    status: Partial<ConnectionStatus>,
+  ): void {
     const currentStatus = this.connectionStatus.get(endpoint) || {
       connected: false,
       connecting: false,
@@ -411,15 +418,19 @@ class OptimizedWebSocketService {
   }
 
   getConnectionStatus(endpoint: string): ConnectionStatus {
-    return this.connectionStatus.get(endpoint) || {
-      connected: false,
-      connecting: false,
-      reconnectAttempts: 0,
-    };
+    return (
+      this.connectionStatus.get(endpoint) || {
+        connected: false,
+        connecting: false,
+        reconnectAttempts: 0,
+      }
+    );
   }
 
   getConnectedEndpoints(): string[] {
-    return Array.from(this.connections.keys()).filter(endpoint => this.isConnected(endpoint));
+    return Array.from(this.connections.keys()).filter(endpoint =>
+      this.isConnected(endpoint),
+    );
   }
 
   onConnectionStatusChange(callback: ConnectionStatusCallback): () => void {
@@ -473,7 +484,7 @@ class OptimizedWebSocketService {
    * Batch connection method - connects to multiple endpoints efficiently
    */
   async connectToEndpoints(endpoints: string[]): Promise<void> {
-    const connectionPromises = endpoints.map(async (endpoint) => {
+    const connectionPromises = endpoints.map(async endpoint => {
       try {
         await this.connectAuthenticated(endpoint);
         return { endpoint, success: true };
@@ -505,10 +516,12 @@ class OptimizedWebSocketService {
     failedConnections: number;
     endpoints: Array<{ endpoint: string; status: ConnectionStatus }>;
   } {
-    const endpoints = Array.from(this.connectionStatus.entries()).map(([endpoint, status]) => ({
-      endpoint,
-      status,
-    }));
+    const endpoints = Array.from(this.connectionStatus.entries()).map(
+      ([endpoint, status]) => ({
+        endpoint,
+        status,
+      }),
+    );
 
     return {
       totalConnections: this.connections.size,

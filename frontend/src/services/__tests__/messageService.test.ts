@@ -21,7 +21,7 @@ describe('MessageService', () => {
     read: false,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
-    attachments: []
+    attachments: [],
   };
 
   const mockThread = {
@@ -31,27 +31,41 @@ describe('MessageService', () => {
     last_message: mockMessage,
     message_count: 1,
     created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    updated_at: '2024-01-01T00:00:00Z',
   };
 
   describe('getMessages', () => {
     it('should fetch messages successfully with defaults', async () => {
-      const paginatedResponse = { results: [mockMessage], count: 1, next: null, previous: null };
+      const paginatedResponse = {
+        results: [mockMessage],
+        count: 1,
+        next: null,
+        previous: null,
+      };
       mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await messageService.getMessages();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', { params: { page: 1, limit: 20 } });
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', {
+        params: { page: 1, limit: 20 },
+      });
       expect(result).toEqual(paginatedResponse);
     });
 
     it('should fetch messages with threadId filter', async () => {
-      const paginatedResponse = { results: [mockMessage], count: 1, next: null, previous: null };
+      const paginatedResponse = {
+        results: [mockMessage],
+        count: 1,
+        next: null,
+        previous: null,
+      };
       mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await messageService.getMessages('thread_1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', { params: { page: 1, limit: 20, thread: 'thread_1' } });
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/messages/', {
+        params: { page: 1, limit: 20, thread: 'thread_1' },
+      });
       expect(result).toEqual(paginatedResponse);
     });
 
@@ -94,9 +108,13 @@ describe('MessageService', () => {
       const updatedMessage = { ...mockMessage, content: 'Updated content' };
       mockedApi.put.mockResolvedValueOnce({ data: updatedMessage });
 
-      const result = await messageService.updateMessage('1', { content: 'Updated content' } as any);
+      const result = await messageService.updateMessage('1', {
+        content: 'Updated content',
+      } as any);
 
-      expect(mockedApi.put).toHaveBeenCalledWith('/messages/messages/1/', { content: 'Updated content' });
+      expect(mockedApi.put).toHaveBeenCalledWith('/messages/messages/1/', {
+        content: 'Updated content',
+      });
       expect(result).toEqual(updatedMessage);
     });
   });
@@ -127,7 +145,10 @@ describe('MessageService', () => {
 
       await messageService.markMessagesAsRead(['1', '2']);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-multiple-read/', { message_ids: ['1', '2'] });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/mark-multiple-read/',
+        { message_ids: ['1', '2'] }
+      );
     });
   });
 
@@ -137,18 +158,27 @@ describe('MessageService', () => {
 
       await messageService.markAsUnread(['1', '2']);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-unread/', { ids: ['1', '2'] });
+      expect(mockedApi.post).toHaveBeenCalledWith('/messages/mark-unread/', {
+        ids: ['1', '2'],
+      });
     });
   });
 
   describe('getThreads', () => {
     it('should fetch all threads successfully', async () => {
-      const paginatedResponse = { results: [mockThread], count: 1, next: null, previous: null };
+      const paginatedResponse = {
+        results: [mockThread],
+        count: 1,
+        next: null,
+        previous: null,
+      };
       mockedApi.get.mockResolvedValueOnce({ data: paginatedResponse });
 
       const result = await messageService.getThreads();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/threads/', { params: { page: 1, limit: 20 } });
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/threads/', {
+        params: { page: 1, limit: 20 },
+      });
       expect(result).toEqual(paginatedResponse);
     });
   });
@@ -169,14 +199,17 @@ describe('MessageService', () => {
       const threadData = {
         subject: 'New Thread',
         participants: ['1', '2'],
-        initial_message: 'Starting a new conversation'
+        initial_message: 'Starting a new conversation',
       };
 
       mockedApi.post.mockResolvedValueOnce({ data: mockThread });
 
       const result = await messageService.createThread(threadData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/threads/', threadData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/threads/',
+        threadData
+      );
       expect(result).toEqual(mockThread);
     });
   });
@@ -187,7 +220,9 @@ describe('MessageService', () => {
 
       const result = await messageService.archiveThread('thread_1');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/threads/thread_1/archive/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/threads/thread_1/archive/'
+      );
       expect(result).toEqual({ archived: true });
     });
   });
@@ -198,7 +233,9 @@ describe('MessageService', () => {
 
       const result = await messageService.unarchiveThread('thread_1');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/threads/thread_1/unarchive/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/threads/thread_1/unarchive/'
+      );
       expect(result).toEqual({ archived: false });
     });
   });
@@ -228,7 +265,9 @@ describe('MessageService', () => {
 
       await messageService.markThreadAsRead('thread_1');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/threads/thread_1/mark-read/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/threads/thread_1/mark-read/'
+      );
     });
   });
 
@@ -240,19 +279,27 @@ describe('MessageService', () => {
 
       const result = await messageService.searchMessages(searchParams);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { params: searchParams });
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', {
+        params: searchParams,
+      });
       expect(result).toEqual(searchResult);
     });
 
     it('should search with filters', async () => {
-      const searchParams = { query: 'property', sender: '2', date_from: '2024-01-01' };
+      const searchParams = {
+        query: 'property',
+        sender: '2',
+        date_from: '2024-01-01',
+      };
 
       const searchResult = { results: [mockMessage], count: 1 };
       mockedApi.get.mockResolvedValueOnce({ data: searchResult });
 
       const result = await messageService.searchMessages(searchParams);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', { params: searchParams });
+      expect(mockedApi.get).toHaveBeenCalledWith('/messages/search/', {
+        params: searchParams,
+      });
       expect(result).toEqual(searchResult);
     });
   });
@@ -261,7 +308,7 @@ describe('MessageService', () => {
     it('should fetch message templates successfully', async () => {
       const templates = [
         { id: '1', name: 'Welcome', content: 'Welcome to our platform!' },
-        { id: '2', name: 'Follow-up', content: 'Thank you for your interest' }
+        { id: '2', name: 'Follow-up', content: 'Thank you for your interest' },
       ];
 
       mockedApi.get.mockResolvedValueOnce({ data: templates });
@@ -277,7 +324,7 @@ describe('MessageService', () => {
     it('should create message template successfully', async () => {
       const templateData = {
         name: 'Property Inquiry Response',
-        content: 'Thank you for your inquiry about our property...'
+        content: 'Thank you for your inquiry about our property...',
       };
 
       const template = { id: '3', ...templateData };
@@ -285,7 +332,10 @@ describe('MessageService', () => {
 
       const result = await messageService.createTemplate(templateData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/templates/', templateData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/templates/',
+        templateData
+      );
       expect(result).toEqual(template);
     });
   });
@@ -317,7 +367,10 @@ describe('MessageService', () => {
 
       const result = await messageService.quickReply(replyData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/messages/quick-reply/', replyData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/messages/quick-reply/',
+        replyData
+      );
       expect(result).toEqual(mockMessage);
     });
   });
@@ -340,7 +393,9 @@ describe('MessageService', () => {
 
       const result = await messageService.canCommunicate('user_1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/messages/can-communicate/user_1/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/messages/can-communicate/user_1/'
+      );
       expect(result).toEqual(response);
     });
   });

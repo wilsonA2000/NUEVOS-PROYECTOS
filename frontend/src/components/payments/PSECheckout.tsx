@@ -78,7 +78,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
   onCancel,
   disabled = false,
   customerEmail,
-  customerName,
+
   redirectUrl,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -143,13 +143,13 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
       if (activeStep === steps.length - 1) {
         handleSubmit();
       } else {
-        setActiveStep((prevStep) => prevStep + 1);
+        setActiveStep(prevStep => prevStep + 1);
       }
     }
   };
 
   const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
+    setActiveStep(prevStep => prevStep - 1);
   };
 
   const handleSubmit = async () => {
@@ -165,7 +165,8 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         document_type: formData.documentType,
         document_number: formData.documentNumber,
         phone: formData.phone,
-        redirect_url: redirectUrl || `${window.location.origin  }/payments/return`,
+        redirect_url:
+          redirectUrl || `${window.location.origin}/payments/return`,
       };
 
       const { data } = await api.post('/payments/wompi/initiate/', payload);
@@ -186,7 +187,10 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         throw new Error(data.error || 'No se recibió URL de redirección');
       }
     } catch (error: any) {
-      const message = error.response?.data?.error || error.message || 'Error al procesar el pago PSE';
+      const message =
+        error.response?.data?.error ||
+        error.message ||
+        'Error al procesar el pago PSE';
       setGeneralError(message);
       onError(message);
     } finally {
@@ -207,20 +211,27 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
       case 0:
         return (
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <BankIcon color="primary" />
+            <Typography
+              variant='h6'
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <BankIcon color='primary' />
               Selecciona tu Banco
             </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Serás redirigido a la página de tu banco para completar el pago de forma segura.
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Serás redirigido a la página de tu banco para completar el pago de
+              forma segura.
             </Typography>
 
-            <FormControl fullWidth margin="normal" error={!!errors.bankCode}>
+            <FormControl fullWidth margin='normal' error={!!errors.bankCode}>
               <InputLabel>Banco *</InputLabel>
               <Select
                 value={formData.bankCode}
-                onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
-                label="Banco *"
+                onChange={e =>
+                  setFormData({ ...formData, bankCode: e.target.value })
+                }
+                label='Banco *'
                 disabled={loadingBanks || disabled}
               >
                 {loadingBanks ? (
@@ -229,17 +240,22 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
                     Cargando bancos...
                   </MenuItem>
                 ) : (
-                  banks.map((bank) => (
-                    <MenuItem key={bank.financial_institution_code} value={bank.financial_institution_code}>
+                  banks.map(bank => (
+                    <MenuItem
+                      key={bank.financial_institution_code}
+                      value={bank.financial_institution_code}
+                    >
                       {bank.financial_institution_name}
                     </MenuItem>
                   ))
                 )}
               </Select>
-              {errors.bankCode && <FormHelperText>{errors.bankCode}</FormHelperText>}
+              {errors.bankCode && (
+                <FormHelperText>{errors.bankCode}</FormHelperText>
+              )}
             </FormControl>
 
-            <Alert severity="info" sx={{ mt: 2 }}>
+            <Alert severity='info' sx={{ mt: 2 }}>
               Asegúrate de tener habilitada la banca en línea con tu banco
             </Alert>
           </Box>
@@ -248,7 +264,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
       case 1:
         return (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Información del Pagador
             </Typography>
 
@@ -258,11 +274,13 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
                   <InputLabel>Tipo de Documento *</InputLabel>
                   <Select
                     value={formData.documentType}
-                    onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
-                    label="Tipo de Documento *"
+                    onChange={e =>
+                      setFormData({ ...formData, documentType: e.target.value })
+                    }
+                    label='Tipo de Documento *'
                     disabled={disabled}
                   >
-                    {DOCUMENT_TYPES.map((type) => (
+                    {DOCUMENT_TYPES.map(type => (
                       <MenuItem key={type.value} value={type.value}>
                         {type.label}
                       </MenuItem>
@@ -274,26 +292,33 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
               <Grid item xs={12} sm={8}>
                 <TextField
                   fullWidth
-                  label="Número de Documento *"
+                  label='Número de Documento *'
                   value={formData.documentNumber}
-                  onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, documentNumber: e.target.value })
+                  }
                   error={!!errors.documentNumber}
                   helperText={errors.documentNumber}
                   disabled={disabled}
-                  placeholder="Ej: 1234567890"
+                  placeholder='Ej: 1234567890'
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Teléfono *"
+                  label='Teléfono *'
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      phone: e.target.value.replace(/\D/g, ''),
+                    })
+                  }
                   error={!!errors.phone}
                   helperText={errors.phone || 'Formato: 3001234567'}
                   disabled={disabled}
-                  placeholder="3001234567"
+                  placeholder='3001234567'
                   inputProps={{ maxLength: 10 }}
                 />
               </Grid>
@@ -301,10 +326,10 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Email"
+                  label='Email'
                   value={customerEmail || ''}
                   disabled
-                  helperText="Email registrado en tu cuenta"
+                  helperText='Email registrado en tu cuenta'
                 />
               </Grid>
             </Grid>
@@ -312,56 +337,65 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         );
 
       case 2: {
-        const selectedBank = banks.find((b) => b.financial_institution_code === formData.bankCode);
+        const selectedBank = banks.find(
+          b => b.financial_institution_code === formData.bankCode,
+        );
         return (
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CheckCircleIcon color="success" />
+            <Typography
+              variant='h6'
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <CheckCircleIcon color='success' />
               Confirma tu Pago
             </Typography>
 
-            <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.default' }}>
+            <Card
+              variant='outlined'
+              sx={{ mt: 2, bgcolor: 'background.default' }}
+            >
               <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Monto a Pagar
                     </Typography>
-                    <Typography variant="h5" color="primary" fontWeight="bold">
+                    <Typography variant='h5' color='primary' fontWeight='bold'>
                       {formatCurrency(amount)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Banco
                     </Typography>
-                    <Typography variant="body1" fontWeight="medium">
+                    <Typography variant='body1' fontWeight='medium'>
                       {selectedBank?.financial_institution_name}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Documento
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant='body1'>
                       {formData.documentType} {formData.documentNumber}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Concepto
                     </Typography>
-                    <Typography variant="body1">{description}</Typography>
+                    <Typography variant='body1'>{description}</Typography>
                   </Grid>
                 </Grid>
               </CardContent>
             </Card>
 
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              <Typography variant="body2" fontWeight="medium">
+            <Alert severity='warning' sx={{ mt: 2 }}>
+              <Typography variant='body2' fontWeight='medium'>
                 Serás redirigido a la página de tu banco
               </Typography>
-              <Typography variant="caption">
+              <Typography variant='caption'>
                 No cierres esta ventana hasta completar el pago
               </Typography>
             </Alert>
@@ -378,12 +412,12 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
     <Card sx={{ maxWidth: 600, mx: 'auto', mt: 2 }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <PaymentIcon color="primary" fontSize="large" />
+          <PaymentIcon color='primary' fontSize='large' />
           <Box>
-            <Typography variant="h5" fontWeight="bold">
+            <Typography variant='h5' fontWeight='bold'>
               Pago PSE
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Pago seguro con tu banco
             </Typography>
           </Box>
@@ -392,7 +426,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
+          {steps.map(label => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
@@ -400,7 +434,11 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
         </Stepper>
 
         {generalError && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setGeneralError('')}>
+          <Alert
+            severity='error'
+            sx={{ mb: 3 }}
+            onClose={() => setGeneralError('')}
+          >
             {generalError}
           </Alert>
         )}
@@ -418,17 +456,13 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
 
           <Box sx={{ display: 'flex', gap: 1 }}>
             {onCancel && (
-              <Button
-                variant="outlined"
-                onClick={onCancel}
-                disabled={loading}
-              >
+              <Button variant='outlined' onClick={onCancel} disabled={loading}>
                 Cancelar
               </Button>
             )}
 
             <Button
-              variant="contained"
+              variant='contained'
               onClick={handleNext}
               disabled={disabled || loading || loadingBanks}
               startIcon={loading ? <CircularProgress size={20} /> : null}
@@ -436,15 +470,19 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
               {loading
                 ? 'Procesando...'
                 : activeStep === steps.length - 1
-                ? 'Pagar'
-                : 'Siguiente'}
+                  ? 'Pagar'
+                  : 'Siguiente'}
             </Button>
           </Box>
         </Box>
 
         <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <SecurityIcon fontSize="small" color="action" sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-          <Typography variant="caption" color="text.secondary">
+          <SecurityIcon
+            fontSize='small'
+            color='action'
+            sx={{ mr: 0.5, verticalAlign: 'middle' }}
+          />
+          <Typography variant='caption' color='text.secondary'>
             Conexión segura a través de Wompi
           </Typography>
         </Box>

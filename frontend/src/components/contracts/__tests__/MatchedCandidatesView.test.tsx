@@ -82,7 +82,9 @@ jest.mock('../../../services/landlordContractService', () => ({
   LandlordContractService: {
     performWorkflowAction: jest.fn(),
     getContracts: jest.fn().mockResolvedValue({ contracts: [] }),
-    formatCurrency: jest.fn((amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`),
+    formatCurrency: jest.fn(
+      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`
+    ),
   },
 }));
 

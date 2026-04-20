@@ -93,7 +93,7 @@ const AdminAuditLog: React.FC = () => {
   if (!adminPermissions.canViewAuditLogs) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           No tienes permisos para acceder al audit trail global.
         </Alert>
       </Box>
@@ -105,13 +105,13 @@ const AdminAuditLog: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
-        <HistoryIcon color="primary" />
-        <Typography variant="h4" fontWeight="bold">
+      <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 3 }}>
+        <HistoryIcon color='primary' />
+        <Typography variant='h4' fontWeight='bold'>
           Audit Trail Global
         </Typography>
       </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
         Registro relacional de cada acción auditada por{' '}
         <code>core.audit_service.log_activity</code> (Fase 1.9.7). Cada acción
         de negocio (creación, cambio de estado, pago, autenticación biométrica)
@@ -121,38 +121,38 @@ const AdminAuditLog: React.FC = () => {
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <TextField
-            label="Desde"
-            type="date"
-            size="small"
+            label='Desde'
+            type='date'
+            size='small'
             value={dateFrom}
-            onChange={(e) => {
+            onChange={e => {
               setPage(0);
               setDateFrom(e.target.value);
             }}
             InputLabelProps={{ shrink: true }}
           />
           <TextField
-            label="Hasta"
-            type="date"
-            size="small"
+            label='Hasta'
+            type='date'
+            size='small'
             value={dateTo}
-            onChange={(e) => {
+            onChange={e => {
               setPage(0);
               setDateTo(e.target.value);
             }}
             InputLabelProps={{ shrink: true }}
           />
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size='small' sx={{ minWidth: 220 }}>
             <InputLabel>Tipo de actividad</InputLabel>
             <Select
               value={activityType}
-              label="Tipo de actividad"
-              onChange={(e) => {
+              label='Tipo de actividad'
+              onChange={e => {
                 setPage(0);
                 setActivityType(e.target.value);
               }}
             >
-              {ACTIVITY_TYPES.map((t) => (
+              {ACTIVITY_TYPES.map(t => (
                 <MenuItem key={t.value} value={t.value}>
                   {t.label}
                 </MenuItem>
@@ -160,14 +160,14 @@ const AdminAuditLog: React.FC = () => {
             </Select>
           </FormControl>
           <TextField
-            label="Modelo afectado"
-            size="small"
+            label='Modelo afectado'
+            size='small'
             value={modelName}
-            onChange={(e) => {
+            onChange={e => {
               setPage(0);
               setModelName(e.target.value);
             }}
-            placeholder="contract / property / rating…"
+            placeholder='contract / property / rating…'
           />
         </Stack>
       </Paper>
@@ -178,13 +178,13 @@ const AdminAuditLog: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : isError ? (
-          <Alert severity="error" sx={{ m: 2 }}>
+          <Alert severity='error' sx={{ m: 2 }}>
             No fue posible cargar el audit trail: {(error as Error)?.message}
           </Alert>
         ) : (
           <>
             <TableContainer>
-              <Table size="small">
+              <Table size='small'>
                 <TableHead>
                   <TableRow>
                     <TableCell>Fecha</TableCell>
@@ -198,10 +198,10 @@ const AdminAuditLog: React.FC = () => {
                 <TableBody>
                   {rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
+                      <TableCell colSpan={6} align='center'>
                         <Typography
-                          variant="body2"
-                          color="text.secondary"
+                          variant='body2'
+                          color='text.secondary'
                           sx={{ py: 4 }}
                         >
                           Sin registros para los filtros seleccionados.
@@ -209,42 +209,48 @@ const AdminAuditLog: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    rows.map((log) => (
+                    rows.map(log => (
                       <TableRow key={log.id} hover>
                         <TableCell>
                           <Tooltip title={log.timestamp} arrow>
-                            <Typography variant="body2">
+                            <Typography variant='body2'>
                               {log.formatted_timestamp ??
                                 new Date(log.timestamp).toLocaleString('es-CO')}
                             </Typography>
                           </Tooltip>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">
+                          <Typography variant='body2'>
                             {log.user_name || log.user}
                           </Typography>
                         </TableCell>
                         <TableCell>
                           <Chip
-                            size="small"
-                            label={log.activity_type_display ?? log.activity_type}
-                            variant="outlined"
+                            size='small'
+                            label={
+                              log.activity_type_display ?? log.activity_type
+                            }
+                            variant='outlined'
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">{log.description}</Typography>
+                          <Typography variant='body2'>
+                            {log.description}
+                          </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant='caption' color='text.secondary'>
                             {log.model_name
                               ? `${log.model_name}${
-                                  log.object_id ? `:${log.object_id.slice(0, 8)}` : ''
+                                  log.object_id
+                                    ? `:${log.object_id.slice(0, 8)}`
+                                    : ''
                                 }`
                               : '—'}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant='caption' color='text.secondary'>
                             {log.ip_address ?? '—'}
                           </Typography>
                         </TableCell>
@@ -256,16 +262,16 @@ const AdminAuditLog: React.FC = () => {
             </TableContainer>
             <TablePagination
               rowsPerPageOptions={[10, 25, 50, 100]}
-              component="div"
+              component='div'
               count={total}
               page={page}
               onPageChange={(_, newPage) => setPage(newPage)}
               rowsPerPage={pageSize}
-              onRowsPerPageChange={(e) => {
+              onRowsPerPageChange={e => {
                 setPageSize(parseInt(e.target.value, 10));
                 setPage(0);
               }}
-              labelRowsPerPage="Por página"
+              labelRowsPerPage='Por página'
               labelDisplayedRows={({ from, to, count }) =>
                 `${from}-${to} de ${count}`
               }

@@ -21,13 +21,13 @@ const UpdatePrompt: React.FC = () => {
       sx={{ mb: 2 }}
     >
       <Alert
-        severity="info"
-        variant="filled"
+        severity='info'
+        variant='filled'
         action={
           <>
             <Button
-              color="inherit"
-              size="small"
+              color='inherit'
+              size='small'
               onClick={updateApp}
               startIcon={<RefreshIcon />}
               sx={{ fontWeight: 600 }}
@@ -35,12 +35,12 @@ const UpdatePrompt: React.FC = () => {
               Actualizar
             </Button>
             <IconButton
-              size="small"
-              color="inherit"
+              size='small'
+              color='inherit'
               onClick={() => setDismissed(true)}
-              aria-label="Cerrar"
+              aria-label='Cerrar'
             >
-              <CloseIcon fontSize="small" />
+              <CloseIcon fontSize='small' />
             </IconButton>
           </>
         }

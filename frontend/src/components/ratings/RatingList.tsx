@@ -18,16 +18,21 @@ import {
 import { MoreVert as MoreVertIcon, Add as AddIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useRatings } from '../../hooks/useRatings';
-import { ensureArray } from '../../utils/arrayUtils';
+
 import { Rating } from '../../types/rating';
 
 export const RatingList: React.FC = () => {
   const navigate = useNavigate();
   const { ratings, isLoading, error, deleteRating } = useRatings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedRating, setSelectedRating] = React.useState<Rating | null>(null);
+  const [selectedRating, setSelectedRating] = React.useState<Rating | null>(
+    null,
+  );
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, rating: Rating) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    rating: Rating,
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedRating(rating);
   };
@@ -56,7 +61,12 @@ export const RatingList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='200px'
+      >
         <CircularProgress />
       </Box>
     );
@@ -64,7 +74,7 @@ export const RatingList: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mt: 2 }}>
+      <Alert severity='error' sx={{ mt: 2 }}>
         Error al cargar las calificaciones: {error.message}
       </Alert>
     );
@@ -72,12 +82,17 @@ export const RatingList: React.FC = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
+      <Box
+        display='flex'
+        justifyContent='space-between'
+        alignItems='center'
+        mb={3}
+      >
+        <Typography variant='h4' component='h1'>
           Calificaciones
         </Typography>
         <Button
-          variant="contained"
+          variant='contained'
           startIcon={<AddIcon />}
           onClick={() => navigate('/ratings/new')}
         >
@@ -86,32 +101,36 @@ export const RatingList: React.FC = () => {
       </Box>
 
       {ratingsArray.length === 0 ? (
-        <Box textAlign="center" py={4}>
-          <Typography variant="h6" color="text.secondary">
+        <Box textAlign='center' py={4}>
+          <Typography variant='h6' color='text.secondary'>
             No hay calificaciones
           </Typography>
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {ratingsArray.map((rating) => (
+          {ratingsArray.map(rating => (
             <Grid item xs={12} sm={6} md={4} key={rating.id}>
               <Card>
                 <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                    <Box display="flex" alignItems="center" gap={2}>
+                  <Box
+                    display='flex'
+                    justifyContent='space-between'
+                    alignItems='flex-start'
+                  >
+                    <Box display='flex' alignItems='center' gap={2}>
                       <Avatar>{rating.reviewer?.name?.[0] || 'U'}</Avatar>
                       <Box>
-                        <Typography variant="h6" component="div">
+                        <Typography variant='h6' component='div'>
                           {rating.reviewer?.name || 'Usuario'}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           Calificado por: {rating.reviewee?.name || 'Usuario'}
                         </Typography>
                       </Box>
                     </Box>
                     <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, rating)}
+                      size='small'
+                      onClick={e => handleMenuOpen(e, rating)}
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -122,9 +141,9 @@ export const RatingList: React.FC = () => {
                       value={rating.overall_rating || 0}
                       readOnly
                       precision={0.5}
-                      size="small"
+                      size='small'
                     />
-                    <Typography variant="body2" color="text.secondary" mt={1}>
+                    <Typography variant='body2' color='text.secondary' mt={1}>
                       {rating.comment || 'Sin comentarios'}
                     </Typography>
                   </Box>
@@ -132,14 +151,20 @@ export const RatingList: React.FC = () => {
                   <Box mt={2}>
                     <Chip
                       label={rating.rating_type || 'General'}
-                      color="primary"
-                      size="small"
-                      variant="outlined"
+                      color='primary'
+                      size='small'
+                      variant='outlined'
                     />
                   </Box>
 
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    {rating.created_at ? new Date(rating.created_at).toLocaleDateString() : 'Fecha desconocida'}
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ mt: 1, display: 'block' }}
+                  >
+                    {rating.created_at
+                      ? new Date(rating.created_at).toLocaleDateString()
+                      : 'Fecha desconocida'}
                   </Typography>
                 </CardContent>
               </Card>
@@ -158,4 +183,4 @@ export const RatingList: React.FC = () => {
       </Menu>
     </Box>
   );
-}; 
+};

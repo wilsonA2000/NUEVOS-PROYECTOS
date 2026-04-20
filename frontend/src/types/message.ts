@@ -46,4 +46,4 @@ export interface MessageTemplate {
   category?: string;
   createdAt: string;
   updatedAt: string;
-} 
+}

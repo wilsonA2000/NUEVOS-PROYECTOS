@@ -15,7 +15,12 @@ export interface User {
   city?: string;
   postal_code?: string;
   current_address?: string;
-  employment_status?: 'employed' | 'self_employed' | 'student' | 'unemployed' | 'retired';
+  employment_status?:
+    | 'employed'
+    | 'self_employed'
+    | 'student'
+    | 'unemployed'
+    | 'retired';
   monthly_income?: number;
   currency?: 'COP' | 'USD';
   employer_name?: string;
@@ -77,7 +82,12 @@ export interface RegisterDto {
   state: string;
   city: string;
   postal_code?: string;
-  employment_status?: 'employed' | 'self_employed' | 'student' | 'unemployed' | 'retired';
+  employment_status?:
+    | 'employed'
+    | 'self_employed'
+    | 'student'
+    | 'unemployed'
+    | 'retired';
   monthly_income?: number;
   currency?: 'COP' | 'USD';
   employer_name?: string;
@@ -138,7 +148,12 @@ export interface UpdateProfileDto {
   city?: string;
   postal_code?: string;
   current_address?: string;
-  employment_status?: 'employed' | 'self_employed' | 'student' | 'unemployed' | 'retired';
+  employment_status?:
+    | 'employed'
+    | 'self_employed'
+    | 'student'
+    | 'unemployed'
+    | 'retired';
   monthly_income?: number;
   currency?: 'COP' | 'USD';
   employer_name?: string;
@@ -292,4 +307,4 @@ export interface UserSettings {
   };
   created_at: string;
   updated_at: string;
-} 
+}

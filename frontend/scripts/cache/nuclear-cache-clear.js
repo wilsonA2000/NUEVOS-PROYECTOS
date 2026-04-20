@@ -1,10 +1,10 @@
 /**
  * NUCLEAR CACHE CLEAR - Solución definitiva para el error baseUrl
- * 
+ *
  * PROBLEMA: Error "Cannot read properties of undefined (reading 'baseUrl')"
  * CAUSA: El navegador está usando una versión cacheada de matchingService.ts
  * SOLUCIÓN: Limpiar absolutamente TODO el cache del navegador
- * 
+ *
  * INSTRUCCIONES:
  * 1. Abre las herramientas de desarrollador (F12)
  * 2. Ve a la pestaña "Console"
@@ -27,8 +27,8 @@ async function nuclearCacheClear() {
         console.log('✅ sessionStorage limpiado');
 
         console.log('%c3️⃣ Limpiando cookies...', 'color: blue; font-weight: bold;');
-        document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
         });
         console.log('✅ Cookies limpiadas');
 
@@ -78,10 +78,10 @@ async function nuclearCacheClear() {
         console.log('%c8️⃣ Agregando timestamp para forzar recarga...', 'color: blue; font-weight: bold;');
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set('cache_bust', Date.now().toString());
-        
+
         console.log('%c✅ LIMPIEZA NUCLEAR COMPLETADA', 'background: green; color: white; font-size: 16px; font-weight: bold; padding: 10px;');
         console.log('%c🔄 RECARGANDO EN 2 SEGUNDOS...', 'background: orange; color: white; font-size: 14px; font-weight: bold; padding: 5px;');
-        
+
         setTimeout(() => {
             window.location.href = currentUrl.toString();
         }, 2000);

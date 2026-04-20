@@ -2,7 +2,7 @@
 URLs de la API REST para la aplicación de pagos de VeriHome.
 """
 
-app_name = 'payments_api'
+app_name = "payments_api"
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -10,75 +10,182 @@ from . import api_views
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'transactions', api_views.TransactionViewSet, basename='transaction')
-router.register(r'payments', api_views.PaymentViewSet, basename='payment')
-router.register(r'payment-methods', api_views.PaymentMethodViewSet, basename='payment-method')
-router.register(r'invoices', api_views.InvoiceViewSet, basename='invoice')
-router.register(r'escrow-accounts', api_views.EscrowAccountViewSet, basename='escrow-account')
-router.register(r'payment-plans', api_views.PaymentPlanViewSet, basename='payment-plan')
-router.register(r'installments', api_views.PaymentPlanInstallmentViewSet, basename='payment-installment')
+router.register(r"transactions", api_views.TransactionViewSet, basename="transaction")
+router.register(r"payments", api_views.PaymentViewSet, basename="payment")
+router.register(
+    r"payment-methods", api_views.PaymentMethodViewSet, basename="payment-method"
+)
+router.register(r"invoices", api_views.InvoiceViewSet, basename="invoice")
+router.register(
+    r"escrow-accounts", api_views.EscrowAccountViewSet, basename="escrow-account"
+)
+router.register(r"payment-plans", api_views.PaymentPlanViewSet, basename="payment-plan")
+router.register(
+    r"installments",
+    api_views.PaymentPlanInstallmentViewSet,
+    basename="payment-installment",
+)
 # router.register(r'escrow-milestones', api_views.EscrowMilestoneViewSet, basename='escrow-milestone')  # Disabled - model not available
-router.register(r'rent-schedules', api_views.RentPaymentScheduleViewSet, basename='rent-schedule')
+router.register(
+    r"rent-schedules", api_views.RentPaymentScheduleViewSet, basename="rent-schedule"
+)
 # T1.4: Órdenes de pago consecutivas auditables (rent + service + subscription)
-router.register(r'orders', api_views.PaymentOrderViewSet, basename='payment-order')
+router.register(r"orders", api_views.PaymentOrderViewSet, basename="payment-order")
 
 urlpatterns = [
     # Incluir rutas del router
-    path('', include(router.urls)),
-    
+    path("", include(router.urls)),
     # Procesamiento de pagos
-    path('process/', api_views.ProcessPaymentAPIView.as_view(), name='api_process_payment'),
-    path('quick-pay/', api_views.QuickPayAPIView.as_view(), name='api_quick_pay'),
-    
+    path(
+        "process/",
+        api_views.ProcessPaymentAPIView.as_view(),
+        name="api_process_payment",
+    ),
+    path("quick-pay/", api_views.QuickPayAPIView.as_view(), name="api_quick_pay"),
     # Métodos de pago
-    path('payment-methods/add/', api_views.AddPaymentMethodAPIView.as_view(), name='api_add_payment_method'),
-    path('payment-methods/<int:pk>/verify/', api_views.VerifyPaymentMethodAPIView.as_view(), name='api_verify_payment_method'),
-    path('payment-methods/<int:pk>/set-default/', api_views.SetDefaultPaymentMethodAPIView.as_view(), name='api_set_default_payment_method'),
-    
+    path(
+        "payment-methods/add/",
+        api_views.AddPaymentMethodAPIView.as_view(),
+        name="api_add_payment_method",
+    ),
+    path(
+        "payment-methods/<int:pk>/verify/",
+        api_views.VerifyPaymentMethodAPIView.as_view(),
+        name="api_verify_payment_method",
+    ),
+    path(
+        "payment-methods/<int:pk>/set-default/",
+        api_views.SetDefaultPaymentMethodAPIView.as_view(),
+        name="api_set_default_payment_method",
+    ),
     # Escrow
-    path('escrow/<uuid:pk>/fund/', api_views.FundEscrowAPIView.as_view(), name='api_fund_escrow'),
-    path('escrow/<uuid:pk>/release/', api_views.ReleaseEscrowAPIView.as_view(), name='api_release_escrow'),
-    
+    path(
+        "escrow/<uuid:pk>/fund/",
+        api_views.FundEscrowAPIView.as_view(),
+        name="api_fund_escrow",
+    ),
+    path(
+        "escrow/<uuid:pk>/release/",
+        api_views.ReleaseEscrowAPIView.as_view(),
+        name="api_release_escrow",
+    ),
     # Facturas
-    path('invoices/create/', api_views.CreateInvoiceAPIView.as_view(), name='api_create_invoice'),
-    path('invoices/<uuid:pk>/pay/', api_views.PayInvoiceAPIView.as_view(), name='api_pay_invoice'),
-    path('invoices/<uuid:pk>/send/', api_views.SendInvoiceAPIView.as_view(), name='api_send_invoice'),
+    path(
+        "invoices/create/",
+        api_views.CreateInvoiceAPIView.as_view(),
+        name="api_create_invoice",
+    ),
+    path(
+        "invoices/<uuid:pk>/pay/",
+        api_views.PayInvoiceAPIView.as_view(),
+        name="api_pay_invoice",
+    ),
+    path(
+        "invoices/<uuid:pk>/send/",
+        api_views.SendInvoiceAPIView.as_view(),
+        name="api_send_invoice",
+    ),
     # DIAN-01: generar XML UBL 2.1 para factura existente
-    path('invoices/<uuid:pk>/dian-xml/', api_views.DIANInvoiceXMLAPIView.as_view(), name='api_dian_invoice_xml'),
+    path(
+        "invoices/<uuid:pk>/dian-xml/",
+        api_views.DIANInvoiceXMLAPIView.as_view(),
+        name="api_dian_invoice_xml",
+    ),
     # DIAN-01: crear factura DIAN a partir de una transacción completada
-    path('transactions/<uuid:pk>/create-dian-invoice/', api_views.CreateDIANInvoiceAPIView.as_view(), name='api_create_dian_invoice'),
-    
+    path(
+        "transactions/<uuid:pk>/create-dian-invoice/",
+        api_views.CreateDIANInvoiceAPIView.as_view(),
+        name="api_create_dian_invoice",
+    ),
     # Estadísticas y reportes
-    path('stats/balance/', api_views.BalanceAPIView.as_view(), name='api_balance'),
-    path('stats/dashboard/', api_views.PaymentDashboardStatsAPIView.as_view(), name='api_payment_dashboard_stats'),
-    path('reports/transactions/', api_views.TransactionReportAPIView.as_view(), name='api_transaction_report'),
-    
+    path("stats/balance/", api_views.BalanceAPIView.as_view(), name="api_balance"),
+    path(
+        "stats/dashboard/",
+        api_views.PaymentDashboardStatsAPIView.as_view(),
+        name="api_payment_dashboard_stats",
+    ),
+    path(
+        "reports/transactions/",
+        api_views.TransactionReportAPIView.as_view(),
+        name="api_transaction_report",
+    ),
     # Advanced Payment Analytics
-    path('stats/', api_views.PaymentStatsAPIView.as_view(), name='api_payment_stats'),
-    path('stats/system/', api_views.SystemPaymentStatsAPIView.as_view(), name='api_system_payment_stats'),
-    path('stats/export/', api_views.ExportPaymentStatsAPIView.as_view(), name='api_export_payment_stats'),
-    
+    path("stats/", api_views.PaymentStatsAPIView.as_view(), name="api_payment_stats"),
+    path(
+        "stats/system/",
+        api_views.SystemPaymentStatsAPIView.as_view(),
+        name="api_system_payment_stats",
+    ),
+    path(
+        "stats/export/",
+        api_views.ExportPaymentStatsAPIView.as_view(),
+        name="api_export_payment_stats",
+    ),
     # Rent payments
-    path('rent/process/', api_views.ProcessRentPaymentAPIView.as_view(), name='api_process_rent_payment'),
-    path('tenant/portal/', api_views.TenantPaymentPortalAPIView.as_view(), name='api_tenant_portal'),
-    path('landlord/dashboard/', api_views.LandlordFinancialDashboardAPIView.as_view(), name='api_landlord_dashboard'),
-    
+    path(
+        "rent/process/",
+        api_views.ProcessRentPaymentAPIView.as_view(),
+        name="api_process_rent_payment",
+    ),
+    path(
+        "tenant/portal/",
+        api_views.TenantPaymentPortalAPIView.as_view(),
+        name="api_tenant_portal",
+    ),
+    path(
+        "landlord/dashboard/",
+        api_views.LandlordFinancialDashboardAPIView.as_view(),
+        name="api_landlord_dashboard",
+    ),
     # Webhooks
-    path('webhooks/stripe/', api_views.PaymentWebhookView.as_view(), name='api_stripe_webhook'),
-    path('webhooks/paypal/', api_views.PayPalWebhookAPIView.as_view(), name='api_paypal_webhook'),
-    path('webhooks/wompi/', api_views.WompiWebhookAPIView.as_view(), name='api_wompi_webhook'),
-    path('webhooks/bold/', api_views.BoldWebhookAPIView.as_view(), name='api_bold_webhook'),
-
+    path(
+        "webhooks/stripe/",
+        api_views.PaymentWebhookView.as_view(),
+        name="api_stripe_webhook",
+    ),
+    path(
+        "webhooks/paypal/",
+        api_views.PayPalWebhookAPIView.as_view(),
+        name="api_paypal_webhook",
+    ),
+    path(
+        "webhooks/wompi/",
+        api_views.WompiWebhookAPIView.as_view(),
+        name="api_wompi_webhook",
+    ),
+    path(
+        "webhooks/bold/",
+        api_views.BoldWebhookAPIView.as_view(),
+        name="api_bold_webhook",
+    ),
     # Bold — pasarela colombiana principal
-    path('bold/initiate/', api_views.BoldInitiatePaymentAPIView.as_view(), name='api_bold_initiate'),
-
+    path(
+        "bold/initiate/",
+        api_views.BoldInitiatePaymentAPIView.as_view(),
+        name="api_bold_initiate",
+    ),
     # Wompi / PSE Payments
-    path('wompi/initiate/', api_views.WompiInitiatePaymentAPIView.as_view(), name='api_wompi_initiate'),
-    path('wompi/status/<int:transaction_id>/', api_views.WompiPaymentStatusAPIView.as_view(), name='api_wompi_status'),
-    path('pse/banks/', api_views.PSEBanksListAPIView.as_view(), name='api_pse_banks'),
-
+    path(
+        "wompi/initiate/",
+        api_views.WompiInitiatePaymentAPIView.as_view(),
+        name="api_wompi_initiate",
+    ),
+    path(
+        "wompi/status/<int:transaction_id>/",
+        api_views.WompiPaymentStatusAPIView.as_view(),
+        name="api_wompi_status",
+    ),
+    path("pse/banks/", api_views.PSEBanksListAPIView.as_view(), name="api_pse_banks"),
     # Recibo de pago PDF
-    path('transactions/<uuid:pk>/receipt/', api_views.PaymentReceiptAPIView.as_view(), name='api_payment_receipt'),
+    path(
+        "transactions/<uuid:pk>/receipt/",
+        api_views.PaymentReceiptAPIView.as_view(),
+        name="api_payment_receipt",
+    ),
     # T3.3: recibo PDF de PaymentOrder con consecutivo + desglose intereses
-    path('orders/<uuid:pk>/receipt/', api_views.PaymentOrderReceiptAPIView.as_view(), name='api_payment_order_receipt'),
+    path(
+        "orders/<uuid:pk>/receipt/",
+        api_views.PaymentOrderReceiptAPIView.as_view(),
+        name="api_payment_order_receipt",
+    ),
 ]

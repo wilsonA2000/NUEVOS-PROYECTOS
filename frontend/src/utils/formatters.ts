@@ -21,4 +21,4 @@ export const formatDateTime = (date: Date | string): string => {
     hour: '2-digit',
     minute: '2-digit',
   });
-}; 
+};

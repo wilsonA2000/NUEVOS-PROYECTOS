@@ -175,7 +175,9 @@ export interface SystemOverview {
 /**
  * Obtener lista de contratos pendientes de revisión admin
  */
-export const getPendingContracts = async (): Promise<AdminContractSummary[]> => {
+export const getPendingContracts = async (): Promise<
+  AdminContractSummary[]
+> => {
   const response = await api.get('/contracts/admin/pending/');
   // Backend devuelve { count: number, contracts: array }
   // Extraemos solo el array de contratos
@@ -193,7 +195,9 @@ export const getContractStats = async (): Promise<AdminContractStats> => {
 /**
  * Obtener detalle de un contrato para revisión
  */
-export const getContractForReview = async (contractId: string): Promise<AdminContractDetail> => {
+export const getContractForReview = async (
+  contractId: string,
+): Promise<AdminContractDetail> => {
   const response = await api.get(`/contracts/admin/contracts/${contractId}/`);
   return response.data;
 };
@@ -205,7 +209,10 @@ export const approveContract = async (
   contractId: string,
   payload: AdminApprovalPayload = {},
 ): Promise<{ success: boolean; message: string; new_state: string }> => {
-  const response = await api.post(`/contracts/admin/contracts/${contractId}/approve/`, payload);
+  const response = await api.post(
+    `/contracts/admin/contracts/${contractId}/approve/`,
+    payload,
+  );
   return response.data;
 };
 
@@ -216,7 +223,10 @@ export const rejectContract = async (
   contractId: string,
   payload: AdminRejectionPayload,
 ): Promise<{ success: boolean; message: string; new_state: string }> => {
-  const response = await api.post(`/contracts/admin/contracts/${contractId}/reject/`, payload);
+  const response = await api.post(
+    `/contracts/admin/contracts/${contractId}/reject/`,
+    payload,
+  );
   return response.data;
 };
 
@@ -226,8 +236,16 @@ export const rejectContract = async (
 export const reApproveContract = async (
   contractId: string,
   payload: AdminApprovalPayload = {},
-): Promise<{ success: boolean; message: string; new_state: string; cycle: number }> => {
-  const response = await api.post(`/contracts/admin/contracts/${contractId}/re-approve/`, payload);
+): Promise<{
+  success: boolean;
+  message: string;
+  new_state: string;
+  cycle: number;
+}> => {
+  const response = await api.post(
+    `/contracts/admin/contracts/${contractId}/re-approve/`,
+    payload,
+  );
   return response.data;
 };
 
@@ -309,8 +327,8 @@ export interface AuditLogFilters {
   activity_type?: string;
   model_name?: string;
   days?: number;
-  date_from?: string;  // ISO 8601
-  date_to?: string;    // ISO 8601
+  date_from?: string; // ISO 8601
+  date_to?: string; // ISO 8601
   page?: number;
   page_size?: number;
 }
@@ -338,7 +356,11 @@ export const getAuditLogs = async (
 export const cleanupLogs = async (params: {
   retention_days: number;
   dry_run?: boolean;
-}): Promise<{ records_deleted: number; space_freed_mb: number; dry_run: boolean }> => {
+}): Promise<{
+  records_deleted: number;
+  space_freed_mb: number;
+  dry_run: boolean;
+}> => {
   const response = await api.post('/core/logs/cleanup/', params);
   return response.data;
 };
@@ -378,7 +400,9 @@ export const getDocumentAccessHistory = async (
 /**
  * Obtener contratos en ciclo de corrección (RE_PENDING_ADMIN)
  */
-export const getContractsInCorrectionCycle = async (): Promise<AdminContractSummary[]> => {
+export const getContractsInCorrectionCycle = async (): Promise<
+  AdminContractSummary[]
+> => {
   const response = await api.get('/contracts/admin/correction-cycle/');
   return response.data;
 };
@@ -402,7 +426,9 @@ export const getCircularWorkflowHistory = async (
     }[];
   }[];
 }> => {
-  const response = await api.get(`/contracts/admin/contracts/${contractId}/workflow-history/`);
+  const response = await api.get(
+    `/contracts/admin/contracts/${contractId}/workflow-history/`,
+  );
   return response.data;
 };
 

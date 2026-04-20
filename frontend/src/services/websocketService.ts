@@ -103,11 +103,11 @@ class WebSocketService {
         resolve();
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         this.handleMessage(endpoint, event.data);
       };
 
-      ws.onclose = (event) => {
+      ws.onclose = event => {
         this.handleDisconnection(endpoint, event.code);
       };
 
@@ -115,7 +115,8 @@ class WebSocketService {
         this.updateConnectionStatus(endpoint, {
           connected: false,
           connecting: false,
-          reconnectAttempts: this.getConnectionStatus(endpoint).reconnectAttempts,
+          reconnectAttempts:
+            this.getConnectionStatus(endpoint).reconnectAttempts,
         });
         reject(new Error(`WebSocket error on ${endpoint}`));
       };
@@ -197,11 +198,13 @@ class WebSocketService {
    * Get current connection status for an endpoint
    */
   getConnectionStatus(endpoint: string): ConnectionStatus {
-    return this.connectionStatus.get(endpoint) || {
-      connected: false,
-      connecting: false,
-      reconnectAttempts: 0,
-    };
+    return (
+      this.connectionStatus.get(endpoint) || {
+        connected: false,
+        connecting: false,
+        reconnectAttempts: 0,
+      }
+    );
   }
 
   /**
@@ -229,7 +232,8 @@ class WebSocketService {
   private getWebSocketBaseUrl(): string {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
-    const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
+    const port =
+      process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
 
     if (process.env.NODE_ENV === 'development') {
       return `${protocol}//${host}:${port}/ws`;
@@ -287,7 +291,6 @@ class WebSocketService {
           }
         });
       }
-
     } catch {
       // Silently handle parse errors
     }
@@ -312,7 +315,8 @@ class WebSocketService {
     });
 
     // Attempt reconnection for unexpected disconnections
-    if (code !== 1000 && code !== 1001) { // Not normal closure or going away
+    if (code !== 1000 && code !== 1001) {
+      // Not normal closure or going away
       this.attemptReconnection(endpoint);
     }
   }
@@ -325,7 +329,8 @@ class WebSocketService {
       return;
     }
 
-    const reconnectDelay = this.RECONNECT_DELAY * Math.pow(2, status.reconnectAttempts);
+    const reconnectDelay =
+      this.RECONNECT_DELAY * Math.pow(2, status.reconnectAttempts);
 
     const timeout = setTimeout(async () => {
       this.updateConnectionStatus(endpoint, {
@@ -357,7 +362,10 @@ class WebSocketService {
     this.pingIntervals.set(endpoint, interval);
   }
 
-  private updateConnectionStatus(endpoint: string, status: ConnectionStatus): void {
+  private updateConnectionStatus(
+    endpoint: string,
+    status: ConnectionStatus,
+  ): void {
     this.connectionStatus.set(endpoint, status);
 
     // Notify status callbacks
@@ -415,8 +423,8 @@ export default websocketService;
 // === CONFIGURACIÓN ESPECIAL PARA DESARROLLO ===
 const isDevelopment = import.meta.env.DEV;
 const DEV_WEBSOCKET_CONFIG = {
-    maxReconnectAttempts: isDevelopment ? 2 : 5,
-    baseReconnectInterval: isDevelopment ? 10000 : 3000,
-    maxReconnectInterval: isDevelopment ? 30000 : 60000,
-    enableVerboseLogging: isDevelopment ? false : true,
+  maxReconnectAttempts: isDevelopment ? 2 : 5,
+  baseReconnectInterval: isDevelopment ? 10000 : 3000,
+  maxReconnectInterval: isDevelopment ? 30000 : 60000,
+  enableVerboseLogging: isDevelopment ? false : true,
 };

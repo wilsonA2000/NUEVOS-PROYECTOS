@@ -52,9 +52,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(PaymentList),
-      ),
-    ),
+        React.createElement(PaymentList)
+      )
+    )
   );
 };
 
@@ -101,7 +101,9 @@ describe('PaymentList', () => {
     mockUseAuth.isAuthenticated = false;
     renderComponent();
 
-    expect(screen.getByText(/Debes iniciar sesión para ver los pagos/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Debes iniciar sesión para ver los pagos/i)
+    ).toBeInTheDocument();
   });
 
   it('should show loading spinner when payments are loading', () => {
@@ -122,7 +124,9 @@ describe('PaymentList', () => {
     mockUsePayments.transactions = [];
     renderComponent();
 
-    expect(screen.getByText(/No hay transacciones disponibles/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No hay transacciones disponibles/i)
+    ).toBeInTheDocument();
   });
 
   it('should render the Pagos title', () => {

@@ -7,7 +7,11 @@ export const useMessages = () => {
   const { isAuthenticated } = useAuth();
 
   // Mensajes básicos
-  const { data: messages, isLoading, error } = useQuery({
+  const {
+    data: messages,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['messages'],
     queryFn: async () => {
       try {
@@ -313,11 +317,11 @@ export const useMessages = () => {
     conversations,
     unreadCount,
     messagingStats,
-    
+
     // Estados
     isLoading,
     error,
-    
+
     // Mutaciones de mensajes
     createMessage,
     updateMessage,
@@ -327,31 +331,31 @@ export const useMessages = () => {
     markAsRead,
     markAsUnread,
     starMessage,
-    
+
     // Mutaciones de hilos
     createThread,
     updateThread,
     deleteThread,
     markConversationRead,
     archiveConversation,
-    
+
     // Mutaciones de carpetas
     createFolder,
     updateFolder,
     deleteFolder,
-    
+
     // Mutaciones de plantillas
     createTemplate,
     updateTemplate,
     deleteTemplate,
-    
+
     // Mutaciones de conversaciones
     createConversation,
     updateConversation,
     deleteConversation,
-    
+
     // Utilidades
     searchMessages,
     canCommunicate,
   };
-}; 
+};

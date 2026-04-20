@@ -35,9 +35,7 @@ const createWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter>{children}</MemoryRouter>
     </QueryClientProvider>
   );
 };
@@ -86,10 +84,14 @@ describe('Login Component', () => {
   it('renders login form correctly', () => {
     render(<Login />, { wrapper: createWrapper });
 
-    expect(screen.getByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /iniciar sesión/i })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /iniciar sesión/i })
+    ).toBeInTheDocument();
   });
 
   it('updates form fields when user types', async () => {
@@ -97,7 +99,9 @@ describe('Login Component', () => {
     render(<Login />, { wrapper: createWrapper });
 
     const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
-    const passwordInput = screen.getByLabelText(/contraseña/i) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(
+      /contraseña/i
+    ) as HTMLInputElement;
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
@@ -118,7 +122,9 @@ describe('Login Component', () => {
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
+    const submitButton = screen.getByRole('button', {
+      name: /iniciar sesión/i,
+    });
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
@@ -162,6 +168,8 @@ describe('Login Component', () => {
 
   it('shows register link', () => {
     render(<Login />, { wrapper: createWrapper });
-    expect(screen.getByText('¿No tienes una cuenta? Regístrate')).toBeInTheDocument();
+    expect(
+      screen.getByText('¿No tienes una cuenta? Regístrate')
+    ).toBeInTheDocument();
   });
 });

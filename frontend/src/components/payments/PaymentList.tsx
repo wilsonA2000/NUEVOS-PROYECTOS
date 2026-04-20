@@ -21,11 +21,16 @@ import { useAuth } from '../../hooks/useAuth';
 export const PaymentList: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { transactions, balance, isLoading, error, deleteTransaction } = usePayments();
+  const { transactions, balance, isLoading, error, deleteTransaction } =
+    usePayments();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedTransaction, setSelectedTransaction] = React.useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] =
+    React.useState<any>(null);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, transaction: any) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    transaction: any,
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedTransaction(transaction);
   };
@@ -46,15 +51,14 @@ export const PaymentList: React.FC = () => {
     if (selectedTransaction && deleteTransaction) {
       try {
         await deleteTransaction.mutateAsync(selectedTransaction.id);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     handleMenuClose();
   };
 
   if (authLoading) {
     return (
-      <Box display="flex" justifyContent="center" p={3}>
+      <Box display='flex' justifyContent='center' p={3}>
         <CircularProgress />
       </Box>
     );
@@ -62,15 +66,13 @@ export const PaymentList: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <Alert severity="warning">
-        Debes iniciar sesión para ver los pagos.
-      </Alert>
+      <Alert severity='warning'>Debes iniciar sesión para ver los pagos.</Alert>
     );
   }
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" p={3}>
+      <Box display='flex' justifyContent='center' p={3}>
         <CircularProgress />
       </Box>
     );
@@ -78,9 +80,7 @@ export const PaymentList: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error">
-        Error al cargar los pagos: {error.message}
-      </Alert>
+      <Alert severity='error'>Error al cargar los pagos: {error.message}</Alert>
     );
   }
 
@@ -89,12 +89,17 @@ export const PaymentList: React.FC = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
+      <Box
+        display='flex'
+        justifyContent='space-between'
+        alignItems='center'
+        mb={3}
+      >
+        <Typography variant='h4' component='h1'>
           Pagos
         </Typography>
         <Button
-          variant="contained"
+          variant='contained'
           startIcon={<AddIcon />}
           onClick={() => navigate('/app/payments/new')}
         >
@@ -103,12 +108,14 @@ export const PaymentList: React.FC = () => {
       </Box>
 
       {balance && (
-        <Card sx={{ mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Card
+          sx={{ mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+        >
           <CardContent>
-            <Typography variant="h6">
+            <Typography variant='h6'>
               Balance Actual: ${balance.current || 0}
             </Typography>
-            <Typography variant="body2">
+            <Typography variant='body2'>
               Pagos pendientes: ${balance.pending || 0}
             </Typography>
           </CardContent>
@@ -116,43 +123,53 @@ export const PaymentList: React.FC = () => {
       )}
 
       <Grid container spacing={3}>
-        {transactionsArray.map((transaction) => (
+        {transactionsArray.map(transaction => (
           <Grid item xs={12} sm={6} md={4} key={transaction.id}>
             <Card>
               <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                  <Typography variant="h6" component="div">
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  alignItems='flex-start'
+                >
+                  <Typography variant='h6' component='div'>
                     ${transaction.amount || 0}
                   </Typography>
                   <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, transaction)}
+                    size='small'
+                    onClick={e => handleMenuOpen(e, transaction)}
                   >
                     <MoreVertIcon />
                   </IconButton>
                 </Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant='body2' color='text.secondary' gutterBottom>
                   {transaction.description || 'Sin descripción'}
                 </Typography>
                 <Box sx={{ mt: 2, mb: 2 }}>
                   <Chip
                     label={transaction.status || 'Sin estado'}
                     color={
-                      transaction.status === 'completed' ? 'success' :
-                      transaction.status === 'pending' ? 'warning' :
-                      transaction.status === 'failed' ? 'error' : 'default'
+                      transaction.status === 'completed'
+                        ? 'success'
+                        : transaction.status === 'pending'
+                          ? 'warning'
+                          : transaction.status === 'failed'
+                            ? 'error'
+                            : 'default'
                     }
-                    size="small"
+                    size='small'
                   />
                 </Box>
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   <strong>Tipo:</strong> {transaction.type || 'No especificado'}
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Fecha:</strong> {transaction.created_at || 'No especificada'}
+                <Typography variant='body2'>
+                  <strong>Fecha:</strong>{' '}
+                  {transaction.created_at || 'No especificada'}
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Método:</strong> {transaction.payment_method || 'No especificado'}
+                <Typography variant='body2'>
+                  <strong>Método:</strong>{' '}
+                  {transaction.payment_method || 'No especificado'}
                 </Typography>
               </CardContent>
             </Card>
@@ -161,11 +178,11 @@ export const PaymentList: React.FC = () => {
       </Grid>
 
       {transactionsArray.length === 0 && (
-        <Box textAlign="center" py={6}>
-          <Typography variant="h6" color="text.secondary">
+        <Box textAlign='center' py={6}>
+          <Typography variant='h6' color='text.secondary'>
             No hay transacciones disponibles
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
             Realiza tu primer pago haciendo clic en "Nuevo Pago"
           </Typography>
         </Box>

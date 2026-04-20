@@ -20,7 +20,7 @@
             <!-- Formulario de registro -->
             <form method="post" class="space-y-6">
                 {% csrf_token %}
-                
+
                 {% if form.errors %}
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <p class="font-medium">Por favor corrige los siguientes errores:</p>
@@ -36,39 +36,39 @@
                     </ul>
                 </div>
                 {% endif %}
-                
+
                 <!-- Información básica -->
                 <div class="space-y-4">
                     <h3 class="text-lg font-semibold text-gray-900">Información Personal</h3>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Nombre(s)</label>
                             {{ form.first_name }}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Apellidos</label>
                             {{ form.last_name }}
                         </div>
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
                         {{ form.email }}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
                         {{ form.phone_number }}
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
                             {{ form.password1 }}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Confirmar Contraseña</label>
                             {{ form.password2 }}
@@ -81,7 +81,7 @@
                     <div class="flex items-start">
                         <input type="checkbox" id="terms" name="terms" required class="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         <label for="terms" class="ml-3 text-sm text-gray-700">
-                            Acepto los <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Términos y Condiciones</a> 
+                            Acepto los <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Términos y Condiciones</a>
                             y la <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Política de Privacidad</a> de VeriHome.
                         </label>
                     </div>
@@ -89,12 +89,12 @@
 
                 <!-- Botones -->
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button type="submit" 
+                    <button type="submit"
                             class="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
                         Crear Cuenta
                     </button>
-                    
-                    <a href="{% url 'users:register_select' %}" 
+
+                    <a href="{% url 'users:register_select' %}"
                        class="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200 text-center">
                         Volver Atrás
                     </a>
@@ -104,7 +104,7 @@
             <!-- Link para iniciar sesión -->
             <div class="text-center mt-8 pt-6 border-t border-gray-200">
                 <p class="text-gray-600">
-                    ¿Ya tienes una cuenta? 
+                    ¿Ya tienes una cuenta?
                     <a href="{% url 'account_login' %}" class="text-primary-600 hover:text-primary-700 font-medium">
                         Iniciar Sesión
                     </a>

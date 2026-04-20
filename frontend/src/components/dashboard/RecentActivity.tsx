@@ -20,7 +20,6 @@ import { useProperties } from '../../hooks/useProperties';
 import { useContracts } from '../../hooks/useContracts';
 import { useMessages } from '../../hooks/useMessages';
 import { formatCurrency } from '../../utils/formatters';
-import { ensureArray } from '../../utils/arrayUtils';
 
 const RecentActivity: React.FC = () => {
   const { transactions } = usePayments();
@@ -33,7 +32,9 @@ const RecentActivity: React.FC = () => {
     const transactionsArray = Array.isArray(transactions) ? transactions : [];
     const propertiesArray = Array.isArray(properties) ? properties : [];
     const contractsArray = Array.isArray(contracts) ? contracts : [];
-    const messagesArray = Array.isArray(messages) ? (messages as any).results || messages : [];
+    const messagesArray = Array.isArray(messages)
+      ? (messages as any).results || messages
+      : [];
 
     const activities = [
       ...transactionsArray.map((transaction: any) => ({
@@ -41,28 +42,28 @@ const RecentActivity: React.FC = () => {
         title: `Pago recibido de ${transaction.tenantName || 'Usuario'}`,
         description: formatCurrency(transaction.amount || 0),
         date: new Date(transaction.date || Date.now()),
-        icon: <PaymentIcon color="success" />,
+        icon: <PaymentIcon color='success' />,
       })),
       ...propertiesArray.map((property: any) => ({
         type: 'property',
         title: `Propiedad ${property.status === 'available' ? 'disponible' : 'ocupada'}`,
         description: property.address || 'Sin dirección',
         date: new Date(property.updatedAt || Date.now()),
-        icon: <HomeIcon color="primary" />,
+        icon: <HomeIcon color='primary' />,
       })),
       ...contractsArray.map((contract: any) => ({
         type: 'contract',
         title: `Nuevo contrato para ${contract.tenantName || 'Usuario'}`,
         description: `Inicio: ${new Date(contract.startDate || Date.now()).toLocaleDateString()}`,
         date: new Date(contract.createdAt || Date.now()),
-        icon: <ContractIcon color="info" />,
+        icon: <ContractIcon color='info' />,
       })),
       ...messagesArray.map((message: any) => ({
         type: 'message',
         title: `Nuevo mensaje de ${message.sender || 'Usuario'}`,
-        description: `${(message.content || '').substring(0, 50)  }...`,
+        description: `${(message.content || '').substring(0, 50)}...`,
         date: new Date(message.createdAt || Date.now()),
-        icon: <MessageIcon color="warning" />,
+        icon: <MessageIcon color='warning' />,
       })),
     ];
 
@@ -74,13 +75,13 @@ const RecentActivity: React.FC = () => {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Actividad Reciente
         </Typography>
         <List>
           {recentActivity.length === 0 ? (
             <ListItem>
-              <ListItemText primary="No hay actividad reciente" />
+              <ListItemText primary='No hay actividad reciente' />
             </ListItem>
           ) : (
             recentActivity.map((activity, index) => (
@@ -108,4 +109,4 @@ const RecentActivity: React.FC = () => {
   );
 };
 
-export default RecentActivity; 
+export default RecentActivity;

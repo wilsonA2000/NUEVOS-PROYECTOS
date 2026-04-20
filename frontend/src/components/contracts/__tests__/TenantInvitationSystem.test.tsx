@@ -20,7 +20,9 @@ jest.mock('../../../services/landlordContractService', () => ({
     }),
     getInvitations: jest.fn().mockResolvedValue({ invitations: [] }),
     sendInvitation: jest.fn().mockResolvedValue({ success: true }),
-    formatCurrency: jest.fn((amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`),
+    formatCurrency: jest.fn(
+      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`
+    ),
     getContracts: jest.fn().mockResolvedValue({ contracts: [] }),
     getStatistics: jest.fn().mockResolvedValue({}),
     inviteTenant: jest.fn().mockResolvedValue({}),
@@ -32,9 +34,7 @@ import TenantInvitationSystem from '../TenantInvitationSystem';
 const theme = createTheme();
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ThemeProvider theme={theme}>
-    {children}
-  </ThemeProvider>
+  <ThemeProvider theme={theme}>{children}</ThemeProvider>
 );
 
 const mockContract = {
@@ -122,11 +122,18 @@ describe('TenantInvitationSystem', () => {
   });
 
   it('should handle different contract data', () => {
-    const customContract = { ...mockContract, id: 'contract-456', monthly_rent: 3000000 };
+    const customContract = {
+      ...mockContract,
+      id: 'contract-456',
+      monthly_rent: 3000000,
+    };
 
     render(
       <TestWrapper>
-        <TenantInvitationSystem {...defaultProps} contract={customContract as any} />
+        <TenantInvitationSystem
+          {...defaultProps}
+          contract={customContract as any}
+        />
       </TestWrapper>
     );
 
@@ -149,7 +156,10 @@ describe('TenantInvitationSystem', () => {
 
     render(
       <TestWrapper>
-        <TenantInvitationSystem {...defaultProps} contract={contractWithoutId as any} />
+        <TenantInvitationSystem
+          {...defaultProps}
+          contract={contractWithoutId as any}
+        />
       </TestWrapper>
     );
 

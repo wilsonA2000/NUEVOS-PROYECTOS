@@ -33,7 +33,10 @@ interface PaymentsErrorBoundaryProps {
   showDetails?: boolean;
 }
 
-class PaymentsErrorBoundary extends Component<PaymentsErrorBoundaryProps, PaymentsErrorBoundaryState> {
+class PaymentsErrorBoundary extends Component<
+  PaymentsErrorBoundaryProps,
+  PaymentsErrorBoundaryState
+> {
   constructor(props: PaymentsErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -44,9 +47,11 @@ class PaymentsErrorBoundary extends Component<PaymentsErrorBoundaryProps, Paymen
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<PaymentsErrorBoundaryState> {
+  static getDerivedStateFromError(
+    error: Error,
+  ): Partial<PaymentsErrorBoundaryState> {
     const errorId = `payments-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
@@ -110,7 +115,9 @@ class PaymentsErrorBoundary extends Component<PaymentsErrorBoundaryProps, Paymen
   };
 
   private handleContactSupport = () => {
-    const subject = encodeURIComponent(`Error Crítico en Pagos - ${this.state.errorId}`);
+    const subject = encodeURIComponent(
+      `Error Crítico en Pagos - ${this.state.errorId}`,
+    );
     const body = encodeURIComponent(`
 ALERTA: Error en módulo de pagos
 
@@ -129,13 +136,13 @@ Por favor describe qué operación estabas realizando:
 Descripción detallada:
 [Describe aquí exactamente qué estabas haciendo]
     `);
-    
+
     window.open(`mailto:pagos@verihome.com?subject=${subject}&body=${body}`);
   };
 
   private getErrorCategory = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('payment') || message.includes('pago')) {
       return 'Procesamiento';
     }
@@ -157,14 +164,19 @@ Descripción detallada:
     if (message.includes('validation') || message.includes('format')) {
       return 'Validación';
     }
-    
+
     return 'Sistema';
   };
 
-  private getErrorSeverity = (error: Error): 'critical' | 'high' | 'medium' | 'low' => {
+  private getErrorSeverity = (
+    error: Error,
+  ): 'critical' | 'high' | 'medium' | 'low' => {
     const message = error.message.toLowerCase();
-    
-    if (message.includes('payment failed') || message.includes('charge failed')) {
+
+    if (
+      message.includes('payment failed') ||
+      message.includes('charge failed')
+    ) {
       return 'critical';
     }
     if (message.includes('security') || message.includes('fraud')) {
@@ -176,14 +188,17 @@ Descripción detallada:
     if (message.includes('validation') || message.includes('format')) {
       return 'medium';
     }
-    
+
     return 'high'; // Por defecto, errores de pagos son de alta severidad
   };
 
   private getUserFriendlyMessage = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
-    if (message.includes('payment failed') || message.includes('charge failed')) {
+
+    if (
+      message.includes('payment failed') ||
+      message.includes('charge failed')
+    ) {
       return 'El pago no pudo ser procesado. Por favor verifica los datos de tu tarjeta y vuelve a intentar.';
     }
     if (message.includes('stripe') || message.includes('paypal')) {
@@ -204,16 +219,18 @@ Descripción detallada:
     if (message.includes('validation') || message.includes('format')) {
       return 'Error en la información proporcionada. Verifica que todos los datos sean correctos.';
     }
-    
+
     return 'Error inesperado en el sistema de pagos. Por seguridad, la transacción ha sido suspendida.';
   };
 
   private getSecurityAlert = (error: Error): boolean => {
     const message = error.message.toLowerCase();
-    return message.includes('security') || 
-           message.includes('fraud') || 
-           message.includes('blocked') ||
-           message.includes('suspicious');
+    return (
+      message.includes('security') ||
+      message.includes('fraud') ||
+      message.includes('blocked') ||
+      message.includes('suspicious')
+    );
   };
 
   render() {
@@ -246,7 +263,9 @@ Descripción detallada:
             sx={{
               maxWidth: 650,
               width: '100%',
-              border: isSecurityIssue ? '2px solid var(--color-error)' : '1px solid var(--color-border)',
+              border: isSecurityIssue
+                ? '2px solid var(--color-error)'
+                : '1px solid var(--color-border)',
               borderRadius: 'var(--border-radius-lg)',
               backgroundColor: 'var(--color-surface)',
             }}
@@ -255,7 +274,7 @@ Descripción detallada:
               {/* Security Warning Banner */}
               {isSecurityIssue && (
                 <Alert
-                  severity="error"
+                  severity='error'
                   icon={<SecurityIcon />}
                   sx={{
                     mb: 3,
@@ -263,8 +282,9 @@ Descripción detallada:
                     border: '1px solid var(--color-error)',
                   }}
                 >
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    ALERTA DE SEGURIDAD: Esta transacción ha sido bloqueada por medidas de seguridad.
+                  <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    ALERTA DE SEGURIDAD: Esta transacción ha sido bloqueada por
+                    medidas de seguridad.
                   </Typography>
                 </Alert>
               )}
@@ -274,7 +294,10 @@ Descripción detallada:
                 <ErrorIcon
                   sx={{
                     fontSize: 64,
-                    color: errorSeverity === 'critical' ? 'var(--color-error)' : 'var(--color-warning)',
+                    color:
+                      errorSeverity === 'critical'
+                        ? 'var(--color-error)'
+                        : 'var(--color-warning)',
                     mb: 2,
                   }}
                 />
@@ -288,28 +311,48 @@ Descripción detallada:
               </Box>
 
               {/* Error Title */}
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              <Typography variant='h5' sx={{ fontWeight: 600, mb: 2 }}>
                 Error en Sistema de Pagos
               </Typography>
 
               {/* Error Details */}
-              <Box sx={{ mb: 3, display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  mb: 3,
+                  display: 'flex',
+                  gap: 1,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Chip
                   label={errorCategory}
-                  size="small"
+                  size='small'
                   sx={{
-                    backgroundColor: errorSeverity === 'critical' ? 'var(--color-error-light)' : 'var(--color-warning-light)',
-                    color: errorSeverity === 'critical' ? 'var(--color-error-dark)' : 'var(--color-warning-dark)',
+                    backgroundColor:
+                      errorSeverity === 'critical'
+                        ? 'var(--color-error-light)'
+                        : 'var(--color-warning-light)',
+                    color:
+                      errorSeverity === 'critical'
+                        ? 'var(--color-error-dark)'
+                        : 'var(--color-warning-dark)',
                     fontWeight: 500,
                   }}
                 />
                 <Chip
                   label={errorSeverity.toUpperCase()}
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                   sx={{
-                    borderColor: errorSeverity === 'critical' ? 'var(--color-error)' : 'var(--color-warning)',
-                    color: errorSeverity === 'critical' ? 'var(--color-error)' : 'var(--color-warning)',
+                    borderColor:
+                      errorSeverity === 'critical'
+                        ? 'var(--color-error)'
+                        : 'var(--color-warning)',
+                    color:
+                      errorSeverity === 'critical'
+                        ? 'var(--color-error)'
+                        : 'var(--color-warning)',
                     fontWeight: 600,
                   }}
                 />
@@ -327,12 +370,16 @@ Descripción detallada:
                   },
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography variant='body2' sx={{ fontWeight: 500 }}>
                   {userFriendlyMessage}
                 </Typography>
                 {isSecurityIssue && (
-                  <Typography variant="body2" sx={{ mt: 1, fontSize: '0.875rem' }}>
-                    Por tu seguridad, no se ha procesado ningún cargo. Contacta soporte inmediatamente.
+                  <Typography
+                    variant='body2'
+                    sx={{ mt: 1, fontSize: '0.875rem' }}
+                  >
+                    Por tu seguridad, no se ha procesado ningún cargo. Contacta
+                    soporte inmediatamente.
                   </Typography>
                 )}
               </Alert>
@@ -347,56 +394,84 @@ Descripción detallada:
                   mb: 3,
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                <Typography variant='body2' sx={{ fontWeight: 500, mb: 1 }}>
                   🔒 Garantía de Seguridad VeriHome
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
-                  • Nunca almacenamos información completa de tarjetas<br />
-                  • Todas las transacciones están cifradas<br />
-                  • Tu dinero está protegido por nuestros socios bancarios
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'var(--color-text-secondary)',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  • Nunca almacenamos información completa de tarjetas
+                  <br />
+                  • Todas las transacciones están cifradas
+                  <br />• Tu dinero está protegido por nuestros socios bancarios
                 </Typography>
               </Box>
 
               {/* Error ID */}
-              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
-                ID del error: <code style={{ backgroundColor: 'var(--color-background)', padding: '2px 6px', borderRadius: '4px' }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'var(--color-text-secondary)', mb: 3 }}
+              >
+                ID del error:{' '}
+                <code
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                  }}
+                >
                   {this.state.errorId}
                 </code>
               </Typography>
 
               {/* Technical details */}
-              {this.props.showDetails && process.env.NODE_ENV === 'development' && (
-                <>
-                  <Divider sx={{ my: 3 }} />
-                  <Box sx={{ textAlign: 'left', mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                      Información Técnica:
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      component="pre"
-                      sx={{
-                        backgroundColor: 'var(--color-background)',
-                        p: 2,
-                        borderRadius: 1,
-                        fontSize: '0.75rem',
-                        overflow: 'auto',
-                        maxHeight: 200,
-                        border: '1px solid var(--color-border)',
-                      }}
-                    >
-                      {error.message}
-                      {error.stack && `\n\nStack trace:\n${error.stack}`}
-                    </Typography>
-                  </Box>
-                </>
-              )}
+              {this.props.showDetails &&
+                process.env.NODE_ENV === 'development' && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Box sx={{ textAlign: 'left', mb: 3 }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 600, mb: 1 }}
+                      >
+                        Información Técnica:
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        component='pre'
+                        sx={{
+                          backgroundColor: 'var(--color-background)',
+                          p: 2,
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          overflow: 'auto',
+                          maxHeight: 200,
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        {error.message}
+                        {error.stack && `\n\nStack trace:\n${error.stack}`}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 {!isSecurityIssue && (
                   <Button
-                    variant="contained"
+                    variant='contained'
                     startIcon={<RefreshIcon />}
                     onClick={this.handleRetry}
                     sx={{
@@ -411,7 +486,7 @@ Descripción detallada:
                 )}
 
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<HomeIcon />}
                   onClick={this.handleGoHome}
                   sx={{
@@ -426,7 +501,7 @@ Descripción detallada:
                 </Button>
 
                 <Button
-                  variant="contained"
+                  variant='contained'
                   startIcon={<SupportIcon />}
                   onClick={this.handleContactSupport}
                   sx={{
@@ -442,22 +517,44 @@ Descripción detallada:
               </Box>
 
               {/* Emergency Contact */}
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid var(--color-border)' }}>
-                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 2 }}>
+              <Box
+                sx={{
+                  mt: 4,
+                  pt: 3,
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'var(--color-text-secondary)', mb: 2 }}
+                >
                   <strong>Soporte de Pagos 24/7:</strong>
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <Button
-                    variant="text"
-                    href="mailto:pagos@verihome.com"
-                    sx={{ color: 'var(--color-primary)', textTransform: 'none' }}
+                    variant='text'
+                    href='mailto:pagos@verihome.com'
+                    sx={{
+                      color: 'var(--color-primary)',
+                      textTransform: 'none',
+                    }}
                   >
                     📧 pagos@verihome.com
                   </Button>
                   <Button
-                    variant="text"
-                    href="tel:+573001234567"
-                    sx={{ color: 'var(--color-primary)', textTransform: 'none' }}
+                    variant='text'
+                    href='tel:+573001234567'
+                    sx={{
+                      color: 'var(--color-primary)',
+                      textTransform: 'none',
+                    }}
                   >
                     📞 +57 300 123 4567
                   </Button>

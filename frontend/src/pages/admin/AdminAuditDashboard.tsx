@@ -18,20 +18,15 @@ import {
   Grid,
   Button,
   TextField,
-  FormGroup,
-  FormControlLabel,
   Checkbox,
   Card,
   CardContent,
   Alert,
   CircularProgress,
   Divider,
-  Avatar,
-  Stack,
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
 } from '@mui/material';
 import {
   Assessment as ReportIcon,
@@ -52,10 +47,30 @@ import { useAdminAuth } from '../../hooks/useAdminAuth';
  * Secciones disponibles para el reporte
  */
 const REPORT_SECTIONS = [
-  { id: 'contracts', label: 'Contratos', icon: <ContractsIcon />, description: 'Actividad de contratos, aprobaciones y rechazos' },
-  { id: 'users', label: 'Usuarios', icon: <UsersIcon />, description: 'Registros, logins y actividad de usuarios' },
-  { id: 'security', label: 'Seguridad', icon: <SecurityIcon />, description: 'Intentos fallidos, IPs bloqueadas, alertas' },
-  { id: 'payments', label: 'Pagos', icon: <PaymentIcon />, description: 'Transacciones y movimientos financieros' },
+  {
+    id: 'contracts',
+    label: 'Contratos',
+    icon: <ContractsIcon />,
+    description: 'Actividad de contratos, aprobaciones y rechazos',
+  },
+  {
+    id: 'users',
+    label: 'Usuarios',
+    icon: <UsersIcon />,
+    description: 'Registros, logins y actividad de usuarios',
+  },
+  {
+    id: 'security',
+    label: 'Seguridad',
+    icon: <SecurityIcon />,
+    description: 'Intentos fallidos, IPs bloqueadas, alertas',
+  },
+  {
+    id: 'payments',
+    label: 'Pagos',
+    icon: <PaymentIcon />,
+    description: 'Transacciones y movimientos financieros',
+  },
 ];
 
 /**
@@ -70,14 +85,19 @@ const AdminAuditDashboard: React.FC = () => {
     date.setMonth(date.getMonth() - 1);
     return date.toISOString().split('T')[0] ?? '';
   });
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0] ?? '');
-  const [selectedSections, setSelectedSections] = useState<string[]>(['contracts']);
+  const [dateTo, setDateTo] = useState(
+    () => new Date().toISOString().split('T')[0] ?? '',
+  );
+  const [selectedSections, setSelectedSections] = useState<string[]>([
+    'contracts',
+  ]);
   const [format, setFormat] = useState<'json' | 'pdf' | 'csv'>('pdf');
 
   // Mutation para generar reporte
   const generateMutation = useMutation({
-    mutationFn: (request: AuditReportRequest) => AdminService.generateAuditReport(request),
-    onSuccess: (data) => {
+    mutationFn: (request: AuditReportRequest) =>
+      AdminService.generateAuditReport(request),
+    onSuccess: data => {
       if (data.download_url) {
         window.open(data.download_url, '_blank');
       }
@@ -85,9 +105,9 @@ const AdminAuditDashboard: React.FC = () => {
   });
 
   const handleSectionToggle = (sectionId: string) => {
-    setSelectedSections((prev) =>
+    setSelectedSections(prev =>
       prev.includes(sectionId)
-        ? prev.filter((id) => id !== sectionId)
+        ? prev.filter(id => id !== sectionId)
         : [...prev, sectionId],
     );
   };
@@ -104,7 +124,7 @@ const AdminAuditDashboard: React.FC = () => {
   if (!adminPermissions.canViewAuditLogs) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           No tienes permisos para acceder a los reportes de auditoría.
         </Alert>
       </Box>
@@ -115,11 +135,12 @@ const AdminAuditDashboard: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+        <Typography variant='h4' fontWeight='bold' gutterBottom>
           Reportes de Auditoría
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Genera reportes detallados para cumplimiento legal y auditorías externas.
+        <Typography variant='body1' color='text.secondary'>
+          Genera reportes detallados para cumplimiento legal y auditorías
+          externas.
         </Typography>
       </Box>
 
@@ -128,33 +149,33 @@ const AdminAuditDashboard: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-              <GavelIcon color="primary" />
-              <Typography variant="h6" fontWeight="medium">
+              <GavelIcon color='primary' />
+              <Typography variant='h6' fontWeight='medium'>
                 Configurar Reporte
               </Typography>
             </Box>
 
             {/* Rango de fechas */}
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            <Typography variant='subtitle2' color='text.secondary' gutterBottom>
               Rango de Fechas
             </Typography>
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Fecha Desde"
-                  type="date"
+                  label='Fecha Desde'
+                  type='date'
                   value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
+                  onChange={e => setDateFrom(e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Fecha Hasta"
-                  type="date"
+                  label='Fecha Hasta'
+                  type='date'
                   value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
+                  onChange={e => setDateTo(e.target.value)}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                 />
@@ -164,14 +185,14 @@ const AdminAuditDashboard: React.FC = () => {
             <Divider sx={{ my: 3 }} />
 
             {/* Secciones */}
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            <Typography variant='subtitle2' color='text.secondary' gutterBottom>
               Secciones a Incluir
             </Typography>
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              {REPORT_SECTIONS.map((section) => (
+              {REPORT_SECTIONS.map(section => (
                 <Grid item xs={12} sm={6} key={section.id}>
                   <Card
-                    variant="outlined"
+                    variant='outlined'
                     sx={{
                       cursor: 'pointer',
                       borderColor: selectedSections.includes(section.id)
@@ -183,20 +204,29 @@ const AdminAuditDashboard: React.FC = () => {
                     }}
                     onClick={() => handleSectionToggle(section.id)}
                   >
-                    <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, py: 1.5 }}>
+                    <CardContent
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 2,
+                        py: 1.5,
+                      }}
+                    >
                       <Checkbox
                         checked={selectedSections.includes(section.id)}
                         onChange={() => handleSectionToggle(section.id)}
                         sx={{ p: 0 }}
                       />
                       <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
                           {section.icon}
-                          <Typography variant="body1" fontWeight="medium">
+                          <Typography variant='body1' fontWeight='medium'>
                             {section.label}
                           </Typography>
                         </Box>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='caption' color='text.secondary'>
                           {section.description}
                         </Typography>
                       </Box>
@@ -209,50 +239,58 @@ const AdminAuditDashboard: React.FC = () => {
             <Divider sx={{ my: 3 }} />
 
             {/* Formato */}
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            <Typography variant='subtitle2' color='text.secondary' gutterBottom>
               Formato de Exportación
             </Typography>
             <FormControl sx={{ minWidth: 200, mb: 3 }}>
               <Select
                 value={format}
-                onChange={(e) => setFormat(e.target.value as 'json' | 'pdf' | 'csv')}
+                onChange={e =>
+                  setFormat(e.target.value as 'json' | 'pdf' | 'csv')
+                }
               >
-                <MenuItem value="pdf">PDF (Documento)</MenuItem>
-                <MenuItem value="csv">CSV (Excel)</MenuItem>
-                <MenuItem value="json">JSON (Datos)</MenuItem>
+                <MenuItem value='pdf'>PDF (Documento)</MenuItem>
+                <MenuItem value='csv'>CSV (Excel)</MenuItem>
+                <MenuItem value='json'>JSON (Datos)</MenuItem>
               </Select>
             </FormControl>
 
             {/* Botón generar */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 startIcon={
                   generateMutation.isPending ? (
-                    <CircularProgress size={20} color="inherit" />
+                    <CircularProgress size={20} color='inherit' />
                   ) : (
                     <DownloadIcon />
                   )
                 }
                 onClick={handleGenerate}
-                disabled={generateMutation.isPending || selectedSections.length === 0}
+                disabled={
+                  generateMutation.isPending || selectedSections.length === 0
+                }
               >
-                {generateMutation.isPending ? 'Generando...' : 'Generar Reporte'}
+                {generateMutation.isPending
+                  ? 'Generando...'
+                  : 'Generar Reporte'}
               </Button>
             </Box>
 
             {/* Error */}
             {generateMutation.isError && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                Error al generar el reporte: {(generateMutation.error as Error).message}
+              <Alert severity='error' sx={{ mt: 2 }}>
+                Error al generar el reporte:{' '}
+                {(generateMutation.error as Error).message}
               </Alert>
             )}
 
             {/* Success */}
             {generateMutation.isSuccess && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                Reporte generado exitosamente. ID: {generateMutation.data.report_id}
+              <Alert severity='success' sx={{ mt: 2 }}>
+                Reporte generado exitosamente. ID:{' '}
+                {generateMutation.data.report_id}
               </Alert>
             )}
           </Paper>
@@ -262,25 +300,25 @@ const AdminAuditDashboard: React.FC = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2, mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ReportIcon color="primary" />
-              <Typography variant="h6" fontWeight="medium">
+              <ReportIcon color='primary' />
+              <Typography variant='h6' fontWeight='medium'>
                 Información
               </Typography>
             </Box>
-            <Typography variant="body2" color="text.secondary" paragraph>
+            <Typography variant='body2' color='text.secondary' paragraph>
               Los reportes de auditoría incluyen información detallada sobre las
-              operaciones del sistema, cumpliendo con los requisitos de la Ley 1581
-              de 2012 de Protección de Datos Personales.
+              operaciones del sistema, cumpliendo con los requisitos de la Ley
+              1581 de 2012 de Protección de Datos Personales.
             </Typography>
             <Divider sx={{ my: 2 }} />
-            <Typography variant="body2" color="text.secondary">
-              <strong>Nota:</strong> Los reportes pueden tardar varios minutos en
-              generarse dependiendo del rango de fechas seleccionado.
+            <Typography variant='body2' color='text.secondary'>
+              <strong>Nota:</strong> Los reportes pueden tardar varios minutos
+              en generarse dependiendo del rango de fechas seleccionado.
             </Typography>
           </Paper>
 
-          <Alert severity="info">
-            <Typography variant="body2">
+          <Alert severity='info'>
+            <Typography variant='body2'>
               Los reportes generados se almacenan por 30 días y pueden ser
               descargados múltiples veces durante ese período.
             </Typography>

@@ -6,7 +6,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Calificar a {{ reviewee.get_full_name }}</h1>
-        
+
         <!-- Información del contrato -->
         <div class="bg-blue-50 rounded-lg p-4 border border-blue-200 mb-6">
             <h3 class="text-lg font-semibold text-blue-800 mb-2">Información del Contrato</h3>
@@ -28,10 +28,10 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <form method="post" class="space-y-6">
             {% csrf_token %}
-            
+
             <!-- Errores del formulario -->
             {% if form.errors %}
             <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-4">
@@ -55,7 +55,7 @@
                 </div>
             </div>
             {% endif %}
-            
+
             <!-- Calificación general -->
             <div>
                 <label for="{{ form.overall_rating.id_for_label }}" class="block text-lg font-medium text-gray-700 mb-2">
@@ -74,7 +74,7 @@
                 <p class="mt-1 text-sm text-gray-500">{{ form.overall_rating.help_text }}</p>
                 {% endif %}
             </div>
-            
+
             <!-- Título y comentarios -->
             <div>
                 <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -82,14 +82,14 @@
                 </label>
                 {{ form.title }}
             </div>
-            
+
             <div>
                 <label for="{{ form.review_text.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ form.review_text.label }}
                 </label>
                 {{ form.review_text }}
             </div>
-            
+
             <!-- Calificaciones por categoría -->
             <div>
                 <h3 class="text-lg font-medium text-gray-700 mb-3">Calificaciones por Categoría</h3>
@@ -114,7 +114,7 @@
                     {% endfor %}
                 </div>
             </div>
-            
+
             <!-- Opciones de privacidad -->
             <div class="space-y-3">
                 <div class="flex items-center">
@@ -126,7 +126,7 @@
                 {% if form.is_anonymous.help_text %}
                 <p class="text-xs text-gray-500 ml-6">{{ form.is_anonymous.help_text }}</p>
                 {% endif %}
-                
+
                 <div class="flex items-center">
                     {{ form.is_public }}
                     <label for="{{ form.is_public.id_for_label }}" class="ml-2 block text-sm text-gray-700">
@@ -137,7 +137,7 @@
                 <p class="text-xs text-gray-500 ml-6">{{ form.is_public.help_text }}</p>
                 {% endif %}
             </div>
-            
+
             <!-- Botones de acción -->
             <div class="flex justify-end space-x-3">
                 <a href="{% url 'ratings:dashboard' %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
@@ -159,18 +159,18 @@
         document.querySelectorAll('.rating-input').forEach(input => {
             input.style.display = 'none';
         });
-        
+
         // Funcionalidad para calificación general
         const overallStars = document.querySelectorAll('.rating-stars .star-btn');
         const overallInput = document.getElementById('{{ form.overall_rating.id_for_label }}');
         const overallValue = document.querySelector('.rating-value');
-        
+
         overallStars.forEach(star => {
             star.addEventListener('click', function() {
                 const value = this.dataset.value;
                 overallInput.value = value;
                 overallValue.textContent = value + '/10';
-                
+
                 // Actualizar estrellas
                 overallStars.forEach(s => {
                     if (parseInt(s.dataset.value) <= parseInt(value)) {
@@ -183,20 +183,20 @@
                 });
             });
         });
-        
+
         // Funcionalidad para calificaciones por categoría
         document.querySelectorAll('.category-stars').forEach(starsContainer => {
             const fieldName = starsContainer.dataset.field;
             const input = document.querySelector(`input[name="${fieldName}"]`);
             const valueDisplay = starsContainer.parentNode.querySelector('.category-value');
             const stars = starsContainer.querySelectorAll('.star-btn');
-            
+
             stars.forEach(star => {
                 star.addEventListener('click', function() {
                     const value = this.dataset.value;
                     input.value = value;
                     valueDisplay.textContent = value + '/10';
-                    
+
                     // Actualizar estrellas
                     stars.forEach(s => {
                         if (parseInt(s.dataset.value) <= parseInt(value)) {

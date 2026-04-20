@@ -118,7 +118,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
   <Card
     sx={{
       height: '100%',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition:
+        'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       '&:hover': {
         transform: 'translateY(-3px)',
         boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
@@ -126,12 +127,18 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
     }}
   >
     <CardContent>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
+          <Typography variant='body2' color='text.secondary' gutterBottom>
             {title}
           </Typography>
-          <Typography variant="h4" fontWeight={700} color={color}>
+          <Typography variant='h4' fontWeight={700} color={color}>
             {value}
           </Typography>
         </Box>
@@ -165,7 +172,7 @@ interface TabPanelProps {
 }
 
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
-  <Box role="tabpanel" hidden={value !== index} sx={{ pt: 3 }}>
+  <Box role='tabpanel' hidden={value !== index} sx={{ pt: 3 }}>
     {value === index && children}
   </Box>
 );
@@ -174,7 +181,9 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 // Status chip helper
 // ---------------------------------------------------------------------------
 
-const visitStatusColor = (status: string): 'default' | 'warning' | 'info' | 'success' | 'error' => {
+const visitStatusColor = (
+  status: string,
+): 'default' | 'warning' | 'info' | 'success' | 'error' => {
   switch (status) {
     case 'pending':
       return 'warning';
@@ -229,7 +238,9 @@ const AdminVerificationDashboard: React.FC = () => {
 
   // Assign agent dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedVisitId, setSelectedVisitId] = useState<string | number | null>(null);
+  const [selectedVisitId, setSelectedVisitId] = useState<
+    string | number | null
+  >(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [assignLoading, setAssignLoading] = useState(false);
 
@@ -286,7 +297,12 @@ const AdminVerificationDashboard: React.FC = () => {
     const loadAll = async () => {
       setLoading(true);
       setError(null);
-      await Promise.all([fetchStats(), fetchAgents(), fetchVisits(), fetchReports()]);
+      await Promise.all([
+        fetchStats(),
+        fetchAgents(),
+        fetchVisits(),
+        fetchReports(),
+      ]);
       setLoading(false);
     };
     loadAll();
@@ -296,13 +312,16 @@ const AdminVerificationDashboard: React.FC = () => {
   // Actions - Agents
   // ---------------------------------------------------------------------------
 
-  const handleToggleAvailability = async (agentId: string | number, current: boolean) => {
+  const handleToggleAvailability = async (
+    agentId: string | number,
+    current: boolean,
+  ) => {
     try {
       await api.patch(`/verification/agents/${agentId}/`, {
         is_available: !current,
       });
-      setAgents((prev) =>
-        prev.map((a) => (a.id === agentId ? { ...a, is_available: !current } : a)),
+      setAgents(prev =>
+        prev.map(a => (a.id === agentId ? { ...a, is_available: !current } : a)),
       );
       setSuccessMessage('Disponibilidad del agente actualizada.');
       fetchStats();
@@ -363,7 +382,9 @@ const AdminVerificationDashboard: React.FC = () => {
 
   const handleCancelVisit = async (visitId: string | number) => {
     try {
-      await api.patch(`/verification/visits/${visitId}/`, { status: 'cancelled' });
+      await api.patch(`/verification/visits/${visitId}/`, {
+        status: 'cancelled',
+      });
       setSuccessMessage('Visita cancelada.');
       fetchVisits();
       fetchStats();
@@ -392,37 +413,46 @@ const AdminVerificationDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh',
+        }}
+      >
         <CircularProgress size={48} />
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth='xl' sx={{ py: 4 }}>
       {/* Page header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700} color="primary.main" gutterBottom>
+        <Typography
+          variant='h4'
+          fontWeight={700}
+          color='primary.main'
+          gutterBottom
+        >
           Gestión de Agentes de Verificación
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Administra agentes de campo, programa visitas y revisa reportes de verificacion.
+        <Typography variant='body1' color='text.secondary'>
+          Administra agentes de campo, programa visitas y revisa reportes de
+          verificacion.
         </Typography>
       </Box>
 
       {/* Alerts */}
       {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3 }}
-          onClose={() => setError(null)}
-        >
+        <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
       {successMessage && (
         <Alert
-          severity="success"
+          severity='success'
           sx={{ mb: 3 }}
           onClose={() => setSuccessMessage(null)}
         >
@@ -434,33 +464,33 @@ const AdminVerificationDashboard: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Total Agentes"
+            title='Total Agentes'
             value={stats.total_agents}
-            icon={<AgentsIcon fontSize="large" />}
+            icon={<AgentsIcon fontSize='large' />}
             color={vhColors.accentBlue}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Agentes Disponibles"
+            title='Agentes Disponibles'
             value={stats.available_agents}
-            icon={<AvailableIcon fontSize="large" />}
+            icon={<AvailableIcon fontSize='large' />}
             color={vhColors.success}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Visitas Hoy"
+            title='Visitas Hoy'
             value={stats.visits_today}
-            icon={<CalendarIcon fontSize="large" />}
+            icon={<CalendarIcon fontSize='large' />}
             color={vhColors.warning}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Pendientes de Asignacion"
+            title='Pendientes de Asignacion'
             value={stats.pending_assignment}
-            icon={<PendingIcon fontSize="large" />}
+            icon={<PendingIcon fontSize='large' />}
             color={vhColors.error}
           />
         </Grid>
@@ -481,14 +511,18 @@ const AdminVerificationDashboard: React.FC = () => {
             value={activeTab}
             onChange={(_e, newValue: number) => setActiveTab(newValue)}
             sx={{
-              '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: '0.95rem' },
+              '& .MuiTab-root': {
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.95rem',
+              },
               '& .Mui-selected': { color: 'primary.main' },
               '& .MuiTabs-indicator': { backgroundColor: 'primary.main' },
             }}
           >
-            <Tab label="Agentes" />
-            <Tab label="Visitas Programadas" />
-            <Tab label="Reportes" />
+            <Tab label='Agentes' />
+            <Tab label='Visitas Programadas' />
+            <Tab label='Reportes' />
           </Tabs>
         </Box>
 
@@ -500,7 +534,16 @@ const AdminVerificationDashboard: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ '& th': { fontWeight: 700, color: 'text.secondary', fontSize: '0.8rem', textTransform: 'uppercase' } }}>
+                  <TableRow
+                    sx={{
+                      '& th': {
+                        fontWeight: 700,
+                        color: 'text.secondary',
+                        fontSize: '0.8rem',
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                  >
                     <TableCell>Codigo</TableCell>
                     <TableCell>Nombre</TableCell>
                     <TableCell>Especializacion</TableCell>
@@ -513,50 +556,79 @@ const AdminVerificationDashboard: React.FC = () => {
                 <TableBody>
                   {agents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
-                        <Typography variant="body2" color="text.secondary">
+                      <TableCell colSpan={7} align='center' sx={{ py: 5 }}>
+                        <Typography variant='body2' color='text.secondary'>
                           No hay agentes registrados.
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    agents.map((agent) => (
+                    agents.map(agent => (
                       <TableRow
                         key={agent.id}
                         hover
                         sx={{ '&:last-child td': { borderBottom: 0 } }}
                       >
                         <TableCell>
-                          <Typography variant="body2" fontWeight={600} color="primary.main">
+                          <Typography
+                            variant='body2'
+                            fontWeight={600}
+                            color='primary.main'
+                          >
                             {agent.code}
                           </Typography>
                         </TableCell>
                         <TableCell>{agent.name}</TableCell>
                         <TableCell>
-                          <Chip label={agent.specialization} size="small" variant="outlined" />
+                          <Chip
+                            label={agent.specialization}
+                            size='small'
+                            variant='outlined'
+                          />
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={agent.is_available ? 'Disponible' : 'No disponible'}
-                            size="small"
+                            label={
+                              agent.is_available
+                                ? 'Disponible'
+                                : 'No disponible'
+                            }
+                            size='small'
                             color={agent.is_available ? 'success' : 'default'}
                           />
                         </TableCell>
                         <TableCell>{agent.completed_visits}</TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <StarIcon sx={{ fontSize: 16, color: vhColors.warning }} />
-                            <Typography variant="body2">{agent.rating?.toFixed(1)}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            <StarIcon
+                              sx={{ fontSize: 16, color: vhColors.warning }}
+                            />
+                            <Typography variant='body2'>
+                              {agent.rating?.toFixed(1)}
+                            </Typography>
                           </Box>
                         </TableCell>
                         <TableCell>
                           <Button
-                            size="small"
-                            variant="outlined"
+                            size='small'
+                            variant='outlined'
                             color={agent.is_available ? 'warning' : 'success'}
-                            onClick={() => handleToggleAvailability(agent.id, agent.is_available)}
+                            onClick={() =>
+                              handleToggleAvailability(
+                                agent.id,
+                                agent.is_available,
+                              )
+                            }
                           >
-                            {agent.is_available ? 'Marcar no disponible' : 'Marcar disponible'}
+                            {agent.is_available
+                              ? 'Marcar no disponible'
+                              : 'Marcar disponible'}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -574,7 +646,16 @@ const AdminVerificationDashboard: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ '& th': { fontWeight: 700, color: 'text.secondary', fontSize: '0.8rem', textTransform: 'uppercase' } }}>
+                  <TableRow
+                    sx={{
+                      '& th': {
+                        fontWeight: 700,
+                        color: 'text.secondary',
+                        fontSize: '0.8rem',
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                  >
                     <TableCell>Numero</TableCell>
                     <TableCell>Tipo</TableCell>
                     <TableCell>Persona</TableCell>
@@ -587,21 +668,21 @@ const AdminVerificationDashboard: React.FC = () => {
                 <TableBody>
                   {visits.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
-                        <Typography variant="body2" color="text.secondary">
+                      <TableCell colSpan={7} align='center' sx={{ py: 5 }}>
+                        <Typography variant='body2' color='text.secondary'>
                           No hay visitas programadas.
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    visits.map((visit) => (
+                    visits.map(visit => (
                       <TableRow
                         key={visit.id}
                         hover
                         sx={{ '&:last-child td': { borderBottom: 0 } }}
                       >
                         <TableCell>
-                          <Typography variant="body2" fontWeight={600}>
+                          <Typography variant='body2' fontWeight={600}>
                             {visit.visit_number}
                           </Typography>
                         </TableCell>
@@ -611,30 +692,38 @@ const AdminVerificationDashboard: React.FC = () => {
                           {visit.assigned_agent ? (
                             visit.assigned_agent
                           ) : (
-                            <Typography variant="body2" color="text.disabled" fontStyle="italic">
+                            <Typography
+                              variant='body2'
+                              color='text.disabled'
+                              fontStyle='italic'
+                            >
                               Sin asignar
                             </Typography>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">
-                            {visit.date ? new Date(visit.date).toLocaleDateString('es-CO') : '-'}
+                          <Typography variant='body2'>
+                            {visit.date
+                              ? new Date(visit.date).toLocaleDateString('es-CO')
+                              : '-'}
                           </Typography>
                         </TableCell>
                         <TableCell>
                           <Chip
                             label={visitStatusLabel(visit.status)}
-                            size="small"
+                            size='small'
                             color={visitStatusColor(visit.status)}
                           />
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Box
+                            sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}
+                          >
                             {visit.status === 'pending' && (
                               <Button
-                                size="small"
-                                variant="contained"
-                                color="primary"
+                                size='small'
+                                variant='contained'
+                                color='primary'
                                 startIcon={<AssignIcon />}
                                 onClick={() => openAssignDialog(visit.id)}
                               >
@@ -643,9 +732,9 @@ const AdminVerificationDashboard: React.FC = () => {
                             )}
                             {visit.status === 'assigned' && (
                               <Button
-                                size="small"
-                                variant="outlined"
-                                color="info"
+                                size='small'
+                                variant='outlined'
+                                color='info'
                                 startIcon={<StartIcon />}
                                 onClick={() => handleStartVisit(visit.id)}
                               >
@@ -654,9 +743,9 @@ const AdminVerificationDashboard: React.FC = () => {
                             )}
                             {visit.status === 'in_progress' && (
                               <Button
-                                size="small"
-                                variant="outlined"
-                                color="success"
+                                size='small'
+                                variant='outlined'
+                                color='success'
                                 startIcon={<CompleteIcon />}
                                 onClick={() => handleCompleteVisit(visit.id)}
                               >
@@ -665,9 +754,9 @@ const AdminVerificationDashboard: React.FC = () => {
                             )}
                             {['pending', 'assigned'].includes(visit.status) && (
                               <Button
-                                size="small"
-                                variant="outlined"
-                                color="error"
+                                size='small'
+                                variant='outlined'
+                                color='error'
                                 startIcon={<CancelIcon />}
                                 onClick={() => handleCancelVisit(visit.id)}
                               >
@@ -691,7 +780,16 @@ const AdminVerificationDashboard: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ '& th': { fontWeight: 700, color: 'text.secondary', fontSize: '0.8rem', textTransform: 'uppercase' } }}>
+                  <TableRow
+                    sx={{
+                      '& th': {
+                        fontWeight: 700,
+                        color: 'text.secondary',
+                        fontSize: '0.8rem',
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                  >
                     <TableCell>Visita</TableCell>
                     <TableCell>Condicion</TableCell>
                     <TableCell>Calificacion</TableCell>
@@ -703,14 +801,14 @@ const AdminVerificationDashboard: React.FC = () => {
                 <TableBody>
                   {reports.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
-                        <Typography variant="body2" color="text.secondary">
+                      <TableCell colSpan={6} align='center' sx={{ py: 5 }}>
+                        <Typography variant='body2' color='text.secondary'>
                           No hay reportes disponibles.
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    reports.map((report) => (
+                    reports.map(report => (
                       <TableRow
                         key={report.id}
                         hover
@@ -719,31 +817,49 @@ const AdminVerificationDashboard: React.FC = () => {
                         <TableCell>{report.visit}</TableCell>
                         <TableCell>{report.condition}</TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <StarIcon sx={{ fontSize: 16, color: vhColors.warning }} />
-                            <Typography variant="body2">{report.rating?.toFixed(1)}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            <StarIcon
+                              sx={{ fontSize: 16, color: vhColors.warning }}
+                            />
+                            <Typography variant='body2'>
+                              {report.rating?.toFixed(1)}
+                            </Typography>
                           </Box>
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={report.identity_verified ? 'Verificada' : 'No verificada'}
-                            size="small"
-                            color={report.identity_verified ? 'success' : 'error'}
+                            label={
+                              report.identity_verified
+                                ? 'Verificada'
+                                : 'No verificada'
+                            }
+                            size='small'
+                            color={
+                              report.identity_verified ? 'success' : 'error'
+                            }
                           />
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={report.is_approved ? 'Aprobado' : 'Pendiente'}
-                            size="small"
+                            label={
+                              report.is_approved ? 'Aprobado' : 'Pendiente'
+                            }
+                            size='small'
                             color={report.is_approved ? 'success' : 'warning'}
                           />
                         </TableCell>
                         <TableCell>
                           {!report.is_approved && (
                             <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
+                              size='small'
+                              variant='contained'
+                              color='success'
                               startIcon={<VerifiedIcon />}
                               onClick={() => handleApproveReport(report.id)}
                             >
@@ -751,7 +867,11 @@ const AdminVerificationDashboard: React.FC = () => {
                             </Button>
                           )}
                           {report.is_approved && (
-                            <Typography variant="body2" color="success.main" fontWeight={600}>
+                            <Typography
+                              variant='body2'
+                              color='success.main'
+                              fontWeight={600}
+                            >
                               Aprobado
                             </Typography>
                           )}
@@ -772,28 +892,33 @@ const AdminVerificationDashboard: React.FC = () => {
       <Dialog
         open={assignDialogOpen}
         onClose={() => setAssignDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Asignar Agente a la Visita</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Asignar Agente a la Visita
+        </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 3 }}>
-            Selecciona un agente disponible para asignarlo a esta visita de verificacion.
+            Selecciona un agente disponible para asignarlo a esta visita de
+            verificacion.
           </DialogContentText>
           <FormControl fullWidth>
-            <InputLabel id="agent-select-label">Agente disponible</InputLabel>
+            <InputLabel id='agent-select-label'>Agente disponible</InputLabel>
             <Select
-              labelId="agent-select-label"
+              labelId='agent-select-label'
               value={selectedAgentId}
-              label="Agente disponible"
-              onChange={(e: SelectChangeEvent) => setSelectedAgentId(e.target.value)}
+              label='Agente disponible'
+              onChange={(e: SelectChangeEvent) =>
+                setSelectedAgentId(e.target.value)
+              }
             >
               {availableAgents.length === 0 && (
-                <MenuItem disabled value="">
+                <MenuItem disabled value=''>
                   No hay agentes disponibles
                 </MenuItem>
               )}
-              {availableAgents.map((agent) => (
+              {availableAgents.map(agent => (
                 <MenuItem key={agent.id} value={String(agent.id)}>
                   {agent.name} — {agent.specialization} (
                   {agent.rating?.toFixed(1)} estrellas)
@@ -805,17 +930,19 @@ const AdminVerificationDashboard: React.FC = () => {
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button
             onClick={() => setAssignDialogOpen(false)}
-            color="inherit"
+            color='inherit'
             disabled={assignLoading}
           >
             Cancelar
           </Button>
           <Button
             onClick={handleAssignAgent}
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             disabled={!selectedAgentId || assignLoading}
-            startIcon={assignLoading ? <CircularProgress size={16} /> : <AssignIcon />}
+            startIcon={
+              assignLoading ? <CircularProgress size={16} /> : <AssignIcon />
+            }
           >
             Confirmar asignacion
           </Button>

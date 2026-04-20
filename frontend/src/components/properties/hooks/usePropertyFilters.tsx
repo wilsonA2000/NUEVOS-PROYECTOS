@@ -35,12 +35,15 @@ const initialFilters: PropertySearchFilters = {
 export const usePropertyFilters = (): UsePropertyFiltersReturn => {
   const [filters, setFilters] = useState<PropertySearchFilters>(initialFilters);
 
-  const updateFilter = useCallback((key: keyof PropertySearchFilters, value: any) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+  const updateFilter = useCallback(
+    (key: keyof PropertySearchFilters, value: any) => {
+      setFilters(prev => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
 
   const clearFilters = useCallback(() => {
     setFilters(initialFilters);
@@ -48,7 +51,12 @@ export const usePropertyFilters = (): UsePropertyFiltersReturn => {
 
   const hasActiveFilters = useMemo(() => {
     return Object.entries(filters).some(([key, value]) => {
-      if (key === 'search' || key === 'property_type' || key === 'city' || key === 'status') {
+      if (
+        key === 'search' ||
+        key === 'property_type' ||
+        key === 'city' ||
+        key === 'status'
+      ) {
         return value !== '';
       }
       return value !== undefined;

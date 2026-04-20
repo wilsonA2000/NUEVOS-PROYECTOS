@@ -15,7 +15,13 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock useAuth hook
-const mockUser = { id: 'user-1', user_type: 'landlord', first_name: 'Admin', last_name: 'Test', email: 'admin@test.com' };
+const mockUser = {
+  id: 'user-1',
+  user_type: 'landlord',
+  first_name: 'Admin',
+  last_name: 'Test',
+  email: 'admin@test.com',
+};
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({ user: mockUser }),
 }));
@@ -54,7 +60,9 @@ jest.mock('../../../services/matchingService', () => ({
   matchingService: {
     acceptMatchRequest: jest.fn().mockResolvedValue({}),
     rejectMatchRequest: jest.fn().mockResolvedValue({}),
-    validateMatchForContract: jest.fn().mockResolvedValue({ data: { is_valid: true } }),
+    validateMatchForContract: jest
+      .fn()
+      .mockResolvedValue({ data: { is_valid: true } }),
   },
 }));
 
@@ -108,9 +116,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(MatchesDashboard),
-      ),
-    ),
+        React.createElement(MatchesDashboard)
+      )
+    )
   );
 };
 
@@ -138,7 +146,9 @@ describe('MatchesDashboard', () => {
     // Should show some loading indicator
     const progressBars = screen.queryAllByRole('progressbar');
     const allText = document.body.textContent || '';
-    expect(progressBars.length > 0 || allText.includes('Cargando')).toBeTruthy();
+    expect(
+      progressBars.length > 0 || allText.includes('Cargando')
+    ).toBeTruthy();
   });
 
   it('should show error state when loading fails', () => {
@@ -148,22 +158,27 @@ describe('MatchesDashboard', () => {
     const allText = document.body.textContent || '';
     expect(
       allText.includes('error') ||
-      allText.includes('Error') ||
-      allText.includes('Failed'),
+        allText.includes('Error') ||
+        allText.includes('Failed')
     ).toBeTruthy();
   });
 
   it('should render tabs for landlord user', () => {
     mockUseMatchRequests.receivedRequests = [
-      { id: 'mr-1', status: 'pending', tenant: { first_name: 'Test' }, property: { title: 'Apto' } },
+      {
+        id: 'mr-1',
+        status: 'pending',
+        tenant: { first_name: 'Test' },
+        property: { title: 'Apto' },
+      },
     ];
     renderComponent();
 
     const allText = document.body.textContent || '';
     expect(
       allText.includes('Pendiente') ||
-      allText.includes('PENDIENTE') ||
-      allText.includes('Solicitud'),
+        allText.includes('PENDIENTE') ||
+        allText.includes('Solicitud')
     ).toBeTruthy();
   });
 
@@ -177,8 +192,8 @@ describe('MatchesDashboard', () => {
     const allText = document.body.textContent || '';
     expect(
       allText.includes('Enviada') ||
-      allText.includes('ENVIADA') ||
-      allText.includes('Solicitud'),
+        allText.includes('ENVIADA') ||
+        allText.includes('Solicitud')
     ).toBeTruthy();
   });
 
@@ -189,9 +204,9 @@ describe('MatchesDashboard', () => {
     const allText = document.body.textContent || '';
     expect(
       allText.includes('No hay solicitudes') ||
-      allText.includes('no hay') ||
-      allText.includes('vacío') ||
-      allText.includes('solicitudes'),
+        allText.includes('no hay') ||
+        allText.includes('vacío') ||
+        allText.includes('solicitudes')
     ).toBeTruthy();
   });
 
@@ -222,6 +237,8 @@ describe('MatchesDashboard', () => {
 
     const allText = document.body.textContent || '';
     // Should display tenant name or property info
-    expect(allText.includes('Carlos') || allText.includes('Apto Centro')).toBeTruthy();
+    expect(
+      allText.includes('Carlos') || allText.includes('Apto Centro')
+    ).toBeTruthy();
   });
 });

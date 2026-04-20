@@ -31,7 +31,7 @@ def _track_previous_state(sender, instance, **kwargs):
         instance._previous_state = None
         return
     try:
-        previous = sender.objects.only('current_state').get(pk=instance.pk)
+        previous = sender.objects.only("current_state").get(pk=instance.pk)
         instance._previous_state = previous.current_state
     except sender.DoesNotExist:
         instance._previous_state = None
@@ -45,7 +45,7 @@ def record_state_transition(sender, instance, created, **kwargs):
     olvidaba, la transición quedaba sin huella. Con este signal la trazabilidad
     se hace independiente del código de negocio.
     """
-    previous = getattr(instance, '_previous_state', None)
+    previous = getattr(instance, "_previous_state", None)
 
     # Si no hay cambio real de estado, no hacer nada.
     if created:
@@ -59,46 +59,54 @@ def record_state_transition(sender, instance, created, **kwargs):
     try:
         from contracts.landlord_contract_models import ContractWorkflowHistory
 
-        performed_by = getattr(instance, '_updated_by', None)
+        performed_by = getattr(instance, "_updated_by", None)
         ContractWorkflowHistory.objects.create(
             contract=instance,
-            action_type='STATE_CHANGE',
+            action_type="STATE_CHANGE",
             action_description=(
                 f'Transición automática: {previous or "—"} → {new_state_entry}'
             ),
             performed_by=performed_by,
-            user_role=getattr(performed_by, 'user_type', 'system') or 'system',
-            old_state=previous or '',
-            new_state=new_state_entry or '',
+            user_role=getattr(performed_by, "user_type", "system") or "system",
+            old_state=previous or "",
+            new_state=new_state_entry or "",
         )
-    except Exception as exc:  # pragma: no cover — la trazabilidad no debe romper el guardado
-        logger.warning('No se pudo registrar transición en ContractWorkflowHistory: %s', exc)
+    except (
+        Exception
+    ) as exc:  # pragma: no cover — la trazabilidad no debe romper el guardado
+        logger.warning(
+            "No se pudo registrar transición en ContractWorkflowHistory: %s", exc
+        )
 
 
 @receiver(post_save, sender=LandlordControlledContract)
 def generate_payment_schedule_on_activation(sender, instance, created, **kwargs):
     """Genera cronograma de pagos cuando el contrato pasa a ACTIVE."""
-    if instance.current_state != 'ACTIVE':
+    if instance.current_state != "ACTIVE":
         return
 
-    previous = getattr(instance, '_previous_state', None)
+    previous = getattr(instance, "_previous_state", None)
     # Solo actuar en la transición (no cada vez que se guarda un contrato ya activo)
-    if previous == 'ACTIVE':
+    if previous == "ACTIVE":
         return
 
     # Importar aquí para evitar circular imports a nivel módulo
     from payments.models import (
-        RentPaymentSchedule, PaymentInstallment, PaymentOrder, PaymentPlan,
+        RentPaymentSchedule,
+        PaymentInstallment,
+        PaymentOrder,
+        PaymentPlan,
     )
 
     # Encontrar el Contract legacy: comparten mismo UUID por convención
     # (BIO-02: ambos sistemas se sincronizan con el mismo id).
     from contracts.models import Contract
+
     legacy_contract = Contract.objects.filter(id=instance.id).first()
     if legacy_contract is None:
         logger.warning(
-            'LandlordControlledContract %s activado sin Contract legacy '
-            '(no se encontró Contract con mismo UUID). Skip schedule.',
+            "LandlordControlledContract %s activado sin Contract legacy "
+            "(no se encontró Contract con mismo UUID). Skip schedule.",
             instance.id,
         )
         return
@@ -109,15 +117,15 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
     # Validar que tengamos los datos mínimos
     if not (instance.start_date and instance.end_date):
         logger.warning(
-            'LandlordControlledContract %s activado sin start/end_date. Skip schedule.',
+            "LandlordControlledContract %s activado sin start/end_date. Skip schedule.",
             instance.id,
         )
         return
 
-    monthly_rent = Decimal(str(instance.economic_terms.get('monthly_rent', 0) or 0))
+    monthly_rent = Decimal(str(instance.economic_terms.get("monthly_rent", 0) or 0))
     if monthly_rent <= 0:
         logger.warning(
-            'LandlordControlledContract %s sin monthly_rent válido en economic_terms.',
+            "LandlordControlledContract %s sin monthly_rent válido en economic_terms.",
             instance.id,
         )
         return
@@ -125,7 +133,7 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
     landlord = instance.landlord
     tenant = instance.tenant
     if not (landlord and tenant):
-        logger.warning('Contrato %s sin landlord o tenant.', instance.id)
+        logger.warning("Contrato %s sin landlord o tenant.", instance.id)
         return
 
     with db_transaction.atomic():
@@ -148,31 +156,33 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
         n_months = _months_between(instance.start_date, instance.end_date)
         plan = PaymentPlan.objects.create(
             user=tenant,
-            plan_name=f'Plan de canon mensual · contrato {instance.id}',
+            plan_name=f"Plan de canon mensual · contrato {instance.id}",
             total_amount=monthly_rent * Decimal(n_months),
             installment_amount=monthly_rent,
             number_of_installments=n_months,
-            frequency='monthly',
+            frequency="monthly",
             start_date=instance.start_date,
             end_date=instance.end_date,
-            status='active',
+            status="active",
         )
 
         # 3. Crear N PaymentInstallment + PaymentOrder por cada mes
         installments_created = []
-        current = date(instance.start_date.year, instance.start_date.month, instance.start_date.day)
+        current = date(
+            instance.start_date.year, instance.start_date.month, instance.start_date.day
+        )
         for n in range(1, plan.number_of_installments + 1):
             installment = PaymentInstallment.objects.create(
                 payment_plan=plan,
                 installment_number=n,
                 amount=monthly_rent,
                 due_date=current,
-                status='pending',
+                status="pending",
             )
             grace_end = current + timedelta(days=schedule.grace_period_days)
             max_overdue = grace_end + timedelta(days=schedule.legal_grace_days_max)
             order = PaymentOrder.objects.create(
-                order_type='rent',
+                order_type="rent",
                 payer=tenant,
                 payee=landlord,
                 created_by=landlord,
@@ -182,12 +192,12 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
                 date_max_overdue=max_overdue,
                 rent_schedule=schedule,
                 installment=installment,
-                description=f'Canon mes {n}/{plan.number_of_installments} · contrato {instance.id}',
-                status='pending',
+                description=f"Canon mes {n}/{plan.number_of_installments} · contrato {instance.id}",
+                status="pending",
             )
             order.add_audit_event(
-                'auto_generated',
-                f'Generada automáticamente al activar contrato {instance.id}',
+                "auto_generated",
+                f"Generada automáticamente al activar contrato {instance.id}",
                 actor=landlord,
                 save=False,
             )
@@ -196,8 +206,10 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
             current = _add_months(current, 1)
 
         logger.info(
-            'Contrato %s activado: generadas %d installments y %d PaymentOrders.',
-            instance.id, len(installments_created), len(installments_created),
+            "Contrato %s activado: generadas %d installments y %d PaymentOrders.",
+            instance.id,
+            len(installments_created),
+            len(installments_created),
         )
 
 
@@ -209,6 +221,7 @@ def _months_between(start, end):
 def _add_months(d, months):
     """Suma N meses a una fecha, ajustando al último día si no existe."""
     from calendar import monthrange
+
     month = d.month - 1 + months
     year = d.year + month // 12
     month = month % 12 + 1

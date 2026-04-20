@@ -50,20 +50,21 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
 
   const isMyTurn = currentTurn === userType;
   const waitingFor = currentTurn === 'tenant' ? 'arrendatario' : 'arrendador';
-  const WaitingForIconComp = currentTurn === 'tenant' ? HomeIcon : BusinessCenterIcon;
+  const WaitingForIconComp =
+    currentTurn === 'tenant' ? HomeIcon : BusinessCenterIcon;
 
   if (isMyTurn) {
     // Caso especial: es su turno pero llegó a esta página por error
     return (
-      <Box p={3} display="flex" flexDirection="column" alignItems="center">
-        <Alert severity="info" sx={{ mb: 3, width: '100%', maxWidth: 600 }}>
+      <Box p={3} display='flex' flexDirection='column' alignItems='center'>
+        <Alert severity='info' sx={{ mb: 3, width: '100%', maxWidth: 600 }}>
           <AlertTitle>Es tu turno</AlertTitle>
-          <Typography variant="body2">
+          <Typography variant='body2'>
             Puedes proceder con la autenticación biométrica ahora.
           </Typography>
         </Alert>
         <Button
-          variant="contained"
+          variant='contained'
           onClick={onBack}
           startIcon={<ArrowBackIcon />}
         >
@@ -118,13 +119,15 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
               fontSize: '2rem',
             }}
           >
-            <WaitingForIconComp sx={{ fontSize: '2rem', color: theme.palette.primary.main }} />
+            <WaitingForIconComp
+              sx={{ fontSize: '2rem', color: theme.palette.primary.main }}
+            />
           </Box>
         </Box>
 
         {/* Título principal */}
         <Typography
-          variant="h5"
+          variant='h5'
           gutterBottom
           sx={{
             fontWeight: 600,
@@ -139,14 +142,14 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
         <Chip
           icon={<SecurityIcon />}
           label={`Turno del ${waitingFor}`}
-          color="warning"
-          variant="outlined"
+          color='warning'
+          variant='outlined'
           sx={{ mb: 3, fontSize: '0.9rem', py: 2, px: 1 }}
         />
 
         {/* Mensaje explicativo */}
         <Alert
-          severity="info"
+          severity='info'
           sx={{
             mb: 3,
             textAlign: 'left',
@@ -156,43 +159,48 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
           }}
         >
           <AlertTitle>
-            <Box display="flex" alignItems="center" gap={1}>
-              <ScheduleIcon fontSize="small" />
+            <Box display='flex' alignItems='center' gap={1}>
+              <ScheduleIcon fontSize='small' />
               Flujo secuencial activo
             </Box>
           </AlertTitle>
-          <Typography variant="body2" sx={{ mt: 1 }}>
+          <Typography variant='body2' sx={{ mt: 1 }}>
             El proceso de autenticación biométrica sigue un orden específico:
           </Typography>
-          <Box component="ol" sx={{ mt: 1, pl: 2, mb: 0 }}>
+          <Box component='ol' sx={{ mt: 1, pl: 2, mb: 0 }}>
             <li>
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 <strong>Arrendatario</strong> completa su autenticación primero
               </Typography>
             </li>
             <li>
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 <strong>Arrendador</strong> completa su autenticación después
               </Typography>
             </li>
           </Box>
-          <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
+          <Typography variant='body2' sx={{ mt: 2, fontStyle: 'italic' }}>
             {currentTurn === 'tenant'
               ? 'El arrendatario debe completar su proceso antes de que puedas continuar.'
-              : 'El arrendador debe completar su proceso antes de que puedas continuar.'
-            }
+              : 'El arrendador debe completar su proceso antes de que puedas continuar.'}
           </Typography>
         </Alert>
 
         {/* Información adicional si hay nombre del otro usuario */}
         {otherUserName && (
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Esperando a:
             </Typography>
-            <Box display="flex" alignItems="center" justifyContent="center" gap={1} sx={{ mt: 1 }}>
-              <PersonIcon fontSize="small" color="primary" />
-              <Typography variant="body1" fontWeight="500">
+            <Box
+              display='flex'
+              alignItems='center'
+              justifyContent='center'
+              gap={1}
+              sx={{ mt: 1 }}
+            >
+              <PersonIcon fontSize='small' color='primary' />
+              <Typography variant='body1' fontWeight='500'>
                 {otherUserName}
               </Typography>
             </Box>
@@ -202,7 +210,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
         {/* Botones de acción */}
         <Box sx={{ mt: 4 }}>
           <Button
-            variant="outlined"
+            variant='outlined'
             onClick={onBack}
             startIcon={<ArrowBackIcon />}
             sx={{ mr: 2 }}
@@ -210,7 +218,7 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
             Volver
           </Button>
           <Button
-            variant="text"
+            variant='text'
             onClick={handleRefresh}
             sx={{
               color: theme.palette.text.secondary,
@@ -225,8 +233,8 @@ const WaitingForOtherUser: React.FC<WaitingForOtherUserProps> = ({
 
         {/* Información técnica */}
         <Typography
-          variant="caption"
-          color="text.secondary"
+          variant='caption'
+          color='text.secondary'
           sx={{
             mt: 3,
             display: 'block',

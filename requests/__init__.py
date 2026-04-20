@@ -16,10 +16,10 @@ def _find_real_requests_path():
         if not path:
             continue
         abs_path = _os.path.normpath(_os.path.abspath(path))
-        candidate = _os.path.normpath(_os.path.join(abs_path, 'requests'))
+        candidate = _os.path.normpath(_os.path.join(abs_path, "requests"))
         if candidate == _this_dir:
             continue
-        init_file = _os.path.join(candidate, '__init__.py')
+        init_file = _os.path.join(candidate, "__init__.py")
         if _os.path.isfile(init_file):
             return candidate, init_file
     return None, None
@@ -32,10 +32,10 @@ def _load_real_requests_attrs():
         return {}
 
     # Save existing state
-    _saved_self = _sys.modules.pop('requests', None)
+    _saved_self = _sys.modules.pop("requests", None)
     _saved_subs = {}
     for k in list(_sys.modules):
-        if k.startswith('requests.'):
+        if k.startswith("requests."):
             _saved_subs[k] = _sys.modules.pop(k)
 
     # Temporarily prepend site-packages to sys.path
@@ -45,19 +45,20 @@ def _load_real_requests_attrs():
     attrs = {}
     try:
         import importlib as _il
-        _real = _il.import_module('requests')
+
+        _real = _il.import_module("requests")
         # Copy all public attributes
         for name in dir(_real):
-            if not name.startswith('_'):
+            if not name.startswith("_"):
                 attrs[name] = getattr(_real, name)
         # Also copy __version__
-        attrs['__version__'] = _real.__version__
+        attrs["__version__"] = _real.__version__
     except Exception:
         pass
     finally:
         # Clean up: remove ALL requests.* modules that the real import added
         for k in list(_sys.modules):
-            if k == 'requests' or k.startswith('requests.'):
+            if k == "requests" or k.startswith("requests."):
                 del _sys.modules[k]
 
         # Remove site-packages path we added
@@ -68,7 +69,7 @@ def _load_real_requests_attrs():
 
         # Restore original state
         if _saved_self is not None:
-            _sys.modules['requests'] = _saved_self
+            _sys.modules["requests"] = _saved_self
         for k, v in _saved_subs.items():
             _sys.modules[k] = v
 

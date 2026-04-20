@@ -19,7 +19,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   LinearProgress,
   Paper,
   Grid,
@@ -29,8 +28,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
-  Snackbar,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
@@ -50,15 +47,12 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Importar componentes biométricos existentes
-import BiometricAuthenticationFlow from './BiometricAuthenticationFlow';
-import DigitalSignatureFlow from './DigitalSignatureFlow';
 
 import { LandlordContractService } from '../../services/landlordContractService';
 import {
   LandlordControlledContractData,
   DigitalSignaturePayload,
 } from '../../types/landlordContract';
-import { LoadingButton } from '../common/LoadingButton';
 
 interface BiometricContractSigningProps {
   contract: LandlordControlledContractData;
@@ -97,18 +91,14 @@ const STEP_DESCRIPTIONS = {
   4: 'Confirmamos la validez legal de tu firma y el contrato',
 };
 
-export const BiometricContractSigning: React.FC<BiometricContractSigningProps> = ({
-  contract,
-  userType,
-  open,
-  onClose,
-  onSigningComplete,
-  onError,
-}) => {
+export const BiometricContractSigning: React.FC<
+  BiometricContractSigningProps
+> = ({ contract, userType, open, onClose, onSigningComplete, onError }) => {
   // Estado principal
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [biometricAuthResult, setBiometricAuthResult] = useState<BiometricAuthResult | null>(null);
+  const [biometricAuthResult, setBiometricAuthResult] =
+    useState<BiometricAuthResult | null>(null);
   const [signatureData, setSignatureData] = useState<any>(null);
   const [progress, setProgress] = useState(0);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -135,26 +125,34 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
       digitalSigned,
       legallyConfirmed,
     ].filter(Boolean).length;
-    
+
     setProgress((completedSteps / 5) * 100);
-  }, [identityVerified, biometricCompleted, contractReviewed, digitalSigned, legallyConfirmed]);
+  }, [
+    identityVerified,
+    biometricCompleted,
+    contractReviewed,
+    digitalSigned,
+    legallyConfirmed,
+  ]);
 
   const initializeSigningProcess = async () => {
     try {
       setLoading(true);
       setWarnings([]);
-      
+
       // Validaciones pre-firma específicas para el workflow de contratos
       const validationWarnings = await validateContractForSigning();
       setWarnings(validationWarnings);
-      
+
       if (validationWarnings.length === 0) {
         setCurrentStep(0);
         setIdentityVerified(true);
         await proceedToNextStep();
       }
     } catch (err: any) {
-      onError(`Error al inicializar proceso de firma: ${  err.message || 'Error desconocido'}`);
+      onError(
+        `Error al inicializar proceso de firma: ${err.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -172,7 +170,7 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
     if (userType === 'landlord' && contract.landlord_signed) {
       warnings.push('El arrendador ya ha firmado este contrato');
     }
-    
+
     if (userType === 'tenant' && contract.tenant_signed) {
       warnings.push('El arrendatario ya ha firmado este contrato');
     }
@@ -184,7 +182,9 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
 
     // Validar objeciones pendientes
     if (contract.current_state === 'OBJECTIONS_PENDING') {
-      warnings.push('Hay objeciones pendientes que deben resolverse antes de firmar');
+      warnings.push(
+        'Hay objeciones pendientes que deben resolverse antes de firmar',
+      );
     }
 
     // Validar términos económicos
@@ -205,26 +205,26 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         // Verificación de identidad completada automáticamente si no hay warnings
         setCurrentStep(1);
         break;
-        
+
       case 1:
         if (biometricCompleted) {
           setCurrentStep(2);
         }
         break;
-        
+
       case 2:
         if (contractReviewed) {
           setCurrentStep(3);
         }
         break;
-        
+
       case 3:
         if (digitalSigned) {
           setCurrentStep(4);
           await finalizeContractSigning();
         }
         break;
-        
+
       case 4:
         // Proceso completado
         break;
@@ -238,7 +238,7 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
   };
 
   const handleBiometricAuthError = (error: string) => {
-    onError(`Error en autenticación biométrica: ${  error}`);
+    onError(`Error en autenticación biométrica: ${error}`);
   };
 
   const handleContractReviewComplete = () => {
@@ -286,17 +286,19 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
       };
 
       // Enviar firma al backend
-      const updatedContract = userType === 'landlord' 
-        ? await LandlordContractService.signLandlordContract(signaturePayload)
-        : await LandlordContractService.signTenantContract(signaturePayload);
+      const updatedContract =
+        userType === 'landlord'
+          ? await LandlordContractService.signLandlordContract(signaturePayload)
+          : await LandlordContractService.signTenantContract(signaturePayload);
 
       setLegallyConfirmed(true);
-      
+
       // Llamar callback de éxito
       onSigningComplete(updatedContract);
-      
     } catch (err: any) {
-      onError(`Error al finalizar firma: ${  err.message || 'Error desconocido'}`);
+      onError(
+        `Error al finalizar firma: ${err.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -314,12 +316,18 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
 
   const getStepIcon = (step: number) => {
     switch (step) {
-      case 0: return <PersonIcon />;
-      case 1: return <FaceIcon />;
-      case 2: return <DocumentIcon />;
-      case 3: return <SignatureIcon />;
-      case 4: return <LegalIcon />;
-      default: return <SecurityIcon />;
+      case 0:
+        return <PersonIcon />;
+      case 1:
+        return <FaceIcon />;
+      case 2:
+        return <DocumentIcon />;
+      case 3:
+        return <SignatureIcon />;
+      case 4:
+        return <LegalIcon />;
+      default:
+        return <SecurityIcon />;
     }
   };
 
@@ -335,27 +343,36 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         return (
           <Card>
             <CardContent>
-              <Box textAlign="center" py={3}>
-                <Avatar sx={{ bgcolor: 'primary.main', width: 64, height: 64, mx: 'auto', mb: 2 }}>
+              <Box textAlign='center' py={3}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'primary.main',
+                    width: 64,
+                    height: 64,
+                    mx: 'auto',
+                    mb: 2,
+                  }}
+                >
                   <PersonIcon sx={{ fontSize: 32 }} />
                 </Avatar>
-                <Typography variant="h6" sx={{ mb: 2 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
                   Verificación de Identidad
                 </Typography>
-                <Typography color="text.secondary" sx={{ mb: 3 }}>
-                  Validando tu información para proceder con la firma del contrato
+                <Typography color='text.secondary' sx={{ mb: 3 }}>
+                  Validando tu información para proceder con la firma del
+                  contrato
                 </Typography>
-                
+
                 {warnings.length > 0 ? (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  <Alert severity='error' sx={{ mb: 2 }}>
+                    <Typography variant='subtitle2' sx={{ mb: 1 }}>
                       Se encontraron los siguientes problemas:
                     </Typography>
                     <List dense>
                       {warnings.map((warning, index) => (
                         <ListItem key={index}>
                           <ListItemIcon>
-                            <WarningIcon color="error" />
+                            <WarningIcon color='error' />
                           </ListItemIcon>
                           <ListItemText primary={warning} />
                         </ListItem>
@@ -363,8 +380,10 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
                     </List>
                   </Alert>
                 ) : (
-                  <Alert severity="success">
-                    <Typography>Verificación de identidad completada exitosamente</Typography>
+                  <Alert severity='success'>
+                    <Typography>
+                      Verificación de identidad completada exitosamente
+                    </Typography>
                   </Alert>
                 )}
               </Box>
@@ -376,14 +395,18 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         return (
           <Card>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='h6'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
                 <FaceIcon sx={{ mr: 1 }} />
                 Autenticación Biométrica
               </Typography>
-              <Typography color="text.secondary" sx={{ mb: 3 }}>
-                Completa el proceso de autenticación biométrica de 5 pasos para verificar tu identidad
+              <Typography color='text.secondary' sx={{ mb: 3 }}>
+                Completa el proceso de autenticación biométrica de 5 pasos para
+                verificar tu identidad
               </Typography>
-              
+
               {/* BiometricAuthenticationFlow removed temporarily - fix props */}
               <Typography>Autenticación biométrica en proceso...</Typography>
             </CardContent>
@@ -394,54 +417,75 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         return (
           <Card>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='h6'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
                 <DocumentIcon sx={{ mr: 1 }} />
                 Revisión Final del Contrato
               </Typography>
-              <Typography color="text.secondary" sx={{ mb: 3 }}>
-                Revisa cuidadosamente todos los términos antes de proceder con la firma digital
+              <Typography color='text.secondary' sx={{ mb: 3 }}>
+                Revisa cuidadosamente todos los términos antes de proceder con
+                la firma digital
               </Typography>
-              
+
               {/* Resumen de términos clave */}
               <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
-                <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                <Typography variant='subtitle2' sx={{ mb: 2 }}>
                   Términos Principales
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Canon Mensual</Typography>
-                    <Typography variant="h6" color="primary">
-                      {LandlordContractService.formatCurrency(contract.monthly_rent)}
+                    <Typography variant='caption' color='text.secondary'>
+                      Canon Mensual
+                    </Typography>
+                    <Typography variant='h6' color='primary'>
+                      {LandlordContractService.formatCurrency(
+                        contract.monthly_rent,
+                      )}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Depósito</Typography>
-                    <Typography variant="h6" color="secondary">
-                      {LandlordContractService.formatCurrency(contract.security_deposit)}
+                    <Typography variant='caption' color='text.secondary'>
+                      Depósito
+                    </Typography>
+                    <Typography variant='h6' color='secondary'>
+                      {LandlordContractService.formatCurrency(
+                        contract.security_deposit,
+                      )}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Duración</Typography>
-                    <Typography variant="body1">{contract.contract_duration_months} meses</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Duración
+                    </Typography>
+                    <Typography variant='body1'>
+                      {contract.contract_duration_months} meses
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Propiedad</Typography>
-                    <Typography variant="body1">{contract.property_address}</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Propiedad
+                    </Typography>
+                    <Typography variant='body1'>
+                      {contract.property_address}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Paper>
 
-              <Alert severity="warning" sx={{ mb: 3 }}>
-                <Typography variant="body2">
-                  ⚠️ <strong>Importante:</strong> Una vez que firmes digitalmente este contrato, 
-                  será legalmente vinculante. Asegúrate de haber leído y entendido todos los términos.
+              <Alert severity='warning' sx={{ mb: 3 }}>
+                <Typography variant='body2'>
+                  ⚠️ <strong>Importante:</strong> Una vez que firmes
+                  digitalmente este contrato, será legalmente vinculante.
+                  Asegúrate de haber leído y entendido todos los términos.
                 </Typography>
               </Alert>
 
-              <Box textAlign="center">
+              <Box textAlign='center'>
                 <Button
-                  variant="contained"
-                  size="large"
+                  variant='contained'
+                  size='large'
                   onClick={handleContractReviewComplete}
                   startIcon={<CheckIcon />}
                 >
@@ -456,14 +500,18 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         return (
           <Card>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='h6'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
                 <SignatureIcon sx={{ mr: 1 }} />
                 Firma Digital
               </Typography>
-              <Typography color="text.secondary" sx={{ mb: 3 }}>
-                Captura tu firma digital. Esta será validada con tus datos biométricos
+              <Typography color='text.secondary' sx={{ mb: 3 }}>
+                Captura tu firma digital. Esta será validada con tus datos
+                biométricos
               </Typography>
-              
+
               {/* DigitalSignatureFlow removed temporarily - fix props */}
               <Typography>Firma digital en proceso...</Typography>
             </CardContent>
@@ -474,61 +522,85 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
         return (
           <Card>
             <CardContent>
-              <Box textAlign="center" py={4}>
-                <Avatar sx={{ bgcolor: 'success.main', width: 80, height: 80, mx: 'auto', mb: 2 }}>
+              <Box textAlign='center' py={4}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'success.main',
+                    width: 80,
+                    height: 80,
+                    mx: 'auto',
+                    mb: 2,
+                  }}
+                >
                   <LegalIcon sx={{ fontSize: 40 }} />
                 </Avatar>
-                <Typography variant="h5" sx={{ mb: 2 }}>
+                <Typography variant='h5' sx={{ mb: 2 }}>
                   ¡Firma Completada Exitosamente!
                 </Typography>
-                <Typography color="text.secondary" sx={{ mb: 3 }}>
-                  Tu firma digital ha sido procesada y verificada. El contrato ahora tiene validez legal.
+                <Typography color='text.secondary' sx={{ mb: 3 }}>
+                  Tu firma digital ha sido procesada y verificada. El contrato
+                  ahora tiene validez legal.
                 </Typography>
-                
+
                 {/* Información de la firma */}
                 <Paper sx={{ p: 2, bgcolor: 'success.50', mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                  <Typography variant='subtitle2' sx={{ mb: 2 }}>
                     📜 Información de la Firma
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="caption" color="text.secondary">Firmado por</Typography>
-                      <Typography variant="body1">
-                        {userType === 'landlord' ? contract.landlord_data.full_name : contract.tenant_data?.full_name}
+                      <Typography variant='caption' color='text.secondary'>
+                        Firmado por
+                      </Typography>
+                      <Typography variant='body1'>
+                        {userType === 'landlord'
+                          ? contract.landlord_data.full_name
+                          : contract.tenant_data?.full_name}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="caption" color="text.secondary">Fecha y Hora</Typography>
-                      <Typography variant="body1">
+                      <Typography variant='caption' color='text.secondary'>
+                        Fecha y Hora
+                      </Typography>
+                      <Typography variant='body1'>
                         {format(new Date(), 'PPpp', { locale: es })}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="caption" color="text.secondary">Nivel de Confianza</Typography>
-                      <Typography variant="body1" color="success.main">
-                        {biometricAuthResult?.confidence_score.toFixed(1)}% — Verificado
+                      <Typography variant='caption' color='text.secondary'>
+                        Nivel de Confianza
+                      </Typography>
+                      <Typography variant='body1' color='success.main'>
+                        {biometricAuthResult?.confidence_score.toFixed(1)}% —
+                        Verificado
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <Typography variant="caption" color="text.secondary">ID de Autenticación</Typography>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                      <Typography variant='caption' color='text.secondary'>
+                        ID de Autenticación
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{ fontFamily: 'monospace' }}
+                      >
                         {biometricAuthResult?.authentication_id.slice(0, 12)}...
                       </Typography>
                     </Grid>
                   </Grid>
                 </Paper>
 
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2">
-                    📧 Se ha enviado una copia de confirmación a tu email registrado. 
-                    El contrato estará disponible para descarga una vez que ambas partes hayan firmado.
+                <Alert severity='info' sx={{ mb: 3 }}>
+                  <Typography variant='body2'>
+                    📧 Se ha enviado una copia de confirmación a tu email
+                    registrado. El contrato estará disponible para descarga una
+                    vez que ambas partes hayan firmado.
                   </Typography>
                 </Alert>
 
-                <Box display="flex" gap={2} justifyContent="center">
+                <Box display='flex' gap={2} justifyContent='center'>
                   <Button
-                    variant="contained"
-                    size="large"
+                    variant='contained'
+                    size='large'
                     onClick={() => {
                       setLegallyConfirmed(true);
                       onClose();
@@ -551,33 +623,37 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
     <Dialog
       open={open}
       onClose={warnings.length === 0 ? onClose : undefined} // No permitir cerrar si hay warnings
-      maxWidth="lg"
+      maxWidth='lg'
       fullWidth
       disableEscapeKeyDown={currentStep > 0 && currentStep < 4} // No permitir escape en medio del proceso
     >
       <DialogTitle>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center">
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
+          <Box display='flex' alignItems='center'>
             <ShieldIcon sx={{ mr: 1 }} />
-            <Typography variant="h6">
+            <Typography variant='h6'>
               Firma Digital con Autenticación Biométrica
             </Typography>
           </Box>
-          <Chip 
+          <Chip
             label={`Paso ${currentStep + 1} de ${SIGNING_STEPS.length}`}
-            color="primary"
-            variant="outlined"
+            color='primary'
+            variant='outlined'
           />
         </Box>
-        
+
         {/* Barra de progreso */}
         <Box sx={{ mt: 2 }}>
-          <LinearProgress 
-            variant="determinate" 
-            value={progress} 
+          <LinearProgress
+            variant='determinate'
+            value={progress}
             sx={{ height: 8, borderRadius: 4 }}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ mt: 0.5, display: 'block' }}
+          >
             {progress.toFixed(0)}% completado
           </Typography>
         </Box>
@@ -591,9 +667,9 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
               <Step key={label}>
                 <StepLabel
                   StepIconComponent={() => (
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: `${getStepColor(index)  }.main`,
+                    <Avatar
+                      sx={{
+                        bgcolor: `${getStepColor(index)}.main`,
                         width: 32,
                         height: 32,
                       }}
@@ -602,17 +678,15 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
                     </Avatar>
                   )}
                 >
-                  <Typography variant="caption">
-                    {label}
-                  </Typography>
+                  <Typography variant='caption'>{label}</Typography>
                 </StepLabel>
               </Step>
             ))}
           </Stepper>
 
           {/* Descripción del paso actual */}
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body2">
+          <Alert severity='info' sx={{ mb: 3 }}>
+            <Typography variant='body2'>
               {STEP_DESCRIPTIONS[currentStep as keyof typeof STEP_DESCRIPTIONS]}
             </Typography>
           </Alert>
@@ -624,11 +698,11 @@ export const BiometricContractSigning: React.FC<BiometricContractSigningProps> =
 
       <DialogActions>
         {warnings.length > 0 && (
-          <Button onClick={onClose} color="error">
+          <Button onClick={onClose} color='error'>
             Cancelar - Resolver Problemas
           </Button>
         )}
-        
+
         {currentStep > 0 && currentStep < 4 && warnings.length === 0 && (
           <Button onClick={onClose} disabled={loading}>
             Pausar Proceso

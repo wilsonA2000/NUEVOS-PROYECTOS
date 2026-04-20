@@ -5,8 +5,6 @@ import {
   Button,
   Grid,
   Typography,
-  Card,
-  CardContent,
   Alert,
   CircularProgress,
   FormControlLabel,
@@ -65,7 +63,14 @@ interface MatchRequestFormData {
   tenant_phone?: string;
   tenant_email?: string;
   monthly_income?: number;
-  employment_type?: 'employed' | 'self_employed' | 'freelancer' | 'student' | 'retired' | 'unemployed' | 'other';
+  employment_type?:
+    | 'employed'
+    | 'self_employed'
+    | 'freelancer'
+    | 'student'
+    | 'retired'
+    | 'unemployed'
+    | 'other';
   preferred_move_in_date?: string;
   lease_duration_months: number;
   has_rental_references: boolean;
@@ -199,12 +204,14 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
       await onSubmit(data);
       setSubmitStatus({
         type: 'success',
-        message: '¡Solicitud enviada exitosamente! El arrendador será notificado.',
+        message:
+          '¡Solicitud enviada exitosamente! El arrendador será notificado.',
       });
     } catch (error: any) {
       setSubmitStatus({
         type: 'error',
-        message: 'Error al enviar la solicitud. Por favor verifica los datos e intenta nuevamente.',
+        message:
+          'Error al enviar la solicitud. Por favor verifica los datos e intenta nuevamente.',
       });
     }
   };
@@ -215,14 +222,14 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
                 Información de Contacto
               </Typography>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="tenant_phone"
+                name='tenant_phone'
                 control={control}
                 rules={{
                   pattern: {
@@ -234,15 +241,20 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   <TextField
                     {...field}
                     fullWidth
-                    label="Teléfono de contacto"
-                    placeholder="+57 300 123 4567"
+                    label='Teléfono de contacto'
+                    placeholder='+57 300 123 4567'
                     error={!!errors.tenant_phone}
-                    helperText={errors.tenant_phone?.message || 'Opcional - Para contacto directo'}
+                    helperText={
+                      errors.tenant_phone?.message ||
+                      'Opcional - Para contacto directo'
+                    }
                     disabled={isSubmitting}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon sx={{ color: 'var(--color-text-secondary)' }} />
+                        <InputAdornment position='start'>
+                          <PersonIcon
+                            sx={{ color: 'var(--color-text-secondary)' }}
+                          />
                         </InputAdornment>
                       ),
                     }}
@@ -258,7 +270,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="tenant_email"
+                name='tenant_email'
                 control={control}
                 rules={{
                   pattern: {
@@ -270,11 +282,14 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   <TextField
                     {...field}
                     fullWidth
-                    label="Email alternativo"
-                    type="email"
-                    placeholder="contacto@email.com"
+                    label='Email alternativo'
+                    type='email'
+                    placeholder='contacto@email.com'
                     error={!!errors.tenant_email}
-                    helperText={errors.tenant_email?.message || 'Opcional - Si es diferente al de tu cuenta'}
+                    helperText={
+                      errors.tenant_email?.message ||
+                      'Opcional - Si es diferente al de tu cuenta'
+                    }
                     disabled={isSubmitting}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -288,7 +303,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="number_of_occupants"
+                name='number_of_occupants'
                 control={control}
                 rules={{
                   required: 'Número de ocupantes requerido',
@@ -299,8 +314,8 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   <TextField
                     {...field}
                     fullWidth
-                    label="Número de ocupantes *"
-                    type="number"
+                    label='Número de ocupantes *'
+                    type='number'
                     error={!!errors.number_of_occupants}
                     helperText={errors.number_of_occupants?.message}
                     disabled={isSubmitting}
@@ -316,16 +331,19 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="preferred_move_in_date"
+                name='preferred_move_in_date'
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
-                    label="Fecha preferida de mudanza"
-                    type="date"
+                    label='Fecha preferida de mudanza'
+                    type='date'
                     error={!!errors.preferred_move_in_date}
-                    helperText={errors.preferred_move_in_date?.message || 'Fecha ideal para mudarte'}
+                    helperText={
+                      errors.preferred_move_in_date?.message ||
+                      'Fecha ideal para mudarte'
+                    }
                     disabled={isSubmitting}
                     InputLabelProps={{
                       shrink: true,
@@ -342,7 +360,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
             <Grid item xs={12}>
               <Controller
-                name="lease_duration_months"
+                name='lease_duration_months'
                 control={control}
                 rules={{
                   required: 'Duración del contrato requerida',
@@ -353,10 +371,13 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   <TextField
                     {...field}
                     fullWidth
-                    label="Duración deseada del contrato (meses) *"
-                    type="number"
+                    label='Duración deseada del contrato (meses) *'
+                    type='number'
                     error={!!errors.lease_duration_months}
-                    helperText={errors.lease_duration_months?.message || 'Por cuánto tiempo planeas alquilar'}
+                    helperText={
+                      errors.lease_duration_months?.message ||
+                      'Por cuánto tiempo planeas alquilar'
+                    }
                     disabled={isSubmitting}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -374,38 +395,49 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
                 Situación Financiera
               </Typography>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="monthly_income"
+                name='monthly_income'
                 control={control}
                 rules={{
-                  min: { value: 0, message: 'Los ingresos no pueden ser negativos' },
+                  min: {
+                    value: 0,
+                    message: 'Los ingresos no pueden ser negativos',
+                  },
                 }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
-                    label="Ingresos mensuales"
-                    type="number"
-                    placeholder="2000000"
+                    label='Ingresos mensuales'
+                    type='number'
+                    placeholder='2000000'
                     error={!!errors.monthly_income}
-                    helperText={errors.monthly_income?.message || 'Tus ingresos mensuales brutos'}
+                    helperText={
+                      errors.monthly_income?.message ||
+                      'Tus ingresos mensuales brutos'
+                    }
                     disabled={isSubmitting}
-                    onChange={(e) => {
+                    onChange={e => {
                       // Convert empty string to undefined, otherwise parse as number
-                      const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                      const value =
+                        e.target.value === ''
+                          ? undefined
+                          : parseFloat(e.target.value);
                       field.onChange(value);
                     }}
                     value={field.value || ''}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
-                          <MoneyIcon sx={{ color: 'var(--color-text-secondary)' }} />
+                        <InputAdornment position='start'>
+                          <MoneyIcon
+                            sx={{ color: 'var(--color-text-secondary)' }}
+                          />
                         </InputAdornment>
                       ),
                     }}
@@ -421,16 +453,19 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="employment_type"
+                name='employment_type'
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Tipo de empleo"
+                    label='Tipo de empleo'
                     error={!!errors.employment_type}
-                    helperText={errors.employment_type?.message || 'Tu situación laboral actual'}
+                    helperText={
+                      errors.employment_type?.message ||
+                      'Tu situación laboral actual'
+                    }
                     disabled={isSubmitting}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -438,7 +473,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       },
                     }}
                   >
-                    {employmentTypes.map((type) => (
+                    {employmentTypes.map(type => (
                       <MenuItem key={type.value} value={type.value}>
                         {type.label}
                       </MenuItem>
@@ -452,19 +487,28 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             {watchMonthlyIncome && (
               <Grid item xs={12}>
                 <Alert
-                  severity={getIncomeToRentRatio() && parseFloat(getIncomeToRentRatio()!) >= 2.5 ? 'success' : 'warning'}
+                  severity={
+                    getIncomeToRentRatio() &&
+                    parseFloat(getIncomeToRentRatio()!) >= 2.5
+                      ? 'success'
+                      : 'warning'
+                  }
                   sx={{
                     backgroundColor: 'var(--color-background)',
                     border: '1px solid var(--color-border)',
                   }}
                 >
-                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 500, mb: 1 }}>
                     Análisis de Capacidad de Pago
                   </Typography>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    Relación ingresos/arriendo: <strong>{getIncomeToRentRatio()}x</strong>
+                  <Typography variant='body2' sx={{ mb: 1 }}>
+                    Relación ingresos/arriendo:{' '}
+                    <strong>{getIncomeToRentRatio()}x</strong>
                   </Typography>
-                  <Typography variant="body2" sx={{ color: getIncomeRatioColor() }}>
+                  <Typography
+                    variant='body2'
+                    sx={{ color: getIncomeRatioColor() }}
+                  >
                     {getIncomeAdvice()}
                   </Typography>
                 </Alert>
@@ -472,13 +516,13 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             )}
 
             <Grid item xs={12}>
-              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='subtitle2' sx={{ mb: 2, fontWeight: 600 }}>
                 Documentación y Referencias
               </Typography>
-              
+
               <Stack spacing={2}>
                 <Controller
-                  name="has_rental_references"
+                  name='has_rental_references'
                   control={control}
                   render={({ field }) => (
                     <FormControlLabel
@@ -489,13 +533,13 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           disabled={isSubmitting}
                         />
                       }
-                      label="Tengo referencias de alquileres anteriores"
+                      label='Tengo referencias de alquileres anteriores'
                     />
                   )}
                 />
 
                 <Controller
-                  name="has_employment_proof"
+                  name='has_employment_proof'
                   control={control}
                   render={({ field }) => (
                     <FormControlLabel
@@ -506,13 +550,13 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           disabled={isSubmitting}
                         />
                       }
-                      label="Tengo comprobantes de ingresos"
+                      label='Tengo comprobantes de ingresos'
                     />
                   )}
                 />
 
                 <Controller
-                  name="has_credit_check"
+                  name='has_credit_check'
                   control={control}
                   render={({ field }) => (
                     <FormControlLabel
@@ -523,7 +567,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           disabled={isSubmitting}
                         />
                       }
-                      label="Autorizo verificación crediticia"
+                      label='Autorizo verificación crediticia'
                     />
                   )}
                 />
@@ -536,7 +580,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
                 Preferencias y Estilo de Vida
               </Typography>
             </Grid>
@@ -544,7 +588,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             <Grid item xs={12}>
               <Stack spacing={2}>
                 <Controller
-                  name="has_pets"
+                  name='has_pets'
                   control={control}
                   render={({ field }) => (
                     <FormControlLabel
@@ -555,13 +599,13 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           disabled={isSubmitting}
                         />
                       }
-                      label="Tengo mascotas"
+                      label='Tengo mascotas'
                     />
                   )}
                 />
 
                 <Controller
-                  name="smoking_allowed"
+                  name='smoking_allowed'
                   control={control}
                   render={({ field }) => (
                     <FormControlLabel
@@ -572,7 +616,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           disabled={isSubmitting}
                         />
                       }
-                      label="Soy fumador"
+                      label='Soy fumador'
                     />
                   )}
                 />
@@ -582,10 +626,12 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             {watchHasPets && (
               <Grid item xs={12}>
                 <Controller
-                  name="pet_details"
+                  name='pet_details'
                   control={control}
                   rules={{
-                    required: watchHasPets ? 'Detalles de mascotas requeridos' : false,
+                    required: watchHasPets
+                      ? 'Detalles de mascotas requeridos'
+                      : false,
                   }}
                   render={({ field }) => (
                     <TextField
@@ -593,8 +639,8 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       fullWidth
                       multiline
                       rows={3}
-                      label="Detalles de mascotas *"
-                      placeholder="Describe tus mascotas: tipo, raza, tamaño, cantidad, vacunas, etc."
+                      label='Detalles de mascotas *'
+                      placeholder='Describe tus mascotas: tipo, raza, tamaño, cantidad, vacunas, etc.'
                       error={!!errors.pet_details}
                       helperText={errors.pet_details?.message}
                       disabled={isSubmitting}
@@ -610,35 +656,56 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             )}
 
             <Grid item xs={12}>
-              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='subtitle2' sx={{ mb: 2, fontWeight: 600 }}>
                 Prioridad de la Solicitud
               </Typography>
-              
+
               <Controller
-                name="priority"
+                name='priority'
                 control={control}
                 render={({ field }) => (
                   <Box>
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                      {priorityOptions.map((option) => (
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', gap: 1 }}
+                    >
+                      {priorityOptions.map(option => (
                         <Chip
                           key={option.value}
                           label={option.label}
                           onClick={() => field.onChange(option.value)}
-                          variant={field.value === option.value ? 'filled' : 'outlined'}
+                          variant={
+                            field.value === option.value ? 'filled' : 'outlined'
+                          }
                           sx={{
-                            backgroundColor: field.value === option.value ? 'var(--color-primary)' : 'transparent',
-                            color: field.value === option.value ? 'white' : 'var(--color-text-primary)',
+                            backgroundColor:
+                              field.value === option.value
+                                ? 'var(--color-primary)'
+                                : 'transparent',
+                            color:
+                              field.value === option.value
+                                ? 'white'
+                                : 'var(--color-text-primary)',
                             borderColor: 'var(--color-border)',
                             '&:hover': {
-                              backgroundColor: field.value === option.value ? 'var(--color-primary-dark)' : 'var(--color-background)',
+                              backgroundColor:
+                                field.value === option.value
+                                  ? 'var(--color-primary-dark)'
+                                  : 'var(--color-background)',
                             },
                           }}
                         />
                       ))}
                     </Stack>
-                    <Typography variant="body2" sx={{ mt: 1, color: 'var(--color-text-secondary)' }}>
-                      {priorityOptions.find(p => p.value === field.value)?.description}
+                    <Typography
+                      variant='body2'
+                      sx={{ mt: 1, color: 'var(--color-text-secondary)' }}
+                    >
+                      {
+                        priorityOptions.find(p => p.value === field.value)
+                          ?.description
+                      }
                     </Typography>
                   </Box>
                 )}
@@ -648,27 +715,43 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
             {/* Property Compatibility Check */}
             <Grid item xs={12}>
               <Alert
-                severity={!property.pets_allowed && watchHasPets ? 'warning' : 'info'}
+                severity={
+                  !property.pets_allowed && watchHasPets ? 'warning' : 'info'
+                }
                 sx={{
                   backgroundColor: 'var(--color-background)',
                   border: '1px solid var(--color-border)',
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                <Typography variant='body2' sx={{ fontWeight: 500, mb: 1 }}>
                   Compatibilidad con la Propiedad
                 </Typography>
                 {!property.pets_allowed && watchHasPets && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'var(--color-warning)' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      color: 'var(--color-warning)',
+                    }}
+                  >
                     <WarningAmberIcon sx={{ fontSize: 16 }} />
-                    <Typography variant="body2">
+                    <Typography variant='body2'>
                       Esta propiedad no permite mascotas
                     </Typography>
                   </Box>
                 )}
                 {property.pets_allowed && watchHasPets && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'var(--color-success)' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      color: 'var(--color-success)',
+                    }}
+                  >
                     <CheckIcon sx={{ fontSize: 16 }} />
-                    <Typography variant="body2">
+                    <Typography variant='body2'>
                       Esta propiedad permite mascotas
                     </Typography>
                   </Box>
@@ -682,14 +765,14 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
                 Carta de Presentación
               </Typography>
             </Grid>
 
             <Grid item xs={12}>
               <Controller
-                name="tenant_message"
+                name='tenant_message'
                 control={control}
                 rules={{
                   required: 'El mensaje es requerido',
@@ -708,14 +791,14 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                     fullWidth
                     multiline
                     rows={8}
-                    label="Mensaje para el arrendador *"
-                    placeholder="Hola, estoy muy interesado en su propiedad. Me gustaría presentarme y contarle por qué sería un inquilino ideal...
+                    label='Mensaje para el arrendador *'
+                    placeholder='Hola, estoy muy interesado en su propiedad. Me gustaría presentarme y contarle por qué sería un inquilino ideal...
 
 Puedes incluir:
 • Por qué te interesa esta propiedad específica
 • Un poco sobre tu situación personal/familiar
 • Tu historial como inquilino
-• Cualquier información adicional relevante"
+• Cualquier información adicional relevante'
                     error={!!errors.tenant_message}
                     helperText={
                       errors.tenant_message?.message ||
@@ -724,8 +807,13 @@ Puedes incluir:
                     disabled={isSubmitting}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
-                          <DescriptionIcon sx={{ color: 'var(--color-text-secondary)' }} />
+                        <InputAdornment
+                          position='start'
+                          sx={{ alignSelf: 'flex-start', mt: 1 }}
+                        >
+                          <DescriptionIcon
+                            sx={{ color: 'var(--color-text-secondary)' }}
+                          />
                         </InputAdornment>
                       ),
                     }}
@@ -741,22 +829,34 @@ Puedes incluir:
 
             <Grid item xs={12}>
               <Alert
-                severity="info"
+                severity='info'
                 sx={{
                   backgroundColor: 'var(--color-background)',
                   border: '1px solid var(--color-border)',
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 500,
+                    mb: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                  }}
+                >
                   <TipsAndUpdatesIcon sx={{ fontSize: 18 }} />
                   Consejos para tu mensaje:
                 </Typography>
-                <Typography variant="body2" component="div">
-                  • Sé genuino y profesional<br />
-                  • Menciona por qué te interesa esta propiedad específica<br />
-                  • Destaca tu estabilidad financiera y laboral<br />
-                  • Comparte referencias o experiencias positivas como inquilino<br />
-                  • Mantén un tono respetuoso y amigable
+                <Typography variant='body2' component='div'>
+                  • Sé genuino y profesional
+                  <br />
+                  • Menciona por qué te interesa esta propiedad específica
+                  <br />
+                  • Destaca tu estabilidad financiera y laboral
+                  <br />
+                  • Comparte referencias o experiencias positivas como inquilino
+                  <br />• Mantén un tono respetuoso y amigable
                 </Typography>
               </Alert>
             </Grid>
@@ -773,7 +873,7 @@ Puedes incluir:
       <Dialog
         open={open}
         onClose={onCancel}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
         PaperProps={{
           sx: {
@@ -789,14 +889,17 @@ Puedes incluir:
               mb: 2,
             }}
           />
-          <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant='h5' sx={{ mb: 2, fontWeight: 600 }}>
             ¡Solicitud Enviada!
           </Typography>
-          <Typography variant="body1" sx={{ mb: 3, color: vhColors.textSecondary }}>
+          <Typography
+            variant='body1'
+            sx={{ mb: 3, color: vhColors.textSecondary }}
+          >
             {submitStatus.message}
           </Typography>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={onCancel}
             sx={{
               backgroundColor: vhColors.accentBlue,
@@ -816,7 +919,7 @@ Puedes incluir:
     <Dialog
       open={open}
       onClose={onCancel}
-      maxWidth="md"
+      maxWidth='md'
       fullWidth
       PaperProps={{
         sx: {
@@ -841,14 +944,21 @@ Puedes incluir:
       <DialogContent sx={{ p: 4 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>
+          <Typography variant='h5' sx={{ mb: 1, fontWeight: 600 }}>
             Solicitud de Match
           </Typography>
-          <Typography variant="body1" sx={{ color: 'var(--color-text-secondary)' }}>
+          <Typography
+            variant='body1'
+            sx={{ color: 'var(--color-text-secondary)' }}
+          >
             Envía tu solicitud para: <strong>{property.title}</strong>
           </Typography>
-          <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
-            {property.city}, {property.state} • {formatCurrency(property.rent_price)}/mes
+          <Typography
+            variant='body2'
+            sx={{ color: 'var(--color-text-secondary)' }}
+          >
+            {property.city}, {property.state} •{' '}
+            {formatCurrency(property.rent_price)}/mes
           </Typography>
         </Box>
 
@@ -858,7 +968,10 @@ Puedes incluir:
             <Step key={step.label}>
               <StepLabel
                 optional={
-                  <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                  <Typography
+                    variant='caption'
+                    sx={{ color: 'var(--color-text-secondary)' }}
+                  >
                     {step.description}
                   </Typography>
                 }
@@ -870,17 +983,15 @@ Puedes incluir:
         </Stepper>
 
         {/* Form Content */}
-        <Box component="form" onSubmit={handleSubmit(onFormSubmit)}>
+        <Box component='form' onSubmit={handleSubmit(onFormSubmit)}>
           <Fade in={true} key={currentStep}>
-            <Box sx={{ minHeight: 400 }}>
-              {renderStepContent(currentStep)}
-            </Box>
+            <Box sx={{ minHeight: 400 }}>{renderStepContent(currentStep)}</Box>
           </Fade>
 
           {/* Status Alert */}
           {submitStatus.type === 'error' && (
             <Alert
-              severity="error"
+              severity='error'
               sx={{
                 mt: 3,
                 borderRadius: 'var(--border-radius-md)',
@@ -895,7 +1006,7 @@ Puedes incluir:
             <Box>
               {currentStep > 0 && (
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<BackIcon />}
                   onClick={handleStepBack}
                   disabled={isSubmitting}
@@ -915,7 +1026,7 @@ Puedes incluir:
 
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={onCancel}
                 disabled={isSubmitting}
                 sx={{
@@ -932,7 +1043,7 @@ Puedes incluir:
 
               {currentStep < steps.length - 1 ? (
                 <Button
-                  variant="contained"
+                  variant='contained'
                   endIcon={<ForwardIcon />}
                   onClick={handleStepNext}
                   disabled={isSubmitting}
@@ -947,11 +1058,11 @@ Puedes incluir:
                 </Button>
               ) : (
                 <Button
-                  type="submit"
-                  variant="contained"
+                  type='submit'
+                  variant='contained'
                   startIcon={
                     isSubmitting ? (
-                      <CircularProgress size={20} color="inherit" />
+                      <CircularProgress size={20} color='inherit' />
                     ) : (
                       <SendIcon />
                     )

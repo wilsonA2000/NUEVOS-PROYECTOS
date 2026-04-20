@@ -12,10 +12,10 @@ import {
   Fade,
   useTheme,
 } from '@mui/material';
-import { 
-  Send as SendIcon, 
+import {
+  Send as SendIcon,
   CheckCircle as CheckIcon,
-  ContactSupport as ContactIcon, 
+  ContactSupport as ContactIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { api } from '../../services/api';
@@ -56,13 +56,15 @@ const ContactForm: React.FC = () => {
       await api.post('/users/contact/', data);
       setSubmitStatus({
         type: 'success',
-        message: '¡Mensaje enviado exitosamente! Te contactaremos dentro de las próximas 24 horas.',
+        message:
+          '¡Mensaje enviado exitosamente! Te contactaremos dentro de las próximas 24 horas.',
       });
       reset();
     } catch (error: any) {
       setSubmitStatus({
         type: 'error',
-        message: 'Error al enviar el mensaje. Por favor verifica tus datos e intenta nuevamente.',
+        message:
+          'Error al enviar el mensaje. Por favor verifica tus datos e intenta nuevamente.',
       });
     } finally {
       setIsSubmitting(false);
@@ -77,7 +79,7 @@ const ContactForm: React.FC = () => {
   ];
 
   return (
-    <Card 
+    <Card
       elevation={0}
       sx={{
         background: 'var(--color-surface)',
@@ -89,16 +91,16 @@ const ContactForm: React.FC = () => {
       <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <ContactIcon 
-            sx={{ 
-              fontSize: 48, 
+          <ContactIcon
+            sx={{
+              fontSize: 48,
               color: 'var(--color-primary)',
               mb: 2,
-            }} 
+            }}
           />
-          <Typography 
-            variant="h4" 
-            component="h2"
+          <Typography
+            variant='h4'
+            component='h2'
             sx={{
               fontWeight: 600,
               color: 'var(--color-text-primary)',
@@ -107,28 +109,28 @@ const ContactForm: React.FC = () => {
           >
             Contáctanos
           </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
+          <Typography
+            variant='body1'
+            sx={{
               color: 'var(--color-text-secondary)',
               maxWidth: 500,
               mx: 'auto',
             }}
           >
-            Completa el formulario y te responderemos lo antes posible. 
-            Estamos aquí para ayudarte con todas tus necesidades inmobiliarias.
+            Completa el formulario y te responderemos lo antes posible. Estamos
+            aquí para ayudarte con todas tus necesidades inmobiliarias.
           </Typography>
         </Box>
 
         {/* Formulario */}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+        <Box component='form' onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={3}>
             {/* Nombre */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="name"
+                name='name'
                 control={control}
-                rules={{ 
+                rules={{
                   required: 'El nombre es requerido',
                   minLength: { value: 2, message: 'Mínimo 2 caracteres' },
                 }}
@@ -136,7 +138,7 @@ const ContactForm: React.FC = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label="Nombre completo *"
+                    label='Nombre completo *'
                     error={!!errors.name}
                     helperText={errors.name?.message}
                     disabled={isSubmitting}
@@ -160,7 +162,7 @@ const ContactForm: React.FC = () => {
             {/* Email */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="email"
+                name='email'
                 control={control}
                 rules={{
                   required: 'El email es requerido',
@@ -173,8 +175,8 @@ const ContactForm: React.FC = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label="Correo electrónico *"
-                    type="email"
+                    label='Correo electrónico *'
+                    type='email'
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     disabled={isSubmitting}
@@ -198,9 +200,9 @@ const ContactForm: React.FC = () => {
             {/* Teléfono */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="phone"
+                name='phone'
                 control={control}
-                rules={{ 
+                rules={{
                   required: 'El teléfono es requerido',
                   pattern: {
                     value: /^[+]?[\d\s\-()]{10,}$/,
@@ -211,8 +213,8 @@ const ContactForm: React.FC = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label="Teléfono *"
-                    placeholder="+57 300 123 4567"
+                    label='Teléfono *'
+                    placeholder='+57 300 123 4567'
                     error={!!errors.phone}
                     helperText={errors.phone?.message}
                     disabled={isSubmitting}
@@ -236,14 +238,14 @@ const ContactForm: React.FC = () => {
             {/* Tipo de consulta */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="inquiry_type"
+                name='inquiry_type'
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Tipo de consulta"
+                    label='Tipo de consulta'
                     disabled={isSubmitting}
                     SelectProps={{ native: true }}
                     sx={{
@@ -259,7 +261,7 @@ const ContactForm: React.FC = () => {
                       },
                     }}
                   >
-                    {inquiryTypes.map((type) => (
+                    {inquiryTypes.map(type => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
@@ -272,9 +274,9 @@ const ContactForm: React.FC = () => {
             {/* Asunto */}
             <Grid item xs={12}>
               <Controller
-                name="subject"
+                name='subject'
                 control={control}
-                rules={{ 
+                rules={{
                   required: 'El asunto es requerido',
                   minLength: { value: 5, message: 'Mínimo 5 caracteres' },
                 }}
@@ -282,7 +284,7 @@ const ContactForm: React.FC = () => {
                   <TextField
                     {...field}
                     fullWidth
-                    label="Asunto *"
+                    label='Asunto *'
                     error={!!errors.subject}
                     helperText={errors.subject?.message}
                     disabled={isSubmitting}
@@ -306,7 +308,7 @@ const ContactForm: React.FC = () => {
             {/* Mensaje */}
             <Grid item xs={12}>
               <Controller
-                name="message"
+                name='message'
                 control={control}
                 rules={{
                   required: 'El mensaje es requerido',
@@ -321,8 +323,8 @@ const ContactForm: React.FC = () => {
                     fullWidth
                     multiline
                     rows={4}
-                    label="Mensaje *"
-                    placeholder="Describe tu consulta o necesidad en detalle..."
+                    label='Mensaje *'
+                    placeholder='Describe tu consulta o necesidad en detalle...'
                     error={!!errors.message}
                     helperText={errors.message?.message}
                     disabled={isSubmitting}
@@ -347,7 +349,7 @@ const ContactForm: React.FC = () => {
             {submitStatus.type && (
               <Grid item xs={12}>
                 <Fade in={true}>
-                  <Alert 
+                  <Alert
                     severity={submitStatus.type}
                     sx={{
                       borderRadius: 'var(--border-radius-md)',
@@ -355,7 +357,11 @@ const ContactForm: React.FC = () => {
                         fontSize: '1.5rem',
                       },
                     }}
-                    icon={submitStatus.type === 'success' ? <CheckIcon /> : undefined}
+                    icon={
+                      submitStatus.type === 'success' ? (
+                        <CheckIcon />
+                      ) : undefined
+                    }
                   >
                     {submitStatus.message}
                   </Alert>
@@ -366,14 +372,14 @@ const ContactForm: React.FC = () => {
             {/* Submit Button */}
             <Grid item xs={12}>
               <Button
-                type="submit"
-                variant="contained"
-                size="large"
+                type='submit'
+                variant='contained'
+                size='large'
                 fullWidth
                 disabled={isSubmitting}
                 startIcon={
                   isSubmitting ? (
-                    <CircularProgress size={20} color="inherit" />
+                    <CircularProgress size={20} color='inherit' />
                   ) : (
                     <SendIcon />
                   )
@@ -405,9 +411,9 @@ const ContactForm: React.FC = () => {
 
         {/* Footer info */}
         <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant='body2'
+            sx={{
               color: 'var(--color-text-secondary)',
               fontSize: '0.875rem',
             }}

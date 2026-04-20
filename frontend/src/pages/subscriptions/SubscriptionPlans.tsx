@@ -107,12 +107,13 @@ const planColor: Record<string, 'default' | 'primary' | 'secondary'> = {
   enterprise: 'secondary',
 };
 
-const statusColor: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
-  active: 'success',
-  trial: 'warning',
-  cancelled: 'error',
-  expired: 'default',
-};
+const statusColor: Record<string, 'success' | 'error' | 'warning' | 'default'> =
+  {
+    active: 'success',
+    trial: 'warning',
+    cancelled: 'error',
+    expired: 'default',
+  };
 
 const statusLabel: Record<string, string> = {
   active: 'Activa',
@@ -123,29 +124,32 @@ const statusLabel: Record<string, string> = {
 
 // ─── Feature Row ──────────────────────────────────────────────────────────────
 
-const FeatureRow: React.FC<{ label: string; value: boolean | number | null; isBoolean?: boolean }> = ({
-  label,
-  value,
-  isBoolean = false,
-}) => {
+const FeatureRow: React.FC<{
+  label: string;
+  value: boolean | number | null;
+  isBoolean?: boolean;
+}> = ({ label, value, isBoolean = false }) => {
   const active = isBoolean ? Boolean(value) : value !== 0;
   return (
     <ListItem disablePadding sx={{ py: 0.25 }}>
       <ListItemIcon sx={{ minWidth: 32 }}>
         {active ? (
-          <CheckIcon fontSize="small" color="success" />
+          <CheckIcon fontSize='small' color='success' />
         ) : (
-          <CancelIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+          <CancelIcon fontSize='small' sx={{ color: 'text.disabled' }} />
         )}
       </ListItemIcon>
       <ListItemText
         primary={
-          <Typography variant="body2" color={active ? 'text.primary' : 'text.disabled'}>
+          <Typography
+            variant='body2'
+            color={active ? 'text.primary' : 'text.disabled'}
+          >
             {isBoolean
               ? label
               : typeof value === 'number'
-              ? `${label}: ${value === -1 || value === null ? 'Ilimitado' : value}`
-              : label}
+                ? `${label}: ${value === -1 || value === null ? 'Ilimitado' : value}`
+                : label}
           </Typography>
         }
       />
@@ -169,7 +173,9 @@ const SubscriptionPlans: React.FC = () => {
   const [showCancelForm, setShowCancelForm] = useState(false);
 
   const { ref: headerRef, isVisible: headerVisible } = useScrollReveal();
-  const { ref: plansRef, isVisible: plansVisible } = useScrollReveal({ threshold: 0.05 });
+  const { ref: plansRef, isVisible: plansVisible } = useScrollReveal({
+    threshold: 0.05,
+  });
 
   // ─── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -180,7 +186,9 @@ const SubscriptionPlans: React.FC = () => {
       try {
         const [plansRes, currentRes] = await Promise.allSettled([
           axios.get(`${API_BASE}/services/subscription-plans/`),
-          axios.get(`${API_BASE}/services/subscriptions/current/`, { headers: authHeaders() }),
+          axios.get(`${API_BASE}/services/subscriptions/current/`, {
+            headers: authHeaders(),
+          }),
         ]);
 
         if (plansRes.status === 'fulfilled') {
@@ -221,12 +229,17 @@ const SubscriptionPlans: React.FC = () => {
       );
       setActionSuccess('Suscripcion activada correctamente.');
       // Refresh current
-      const res = await axios.get(`${API_BASE}/services/subscriptions/current/`, {
-        headers: authHeaders(),
-      });
+      const res = await axios.get(
+        `${API_BASE}/services/subscriptions/current/`,
+        {
+          headers: authHeaders(),
+        },
+      );
       setCurrent(res.data ?? null);
     } catch {
-      setActionError('No se pudo activar la suscripcion. Verifique sus datos de pago.');
+      setActionError(
+        'No se pudo activar la suscripcion. Verifique sus datos de pago.',
+      );
     } finally {
       setActionLoading(null);
     }
@@ -242,9 +255,12 @@ const SubscriptionPlans: React.FC = () => {
         { headers: authHeaders() },
       );
       setActionSuccess('Plan actualizado correctamente.');
-      const res = await axios.get(`${API_BASE}/services/subscriptions/current/`, {
-        headers: authHeaders(),
-      });
+      const res = await axios.get(
+        `${API_BASE}/services/subscriptions/current/`,
+        {
+          headers: authHeaders(),
+        },
+      );
       setCurrent(res.data ?? null);
     } catch {
       setActionError('No se pudo actualizar el plan.');
@@ -263,12 +279,17 @@ const SubscriptionPlans: React.FC = () => {
         { reason: cancelReason },
         { headers: authHeaders() },
       );
-      setActionSuccess('Suscripcion cancelada. Permanecera activa hasta el final del periodo.');
+      setActionSuccess(
+        'Suscripcion cancelada. Permanecera activa hasta el final del periodo.',
+      );
       setCancelReason('');
       setShowCancelForm(false);
-      const res = await axios.get(`${API_BASE}/services/subscriptions/current/`, {
-        headers: authHeaders(),
-      });
+      const res = await axios.get(
+        `${API_BASE}/services/subscriptions/current/`,
+        {
+          headers: authHeaders(),
+        },
+      );
       setCurrent(res.data ?? null);
     } catch {
       setActionError('No se pudo cancelar la suscripcion.');
@@ -280,8 +301,17 @@ const SubscriptionPlans: React.FC = () => {
   // Determine button state per plan
   const getPlanAction = (
     plan: SubscriptionPlan,
-  ): { label: string; variant: 'contained' | 'outlined'; disabled: boolean; onClick: () => void } => {
-    if (!current || current.status === 'expired' || current.status === 'cancelled') {
+  ): {
+    label: string;
+    variant: 'contained' | 'outlined';
+    disabled: boolean;
+    onClick: () => void;
+  } => {
+    if (
+      !current ||
+      current.status === 'expired' ||
+      current.status === 'cancelled'
+    ) {
       return {
         label: 'Suscribirse',
         variant: 'contained',
@@ -318,7 +348,14 @@ const SubscriptionPlans: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh',
+        }}
+      >
         <CircularProgress size={48} />
       </Box>
     );
@@ -348,134 +385,203 @@ const SubscriptionPlans: React.FC = () => {
         >
           <RocketIcon sx={{ fontSize: 32 }} />
         </Avatar>
-        <Typography variant="h3" fontWeight="bold" gutterBottom>
+        <Typography variant='h3' fontWeight='bold' gutterBottom>
           Planes de Suscripcion
         </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 540, mx: 'auto' }}>
-          Elija el plan que mejor se adapte a su volumen de trabajo y objetivos de negocio
+        <Typography
+          variant='h6'
+          color='text.secondary'
+          sx={{ maxWidth: 540, mx: 'auto' }}
+        >
+          Elija el plan que mejor se adapte a su volumen de trabajo y objetivos
+          de negocio
         </Typography>
       </Box>
 
       {/* Feedback */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
       {actionError && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={clearFeedback}>
+        <Alert severity='error' sx={{ mb: 3 }} onClose={clearFeedback}>
           {actionError}
         </Alert>
       )}
       {actionSuccess && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={clearFeedback}>
+        <Alert severity='success' sx={{ mb: 3 }} onClose={clearFeedback}>
           {actionSuccess}
         </Alert>
       )}
 
       {/* Current Subscription Card */}
-      {current && (current.status === 'active' || current.status === 'trial') && (
-        <Paper
-          elevation={0}
-          variant="outlined"
-          sx={{
-            p: 3,
-            mb: 4,
-            borderColor: 'primary.main',
-            borderRadius: 2,
-            borderWidth: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-            <Box>
-              <Typography variant="h5" fontWeight="bold">
-                Suscripcion Actual
-              </Typography>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                <Typography variant="h6" color="primary.main">
-                  {current.plan.name}
+      {current &&
+        (current.status === 'active' || current.status === 'trial') && (
+          <Paper
+            elevation={0}
+            variant='outlined'
+            sx={{
+              p: 3,
+              mb: 4,
+              borderColor: 'primary.main',
+              borderRadius: 2,
+              borderWidth: 2,
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                gap: 2,
+                mb: 2,
+              }}
+            >
+              <Box>
+                <Typography variant='h5' fontWeight='bold'>
+                  Suscripcion Actual
                 </Typography>
-                <Chip
-                  label={statusLabel[current.status]}
-                  color={statusColor[current.status]}
-                  size="small"
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  alignItems='center'
+                  sx={{ mt: 0.5 }}
+                >
+                  <Typography variant='h6' color='primary.main'>
+                    {current.plan.name}
+                  </Typography>
+                  <Chip
+                    label={statusLabel[current.status]}
+                    color={statusColor[current.status]}
+                    size='small'
+                  />
+                </Stack>
+              </Box>
+              <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                >
+                  <CalendarIcon fontSize='small' />
+                  Desde: {formatDate(current.start_date)}
+                </Typography>
+                {current.end_date && (
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      mt: 0.25,
+                    }}
+                  >
+                    <CalendarIcon fontSize='small' />
+                    Hasta: {formatDate(current.end_date)}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            <Divider sx={{ mb: 2 }} />
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+                >
+                  <UsageIcon fontSize='small' color='action' />
+                  <Typography variant='body2' fontWeight='medium'>
+                    Servicios publicados
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant='body2' color='text.secondary'>
+                    {current.active_services_count} /{' '}
+                    {current.plan.max_active_services ?? 'Ilimitado'}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {usagePercent(
+                      current.active_services_count,
+                      current.plan.max_active_services,
+                    )}
+                    %
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant='determinate'
+                  value={usagePercent(
+                    current.active_services_count,
+                    current.plan.max_active_services,
+                  )}
+                  sx={{ height: 8, borderRadius: 4 }}
+                  color={
+                    usagePercent(
+                      current.active_services_count,
+                      current.plan.max_active_services,
+                    ) >= 90
+                      ? 'error'
+                      : 'primary'
+                  }
                 />
-              </Stack>
-            </Box>
-            <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-              <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CalendarIcon fontSize="small" />
-                Desde: {formatDate(current.start_date)}
-              </Typography>
-              {current.end_date && (
-                <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
-                  <CalendarIcon fontSize="small" />
-                  Hasta: {formatDate(current.end_date)}
-                </Typography>
-              )}
-            </Box>
-          </Box>
-
-          <Divider sx={{ mb: 2 }} />
-
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <UsageIcon fontSize="small" color="action" />
-                <Typography variant="body2" fontWeight="medium">
-                  Servicios publicados
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {current.active_services_count} /{' '}
-                  {current.plan.max_active_services ?? 'Ilimitado'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {usagePercent(current.active_services_count, current.plan.max_active_services)}%
-                </Typography>
-              </Box>
-              <LinearProgress
-                variant="determinate"
-                value={usagePercent(current.active_services_count, current.plan.max_active_services)}
-                sx={{ height: 8, borderRadius: 4 }}
-                color={
-                  usagePercent(current.active_services_count, current.plan.max_active_services) >= 90
-                    ? 'error'
-                    : 'primary'
-                }
-              />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+                >
+                  <UsageIcon fontSize='small' color='action' />
+                  <Typography variant='body2' fontWeight='medium'>
+                    Solicitudes del mes
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant='body2' color='text.secondary'>
+                    {current.monthly_requests_count} /{' '}
+                    {current.plan.max_monthly_requests ?? 'Ilimitado'}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {usagePercent(
+                      current.monthly_requests_count,
+                      current.plan.max_monthly_requests,
+                    )}
+                    %
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant='determinate'
+                  value={usagePercent(
+                    current.monthly_requests_count,
+                    current.plan.max_monthly_requests,
+                  )}
+                  sx={{ height: 8, borderRadius: 4 }}
+                  color={
+                    usagePercent(
+                      current.monthly_requests_count,
+                      current.plan.max_monthly_requests,
+                    ) >= 90
+                      ? 'error'
+                      : 'primary'
+                  }
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <UsageIcon fontSize="small" color="action" />
-                <Typography variant="body2" fontWeight="medium">
-                  Solicitudes del mes
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {current.monthly_requests_count} /{' '}
-                  {current.plan.max_monthly_requests ?? 'Ilimitado'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {usagePercent(current.monthly_requests_count, current.plan.max_monthly_requests)}%
-                </Typography>
-              </Box>
-              <LinearProgress
-                variant="determinate"
-                value={usagePercent(current.monthly_requests_count, current.plan.max_monthly_requests)}
-                sx={{ height: 8, borderRadius: 4 }}
-                color={
-                  usagePercent(current.monthly_requests_count, current.plan.max_monthly_requests) >= 90
-                    ? 'error'
-                    : 'primary'
-                }
-              />
-            </Grid>
-          </Grid>
-        </Paper>
-      )}
+          </Paper>
+        )}
 
       {/* Plans Grid */}
       <Box
@@ -486,7 +592,7 @@ const SubscriptionPlans: React.FC = () => {
           transition: 'opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s',
         }}
       >
-        <Grid container spacing={3} alignItems="stretch">
+        <Grid container spacing={3} alignItems='stretch'>
           {plans.map((plan, idx) => {
             const action = getPlanAction(plan);
             const isCurrentPlan = current?.plan.id === plan.id;
@@ -502,14 +608,18 @@ const SubscriptionPlans: React.FC = () => {
                     flexDirection: 'column',
                     position: 'relative',
                     border: plan.is_recommended ? 2 : 1,
-                    borderColor: plan.is_recommended ? 'primary.main' : 'divider',
+                    borderColor: plan.is_recommended
+                      ? 'primary.main'
+                      : 'divider',
                     transition: 'transform 0.2s, box-shadow 0.2s',
                     '&:hover': {
                       transform: 'translateY(-3px)',
                       boxShadow: plan.is_recommended ? 8 : 4,
                     },
                     opacity: plansVisible ? 1 : 0,
-                    transform: plansVisible ? 'translateY(0)' : 'translateY(16px)',
+                    transform: plansVisible
+                      ? 'translateY(0)'
+                      : 'translateY(16px)',
                     transitionDelay: `${idx * 0.1}s`,
                   }}
                 >
@@ -530,19 +640,32 @@ const SubscriptionPlans: React.FC = () => {
                         zIndex: 1,
                       }}
                     >
-                      <Typography variant="caption" fontWeight="bold">
+                      <Typography variant='caption' fontWeight='bold'>
                         Recomendado
                       </Typography>
                     </Box>
                   )}
 
-                  <CardContent sx={{ flex: 1, pt: plan.is_recommended ? 3.5 : 2 }}>
+                  <CardContent
+                    sx={{ flex: 1, pt: plan.is_recommended ? 3.5 : 2 }}
+                  >
                     {/* Plan header */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        mb: 2,
+                      }}
+                    >
                       <Avatar
                         sx={{
-                          bgcolor: plan.is_recommended ? 'primary.main' : 'action.hover',
-                          color: plan.is_recommended ? 'primary.contrastText' : 'text.secondary',
+                          bgcolor: plan.is_recommended
+                            ? 'primary.main'
+                            : 'action.hover',
+                          color: plan.is_recommended
+                            ? 'primary.contrastText'
+                            : 'text.secondary',
                           width: 44,
                           height: 44,
                         }}
@@ -550,26 +673,45 @@ const SubscriptionPlans: React.FC = () => {
                         {planIcon[slug] ?? <StarIcon />}
                       </Avatar>
                       <Box>
-                        <Typography variant="h6" fontWeight="bold">
+                        <Typography variant='h6' fontWeight='bold'>
                           {plan.name}
                         </Typography>
                         {isCurrentPlan && (
-                          <Chip label="Plan actual" color="success" size="small" sx={{ height: 18, fontSize: 10 }} />
+                          <Chip
+                            label='Plan actual'
+                            color='success'
+                            size='small'
+                            sx={{ height: 18, fontSize: 10 }}
+                          />
                         )}
                       </Box>
                     </Box>
 
                     {/* Price */}
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="h4" fontWeight="bold" color="primary.main" component="span">
+                      <Typography
+                        variant='h4'
+                        fontWeight='bold'
+                        color='primary.main'
+                        component='span'
+                      >
                         {formatPrice(plan.price, plan.billing_cycle)}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 0.5 }}>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        component='span'
+                        sx={{ ml: 0.5 }}
+                      >
                         / {plan.billing_cycle === 'yearly' ? 'ano' : 'mes'}
                       </Typography>
                     </Box>
 
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      sx={{ mb: 2, minHeight: 40 }}
+                    >
                       {plan.description}
                     </Typography>
 
@@ -585,12 +727,36 @@ const SubscriptionPlans: React.FC = () => {
                         label={`Solicitudes/mes: ${plan.max_monthly_requests ?? 'Ilimitado'}`}
                         value={plan.max_monthly_requests !== 0}
                       />
-                      <FeatureRow label="Listado destacado" value={plan.featured_listing} isBoolean />
-                      <FeatureRow label="Prioridad en busqueda" value={plan.priority_in_search} isBoolean />
-                      <FeatureRow label="Insignia verificado" value={plan.verified_badge} isBoolean />
-                      <FeatureRow label="Acceso a analiticas" value={plan.access_to_analytics} isBoolean />
-                      <FeatureRow label="Mensajeria directa" value={plan.direct_messaging} isBoolean />
-                      <FeatureRow label="Pasarela de pagos" value={plan.payment_gateway_access} isBoolean />
+                      <FeatureRow
+                        label='Listado destacado'
+                        value={plan.featured_listing}
+                        isBoolean
+                      />
+                      <FeatureRow
+                        label='Prioridad en busqueda'
+                        value={plan.priority_in_search}
+                        isBoolean
+                      />
+                      <FeatureRow
+                        label='Insignia verificado'
+                        value={plan.verified_badge}
+                        isBoolean
+                      />
+                      <FeatureRow
+                        label='Acceso a analiticas'
+                        value={plan.access_to_analytics}
+                        isBoolean
+                      />
+                      <FeatureRow
+                        label='Mensajeria directa'
+                        value={plan.direct_messaging}
+                        isBoolean
+                      />
+                      <FeatureRow
+                        label='Pasarela de pagos'
+                        value={plan.payment_gateway_access}
+                        isBoolean
+                      />
                     </List>
                   </CardContent>
 
@@ -598,13 +764,13 @@ const SubscriptionPlans: React.FC = () => {
                     <Button
                       fullWidth
                       variant={action.variant}
-                      color="primary"
-                      size="large"
+                      color='primary'
+                      size='large'
                       disabled={action.disabled}
                       onClick={action.onClick}
                       startIcon={
                         actionLoading === plan.id ? (
-                          <CircularProgress size={18} color="inherit" />
+                          <CircularProgress size={18} color='inherit' />
                         ) : null
                       }
                       sx={{ borderRadius: 1.5, py: 1.25 }}
@@ -620,11 +786,17 @@ const SubscriptionPlans: React.FC = () => {
           {plans.length === 0 && (
             <Grid item xs={12}>
               <Paper sx={{ textAlign: 'center', py: 6, px: 2 }}>
-                <WarningIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary">
+                <WarningIcon
+                  sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }}
+                />
+                <Typography variant='h6' color='text.secondary'>
                   No hay planes disponibles en este momento
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mt: 0.5 }}
+                >
                   Contacte a soporte para obtener mas informacion
                 </Typography>
               </Paper>
@@ -637,47 +809,55 @@ const SubscriptionPlans: React.FC = () => {
       {current && current.status === 'active' && (
         <Box sx={{ mt: 5 }}>
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+          <Typography variant='h6' fontWeight='bold' gutterBottom>
             Cancelar suscripcion
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 560 }}>
-            Al cancelar, su plan permanecera activo hasta el final del periodo de facturacion vigente.
-            Despues de esa fecha no se realizaran cargos adicionales.
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ mb: 2, maxWidth: 560 }}
+          >
+            Al cancelar, su plan permanecera activo hasta el final del periodo
+            de facturacion vigente. Despues de esa fecha no se realizaran cargos
+            adicionales.
           </Typography>
 
           {!showCancelForm ? (
             <Button
-              variant="outlined"
-              color="error"
+              variant='outlined'
+              color='error'
               startIcon={<CancelIcon />}
               onClick={() => setShowCancelForm(true)}
             >
               Cancelar suscripcion
             </Button>
           ) : (
-            <Paper variant="outlined" sx={{ p: 3, maxWidth: 560, borderColor: 'error.light' }}>
-              <Typography variant="subtitle2" gutterBottom>
+            <Paper
+              variant='outlined'
+              sx={{ p: 3, maxWidth: 560, borderColor: 'error.light' }}
+            >
+              <Typography variant='subtitle2' gutterBottom>
                 Cuentenos por que desea cancelar
               </Typography>
               <TextField
                 multiline
                 rows={3}
                 fullWidth
-                placeholder="Indique el motivo de la cancelacion..."
+                placeholder='Indique el motivo de la cancelacion...'
                 value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                size="small"
+                onChange={e => setCancelReason(e.target.value)}
+                size='small'
                 sx={{ mb: 2 }}
               />
-              <Stack direction="row" spacing={1}>
+              <Stack direction='row' spacing={1}>
                 <Button
-                  variant="contained"
-                  color="error"
+                  variant='contained'
+                  color='error'
                   onClick={handleCancel}
                   disabled={actionLoading === -1 || !cancelReason.trim()}
                   startIcon={
                     actionLoading === -1 ? (
-                      <CircularProgress size={16} color="inherit" />
+                      <CircularProgress size={16} color='inherit' />
                     ) : (
                       <CancelIcon />
                     )
@@ -686,8 +866,8 @@ const SubscriptionPlans: React.FC = () => {
                   Confirmar cancelacion
                 </Button>
                 <Button
-                  variant="outlined"
-                  color="inherit"
+                  variant='outlined'
+                  color='inherit'
                   onClick={() => {
                     setShowCancelForm(false);
                     setCancelReason('');

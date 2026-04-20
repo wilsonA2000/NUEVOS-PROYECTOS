@@ -9,7 +9,6 @@ import {
   Box,
   Card,
   CardContent,
-  CardActions,
   Typography,
   Button,
   TextField,
@@ -23,9 +22,6 @@ import {
   Alert,
   CircularProgress,
   Stack,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   FormControl,
   FormLabel,
 } from '@mui/material';
@@ -72,14 +68,16 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClause, setEditingClause] = useState<Clause | null>(null);
   const [nextClauseNumber, setNextClauseNumber] = useState(11);
-  
+
   // Form data
   const [formData, setFormData] = useState({
     title: '',
     content: '',
   });
 
-  const [errors, setErrors] = useState<{title?: string, content?: string}>({});
+  const [errors, setErrors] = useState<{ title?: string; content?: string }>(
+    {},
+  );
 
   useEffect(() => {
     loadClauses();
@@ -88,12 +86,15 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   const loadClauses = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/v1/contracts/${contractId}/additional-clauses/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/v1/contracts/${contractId}/additional-clauses/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -125,10 +126,13 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
   };
 
   const handleDeleteClause = async (clause: Clause) => {
-    const confirmed = await confirm(`¿Estás seguro de eliminar la cláusula "${clause.title}"?`, {
-      title: 'Eliminar cláusula',
-      confirmColor: 'error',
-    });
+    const confirmed = await confirm(
+      `¿Estás seguro de eliminar la cláusula "${clause.title}"?`,
+      {
+        title: 'Eliminar cláusula',
+        confirmColor: 'error',
+      },
+    );
     if (!confirmed) {
       return;
     }
@@ -139,7 +143,7 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
         },
       );
@@ -157,12 +161,12 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
 
   const handleSaveClause = async () => {
     // Validación
-    const newErrors: {title?: string, content?: string} = {};
-    
+    const newErrors: { title?: string; content?: string } = {};
+
     if (!formData.title.trim()) {
       newErrors.title = 'El título es requerido';
     }
-    
+
     if (!formData.content.trim()) {
       newErrors.content = 'El contenido es requerido';
     }
@@ -175,14 +179,14 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
     setLoading(true);
     try {
       const method = editingClause ? 'PUT' : 'POST';
-      const url = editingClause 
+      const url = editingClause
         ? `/api/v1/contracts/${contractId}/additional-clauses/${editingClause.id}/`
         : `/api/v1/contracts/${contractId}/additional-clauses/`;
 
       const response = await fetch(url, {
         method,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
@@ -211,37 +215,61 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
 
   const getOrdinalText = (number: number) => {
     const ordinales = [
-      '', 'PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 
-      'SEXTA', 'SÉPTIMA', 'OCTAVA', 'NOVENA', 'DÉCIMA',
-      'UNDÉCIMA', 'DUODÉCIMA', 'DECIMOTERCERA', 'DECIMOCUARTA', 'DECIMOQUINTA',
-      'DECIMOSEXTA', 'DECIMOSÉPTIMA', 'DECIMOCTAVA', 'DECIMONOVENA', 'VIGÉSIMA',
+      '',
+      'PRIMERA',
+      'SEGUNDA',
+      'TERCERA',
+      'CUARTA',
+      'QUINTA',
+      'SEXTA',
+      'SÉPTIMA',
+      'OCTAVA',
+      'NOVENA',
+      'DÉCIMA',
+      'UNDÉCIMA',
+      'DUODÉCIMA',
+      'DECIMOTERCERA',
+      'DECIMOCUARTA',
+      'DECIMOQUINTA',
+      'DECIMOSEXTA',
+      'DECIMOSÉPTIMA',
+      'DECIMOCTAVA',
+      'DECIMONOVENA',
+      'VIGÉSIMA',
     ];
-    
-    return number <= ordinales.length ? ordinales[number] : `CLÁUSULA ${number}`;
+
+    return number <= ordinales.length
+      ? ordinales[number]
+      : `CLÁUSULA ${number}`;
   };
 
   return (
     <Box>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h6" component="h3">
+      <Box
+        display='flex'
+        justifyContent='space-between'
+        alignItems='center'
+        mb={3}
+      >
+        <Typography variant='h6' component='h3'>
           Cláusulas Adicionales
         </Typography>
-        <Stack direction="row" spacing={1}>
+        <Stack direction='row' spacing={1}>
           <Button
-            variant="contained"
+            variant='contained'
             startIcon={<AddIcon />}
             onClick={handleAddClause}
-            size="small"
+            size='small'
           >
             Agregar Cláusula
           </Button>
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<PdfIcon />}
             onClick={handlePreviewContract}
-            size="small"
-            color="secondary"
+            size='small'
+            color='secondary'
           >
             Vista Previa PDF
           </Button>
@@ -249,16 +277,19 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
       </Box>
 
       {/* Info */}
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <Typography variant="body2">
-          <strong>Cláusulas base del contrato:</strong> PRIMERA a DÉCIMA (10 cláusulas)<br/>
-          <strong>Próxima cláusula adicional:</strong> {getOrdinalText(nextClauseNumber)} (#{nextClauseNumber})
+      <Alert severity='info' sx={{ mb: 2 }}>
+        <Typography variant='body2'>
+          <strong>Cláusulas base del contrato:</strong> PRIMERA a DÉCIMA (10
+          cláusulas)
+          <br />
+          <strong>Próxima cláusula adicional:</strong>{' '}
+          {getOrdinalText(nextClauseNumber)} (#{nextClauseNumber})
         </Typography>
       </Alert>
 
       {/* Lista de cláusulas */}
       {loading ? (
-        <Box display="flex" justifyContent="center" p={3}>
+        <Box display='flex' justifyContent='center' p={3}>
           <CircularProgress />
         </Box>
       ) : (
@@ -266,13 +297,15 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
           {clauses.length === 0 ? (
             <Card sx={{ textAlign: 'center', py: 4 }}>
               <CardContent>
-                <ClauseIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
+                <ClauseIcon
+                  sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }}
+                />
+                <Typography variant='h6' color='text.secondary' gutterBottom>
                   No hay cláusulas adicionales
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  El contrato tiene las 10 cláusulas estándar.
-                  Puedes agregar cláusulas personalizadas usando el botón "Agregar Cláusula".
+                <Typography variant='body2' color='text.secondary'>
+                  El contrato tiene las 10 cláusulas estándar. Puedes agregar
+                  cláusulas personalizadas usando el botón "Agregar Cláusula".
                 </Typography>
               </CardContent>
             </Card>
@@ -280,51 +313,56 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
             <List>
               {clauses.map((clause, index) => (
                 <React.Fragment key={clause.id}>
-                  <ListItem alignItems="flex-start" sx={{ py: 2 }}>
+                  <ListItem alignItems='flex-start' sx={{ py: 2 }}>
                     <ListItemText
                       primary={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Chip 
-                            label={clause.ordinal_text} 
-                            color="primary" 
-                            size="small" 
+                        <Box display='flex' alignItems='center' gap={1}>
+                          <Chip
+                            label={clause.ordinal_text}
+                            color='primary'
+                            size='small'
                           />
-                          <Typography variant="subtitle1" fontWeight="bold">
+                          <Typography variant='subtitle1' fontWeight='bold'>
                             {clause.title}
                           </Typography>
                         </Box>
                       }
                       secondary={
                         <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-                            {clause.content.length > 200 
-                              ? `${clause.content.substring(0, 200)}...` 
-                              : clause.content
-                            }
+                          <Typography
+                            variant='body2'
+                            color='text.primary'
+                            sx={{ mb: 1 }}
+                          >
+                            {clause.content.length > 200
+                              ? `${clause.content.substring(0, 200)}...`
+                              : clause.content}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Creada: {new Date(clause.created_at).toLocaleDateString('es-CO')}
-                            {clause.updated_at !== clause.created_at && (
-                              ` • Actualizada: ${new Date(clause.updated_at).toLocaleDateString('es-CO')}`
+                          <Typography variant='caption' color='text.secondary'>
+                            Creada:{' '}
+                            {new Date(clause.created_at).toLocaleDateString(
+                              'es-CO',
                             )}
+                            {clause.updated_at !== clause.created_at &&
+                              ` • Actualizada: ${new Date(clause.updated_at).toLocaleDateString('es-CO')}`}
                           </Typography>
                         </Box>
                       }
                     />
                     <ListItemSecondaryAction>
                       <IconButton
-                        edge="end"
+                        edge='end'
                         onClick={() => handleEditClause(clause)}
-                        size="small"
+                        size='small'
                         sx={{ mr: 1 }}
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
-                        edge="end"
+                        edge='end'
                         onClick={() => handleDeleteClause(clause)}
-                        size="small"
-                        color="error"
+                        size='small'
+                        color='error'
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -342,11 +380,15 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
       <DialogShell
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
         icon={editingClause ? <EditIcon /> : <AddIcon />}
         title={editingClause ? 'Editar Cláusula' : 'Agregar Nueva Cláusula'}
-        subtitle={editingClause ? editingClause.ordinal_text : getOrdinalText(nextClauseNumber)}
+        subtitle={
+          editingClause
+            ? editingClause.ordinal_text
+            : getOrdinalText(nextClauseNumber)
+        }
         actions={
           <>
             <Button
@@ -357,11 +399,15 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
             </Button>
             <Button
               onClick={handleSaveClause}
-              variant="contained"
+              variant='contained'
               startIcon={<SaveIcon />}
               disabled={loading}
             >
-              {loading ? 'Guardando...' : (editingClause ? 'Actualizar' : 'Agregar Cláusula')}
+              {loading
+                ? 'Guardando...'
+                : editingClause
+                  ? 'Actualizar'
+                  : 'Agregar Cláusula'}
             </Button>
           </>
         }
@@ -369,13 +415,17 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
         <FormControl fullWidth sx={{ mb: 3 }}>
           <FormLabel>Título de la Cláusula</FormLabel>
           <TextField
-            placeholder="Ej: MASCOTAS, SERVICIOS ADICIONALES, RESTRICCIONES"
+            placeholder='Ej: MASCOTAS, SERVICIOS ADICIONALES, RESTRICCIONES'
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, title: e.target.value }))
+            }
             error={!!errors.title}
-            helperText={errors.title || 'Escribe un título descriptivo para la cláusula'}
+            helperText={
+              errors.title || 'Escribe un título descriptivo para la cláusula'
+            }
             fullWidth
-            size="medium"
+            size='medium'
             sx={{ mt: 1 }}
           />
         </FormControl>
@@ -385,11 +435,16 @@ const ContractClausesEditor: React.FC<ContractClausesEditorProps> = ({
           <TextField
             multiline
             rows={6}
-            placeholder="Escribe el contenido completo de la cláusula. Ej: El ARRENDATARIO podrá tener mascotas en el inmueble, previo consentimiento escrito del ARRENDADOR y el pago de un depósito adicional equivalente a medio mes de arrendamiento."
+            placeholder='Escribe el contenido completo de la cláusula. Ej: El ARRENDATARIO podrá tener mascotas en el inmueble, previo consentimiento escrito del ARRENDADOR y el pago de un depósito adicional equivalente a medio mes de arrendamiento.'
             value={formData.content}
-            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, content: e.target.value }))
+            }
             error={!!errors.content}
-            helperText={errors.content || 'Escribe el texto completo tal como aparecerá en el contrato'}
+            helperText={
+              errors.content ||
+              'Escribe el texto completo tal como aparecerá en el contrato'
+            }
             fullWidth
             sx={{ mt: 1 }}
           />

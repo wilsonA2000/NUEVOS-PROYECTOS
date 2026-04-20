@@ -1,15 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import requestService, { 
-  BaseRequest, 
-  PropertyInterestRequest, 
-  ServiceRequest, 
-  MaintenanceRequest,
-  ContractSignatureRequest,
+import requestService, {
   CreatePropertyInterestData,
   CreateServiceRequestData,
   CreateMaintenanceRequestData,
-  RequestActionData, 
+  RequestActionData,
 } from '../services/requestService';
 
 export const useRequests = () => {
@@ -73,14 +68,23 @@ export const useRequests = () => {
     refetchSentRequests();
     refetchReceivedRequests();
     refetchStats();
-  }, [refetchRequests, refetchSentRequests, refetchReceivedRequests, refetchStats]);
+  }, [
+    refetchRequests,
+    refetchSentRequests,
+    refetchReceivedRequests,
+    refetchStats,
+  ]);
 
   return {
     requests,
     sentRequests,
     receivedRequests,
     stats,
-    isLoading: requestsLoading || sentRequestsLoading || receivedRequestsLoading || statsLoading,
+    isLoading:
+      requestsLoading ||
+      sentRequestsLoading ||
+      receivedRequestsLoading ||
+      statsLoading,
     error: requestsError,
     refetch: refetchAll,
   };
@@ -104,11 +108,13 @@ export const usePropertyInterestRequests = () => {
   });
 
   const createPropertyInterestMutation = useMutation({
-    mutationFn: (data: CreatePropertyInterestData) => 
+    mutationFn: (data: CreatePropertyInterestData) =>
       requestService.createPropertyInterestRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
-      queryClient.invalidateQueries({ queryKey: ['requests', 'property-interest'] });
+      queryClient.invalidateQueries({
+        queryKey: ['requests', 'property-interest'],
+      });
       queryClient.invalidateQueries({ queryKey: ['requests', 'sent'] });
       queryClient.invalidateQueries({ queryKey: ['requests', 'stats'] });
     },
@@ -142,7 +148,7 @@ export const useServiceRequests = () => {
   });
 
   const createServiceRequestMutation = useMutation({
-    mutationFn: (data: CreateServiceRequestData) => 
+    mutationFn: (data: CreateServiceRequestData) =>
       requestService.createServiceRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
@@ -180,7 +186,7 @@ export const useMaintenanceRequests = () => {
   });
 
   const createMaintenanceRequestMutation = useMutation({
-    mutationFn: (data: CreateMaintenanceRequestData) => 
+    mutationFn: (data: CreateMaintenanceRequestData) =>
       requestService.createMaintenanceRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
@@ -227,8 +233,13 @@ export const useRequestActions = () => {
   const queryClient = useQueryClient();
 
   const performActionMutation = useMutation({
-    mutationFn: ({ requestId, data }: { requestId: string; data: RequestActionData }) =>
-      requestService.performRequestAction(requestId, data),
+    mutationFn: ({
+      requestId,
+      data,
+    }: {
+      requestId: string;
+      data: RequestActionData;
+    }) => requestService.performRequestAction(requestId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
       queryClient.invalidateQueries({ queryKey: ['requests', 'stats'] });
@@ -236,8 +247,7 @@ export const useRequestActions = () => {
   });
 
   const signContractMutation = useMutation({
-    mutationFn: (requestId: string) =>
-      requestService.signContract(requestId),
+    mutationFn: (requestId: string) => requestService.signContract(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
       queryClient.invalidateQueries({ queryKey: ['requests', 'contracts'] });
@@ -273,12 +283,20 @@ export const useRequestComments = (requestId?: string) => {
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: ({ content, isInternal = false }: { content: string; isInternal?: boolean }) => {
+    mutationFn: ({
+      content,
+      isInternal = false,
+    }: {
+      content: string;
+      isInternal?: boolean;
+    }) => {
       if (!requestId) throw new Error('Request ID is required');
       return requestService.addRequestComment(requestId, content, isInternal);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests', requestId, 'comments'] });
+      queryClient.invalidateQueries({
+        queryKey: ['requests', requestId, 'comments'],
+      });
     },
   });
 

@@ -8,14 +8,8 @@ import {
   Card,
   CardContent,
   LinearProgress,
-  Chip,
   Button,
   Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Avatar,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -88,7 +82,6 @@ interface ResumeData {
 
 const Resume: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { error } = useNotification();
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,11 +93,11 @@ const Resume: React.FC = () => {
   const fetchResume = async () => {
     try {
       setLoading(true);
-      
+
       // Llamada real a la API
       const response = await api.get('/users/resume/');
       const resumeData = response.data;
-      
+
       // Mapear los datos de la API al formato del componente
       const mappedResume: ResumeData = {
         id: resumeData.id || 'new',
@@ -149,20 +142,22 @@ const Resume: React.FC = () => {
         completionPercentage: resumeData.verification_score || 0,
         verificationScore: resumeData.verification_score || 0,
         documentCounts: {
-          pending: 2,  // Estos podrían calcularse de los documentos reales
+          pending: 2, // Estos podrían calcularse de los documentos reales
           verified: 3,
           rejected: 0,
           expired: 1,
         },
       };
-      
+
       setResume(mappedResume);
     } catch (err: any) {
       if (err.response?.status === 404) {
         // Si no existe resume, mostrar mensaje apropiado
         setResume(null);
       } else {
-        error(`Error al cargar la hoja de vida: ${  err.response?.data?.error || err.message}`);
+        error(
+          `Error al cargar la hoja de vida: ${err.response?.data?.error || err.message}`,
+        );
       }
     } finally {
       setLoading(false);
@@ -172,15 +167,15 @@ const Resume: React.FC = () => {
   const getDocumentStatusIcon = (status: string) => {
     switch (status) {
       case 'verified':
-        return <CheckIcon color="success" />;
+        return <CheckIcon color='success' />;
       case 'pending':
-        return <PendingIcon color="warning" />;
+        return <PendingIcon color='warning' />;
       case 'rejected':
-        return <ErrorIcon color="error" />;
+        return <ErrorIcon color='error' />;
       case 'expired':
-        return <ScheduleIcon color="action" />;
+        return <ScheduleIcon color='action' />;
       default:
-        return <PendingIcon color="action" />;
+        return <PendingIcon color='action' />;
     }
   };
 
@@ -201,7 +196,7 @@ const Resume: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth='lg' sx={{ py: 4 }}>
         <LinearProgress />
       </Container>
     );
@@ -209,17 +204,17 @@ const Resume: React.FC = () => {
 
   if (!resume) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth='lg' sx={{ py: 4 }}>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant='h4' gutterBottom>
             No tienes hoja de vida
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
             Crea tu hoja de vida para mejorar tu perfil en la plataforma
           </Typography>
           <Button
-            variant="contained"
-            size="large"
+            variant='contained'
+            size='large'
             startIcon={<EditIcon />}
             onClick={() => navigate('/app/resume/edit')}
           >
@@ -231,40 +226,45 @@ const Resume: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth='lg' sx={{ py: 4 }}>
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          mb={3}
+        >
           <Box>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant='h4' gutterBottom>
               Mi Hoja de Vida
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant='body1' color='text.secondary'>
               Información detallada para verificación en la plataforma
             </Typography>
           </Box>
-          
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box textAlign="center">
-              <Typography variant="h4" color="primary.main" fontWeight="bold">
+
+          <Box display='flex' alignItems='center' gap={2}>
+            <Box textAlign='center'>
+              <Typography variant='h4' color='primary.main' fontWeight='bold'>
                 {resume.completionPercentage}%
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 Completado
               </Typography>
             </Box>
-            
-            <Box textAlign="center">
-              <Typography variant="h4" color="success.main" fontWeight="bold">
+
+            <Box textAlign='center'>
+              <Typography variant='h4' color='success.main' fontWeight='bold'>
                 {resume.verificationScore}%
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 Verificado
               </Typography>
             </Box>
-            
+
             <Button
-              variant="contained"
+              variant='contained'
               startIcon={<EditIcon />}
               onClick={() => navigate('/app/resume/edit')}
             >
@@ -272,19 +272,19 @@ const Resume: React.FC = () => {
             </Button>
           </Box>
         </Box>
-        
+
         {/* Progress Bar */}
         <Box>
-          <Box display="flex" justifyContent="space-between" mb={1}>
-            <Typography variant="body2" color="text.secondary">
+          <Box display='flex' justifyContent='space-between' mb={1}>
+            <Typography variant='body2' color='text.secondary'>
               Progreso de completitud
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               {resume.completionPercentage}%
             </Typography>
           </Box>
           <LinearProgress
-            variant="determinate"
+            variant='determinate'
             value={resume.completionPercentage}
             sx={{ height: 8, borderRadius: 4 }}
           />
@@ -293,17 +293,17 @@ const Resume: React.FC = () => {
 
       {/* Document Status */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Estado de Documentos
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={6} md={3}>
             <Card sx={{ bgcolor: 'warning.50', textAlign: 'center' }}>
               <CardContent>
-                <Typography variant="h4" color="warning.main" fontWeight="bold">
+                <Typography variant='h4' color='warning.main' fontWeight='bold'>
                   {resume.documentCounts.pending}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Pendientes
                 </Typography>
               </CardContent>
@@ -312,10 +312,10 @@ const Resume: React.FC = () => {
           <Grid item xs={6} md={3}>
             <Card sx={{ bgcolor: 'success.50', textAlign: 'center' }}>
               <CardContent>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
+                <Typography variant='h4' color='success.main' fontWeight='bold'>
                   {resume.documentCounts.verified}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Verificados
                 </Typography>
               </CardContent>
@@ -324,10 +324,10 @@ const Resume: React.FC = () => {
           <Grid item xs={6} md={3}>
             <Card sx={{ bgcolor: 'error.50', textAlign: 'center' }}>
               <CardContent>
-                <Typography variant="h4" color="error.main" fontWeight="bold">
+                <Typography variant='h4' color='error.main' fontWeight='bold'>
                   {resume.documentCounts.rejected}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Rechazados
                 </Typography>
               </CardContent>
@@ -336,10 +336,14 @@ const Resume: React.FC = () => {
           <Grid item xs={6} md={3}>
             <Card sx={{ bgcolor: 'grey.50', textAlign: 'center' }}>
               <CardContent>
-                <Typography variant="h4" color="text.secondary" fontWeight="bold">
+                <Typography
+                  variant='h4'
+                  color='text.secondary'
+                  fontWeight='bold'
+                >
                   {resume.documentCounts.expired}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Expirados
                 </Typography>
               </CardContent>
@@ -350,39 +354,60 @@ const Resume: React.FC = () => {
 
       {/* Detailed Information - Reorganized for better visual hierarchy */}
       <Grid container spacing={3}>
-        
         {/* Row 1: Personal & Educational Information */}
         <Grid item xs={12}>
-          <Typography variant="h5" gutterBottom sx={{ mt: 2, mb: 2, fontWeight: 600 }}>
+          <Typography
+            variant='h5'
+            gutterBottom
+            sx={{ mt: 2, mb: 2, fontWeight: 600 }}
+          >
             Información Básica
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Información Personal</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Información Personal
+                </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Fecha de nacimiento</Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {resume.dateOfBirth ? new Date(resume.dateOfBirth).toLocaleDateString('es-ES') : 'No especificado'}
+                  <Typography variant='body2' color='text.secondary'>
+                    Fecha de nacimiento
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.dateOfBirth
+                      ? new Date(resume.dateOfBirth).toLocaleDateString('es-ES')
+                      : 'No especificado'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Nacionalidad</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.nationality || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Nacionalidad
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.nationality || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Estado civil</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.maritalStatus || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Estado civil
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.maritalStatus || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Dependientes</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.dependents || 0}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Dependientes
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.dependents || 0}
+                  </Typography>
                 </Grid>
               </Grid>
             </CardContent>
@@ -392,26 +417,44 @@ const Resume: React.FC = () => {
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <SchoolIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Información Educativa</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Información Educativa
+                </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Nivel educativo</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.educationLevel || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Nivel educativo
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.educationLevel || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Institución</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.institutionName || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Institución
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.institutionName || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Campo de estudio</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.fieldOfStudy || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Campo de estudio
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.fieldOfStudy || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Año de graduación</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.graduationYear || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Año de graduación
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.graduationYear || 'No especificado'}
+                  </Typography>
                 </Grid>
               </Grid>
             </CardContent>
@@ -420,7 +463,11 @@ const Resume: React.FC = () => {
 
         {/* Row 2: Employment & Financial Information */}
         <Grid item xs={12}>
-          <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 2, fontWeight: 600 }}>
+          <Typography
+            variant='h5'
+            gutterBottom
+            sx={{ mt: 3, mb: 2, fontWeight: 600 }}
+          >
             Información Profesional y Financiera
           </Typography>
         </Grid>
@@ -428,27 +475,45 @@ const Resume: React.FC = () => {
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <WorkIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Información Laboral</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Información Laboral
+                </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Empleador actual</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.currentEmployer || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Empleador actual
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.currentEmployer || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Cargo</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.currentPosition || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Cargo
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.currentPosition || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Tipo de empleo</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.employmentType || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Tipo de empleo
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.employmentType || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Salario mensual</Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {resume.monthlySalary ? `$${resume.monthlySalary.toLocaleString()} COP` : 'No especificado'}
+                  <Typography variant='body2' color='text.secondary'>
+                    Salario mensual
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.monthlySalary
+                      ? `$${resume.monthlySalary.toLocaleString()} COP`
+                      : 'No especificado'}
                   </Typography>
                 </Grid>
               </Grid>
@@ -459,23 +524,37 @@ const Resume: React.FC = () => {
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <BankIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Información Financiera</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Información Financiera
+                </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Banco</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.bankName || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Banco
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.bankName || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Tipo de cuenta</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.accountType || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Tipo de cuenta
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.accountType || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary">Gastos mensuales</Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {resume.monthlyExpenses ? `$${resume.monthlyExpenses.toLocaleString()} COP` : 'No especificado'}
+                  <Typography variant='body2' color='text.secondary'>
+                    Gastos mensuales
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.monthlyExpenses
+                      ? `$${resume.monthlyExpenses.toLocaleString()} COP`
+                      : 'No especificado'}
                   </Typography>
                 </Grid>
               </Grid>
@@ -485,7 +564,11 @@ const Resume: React.FC = () => {
 
         {/* Row 3: Contact & References */}
         <Grid item xs={12}>
-          <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 2, fontWeight: 600 }}>
+          <Typography
+            variant='h5'
+            gutterBottom
+            sx={{ mt: 3, mb: 2, fontWeight: 600 }}
+          >
             Contactos y Referencias
           </Typography>
         </Grid>
@@ -493,22 +576,36 @@ const Resume: React.FC = () => {
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <ContactIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Contacto de Emergencia</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Contacto de Emergencia
+                </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Nombre</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactName || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Nombre
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.emergencyContactName || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Teléfono</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactPhone || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Teléfono
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.emergencyContactPhone || 'No especificado'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary">Relación</Typography>
-                  <Typography variant="body1" fontWeight={500}>{resume.emergencyContactRelation || 'No especificado'}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Relación
+                  </Typography>
+                  <Typography variant='body1' fontWeight={500}>
+                    {resume.emergencyContactRelation || 'No especificado'}
+                  </Typography>
                 </Grid>
               </Grid>
             </CardContent>
@@ -518,28 +615,42 @@ const Resume: React.FC = () => {
         <Grid item xs={12} lg={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
+              <Box display='flex' alignItems='center' mb={2}>
                 <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main">Referencias</Typography>
+                <Typography variant='h6' color='primary.main'>
+                  Referencias
+                </Typography>
               </Box>
-              
+
               {/* Reference 1 */}
               <Box mb={2}>
-                <Typography variant="subtitle2" color="primary" gutterBottom>
+                <Typography variant='subtitle2' color='primary' gutterBottom>
                   Referencia Personal
                 </Typography>
                 <Grid container spacing={1}>
                   <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">Nombre</Typography>
-                    <Typography variant="body1" fontWeight={500}>{resume.reference1Name || 'No especificado'}</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Nombre
+                    </Typography>
+                    <Typography variant='body1' fontWeight={500}>
+                      {resume.reference1Name || 'No especificado'}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">Teléfono</Typography>
-                    <Typography variant="body1" fontWeight={500}>{resume.reference1Phone || 'No especificado'}</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Teléfono
+                    </Typography>
+                    <Typography variant='body1' fontWeight={500}>
+                      {resume.reference1Phone || 'No especificado'}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">Relación</Typography>
-                    <Typography variant="body1" fontWeight={500}>{resume.reference1Relation || 'No especificado'}</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Relación
+                    </Typography>
+                    <Typography variant='body1' fontWeight={500}>
+                      {resume.reference1Relation || 'No especificado'}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Box>
@@ -548,21 +659,33 @@ const Resume: React.FC = () => {
               {resume.reference2Name && (
                 <Box>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle2" color="primary" gutterBottom>
+                  <Typography variant='subtitle2' color='primary' gutterBottom>
                     Referencia Familiar
                   </Typography>
                   <Grid container spacing={1}>
                     <Grid item xs={12}>
-                      <Typography variant="body2" color="text.secondary">Nombre</Typography>
-                      <Typography variant="body1" fontWeight={500}>{resume.reference2Name}</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        Nombre
+                      </Typography>
+                      <Typography variant='body1' fontWeight={500}>
+                        {resume.reference2Name}
+                      </Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">Teléfono</Typography>
-                      <Typography variant="body1" fontWeight={500}>{resume.reference2Phone}</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        Teléfono
+                      </Typography>
+                      <Typography variant='body1' fontWeight={500}>
+                        {resume.reference2Phone}
+                      </Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">Relación</Typography>
-                      <Typography variant="body1" fontWeight={500}>{resume.reference2Relation}</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        Relación
+                      </Typography>
+                      <Typography variant='body1' fontWeight={500}>
+                        {resume.reference2Relation}
+                      </Typography>
                     </Grid>
                   </Grid>
                 </Box>
@@ -574,47 +697,63 @@ const Resume: React.FC = () => {
 
       {/* Additional Information */}
       <Paper sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Información Adicional
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: resume.evictionHistory ? 'error.50' : 'success.50' }}>
+            <Card
+              sx={{
+                bgcolor: resume.evictionHistory ? 'error.50' : 'success.50',
+              }}
+            >
               <CardContent>
-                <Typography 
-                  variant="subtitle1" 
-                  color={resume.evictionHistory ? 'error' : 'success'} 
+                <Typography
+                  variant='subtitle1'
+                  color={resume.evictionHistory ? 'error' : 'success'}
                   gutterBottom
                 >
                   Historial de Desalojo
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   {resume.evictionHistory ? 'Sí' : 'No'}
                 </Typography>
                 {resume.evictionHistory && resume.evictionDetails && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ mt: 1, fontStyle: 'italic' }}
+                  >
                     Detalles: {resume.evictionDetails}
                   </Typography>
                 )}
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: resume.criminalRecord ? 'error.50' : 'success.50' }}>
+            <Card
+              sx={{
+                bgcolor: resume.criminalRecord ? 'error.50' : 'success.50',
+              }}
+            >
               <CardContent>
-                <Typography 
-                  variant="subtitle1" 
-                  color={resume.criminalRecord ? 'error' : 'success'} 
+                <Typography
+                  variant='subtitle1'
+                  color={resume.criminalRecord ? 'error' : 'success'}
                   gutterBottom
                 >
                   Antecedentes Penales
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   {resume.criminalRecord ? 'Sí' : 'No'}
                 </Typography>
                 {resume.criminalRecord && resume.criminalRecordDetails && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ mt: 1, fontStyle: 'italic' }}
+                  >
                     Detalles: {resume.criminalRecordDetails}
                   </Typography>
                 )}
@@ -627,4 +766,4 @@ const Resume: React.FC = () => {
   );
 };
 
-export default Resume; 
+export default Resume;

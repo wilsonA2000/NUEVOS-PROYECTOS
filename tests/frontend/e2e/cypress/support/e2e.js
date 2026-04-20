@@ -23,30 +23,30 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 // Custom command to handle WebSocket connections
 Cypress.Commands.add('connectWebSocket', (url, options = {}) => {
   const { timeout = 5000, expectedMessage = null } = options
-  
+
   return cy.window().then((win) => {
     return new Cypress.Promise((resolve, reject) => {
       const ws = new win.WebSocket(url)
-      
+
       const timer = setTimeout(() => {
         ws.close()
         reject(new Error(`WebSocket connection timeout after ${timeout}ms`))
       }, timeout)
-      
+
       ws.onopen = () => {
         clearTimeout(timer)
         if (!expectedMessage) {
           resolve(ws)
         }
       }
-      
+
       ws.onmessage = (event) => {
         if (expectedMessage && event.data.includes(expectedMessage)) {
           clearTimeout(timer)
           resolve({ ws, message: event.data })
         }
       }
-      
+
       ws.onerror = (error) => {
         clearTimeout(timer)
         reject(error)
@@ -71,28 +71,28 @@ Cypress.Commands.add('loginAs', (userType) => {
       password: Cypress.env('TEST_SERVICE_PASSWORD')
     }
   }
-  
+
   const user = users[userType]
   if (!user) {
     throw new Error(`Unknown user type: ${userType}`)
   }
-  
+
   // Clear any existing auth state
   cy.clearLocalStorage()
   cy.clearCookies()
-  
+
   // Visit login page
   cy.visit('/login')
-  
+
   // Fill and submit login form
   cy.get('[data-cy=email-input]').type(user.email)
   cy.get('[data-cy=password-input]').type(user.password)
   cy.get('[data-cy=login-button]').click()
-  
+
   // Wait for successful login (redirect to dashboard)
   cy.url().should('not.include', '/login')
   cy.get('[data-cy=dashboard]').should('be.visible')
-  
+
   // Store auth token for API requests
   cy.window().its('localStorage').invoke('getItem', 'access_token').then((token) => {
     if (token) {
@@ -104,10 +104,10 @@ Cypress.Commands.add('loginAs', (userType) => {
 // Custom command for API requests with auth
 Cypress.Commands.add('apiRequest', (method, url, options = {}) => {
   const { body, headers = {}, ...restOptions } = options
-  
+
   return cy.get('@authToken').then((token) => {
     const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
-    
+
     return cy.request({
       method,
       url: `${Cypress.env('API_URL')}${url}`,
@@ -126,7 +126,7 @@ Cypress.Commands.add('apiRequest', (method, url, options = {}) => {
 // Custom command to wait for element with retry logic
 Cypress.Commands.add('waitForElement', (selector, options = {}) => {
   const { timeout = 10000, retries = 3 } = options
-  
+
   const attemptFind = (attempt = 1) => {
     return cy.get('body').then(($body) => {
       if ($body.find(selector).length > 0) {
@@ -139,7 +139,7 @@ Cypress.Commands.add('waitForElement', (selector, options = {}) => {
       }
     })
   }
-  
+
   return attemptFind()
 })
 
@@ -155,9 +155,9 @@ Cypress.Commands.add('uploadFile', (selector, fileName, fileType = 'application/
 // Custom command to simulate real user interactions
 Cypress.Commands.add('realType', { prevSubject: 'element' }, (subject, text, options = {}) => {
   const { delay = 50 } = options
-  
+
   cy.wrap(subject).focus()
-  
+
   for (let i = 0; i < text.length; i++) {
     cy.wrap(subject).realType(text[i])
     if (delay > 0) {
@@ -170,17 +170,17 @@ Cypress.Commands.add('realType', { prevSubject: 'element' }, (subject, text, opt
 Cypress.Commands.add('measurePageLoad', (expectedMaxTime = 3000) => {
   cy.window().then((win) => {
     const startTime = win.performance.now()
-    
+
     return cy.get('body').should('be.visible').then(() => {
       const endTime = win.performance.now()
       const loadTime = endTime - startTime
-      
+
       cy.log(`Page load time: ${loadTime.toFixed(2)}ms`)
-      
+
       if (loadTime > expectedMaxTime) {
         cy.log(`⚠️ Page load time (${loadTime.toFixed(2)}ms) exceeds threshold (${expectedMaxTime}ms)`)
       }
-      
+
       return loadTime
     })
   })
@@ -192,7 +192,7 @@ Cypress.Commands.add('testWebSocketFlow', (wsUrl, testFlow) => {
     cy.log('WebSocket tests disabled, skipping...')
     return
   }
-  
+
   return cy.connectWebSocket(wsUrl).then((ws) => {
     return new Cypress.Promise((resolve) => {
       testFlow(ws, resolve)
@@ -219,10 +219,10 @@ beforeEach(() => {
   // Clear browser state
   cy.clearLocalStorage()
   cy.clearCookies()
-  
+
   // Set consistent viewport
   cy.viewport(1280, 720)
-  
+
   // Add custom CSS to hide animations (for stable testing)
   cy.window().then((win) => {
     const style = win.document.createElement('style')

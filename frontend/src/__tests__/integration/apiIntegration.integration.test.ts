@@ -16,7 +16,7 @@ import {
   createMockStatistics,
   createMockObjection,
   createMockSignatureData,
-  cleanupMocks
+  cleanupMocks,
 } from '../../test-utils/contractTestUtils';
 
 // Cast to jest.Mock for typing
@@ -28,16 +28,16 @@ const mockPatch = api.patch as jest.Mock;
 // Test data
 const mockContract = createMockContract('DRAFT', {
   id: 'api-test-contract-123',
-  property_address: 'API Test Property'
+  property_address: 'API Test Property',
 });
 
 const mockTenantData = createMockTenantData({
-  email: 'tenant-api-test@example.com'
+  email: 'tenant-api-test@example.com',
 });
 
 const mockStatistics = createMockStatistics({
   total_contracts: 15,
-  monthly_income: 8500000
+  monthly_income: 8500000,
 });
 
 describe('API Integration Tests', () => {
@@ -64,10 +64,11 @@ describe('API Integration Tests', () => {
         };
 
         mockPost.mockResolvedValueOnce({
-          data: { ...mockContract, ...contractData }
+          data: { ...mockContract, ...contractData },
         });
 
-        const result = await LandlordContractService.createContract(contractData);
+        const result =
+          await LandlordContractService.createContract(contractData);
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(result.property_address).toBe('Test Address');
@@ -86,10 +87,10 @@ describe('API Integration Tests', () => {
               error: 'Validation failed',
               details: {
                 property_address: ['Este campo es requerido'],
-                monthly_rent: ['El valor debe ser positivo']
-              }
-            }
-          }
+                monthly_rent: ['El valor debe ser positivo'],
+              },
+            },
+          },
         });
 
         try {
@@ -97,7 +98,9 @@ describe('API Integration Tests', () => {
           fail('Should have thrown');
         } catch (error: any) {
           expect(error.response.status).toBe(400);
-          expect(error.response.data.details).toHaveProperty('property_address');
+          expect(error.response.data.details).toHaveProperty(
+            'property_address'
+          );
           expect(error.response.data.details).toHaveProperty('monthly_rent');
         }
       });
@@ -106,14 +109,17 @@ describe('API Integration Tests', () => {
         const updates = {
           monthly_rent: 2800000,
           security_deposit: 2800000,
-          pets_allowed: true
+          pets_allowed: true,
         };
 
         const updatedContract = { ...mockContract, ...updates };
 
         mockPatch.mockResolvedValueOnce({ data: updatedContract });
 
-        const result = await LandlordContractService.updateContractDraft(mockContract.id, updates);
+        const result = await LandlordContractService.updateContractDraft(
+          mockContract.id,
+          updates
+        );
 
         expect(mockPatch).toHaveBeenCalledTimes(1);
         expect(result.monthly_rent).toBe(2800000);
@@ -132,8 +138,8 @@ describe('API Integration Tests', () => {
             page: 1,
             page_size: 5,
             has_next: true,
-            has_previous: false
-          }
+            has_previous: false,
+          },
         });
 
         const result = await LandlordContractService.getContracts(
@@ -154,14 +160,15 @@ describe('API Integration Tests', () => {
         const invitationData = {
           contract_id: mockContract.id,
           tenant_email: 'test@example.com',
-          personal_message: 'Please review this contract'
+          personal_message: 'Please review this contract',
         };
 
         mockPost.mockResolvedValueOnce({
-          data: { success: true }
+          data: { success: true },
         });
 
-        const result = await LandlordContractService.sendTenantInvitation(invitationData);
+        const result =
+          await LandlordContractService.sendTenantInvitation(invitationData);
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(result.success).toBe(true);
@@ -171,13 +178,13 @@ describe('API Integration Tests', () => {
         const approvedContract = createMockContract('READY_TO_SIGN', {
           id: mockContract.id,
           landlord_approved: true,
-          tenant_approved: true
+          tenant_approved: true,
         });
 
         mockPost.mockResolvedValueOnce({ data: approvedContract });
 
         const result = await LandlordContractService.approveLandlordContract({
-          contract_id: mockContract.id
+          contract_id: mockContract.id,
         });
 
         expect(mockPost).toHaveBeenCalledTimes(1);
@@ -192,14 +199,15 @@ describe('API Integration Tests', () => {
           current_value: '2500000',
           proposed_value: '2200000',
           justification: 'Market rate analysis shows lower average',
-          priority: 'HIGH' as const
+          priority: 'HIGH' as const,
         };
 
         const createdObjection = createMockObjection(objectionData);
 
         mockPost.mockResolvedValueOnce({ data: createdObjection });
 
-        const objection = await LandlordContractService.submitObjection(objectionData);
+        const objection =
+          await LandlordContractService.submitObjection(objectionData);
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(objection.field_name).toBe('monthly_rent');
@@ -224,7 +232,7 @@ describe('API Integration Tests', () => {
       it('should fetch contract statistics via alternate method', async () => {
         const filteredStats = createMockStatistics({
           total_contracts: 8,
-          monthly_income: 4200000
+          monthly_income: 4200000,
         });
 
         mockGet.mockResolvedValueOnce({ data: filteredStats });
@@ -248,12 +256,20 @@ describe('API Integration Tests', () => {
           authenticationId: 'auth-123',
           sessionTimeout: 900000,
           securityLevel: 'high',
-          requiredSteps: ['face_front', 'face_side', 'document', 'combined', 'voice']
+          requiredSteps: [
+            'face_front',
+            'face_side',
+            'document',
+            'combined',
+            'voice',
+          ],
         };
 
         mockPost.mockResolvedValueOnce({ data: initResponse });
 
-        const result = await contractService.startBiometricAuthentication(mockContract.id);
+        const result = await contractService.startBiometricAuthentication(
+          mockContract.id
+        );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(result.authenticationId).toBe('auth-123');
@@ -294,8 +310,8 @@ describe('API Integration Tests', () => {
           validationResults: {
             formatValid: true,
             hologramValid: true,
-            photoMatch: 0.94
-          }
+            photoMatch: 0.94,
+          },
         };
 
         mockPost.mockResolvedValueOnce({ data: documentResponse });
@@ -329,7 +345,9 @@ describe('API Integration Tests', () => {
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
-        expect(result.transcription).toBe('Yo acepto los términos del contrato');
+        expect(result.transcription).toBe(
+          'Yo acepto los términos del contrato'
+        );
         expect(result.confidenceScore).toBe(0.89);
       });
 
@@ -342,14 +360,16 @@ describe('API Integration Tests', () => {
             face_confidence: 0.95,
             document_confidence: 0.98,
             voice_confidence: 0.89,
-            overall_confidence: 0.94
+            overall_confidence: 0.94,
           },
-          certificate_id: 'cert-456'
+          certificate_id: 'cert-456',
         };
 
         mockPost.mockResolvedValueOnce({ data: completionResponse });
 
-        const result = await contractService.completeAuthentication(mockContract.id);
+        const result = await contractService.completeAuthentication(
+          mockContract.id
+        );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(result.biometric_verified).toBe(true);
@@ -366,17 +386,23 @@ describe('API Integration Tests', () => {
             data: {
               error: 'fraud_detected',
               fraud_indicators: ['multiple_devices', 'location_mismatch'],
-            }
-          }
+            },
+          },
         });
 
         try {
-          await contractService.processFaceCapture(mockContract.id, 'img1', 'img2');
+          await contractService.processFaceCapture(
+            mockContract.id,
+            'img1',
+            'img2'
+          );
           fail('Should have thrown');
         } catch (error: any) {
           expect(error.response.status).toBe(403);
           expect(error.response.data.error).toBe('fraud_detected');
-          expect(error.response.data.fraud_indicators).toContain('multiple_devices');
+          expect(error.response.data.fraud_indicators).toContain(
+            'multiple_devices'
+          );
         }
       });
     });
@@ -391,7 +417,7 @@ describe('API Integration Tests', () => {
       it('should handle network timeouts gracefully', async () => {
         mockGet.mockRejectedValueOnce({
           code: 'ECONNABORTED',
-          message: 'timeout of 10000ms exceeded'
+          message: 'timeout of 10000ms exceeded',
         });
 
         try {
@@ -410,8 +436,8 @@ describe('API Integration Tests', () => {
             data: {
               error: 'Internal server error',
               error_code: 'DB_CONNECTION_ERROR',
-            }
-          }
+            },
+          },
         });
 
         try {
@@ -428,14 +454,14 @@ describe('API Integration Tests', () => {
           response: {
             status: 429,
             data: { error: 'Rate limit exceeded', retry_after: 60 },
-            headers: { 'retry-after': '60' }
-          }
+            headers: { 'retry-after': '60' },
+          },
         });
 
         try {
           await LandlordContractService.createContract({
             property_address: 'Test',
-            monthly_rent: 1000000
+            monthly_rent: 1000000,
           });
           fail('Should have thrown');
         } catch (error: any) {
@@ -452,9 +478,9 @@ describe('API Integration Tests', () => {
             data: {
               error: 'token_expired',
               message: 'Authentication token has expired',
-              action_required: 'refresh_token'
-            }
-          }
+              action_required: 'refresh_token',
+            },
+          },
         });
 
         try {
@@ -474,13 +500,15 @@ describe('API Integration Tests', () => {
             data: {
               error: 'insufficient_permissions',
               required_role: 'landlord',
-              current_role: 'tenant'
-            }
-          }
+              current_role: 'tenant',
+            },
+          },
         });
 
         try {
-          await LandlordContractService.approveLandlordContract({ contract_id: mockContract.id });
+          await LandlordContractService.approveLandlordContract({
+            contract_id: mockContract.id,
+          });
           fail('Should have thrown');
         } catch (error: any) {
           expect(error.response.status).toBe(403);
@@ -496,9 +524,9 @@ describe('API Integration Tests', () => {
           contracts: [
             {
               id: 'contract-123',
-              monthly_rent: 2500000
-            }
-          ]
+              monthly_rent: 2500000,
+            },
+          ],
         };
 
         mockGet.mockResolvedValueOnce({ data: incompleteResponse });
@@ -520,7 +548,7 @@ describe('API Integration Tests', () => {
       const largeContractList = Array.from({ length: 100 }, (_, i) =>
         createMockContract('PUBLISHED', {
           id: `large-contract-${i}`,
-          property_address: `Large Property ${i}`
+          property_address: `Large Property ${i}`,
         })
       );
 
@@ -528,7 +556,7 @@ describe('API Integration Tests', () => {
         contracts: largeContractList,
         total_count: largeContractList.length,
         page: 1,
-        page_size: 100
+        page_size: 100,
       };
 
       mockGet.mockResolvedValueOnce({ data: largeResponse });

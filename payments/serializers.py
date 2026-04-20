@@ -4,14 +4,24 @@ Serializers para la aplicación de pagos de VeriHome.
 
 from rest_framework import serializers
 from .models import (
-    Transaction, PaymentMethod, Invoice, EscrowAccount,
-    PaymentPlan, PaymentInstallment, RentPaymentSchedule, PaymentOrder,
+    Transaction,
+    PaymentMethod,
+    Invoice,
+    EscrowAccount,
+    PaymentPlan,
+    PaymentInstallment,
+    RentPaymentSchedule,
+    PaymentOrder,
 )
 # Importaciones de escrow y payment plans ahora están en models.py
 
 # Importar modelos de escrow integration
 try:
-    from .escrow_integration import ContractEscrowAccount, EscrowTransaction, EscrowReleaseRule
+    from .escrow_integration import (
+        ContractEscrowAccount,
+        EscrowTransaction,
+        EscrowReleaseRule,
+    )
 except ImportError:
     ContractEscrowAccount = None
     EscrowTransaction = None
@@ -20,119 +30,153 @@ except ImportError:
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     """Serializer para métodos de pago."""
-    
+
     class Meta:
         model = PaymentMethod
-        fields = '__all__'
-        read_only_fields = ('user', 'created_at', 'verified_at', 'last_used_at')
-    
+        fields = "__all__"
+        read_only_fields = ("user", "created_at", "verified_at", "last_used_at")
+
     def create(self, validated_data):
         """Asigna automáticamente el usuario."""
-        validated_data['user'] = self.context['request'].user
+        validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
 
 
 class TransactionSerializer(serializers.ModelSerializer):
     """Serializer para transacciones."""
-    
+
     class Meta:
         model = Transaction
-        fields = '__all__'
-        read_only_fields = ('id', 'transaction_number', 'created_at', 'processed_at', 'completed_at')
-    
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "transaction_number",
+            "created_at",
+            "processed_at",
+            "completed_at",
+        )
+
     def create(self, validated_data):
         """Asigna automáticamente el pagador."""
-        validated_data['payer'] = self.context['request'].user
+        validated_data["payer"] = self.context["request"].user
         return super().create(validated_data)
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
     """Serializer para facturas."""
-    
+
     class Meta:
         model = Invoice
-        fields = '__all__'
-        read_only_fields = ('id', 'invoice_number', 'created_at', 'updated_at', 'viewed_at', 'sent_at')
-    
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "invoice_number",
+            "created_at",
+            "updated_at",
+            "viewed_at",
+            "sent_at",
+        )
+
     def create(self, validated_data):
         """Asigna automáticamente el emisor."""
-        validated_data['issuer'] = self.context['request'].user
+        validated_data["issuer"] = self.context["request"].user
         return super().create(validated_data)
-
-
 
 
 class RentPaymentScheduleSerializer(serializers.ModelSerializer):
     """Serializer para cronogramas de pago de renta."""
-    
-    tenant_name = serializers.CharField(source='tenant.get_full_name', read_only=True)
-    landlord_name = serializers.CharField(source='landlord.get_full_name', read_only=True)
-    property_title = serializers.CharField(source='contract.property.title', read_only=True)
+
+    tenant_name = serializers.CharField(source="tenant.get_full_name", read_only=True)
+    landlord_name = serializers.CharField(
+        source="landlord.get_full_name", read_only=True
+    )
+    property_title = serializers.CharField(
+        source="contract.property.title", read_only=True
+    )
     next_due_date = serializers.SerializerMethodField()
     is_overdue = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = RentPaymentSchedule
-        fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
-    
+        fields = "__all__"
+        read_only_fields = ("created_at", "updated_at")
+
     def get_next_due_date(self, obj):
         return obj.get_next_due_date()
-    
+
     def get_is_overdue(self, obj):
         return obj.is_payment_overdue()
 
 
 class CreateTransactionSerializer(serializers.ModelSerializer):
     """Serializer para crear transacciones."""
-    
+
     class Meta:
         model = Transaction
         fields = [
-            'payee', 'transaction_type', 'direction', 'amount', 'currency',
-            'platform_fee', 'processing_fee', 'payment_method', 'contract',
-            'property', 'description', 'notes', 'due_date'
+            "payee",
+            "transaction_type",
+            "direction",
+            "amount",
+            "currency",
+            "platform_fee",
+            "processing_fee",
+            "payment_method",
+            "contract",
+            "property",
+            "description",
+            "notes",
+            "due_date",
         ]
-    
+
     def create(self, validated_data):
         """Asigna automáticamente el pagador y calcula el total."""
-        validated_data['payer'] = self.context['request'].user
-        
+        validated_data["payer"] = self.context["request"].user
+
         # Calcular monto total
-        amount = validated_data.get('amount', 0)
-        platform_fee = validated_data.get('platform_fee', 0)
-        processing_fee = validated_data.get('processing_fee', 0)
-        validated_data['total_amount'] = amount + platform_fee + processing_fee
-        
+        amount = validated_data.get("amount", 0)
+        platform_fee = validated_data.get("platform_fee", 0)
+        processing_fee = validated_data.get("processing_fee", 0)
+        validated_data["total_amount"] = amount + platform_fee + processing_fee
+
         return super().create(validated_data)
 
 
 class CreateInvoiceSerializer(serializers.ModelSerializer):
     """Serializer para crear facturas."""
-    
+
     class Meta:
         model = Invoice
         fields = [
-            'recipient', 'invoice_type', 'title', 'description', 'subtotal',
-            'tax_amount', 'discount_amount', 'currency', 'due_date', 'contract', 'property'
+            "recipient",
+            "invoice_type",
+            "title",
+            "description",
+            "subtotal",
+            "tax_amount",
+            "discount_amount",
+            "currency",
+            "due_date",
+            "contract",
+            "property",
         ]
-    
+
     def create(self, validated_data):
         """Asigna automáticamente el emisor y calcula el total."""
-        validated_data['issuer'] = self.context['request'].user
-        
+        validated_data["issuer"] = self.context["request"].user
+
         # Calcular monto total
-        subtotal = validated_data.get('subtotal', 0)
-        tax_amount = validated_data.get('tax_amount', 0)
-        discount_amount = validated_data.get('discount_amount', 0)
-        validated_data['total_amount'] = subtotal + tax_amount - discount_amount
-        
+        subtotal = validated_data.get("subtotal", 0)
+        tax_amount = validated_data.get("tax_amount", 0)
+        discount_amount = validated_data.get("discount_amount", 0)
+        validated_data["total_amount"] = subtotal + tax_amount - discount_amount
+
         return super().create(validated_data)
 
 
 class PaymentStatsSerializer(serializers.Serializer):
     """Serializer para estadísticas de pagos."""
-    
+
     total_transactions = serializers.IntegerField()
     total_amount = serializers.DecimalField(max_digits=12, decimal_places=2)
     pending_transactions = serializers.IntegerField()
@@ -143,7 +187,7 @@ class PaymentStatsSerializer(serializers.Serializer):
 
 class BalanceSerializer(serializers.Serializer):
     """Serializer para balance de usuario."""
-    
+
     available_balance = serializers.DecimalField(max_digits=12, decimal_places=2)
     pending_balance = serializers.DecimalField(max_digits=12, decimal_places=2)
     total_balance = serializers.DecimalField(max_digits=12, decimal_places=2)
@@ -152,73 +196,95 @@ class BalanceSerializer(serializers.Serializer):
 
 class EscrowAccountSerializer(serializers.ModelSerializer):
     """Serializer para cuentas de escrow."""
-    
-    buyer_name = serializers.CharField(source='buyer.get_full_name', read_only=True)
-    seller_name = serializers.CharField(source='seller.get_full_name', read_only=True)
-    
+
+    buyer_name = serializers.CharField(source="buyer.get_full_name", read_only=True)
+    seller_name = serializers.CharField(source="seller.get_full_name", read_only=True)
+
     class Meta:
         model = EscrowAccount
-        fields = '__all__'
-        read_only_fields = ('id', 'escrow_number', 'created_at', 'updated_at', 'funded_at', 'released_at')
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "escrow_number",
+            "created_at",
+            "updated_at",
+            "funded_at",
+            "released_at",
+        )
 
 
 class PaymentPlanSerializer(serializers.ModelSerializer):
     """Serializer para planes de pago."""
-    
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+
+    user_name = serializers.CharField(source="user.get_full_name", read_only=True)
     remaining_balance = serializers.SerializerMethodField()
     next_payment_date = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = PaymentPlan
-        fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
-    
+        fields = "__all__"
+        read_only_fields = ("created_at", "updated_at")
+
     def get_remaining_balance(self, obj):
         return obj.get_remaining_balance()
-    
+
     def get_next_payment_date(self, obj):
         return obj.get_next_payment_date()
 
 
 class PaymentInstallmentSerializer(serializers.ModelSerializer):
     """Serializer para cuotas de planes de pago."""
-    
+
     is_overdue = serializers.SerializerMethodField()
     total_amount_due = serializers.SerializerMethodField()
-    plan_name = serializers.CharField(source='payment_plan.plan_name', read_only=True)
-    
+    plan_name = serializers.CharField(source="payment_plan.plan_name", read_only=True)
+
     class Meta:
         model = PaymentInstallment
-        fields = '__all__'
-        read_only_fields = ('created_at', 'paid_date')
-    
+        fields = "__all__"
+        read_only_fields = ("created_at", "paid_date")
+
     def get_is_overdue(self, obj):
         return obj.is_overdue()
-    
+
     def get_total_amount_due(self, obj):
         return obj.get_total_amount_due()
 
 
 # Serializers para sistema de escrow integrado con contratos
 if ContractEscrowAccount:
+
     class ContractEscrowAccountSerializer(serializers.ModelSerializer):
         """Serializer para cuentas de escrow de contratos."""
-        
-        contract_code = serializers.CharField(source='contract.match_request.match_code', read_only=True)
-        property_title = serializers.CharField(source='contract.match_request.property.title', read_only=True)
-        tenant_name = serializers.CharField(source='contract.match_request.tenant.get_full_name', read_only=True)
-        landlord_name = serializers.CharField(source='contract.match_request.property.landlord.get_full_name', read_only=True)
+
+        contract_code = serializers.CharField(
+            source="contract.match_request.match_code", read_only=True
+        )
+        property_title = serializers.CharField(
+            source="contract.match_request.property.title", read_only=True
+        )
+        tenant_name = serializers.CharField(
+            source="contract.match_request.tenant.get_full_name", read_only=True
+        )
+        landlord_name = serializers.CharField(
+            source="contract.match_request.property.landlord.get_full_name",
+            read_only=True,
+        )
         escrow_progress = serializers.SerializerMethodField()
-        
+
         class Meta:
             model = ContractEscrowAccount
-            fields = '__all__'
+            fields = "__all__"
             read_only_fields = (
-                'id', 'contract_code', 'property_title', 'tenant_name', 'landlord_name',
-                'created_at', 'updated_at'
+                "id",
+                "contract_code",
+                "property_title",
+                "tenant_name",
+                "landlord_name",
+                "created_at",
+                "updated_at",
             )
-        
+
         def get_escrow_progress(self, obj):
             """Calcula el progreso del escrow basado en transacciones."""
             if obj.total_deposited == 0:
@@ -227,41 +293,56 @@ if ContractEscrowAccount:
 
 
 if EscrowTransaction:
+
     class EscrowTransactionSerializer(serializers.ModelSerializer):
         """Serializer para transacciones de escrow."""
-        
-        account_balance = serializers.DecimalField(source='escrow_account.available_balance', max_digits=12, decimal_places=2, read_only=True)
-        contract_code = serializers.CharField(source='escrow_account.contract.match_request.match_code', read_only=True)
-        
+
+        account_balance = serializers.DecimalField(
+            source="escrow_account.available_balance",
+            max_digits=12,
+            decimal_places=2,
+            read_only=True,
+        )
+        contract_code = serializers.CharField(
+            source="escrow_account.contract.match_request.match_code", read_only=True
+        )
+
         class Meta:
             model = EscrowTransaction
-            fields = '__all__'
+            fields = "__all__"
             read_only_fields = (
-                'id', 'transaction_id', 'account_balance', 'contract_code',
-                'created_at', 'processed_at'
+                "id",
+                "transaction_id",
+                "account_balance",
+                "contract_code",
+                "created_at",
+                "processed_at",
             )
 
 
 if EscrowReleaseRule:
+
     class EscrowReleaseRuleSerializer(serializers.ModelSerializer):
         """Serializer para reglas de liberación de escrow."""
-        
+
         is_active = serializers.SerializerMethodField()
         days_until_trigger = serializers.SerializerMethodField()
-        
+
         class Meta:
             model = EscrowReleaseRule
-            fields = '__all__'
-            read_only_fields = ('id', 'created_at')
-        
+            fields = "__all__"
+            read_only_fields = ("id", "created_at")
+
         def get_is_active(self, obj):
             """Verifica si la regla está activa."""
             from django.utils import timezone
+
             return obj.trigger_date >= timezone.now().date() and obj.is_enabled
-        
+
         def get_days_until_trigger(self, obj):
             """Calcula días hasta que se active la regla."""
             from django.utils import timezone
+
             if obj.trigger_date:
                 delta = obj.trigger_date - timezone.now().date()
                 return delta.days if delta.days >= 0 else 0
@@ -271,36 +352,66 @@ if EscrowReleaseRule:
 class PaymentOrderSerializer(serializers.ModelSerializer):
     """Serializer de PaymentOrder con totales calculados y partes legibles."""
 
-    payer_email = serializers.CharField(source='payer.email', read_only=True)
-    payee_email = serializers.CharField(source='payee.email', read_only=True)
+    payer_email = serializers.CharField(source="payer.email", read_only=True)
+    payee_email = serializers.CharField(source="payee.email", read_only=True)
     payer_name = serializers.SerializerMethodField()
     payee_name = serializers.SerializerMethodField()
-    total_amount = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    total_amount = serializers.DecimalField(
+        max_digits=14, decimal_places=2, read_only=True
+    )
     balance = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
-    order_type_display = serializers.CharField(source='get_order_type_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    order_type_display = serializers.CharField(
+        source="get_order_type_display", read_only=True
+    )
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = PaymentOrder
         fields = [
-            'id', 'order_number', 'order_type', 'order_type_display',
-            'status', 'status_display',
-            'payer', 'payer_email', 'payer_name',
-            'payee', 'payee_email', 'payee_name',
-            'amount', 'interest_amount', 'paid_amount',
-            'total_amount', 'balance',
-            'date_due', 'date_grace_end', 'date_max_overdue',
-            'rent_schedule', 'installment', 'invoice', 'transaction',
-            'description', 'audit_log',
-            'created_at', 'updated_at', 'paid_at',
+            "id",
+            "order_number",
+            "order_type",
+            "order_type_display",
+            "status",
+            "status_display",
+            "payer",
+            "payer_email",
+            "payer_name",
+            "payee",
+            "payee_email",
+            "payee_name",
+            "amount",
+            "interest_amount",
+            "paid_amount",
+            "total_amount",
+            "balance",
+            "date_due",
+            "date_grace_end",
+            "date_max_overdue",
+            "rent_schedule",
+            "installment",
+            "invoice",
+            "transaction",
+            "description",
+            "audit_log",
+            "created_at",
+            "updated_at",
+            "paid_at",
         ]
         read_only_fields = [
-            'id', 'order_number', 'paid_amount', 'total_amount', 'balance',
-            'audit_log', 'created_at', 'updated_at', 'paid_at',
+            "id",
+            "order_number",
+            "paid_amount",
+            "total_amount",
+            "balance",
+            "audit_log",
+            "created_at",
+            "updated_at",
+            "paid_at",
         ]
 
     def get_payer_name(self, obj):
         return obj.payer.get_full_name() or obj.payer.email
 
     def get_payee_name(self, obj):
-        return obj.payee.get_full_name() or obj.payee.email 
+        return obj.payee.get_full_name() or obj.payee.email

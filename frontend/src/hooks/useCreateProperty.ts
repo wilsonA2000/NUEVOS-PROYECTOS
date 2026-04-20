@@ -10,7 +10,7 @@ export const useCreateProperty = () => {
 
   return useMutation<Property, Error, FormData | CreatePropertyDto>({
     mutationFn: propertyService.createProperty,
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Verificar queryClient de forma segura
       if (queryClient && typeof queryClient.invalidateQueries === 'function') {
         try {
@@ -18,10 +18,13 @@ export const useCreateProperty = () => {
           queryClient.invalidateQueries({ queryKey: ['property-stats'] });
           queryClient.invalidateQueries({ queryKey: ['featured-properties'] });
           queryClient.invalidateQueries({ queryKey: ['trending-properties'] });
-          
+
           // Refetch después de un pequeño delay
           setTimeout(() => {
-            if (queryClient && typeof queryClient.refetchQueries === 'function') {
+            if (
+              queryClient &&
+              typeof queryClient.refetchQueries === 'function'
+            ) {
               queryClient.refetchQueries({ queryKey: ['properties'] });
             }
           }, 100);

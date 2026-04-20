@@ -40,9 +40,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <MemoryRouter initialEntries={['/login']}>
-          {children}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={['/login']}>{children}</MemoryRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -94,13 +92,21 @@ describe('Login Component', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument();
-    expect(screen.getByText('Ingresa tus credenciales para acceder a tu cuenta')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /iniciar sesión/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Ingresa tus credenciales para acceder a tu cuenta')
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /iniciar sesión/i })
+    ).toBeInTheDocument();
     expect(screen.getByText('¿Olvidaste tu contraseña?')).toBeInTheDocument();
-    expect(screen.getByText('¿No tienes una cuenta? Regístrate')).toBeInTheDocument();
+    expect(
+      screen.getByText('¿No tienes una cuenta? Regístrate')
+    ).toBeInTheDocument();
   });
 
   it('should update form fields when user types', async () => {
@@ -113,7 +119,9 @@ describe('Login Component', () => {
     );
 
     const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
-    const passwordInput = screen.getByLabelText(/contraseña/i) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(
+      /contraseña/i
+    ) as HTMLInputElement;
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
@@ -138,7 +146,9 @@ describe('Login Component', () => {
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
+    const submitButton = screen.getByRole('button', {
+      name: /iniciar sesión/i,
+    });
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
@@ -154,7 +164,9 @@ describe('Login Component', () => {
 
   it('should handle login error', async () => {
     const user = userEvent.setup();
-    mockMutateAsync.mockRejectedValueOnce(new Error('No existe una cuenta con ese email'));
+    mockMutateAsync.mockRejectedValueOnce(
+      new Error('No existe una cuenta con ese email')
+    );
 
     render(
       <TestWrapper>
@@ -164,7 +176,9 @@ describe('Login Component', () => {
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/contraseña/i);
-    const submitButton = screen.getByRole('button', { name: /iniciar sesión/i });
+    const submitButton = screen.getByRole('button', {
+      name: /iniciar sesión/i,
+    });
 
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'wrongpassword');
@@ -204,7 +218,16 @@ describe('Login Component', () => {
 
   it('should redirect when already authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', user_type: 'tenant', is_verified: true, created_at: '', updated_at: '' } as any,
+      user: {
+        id: '1',
+        email: 'test@example.com',
+        first_name: 'Test',
+        last_name: 'User',
+        user_type: 'tenant',
+        is_verified: true,
+        created_at: '',
+        updated_at: '',
+      } as any,
       token: 'token',
       isAuthenticated: true,
       isLoading: false,

@@ -93,14 +93,16 @@ interface ContextSwitcherProps {
   compact?: boolean;
 }
 
-export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = false }) => {
+export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
+  compact = false,
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // Estado local para reactividad inmediata sin esperar cambio de URL
-  const [forcedContextId, setForcedContextId] = useState<string | null>(
-    () => localStorage.getItem(CONTEXT_STORAGE_KEY),
+  const [forcedContextId, setForcedContextId] = useState<string | null>(() =>
+    localStorage.getItem(CONTEXT_STORAGE_KEY),
   );
 
   // Detectar contextos disponibles para el usuario
@@ -163,7 +165,12 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
     }
 
     return availableContexts[0] ?? CONTEXT_OPTIONS.landlord!;
-  }, [location.pathname, user?.user_type, availableContexts, forcedContextId]) as ContextOption;
+  }, [
+    location.pathname,
+    user?.user_type,
+    availableContexts,
+    forcedContextId,
+  ]) as ContextOption;
 
   // Si solo tiene un contexto, no mostrar el switcher
   if (availableContexts.length <= 1) {
@@ -184,7 +191,10 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
     handleClose();
     // navigate() es no-op si la URL no cambia; usamos replace para forzar re-render
     if (location.pathname === context.path) {
-      navigate(context.path, { replace: true, state: { contextSwitch: Date.now() } });
+      navigate(context.path, {
+        replace: true,
+        state: { contextSwitch: Date.now() },
+      });
     } else {
       navigate(context.path);
     }
@@ -194,11 +204,11 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <Tooltip title="Cambiar contexto de trabajo" arrow>
+      <Tooltip title='Cambiar contexto de trabajo' arrow>
         <Button
           onClick={handleClick}
-          variant="outlined"
-          size="small"
+          variant='outlined'
+          size='small'
           startIcon={
             <Avatar
               sx={{
@@ -213,7 +223,14 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
               })}
             </Avatar>
           }
-          endIcon={<ExpandIcon sx={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />}
+          endIcon={
+            <ExpandIcon
+              sx={{
+                transition: 'transform 0.2s',
+                transform: isOpen ? 'rotate(180deg)' : 'none',
+              }}
+            />
+          }
           sx={{
             borderRadius: 3,
             textTransform: 'none',
@@ -230,7 +247,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
           }}
         >
           {!compact && (
-            <Typography variant="body2" fontWeight={500} noWrap>
+            <Typography variant='body2' fontWeight={500} noWrap>
               {currentContext.shortLabel}
             </Typography>
           )}
@@ -268,8 +285,12 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
       >
         {/* Header */}
         <Box sx={{ px: 2, py: 1.5, bgcolor: 'grey.50' }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SwitchIcon fontSize="small" />
+          <Typography
+            variant='subtitle2'
+            color='text.secondary'
+            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+          >
+            <SwitchIcon fontSize='small' />
             Cambiar contexto de trabajo
           </Typography>
         </Box>
@@ -277,7 +298,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
         <Divider />
 
         {/* Opciones de contexto */}
-        {availableContexts.map((context) => {
+        {availableContexts.map(context => {
           const isActive = currentContext.id === context.id;
 
           return (
@@ -311,13 +332,16 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
               <ListItemText
                 primary={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body1" fontWeight={isActive ? 600 : 400}>
+                    <Typography
+                      variant='body1'
+                      fontWeight={isActive ? 600 : 400}
+                    >
                       {context.label}
                     </Typography>
                     {isActive && (
                       <Chip
-                        label="Activo"
-                        size="small"
+                        label='Activo'
+                        size='small'
                         sx={{
                           height: 20,
                           fontSize: '0.7rem',
@@ -329,14 +353,12 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
                   </Box>
                 }
                 secondary={
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant='caption' color='text.secondary'>
                     {context.description}
                   </Typography>
                 }
               />
-              {isActive && (
-                <CheckIcon sx={{ color: context.color, ml: 1 }} />
-              )}
+              {isActive && <CheckIcon sx={{ color: context.color, ml: 1 }} />}
             </MenuItem>
           );
         })}
@@ -344,7 +366,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
         {/* Footer con info */}
         <Divider />
         <Box sx={{ px: 2, py: 1, bgcolor: 'grey.50' }}>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             Usuario: {user?.email}
           </Typography>
         </Box>

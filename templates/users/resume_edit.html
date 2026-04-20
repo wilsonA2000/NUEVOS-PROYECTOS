@@ -12,14 +12,14 @@
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">Editar Hoja de Vida</h1>
                     <p class="text-gray-600">Completa tu información para una verificación más precisa</p>
                 </div>
-                
+
                 <div class="mt-4 md:mt-0 flex space-x-3">
                     <!-- Progreso de completitud -->
                     <div class="text-center">
                         <div class="text-2xl font-bold text-primary-600">{{ completion_percentage }}%</div>
                         <div class="text-sm text-gray-500">Completado</div>
                     </div>
-                    
+
                     <!-- Puntuación de verificación -->
                     <div class="text-center">
                         <div class="text-2xl font-bold text-green-600">{{ verification_score }}%</div>
@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Barra de progreso -->
             <div class="mt-6">
                 <div class="flex justify-between text-sm text-gray-600 mb-2">
@@ -39,11 +39,11 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Formulario -->
         <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
-            
+
             <!-- Información Personal -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Personal</h2>
@@ -57,7 +57,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.date_of_birth.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.nationality.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Nacionalidad
@@ -67,7 +67,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.nationality.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.marital_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Estado civil
@@ -77,7 +77,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.marital_status.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.dependents.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Número de dependientes
@@ -89,7 +89,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información Educativa -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Educativa</h2>
@@ -103,7 +103,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.education_level.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.institution_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Institución
@@ -113,7 +113,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.institution_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.field_of_study.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Campo de estudio
@@ -123,7 +123,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.field_of_study.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.graduation_year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Año de graduación
@@ -133,7 +133,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.graduation_year.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.gpa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Promedio (GPA)
@@ -145,7 +145,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información Laboral -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Laboral</h2>
@@ -159,7 +159,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.current_employer.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.current_position.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Cargo actual
@@ -169,7 +169,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.current_position.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Tipo de empleo
@@ -179,7 +179,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.employment_type.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.monthly_salary.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Salario mensual
@@ -189,7 +189,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.monthly_salary.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Fecha de inicio
@@ -199,7 +199,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.start_date.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Fecha de fin (opcional)
@@ -209,7 +209,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.end_date.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.supervisor_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Nombre del supervisor
@@ -219,7 +219,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.supervisor_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.supervisor_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Teléfono del supervisor
@@ -229,7 +229,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.supervisor_phone.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div class="md:col-span-2">
                         <label for="{{ form.supervisor_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Email del supervisor
@@ -241,7 +241,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información Financiera -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Financiera</h2>
@@ -255,7 +255,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.bank_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.account_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Tipo de cuenta
@@ -265,7 +265,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.account_type.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Número de cuenta
@@ -275,7 +275,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.account_number.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.credit_score.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Puntuación crediticia
@@ -285,7 +285,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.credit_score.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.monthly_expenses.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Gastos mensuales
@@ -297,7 +297,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Contacto de Emergencia -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Contacto de Emergencia</h2>
@@ -311,7 +311,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_name.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.emergency_contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Teléfono
@@ -321,7 +321,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_phone.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.emergency_contact_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Relación
@@ -331,7 +331,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.emergency_contact_relation.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div class="md:col-span-2">
                         <label for="{{ form.emergency_contact_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Dirección
@@ -343,11 +343,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Referencias -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Referencias Personales</h2>
-                
+
                 <!-- Referencia 1 -->
                 <div class="mb-6">
                     <h3 class="text-lg font-medium text-gray-700 mb-3">Referencia 1</h3>
@@ -361,7 +361,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference1_name.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference1_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Teléfono
@@ -371,7 +371,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference1_phone.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference1_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Email
@@ -381,7 +381,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference1_email.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference1_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Relación
@@ -393,7 +393,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Referencia 2 -->
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 mb-3">Referencia 2 (opcional)</h3>
@@ -407,7 +407,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference2_name.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference2_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Teléfono
@@ -417,7 +417,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference2_phone.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference2_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Email
@@ -427,7 +427,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ form.reference2_email.errors.0 }}</p>
                             {% endif %}
                         </div>
-                        
+
                         <div>
                             <label for="{{ form.reference2_relation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 Relación
@@ -440,7 +440,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Historial de Vivienda -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Historial de Vivienda</h2>
@@ -451,7 +451,7 @@
                             ¿Tiene historial de desalojo?
                         </label>
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.eviction_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Detalles del desalojo (si aplica)
@@ -463,7 +463,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Documentos -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Documentos de Verificación</h2>
@@ -477,7 +477,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.id_document.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.proof_of_income.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Comprobante de ingresos
@@ -487,7 +487,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.proof_of_income.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.bank_statement.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Estado de cuenta bancario
@@ -497,7 +497,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.bank_statement.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.employment_letter.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Carta laboral
@@ -507,7 +507,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.employment_letter.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.tax_return.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Declaración de impuestos (opcional)
@@ -517,7 +517,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.tax_return.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.credit_report.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Reporte crediticio (opcional)
@@ -529,7 +529,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información Adicional -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Adicional</h2>
@@ -540,7 +540,7 @@
                             ¿Tiene antecedentes penales?
                         </label>
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.criminal_record_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Detalles de antecedentes penales (si aplica)
@@ -550,7 +550,7 @@
                             <p class="text-red-600 text-sm mt-1">{{ form.criminal_record_details.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <label for="{{ form.criminal_record_document.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Documento de antecedentes penales (si aplica)
@@ -562,7 +562,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Botones de acción -->
             <div class="flex justify-end space-x-4">
                 <a href="{% url 'users:resume' %}" class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
@@ -590,4 +590,4 @@ input[type="checkbox"] {
     @apply h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded;
 }
 </style>
-{% endblock %} 
+{% endblock %}

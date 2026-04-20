@@ -53,10 +53,19 @@ describe('AuthService', () => {
 
       const result = await authService.login(loginData);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/login/', loginData);
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/users/auth/login/',
+        loginData
+      );
       expect(mockApi.get).toHaveBeenCalledWith('/users/auth/me/');
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('access_token', 'mock-access-token');
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh_token', 'mock-refresh-token');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'access_token',
+        'mock-access-token'
+      );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'refresh_token',
+        'mock-refresh-token'
+      );
       expect(result).toEqual(mockUserResponse.data);
     });
 
@@ -261,7 +270,10 @@ describe('AuthService', () => {
 
     it('should handle getCurrentUser error', async () => {
       const errorResponse = new Error('Token invalido');
-      (errorResponse as any).response = { status: 401, data: { detail: 'Token invalido' } };
+      (errorResponse as any).response = {
+        status: 401,
+        data: { detail: 'Token invalido' },
+      };
 
       mockApi.get.mockRejectedValueOnce(errorResponse);
 
@@ -305,7 +317,9 @@ describe('AuthService', () => {
 
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.updateProfile(updateData)).rejects.toThrow('Error al actualizar perfil');
+      await expect(authService.updateProfile(updateData)).rejects.toThrow(
+        'Error al actualizar perfil'
+      );
     });
   });
 
@@ -326,7 +340,9 @@ describe('AuthService', () => {
 
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.changePassword('wrong', 'new')).rejects.toThrow('Contrasena actual incorrecta');
+      await expect(authService.changePassword('wrong', 'new')).rejects.toThrow(
+        'Contrasena actual incorrecta'
+      );
     });
   });
 
@@ -336,9 +352,12 @@ describe('AuthService', () => {
 
       await authService.forgotPassword('test@example.com');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/users/auth/forgot-password/', {
-        email: 'test@example.com',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/users/auth/forgot-password/',
+        {
+          email: 'test@example.com',
+        }
+      );
     });
 
     it('should handle forgot password error', async () => {
@@ -346,7 +365,9 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.forgotPassword('notfound@example.com')).rejects.toThrow('Usuario no encontrado');
+      await expect(
+        authService.forgotPassword('notfound@example.com')
+      ).rejects.toThrow('Usuario no encontrado');
     });
   });
 
@@ -367,7 +388,9 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.resetPassword('invalid-token', 'newPassword')).rejects.toThrow('Token invalido o expirado');
+      await expect(
+        authService.resetPassword('invalid-token', 'newPassword')
+      ).rejects.toThrow('Token invalido o expirado');
     });
   });
 
@@ -384,12 +407,12 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password',
-      })).rejects.toThrow(
-        'Demasiadas solicitudes'
-      );
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password',
+        })
+      ).rejects.toThrow('Demasiadas solicitudes');
     });
 
     it('should handle forbidden error', async () => {
@@ -404,12 +427,12 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password',
-      })).rejects.toThrow(
-        'Acceso denegado'
-      );
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password',
+        })
+      ).rejects.toThrow('Acceso denegado');
     });
 
     it('should handle not found error', async () => {
@@ -424,12 +447,12 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password',
-      })).rejects.toThrow(
-        'Recurso no encontrado'
-      );
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password',
+        })
+      ).rejects.toThrow('Recurso no encontrado');
     });
 
     it('should handle generic string error', async () => {
@@ -442,10 +465,12 @@ describe('AuthService', () => {
 
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password',
-      })).rejects.toThrow('String error message');
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password',
+        })
+      ).rejects.toThrow('String error message');
     });
   });
 });

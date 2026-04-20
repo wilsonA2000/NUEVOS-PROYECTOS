@@ -11,7 +11,14 @@ jest.mock('../../services/propertyService');
 // Mock useAuth
 jest.mock('../useAuth', () => ({
   useAuth: jest.fn(() => ({
-    user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', user_type: 'landlord', is_verified: true },
+    user: {
+      id: '1',
+      email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      user_type: 'landlord',
+      is_verified: true,
+    },
     isAuthenticated: true,
     isLoading: false,
     login: { mutateAsync: jest.fn() },
@@ -59,7 +66,9 @@ jest.mock('../../lib/queryClient', () => ({
   },
 }));
 
-const mockPropertyService = propertyService as jest.Mocked<typeof propertyService>;
+const mockPropertyService = propertyService as jest.Mocked<
+  typeof propertyService
+>;
 
 // Create fresh wrapper per test
 const createWrapper = () => {
@@ -91,9 +100,7 @@ const mockProperty = {
   area: 120,
   is_available: true,
   status: 'available',
-  images: [
-    { id: '1', image: '/media/property1.jpg', is_primary: true },
-  ],
+  images: [{ id: '1', image: '/media/property1.jpg', is_primary: true }],
   latitude: 4.5709,
   longitude: -74.2973,
   landlord: {
@@ -113,9 +120,13 @@ describe('useProperties Hook (Simple)', () => {
 
   describe('Get Properties', () => {
     it('should fetch properties successfully', async () => {
-      mockPropertyService.getProperties.mockResolvedValueOnce([mockProperty] as any);
+      mockPropertyService.getProperties.mockResolvedValueOnce([
+        mockProperty,
+      ] as any);
 
-      const { result } = renderHook(() => useProperties(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useProperties(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -127,9 +138,13 @@ describe('useProperties Hook (Simple)', () => {
     });
 
     it('should handle properties fetch error', async () => {
-      mockPropertyService.getProperties.mockRejectedValueOnce(new Error('Error al cargar propiedades'));
+      mockPropertyService.getProperties.mockRejectedValueOnce(
+        new Error('Error al cargar propiedades')
+      );
 
-      const { result } = renderHook(() => useProperties(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useProperties(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -140,10 +155,16 @@ describe('useProperties Hook (Simple)', () => {
     });
 
     it('should toggle favorite via mutation', async () => {
-      mockPropertyService.getProperties.mockResolvedValueOnce([mockProperty] as any);
-      mockPropertyService.toggleFavorite.mockResolvedValueOnce({ message: 'Added to favorites' } as any);
+      mockPropertyService.getProperties.mockResolvedValueOnce([
+        mockProperty,
+      ] as any);
+      mockPropertyService.toggleFavorite.mockResolvedValueOnce({
+        message: 'Added to favorites',
+      } as any);
 
-      const { result } = renderHook(() => useProperties(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useProperties(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);

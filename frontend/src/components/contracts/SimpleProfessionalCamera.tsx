@@ -3,8 +3,21 @@
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress, Dialog, IconButton } from '@mui/material';
-import { CameraAlt, Check, Replay, Fullscreen, FullscreenExit, Close } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+  Dialog,
+  IconButton,
+} from '@mui/material';
+import {
+  CameraAlt,
+  Check,
+  Replay,
+  Fullscreen,
+  Close,
+} from '@mui/icons-material';
 import { vhColors } from '../../theme/tokens';
 
 interface SimpleProfessionalCameraProps {
@@ -27,7 +40,9 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
   const modalVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const [status, setStatus] = useState<'idle' | 'loading' | 'active' | 'error' | 'preview' | 'accepted'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'active' | 'error' | 'preview' | 'accepted'
+  >('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [capturedImage, setCapturedImage] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -97,12 +112,10 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
             // Modal play error is expected in some browsers
           }
         }
-
       } else {
         setStatus('error');
         setErrorMessage('Elemento de video no disponible');
       }
-
     } catch (err: any) {
       setStatus('error');
 
@@ -110,13 +123,17 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
       let userFriendlyMessage = '';
 
       if (err.name === 'NotAllowedError') {
-        userFriendlyMessage = 'Permisos de camara denegados. Por favor, permite el acceso a la camara y recarga la pagina.';
+        userFriendlyMessage =
+          'Permisos de camara denegados. Por favor, permite el acceso a la camara y recarga la pagina.';
       } else if (err.name === 'NotFoundError') {
-        userFriendlyMessage = 'No se encontro ninguna camara en tu dispositivo.';
+        userFriendlyMessage =
+          'No se encontro ninguna camara en tu dispositivo.';
       } else if (err.name === 'NotReadableError') {
-        userFriendlyMessage = 'La camara esta siendo usada por otra aplicacion. Cierra otras apps que usen la camara.';
+        userFriendlyMessage =
+          'La camara esta siendo usada por otra aplicacion. Cierra otras apps que usen la camara.';
       } else if (err.name === 'OverconstrainedError') {
-        userFriendlyMessage = 'Configuracion de camara no compatible. Intentando con configuracion basica...';
+        userFriendlyMessage =
+          'Configuracion de camara no compatible. Intentando con configuracion basica...';
       } else if (err.name === 'AbortError') {
         userFriendlyMessage = 'Acceso a camara cancelado.';
       } else {
@@ -143,8 +160,14 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
     if (activeVideo.videoWidth === 0 || activeVideo.videoHeight === 0) {
       // Si el video activo no tiene dimensiones, intentar con el otro
-      const fallbackVideo = isFullscreen ? videoRef.current : modalVideoRef.current;
-      if (fallbackVideo && fallbackVideo.videoWidth > 0 && fallbackVideo.videoHeight > 0) {
+      const fallbackVideo = isFullscreen
+        ? videoRef.current
+        : modalVideoRef.current;
+      if (
+        fallbackVideo &&
+        fallbackVideo.videoWidth > 0 &&
+        fallbackVideo.videoHeight > 0
+      ) {
         activeVideo = fallbackVideo;
       } else {
         return;
@@ -162,7 +185,8 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
         ctx.drawImage(activeVideo, 0, 0);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
-        if (dataUrl.length > 100) { // Verificar que realmente se capturó algo
+        if (dataUrl.length > 100) {
+          // Verificar que realmente se capturó algo
           setCapturedImage(dataUrl);
           setStatus('preview');
           stopCamera(false); // Detener la cámara pero NO resetear el estado
@@ -250,21 +274,28 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
   // Componente de renderizado de cámara reutilizable
   const renderCameraContent = (isInModal = false) => (
-    <Box sx={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: getContainerHeight(isInModal),
-    }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: getContainerHeight(isInModal),
+      }}
+    >
       {/* Área Principal de Video - Adaptable según el modo */}
-      <Box sx={{
-        height: getVideoHeight(isInModal),
-        position: 'relative',
-        borderRadius: isInModal ? 0 : 2, // Sin bordes en modal
-        overflow: 'hidden',
-        bgcolor: 'text.primary',
-        background: status !== 'active' ? 'linear-gradient(135deg, #455a64 0%, #607d8b 100%)' : '#000000',
-      }}>
+      <Box
+        sx={{
+          height: getVideoHeight(isInModal),
+          position: 'relative',
+          borderRadius: isInModal ? 0 : 2, // Sin bordes en modal
+          overflow: 'hidden',
+          bgcolor: 'text.primary',
+          background:
+            status !== 'active'
+              ? 'linear-gradient(135deg, #455a64 0%, #607d8b 100%)'
+              : '#000000',
+        }}
+      >
         {/* Video Element */}
         <video
           ref={isInModal ? modalVideoRef : videoRef}
@@ -283,53 +314,59 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Indicador de cámara activa */}
         {status === 'active' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            bgcolor: vhColors.success,
-            color: 'white',
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            fontSize: '0.75rem',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              bgcolor: vhColors.success,
+              color: 'white',
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}
+          >
             EN VIVO
           </Box>
         )}
 
         {/* Estado: Idle */}
         {status === 'idle' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            textAlign: 'center',
-            p: 4,
-          }}>
-            <Box sx={{
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              textAlign: 'center',
               p: 4,
-              borderRadius: 3,
-              bgcolor: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              maxWidth: 400,
-            }}>
+            }}
+          >
+            <Box
+              sx={{
+                p: 4,
+                borderRadius: 3,
+                bgcolor: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                maxWidth: 400,
+              }}
+            >
               <CameraAlt sx={{ fontSize: 64, mb: 2, color: 'white' }} />
-              <Typography variant="h5" gutterBottom fontWeight="600">
+              <Typography variant='h5' gutterBottom fontWeight='600'>
                 Cámara Lista
               </Typography>
               <Typography
-                variant="body1"
+                variant='body1'
                 sx={{
                   mb: 3,
                   color: 'rgba(255,255,255,0.95)',
@@ -341,8 +378,8 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
                 {instructions}
               </Typography>
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={startCamera}
                 startIcon={<CameraAlt />}
                 sx={{
@@ -367,24 +404,26 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Estado: Loading */}
         {status === 'loading' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            textAlign: 'center',
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              textAlign: 'center',
+            }}
+          >
             <CircularProgress sx={{ color: 'white', mb: 3 }} size={60} />
-            <Typography variant="h6" gutterBottom fontWeight="600">
+            <Typography variant='h6' gutterBottom fontWeight='600'>
               Iniciando Cámara...
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.8 }}>
+            <Typography variant='body2' sx={{ opacity: 0.8 }}>
               Solicitando permisos de cámara
             </Typography>
           </Box>
@@ -392,28 +431,30 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Estado: Error */}
         {status === 'error' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            textAlign: 'center',
-            p: 3,
-          }}>
-            <Typography variant="h6" gutterBottom color="error.light">
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              textAlign: 'center',
+              p: 3,
+            }}
+          >
+            <Typography variant='h6' gutterBottom color='error.light'>
               Error de Cámara
             </Typography>
-            <Typography variant="body2" sx={{ mb: 3, opacity: 0.8 }}>
+            <Typography variant='body2' sx={{ mb: 3, opacity: 0.8 }}>
               {errorMessage}
             </Typography>
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={startCamera}
               sx={{ color: 'white', borderColor: 'white' }}
             >
@@ -424,32 +465,36 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Indicador EN VIVO */}
         {status === 'active' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 16,
-            left: 16,
-            bgcolor: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-          }}>
-            <Box sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              bgcolor: vhColors.success,
-              animation: 'pulse 2s infinite',
-              '@keyframes pulse': {
-                '0%': { opacity: 1 },
-                '50%': { opacity: 0.5 },
-                '100%': { opacity: 1 },
-              },
-            }} />
-            <Typography variant="caption" fontWeight="600">
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 16,
+              left: 16,
+              bgcolor: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: vhColors.success,
+                animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { opacity: 1 },
+                  '50%': { opacity: 0.5 },
+                  '100%': { opacity: 1 },
+                },
+              }}
+            />
+            <Typography variant='caption' fontWeight='600'>
               EN VIVO
             </Typography>
           </Box>
@@ -476,36 +521,43 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Estado: Preview o Accepted */}
         {(status === 'preview' || status === 'accepted') && capturedImage && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            bgcolor: 'black',
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: 'black',
+            }}
+          >
             <img
               src={capturedImage}
-              alt="Foto capturada"
+              alt='Foto capturada'
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
               }}
             />
-            <Box sx={{
-              position: 'absolute',
-              top: 16,
-              left: 16,
-              bgcolor: status === 'accepted' ? 'rgba(76, 175, 80, 0.9)' : 'rgba(0,0,0,0.7)',
-              color: 'white',
-              px: 2,
-              py: 1,
-              borderRadius: 2,
-            }}>
-              <Typography variant="caption" fontWeight="600">
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                left: 16,
+                bgcolor:
+                  status === 'accepted'
+                    ? 'rgba(76, 175, 80, 0.9)'
+                    : 'rgba(0,0,0,0.7)',
+                color: 'white',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant='caption' fontWeight='600'>
                 {status === 'accepted' ? 'FOTO ACEPTADA' : 'VISTA PREVIA'}
               </Typography>
             </Box>
@@ -533,20 +585,22 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
         {/* Botones superpuestos en el área de video - Solo en modal */}
         {isInModal && (
-          <Box sx={{
-            position: 'absolute',
-            bottom: 20,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: 2,
-            zIndex: 10,
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 20,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: 2,
+              zIndex: 10,
+            }}
+          >
             {/* Botón de Captura */}
             {status === 'active' && (
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={captureImage}
                 startIcon={<CameraAlt />}
                 sx={{
@@ -570,8 +624,8 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
             {status === 'preview' && (
               <>
                 <Button
-                  variant="outlined"
-                  size="large"
+                  variant='outlined'
+                  size='large'
                   onClick={retakePhoto}
                   startIcon={<Replay />}
                   sx={{
@@ -591,11 +645,11 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
                   Tomar Otra
                 </Button>
                 <Button
-                  variant="contained"
-                  size="large"
+                  variant='contained'
+                  size='large'
                   onClick={acceptPhoto}
                   startIcon={<Check />}
-                  color="success"
+                  color='success'
                   sx={{
                     px: 4,
                     py: 1.5,
@@ -622,14 +676,16 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
         <>
           {/* Botón de Captura */}
           {status === 'active' && (
-            <Box sx={{
-              pt: 3,
-              display: 'flex',
-              justifyContent: 'center',
-            }}>
+            <Box
+              sx={{
+                pt: 3,
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={captureImage}
                 startIcon={<CameraAlt />}
                 sx={{
@@ -652,15 +708,17 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
           {/* Botones de Preview */}
           {status === 'preview' && (
-            <Box sx={{
-              pt: 3,
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 2,
-            }}>
+            <Box
+              sx={{
+                pt: 3,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 2,
+              }}
+            >
               <Button
-                variant="outlined"
-                size="large"
+                variant='outlined'
+                size='large'
                 onClick={retakePhoto}
                 startIcon={<Replay />}
                 sx={{
@@ -678,11 +736,11 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
                 Tomar Otra
               </Button>
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={acceptPhoto}
                 startIcon={<Check />}
-                color="success"
+                color='success'
                 sx={{
                   px: 4,
                   py: 1.5,
@@ -703,18 +761,21 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
 
           {/* Mensaje cuando la foto ha sido aceptada */}
           {status === 'accepted' && (
-            <Box sx={{
-              pt: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-            }}>
-              <Typography variant="body1" color="success.main" fontWeight="600">
+            <Box
+              sx={{
+                pt: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <Typography variant='body1' color='success.main' fontWeight='600'>
                 Foto aceptada exitosamente
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Procesando... El sistema avanzará automáticamente al siguiente paso.
+              <Typography variant='body2' color='text.secondary'>
+                Procesando... El sistema avanzará automáticamente al siguiente
+                paso.
               </Typography>
             </Box>
           )}
@@ -747,20 +808,22 @@ const SimpleProfessionalCamera: React.FC<SimpleProfessionalCameraProps> = ({
         }}
       >
         {/* Header del modal */}
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 30,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          p: 2,
-          bgcolor: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <Typography variant="h6" sx={{ color: 'white' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            p: 2,
+            bgcolor: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <Typography variant='h6' sx={{ color: 'white' }}>
             Vista Ampliada - Captura Facial
           </Typography>
           <IconButton

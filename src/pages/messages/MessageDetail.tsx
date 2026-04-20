@@ -15,4 +15,4 @@ const MessageDetail: React.FC = () => {
   );
 };
 
-export default MessageDetail; 
+export default MessageDetail;

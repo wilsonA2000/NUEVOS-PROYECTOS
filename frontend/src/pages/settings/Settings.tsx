@@ -4,12 +4,9 @@ import {
   Typography,
   Box,
   Grid,
-  Card,
-  CardContent,
   Switch,
   FormControlLabel,
   Button,
-  Divider,
   FormControl,
   InputLabel,
   Select,
@@ -45,7 +42,6 @@ const Settings: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
   } = useForm<UserSettings>({
     defaultValues: {
       notifications: {
@@ -114,23 +110,23 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth='lg' sx={{ mt: 4, mb: 4 }}>
       <Snackbar
         open={showSuccess}
         autoHideDuration={2000}
         onClose={() => setShowSuccess(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setShowSuccess(false)} 
-          severity={successMessage.includes('Error') ? 'error' : 'success'} 
+        <Alert
+          onClose={() => setShowSuccess(false)}
+          severity={successMessage.includes('Error') ? 'error' : 'success'}
           sx={{ width: '100%' }}
         >
           {successMessage}
         </Alert>
       </Snackbar>
 
-      <Typography variant="h4" gutterBottom>
+      <Typography variant='h4' gutterBottom>
         Ajustes
       </Typography>
 
@@ -140,13 +136,20 @@ const Settings: React.FC = () => {
           <UserStatusSelector />
         </Grid>
         <Grid item xs={12} md={6}>
-          <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
+          >
+            <Typography
+              variant='h6'
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
               <NotificationsIcon />
               Control de Tiempo Real
             </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Activa o desactiva las funciones en tiempo real como chat en vivo y notificaciones instantáneas.
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Activa o desactiva las funciones en tiempo real como chat en vivo
+              y notificaciones instantáneas.
             </Typography>
             <OptimizedWebSocketStatus compact={false} showControls={true} />
           </Box>
@@ -161,14 +164,14 @@ const Settings: React.FC = () => {
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <NotificationsIcon />
-                  <Typography variant="h6">Notificaciones</Typography>
+                  <Typography variant='h6'>Notificaciones</Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.email_notifications"
+                      name='notifications.email_notifications'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -178,14 +181,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Notificaciones por Email"
+                          label='Notificaciones por Email'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.sms_notifications"
+                      name='notifications.sms_notifications'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -195,14 +198,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Notificaciones por SMS"
+                          label='Notificaciones por SMS'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.newsletter"
+                      name='notifications.newsletter'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -212,14 +215,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Newsletter"
+                          label='Newsletter'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.property_alerts"
+                      name='notifications.property_alerts'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -229,14 +232,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Alertas de Propiedades"
+                          label='Alertas de Propiedades'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.message_notifications"
+                      name='notifications.message_notifications'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -246,14 +249,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Notificaciones de Mensajes"
+                          label='Notificaciones de Mensajes'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="notifications.payment_reminders"
+                      name='notifications.payment_reminders'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -263,7 +266,7 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Recordatorios de Pagos"
+                          label='Recordatorios de Pagos'
                         />
                       )}
                     />
@@ -279,22 +282,24 @@ const Settings: React.FC = () => {
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <VisibilityIcon />
-                  <Typography variant="h6">Privacidad</Typography>
+                  <Typography variant='h6'>Privacidad</Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="privacy.profile_visibility"
+                      name='privacy.profile_visibility'
                       control={control}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel>Visibilidad del Perfil</InputLabel>
-                          <Select {...field} label="Visibilidad del Perfil">
-                            <MenuItem value="public">Público</MenuItem>
-                            <MenuItem value="private">Privado</MenuItem>
-                            <MenuItem value="contacts_only">Solo Contactos</MenuItem>
+                          <Select {...field} label='Visibilidad del Perfil'>
+                            <MenuItem value='public'>Público</MenuItem>
+                            <MenuItem value='private'>Privado</MenuItem>
+                            <MenuItem value='contacts_only'>
+                              Solo Contactos
+                            </MenuItem>
                           </Select>
                         </FormControl>
                       )}
@@ -302,7 +307,7 @@ const Settings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="privacy.show_contact_info"
+                      name='privacy.show_contact_info'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -312,14 +317,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Mostrar Información de Contacto"
+                          label='Mostrar Información de Contacto'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="privacy.show_property_history"
+                      name='privacy.show_property_history'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -329,14 +334,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Mostrar Historial de Propiedades"
+                          label='Mostrar Historial de Propiedades'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="privacy.allow_messages"
+                      name='privacy.allow_messages'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -346,7 +351,7 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Permitir Mensajes"
+                          label='Permitir Mensajes'
                         />
                       )}
                     />
@@ -362,21 +367,21 @@ const Settings: React.FC = () => {
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LanguageIcon />
-                  <Typography variant="h6">Preferencias</Typography>
+                  <Typography variant='h6'>Preferencias</Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="preferences.language"
+                      name='preferences.language'
                       control={control}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel>Idioma</InputLabel>
-                          <Select {...field} label="Idioma">
-                            <MenuItem value="es">Español</MenuItem>
-                            <MenuItem value="en">English</MenuItem>
+                          <Select {...field} label='Idioma'>
+                            <MenuItem value='es'>Español</MenuItem>
+                            <MenuItem value='en'>English</MenuItem>
                           </Select>
                         </FormControl>
                       )}
@@ -384,15 +389,21 @@ const Settings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="preferences.timezone"
+                      name='preferences.timezone'
                       control={control}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel>Zona Horaria</InputLabel>
-                          <Select {...field} label="Zona Horaria">
-                            <MenuItem value="America/Bogota">Bogotá (GMT-5)</MenuItem>
-                            <MenuItem value="America/Mexico_City">Ciudad de México (GMT-6)</MenuItem>
-                            <MenuItem value="America/New_York">Nueva York (GMT-5)</MenuItem>
+                          <Select {...field} label='Zona Horaria'>
+                            <MenuItem value='America/Bogota'>
+                              Bogotá (GMT-5)
+                            </MenuItem>
+                            <MenuItem value='America/Mexico_City'>
+                              Ciudad de México (GMT-6)
+                            </MenuItem>
+                            <MenuItem value='America/New_York'>
+                              Nueva York (GMT-5)
+                            </MenuItem>
                           </Select>
                         </FormControl>
                       )}
@@ -400,15 +411,19 @@ const Settings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="preferences.currency"
+                      name='preferences.currency'
                       control={control}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel>Moneda</InputLabel>
-                          <Select {...field} label="Moneda">
-                            <MenuItem value="COP">Peso Colombiano (COP)</MenuItem>
-                            <MenuItem value="MXN">Peso Mexicano (MXN)</MenuItem>
-                            <MenuItem value="USD">Dólar Estadounidense (USD)</MenuItem>
+                          <Select {...field} label='Moneda'>
+                            <MenuItem value='COP'>
+                              Peso Colombiano (COP)
+                            </MenuItem>
+                            <MenuItem value='MXN'>Peso Mexicano (MXN)</MenuItem>
+                            <MenuItem value='USD'>
+                              Dólar Estadounidense (USD)
+                            </MenuItem>
                           </Select>
                         </FormControl>
                       )}
@@ -416,15 +431,15 @@ const Settings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="preferences.theme"
+                      name='preferences.theme'
                       control={control}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel>Tema</InputLabel>
-                          <Select {...field} label="Tema">
-                            <MenuItem value="light">Claro</MenuItem>
-                            <MenuItem value="dark">Oscuro</MenuItem>
-                            <MenuItem value="auto">Automático</MenuItem>
+                          <Select {...field} label='Tema'>
+                            <MenuItem value='light'>Claro</MenuItem>
+                            <MenuItem value='dark'>Oscuro</MenuItem>
+                            <MenuItem value='auto'>Automático</MenuItem>
                           </Select>
                         </FormControl>
                       )}
@@ -441,14 +456,14 @@ const Settings: React.FC = () => {
               <AccordionSummary>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <SecurityIcon />
-                  <Typography variant="h6">Seguridad</Typography>
+                  <Typography variant='h6'>Seguridad</Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="security.two_factor_enabled"
+                      name='security.two_factor_enabled'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -458,14 +473,14 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Autenticación de Dos Factores"
+                          label='Autenticación de Dos Factores'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="security.login_notifications"
+                      name='security.login_notifications'
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -475,21 +490,21 @@ const Settings: React.FC = () => {
                               onChange={field.onChange}
                             />
                           }
-                          label="Notificaciones de Inicio de Sesión"
+                          label='Notificaciones de Inicio de Sesión'
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Controller
-                      name="security.session_timeout"
+                      name='security.session_timeout'
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           fullWidth
-                          label="Tiempo de Sesión (minutos)"
-                          type="number"
+                          label='Tiempo de Sesión (minutos)'
+                          type='number'
                           inputProps={{ min: 5, max: 480 }}
                         />
                       )}
@@ -503,10 +518,12 @@ const Settings: React.FC = () => {
 
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
           <Button
-            type="submit"
-            variant="contained"
+            type='submit'
+            variant='contained'
             disabled={isLoading}
-            startIcon={isLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+            startIcon={
+              isLoading ? <CircularProgress size={20} /> : <SaveIcon />
+            }
           >
             {isLoading ? 'Guardando...' : 'Guardar Ajustes'}
           </Button>
@@ -516,4 +533,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings; 
+export default Settings;

@@ -5,8 +5,8 @@ import sys
 import django
 
 # Setup Django
-sys.path.append('/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+sys.path.append("/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from properties.models import Property
@@ -23,16 +23,16 @@ for i, property in enumerate(properties[:3], 1):  # Only show first 3
     print(f"\n🏠 PROPERTY {i}: {property.title}")
     print(f"   UUID: {property.id}")
     print(f"   Images count: {property.images.count()}")
-    
+
     # Serialize the property
     serializer = PropertySerializer(property)
     data = serializer.data
-    
+
     print(f"   main_image_url: {data.get('main_image_url')}")
     print(f"   images array length: {len(data.get('images', []))}")
-    
-    if data.get('images'):
-        for j, img in enumerate(data['images'][:2]):  # Show first 2 images
+
+    if data.get("images"):
+        for j, img in enumerate(data["images"][:2]):  # Show first 2 images
             print(f"   Image {j+1}:")
             print(f"     - id: {img.get('id')}")
             print(f"     - image: {img.get('image')}")

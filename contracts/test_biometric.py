@@ -2,7 +2,9 @@
 Tests comprehensivos para BiometricAuthenticationService.
 NOTA: Tests desactualizados - marcados como skip a nivel de módulo.
 """
+
 import unittest
+
 raise unittest.SkipTest("Módulo desactualizado - BiometricService refactorizado")
 
 import base64
@@ -34,39 +36,39 @@ class BiometricAuthenticationServiceTests(TestCase):
 
         # Crear usuarios de prueba
         self.landlord = User.objects.create_user(
-            email='landlord@test.com',
-            password='testpass123',
-            role='landlord',
-            first_name='John',
-            last_name='Landlord'
+            email="landlord@test.com",
+            password="testpass123",
+            role="landlord",
+            first_name="John",
+            last_name="Landlord",
         )
 
         self.tenant = User.objects.create_user(
-            email='tenant@test.com',
-            password='testpass123',
-            role='tenant',
-            first_name='Jane',
-            last_name='Tenant'
+            email="tenant@test.com",
+            password="testpass123",
+            role="tenant",
+            first_name="Jane",
+            last_name="Tenant",
         )
 
         self.guarantor = User.objects.create_user(
-            email='guarantor@test.com',
-            password='testpass123',
-            role='tenant',
-            first_name='Bob',
-            last_name='Guarantor'
+            email="guarantor@test.com",
+            password="testpass123",
+            role="tenant",
+            first_name="Bob",
+            last_name="Guarantor",
         )
 
         # Crear propiedad
         self.property = Property.objects.create(
             landlord=self.landlord,
-            title='Test Property',
-            address='123 Test St',
-            city='Bogotá',
-            state='Cundinamarca',
+            title="Test Property",
+            address="123 Test St",
+            city="Bogotá",
+            state="Cundinamarca",
             price_per_month=1000000,
-            property_type='apartment',
-            status='available'
+            property_type="apartment",
+            status="available",
         )
 
         # Crear contrato
@@ -77,11 +79,11 @@ class BiometricAuthenticationServiceTests(TestCase):
             guarantor=self.guarantor,
             primary_party=self.landlord,
             secondary_party=self.tenant,
-            status='ready_for_authentication',
-            contract_type='rental',
+            status="ready_for_authentication",
+            contract_type="rental",
             rental_amount=1000000,
             start_date=timezone.now().date(),
-            end_date=(timezone.now() + timedelta(days=365)).date()
+            end_date=(timezone.now() + timedelta(days=365)).date(),
         )
 
     def test_service_initialization_defaults(self):
@@ -101,15 +103,19 @@ class InitiateAuthenticationTests(TestCase):
         self.factory = RequestFactory()
 
         self.landlord = User.objects.create_user(
-            email='landlord@test.com', password='test', role='landlord'
+            email="landlord@test.com", password="test", role="landlord"
         )
         self.tenant = User.objects.create_user(
-            email='tenant@test.com', password='test', role='tenant'
+            email="tenant@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.landlord, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.landlord,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
@@ -118,16 +124,16 @@ class InitiateAuthenticationTests(TestCase):
             tenant=self.tenant,
             primary_party=self.landlord,
             secondary_party=self.tenant,
-            status='ready_for_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="ready_for_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
     def test_initiate_authentication_success(self):
         """Test: Iniciar autenticación exitosamente crea BiometricAuthentication"""
-        request = self.factory.post('/api/start-auth/')
-        request.META['REMOTE_ADDR'] = '127.0.0.1'
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request = self.factory.post("/api/start-auth/")
+        request.META["REMOTE_ADDR"] = "127.0.0.1"
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
 
         auth = self.service.initiate_authentication(self.contract, self.tenant, request)
 
@@ -135,60 +141,68 @@ class InitiateAuthenticationTests(TestCase):
         self.assertIsInstance(auth, BiometricAuthentication)
         self.assertEqual(auth.contract, self.contract)
         self.assertEqual(auth.user, self.tenant)
-        self.assertEqual(auth.status, 'pending')
+        self.assertEqual(auth.status, "pending")
         self.assertIsNotNone(auth.ip_address)
 
     def test_initiate_authentication_unauthorized_user(self):
         """Test: Usuario no autorizado no puede iniciar autenticación"""
         unauthorized_user = User.objects.create_user(
-            email='unauthorized@test.com', password='test', role='tenant'
+            email="unauthorized@test.com", password="test", role="tenant"
         )
-        request = self.factory.post('/api/start-auth/')
+        request = self.factory.post("/api/start-auth/")
 
         with self.assertRaises(ValueError) as context:
-            self.service.initiate_authentication(self.contract, unauthorized_user, request)
+            self.service.initiate_authentication(
+                self.contract, unauthorized_user, request
+            )
 
-        self.assertIn('no es parte de este contrato', str(context.exception))
+        self.assertIn("no es parte de este contrato", str(context.exception))
 
     def test_initiate_authentication_invalid_contract_status(self):
         """Test: No se puede iniciar autenticación si contrato no está en estado válido"""
-        self.contract.status = 'active'
+        self.contract.status = "active"
         self.contract.save()
 
-        request = self.factory.post('/api/start-auth/')
+        request = self.factory.post("/api/start-auth/")
 
         with self.assertRaises(ValueError) as context:
             self.service.initiate_authentication(self.contract, self.tenant, request)
 
-        self.assertIn('no está en estado válido', str(context.exception))
+        self.assertIn("no está en estado válido", str(context.exception))
 
     def test_initiate_authentication_reuses_existing_pending(self):
         """Test: Reutiliza autenticación existente si está pendiente y no expirada"""
-        request = self.factory.post('/api/start-auth/')
-        request.META['REMOTE_ADDR'] = '127.0.0.1'
+        request = self.factory.post("/api/start-auth/")
+        request.META["REMOTE_ADDR"] = "127.0.0.1"
 
         # Primera autenticación
-        auth1 = self.service.initiate_authentication(self.contract, self.tenant, request)
+        auth1 = self.service.initiate_authentication(
+            self.contract, self.tenant, request
+        )
         auth1_id = auth1.id
 
         # Segunda llamada debe reutilizar
-        auth2 = self.service.initiate_authentication(self.contract, self.tenant, request)
+        auth2 = self.service.initiate_authentication(
+            self.contract, self.tenant, request
+        )
 
         self.assertEqual(auth1_id, auth2.id)
-        self.assertEqual(BiometricAuthentication.objects.filter(user=self.tenant).count(), 1)
+        self.assertEqual(
+            BiometricAuthentication.objects.filter(user=self.tenant).count(), 1
+        )
 
     def test_initiate_authentication_captures_device_info(self):
         """Test: Captura información del dispositivo correctamente"""
-        request = self.factory.post('/api/start-auth/')
-        request.META['REMOTE_ADDR'] = '192.168.1.100'
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)'
+        request = self.factory.post("/api/start-auth/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)"
 
         auth = self.service.initiate_authentication(self.contract, self.tenant, request)
 
-        self.assertEqual(auth.ip_address, '192.168.1.100')
-        self.assertIn('Mozilla', auth.user_agent)
+        self.assertEqual(auth.ip_address, "192.168.1.100")
+        self.assertIn("Mozilla", auth.user_agent)
         self.assertIsNotNone(auth.security_checks)
-        self.assertTrue(auth.security_checks.get('ip_verified'))
+        self.assertTrue(auth.security_checks.get("ip_verified"))
 
 
 class ProcessFaceCaptureTests(TestCase):
@@ -200,27 +214,29 @@ class ProcessFaceCaptureTests(TestCase):
         self.factory = RequestFactory()
 
         self.user = User.objects.create_user(
-            email='user@test.com', password='test', role='tenant'
+            email="user@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.user, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.user,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
             property=self.property,
             primary_party=self.user,
             secondary_party=self.user,
-            status='pending_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="pending_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
         self.auth = BiometricAuthentication.objects.create(
-            contract=self.contract,
-            user=self.user,
-            status='pending'
+            contract=self.contract, user=self.user, status="pending"
         )
 
         # Crear imagen de prueba en base64
@@ -228,37 +244,45 @@ class ProcessFaceCaptureTests(TestCase):
 
     def _create_test_image_base64(self):
         """Crea una imagen de prueba en base64"""
-        img = Image.new('RGB', (640, 480), color='blue')
+        img = Image.new("RGB", (640, 480), color="blue")
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG')
+        img.save(buffer, format="JPEG")
         img_bytes = buffer.getvalue()
-        return base64.b64encode(img_bytes).decode('utf-8')
+        return base64.b64encode(img_bytes).decode("utf-8")
 
-    @patch('contracts.biometric_service.BiometricAuthenticationService._process_face_image')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._save_base64_image')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._analyze_face_coherence')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._calculate_face_confidence')
-    def test_process_face_capture_success(self, mock_confidence, mock_coherence, mock_save, mock_process):
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._process_face_image"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._save_base64_image"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._analyze_face_coherence"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._calculate_face_confidence"
+    )
+    def test_process_face_capture_success(
+        self, mock_confidence, mock_coherence, mock_save, mock_process
+    ):
         """Test: Procesar capturas faciales exitosamente"""
-        mock_process.return_value = {'quality_score': 0.9, 'liveness_score': 0.85}
-        mock_save.return_value = ContentFile(b'test', name='test.jpg')
-        mock_coherence.return_value = {'match_score': 0.92}
+        mock_process.return_value = {"quality_score": 0.9, "liveness_score": 0.85}
+        mock_save.return_value = ContentFile(b"test", name="test.jpg")
+        mock_coherence.return_value = {"match_score": 0.92}
         mock_confidence.return_value = 0.88
 
         result = self.service.process_face_capture(
-            str(self.auth.id),
-            self.test_image_base64,
-            self.test_image_base64
+            str(self.auth.id), self.test_image_base64, self.test_image_base64
         )
 
-        self.assertTrue(result['success'])
-        self.assertEqual(result['face_confidence_score'], 0.88)
-        self.assertIn('quality_metrics', result)
-        self.assertEqual(result['next_step'], 'document_capture')
+        self.assertTrue(result["success"])
+        self.assertEqual(result["face_confidence_score"], 0.88)
+        self.assertIn("quality_metrics", result)
+        self.assertEqual(result["next_step"], "document_capture")
 
         # Verificar que la autenticación se actualizó
         self.auth.refresh_from_db()
-        self.assertEqual(self.auth.status, 'in_progress')
+        self.assertEqual(self.auth.status, "in_progress")
         self.assertIsNotNone(self.auth.facial_analysis)
 
     def test_process_face_capture_invalid_auth_id(self):
@@ -267,7 +291,7 @@ class ProcessFaceCaptureTests(TestCase):
             self.service.process_face_capture(
                 str(uuid.uuid4()),  # ID inexistente
                 self.test_image_base64,
-                self.test_image_base64
+                self.test_image_base64,
             )
 
 
@@ -279,87 +303,99 @@ class ProcessDocumentVerificationTests(TestCase):
         self.service = BiometricAuthenticationService()
 
         self.user = User.objects.create_user(
-            email='user@test.com', password='test', role='tenant'
+            email="user@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.user, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.user,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
             property=self.property,
             primary_party=self.user,
             secondary_party=self.user,
-            status='pending_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="pending_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
         self.auth = BiometricAuthentication.objects.create(
             contract=self.contract,
             user=self.user,
-            status='in_progress',
-            face_confidence_score=0.85
+            status="in_progress",
+            face_confidence_score=0.85,
         )
 
         self.test_image_base64 = self._create_test_doc_image()
 
     def _create_test_doc_image(self):
         """Crea imagen de documento de prueba"""
-        img = Image.new('RGB', (800, 600), color='white')
+        img = Image.new("RGB", (800, 600), color="white")
         buffer = io.BytesIO()
-        img.save(buffer, format='JPEG')
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        img.save(buffer, format="JPEG")
+        return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    @patch('contracts.biometric_service.BiometricAuthenticationService._perform_ocr_extraction')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._save_base64_image')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._validate_document_format')
-    def test_process_document_verification_cedula(self, mock_validate, mock_save, mock_ocr):
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._perform_ocr_extraction"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._save_base64_image"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._validate_document_format"
+    )
+    def test_process_document_verification_cedula(
+        self, mock_validate, mock_save, mock_ocr
+    ):
         """Test: Verificar cédula de ciudadanía exitosamente"""
         mock_ocr.return_value = {
-            'document_number': '1234567890',
-            'document_type': 'cedula_ciudadania',
-            'confidence': 0.92
+            "document_number": "1234567890",
+            "document_type": "cedula_ciudadania",
+            "confidence": 0.92,
         }
-        mock_save.return_value = ContentFile(b'doc', name='doc.jpg')
+        mock_save.return_value = ContentFile(b"doc", name="doc.jpg")
         mock_validate.return_value = True
 
         result = self.service.process_document_verification(
-            str(self.auth.id),
-            self.test_image_base64,
-            'cedula_ciudadania',
-            '1234567890'
+            str(self.auth.id), self.test_image_base64, "cedula_ciudadania", "1234567890"
         )
 
-        self.assertTrue(result['success'])
-        self.assertEqual(result['document_type'], 'cedula_ciudadania')
-        self.assertIn('document_confidence_score', result)
+        self.assertTrue(result["success"])
+        self.assertEqual(result["document_type"], "cedula_ciudadania")
+        self.assertIn("document_confidence_score", result)
 
         # Verificar actualización en BD
         self.auth.refresh_from_db()
-        self.assertEqual(self.auth.document_type, 'cedula_ciudadania')
-        self.assertEqual(self.auth.document_number, '1234567890')
+        self.assertEqual(self.auth.document_type, "cedula_ciudadania")
+        self.assertEqual(self.auth.document_number, "1234567890")
 
-    @patch('contracts.biometric_service.BiometricAuthenticationService._perform_ocr_extraction')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._save_base64_image')
-    def test_process_document_verification_extracts_number_when_empty(self, mock_save, mock_ocr):
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._perform_ocr_extraction"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._save_base64_image"
+    )
+    def test_process_document_verification_extracts_number_when_empty(
+        self, mock_save, mock_ocr
+    ):
         """Test: OCR extrae número de documento cuando no se proporciona"""
-        mock_ocr.return_value = {
-            'document_number': '9876543210',
-            'confidence': 0.88
-        }
-        mock_save.return_value = ContentFile(b'doc', name='doc.jpg')
+        mock_ocr.return_value = {"document_number": "9876543210", "confidence": 0.88}
+        mock_save.return_value = ContentFile(b"doc", name="doc.jpg")
 
         self.service.process_document_verification(
             str(self.auth.id),
             self.test_image_base64,
-            'cedula_ciudadania',
-            ''  # Sin número
+            "cedula_ciudadania",
+            "",  # Sin número
         )
 
         self.auth.refresh_from_db()
-        self.assertEqual(self.auth.document_number, '9876543210')
+        self.assertEqual(self.auth.document_number, "9876543210")
 
 
 class VoiceCaptureTests(TestCase):
@@ -370,59 +406,68 @@ class VoiceCaptureTests(TestCase):
         self.service = BiometricAuthenticationService()
 
         self.user = User.objects.create_user(
-            email='user@test.com', password='test', role='tenant'
+            email="user@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.user, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.user,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
             property=self.property,
             primary_party=self.user,
             secondary_party=self.user,
-            status='pending_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="pending_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
         self.auth = BiometricAuthentication.objects.create(
             contract=self.contract,
             user=self.user,
-            status='in_progress',
+            status="in_progress",
             face_confidence_score=0.85,
             document_confidence_score=0.90,
-            document_number='123456789'
+            document_number="123456789",
         )
 
         # Audio de prueba en base64 (simulado)
-        self.test_audio_base64 = base64.b64encode(b'fake_audio_data').decode('utf-8')
+        self.test_audio_base64 = base64.b64encode(b"fake_audio_data").decode("utf-8")
 
-    @patch('contracts.biometric_service.BiometricAuthenticationService._save_base64_audio')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._transcribe_audio')
-    @patch('contracts.biometric_service.BiometricAuthenticationService._calculate_voice_confidence')
-    def test_process_voice_capture_success(self, mock_confidence, mock_transcribe, mock_save):
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._save_base64_audio"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._transcribe_audio"
+    )
+    @patch(
+        "contracts.biometric_service.BiometricAuthenticationService._calculate_voice_confidence"
+    )
+    def test_process_voice_capture_success(
+        self, mock_confidence, mock_transcribe, mock_save
+    ):
         """Test: Procesar grabación de voz exitosamente"""
-        mock_save.return_value = ContentFile(b'audio', name='voice.wav')
+        mock_save.return_value = ContentFile(b"audio", name="voice.wav")
         mock_transcribe.return_value = {
-            'transcription': 'yo acepto los términos',
-            'confidence': 0.91
+            "transcription": "yo acepto los términos",
+            "confidence": 0.91,
         }
         mock_confidence.return_value = 0.87
 
         contract_phrase = "Yo acepto los términos del contrato"
 
         result = self.service.process_voice_capture(
-            str(self.auth.id),
-            self.test_audio_base64,
-            contract_phrase,
-            duration=5.2
+            str(self.auth.id), self.test_audio_base64, contract_phrase, duration=5.2
         )
 
-        self.assertTrue(result['success'])
-        self.assertIn('voice_confidence_score', result)
-        self.assertIn('transcription', result)
+        self.assertTrue(result["success"])
+        self.assertIn("voice_confidence_score", result)
+        self.assertIn("transcription", result)
 
         # Verificar actualización
         self.auth.refresh_from_db()
@@ -435,10 +480,10 @@ class VoiceCaptureTests(TestCase):
                 str(self.auth.id),
                 self.test_audio_base64,
                 "test phrase",
-                duration=1.5  # Menos de 3 segundos
+                duration=1.5,  # Menos de 3 segundos
             )
 
-        self.assertIn('demasiado corta', str(context.exception).lower())
+        self.assertIn("demasiado corta", str(context.exception).lower())
 
     def test_process_voice_capture_duration_too_long(self):
         """Test: Rechazar audio demasiado largo"""
@@ -447,10 +492,10 @@ class VoiceCaptureTests(TestCase):
                 str(self.auth.id),
                 self.test_audio_base64,
                 "test phrase",
-                duration=35  # Más de 30 segundos
+                duration=35,  # Más de 30 segundos
             )
 
-        self.assertIn('demasiado larga', str(context.exception).lower())
+        self.assertIn("demasiado larga", str(context.exception).lower())
 
 
 class ConfidenceCalculationTests(TestCase):
@@ -494,43 +539,47 @@ class SecurityChecksTests(TestCase):
         self.factory = RequestFactory()
 
         self.user = User.objects.create_user(
-            email='user@test.com', password='test', role='tenant'
+            email="user@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.user, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.user,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
             property=self.property,
             primary_party=self.user,
             secondary_party=self.user,
-            status='ready_for_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="ready_for_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
     def test_device_fingerprinting_captured(self):
         """Test: Device fingerprinting se captura correctamente"""
-        request = self.factory.post('/api/start-auth/')
-        request.META['REMOTE_ADDR'] = '192.168.1.1'
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0)'
+        request = self.factory.post("/api/start-auth/")
+        request.META["REMOTE_ADDR"] = "192.168.1.1"
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0 (Windows NT 10.0)"
 
         auth = self.service.initiate_authentication(self.contract, self.user, request)
 
         self.assertIsNotNone(auth.device_info)
-        self.assertTrue(auth.security_checks.get('device_fingerprinted'))
+        self.assertTrue(auth.security_checks.get("device_fingerprinted"))
 
     def test_ip_address_validated(self):
         """Test: Dirección IP se valida y almacena"""
-        request = self.factory.post('/api/start-auth/')
-        request.META['REMOTE_ADDR'] = '203.0.113.42'
+        request = self.factory.post("/api/start-auth/")
+        request.META["REMOTE_ADDR"] = "203.0.113.42"
 
         auth = self.service.initiate_authentication(self.contract, self.user, request)
 
-        self.assertEqual(auth.ip_address, '203.0.113.42')
-        self.assertTrue(auth.security_checks.get('ip_verified'))
+        self.assertEqual(auth.ip_address, "203.0.113.42")
+        self.assertTrue(auth.security_checks.get("ip_verified"))
 
 
 class BiometricWorkflowIntegrationTests(TestCase):
@@ -542,15 +591,19 @@ class BiometricWorkflowIntegrationTests(TestCase):
         self.factory = RequestFactory()
 
         self.landlord = User.objects.create_user(
-            email='landlord@test.com', password='test', role='landlord'
+            email="landlord@test.com", password="test", role="landlord"
         )
         self.tenant = User.objects.create_user(
-            email='tenant@test.com', password='test', role='tenant'
+            email="tenant@test.com", password="test", role="tenant"
         )
 
         self.property = Property.objects.create(
-            landlord=self.landlord, title='Test', address='123',
-            city='Bogotá', price_per_month=1000000, property_type='apartment'
+            landlord=self.landlord,
+            title="Test",
+            address="123",
+            city="Bogotá",
+            price_per_month=1000000,
+            property_type="apartment",
         )
 
         self.contract = Contract.objects.create(
@@ -559,24 +612,24 @@ class BiometricWorkflowIntegrationTests(TestCase):
             tenant=self.tenant,
             primary_party=self.landlord,
             secondary_party=self.tenant,
-            status='ready_for_authentication',
-            contract_type='rental',
-            rental_amount=1000000
+            status="ready_for_authentication",
+            contract_type="rental",
+            rental_amount=1000000,
         )
 
     def test_full_biometric_flow_sequence(self):
         """Test: Flujo completo biométrico en secuencia correcta"""
-        request = self.factory.post('/api/')
-        request.META['REMOTE_ADDR'] = '127.0.0.1'
+        request = self.factory.post("/api/")
+        request.META["REMOTE_ADDR"] = "127.0.0.1"
 
         # Paso 1: Iniciar autenticación
         auth = self.service.initiate_authentication(self.contract, self.tenant, request)
-        self.assertEqual(auth.status, 'pending')
+        self.assertEqual(auth.status, "pending")
 
         # Paso 2: Actualizar a in_progress
-        auth.status = 'in_progress'
+        auth.status = "in_progress"
         auth.save()
-        self.assertEqual(auth.status, 'in_progress')
+        self.assertEqual(auth.status, "in_progress")
 
         # Paso 3: Agregar scores simulados
         auth.face_confidence_score = 0.88

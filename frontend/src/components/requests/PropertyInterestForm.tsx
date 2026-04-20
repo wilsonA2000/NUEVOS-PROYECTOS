@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -18,7 +18,9 @@ import {
   Chip,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import requestService, { CreatePropertyInterestData } from '../../services/requestService';
+import requestService, {
+  CreatePropertyInterestData,
+} from '../../services/requestService';
 import { Property } from '../../types/property';
 import { useAuth } from '../../hooks/useAuth';
 import { useBusinessNotifications } from '../../hooks/useBusinessNotifications';
@@ -96,7 +98,7 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
       }
 
       setSuccess(true);
-      
+
       setTimeout(() => {
         onSuccess?.();
       }, 2000);
@@ -107,7 +109,10 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof CreatePropertyInterestData, value: any) => {
+  const handleInputChange = (
+    field: keyof CreatePropertyInterestData,
+    value: any,
+  ) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -118,13 +123,14 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
     return (
       <Card>
         <CardContent>
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity='success' sx={{ mb: 2 }}>
             ¡Solicitud enviada exitosamente!
           </Alert>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            Tu solicitud de interés ha sido enviada al arrendador. Te notificaremos cuando responda.
+          <Typography variant='body1' sx={{ mb: 2 }}>
+            Tu solicitud de interés ha sido enviada al arrendador. Te
+            notificaremos cuando responda.
           </Typography>
-          <Button variant="contained" onClick={onSuccess} fullWidth>
+          <Button variant='contained' onClick={onSuccess} fullWidth>
             Continuar
           </Button>
         </CardContent>
@@ -134,223 +140,255 @@ const PropertyInterestForm: React.FC<PropertyInterestFormProps> = ({
 
   return (
     <Card>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            Solicitud de Interés en Propiedad
+      <CardContent>
+        <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
+          Solicitud de Interés en Propiedad
+        </Typography>
+
+        <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+          <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 1 }}>
+            {property.title}
           </Typography>
+          <Typography variant='body2' color='textSecondary' sx={{ mb: 1 }}>
+            {property.address}
+          </Typography>
+          <Chip
+            label={`${requestService.formatCurrency(property.rent_price ?? 0)}/mes`}
+            color='primary'
+            size='small'
+          />
+        </Box>
 
-          <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-              {property.title}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-              {property.address}
-            </Typography>
-            <Chip 
-              label={`${requestService.formatCurrency(property.rent_price ?? 0)}/mes`}
-              color="primary"
-              size="small"
-            />
-          </Box>
+        {error && (
+          <Alert severity='error' sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label='Mensaje al arrendador'
+                placeholder='Cuéntale al arrendador por qué estás interesado en esta propiedad...'
+                value={formData.description}
+                onChange={e => handleInputChange('description', e.target.value)}
+                required
+              />
+            </Grid>
 
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Mensaje al arrendador"
-                  placeholder="Cuéntale al arrendador por qué estás interesado en esta propiedad..."
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  required
-                />
-              </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Tipo de Empleo</InputLabel>
+                <Select
+                  value={formData.employment_type}
+                  onChange={e =>
+                    handleInputChange('employment_type', e.target.value)
+                  }
+                  label='Tipo de Empleo'
+                >
+                  {employmentTypes.map(type => (
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Tipo de Empleo</InputLabel>
-                  <Select
-                    value={formData.employment_type}
-                    onChange={(e) => handleInputChange('employment_type', e.target.value)}
-                    label="Tipo de Empleo"
-                  >
-                    {employmentTypes.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Ingresos Mensuales (COP)'
+                value={formData.monthly_income || ''}
+                onChange={e =>
+                  handleInputChange('monthly_income', Number(e.target.value))
+                }
+                InputProps={{
+                  inputProps: { min: 0 },
+                }}
+              />
+            </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Ingresos Mensuales (COP)"
-                  value={formData.monthly_income || ''}
-                  onChange={(e) => handleInputChange('monthly_income', Number(e.target.value))}
-                  InputProps={{
-                    inputProps: { min: 0 },
-                  }}
-                />
-              </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Duración del Contrato</InputLabel>
+                <Select
+                  value={formData.lease_duration_months}
+                  onChange={e =>
+                    handleInputChange('lease_duration_months', e.target.value)
+                  }
+                  label='Duración del Contrato'
+                >
+                  {leaseDurations.map(duration => (
+                    <MenuItem key={duration.value} value={duration.value}>
+                      {duration.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Duración del Contrato</InputLabel>
-                  <Select
-                    value={formData.lease_duration_months}
-                    onChange={(e) => handleInputChange('lease_duration_months', e.target.value)}
-                    label="Duración del Contrato"
-                  >
-                    {leaseDurations.map((duration) => (
-                      <MenuItem key={duration.value} value={duration.value}>
-                        {duration.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Número de Ocupantes'
+                value={formData.number_of_occupants}
+                onChange={e =>
+                  handleInputChange(
+                    'number_of_occupants',
+                    Number(e.target.value),
+                  )
+                }
+                InputProps={{
+                  inputProps: { min: 1, max: 10 },
+                }}
+                required
+              />
+            </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Número de Ocupantes"
-                  value={formData.number_of_occupants}
-                  onChange={(e) => handleInputChange('number_of_occupants', Number(e.target.value))}
-                  InputProps={{
-                    inputProps: { min: 1, max: 10 },
-                  }}
-                  required
-                />
-              </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type='date'
+                label='Fecha Preferida de Mudanza'
+                value={preferredMoveInDate}
+                onChange={e => setPreferredMoveInDate(e.target.value)}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                inputProps={{
+                  min: new Date().toISOString().split('T')[0],
+                }}
+              />
+            </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Fecha Preferida de Mudanza"
-                  value={preferredMoveInDate}
-                  onChange={(e) => setPreferredMoveInDate(e.target.value)}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    min: new Date().toISOString().split('T')[0],
-                  }}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant='subtitle2' sx={{ mb: 2, fontWeight: 600 }}>
+                Información Adicional
+              </Typography>
 
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-                  Información Adicional
-                </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.has_pets}
-                          onChange={(e) => handleInputChange('has_pets', e.target.checked)}
-                        />
-                      }
-                      label="Tengo mascotas"
-                    />
-                    {formData.has_pets && (
-                      <TextField
-                        fullWidth
-                        multiline
-                        rows={2}
-                        label="Detalles de las mascotas"
-                        placeholder="Tipo, raza, edad, etc."
-                        value={formData.pet_details}
-                        onChange={(e) => handleInputChange('pet_details', e.target.value)}
-                        sx={{ mt: 1 }}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.has_pets}
+                        onChange={e =>
+                          handleInputChange('has_pets', e.target.checked)
+                        }
                       />
-                    )}
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.smoking_allowed}
-                          onChange={(e) => handleInputChange('smoking_allowed', e.target.checked)}
-                        />
+                    }
+                    label='Tengo mascotas'
+                  />
+                  {formData.has_pets && (
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      label='Detalles de las mascotas'
+                      placeholder='Tipo, raza, edad, etc.'
+                      value={formData.pet_details}
+                      onChange={e =>
+                        handleInputChange('pet_details', e.target.value)
                       }
-                      label="Permito fumar en la propiedad"
+                      sx={{ mt: 1 }}
                     />
-                  </Grid>
+                  )}
+                </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.has_rental_references}
-                          onChange={(e) => handleInputChange('has_rental_references', e.target.checked)}
-                        />
-                      }
-                      label="Tengo referencias de alquiler"
-                    />
-                  </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.smoking_allowed}
+                        onChange={e =>
+                          handleInputChange('smoking_allowed', e.target.checked)
+                        }
+                      />
+                    }
+                    label='Permito fumar en la propiedad'
+                  />
+                </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.has_employment_proof}
-                          onChange={(e) => handleInputChange('has_employment_proof', e.target.checked)}
-                        />
-                      }
-                      label="Tengo comprobantes de ingresos"
-                    />
-                  </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.has_rental_references}
+                        onChange={e =>
+                          handleInputChange(
+                            'has_rental_references',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                    }
+                    label='Tengo referencias de alquiler'
+                  />
+                </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.has_credit_check}
-                          onChange={(e) => handleInputChange('has_credit_check', e.target.checked)}
-                        />
-                      }
-                      label="Autorizo verificación crediticia"
-                    />
-                  </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.has_employment_proof}
+                        onChange={e =>
+                          handleInputChange(
+                            'has_employment_proof',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                    }
+                    label='Tengo comprobantes de ingresos'
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.has_credit_check}
+                        onChange={e =>
+                          handleInputChange(
+                            'has_credit_check',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                    }
+                    label='Autorizo verificación crediticia'
+                  />
                 </Grid>
               </Grid>
-
-              <Grid item xs={12}>
-                <Box display="flex" gap={2} justifyContent="flex-end">
-                  <Button variant="outlined" onClick={onCancel}>
-                    Cancelar
-                  </Button>
-                  <LoadingButton
-                    type="submit"
-                    variant="contained"
-                    loading={loading}
-                    disabled={!formData.description || !formData.employment_type}
-                  >
-                    Enviar Solicitud
-                  </LoadingButton>
-                </Box>
-              </Grid>
             </Grid>
-          </form>
-        </CardContent>
-      </Card>
+
+            <Grid item xs={12}>
+              <Box display='flex' gap={2} justifyContent='flex-end'>
+                <Button variant='outlined' onClick={onCancel}>
+                  Cancelar
+                </Button>
+                <LoadingButton
+                  type='submit'
+                  variant='contained'
+                  loading={loading}
+                  disabled={!formData.description || !formData.employment_type}
+                >
+                  Enviar Solicitud
+                </LoadingButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

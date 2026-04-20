@@ -55,9 +55,9 @@ interface TenantContractReviewProps {
   onReviewComplete?: () => void;
 }
 
-const TenantContractReview: React.FC<TenantContractReviewProps> = ({ 
-  contract, 
-  onReviewComplete, 
+const TenantContractReview: React.FC<TenantContractReviewProps> = ({
+  contract,
+  onReviewComplete,
 }) => {
   const { showError, showWarning } = useSnackbar();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
@@ -68,7 +68,11 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
   const handleApprove = async () => {
     setLoading(true);
     try {
-      await contractService.tenantContractReview(contract.id, 'approve', comments);
+      await contractService.tenantContractReview(
+        contract.id,
+        'approve',
+        comments,
+      );
       setApproveDialogOpen(false);
       setComments('');
       onReviewComplete?.();
@@ -87,7 +91,11 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
 
     setLoading(true);
     try {
-      await contractService.tenantContractReview(contract.id, 'request_changes', comments);
+      await contractService.tenantContractReview(
+        contract.id,
+        'request_changes',
+        comments,
+      );
       setChangesDialogOpen(false);
       setComments('');
       onReviewComplete?.();
@@ -118,58 +126,63 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
     <>
       <Card sx={{ mb: 2 }}>
         <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-            <Typography variant="h6" component="h3">
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+            mb={2}
+          >
+            <Typography variant='h6' component='h3'>
               {contract.title}
             </Typography>
-            <Chip 
-              label="Pendiente de tu revisión" 
-              color="warning" 
+            <Chip
+              label='Pendiente de tu revisión'
+              color='warning'
               icon={<WarningIcon />}
             />
           </Box>
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" color="text.secondary">
+              <Typography variant='subtitle2' color='text.secondary'>
                 Arrendador
               </Typography>
-              <Typography variant="body1">
+              <Typography variant='body1'>
                 {contract.primary_party?.full_name || 'No disponible'}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 {contract.primary_party?.email}
               </Typography>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" color="text.secondary">
+              <Typography variant='subtitle2' color='text.secondary'>
                 Propiedad
               </Typography>
-              <Typography variant="body1">
+              <Typography variant='body1'>
                 {contract.property?.title || 'No disponible'}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 {contract.property?.address}
               </Typography>
             </Grid>
 
             {contract.monthly_rent && (
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="text.secondary">
+                <Typography variant='subtitle2' color='text.secondary'>
                   Canon mensual
                 </Typography>
-                <Typography variant="h6" color="primary">
+                <Typography variant='h6' color='primary'>
                   {formatCurrency(contract.monthly_rent)}
                 </Typography>
               </Grid>
             )}
 
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" color="text.secondary">
+              <Typography variant='subtitle2' color='text.secondary'>
                 Recibido el
               </Typography>
-              <Typography variant="body1">
+              <Typography variant='body1'>
                 {formatDate(contract.created_at)}
               </Typography>
             </Grid>
@@ -177,42 +190,43 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
 
           <Divider sx={{ my: 2 }} />
 
-          <Alert severity="info" icon={<ContractIcon />}>
-            <Typography variant="body2">
+          <Alert severity='info' icon={<ContractIcon />}>
+            <Typography variant='body2'>
               <strong>¿Qué puedes hacer?</strong>
             </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              • <strong>Aprobar:</strong> Si estás de acuerdo con todos los términos
-              • <strong>Solicitar cambios:</strong> Si necesitas modificaciones específicas
-              • <strong>Ver detalles:</strong> Revisar todos los términos del contrato
+            <Typography variant='body2' sx={{ mt: 1 }}>
+              • <strong>Aprobar:</strong> Si estás de acuerdo con todos los
+              términos • <strong>Solicitar cambios:</strong> Si necesitas
+              modificaciones específicas • <strong>Ver detalles:</strong>{' '}
+              Revisar todos los términos del contrato
             </Typography>
           </Alert>
         </CardContent>
 
         <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-          <Stack direction="row" spacing={1}>
+          <Stack direction='row' spacing={1}>
             <Button
-              variant="contained"
-              color="success"
+              variant='contained'
+              color='success'
               startIcon={<ApproveIcon />}
               onClick={() => setApproveDialogOpen(true)}
             >
               Aprobar
             </Button>
             <Button
-              variant="outlined"
-              color="warning"
+              variant='outlined'
+              color='warning'
               startIcon={<RequestChangesIcon />}
               onClick={() => setChangesDialogOpen(true)}
             >
               Solicitar Cambios
             </Button>
           </Stack>
-          
-          <Stack direction="row" spacing={1}>
+
+          <Stack direction='row' spacing={1}>
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               startIcon={<ViewIcon />}
               onClick={() => handleViewProfessionalContract(contract.id)}
             >
@@ -223,36 +237,40 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
       </Card>
 
       {/* Dialog para aprobar */}
-      <Dialog open={approveDialogOpen} onClose={() => setApproveDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Aprobar Contrato
-        </DialogTitle>
+      <Dialog
+        open={approveDialogOpen}
+        onClose={() => setApproveDialogOpen(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Aprobar Contrato</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            ¿Estás seguro de que quieres aprobar este contrato? Una vez aprobado, se procederá con el siguiente paso del proceso.
+            ¿Estás seguro de que quieres aprobar este contrato? Una vez
+            aprobado, se procederá con el siguiente paso del proceso.
           </Typography>
-          
+
           <TextField
-            label="Comentarios (opcional)"
+            label='Comentarios (opcional)'
             multiline
             rows={3}
             fullWidth
             value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Agrega cualquier comentario adicional..."
+            onChange={e => setComments(e.target.value)}
+            placeholder='Agrega cualquier comentario adicional...'
             sx={{ mt: 2 }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setApproveDialogOpen(false)}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleApprove} 
-            variant="contained" 
-            color="success"
+          <Button onClick={() => setApproveDialogOpen(false)}>Cancelar</Button>
+          <Button
+            onClick={handleApprove}
+            variant='contained'
+            color='success'
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <ApproveIcon />}
+            startIcon={
+              loading ? <CircularProgress size={20} /> : <ApproveIcon />
+            }
           >
             {loading ? 'Aprobando...' : 'Confirmar Aprobación'}
           </Button>
@@ -260,37 +278,41 @@ const TenantContractReview: React.FC<TenantContractReviewProps> = ({
       </Dialog>
 
       {/* Dialog para solicitar cambios */}
-      <Dialog open={changesDialogOpen} onClose={() => setChangesDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          ✏️ Solicitar Cambios
-        </DialogTitle>
+      <Dialog
+        open={changesDialogOpen}
+        onClose={() => setChangesDialogOpen(false)}
+        maxWidth='md'
+        fullWidth
+      >
+        <DialogTitle>✏️ Solicitar Cambios</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            Especifica qué cambios necesitas en el contrato. Sé lo más específico posible para facilitar las negociaciones.
+            Especifica qué cambios necesitas en el contrato. Sé lo más
+            específico posible para facilitar las negociaciones.
           </Typography>
-          
+
           <TextField
-            label="Cambios solicitados *"
+            label='Cambios solicitados *'
             multiline
             rows={5}
             fullWidth
             value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Ejemplo: Solicito cambiar la fecha de inicio del contrato del 1 de septiembre al 15 de septiembre. También me gustaría incluir que las mascotas están permitidas..."
+            onChange={e => setComments(e.target.value)}
+            placeholder='Ejemplo: Solicito cambiar la fecha de inicio del contrato del 1 de septiembre al 15 de septiembre. También me gustaría incluir que las mascotas están permitidas...'
             sx={{ mt: 2 }}
             required
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setChangesDialogOpen(false)}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleRequestChanges} 
-            variant="contained" 
-            color="warning"
+          <Button onClick={() => setChangesDialogOpen(false)}>Cancelar</Button>
+          <Button
+            onClick={handleRequestChanges}
+            variant='contained'
+            color='warning'
             disabled={loading || !comments.trim()}
-            startIcon={loading ? <CircularProgress size={20} /> : <RequestChangesIcon />}
+            startIcon={
+              loading ? <CircularProgress size={20} /> : <RequestChangesIcon />
+            }
           >
             {loading ? 'Enviando...' : 'Enviar Solicitud'}
           </Button>

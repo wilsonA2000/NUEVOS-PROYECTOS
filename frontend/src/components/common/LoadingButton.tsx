@@ -4,12 +4,7 @@
  */
 
 import React from 'react';
-import {
-  Button,
-  ButtonProps,
-  CircularProgress,
-  Box,
-} from '@mui/material';
+import { Button, ButtonProps, CircularProgress, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 interface LoadingButtonProps extends ButtonProps {
@@ -20,16 +15,19 @@ interface LoadingButtonProps extends ButtonProps {
 }
 
 const StyledButton = styled(Button, {
-  shouldForwardProp: (prop) => prop !== 'loading',
+  shouldForwardProp: prop => prop !== 'loading',
 })<{ loading?: boolean }>(({ theme, loading }) => ({
   position: 'relative',
-  transition: theme.transitions.create(['background-color', 'box-shadow', 'border-color'], {
-    duration: theme.transitions.duration.short,
-  }),
-  
+  transition: theme.transitions.create(
+    ['background-color', 'box-shadow', 'border-color'],
+    {
+      duration: theme.transitions.duration.short,
+    },
+  ),
+
   // Prevent content jumping during loading
   minHeight: loading ? 'auto' : undefined,
-  
+
   // Loading state styles
   ...(loading && {
     color: 'transparent',
@@ -67,7 +65,7 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({
       <CircularProgress
         size={16}
         thickness={4}
-        color="inherit"
+        color='inherit'
         sx={{ opacity: 0.8 }}
       />
       {loadingText && (
@@ -86,7 +84,7 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({
     >
       {/* Original button content */}
       {children}
-      
+
       {/* Loading overlay */}
       {loading && (
         <LoadingIndicator>
@@ -98,49 +96,55 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({
 };
 
 // Predefined variants for common use cases
-export const SaveButton: React.FC<Omit<LoadingButtonProps, 'variant' | 'color'>> = (props) => (
+export const SaveButton: React.FC<
+  Omit<LoadingButtonProps, 'variant' | 'color'>
+> = props => (
   <LoadingButton
-    variant="contained"
-    color="primary"
-    loadingText="Guardando..."
+    variant='contained'
+    color='primary'
+    loadingText='Guardando...'
     {...props}
   />
 );
 
-export const SubmitButton: React.FC<Omit<LoadingButtonProps, 'variant' | 'color' | 'type'>> = (props) => (
+export const SubmitButton: React.FC<
+  Omit<LoadingButtonProps, 'variant' | 'color' | 'type'>
+> = props => (
   <LoadingButton
-    variant="contained"
-    color="primary"
-    type="submit"
-    loadingText="Enviando..."
+    variant='contained'
+    color='primary'
+    type='submit'
+    loadingText='Enviando...'
     {...props}
   />
 );
 
-export const DeleteButton: React.FC<Omit<LoadingButtonProps, 'variant' | 'color'>> = (props) => (
+export const DeleteButton: React.FC<
+  Omit<LoadingButtonProps, 'variant' | 'color'>
+> = props => (
   <LoadingButton
-    variant="outlined"
-    color="error"
-    loadingText="Eliminando..."
+    variant='outlined'
+    color='error'
+    loadingText='Eliminando...'
     {...props}
   />
 );
 
-export const CancelButton: React.FC<Omit<LoadingButtonProps, 'variant' | 'color'>> = (props) => (
+export const CancelButton: React.FC<
+  Omit<LoadingButtonProps, 'variant' | 'color'>
+> = props => (
   <LoadingButton
-    variant="text"
-    color="secondary"
+    variant='text'
+    color='secondary'
     disableOnLoading={false}
     {...props}
   />
 );
 
-export const RefreshButton: React.FC<Omit<LoadingButtonProps, 'variant'>> = (props) => (
-  <LoadingButton
-    variant="outlined"
-    loadingText="Actualizando..."
-    {...props}
-  />
+export const RefreshButton: React.FC<
+  Omit<LoadingButtonProps, 'variant'>
+> = props => (
+  <LoadingButton variant='outlined' loadingText='Actualizando...' {...props} />
 );
 
 // Hook for managing button loading states
@@ -149,7 +153,7 @@ export const useLoadingButton = (initialLoading = false) => {
 
   const startLoading = React.useCallback(() => setLoading(true), []);
   const stopLoading = React.useCallback(() => setLoading(false), []);
-  
+
   const withLoading = React.useCallback(async (asyncFn: () => Promise<any>) => {
     try {
       setLoading(true);

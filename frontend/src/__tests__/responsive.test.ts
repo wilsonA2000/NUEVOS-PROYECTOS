@@ -27,7 +27,7 @@ const mockWindow = (width: number, height: number) => {
       availHeight: height,
     },
   });
-  
+
   // Trigger resize event
   window.dispatchEvent(new Event('resize'));
 };
@@ -68,7 +68,9 @@ describe('Responsive Design Tests', () => {
       mockWindow(768, 1024); // iPad size
       mockMediaQuery('(min-width: 768px) and (max-width: 1024px)', true);
 
-      const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches;
+      const isTablet = window.matchMedia(
+        '(min-width: 768px) and (max-width: 1024px)'
+      ).matches;
       expect(isTablet).toBe(true);
       expect(window.innerWidth).toBe(768);
     });
@@ -101,7 +103,7 @@ describe('Responsive Design Tests', () => {
       const mockNavigation = {
         isCollapsed: true,
         showHamburgerMenu: true,
-        showFullMenu: false
+        showFullMenu: false,
       };
 
       // On mobile, navigation should be collapsed by default
@@ -114,7 +116,7 @@ describe('Responsive Design Tests', () => {
       const mockFormLayout = {
         direction: 'column',
         fieldsPerRow: 1,
-        buttonAlignment: 'stretch'
+        buttonAlignment: 'stretch',
       };
 
       // Forms should stack vertically on mobile
@@ -128,7 +130,7 @@ describe('Responsive Design Tests', () => {
         columns: 1,
         cardWidth: '100%',
         imageHeight: '200px',
-        showFullDescription: false
+        showFullDescription: false,
       };
 
       // Property cards should be single column on mobile
@@ -142,7 +144,7 @@ describe('Responsive Design Tests', () => {
         displayMode: 'cards',
         showLimitedColumns: true,
         enableHorizontalScroll: false,
-        stackedLayout: true
+        stackedLayout: true,
       };
 
       // Tables should convert to card layout on mobile
@@ -160,7 +162,7 @@ describe('Responsive Design Tests', () => {
       const mockNavigation = {
         showSidebar: true,
         sidebarWidth: '240px',
-        isCollapsible: true
+        isCollapsible: true,
       };
 
       expect(mockNavigation.showSidebar).toBe(true);
@@ -171,7 +173,7 @@ describe('Responsive Design Tests', () => {
       const mockPropertyGrid = {
         columns: 2,
         cardWidth: '48%',
-        gap: '4%'
+        gap: '4%',
       };
 
       expect(mockPropertyGrid.columns).toBe(2);
@@ -182,7 +184,7 @@ describe('Responsive Design Tests', () => {
       const mockModal = {
         width: '80%',
         maxWidth: '600px',
-        margin: '10%'
+        margin: '10%',
       };
 
       expect(mockModal.width).toBe('80%');
@@ -199,7 +201,7 @@ describe('Responsive Design Tests', () => {
       const mockNavigation = {
         showFullMenu: true,
         horizontalLayout: true,
-        showUserDropdown: true
+        showUserDropdown: true,
       };
 
       expect(mockNavigation.showFullMenu).toBe(true);
@@ -210,7 +212,7 @@ describe('Responsive Design Tests', () => {
       const mockPropertyGrid = {
         columns: 4,
         cardWidth: '23%',
-        gap: '2.67%'
+        gap: '2.67%',
       };
 
       expect(mockPropertyGrid.columns).toBe(4);
@@ -221,7 +223,7 @@ describe('Responsive Design Tests', () => {
       const mockLayout = {
         showSidebar: true,
         sidebarWidth: '280px',
-        contentMargin: '300px'
+        contentMargin: '300px',
       };
 
       expect(mockLayout.showSidebar).toBe(true);
@@ -232,12 +234,12 @@ describe('Responsive Design Tests', () => {
   describe('Touch and Interaction Adaptations', () => {
     it('should adapt button sizes for touch on mobile', () => {
       mockWindow(375, 667);
-      
+
       const mockButtonSizes = {
         minHeight: '44px', // Apple's recommended minimum
         minWidth: '44px',
         padding: '12px 16px',
-        spacing: '8px'
+        spacing: '8px',
       };
 
       expect(parseInt(mockButtonSizes.minHeight)).toBeGreaterThanOrEqual(44);
@@ -246,11 +248,11 @@ describe('Responsive Design Tests', () => {
 
     it('should increase tap targets for mobile navigation', () => {
       mockWindow(375, 667);
-      
+
       const mockNavigationItem = {
         height: '48px',
         padding: '12px 16px',
-        marginBottom: '4px'
+        marginBottom: '4px',
       };
 
       expect(parseInt(mockNavigationItem.height)).toBeGreaterThanOrEqual(44);
@@ -258,11 +260,11 @@ describe('Responsive Design Tests', () => {
 
     it('should adapt form inputs for touch', () => {
       mockWindow(375, 667);
-      
+
       const mockFormInput = {
         height: '48px',
         fontSize: '16px', // Prevents zoom on iOS
-        padding: '12px 16px'
+        padding: '12px 16px',
       };
 
       expect(parseInt(mockFormInput.height)).toBeGreaterThanOrEqual(44);
@@ -273,11 +275,11 @@ describe('Responsive Design Tests', () => {
   describe('Image and Media Adaptations', () => {
     it('should serve appropriate image sizes for mobile', () => {
       mockWindow(375, 667);
-      
+
       const mockImageSizes = {
         propertyThumbnail: '375x200',
         heroImage: '375x250',
-        avatar: '40x40'
+        avatar: '40x40',
       };
 
       expect(mockImageSizes.propertyThumbnail).toBe('375x200');
@@ -286,11 +288,11 @@ describe('Responsive Design Tests', () => {
 
     it('should serve higher resolution images for desktop', () => {
       mockWindow(1920, 1080);
-      
+
       const mockImageSizes = {
         propertyThumbnail: '800x600',
         heroImage: '1920x600',
-        avatar: '80x80'
+        avatar: '80x80',
       };
 
       expect(mockImageSizes.propertyThumbnail).toBe('800x600');
@@ -300,12 +302,12 @@ describe('Responsive Design Tests', () => {
     it('should handle retina displays', () => {
       mockWindow(1920, 1080);
       Object.defineProperty(window, 'devicePixelRatio', {
-        value: 2
+        value: 2,
       });
 
       const mockImageHandling = {
         useRetinaImages: window.devicePixelRatio > 1,
-        scaleFactor: window.devicePixelRatio
+        scaleFactor: window.devicePixelRatio,
       };
 
       expect(mockImageHandling.useRetinaImages).toBe(true);
@@ -316,12 +318,12 @@ describe('Responsive Design Tests', () => {
   describe('Typography and Spacing', () => {
     it('should adjust font sizes for mobile readability', () => {
       mockWindow(375, 667);
-      
+
       const mockTypography = {
         baseFontSize: '16px',
         headingScale: 1.25,
         lineHeight: 1.6,
-        paragraphSpacing: '16px'
+        paragraphSpacing: '16px',
       };
 
       expect(parseInt(mockTypography.baseFontSize)).toBeGreaterThanOrEqual(16);
@@ -330,12 +332,12 @@ describe('Responsive Design Tests', () => {
 
     it('should use larger font sizes for desktop', () => {
       mockWindow(1920, 1080);
-      
+
       const mockTypography = {
         baseFontSize: '18px',
         headingScale: 1.5,
         lineHeight: 1.7,
-        paragraphSpacing: '20px'
+        paragraphSpacing: '20px',
       };
 
       expect(parseInt(mockTypography.baseFontSize)).toBeGreaterThanOrEqual(18);
@@ -365,12 +367,12 @@ describe('Responsive Design Tests', () => {
   describe('Performance on Different Devices', () => {
     it('should load optimized assets for mobile', () => {
       mockWindow(375, 667);
-      
+
       const mockAssetLoading = {
         loadWebP: true,
         lazyLoading: true,
         reducedAnimations: true,
-        compressedJS: true
+        compressedJS: true,
       };
 
       expect(mockAssetLoading.loadWebP).toBe(true);
@@ -382,20 +384,21 @@ describe('Responsive Design Tests', () => {
       const mockConnectionInfo = {
         effectiveType: '3g',
         downlink: 1.5,
-        saveData: false
+        saveData: false,
       };
 
-      const shouldOptimize = mockConnectionInfo.downlink < 2 || 
-                           mockConnectionInfo.effectiveType === '2g' ||
-                           mockConnectionInfo.saveData;
+      const shouldOptimize =
+        mockConnectionInfo.downlink < 2 ||
+        mockConnectionInfo.effectiveType === '2g' ||
+        mockConnectionInfo.saveData;
 
       if (shouldOptimize) {
         const optimizations = {
           reduceImageQuality: true,
           disableAnimations: true,
-          limitAPIRequests: true
+          limitAPIRequests: true,
         };
-        
+
         expect(optimizations.reduceImageQuality).toBe(true);
       }
     });
@@ -404,27 +407,29 @@ describe('Responsive Design Tests', () => {
   describe('Accessibility Across Devices', () => {
     it('should maintain accessibility on mobile', () => {
       mockWindow(375, 667);
-      
+
       const mockAccessibility = {
         minTouchTarget: '44px',
         colorContrast: 4.5,
         focusIndicators: true,
-        screenReaderSupport: true
+        screenReaderSupport: true,
       };
 
-      expect(parseInt(mockAccessibility.minTouchTarget)).toBeGreaterThanOrEqual(44);
+      expect(parseInt(mockAccessibility.minTouchTarget)).toBeGreaterThanOrEqual(
+        44
+      );
       expect(mockAccessibility.colorContrast).toBeGreaterThanOrEqual(4.5);
       expect(mockAccessibility.focusIndicators).toBe(true);
     });
 
     it('should support keyboard navigation on desktop', () => {
       mockWindow(1920, 1080);
-      
+
       const mockKeyboardSupport = {
         tabOrder: true,
         skipLinks: true,
         keyboardShortcuts: true,
-        focusManagement: true
+        focusManagement: true,
       };
 
       expect(mockKeyboardSupport.tabOrder).toBe(true);
@@ -436,22 +441,24 @@ describe('Responsive Design Tests', () => {
     it('should handle portrait to landscape on mobile', () => {
       // Portrait
       mockWindow(375, 667);
-      let orientation = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
+      let orientation =
+        window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
       expect(orientation).toBe('portrait');
 
       // Landscape
       mockWindow(667, 375);
-      orientation = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
+      orientation =
+        window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
       expect(orientation).toBe('landscape');
     });
 
     it('should adapt layout for landscape mobile', () => {
       mockWindow(667, 375); // Landscape mobile
-      
+
       const mockLandscapeLayout = {
         hideNavigationBar: true,
         useHorizontalLayout: true,
-        adjustModalHeight: true
+        adjustModalHeight: true,
       };
 
       expect(mockLandscapeLayout.hideNavigationBar).toBe(true);
@@ -465,18 +472,22 @@ describe('Responsive Design Tests', () => {
         { name: 'Chrome', viewportBehavior: 'standard' },
         { name: 'Safari', viewportBehavior: 'addressBar' },
         { name: 'Firefox', viewportBehavior: 'standard' },
-        { name: 'Edge', viewportBehavior: 'standard' }
+        { name: 'Edge', viewportBehavior: 'standard' },
       ];
 
       browsers.forEach(browser => {
         const mockViewport = {
-          actualHeight: browser.viewportBehavior === 'addressBar' ? 
-                       window.innerHeight - 60 : window.innerHeight,
-          adjustForBrowser: true
+          actualHeight:
+            browser.viewportBehavior === 'addressBar'
+              ? window.innerHeight - 60
+              : window.innerHeight,
+          adjustForBrowser: true,
         };
 
         expect(mockViewport.adjustForBrowser).toBe(true);
-        expect(mockViewport.actualHeight).toBeLessThanOrEqual(window.innerHeight);
+        expect(mockViewport.actualHeight).toBeLessThanOrEqual(
+          window.innerHeight
+        );
       });
     });
   });

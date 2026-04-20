@@ -120,7 +120,7 @@ describe('useWebSocket Hook', () => {
         reconnectAttempts: 3,
         reconnectInterval: 5000,
         heartbeatInterval: 15000,
-      }),
+      })
     );
 
     expect(result.current.connectionState).toBe('disconnected');

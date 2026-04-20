@@ -25,11 +25,11 @@ interface ImageOptimizationOptions {
 }
 
 interface ResponsiveImageSizes {
-  thumbnail: { width: 150, height: 150 };
-  small: { width: 300, height: 200 };
-  medium: { width: 600, height: 400 };
-  large: { width: 1200, height: 800 };
-  xlarge: { width: 1920, height: 1080 };
+  thumbnail: { width: 150; height: 150 };
+  small: { width: 300; height: 200 };
+  medium: { width: 600; height: 400 };
+  large: { width: 1200; height: 800 };
+  xlarge: { width: 1920; height: 1080 };
 }
 
 const DEFAULT_SIZES: ResponsiveImageSizes = {
@@ -43,7 +43,7 @@ const DEFAULT_SIZES: ResponsiveImageSizes = {
 class ImageOptimizer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  
+
   constructor() {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
@@ -55,20 +55,22 @@ class ImageOptimizer {
   async detectFormatSupport(): Promise<{ webp: boolean; avif: boolean }> {
     const webp = await this.supportsFormat('webp');
     const avif = await this.supportsFormat('avif');
-    
+
     return { webp, avif };
   }
 
   private supportsFormat(format: 'webp' | 'avif'): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const img = new Image();
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
-      
+
       if (format === 'webp') {
-        img.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
+        img.src =
+          'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
       } else if (format === 'avif') {
-        img.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAABUAAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEAwgMg8f8D///8WfhwB8+ErK42A=';
+        img.src =
+          'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAABUAAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgABogQEAwgMg8f8D///8WfhwB8+ErK42A=';
       }
     });
   }
@@ -90,7 +92,7 @@ class ImageOptimizer {
 
     return new Promise((resolve, reject) => {
       const img = new Image();
-      
+
       img.onload = () => {
         try {
           const { width, height } = this.calculateDimensions(
@@ -115,7 +117,7 @@ class ImageOptimizer {
 
           // Convertir a blob
           this.canvas.toBlob(
-            (blob) => {
+            blob => {
               if (blob) {
                 resolve(blob);
               } else {
@@ -143,7 +145,7 @@ class ImageOptimizer {
     sizes: Partial<ResponsiveImageSizes> = DEFAULT_SIZES,
   ): Promise<Record<string, Blob>> {
     const results: Record<string, Blob> = {};
-    
+
     for (const [sizeName, dimensions] of Object.entries(sizes)) {
       try {
         const compressed = await this.compressImage(file, {
@@ -152,34 +154,30 @@ class ImageOptimizer {
           quality: this.getQualityForSize(sizeName),
           format: 'webp',
         });
-        
+
         results[sizeName] = compressed;
-      } catch (error) {
-      }
+      } catch (error) {}
     }
-    
+
     return results;
   }
 
   /**
    * Crear placeholder blur
    */
-  async generateBlurPlaceholder(
-    file: File | Blob,
-    size = 20,
-  ): Promise<string> {
+  async generateBlurPlaceholder(file: File | Blob, size = 20): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      
+
       img.onload = () => {
         try {
           this.canvas.width = size;
           this.canvas.height = size;
-          
+
           // Aplicar blur
           this.ctx.filter = 'blur(2px)';
           this.ctx.drawImage(img, 0, 0, size, size);
-          
+
           // Convertir a data URL
           const dataUrl = this.canvas.toDataURL('image/jpeg', 0.3);
           resolve(dataUrl);
@@ -187,7 +185,7 @@ class ImageOptimizer {
           reject(error);
         }
       };
-      
+
       img.onerror = () => reject(new Error('Error generando placeholder'));
       img.src = URL.createObjectURL(file);
     });
@@ -200,18 +198,18 @@ class ImageOptimizer {
     maxHeight: number,
   ): { width: number; height: number } {
     let { width, height } = { width: originalWidth, height: originalHeight };
-    
+
     // Mantener aspect ratio
     if (width > maxWidth) {
       height = (height * maxWidth) / width;
       width = maxWidth;
     }
-    
+
     if (height > maxHeight) {
       width = (width * maxHeight) / height;
       height = maxHeight;
     }
-    
+
     return { width: Math.round(width), height: Math.round(height) };
   }
 
@@ -219,7 +217,7 @@ class ImageOptimizer {
     if (format === 'auto') {
       return originalType;
     }
-    
+
     return `image/${format}`;
   }
 
@@ -231,7 +229,7 @@ class ImageOptimizer {
       large: 0.9,
       xlarge: 0.95,
     };
-    
+
     return qualityMap[sizeName] || 0.8;
   }
 }
@@ -252,12 +250,12 @@ export function useImageOptimization() {
   ): Promise<Blob> => {
     setIsProcessing(true);
     setProgress(0);
-    
+
     try {
       setProgress(25);
       const optimized = await imageOptimizer.compressImage(file, options);
       setProgress(100);
-      
+
       return optimized;
     } catch (error) {
       throw error;
@@ -273,12 +271,15 @@ export function useImageOptimization() {
   ): Promise<Record<string, Blob>> => {
     setIsProcessing(true);
     setProgress(0);
-    
+
     try {
       setProgress(25);
-      const responsive = await imageOptimizer.generateResponsiveSizes(file, sizes);
+      const responsive = await imageOptimizer.generateResponsiveSizes(
+        file,
+        sizes,
+      );
       setProgress(100);
-      
+
       return responsive;
     } catch (error) {
       throw error;
@@ -360,7 +361,8 @@ export const imageUtils = {
     return (
       rect.top >= 0 &&
       rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.bottom <=
+        (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
   },
@@ -369,7 +371,10 @@ export const imageUtils = {
 /**
  * Hook para lazy loading de imágenes
  */
-export function useLazyImage(src: string, options: { threshold?: number; rootMargin?: string } = {}) {
+export function useLazyImage(
+  src: string,
+  options: { threshold?: number; rootMargin?: string } = {},
+) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [isInView, setIsInView] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -398,16 +403,16 @@ export function useLazyImage(src: string, options: { threshold?: number; rootMar
   React.useEffect(() => {
     if (isInView && !isLoaded) {
       const img = new Image();
-      
+
       img.onload = () => {
         setIsLoaded(true);
         setError(null);
       };
-      
+
       img.onerror = () => {
         setError('Error al cargar imagen');
       };
-      
+
       img.src = src;
     }
   }, [isInView, src, isLoaded]);
@@ -418,18 +423,21 @@ export function useLazyImage(src: string, options: { threshold?: number; rootMar
 /**
  * Hook para progressive image loading
  */
-export function useProgressiveImage(lowQualitySrc: string, highQualitySrc: string) {
+export function useProgressiveImage(
+  lowQualitySrc: string,
+  highQualitySrc: string,
+) {
   const [currentSrc, setCurrentSrc] = React.useState(lowQualitySrc);
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
     const img = new Image();
-    
+
     img.onload = () => {
       setCurrentSrc(highQualitySrc);
       setIsLoaded(true);
     };
-    
+
     img.src = highQualitySrc;
   }, [highQualitySrc]);
 

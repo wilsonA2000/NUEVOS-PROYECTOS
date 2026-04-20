@@ -2,6 +2,7 @@
 """
 Script para probar el endpoint de autenticación biométrica.
 """
+
 import requests
 import json
 from datetime import datetime
@@ -9,6 +10,7 @@ from datetime import datetime
 # Configuración
 BASE_URL = "http://localhost:8000"
 CONTRACT_ID = "c6a04a99-c3da-468a-a514-5c9fba718ea3"
+
 
 def test_biometric_endpoint():
     """Prueba el endpoint de autenticación biométrica."""
@@ -32,7 +34,7 @@ def test_biometric_endpoint():
                 # "Authorization": "Bearer <token>"
             },
             json={},
-            timeout=10
+            timeout=10,
         )
 
         print(f"✅ Estado de respuesta: {response.status_code}")
@@ -57,6 +59,7 @@ def test_biometric_endpoint():
         print("❌ Timeout: La petición tardó demasiado")
     except Exception as e:
         print(f"❌ Error inesperado: {str(e)}")
+
 
 if __name__ == "__main__":
     print(f"🚀 Iniciando prueba del endpoint biométrico - {datetime.now()}")

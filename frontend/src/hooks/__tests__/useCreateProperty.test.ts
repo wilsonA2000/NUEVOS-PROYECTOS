@@ -6,7 +6,9 @@ import { propertyService } from '../../services/propertyService';
 
 // Mock property service
 jest.mock('../../services/propertyService');
-const mockPropertyService = propertyService as jest.Mocked<typeof propertyService>;
+const mockPropertyService = propertyService as jest.Mocked<
+  typeof propertyService
+>;
 
 // Test wrapper with fresh QueryClient per test
 const createWrapper = () => {
@@ -18,11 +20,7 @@ const createWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useCreateProperty Hook', () => {
@@ -104,7 +102,9 @@ describe('useCreateProperty Hook', () => {
     });
 
     expect(mockPropertyService.createProperty).toHaveBeenCalledTimes(1);
-    expect(mockPropertyService.createProperty.mock.calls[0][0]).toEqual(propertyData);
+    expect(mockPropertyService.createProperty.mock.calls[0][0]).toEqual(
+      propertyData
+    );
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
@@ -126,7 +126,9 @@ describe('useCreateProperty Hook', () => {
   });
 
   it('should handle creation error', async () => {
-    mockPropertyService.createProperty.mockRejectedValue(new Error('Creation failed'));
+    mockPropertyService.createProperty.mockRejectedValue(
+      new Error('Creation failed')
+    );
 
     const { result } = renderHook(() => useCreateProperty(), {
       wrapper: createWrapper(),
@@ -163,7 +165,9 @@ describe('useCreateProperty Hook', () => {
 
     await waitFor(() => {
       expect(result.current.error).toBeTruthy();
-      expect(result.current.error?.message).toBe('Validation failed: title is required');
+      expect(result.current.error?.message).toBe(
+        'Validation failed: title is required'
+      );
     });
   });
 

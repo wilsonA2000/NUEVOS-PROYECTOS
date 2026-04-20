@@ -14,24 +14,28 @@ jest.mock('../PropertyForm', () => {
     const [submitted, setSubmitted] = React.useState(false);
     const handleSubmit = () => {
       if (props.onSubmit) {
-        props.onSubmit({ title: 'Test', property_type: 'apartment', area: 100 });
+        props.onSubmit({
+          title: 'Test',
+          property_type: 'apartment',
+          area: 100,
+        });
         setSubmitted(true);
       }
     };
 
     return (
-      <div data-testid="property-form">
-        <label htmlFor="title-input">Titulo</label>
-        <input id="title-input" aria-label="titulo" />
-        <label htmlFor="desc-input">Descripcion</label>
-        <input id="desc-input" aria-label="descripcion" />
-        <label htmlFor="area-input">Area total</label>
-        <input id="area-input" aria-label="area total" type="number" />
+      <div data-testid='property-form'>
+        <label htmlFor='title-input'>Titulo</label>
+        <input id='title-input' aria-label='titulo' />
+        <label htmlFor='desc-input'>Descripcion</label>
+        <input id='desc-input' aria-label='descripcion' />
+        <label htmlFor='area-input'>Area total</label>
+        <input id='area-input' aria-label='area total' type='number' />
         <button onClick={handleSubmit} disabled={props.isLoading}>
           {props.isLoading ? 'Creando...' : 'Crear Propiedad'}
         </button>
         <button onClick={() => {}}>Cancelar</button>
-        {props.error && <div role="alert">{props.error}</div>}
+        {props.error && <div role='alert'>{props.error}</div>}
         {submitted && <div>Propiedad creada</div>}
       </div>
     );
@@ -66,9 +70,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <MemoryRouter>
-          {children}
-        </MemoryRouter>
+        <MemoryRouter>{children}</MemoryRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -90,8 +92,12 @@ describe('PropertyForm Component', () => {
     );
 
     expect(screen.getByTestId('property-form')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /crear propiedad/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /crear propiedad/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /cancelar/i })
+    ).toBeInTheDocument();
   });
 
   it('should handle form submission', async () => {
@@ -103,7 +109,9 @@ describe('PropertyForm Component', () => {
       </TestWrapper>
     );
 
-    const submitButton = screen.getByRole('button', { name: /crear propiedad/i });
+    const submitButton = screen.getByRole('button', {
+      name: /crear propiedad/i,
+    });
     await user.click(submitButton);
 
     await waitFor(() => {

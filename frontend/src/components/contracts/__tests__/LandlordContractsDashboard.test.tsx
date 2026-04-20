@@ -23,7 +23,12 @@ jest.mock('date-fns/locale', () => ({
 // Mock useAuth hook
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({
-    user: { id: 'landlord-1', user_type: 'landlord', first_name: 'Admin', last_name: 'Test' },
+    user: {
+      id: 'landlord-1',
+      user_type: 'landlord',
+      first_name: 'Admin',
+      last_name: 'Test',
+    },
   }),
 }));
 
@@ -42,7 +47,12 @@ jest.mock('../../../services/landlordContractService', () => ({
 
 // Mock sub-components
 jest.mock('../../common/LoadingSpinner', () => ({
-  LoadingSpinner: (props: any) => React.createElement('div', { 'data-testid': 'loading-spinner' }, props.message || 'Loading...'),
+  LoadingSpinner: (props: any) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'loading-spinner' },
+      props.message || 'Loading...'
+    ),
 }));
 
 jest.mock('../TenantInvitationSystem', () => {
@@ -60,8 +70,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(LandlordContractsDashboard),
-    ),
+      React.createElement(LandlordContractsDashboard)
+    )
   );
 };
 
@@ -138,7 +148,9 @@ describe('LandlordContractsDashboard', () => {
       // Use getAllByText since some labels appear in both table headers and filters
       expect(screen.getAllByText('Propiedad').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText(/Estado/).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Arrendatario').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Arrendatario').length).toBeGreaterThanOrEqual(
+        1
+      );
       expect(screen.getAllByText('Canon').length).toBeGreaterThanOrEqual(1);
     });
   });
@@ -157,7 +169,9 @@ describe('LandlordContractsDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Error al cargar dashboard/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Error al cargar dashboard/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -190,7 +204,9 @@ describe('LandlordContractsDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/No hay contratos en esta categoría/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No hay contratos en esta categoría/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -198,7 +214,9 @@ describe('LandlordContractsDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Buscar por dirección/i)).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText(/Buscar por dirección/i)
+      ).toBeInTheDocument();
     });
   });
 

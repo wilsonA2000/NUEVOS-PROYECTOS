@@ -46,7 +46,10 @@ describe('API Configuration', () => {
   let api: ReturnType<typeof axios.create>;
 
   beforeAll(() => {
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
     window.dispatchEvent = dispatchEventSpy;
   });
 
@@ -60,14 +63,18 @@ describe('API Configuration', () => {
         'Content-Type': 'application/json',
       },
       timeout: 10000,
-      validateStatus: (status) => {
-        return (status >= 200 && status < 300) || (status >= 400 && status < 500) || status === 401;
+      validateStatus: status => {
+        return (
+          (status >= 200 && status < 300) ||
+          (status >= 400 && status < 500) ||
+          status === 401
+        );
       },
     });
 
     // Add request interceptor matching the real module
     api.interceptors.request.use(
-      (config) => {
+      config => {
         const token = localStorage.getItem('access_token');
         const endpoint = config.url || '';
         const needsAuth = requiresAuth(endpoint);
@@ -79,12 +86,14 @@ describe('API Configuration', () => {
           const controller = new AbortController();
           controller.abort('No authentication token available');
 
-          window.dispatchEvent(new CustomEvent('authRequired', {
-            detail: {
-              endpoint,
-              message: 'Necesitas iniciar sesión para acceder a este recurso',
-            },
-          }));
+          window.dispatchEvent(
+            new CustomEvent('authRequired', {
+              detail: {
+                endpoint,
+                message: 'Necesitas iniciar sesión para acceder a este recurso',
+              },
+            })
+          );
 
           return {
             ...config,
@@ -98,14 +107,14 @@ describe('API Configuration', () => {
 
         return config;
       },
-      (error) => {
+      error => {
         return Promise.reject(error);
-      },
+      }
     );
 
     // Add response interceptor matching the real module
     api.interceptors.response.use(
-      (response) => {
+      response => {
         if (response.status >= 400 && response.status < 500) {
           const error = Object.assign(
             new Error(`HTTP ${response.status}: ${response.statusText}`),
@@ -123,13 +132,17 @@ describe('API Configuration', () => {
         }
         return response;
       },
-      (error) => {
+      error => {
         if (error.code === 'ECONNABORTED') {
-          return Promise.reject(new Error('La petición tardó demasiado tiempo'));
+          return Promise.reject(
+            new Error('La petición tardó demasiado tiempo')
+          );
         }
 
         if (!error.response) {
-          return Promise.reject(new Error('No se pudo conectar con el servidor'));
+          return Promise.reject(
+            new Error('No se pudo conectar con el servidor')
+          );
         }
 
         const { status } = error.response;
@@ -143,7 +156,7 @@ describe('API Configuration', () => {
         }
 
         return Promise.reject(error);
-      },
+      }
     );
   });
 

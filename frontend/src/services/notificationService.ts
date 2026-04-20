@@ -31,7 +31,9 @@ export const notificationService = {
 
   // Marcar notificación como leída
   markAsRead: async (id: string): Promise<Notification> => {
-    const response = await api.patch(`/core/notifications/${id}/`, { is_read: true });
+    const response = await api.patch(`/core/notifications/${id}/`, {
+      is_read: true,
+    });
     return response.data;
   },
 
@@ -112,4 +114,4 @@ export const notificationService = {
     const response = await api.get('/core/stats/overview/');
     return response.data;
   },
-}; 
+};

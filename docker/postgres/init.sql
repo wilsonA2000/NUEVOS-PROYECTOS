@@ -1,5 +1,5 @@
 -- =============================================================================
--- VERIHOME - INICIALIZACIÓN DE BASE DE DATOS POSTGRESQL  
+-- VERIHOME - INICIALIZACIÓN DE BASE DE DATOS POSTGRESQL
 -- Enhanced for migration from SQLite with advanced features
 -- =============================================================================
 

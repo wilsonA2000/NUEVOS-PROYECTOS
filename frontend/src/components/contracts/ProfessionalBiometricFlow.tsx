@@ -23,18 +23,15 @@ import {
   RecordVoiceOver,
   Draw,
   ArrowBack,
-  ArrowForward,
-  CheckCircle,
   Security,
   Close,
 } from '@mui/icons-material';
 
-import SimpleProfessionalCamera from './SimpleProfessionalCamera';
 import EnhancedFaceCapture from './EnhancedFaceCapture';
 import EnhancedDocumentVerification from './EnhancedDocumentVerification';
-import VoiceRecorder from './VoiceRecorder';
+
 import EnhancedVoiceRecording from './EnhancedVoiceRecording';
-import DigitalSignaturePad from './DigitalSignaturePad';
+
 import EnhancedDigitalSignature from './EnhancedDigitalSignature';
 
 interface ProfessionalBiometricFlowProps {
@@ -65,11 +62,11 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [steps, setSteps] = useState<StepConfig[]>([
     {
       id: 'face_capture',
@@ -79,7 +76,7 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
       completed: false,
     },
     {
-      id: 'document_verification', 
+      id: 'document_verification',
       title: 'Verificación de Documento',
       subtitle: 'Suba PDF y fotografíe su documento con su rostro',
       icon: <DocumentScanner />,
@@ -102,64 +99,82 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
   ]);
 
   // Handlers
-  const handleStepComplete = useCallback((stepIndex: number, data: any) => {
-    // Actualizar el estado del paso
-    setSteps(prev => {
-      const updatedSteps = prev.map((step, index) =>
-        index === stepIndex ? { ...step, completed: true, data } : step,
-      );
+  const handleStepComplete = useCallback(
+    (stepIndex: number, data: any) => {
+      // Actualizar el estado del paso
+      setSteps(prev => {
+        const updatedSteps = prev.map((step, index) =>
+          index === stepIndex ? { ...step, completed: true, data } : step,
+        );
 
-      // 🔧 FIX CRÍTICO: Usar stepIndex === 3 directamente en lugar de steps.length - 1
-      // Esto evita problemas con closures stale
-      if (stepIndex === 3) {
-        // Construir allData con los pasos actualizados
-        const allData = updatedSteps.reduce((acc, step, index) => ({
-          ...acc,
-          [step.id]: step.data,
-        }), {});
+        // 🔧 FIX CRÍTICO: Usar stepIndex === 3 directamente en lugar de steps.length - 1
+        // Esto evita problemas con closures stale
+        if (stepIndex === 3) {
+          // Construir allData con los pasos actualizados
+          const allData = updatedSteps.reduce(
+            (acc, step, index) => ({
+              ...acc,
+              [step.id]: step.data,
+            }),
+            {},
+          );
 
-        // Llamar a onComplete en el siguiente tick para evitar problemas de estado
-        setTimeout(() => {
-          onComplete(allData);
-        }, 0);
-      } else {
-        // Ir al siguiente paso
-        setCurrentStep(stepIndex + 1);
+          // Llamar a onComplete en el siguiente tick para evitar problemas de estado
+          setTimeout(() => {
+            onComplete(allData);
+          }, 0);
+        } else {
+          // Ir al siguiente paso
+          setCurrentStep(stepIndex + 1);
+        }
+
+        return updatedSteps;
+      });
+    },
+    [onComplete],
+  );
+
+  const handleFaceCapture = useCallback(
+    (image: string) => {
+      handleStepComplete(0, { faceImage: image });
+    },
+    [handleStepComplete],
+  );
+
+  const handleDocumentVerification = useCallback(
+    async (data: any) => {
+      // Convertir File a base64 si existe
+      if (data.pdfFile && data.pdfFile instanceof File) {
+        const reader = new FileReader();
+        const pdfBase64 = await new Promise<string>(resolve => {
+          reader.onload = e => {
+            resolve(e.target?.result as string);
+          };
+          reader.readAsDataURL(data.pdfFile);
+        });
+
+        // Reemplazar File con base64
+        data.pdfFile = pdfBase64;
       }
 
-      return updatedSteps;
-    });
-  }, [onComplete]);
+      handleStepComplete(1, data);
+    },
+    [handleStepComplete],
+  );
 
-  const handleFaceCapture = useCallback((image: string) => {
-    handleStepComplete(0, { faceImage: image });
-  }, [handleStepComplete]);
+  const handleVoiceRecording = useCallback(
+    (data: any) => {
+      handleStepComplete(2, data);
+    },
+    [handleStepComplete],
+  );
 
-  const handleDocumentVerification = useCallback(async (data: any) => {
-    // Convertir File a base64 si existe
-    if (data.pdfFile && data.pdfFile instanceof File) {
-      const reader = new FileReader();
-      const pdfBase64 = await new Promise<string>((resolve) => {
-        reader.onload = (e) => {
-          resolve(e.target?.result as string);
-        };
-        reader.readAsDataURL(data.pdfFile);
-      });
-
-      // Reemplazar File con base64
-      data.pdfFile = pdfBase64;
-    }
-
-    handleStepComplete(1, data);
-  }, [handleStepComplete]);
-
-  const handleVoiceRecording = useCallback((data: any) => {
-    handleStepComplete(2, data);
-  }, [handleStepComplete]);
-
-  const handleDigitalSignature = useCallback((data: any) => {
-    handleStepComplete(3, data);
-  }, [handleStepComplete]);
+  const handleDigitalSignature = useCallback(
+    (data: any) => {
+      handleStepComplete(3, data);
+    },
+    [handleStepComplete],
+  );
 
   const goToPreviousStep = () => {
     if (currentStep > 0) {
@@ -184,7 +199,11 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
 
   // Generar frase personalizada para grabación de voz
   const generateVoiceText = () => {
-    if (userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate) {
+    if (
+      userInfo?.fullName &&
+      userInfo?.documentNumber &&
+      userInfo?.documentIssueDate
+    ) {
       return `Mi nombre es ${userInfo.fullName}, mi número de documento de identidad es ${userInfo.documentNumber}, expedido el ${userInfo.documentIssueDate}.`;
     }
     return 'Por favor, diga su nombre completo, número de documento de identidad y fecha de expedición de la cédula.';
@@ -211,10 +230,12 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
             loading={loading}
           />
         );
-        
+
       case 'document_verification':
         return (
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Box
+            sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          >
             <EnhancedDocumentVerification
               onVerify={handleDocumentVerification}
               loading={loading}
@@ -226,7 +247,7 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
             />
           </Box>
         );
-        
+
       case 'voice_recording':
         return (
           <EnhancedVoiceRecording
@@ -242,7 +263,7 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
             userInfo={userInfo}
           />
         );
-        
+
       case 'digital_signature':
         return (
           <EnhancedDigitalSignature
@@ -256,62 +277,74 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
             contractData={{ contractId }}
           />
         );
-        
+
       default:
         return null;
     }
   };
 
   // No mostrar header superior en pasos que tienen su propio layout
-  const showHeader = !['face_capture', 'document_verification', 'voice_recording', 'digital_signature'].includes(currentStepData.id);
+  const showHeader = ![
+    'face_capture',
+    'document_verification',
+    'voice_recording',
+    'digital_signature',
+  ].includes(currentStepData.id);
 
   return (
-    <Box sx={{ 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      bgcolor: 'grey.50',
-    }}>
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'grey.50',
+      }}
+    >
       {/* Header Compacto - Solo mostrar si no es el paso de documento */}
       {showHeader && (
-        <Paper elevation={1} sx={{ 
-          borderRadius: 0,
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}>
-          <Box sx={{ 
-            px: 3, 
-            py: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <IconButton 
+        <Paper
+          elevation={1}
+          sx={{
+            borderRadius: 0,
+            borderBottom: 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Box
+            sx={{
+              px: 3,
+              py: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Box display='flex' alignItems='center' gap={2}>
+              <IconButton
                 onClick={currentStep === 0 ? onCancel : goToPreviousStep}
-                size="small"
+                size='small'
               >
                 {currentStep === 0 ? <Close /> : <ArrowBack />}
               </IconButton>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Security color="primary" fontSize="small" />
-                <Typography variant="h6" fontWeight="600">
+              <Box display='flex' alignItems='center' gap={1}>
+                <Security color='primary' fontSize='small' />
+                <Typography variant='h6' fontWeight='600'>
                   Autenticación Biométrica
                 </Typography>
               </Box>
             </Box>
-            
-            <Chip 
+
+            <Chip
               label={`${currentStep + 1}/${steps.length}`}
-              size="small"
-              color="primary"
-              variant="outlined"
+              size='small'
+              color='primary'
+              variant='outlined'
             />
           </Box>
-          
+
           {/* Progreso */}
-          <LinearProgress 
-            variant="determinate" 
+          <LinearProgress
+            variant='determinate'
             value={progress}
             sx={{ height: 3 }}
           />
@@ -319,37 +352,43 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
       )}
 
       {/* Contenido Principal - Ocupa todo el espacio disponible */}
-      <Box sx={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0, // Importante para flex shrinking
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0, // Importante para flex shrinking
+        }}
+      >
         {/* Info del paso - Minimalista - No mostrar en documento */}
         {showHeader && (
-          <Box sx={{ 
-            px: 3,
-            py: 2,
-            bgcolor: 'white',
-            borderBottom: 1,
-            borderColor: 'divider',
-          }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <Box sx={{ 
-                p: 1, 
-                borderRadius: 1, 
-                bgcolor: 'primary.main',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              bgcolor: 'white',
+              borderBottom: 1,
+              borderColor: 'divider',
+            }}
+          >
+            <Box display='flex' alignItems='center' gap={2}>
+              <Box
+                sx={{
+                  p: 1,
+                  borderRadius: 1,
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
                 {currentStepData.icon}
               </Box>
               <Box>
-                <Typography variant="h6" fontWeight="600">
+                <Typography variant='h6' fontWeight='600'>
                   {currentStepData.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   {currentStepData.subtitle}
                 </Typography>
               </Box>
@@ -360,66 +399,74 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
         {/* Error */}
         {error && (
           <Box sx={{ px: 3, py: 1 }}>
-            <Paper sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText' }}>
-              <Typography variant="body2">{error}</Typography>
+            <Paper
+              sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText' }}
+            >
+              <Typography variant='body2'>{error}</Typography>
             </Paper>
           </Box>
         )}
 
         {/* Contenido del Paso - OCUPA TODO EL ESPACIO RESTANTE */}
-        <Box sx={{ 
-          flex: 1,
-          px: showHeader ? 3 : 0,
-          py: showHeader ? 2 : 0,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: 0,
-        }}>
+        <Box
+          sx={{
+            flex: 1,
+            px: showHeader ? 3 : 0,
+            py: showHeader ? 2 : 0,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+          }}
+        >
           <Fade in={true} timeout={300}>
-            <Box sx={{ height: '100%' }}>
-              {renderStepContent()}
-            </Box>
+            <Box sx={{ height: '100%' }}>{renderStepContent()}</Box>
           </Fade>
         </Box>
       </Box>
 
       {/* Footer Minimalista - Solo para pasos que no tienen su propio layout */}
       {showHeader && (
-        <Paper elevation={2} sx={{ 
-          px: 3,
-          py: 2,
-          borderRadius: 0,
-          borderTop: 1,
-          borderColor: 'divider',
-        }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="body2" color="text.secondary">
-            {currentStepData.title}
-          </Typography>
-          
-          <Box display="flex" gap={1}>
-            {currentStep > 0 && (
-              <Button
-                startIcon={<ArrowBack />}
-                onClick={goToPreviousStep}
-                disabled={loading}
-                variant="outlined"
-                size="small"
-              >
-                Anterior
-              </Button>
-            )}
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mx: 2 }}>
-              Paso {currentStep + 1} de {steps.length}
+        <Paper
+          elevation={2}
+          sx={{
+            px: 3,
+            py: 2,
+            borderRadius: 0,
+            borderTop: 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='center'
+          >
+            <Typography variant='body2' color='text.secondary'>
+              {currentStepData.title}
             </Typography>
-          </Box>
-        </Stack>
+
+            <Box display='flex' gap={1}>
+              {currentStep > 0 && (
+                <Button
+                  startIcon={<ArrowBack />}
+                  onClick={goToPreviousStep}
+                  disabled={loading}
+                  variant='outlined'
+                  size='small'
+                >
+                  Anterior
+                </Button>
+              )}
+
+              <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
+                Paso {currentStep + 1} de {steps.length}
+              </Typography>
+            </Box>
+          </Stack>
         </Paper>
       )}
     </Box>
   );
 };
-
 
 export default ProfessionalBiometricFlow;

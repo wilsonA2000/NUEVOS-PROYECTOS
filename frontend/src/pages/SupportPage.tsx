@@ -36,44 +36,59 @@ import { useNavigate } from 'react-router-dom';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const CARD_HOVER_SX = {
-  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
+  transition:
+    'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
   '&:hover': {
     transform: 'translateY(-3px)',
     boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
   },
 };
 
-const SupportChannelsSection: React.FC<{ supportChannels: Array<{ icon: React.ReactNode; title: string; description: string; contact: string; available: boolean; premium?: boolean }> }> = ({ supportChannels }) => {
+const SupportChannelsSection: React.FC<{
+  supportChannels: Array<{
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    contact: string;
+    available: boolean;
+    premium?: boolean;
+  }>;
+}> = ({ supportChannels }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Container maxWidth='lg' sx={{ py: 8 }}>
+      <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
         ¿Cómo Podemos Ayudarte?
       </Typography>
       <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
         {supportChannels.map((channel, index) => (
           <Grid item xs={12} md={4} key={index}>
             <Grow in={isVisible} timeout={400 + index * 150}>
-              <Card sx={{ height: '100%', textAlign: 'center', ...CARD_HOVER_SX }}>
+              <Card
+                sx={{ height: '100%', textAlign: 'center', ...CARD_HOVER_SX }}
+              >
                 <CardContent>
                   <Box sx={{ color: 'primary.main', mb: 2 }}>
                     {channel.icon}
                   </Box>
-                  <Typography variant="h6" component="h3" gutterBottom>
+                  <Typography variant='h6' component='h3' gutterBottom>
                     {channel.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
+                  <Typography variant='body2' color='text.secondary' paragraph>
                     {channel.description}
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontWeight: 'bold', mb: 2 }}
+                  >
                     {channel.contact}
                   </Typography>
                   {channel.premium && (
                     <Chip
                       icon={<LockIcon />}
-                      label="Solo usuarios registrados"
-                      color="primary"
-                      size="small"
+                      label='Solo usuarios registrados'
+                      color='primary'
+                      size='small'
                     />
                   )}
                 </CardContent>
@@ -86,12 +101,20 @@ const SupportChannelsSection: React.FC<{ supportChannels: Array<{ icon: React.Re
   );
 };
 
-const ResourcesSection: React.FC<{ resources: Array<{ icon: React.ReactNode; title: string; description: string; features: string[]; premium: boolean }> }> = ({ resources }) => {
+const ResourcesSection: React.FC<{
+  resources: Array<{
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    features: string[];
+    premium: boolean;
+  }>;
+}> = ({ resources }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
   return (
     <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+      <Container maxWidth='lg'>
+        <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
           Recursos de Ayuda
         </Typography>
         <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
@@ -105,27 +128,31 @@ const ResourcesSection: React.FC<{ resources: Array<{ icon: React.ReactNode; tit
                         {resource.icon}
                       </Box>
                       <Box>
-                        <Typography variant="h6" component="h3" gutterBottom>
+                        <Typography variant='h6' component='h3' gutterBottom>
                           {resource.title}
                         </Typography>
                         {resource.premium && (
                           <Chip
                             icon={<LockIcon />}
-                            label="Premium"
-                            color="primary"
-                            size="small"
+                            label='Premium'
+                            color='primary'
+                            size='small'
                           />
                         )}
                       </Box>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                    >
                       {resource.description}
                     </Typography>
                     <List dense>
                       {resource.features.map((feature, idx) => (
                         <ListItem key={idx} sx={{ py: 0 }}>
                           <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CheckCircleIcon color="primary" fontSize="small" />
+                            <CheckCircleIcon color='primary' fontSize='small' />
                           </ListItemIcon>
                           <ListItemText primary={feature} />
                         </ListItem>
@@ -142,14 +169,20 @@ const ResourcesSection: React.FC<{ resources: Array<{ icon: React.ReactNode; tit
   );
 };
 
-const FaqSection: React.FC<{ faqs: Array<{ question: string; answer: string }> }> = ({ faqs }) => {
+const FaqSection: React.FC<{
+  faqs: Array<{ question: string; answer: string }>;
+}> = ({ faqs }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.05 });
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Container maxWidth='lg' sx={{ py: 8 }}>
+      <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
         Preguntas Frecuentes
       </Typography>
-      <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
+      <Typography
+        variant='body1'
+        textAlign='center'
+        sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}
+      >
         Encuentra respuestas a las preguntas más comunes sobre VeriHome.
       </Typography>
       <Fade in={isVisible} timeout={700}>
@@ -157,14 +190,12 @@ const FaqSection: React.FC<{ faqs: Array<{ question: string; answer: string }> }
           {faqs.map((faq, index) => (
             <Accordion key={index} sx={{ mb: 2 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" component="h3">
+                <Typography variant='h6' component='h3'>
                   {faq.question}
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography variant="body1">
-                  {faq.answer}
-                </Typography>
+                <Typography variant='body1'>{faq.answer}</Typography>
               </AccordionDetails>
             </Accordion>
           ))}
@@ -174,24 +205,38 @@ const FaqSection: React.FC<{ faqs: Array<{ question: string; answer: string }> }
   );
 };
 
-const CtaSection: React.FC<{ onRegister: () => void; onContact: () => void }> = ({ onRegister, onContact }) => {
+const CtaSection: React.FC<{
+  onRegister: () => void;
+  onContact: () => void;
+}> = ({ onRegister, onContact }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.1 });
   return (
     <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
-      <Container maxWidth="lg">
+      <Container maxWidth='lg'>
         <Fade in={isVisible} timeout={700}>
-          <Box ref={ref} textAlign="center">
-            <Typography variant="h4" component="h2" gutterBottom>
+          <Box ref={ref} textAlign='center'>
+            <Typography variant='h4' component='h2' gutterBottom>
               ¿Necesitas Ayuda Personalizada?
             </Typography>
-            <Typography variant="body1" paragraph sx={{ maxWidth: 600, mx: 'auto' }}>
-              Únete a VeriHome y obtén acceso a soporte prioritario, chat en vivo
-              y recursos exclusivos para maximizar tu experiencia.
+            <Typography
+              variant='body1'
+              paragraph
+              sx={{ maxWidth: 600, mx: 'auto' }}
+            >
+              Únete a VeriHome y obtén acceso a soporte prioritario, chat en
+              vivo y recursos exclusivos para maximizar tu experiencia.
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={onRegister}
                 sx={{
                   bgcolor: 'white',
@@ -202,13 +247,16 @@ const CtaSection: React.FC<{ onRegister: () => void; onContact: () => void }> = 
                 Registrarse Ahora
               </Button>
               <Button
-                variant="outlined"
-                size="large"
+                variant='outlined'
+                size='large'
                 onClick={onContact}
                 sx={{
                   borderColor: 'white',
                   color: 'white',
-                  '&:hover': { borderColor: 'grey.100', bgcolor: 'rgba(255,255,255,0.1)' },
+                  '&:hover': {
+                    borderColor: 'grey.100',
+                    bgcolor: 'rgba(255,255,255,0.1)',
+                  },
                 }}
               >
                 Contactar Soporte
@@ -222,11 +270,31 @@ const CtaSection: React.FC<{ onRegister: () => void; onContact: () => void }> = 
 };
 
 const DEFAULT_FAQS = [
-  { question: '¿Qué es VeriHome?', answer: 'VeriHome es una plataforma integral de gestión inmobiliaria que conecta propietarios, inquilinos y prestadores de servicios en Colombia, ofreciendo herramientas digitales para simplificar todos los aspectos del sector inmobiliario.' },
-  { question: '¿Es seguro usar VeriHome?', answer: 'Absolutamente. Utilizamos tecnología de encriptación avanzada y verificamos a todos nuestros usuarios. Además, cumplimos con todas las regulaciones de protección de datos en Colombia.' },
-  { question: '¿Qué servicios incluye la plataforma?', answer: 'VeriHome incluye gestión de propiedades, arrendamiento inteligente, servicios de mantenimiento, sistema de pagos, verificación de usuarios y reportes detallados.' },
-  { question: '¿Cómo funciona la verificación de usuarios?', answer: 'Nuestro sistema verifica la identidad mediante visita presencial de un agente de campo, verificación de documento colombiano, referencias personales y laborales. Cada usuario recibe una calificación inicial.' },
-  { question: '¿Puedo cancelar mi suscripción en cualquier momento?', answer: 'Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.' },
+  {
+    question: '¿Qué es VeriHome?',
+    answer:
+      'VeriHome es una plataforma integral de gestión inmobiliaria que conecta propietarios, inquilinos y prestadores de servicios en Colombia, ofreciendo herramientas digitales para simplificar todos los aspectos del sector inmobiliario.',
+  },
+  {
+    question: '¿Es seguro usar VeriHome?',
+    answer:
+      'Absolutamente. Utilizamos tecnología de encriptación avanzada y verificamos a todos nuestros usuarios. Además, cumplimos con todas las regulaciones de protección de datos en Colombia.',
+  },
+  {
+    question: '¿Qué servicios incluye la plataforma?',
+    answer:
+      'VeriHome incluye gestión de propiedades, arrendamiento inteligente, servicios de mantenimiento, sistema de pagos, verificación de usuarios y reportes detallados.',
+  },
+  {
+    question: '¿Cómo funciona la verificación de usuarios?',
+    answer:
+      'Nuestro sistema verifica la identidad mediante visita presencial de un agente de campo, verificación de documento colombiano, referencias personales y laborales. Cada usuario recibe una calificación inicial.',
+  },
+  {
+    question: '¿Puedo cancelar mi suscripción en cualquier momento?',
+    answer:
+      'Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.',
+  },
 ];
 
 const SupportPage: React.FC = () => {
@@ -236,7 +304,8 @@ const SupportPage: React.FC = () => {
   React.useEffect(() => {
     const loadFaqs = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const apiUrl =
+          import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
         const response = await fetch(`${apiUrl}/core/faqs/`);
         if (response.ok) {
           const data = await response.json();
@@ -281,21 +350,33 @@ const SupportPage: React.FC = () => {
       icon: <BookIcon sx={{ fontSize: 40 }} />,
       title: 'Centro de Ayuda',
       description: 'Artículos y guías detalladas',
-      features: ['Tutoriales paso a paso', 'Guías de mejores prácticas', 'Soluciones comunes'],
+      features: [
+        'Tutoriales paso a paso',
+        'Guías de mejores prácticas',
+        'Soluciones comunes',
+      ],
       premium: false,
     },
     {
       icon: <VideoIcon sx={{ fontSize: 40 }} />,
       title: 'Videos Tutoriales',
       description: 'Aprende con contenido visual',
-      features: ['Tutoriales en video', 'Webinars mensuales', 'Casos de estudio'],
+      features: [
+        'Tutoriales en video',
+        'Webinars mensuales',
+        'Casos de estudio',
+      ],
       premium: true,
     },
     {
       icon: <SecurityIcon sx={{ fontSize: 40 }} />,
       title: 'Seguridad y Privacidad',
       description: 'Información sobre protección de datos',
-      features: ['Políticas de seguridad', 'Certificaciones', 'Mejores prácticas'],
+      features: [
+        'Políticas de seguridad',
+        'Certificaciones',
+        'Mejores prácticas',
+      ],
       premium: false,
     },
   ];
@@ -314,13 +395,23 @@ const SupportPage: React.FC = () => {
             pb: 8,
           }}
         >
-          <Container maxWidth="lg">
-            <Typography variant="h2" component="h1" textAlign="center" gutterBottom>
+          <Container maxWidth='lg'>
+            <Typography
+              variant='h2'
+              component='h1'
+              textAlign='center'
+              gutterBottom
+            >
               Centro de Soporte
             </Typography>
-            <Typography variant="h5" component="h2" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
-              Encuentra respuestas rápidas, recursos útiles y soporte experto para maximizar
-              tu experiencia con VeriHome.
+            <Typography
+              variant='h5'
+              component='h2'
+              textAlign='center'
+              sx={{ maxWidth: 800, mx: 'auto' }}
+            >
+              Encuentra respuestas rápidas, recursos útiles y soporte experto
+              para maximizar tu experiencia con VeriHome.
             </Typography>
           </Container>
         </Box>

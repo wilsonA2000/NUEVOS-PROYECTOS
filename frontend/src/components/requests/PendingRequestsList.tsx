@@ -68,33 +68,46 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
 }) => {
   const getUserTypeIcon = (userType: string) => {
     switch (userType) {
-      case 'tenant': return <PersonIcon fontSize="small" />;
-      case 'service_provider': return <BuildIcon fontSize="small" />;
-      default: return <PersonIcon fontSize="small" />;
+      case 'tenant':
+        return <PersonIcon fontSize='small' />;
+      case 'service_provider':
+        return <BuildIcon fontSize='small' />;
+      default:
+        return <PersonIcon fontSize='small' />;
     }
   };
 
   const getRequestTypeColor = (type: string) => {
     switch (type) {
-      case 'property_interest': return 'primary';
-      case 'service_request': return 'secondary';
-      default: return 'default';
+      case 'property_interest':
+        return 'primary';
+      case 'service_request':
+        return 'secondary';
+      default:
+        return 'default';
     }
   };
 
-  const filteredRequests = requests.filter(request => 
-    request.sender.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (request.property?.title && request.property.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (request.service?.title && request.service.title.toLowerCase().includes(searchTerm.toLowerCase())),
+  const filteredRequests = requests.filter(
+    request =>
+      request.sender.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (request.property?.title &&
+        request.property.title
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
+      (request.service?.title &&
+        request.service.title.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   if (filteredRequests.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <HomeIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-        <Typography variant="body2" color="text.secondary">
-          {searchTerm ? 'No se encontraron solicitudes' : 'No hay solicitudes pendientes'}
+        <Typography variant='body2' color='text.secondary'>
+          {searchTerm
+            ? 'No se encontraron solicitudes'
+            : 'No hay solicitudes pendientes'}
         </Typography>
       </Box>
     );
@@ -102,35 +115,64 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
 
   return (
     <List sx={{ p: 0 }}>
-      {filteredRequests.map((request) => {
+      {filteredRequests.map(request => {
         const isOnline = onlineUsers.get(request.sender.id)?.isOnline;
-        
+
         return (
           <React.Fragment key={request.id}>
-            <ListItem sx={{ px: 2, py: 1.5, flexDirection: 'column', alignItems: 'stretch' }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%', mb: 1 }}>
+            <ListItem
+              sx={{
+                px: 2,
+                py: 1.5,
+                flexDirection: 'column',
+                alignItems: 'stretch',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  width: '100%',
+                  mb: 1,
+                }}
+              >
                 <Badge
-                  overlap="circular"
+                  overlap='circular'
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   badgeContent={
                     isOnline ? (
-                      <CircleIcon sx={{ color: 'success.main', fontSize: 12 }} />
+                      <CircleIcon
+                        sx={{ color: 'success.main', fontSize: 12 }}
+                      />
                     ) : null
                   }
                 >
-                  <Avatar sx={{ mr: 2, cursor: 'pointer' }} onClick={() => onRequestView(request)}>
+                  <Avatar
+                    sx={{ mr: 2, cursor: 'pointer' }}
+                    onClick={() => onRequestView(request)}
+                  >
                     {request.sender.avatar ? (
-                      <img src={request.sender.avatar} alt={request.sender.name} />
+                      <img
+                        src={request.sender.avatar}
+                        alt={request.sender.name}
+                      />
                     ) : (
                       request.sender.name[0]
                     )}
                   </Avatar>
                 </Badge>
-                
+
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Typography 
-                      variant="subtitle2" 
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography
+                      variant='subtitle2'
                       sx={{ fontWeight: 600, cursor: 'pointer' }}
                       onClick={() => onRequestView(request)}
                     >
@@ -138,29 +180,35 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
                     </Typography>
                     <Chip
                       icon={getUserTypeIcon(request.sender.user_type)}
-                      label={request.sender.user_type === 'tenant' ? 'Inquilino' : 'Proveedor'}
-                      size="small"
+                      label={
+                        request.sender.user_type === 'tenant'
+                          ? 'Inquilino'
+                          : 'Proveedor'
+                      }
+                      size='small'
                       color={getRequestTypeColor(request.type)}
-                      variant="outlined"
+                      variant='outlined'
                       sx={{ height: 20, fontSize: '0.7rem' }}
                     />
-                    {!request.is_read && (
-                      <Badge color="error" variant="dot" />
-                    )}
+                    {!request.is_read && <Badge color='error' variant='dot' />}
                   </Box>
-                  
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ display: 'block', mb: 0.5 }}
+                  >
                     {request.type === 'property_interest' ? (
                       <>📍 {request.property?.title}</>
                     ) : (
                       <>🔧 {request.service?.title}</>
                     )}
                   </Typography>
-                  
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
+
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       display: '-webkit-box',
@@ -172,9 +220,15 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
                   >
                     {request.message}
                   </Typography>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant='caption' color='text.secondary'>
                       {new Date(request.sent_at).toLocaleDateString('es-ES', {
                         day: 'numeric',
                         month: 'short',
@@ -182,44 +236,53 @@ export const PendingRequestsList: React.FC<PendingRequestsListProps> = ({
                         minute: '2-digit',
                       })}
                     </Typography>
-                    
-                    {request.type === 'property_interest' && request.property && (
-                      <Typography variant="caption" color="primary" sx={{ fontWeight: 500 }}>
-                        ${request.property.rent.toLocaleString()}/mes
-                      </Typography>
-                    )}
-                    
+
+                    {request.type === 'property_interest' &&
+                      request.property && (
+                        <Typography
+                          variant='caption'
+                          color='primary'
+                          sx={{ fontWeight: 500 }}
+                        >
+                          ${request.property.rent.toLocaleString()}/mes
+                        </Typography>
+                      )}
+
                     {request.type === 'service_request' && request.service && (
-                      <Typography variant="caption" color="secondary" sx={{ fontWeight: 500 }}>
+                      <Typography
+                        variant='caption'
+                        color='secondary'
+                        sx={{ fontWeight: 500 }}
+                      >
                         ${request.service.budget.toLocaleString()}
                       </Typography>
                     )}
                   </Box>
                 </Box>
               </Box>
-              
+
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <Button
-                  size="small"
-                  variant="contained"
-                  color="success"
+                  size='small'
+                  variant='contained'
+                  color='success'
                   onClick={() => onRequestAction(request.id, 'accept')}
                   sx={{ flex: 1 }}
                 >
                   Aceptar
                 </Button>
                 <Button
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                   onClick={() => onRequestView(request)}
                   sx={{ flex: 1 }}
                 >
                   Ver Perfil
                 </Button>
                 <Button
-                  size="small"
-                  variant="outlined"
-                  color="error"
+                  size='small'
+                  variant='outlined'
+                  color='error'
                   onClick={() => onRequestAction(request.id, 'reject')}
                 >
                   ❌

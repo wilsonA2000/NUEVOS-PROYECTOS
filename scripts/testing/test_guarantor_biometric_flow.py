@@ -3,11 +3,12 @@
 Script para probar el flujo biométrico completo con garante.
 Flujo: Tenant → Guarantor → Landlord
 """
+
 import os
 import django
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from contracts.models import Contract
@@ -15,6 +16,7 @@ from django.contrib.auth import get_user_model
 from matching.models import MatchRequest
 
 User = get_user_model()
+
 
 def setup_guarantor_test():
     """Configura un contrato con garante para probar el flujo biométrico."""
@@ -34,16 +36,16 @@ def setup_guarantor_test():
         guarantor, created = User.objects.get_or_create(
             email=guarantor_email,
             defaults={
-                'first_name': 'Carlos',
-                'last_name': 'Garante',
-                'user_type': 'tenant',  # Usar 'tenant' ya que 'guarantor' no está en las opciones
-                'phone_number': '+57300123456',
-                'is_verified': True
-            }
+                "first_name": "Carlos",
+                "last_name": "Garante",
+                "user_type": "tenant",  # Usar 'tenant' ya que 'guarantor' no está en las opciones
+                "phone_number": "+57300123456",
+                "is_verified": True,
+            },
         )
 
         if created:
-            guarantor.set_password('password123')
+            guarantor.set_password("password123")
             guarantor.save()
             print(f"✅ Creado usuario garante: {guarantor_email}")
         else:
@@ -51,7 +53,7 @@ def setup_guarantor_test():
 
         # Asignar garante al contrato
         contract.guarantor = guarantor
-        contract.save(update_fields=['guarantor'])
+        contract.save(update_fields=["guarantor"])
 
         print(f"✅ Garante asignado al contrato: {contract.guarantor.email}")
 
@@ -62,7 +64,9 @@ def setup_guarantor_test():
         print(f"Contrato ID: {contract.id}")
         print(f"Arrendador: {contract.primary_party.email}")
         print(f"Arrendatario: {contract.secondary_party.email}")
-        print(f"Garante: {contract.guarantor.email if contract.guarantor else 'No asignado'}")
+        print(
+            f"Garante: {contract.guarantor.email if contract.guarantor else 'No asignado'}"
+        )
         print(f"Estado del contrato: {contract.status}")
 
         # Verificar MatchRequest
@@ -92,6 +96,7 @@ def setup_guarantor_test():
         print(f"❌ ERROR: {str(e)}")
         return None
 
+
 def check_biometric_states():
     """Verifica los estados actuales del flujo biométrico."""
 
@@ -111,7 +116,9 @@ def check_biometric_states():
             print(f"Estado del workflow: {match_request.workflow_status}")
 
             # Mostrar progreso biométrico si existe
-            biometric_progress = match_request.workflow_data.get('biometric_progress', {})
+            biometric_progress = match_request.workflow_data.get(
+                "biometric_progress", {}
+            )
             if biometric_progress:
                 print("\n📊 Progreso biométrico:")
                 for key, value in biometric_progress.items():
@@ -131,6 +138,7 @@ def check_biometric_states():
     except Exception as e:
         print(f"❌ ERROR: {str(e)}")
         return None
+
 
 if __name__ == "__main__":
     print("🚀 CONFIGURADOR DE FLUJO BIOMÉTRICO CON GARANTE")

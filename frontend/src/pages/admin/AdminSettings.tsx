@@ -12,18 +12,15 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Grid,
   TextField,
   Button,
   Switch,
   FormControlLabel,
-  Divider,
   Alert,
   Card,
   CardContent,
-  CardActions,
   Slider,
   Stack,
 } from '@mui/material';
@@ -44,7 +41,7 @@ import { useAdminAuth } from '../../hooks/useAdminAuth';
  * Página de configuración
  */
 const AdminSettings: React.FC = () => {
-  const { isSuperuser, adminPermissions } = useAdminAuth();
+  const { isSuperuser } = useAdminAuth();
 
   // Estado de configuración
   const [settings, setSettings] = useState({
@@ -76,7 +73,7 @@ const AdminSettings: React.FC = () => {
   if (!isSuperuser) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           Solo los superusuarios pueden acceder a la configuración del sistema.
         </Alert>
       </Box>
@@ -87,17 +84,17 @@ const AdminSettings: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+        <Typography variant='h4' fontWeight='bold' gutterBottom>
           Configuración del Sistema
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant='body1' color='text.secondary'>
           Configura los parámetros del sistema de administración.
         </Typography>
       </Box>
 
       {/* Success alert */}
       {saved && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert severity='success' sx={{ mb: 3 }}>
           Configuración guardada exitosamente.
         </Alert>
       )}
@@ -107,27 +104,29 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <StorageIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <StorageIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Retención de Datos
                 </Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Días de retención de logs del sistema
               </Typography>
               <TextField
-                type="number"
+                type='number'
                 value={settings.logRetentionDays}
-                onChange={(e) =>
-                  setSettings((prev) => ({
+                onChange={e =>
+                  setSettings(prev => ({
                     ...prev,
                     logRetentionDays: parseInt(e.target.value) || 30,
                   }))
                 }
                 fullWidth
-                size="small"
+                size='small'
                 InputProps={{ inputProps: { min: 30, max: 365 } }}
                 sx={{ mb: 2 }}
               />
@@ -136,15 +135,15 @@ const AdminSettings: React.FC = () => {
                 control={
                   <Switch
                     checked={settings.autoCleanupEnabled}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
+                    onChange={e =>
+                      setSettings(prev => ({
                         ...prev,
                         autoCleanupEnabled: e.target.checked,
                       }))
                     }
                   />
                 }
-                label="Limpieza automática de logs antiguos"
+                label='Limpieza automática de logs antiguos'
               />
             </CardContent>
           </Card>
@@ -154,25 +153,27 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <SecurityIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <SecurityIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Alertas de Seguridad
                 </Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Umbral de puntuación de riesgo para alertas (0-100)
               </Typography>
               <Slider
                 value={settings.securityAlertThreshold}
                 onChange={(_, value) =>
-                  setSettings((prev) => ({
+                  setSettings(prev => ({
                     ...prev,
                     securityAlertThreshold: value as number,
                   }))
                 }
-                valueLabelDisplay="auto"
+                valueLabelDisplay='auto'
                 min={0}
                 max={100}
                 marks={[
@@ -183,20 +184,20 @@ const AdminSettings: React.FC = () => {
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Días para marcar contrato como urgente
               </Typography>
               <TextField
-                type="number"
+                type='number'
                 value={settings.urgentContractDays}
-                onChange={(e) =>
-                  setSettings((prev) => ({
+                onChange={e =>
+                  setSettings(prev => ({
                     ...prev,
                     urgentContractDays: parseInt(e.target.value) || 7,
                   }))
                 }
                 fullWidth
-                size="small"
+                size='small'
                 InputProps={{ inputProps: { min: 1, max: 30 } }}
               />
             </CardContent>
@@ -207,9 +208,11 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <NotificationIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <NotificationIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Notificaciones
                 </Typography>
               </Box>
@@ -219,29 +222,29 @@ const AdminSettings: React.FC = () => {
                   control={
                     <Switch
                       checked={settings.emailNotifications}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
+                      onChange={e =>
+                        setSettings(prev => ({
                           ...prev,
                           emailNotifications: e.target.checked,
                         }))
                       }
                     />
                   }
-                  label="Notificaciones por email"
+                  label='Notificaciones por email'
                 />
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.pushNotifications}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
+                      onChange={e =>
+                        setSettings(prev => ({
                           ...prev,
                           pushNotifications: e.target.checked,
                         }))
                       }
                     />
                   }
-                  label="Notificaciones push en navegador"
+                  label='Notificaciones push en navegador'
                 />
               </Stack>
             </CardContent>
@@ -252,20 +255,22 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <CleanupIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <CleanupIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Mantenimiento
                 </Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant='body2' color='text.secondary' paragraph>
                 Ejecuta tareas de mantenimiento del sistema.
               </Typography>
 
               <Button
-                variant="outlined"
-                color="warning"
+                variant='outlined'
+                color='warning'
                 fullWidth
                 startIcon={<CleanupIcon />}
               >
@@ -278,64 +283,78 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <BiometricIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <BiometricIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Umbrales Biometricos
                 </Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Confianza minima para captura facial (%)
               </Typography>
               <Slider
                 value={settings.biometricFaceThreshold}
                 onChange={(_, value) =>
-                  setSettings((prev) => ({ ...prev, biometricFaceThreshold: value as number }))
+                  setSettings(prev => ({
+                    ...prev,
+                    biometricFaceThreshold: value as number,
+                  }))
                 }
-                valueLabelDisplay="auto"
+                valueLabelDisplay='auto'
                 min={50}
                 max={99}
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Confianza minima para documento (%)
               </Typography>
               <Slider
                 value={settings.biometricDocumentThreshold}
                 onChange={(_, value) =>
-                  setSettings((prev) => ({ ...prev, biometricDocumentThreshold: value as number }))
+                  setSettings(prev => ({
+                    ...prev,
+                    biometricDocumentThreshold: value as number,
+                  }))
                 }
-                valueLabelDisplay="auto"
+                valueLabelDisplay='auto'
                 min={50}
                 max={99}
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Confianza minima para voz (%)
               </Typography>
               <Slider
                 value={settings.biometricVoiceThreshold}
                 onChange={(_, value) =>
-                  setSettings((prev) => ({ ...prev, biometricVoiceThreshold: value as number }))
+                  setSettings(prev => ({
+                    ...prev,
+                    biometricVoiceThreshold: value as number,
+                  }))
                 }
-                valueLabelDisplay="auto"
+                valueLabelDisplay='auto'
                 min={50}
                 max={99}
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Confianza global minima (%)
               </Typography>
               <Slider
                 value={settings.biometricOverallThreshold}
                 onChange={(_, value) =>
-                  setSettings((prev) => ({ ...prev, biometricOverallThreshold: value as number }))
+                  setSettings(prev => ({
+                    ...prev,
+                    biometricOverallThreshold: value as number,
+                  }))
                 }
-                valueLabelDisplay="auto"
+                valueLabelDisplay='auto'
                 min={50}
                 max={99}
               />
@@ -347,27 +366,30 @@ const AdminSettings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <LegalIcon color="primary" />
-                <Typography variant="h6" fontWeight="medium">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                <LegalIcon color='primary' />
+                <Typography variant='h6' fontWeight='medium'>
                   Clausulas por Defecto
                 </Typography>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Duracion por defecto del contrato (meses)
               </Typography>
               <TextField
-                type="number"
+                type='number'
                 value={settings.defaultContractDurationMonths}
-                onChange={(e) =>
-                  setSettings((prev) => ({
+                onChange={e =>
+                  setSettings(prev => ({
                     ...prev,
-                    defaultContractDurationMonths: parseInt(e.target.value) || 12,
+                    defaultContractDurationMonths:
+                      parseInt(e.target.value) || 12,
                   }))
                 }
                 fullWidth
-                size="small"
+                size='small'
                 InputProps={{ inputProps: { min: 1, max: 60 } }}
                 sx={{ mb: 2 }}
               />
@@ -377,23 +399,29 @@ const AdminSettings: React.FC = () => {
                   control={
                     <Switch
                       checked={settings.requireGuarantor}
-                      onChange={(e) =>
-                        setSettings((prev) => ({ ...prev, requireGuarantor: e.target.checked }))
+                      onChange={e =>
+                        setSettings(prev => ({
+                          ...prev,
+                          requireGuarantor: e.target.checked,
+                        }))
                       }
                     />
                   }
-                  label="Requerir codeudor por defecto"
+                  label='Requerir codeudor por defecto'
                 />
                 <FormControlLabel
                   control={
                     <Switch
                       checked={settings.autoGenerateClauses}
-                      onChange={(e) =>
-                        setSettings((prev) => ({ ...prev, autoGenerateClauses: e.target.checked }))
+                      onChange={e =>
+                        setSettings(prev => ({
+                          ...prev,
+                          autoGenerateClauses: e.target.checked,
+                        }))
                       }
                     />
                   }
-                  label="Generar clausulas automaticamente (Ley 820)"
+                  label='Generar clausulas automaticamente (Ley 820)'
                 />
               </Stack>
             </CardContent>
@@ -404,8 +432,8 @@ const AdminSettings: React.FC = () => {
       {/* Botón guardar */}
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
-          variant="contained"
-          size="large"
+          variant='contained'
+          size='large'
           startIcon={<SaveIcon />}
           onClick={handleSave}
         >

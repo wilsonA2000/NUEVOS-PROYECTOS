@@ -3,9 +3,18 @@
  * Provides controlled WebSocket connections with user-managed activation
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { optimizedWebSocketService, WebSocketMessage } from '../services/optimizedWebSocketService';
+import {
+  optimizedWebSocketService,
+  WebSocketMessage,
+} from '../services/optimizedWebSocketService';
 import { useNotification } from '../hooks/useNotification';
 
 export interface OptimizedWebSocketContextType {
@@ -13,29 +22,35 @@ export interface OptimizedWebSocketContextType {
   isConnected: boolean;
   connectionStatus: string;
   connectedEndpoints: string[];
-  
+
   // Control functions
   enableRealTime: () => Promise<void>;
   disableRealTime: () => void;
   send: (endpoint: string, message: WebSocketMessage) => boolean;
-  
+
   // Event subscriptions
-  subscribe: (eventType: string, callback: (message: WebSocketMessage) => void) => () => void;
-  
+  subscribe: (
+    eventType: string,
+    callback: (message: WebSocketMessage) => void
+  ) => () => void;
+
   // Status states
   unreadMessagesCount: number;
   onlineUsers: Map<string, any>;
-  
+
   // Health monitoring
   connectionHealth: any;
 }
 
-const OptimizedWebSocketContext = createContext<OptimizedWebSocketContextType | null>(null);
+const OptimizedWebSocketContext =
+  createContext<OptimizedWebSocketContextType | null>(null);
 
 export const useOptimizedWebSocketContext = () => {
   const context = useContext(OptimizedWebSocketContext);
   if (!context) {
-    throw new Error('useOptimizedWebSocketContext must be used within an OptimizedWebSocketProvider');
+    throw new Error(
+      'useOptimizedWebSocketContext must be used within an OptimizedWebSocketProvider',
+    );
   }
   return context;
 };
@@ -44,11 +59,13 @@ interface OptimizedWebSocketProviderProps {
   children: React.ReactNode;
 }
 
-export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProps> = ({ children }) => {
+export const OptimizedWebSocketProvider: React.FC<
+  OptimizedWebSocketProviderProps
+> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
   const notification = useNotification();
   const showNotification = notification?.success || (() => {});
-  
+
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Desconectado');
   const [connectedEndpoints, setConnectedEndpoints] = useState<string[]>([]);
@@ -58,21 +75,21 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
 
   // Essential endpoints for VeriHome functionality
   const coreEndpoints = [
-    'messaging',        // Real-time chat
-    'notifications',    // Push notifications
-    'user-status',       // User presence
+    'messaging', // Real-time chat
+    'notifications', // Push notifications
+    'user-status', // User presence
   ];
 
   // Enable real-time features
   const enableRealTime = useCallback(async () => {
     if (!isAuthenticated || !user || realTimeEnabled) return;
-    
+
     setConnectionStatus('Conectando...');
-    
+
     try {
       // Connect to core endpoints with optimized service
       await optimizedWebSocketService.connectToEndpoints(coreEndpoints);
-      
+
       setRealTimeEnabled(true);
       setIsConnected(true);
       setConnectionStatus('Conectado - Tiempo real activo');
@@ -81,7 +98,6 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
       if (typeof showNotification === 'function') {
         showNotification('Tiempo real activado');
       }
-      
     } catch (error) {
       // Real-time features connection error
       setIsConnected(false);
@@ -96,9 +112,9 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   // Disable real-time features
   const disableRealTime = useCallback(() => {
     if (!realTimeEnabled) return;
-    
+
     optimizedWebSocketService.disconnectAll();
-    
+
     setRealTimeEnabled(false);
     setIsConnected(false);
     setConnectionStatus('Desconectado');
@@ -127,7 +143,9 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
             ? `Conectado (${activeConnections}/${coreEndpoints.length})`
             : 'Desconectado',
         );
-        setConnectedEndpoints(optimizedWebSocketService.getConnectedEndpoints());
+        setConnectedEndpoints(
+          optimizedWebSocketService.getConnectedEndpoints(),
+        );
       }
     }, 5000); // Check every 5 seconds
 
@@ -140,19 +158,21 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
 
     const unsubscribers = [
       // New messages
-      optimizedWebSocketService.subscribe('new_message', (message) => {
+      optimizedWebSocketService.subscribe('new_message', message => {
         if (message.data?.sender_id !== user?.id) {
           setUnreadMessagesCount(prev => prev + 1);
           if (typeof showNotification === 'function') {
-            showNotification(`Nuevo mensaje de ${message.data?.sender_name || 'Usuario'}`);
+            showNotification(
+              `Nuevo mensaje de ${message.data?.sender_name || 'Usuario'}`,
+            );
           }
         }
       }),
 
       // User status updates
-      optimizedWebSocketService.subscribe('user_status_update', (message) => {
+      optimizedWebSocketService.subscribe('user_status_update', message => {
         const { user_id, user_name, is_online, last_seen } = message.data;
-        
+
         setOnlineUsers(prev => {
           const newMap = new Map(prev);
           newMap.set(user_id, {
@@ -166,14 +186,14 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
       }),
 
       // System notifications
-      optimizedWebSocketService.subscribe('system_notification', (message) => {
+      optimizedWebSocketService.subscribe('system_notification', message => {
         if (typeof showNotification === 'function') {
           showNotification(message.data?.message || 'Notificación del sistema');
         }
       }),
 
       // Connection errors
-      optimizedWebSocketService.subscribe('error', (message) => {
+      optimizedWebSocketService.subscribe('error', message => {
         // WebSocket error handled silently
         // Don't spam user with error notifications
       }),
@@ -192,20 +212,26 @@ export const OptimizedWebSocketProvider: React.FC<OptimizedWebSocketProviderProp
   }, [isAuthenticated, realTimeEnabled, disableRealTime]);
 
   // Send function wrapper
-  const send = useCallback((endpoint: string, message: WebSocketMessage) => {
-    if (!realTimeEnabled) {
-      return false;
-    }
-    return optimizedWebSocketService.send(endpoint, message);
-  }, [realTimeEnabled]);
+  const send = useCallback(
+    (endpoint: string, message: WebSocketMessage) => {
+      if (!realTimeEnabled) {
+        return false;
+      }
+      return optimizedWebSocketService.send(endpoint, message);
+    },
+    [realTimeEnabled],
+  );
 
   // Subscribe function wrapper
-  const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    if (!realTimeEnabled) {
-      return () => {};
-    }
-    return optimizedWebSocketService.subscribe(eventType, callback);
-  }, [realTimeEnabled]);
+  const subscribe = useCallback(
+    (eventType: string, callback: (message: WebSocketMessage) => void) => {
+      if (!realTimeEnabled) {
+        return () => {};
+      }
+      return optimizedWebSocketService.subscribe(eventType, callback);
+    },
+    [realTimeEnabled],
+  );
 
   const contextValue: OptimizedWebSocketContextType = {
     isConnected,

@@ -19,21 +19,23 @@ export interface UserStatus {
 export interface UseOptimizedUserStatusReturn {
   // Current user status
   myStatus: UserStatus | null;
-  setMyStatus: (status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => void;
-  
+  setMyStatus: (
+    status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>
+  ) => void;
+
   // Other users status
   userStatuses: Map<string, UserStatus>;
   getUserStatus: (userId: string) => UserStatus | null;
   getOnlineUsers: () => UserStatus[];
-  
+
   // Status counts
   onlineCount: number;
   totalUsersCount: number;
-  
+
   // Connection state
   isConnected: boolean;
   connectionHealth: any;
-  
+
   // Control methods
   enableRealTime: () => Promise<void>;
   disableRealTime: () => void;
@@ -41,19 +43,21 @@ export interface UseOptimizedUserStatusReturn {
 
 export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
   const { user } = useAuth();
-  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(new Map());
+  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(
+    new Map(),
+  );
   const [myStatus, setMyStatusState] = useState<UserStatus | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [realTimeEnabled, setRealTimeEnabled] = useState(false);
-  
+
   // Use refs to prevent stale closures
   const userRef = useRef(user);
   const statusRef = useRef(myStatus);
-  
+
   useEffect(() => {
     userRef.current = user;
   }, [user]);
-  
+
   useEffect(() => {
     statusRef.current = myStatus;
   }, [myStatus]);
@@ -61,8 +65,10 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
   // Initialize user status from localStorage and user data
   useEffect(() => {
     if (user && !myStatus) {
-      const savedStatus = localStorage.getItem('userStatus') as UserStatus['status'] || 'online';
-      
+      const savedStatus =
+        (localStorage.getItem('userStatus') as UserStatus['status']) ||
+        'online';
+
       const initialStatus: UserStatus = {
         userId: user.id,
         userName: `${user.first_name} ${user.last_name}`.trim() || user.email,
@@ -70,7 +76,7 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
         lastSeen: new Date().toISOString(),
         status: savedStatus,
       };
-      
+
       setMyStatusState(initialStatus);
     }
   }, [user, myStatus]);
@@ -78,11 +84,11 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
   // Enable real-time WebSocket connection
   const enableRealTime = useCallback(async () => {
     if (!user || realTimeEnabled) return;
-    
+
     try {
       await optimizedWebSocketService.connectAuthenticated('user-status');
       setRealTimeEnabled(true);
-      
+
       // Send initial presence
       if (statusRef.current) {
         optimizedWebSocketService.send('user-status', {
@@ -94,7 +100,6 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
           },
         });
       }
-      
     } catch (error) {
       throw error;
     }
@@ -111,11 +116,13 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
 
   // Monitor connection status
   useEffect(() => {
-    const unsubscribe = optimizedWebSocketService.onConnectionStatusChange((status) => {
-      if (status.connected !== isConnected) {
-        setIsConnected(status.connected);
-      }
-    });
+    const unsubscribe = optimizedWebSocketService.onConnectionStatusChange(
+      status => {
+        if (status.connected !== isConnected) {
+          setIsConnected(status.connected);
+        }
+      },
+    );
 
     return unsubscribe;
   }, [isConnected]);
@@ -125,9 +132,10 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
     if (!realTimeEnabled || !isConnected) return undefined;
 
     const unsubscribers = [
-      optimizedWebSocketService.subscribe('user_online', (message) => {
-        const { user_id, user_name, status, timestamp, custom_message } = message.data;
-        
+      optimizedWebSocketService.subscribe('user_online', message => {
+        const { user_id, user_name, status, timestamp, custom_message } =
+          message.data;
+
         const userStatus: UserStatus = {
           userId: user_id,
           userName: user_name,
@@ -140,22 +148,28 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
         setUserStatuses(prev => new Map(prev.set(user_id, userStatus)));
       }),
 
-      optimizedWebSocketService.subscribe('user_offline', (message) => {
-        const { user_id, user_name, timestamp } = message.data;
-        
+      optimizedWebSocketService.subscribe('user_offline', message => {
+        const { user_id, timestamp } = message.data;
+
         setUserStatuses(prev => {
           const existing = prev.get(user_id);
           if (existing) {
-            const updated = { ...existing, isOnline: false, status: 'offline' as const, lastSeen: timestamp };
+            const updated = {
+              ...existing,
+              isOnline: false,
+              status: 'offline' as const,
+              lastSeen: timestamp,
+            };
             return new Map(prev.set(user_id, updated));
           }
           return prev;
         });
       }),
 
-      optimizedWebSocketService.subscribe('user_status_update', (message) => {
-        const { user_id, user_name, status, custom_message, timestamp } = message.data;
-        
+      optimizedWebSocketService.subscribe('user_status_update', message => {
+        const { user_id, user_name, status, custom_message, timestamp } =
+          message.data;
+
         setUserStatuses(prev => {
           const existing = prev.get(user_id);
           const updated: UserStatus = {
@@ -166,12 +180,12 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
             status: status || 'online',
             customMessage: custom_message,
           };
-          
+
           return new Map(prev.set(user_id, updated));
         });
       }),
 
-      optimizedWebSocketService.subscribe('bulk_user_status', (message) => {
+      optimizedWebSocketService.subscribe('bulk_user_status', message => {
         // Handle bulk status updates efficiently
         const { users } = message.data;
         if (Array.isArray(users)) {
@@ -199,43 +213,51 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
   }, [realTimeEnabled, isConnected]);
 
   // Smart status update with local + remote sync
-  const setMyStatus = useCallback((statusUpdate: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => {
-    if (!user) return;
+  const setMyStatus = useCallback(
+    (statusUpdate: Partial<Pick<UserStatus, 'status' | 'customMessage'>>) => {
+      if (!user) return;
 
-    // Always update local state immediately for responsiveness
-    setMyStatusState(prev => {
-      const updated = prev ? {
-        ...prev,
-        ...statusUpdate,
-        lastSeen: new Date().toISOString(),
-        isOnline: statusUpdate.status !== 'offline',
-      } : null;
-      
-      return updated;
-    });
-    
-    // Save to localStorage for persistence
-    if (statusUpdate.status) {
-      localStorage.setItem('userStatus', statusUpdate.status);
-    }
+      // Always update local state immediately for responsiveness
+      setMyStatusState(prev => {
+        const updated = prev
+          ? {
+              ...prev,
+              ...statusUpdate,
+              lastSeen: new Date().toISOString(),
+              isOnline: statusUpdate.status !== 'offline',
+            }
+          : null;
 
-    // Send to WebSocket if connected
-    if (realTimeEnabled && isConnected) {
-      optimizedWebSocketService.send('user-status', {
-        type: 'status_update',
-        data: {
-          user_id: user.id,
-          ...statusUpdate,
-          timestamp: new Date().toISOString(),
-        },
+        return updated;
       });
-    }
-  }, [user, realTimeEnabled, isConnected]);
+
+      // Save to localStorage for persistence
+      if (statusUpdate.status) {
+        localStorage.setItem('userStatus', statusUpdate.status);
+      }
+
+      // Send to WebSocket if connected
+      if (realTimeEnabled && isConnected) {
+        optimizedWebSocketService.send('user-status', {
+          type: 'status_update',
+          data: {
+            user_id: user.id,
+            ...statusUpdate,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+    },
+    [user, realTimeEnabled, isConnected],
+  );
 
   // Utility functions
-  const getUserStatus = useCallback((userId: string): UserStatus | null => {
-    return userStatuses.get(userId) || null;
-  }, [userStatuses]);
+  const getUserStatus = useCallback(
+    (userId: string): UserStatus | null => {
+      return userStatuses.get(userId) || null;
+    },
+    [userStatuses],
+  );
 
   const getOnlineUsers = useCallback((): UserStatus[] => {
     return Array.from(userStatuses.values()).filter(status => status.isOnline);
@@ -274,7 +296,8 @@ export const useOptimizedUserStatus = (): UseOptimizedUserStatusReturn => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [realTimeEnabled, isConnected, setMyStatus]);
 
   const onlineCount = getOnlineUsers().length;

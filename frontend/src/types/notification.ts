@@ -1,4 +1,4 @@
-export type NotificationType = 
+export type NotificationType =
   | 'payment_received'
   | 'payment_due'
   | 'contract_expiring'
@@ -25,4 +25,4 @@ export interface NotificationPreferences {
   types: {
     [key in NotificationType]: boolean;
   };
-} 
+}

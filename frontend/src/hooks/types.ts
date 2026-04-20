@@ -52,4 +52,4 @@ export interface MessageFilters {
   is_read?: boolean;
   sender_id?: number;
   recipient_id?: number;
-} 
+}

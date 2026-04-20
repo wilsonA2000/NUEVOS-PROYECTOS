@@ -23,7 +23,9 @@ import { api } from '../../../services/api';
 // Mock the LandlordContractService
 jest.mock('../../../services/landlordContractService', () => ({
   LandlordContractService: {
-    getContracts: jest.fn().mockResolvedValue({ contracts: [], total_count: 0 }),
+    getContracts: jest
+      .fn()
+      .mockResolvedValue({ contracts: [], total_count: 0 }),
     getStatistics: jest.fn().mockResolvedValue({ total_contracts: 0 }),
   },
 }));
@@ -34,9 +36,7 @@ const theme = createTheme();
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      {children}
-    </ThemeProvider>
+    <ThemeProvider theme={theme}>{children}</ThemeProvider>
   </BrowserRouter>
 );
 
@@ -65,7 +65,9 @@ const mockTenantUser = {
 describe('ContractsDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (api.get as jest.Mock).mockResolvedValue({ data: { contracts: [], total_count: 0 } });
+    (api.get as jest.Mock).mockResolvedValue({
+      data: { contracts: [], total_count: 0 },
+    });
   });
 
   describe('Landlord View', () => {

@@ -19,7 +19,9 @@ class ModificationNotificationService:
     """Servicio para enviar notificaciones por email sobre modificaciones de contratos."""
 
     @staticmethod
-    def send_modification_request_notification(modification_request, contract, landlord_email: str) -> bool:
+    def send_modification_request_notification(
+        modification_request, contract, landlord_email: str
+    ) -> bool:
         """
         Envía email al arrendador cuando un arrendatario solicita una modificación.
 
@@ -34,27 +36,26 @@ class ModificationNotificationService:
         try:
             # Datos para el template
             context = {
-                'landlord_name': contract.landlord_data.get('full_name', 'Arrendador'),
-                'tenant_name': contract.tenant_data.get('full_name', 'Arrendatario'),
-                'contract_number': contract.contract_number,
-                'property_address': contract.property_address,
-                'revision_number': modification_request.revision_number,
-                'reason': modification_request.reason,
-                'requested_changes': modification_request.requested_changes,
-                'dashboard_url': f"{settings.FRONTEND_URL}/app/landlord/candidates",
+                "landlord_name": contract.landlord_data.get("full_name", "Arrendador"),
+                "tenant_name": contract.tenant_data.get("full_name", "Arrendatario"),
+                "contract_number": contract.contract_number,
+                "property_address": contract.property_address,
+                "revision_number": modification_request.revision_number,
+                "reason": modification_request.reason,
+                "requested_changes": modification_request.requested_changes,
+                "dashboard_url": f"{settings.FRONTEND_URL}/app/landlord/candidates",
             }
 
             # Renderizar template HTML
             html_message = render_to_string(
-                'emails/modification_request_notification.html',
-                context
+                "emails/modification_request_notification.html", context
             )
 
             # Versión en texto plano
             plain_message = strip_tags(html_message)
 
             # Asunto del email
-            subject = f'📝 Nueva Solicitud de Modificación - Contrato #{contract.contract_number}'
+            subject = f"📝 Nueva Solicitud de Modificación - Contrato #{contract.contract_number}"
 
             # Crear email con versión HTML y texto plano
             email = EmailMultiAlternatives(
@@ -75,9 +76,7 @@ class ModificationNotificationService:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Error enviando email de solicitud de modificación: {str(e)}"
-            )
+            logger.error(f"Error enviando email de solicitud de modificación: {str(e)}")
             return False
 
     @staticmethod
@@ -86,7 +85,7 @@ class ModificationNotificationService:
         contract,
         tenant_email: str,
         approved: bool,
-        landlord_response: str = None
+        landlord_response: str = None,
     ) -> bool:
         """
         Envía email al arrendatario cuando el arrendador responde a una solicitud.
@@ -104,30 +103,34 @@ class ModificationNotificationService:
         try:
             # Datos para el template
             context = {
-                'tenant_name': contract.tenant_data.get('full_name', 'Arrendatario'),
-                'landlord_name': contract.landlord_data.get('full_name', 'Arrendador'),
-                'contract_number': contract.contract_number,
-                'property_address': contract.property_address,
-                'revision_number': modification_request.revision_number,
-                'approved': approved,
-                'status_text': 'Aprobada' if approved else 'Rechazada',
-                'landlord_response': landlord_response or ('Su solicitud ha sido aprobada. El arrendador procederá a editar el contrato.' if approved else 'Su solicitud ha sido rechazada.'),
-                'dashboard_url': f"{settings.FRONTEND_URL}/app/tenant/contracts",
+                "tenant_name": contract.tenant_data.get("full_name", "Arrendatario"),
+                "landlord_name": contract.landlord_data.get("full_name", "Arrendador"),
+                "contract_number": contract.contract_number,
+                "property_address": contract.property_address,
+                "revision_number": modification_request.revision_number,
+                "approved": approved,
+                "status_text": "Aprobada" if approved else "Rechazada",
+                "landlord_response": landlord_response
+                or (
+                    "Su solicitud ha sido aprobada. El arrendador procederá a editar el contrato."
+                    if approved
+                    else "Su solicitud ha sido rechazada."
+                ),
+                "dashboard_url": f"{settings.FRONTEND_URL}/app/tenant/contracts",
             }
 
             # Renderizar template HTML
             html_message = render_to_string(
-                'emails/modification_response_notification.html',
-                context
+                "emails/modification_response_notification.html", context
             )
 
             # Versión en texto plano
             plain_message = strip_tags(html_message)
 
             # Asunto del email
-            status_emoji = '✅' if approved else '❌'
-            status_text = 'Aprobada' if approved else 'Rechazada'
-            subject = f'{status_emoji} Solicitud de Modificación {status_text} - Contrato #{contract.contract_number}'
+            status_emoji = "✅" if approved else "❌"
+            status_text = "Aprobada" if approved else "Rechazada"
+            subject = f"{status_emoji} Solicitud de Modificación {status_text} - Contrato #{contract.contract_number}"
 
             # Crear email con versión HTML y texto plano
             email = EmailMultiAlternatives(
@@ -148,16 +151,12 @@ class ModificationNotificationService:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Error enviando email de respuesta de modificación: {str(e)}"
-            )
+            logger.error(f"Error enviando email de respuesta de modificación: {str(e)}")
             return False
 
     @staticmethod
     def send_modification_implemented_notification(
-        modification_request,
-        contract,
-        tenant_email: str
+        modification_request, contract, tenant_email: str
     ) -> bool:
         """
         Envía email al arrendatario cuando el arrendador completa la edición del contrato.
@@ -173,25 +172,24 @@ class ModificationNotificationService:
         try:
             # Datos para el template
             context = {
-                'tenant_name': contract.tenant_data.get('full_name', 'Arrendatario'),
-                'landlord_name': contract.landlord_data.get('full_name', 'Arrendador'),
-                'contract_number': contract.contract_number,
-                'property_address': contract.property_address,
-                'revision_number': modification_request.revision_number,
-                'dashboard_url': f"{settings.FRONTEND_URL}/app/tenant/contracts",
+                "tenant_name": contract.tenant_data.get("full_name", "Arrendatario"),
+                "landlord_name": contract.landlord_data.get("full_name", "Arrendador"),
+                "contract_number": contract.contract_number,
+                "property_address": contract.property_address,
+                "revision_number": modification_request.revision_number,
+                "dashboard_url": f"{settings.FRONTEND_URL}/app/tenant/contracts",
             }
 
             # Renderizar template HTML
             html_message = render_to_string(
-                'emails/modification_implemented_notification.html',
-                context
+                "emails/modification_implemented_notification.html", context
             )
 
             # Versión en texto plano
             plain_message = strip_tags(html_message)
 
             # Asunto del email
-            subject = f'🎉 Contrato Actualizado - #{contract.contract_number}'
+            subject = f"🎉 Contrato Actualizado - #{contract.contract_number}"
 
             # Crear email con versión HTML y texto plano
             email = EmailMultiAlternatives(
@@ -212,7 +210,5 @@ class ModificationNotificationService:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Error enviando email de modificación implementada: {str(e)}"
-            )
+            logger.error(f"Error enviando email de modificación implementada: {str(e)}")
             return False

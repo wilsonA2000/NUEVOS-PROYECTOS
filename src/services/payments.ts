@@ -21,4 +21,4 @@ export const getPayment = async (id: number): Promise<Payment> => {
 export const cancelPayment = async (id: number): Promise<Payment> => {
   const response = await api.post(`/payments/${id}/cancel/`);
   return response.data;
-}; 
+};

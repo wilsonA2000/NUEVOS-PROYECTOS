@@ -26,4 +26,4 @@ export const terminateContract = async (id: number, reason: string): Promise<Con
 export const renewContract = async (id: number, newEndDate: string): Promise<Contract> => {
   const response = await api.post(`/contracts/${id}/renew/`, { end_date: newEndDate });
   return response.data;
-}; 
+};

@@ -11,15 +11,15 @@
             <!-- Contenido principal -->
             <div class="text-white space-y-8 animate-fade-in">
                 <h1 class="text-4xl lg:text-6xl font-bold leading-tight">
-                    La Plataforma 
+                    La Plataforma
                     <span class="text-accent-300">Inmobiliaria</span>
                     del Futuro
                 </h1>
                 <p class="text-xl lg:text-2xl text-blue-100 leading-relaxed">
-                    Conectamos arrendadores, arrendatarios y prestadores de servicios en un ecosistema seguro, 
+                    Conectamos arrendadores, arrendatarios y prestadores de servicios en un ecosistema seguro,
                     confiable y transparente.
                 </p>
-                
+
                 <!-- Estadísticas -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                     <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-4">
@@ -42,12 +42,12 @@
 
                 <!-- CTAs -->
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{% url 'properties:list' %}" 
+                    <a href="{% url 'properties:list' %}"
                        class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant hover:shadow-xl text-center">
                         Explorar Propiedades
                     </a>
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'users:register_select' %}" 
+                        <a href="{% url 'users:register_select' %}"
                            class="bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-accent-600 transition-all duration-200 shadow-elegant hover:shadow-xl text-center">
                             Unirse Ahora
                         </a>
@@ -65,7 +65,7 @@
                             </svg>
                         </div>
                     </div>
-                    
+
                     <!-- Elementos flotantes decorativos -->
                     <div class="absolute -top-4 -right-4 bg-accent-400 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-bounce-gentle">
                         100% Seguro
@@ -187,7 +187,7 @@
                     <!-- Imagen -->
                     <div class="relative h-64 bg-gray-200 overflow-hidden">
                         {% if property.get_main_image %}
-                            <img src="{{ property.get_main_image }}" alt="{{ property.title }}" 
+                            <img src="{{ property.get_main_image }}" alt="{{ property.title }}"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center text-gray-400">
@@ -196,12 +196,12 @@
                                 </svg>
                             </div>
                         {% endif %}
-                        
+
                         <!-- Badge de destacada -->
                         <div class="absolute top-4 left-4 bg-accent-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                             Destacada
                         </div>
-                        
+
                         <!-- Precio -->
                         <div class="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm px-3 py-2 rounded-lg">
                             <span class="text-lg font-bold text-gray-900">{{ property.get_formatted_price }}</span>
@@ -250,7 +250,7 @@
                         </div>
 
                         <!-- CTA -->
-                        <a href="{% url 'properties:detail' property.pk %}" 
+                        <a href="{% url 'properties:detail' property.pk %}"
                            class="block w-full bg-primary-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
                             Ver Detalles
                         </a>
@@ -260,7 +260,7 @@
         </div>
 
         <div class="text-center mt-12">
-            <a href="{% url 'properties:list' %}" 
+            <a href="{% url 'properties:list' %}"
                class="inline-flex items-center px-8 py-3 border border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-600 hover:text-white transition-all duration-200">
                 Ver Todas las Propiedades
                 <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,24 +336,24 @@
                 ¿Listo para comenzar?
             </h2>
             <p class="text-xl text-blue-100 max-w-2xl mx-auto">
-                Únete a la plataforma inmobiliaria más innovadora y segura de México. 
+                Únete a la plataforma inmobiliaria más innovadora y segura de México.
                 Tu próximo hogar o cliente te está esperando.
             </p>
-            
+
             {% if not user.is_authenticated %}
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{% url 'users:register_select' %}" 
+                    <a href="{% url 'users:register_select' %}"
                        class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant">
                         Registrarme
                     </a>
-                    <a href="{% url 'account_login' %}" 
+                    <a href="{% url 'account_login' %}"
                        class="bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-accent-600 transition-all duration-200 shadow-elegant">
                         Iniciar Sesión
                     </a>
                 </div>
             {% else %}
                 <div class="flex justify-center">
-                    <a href="{% url 'core:dashboard' %}" 
+                    <a href="{% url 'core:dashboard' %}"
                        class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-elegant">
                         Ir a mi Dashboard
                     </a>

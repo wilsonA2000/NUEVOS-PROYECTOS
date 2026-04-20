@@ -26,7 +26,7 @@ beforeAll(() => {
 jest.mock('../ProfessionalBiometricFlow', () => ({
   __esModule: true,
   default: (props: any) => (
-    <div data-testid="biometric-flow">
+    <div data-testid='biometric-flow'>
       <div>Biometric Flow Active</div>
       <button onClick={() => props.onComplete?.()}>Complete</button>
     </div>
@@ -35,22 +35,24 @@ jest.mock('../ProfessionalBiometricFlow', () => ({
 
 jest.mock('../EnhancedFaceCapture', () => ({
   __esModule: true,
-  default: () => <div data-testid="face-capture">Face Capture</div>,
+  default: () => <div data-testid='face-capture'>Face Capture</div>,
 }));
 
 jest.mock('../EnhancedDocumentVerification', () => ({
   __esModule: true,
-  default: () => <div data-testid="doc-verification">Document Verification</div>,
+  default: () => (
+    <div data-testid='doc-verification'>Document Verification</div>
+  ),
 }));
 
 jest.mock('../EnhancedVoiceRecording', () => ({
   __esModule: true,
-  default: () => <div data-testid="voice-recording">Voice Recording</div>,
+  default: () => <div data-testid='voice-recording'>Voice Recording</div>,
 }));
 
 jest.mock('../EnhancedDigitalSignature', () => ({
   __esModule: true,
-  default: () => <div data-testid="digital-signature">Digital Signature</div>,
+  default: () => <div data-testid='digital-signature'>Digital Signature</div>,
 }));
 
 import BiometricContractSigning from '../BiometricContractSigning';
@@ -58,9 +60,7 @@ import BiometricContractSigning from '../BiometricContractSigning';
 const theme = createTheme();
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ThemeProvider theme={theme}>
-    {children}
-  </ThemeProvider>
+  <ThemeProvider theme={theme}>{children}</ThemeProvider>
 );
 
 const defaultProps = {
@@ -105,7 +105,9 @@ describe('BiometricContractSigning', () => {
     );
 
     // When closed, the dialog content should not be visible
-    expect(screen.queryByText('Firma Digital con Verificación Biométrica')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Firma Digital con Verificación Biométrica')
+    ).not.toBeInTheDocument();
   });
 
   it('should call onClose when close action is triggered', () => {
@@ -122,7 +124,10 @@ describe('BiometricContractSigning', () => {
   it('should handle different contract IDs', () => {
     render(
       <TestWrapper>
-        <BiometricContractSigning {...defaultProps} contractId="different-contract" />
+        <BiometricContractSigning
+          {...defaultProps}
+          contractId='different-contract'
+        />
       </TestWrapper>
     );
 

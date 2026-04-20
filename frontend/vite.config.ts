@@ -188,88 +188,88 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react';
             }
-            
+
             // React Router
             if (id.includes('react-router')) {
               return 'router';
             }
-            
+
             // Material UI ecosystem
             if (id.includes('@mui') || id.includes('@emotion')) {
               return 'mui';
             }
-            
+
             // TanStack Query
             if (id.includes('@tanstack/react-query')) {
               return 'query';
             }
-            
+
             // Charts libraries
             if (id.includes('chart.js') || id.includes('recharts') || id.includes('react-chartjs')) {
               return 'charts';
             }
-            
+
             // Maps libraries
             if (id.includes('mapbox') || id.includes('leaflet')) {
               return 'maps';
             }
-            
+
             // Form libraries
             if (id.includes('react-hook-form') || id.includes('yup') || id.includes('formik')) {
               return 'forms';
             }
-            
+
             // Utility libraries
             if (id.includes('axios') || id.includes('date-fns') || id.includes('lodash') || id.includes('xlsx')) {
               return 'utils';
             }
-            
+
             // Error boundary
             if (id.includes('react-error-boundary')) {
               return 'error-handling';
             }
-            
+
             // Other vendor dependencies
             return 'vendor';
           }
-          
+
           // App code chunks basados en features
           if (id.includes('/src/pages/auth/')) {
             return 'auth';
           }
-          
+
           if (id.includes('/src/pages/properties/') || id.includes('/src/components/properties/')) {
             return 'properties';
           }
-          
+
           if (id.includes('/src/pages/contracts/') || id.includes('/src/components/contracts/')) {
             return 'contracts';
           }
-          
+
           if (id.includes('/src/pages/payments/') || id.includes('/src/components/payments/')) {
             return 'payments';
           }
-          
+
           if (id.includes('/src/pages/messages/') || id.includes('/src/components/messages/')) {
             return 'messages';
           }
-          
+
           if (id.includes('/src/pages/dashboard/') || id.includes('/src/components/dashboard/')) {
             return 'dashboard';
           }
-          
+
           if (id.includes('/src/components/ratings/')) {
             return 'ratings';
           }
-          
+
           if (id.includes('/src/services/')) {
             return 'services';
           }
-          
+
           if (id.includes('/src/hooks/')) {
             return 'hooks';
           }
-          
+
           if (id.includes('/src/utils/')) {
             return 'utils-app';
           }
@@ -284,7 +284,7 @@ export default defineConfig({
         assetFileNames: (assetInfo) => {
           const name = assetInfo.name || '';
           let extType = name.split('.').pop();
-          
+
           if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(extType || '')) {
             extType = 'img';
           } else if (/woff|woff2|eot|ttf|otf/i.test(extType || '')) {
@@ -294,7 +294,7 @@ export default defineConfig({
           } else {
             extType = 'assets';
           }
-          
+
           return `${extType}/[name]-[hash][extname]`;
         },
       },
@@ -395,4 +395,4 @@ export default defineConfig({
     port: 4173,
     host: '0.0.0.0',
   },
-}); 
+});

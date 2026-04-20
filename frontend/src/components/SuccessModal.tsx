@@ -41,7 +41,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth='sm'
       fullWidth
       PaperProps={{
         sx: {
@@ -67,39 +67,44 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               mb: 2,
             }}
           />
-          
-          <Typography variant="h5" component="h2" gutterBottom color="success.main">
+
+          <Typography
+            variant='h5'
+            component='h2'
+            gutterBottom
+            color='success.main'
+          >
             {title}
           </Typography>
 
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant='body1' sx={{ mb: 2 }}>
             {message}
           </Typography>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Hemos enviado un correo de confirmación a tu dirección de email.
-            Por favor, verifica tu correo electrónico para activar tu cuenta.
+
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+            Hemos enviado un correo de confirmación a tu dirección de email. Por
+            favor, verifica tu correo electrónico para activar tu cuenta.
           </Typography>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CircularProgress size={16} />
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Redirigiendo en 2 segundos...
             </Typography>
           </Box>
         </Box>
       </DialogContent>
-      
+
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
         <Button
           onClick={onRedirect || onClose}
-          variant="contained"
-          color="primary"
-          size="large"
+          variant='contained'
+          color='primary'
+          size='large'
         >
           Ir a Iniciar Sesión
         </Button>
       </DialogActions>
     </Dialog>
   );
-}; 
+};

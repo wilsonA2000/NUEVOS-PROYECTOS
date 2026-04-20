@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import contractService from '../services/contractService';
-import { Contract, CreateContractDto, UpdateContractDto } from '../types/contract';
+import {
+  Contract,
+  CreateContractDto,
+  UpdateContractDto,
+} from '../types/contract';
 import { useAuth } from './useAuth';
 
 export const useContracts = () => {
@@ -8,7 +12,11 @@ export const useContracts = () => {
   const { isAuthenticated } = useAuth();
 
   // Contratos básicos
-  const { data: contracts, isLoading, error } = useQuery<Contract[]>({
+  const {
+    data: contracts,
+    isLoading,
+    error,
+  } = useQuery<Contract[]>({
     queryKey: ['contracts'],
     queryFn: async () => {
       try {
@@ -30,7 +38,7 @@ export const useContracts = () => {
     enabled: isAuthenticated,
   });
 
-  // Note: Firmas, enmiendas, renovaciones, terminaciones y documentos específicos 
+  // Note: Firmas, enmiendas, renovaciones, terminaciones y documentos específicos
   // de contratos se consultan individualmente por contractId cuando sea necesario
   // Estos no deberían ser consultas globales
 
@@ -63,7 +71,11 @@ export const useContracts = () => {
     },
   });
 
-  const updateContract = useMutation<Contract, Error, { id: string; data: UpdateContractDto }>({
+  const updateContract = useMutation<
+    Contract,
+    Error,
+    { id: string; data: UpdateContractDto }
+  >({
     mutationFn: ({ id, data }: { id: string; data: UpdateContractDto }) =>
       contractService.updateContract(id, data),
     onSuccess: () => {
@@ -113,8 +125,13 @@ export const useContracts = () => {
   });
 
   const signContract = useMutation({
-    mutationFn: ({ contractId, signatureData }: { contractId: string; signatureData: any }) =>
-      contractService.signContract(contractId, signatureData),
+    mutationFn: ({
+      contractId,
+      signatureData,
+    }: {
+      contractId: string;
+      signatureData: any;
+    }) => contractService.signContract(contractId, signatureData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['contract-signatures'] });
@@ -123,8 +140,13 @@ export const useContracts = () => {
   });
 
   const verifySignature = useMutation({
-    mutationFn: ({ contractId, verificationData }: { contractId: string; verificationData: any }) =>
-      contractService.verifySignature(contractId, verificationData),
+    mutationFn: ({
+      contractId,
+      verificationData,
+    }: {
+      contractId: string;
+      verificationData: any;
+    }) => contractService.verifySignature(contractId, verificationData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract-signatures'] });
     },
@@ -140,7 +162,8 @@ export const useContracts = () => {
   });
 
   const suspendContract = useMutation({
-    mutationFn: (contractId: string) => contractService.suspendContract(contractId),
+    mutationFn: (contractId: string) =>
+      contractService.suspendContract(contractId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['contract-stats'] });
@@ -175,8 +198,13 @@ export const useContracts = () => {
 
   // Mutaciones para documentos
   const uploadDocument = useMutation({
-    mutationFn: ({ contractId, documentData }: { contractId: string; documentData: FormData }) =>
-      contractService.uploadDocument(contractId, documentData),
+    mutationFn: ({
+      contractId,
+      documentData,
+    }: {
+      contractId: string;
+      documentData: FormData;
+    }) => contractService.uploadDocument(contractId, documentData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract-documents'] });
     },
@@ -186,13 +214,17 @@ export const useContracts = () => {
   const validateMatchForContract = useMutation({
     mutationFn: ({ matchId }: { matchId: string }) =>
       contractService.validateMatchForContract(matchId),
-    onError: (error) => {
-    },
+    onError: error => {},
   });
 
   const createContractFromMatch = useMutation({
-    mutationFn: ({ matchId, contractData }: { matchId: string; contractData: any }) =>
-      contractService.createContractFromMatch(matchId, contractData),
+    mutationFn: ({
+      matchId,
+      contractData,
+    }: {
+      matchId: string;
+      contractData: any;
+    }) => contractService.createContractFromMatch(matchId, contractData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['match-requests'] });
@@ -207,11 +239,11 @@ export const useContracts = () => {
     expiringContracts,
     pendingSignatures,
     contractStats,
-    
+
     // Estados
     isLoading,
     error,
-    
+
     // Mutaciones
     createContract,
     updateContract,
@@ -228,7 +260,7 @@ export const useContracts = () => {
     createRenewal,
     createTermination,
     uploadDocument,
-    
+
     // Integración Match → Contrato
     validateMatchForContract,
     createContractFromMatch,

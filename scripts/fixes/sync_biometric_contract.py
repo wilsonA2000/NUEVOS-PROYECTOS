@@ -9,11 +9,12 @@ import django
 
 # Configurar Django
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from contracts.models import Contract, LandlordControlledContract
 from matching.models import MatchRequest
+
 
 def sync_contract_for_biometric():
     """Sincronizar el contrato específico para permitir autenticación biométrica"""
@@ -49,31 +50,35 @@ def sync_contract_for_biometric():
             content=landlord_contract.contract_content or "Contrato generado",
             primary_party=landlord_contract.landlord,
             secondary_party=landlord_contract.tenant,
-            status='ready_for_authentication',  # Estado para permitir autenticación biométrica
+            status="ready_for_authentication",  # Estado para permitir autenticación biométrica
             start_date=landlord_contract.start_date,
             end_date=landlord_contract.end_date,
             rent_amount=landlord_contract.rent_amount,
             deposit_amount=landlord_contract.deposit_amount or 0,
-            created_at=landlord_contract.created_at
+            created_at=landlord_contract.created_at,
         )
         print(f"✅ Contrato creado en sistema viejo con ID: {old_contract.id}")
 
     # 3. Actualizar estado para permitir autenticación biométrica
-    if old_contract.status not in ['ready_for_authentication', 'pending_biometric']:
-        old_contract.status = 'ready_for_authentication'
+    if old_contract.status not in ["ready_for_authentication", "pending_biometric"]:
+        old_contract.status = "ready_for_authentication"
         old_contract.save()
         print(f"✅ Estado actualizado a: {old_contract.status}")
 
     # 4. Verificar usuarios involucrados
     print("\n👥 Usuarios involucrados:")
-    print(f"   - Arrendador: {old_contract.primary_party.get_full_name()} ({old_contract.primary_party.email})")
-    print(f"   - Arrendatario: {old_contract.secondary_party.get_full_name()} ({old_contract.secondary_party.email})")
+    print(
+        f"   - Arrendador: {old_contract.primary_party.get_full_name()} ({old_contract.primary_party.email})"
+    )
+    print(
+        f"   - Arrendatario: {old_contract.secondary_party.get_full_name()} ({old_contract.secondary_party.email})"
+    )
 
     # 5. Verificar MatchRequest relacionado
     try:
         match_request = MatchRequest.objects.filter(
             tenant=landlord_contract.tenant,
-            property__landlord=landlord_contract.landlord
+            property__landlord=landlord_contract.landlord,
         ).first()
 
         if match_request:
@@ -88,9 +93,12 @@ def sync_contract_for_biometric():
         print(f"❌ Error buscando MatchRequest: {e}")
 
     print("\n🎉 Sincronización completada!")
-    print(f"✅ El contrato {contract_id} ahora está listo para autenticación biométrica")
+    print(
+        f"✅ El contrato {contract_id} ahora está listo para autenticación biométrica"
+    )
 
     return old_contract
+
 
 if __name__ == "__main__":
     sync_contract_for_biometric()

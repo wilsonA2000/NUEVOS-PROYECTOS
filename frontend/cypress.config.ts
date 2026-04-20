@@ -11,7 +11,7 @@ export default defineConfig({
     requestTimeout: 10000,
     responseTimeout: 10000,
     pageLoadTimeout: 30000,
-    
+
     setupNodeEvents(on, config) {
       // implement node event listeners here
       on('task', {
@@ -21,18 +21,18 @@ export default defineConfig({
         },
       });
     },
-    
+
     env: {
       apiUrl: 'http://localhost:8000/api/v1',
       coverage: true,
     },
-    
+
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.ts',
     fixturesFolder: 'cypress/fixtures',
     screenshotsFolder: 'cypress/screenshots',
     videosFolder: 'cypress/videos',
-    
+
     experimentalStudio: true,
     experimentalWebKitSupport: false,
   },

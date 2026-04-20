@@ -26,14 +26,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
   Paper,
   IconButton,
-  Tooltip,
   LinearProgress,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -124,22 +118,28 @@ interface TenantContractProcess {
       tenant_auth_completed?: boolean;
       keys_delivered?: boolean;
       execution_started?: boolean;
-      tenant_review_status?: 'pending' | 'reviewing' | 'approved' | 'changes_requested';
+      tenant_review_status?:
+        | 'pending'
+        | 'reviewing'
+        | 'approved'
+        | 'changes_requested';
     };
   };
 }
 
 const TenantContractView: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [processes, setProcesses] = useState<TenantContractProcess[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [selectedProcess, setSelectedProcess] = useState<TenantContractProcess | null>(null);
+  const [selectedProcess, setSelectedProcess] =
+    useState<TenantContractProcess | null>(null);
   const [reviewComments, setReviewComments] = useState('');
-  const [reviewAction, setReviewAction] = useState<'approve' | 'request_changes'>('approve');
+  const [reviewAction, setReviewAction] = useState<
+    'approve' | 'request_changes'
+  >('approve');
   const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -150,12 +150,11 @@ const TenantContractView: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await api.get('/contracts/tenant-processes/');
 
       const data = response.data;
-      data.results?.forEach((process: any, index: number) => {
-      });
+      data.results?.forEach((process: any, index: number) => {});
       setProcesses(data.results || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -166,12 +165,18 @@ const TenantContractView: React.FC = () => {
 
   const getStageLabel = (stage: number) => {
     switch (stage) {
-      case 1: return 'Etapa 1: Visita';
-      case 2: return 'Etapa 2: Documentos';
-      case 3: return 'Etapa 3: Revisión del Contrato';
-      case 4: return 'Etapa 4: Autenticación Biométrica';
-      case 5: return 'Etapa 5: Mudanza y Ejecución';
-      default: return stage ? `Etapa ${stage}` : 'Etapa 1: Visita';
+      case 1:
+        return 'Etapa 1: Visita';
+      case 2:
+        return 'Etapa 2: Documentos';
+      case 3:
+        return 'Etapa 3: Revisión del Contrato';
+      case 4:
+        return 'Etapa 4: Autenticación Biométrica';
+      case 5:
+        return 'Etapa 5: Mudanza y Ejecución';
+      default:
+        return stage ? `Etapa ${stage}` : 'Etapa 1: Visita';
     }
   };
 
@@ -181,45 +186,61 @@ const TenantContractView: React.FC = () => {
     if (!process) {
       return 1;
     }
-    
+
     // Backend sends current_stage, not workflow_stage
     // Ensure we return a valid number, default to 1 if both are undefined/null
     const currentStage = process.current_stage;
     const workflowStage = process.workflow_stage;
-    
-    
-    if (typeof currentStage === 'number' && currentStage >= 1 && currentStage <= 5) {
+
+    if (
+      typeof currentStage === 'number' &&
+      currentStage >= 1 &&
+      currentStage <= 5
+    ) {
       return currentStage;
     }
-    
-    if (typeof workflowStage === 'number' && workflowStage >= 1 && workflowStage <= 5) {
+
+    if (
+      typeof workflowStage === 'number' &&
+      workflowStage >= 1 &&
+      workflowStage <= 5
+    ) {
       return workflowStage;
     }
-    
+
     return 1; // Default to stage 1
   };
 
   const getStageColor = (stage: number) => {
     switch (stage) {
-      case 1: return 'info';
-      case 2: return 'warning';
-      case 3: return 'primary';
-      case 4: return 'secondary';
-      case 5: return 'success';
-      default: return 'default';
+      case 1:
+        return 'info';
+      case 2:
+        return 'warning';
+      case 3:
+        return 'primary';
+      case 4:
+        return 'secondary';
+      case 5:
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
   const getProcessStatusLabel = (process: TenantContractProcess) => {
     const contractInfo = process.workflow_data.contract_created;
     const currentStage = getProcessStage(process);
-    
+
     if (currentStage === 5 && contractInfo?.execution_started) {
       return 'Contrato Activo - Ya puedes mudarte';
     } else if (currentStage === 5 && contractInfo?.keys_delivered) {
       return 'Llaves entregadas - Esperando inicio';
     } else if (currentStage === 4) {
-      if (contractInfo?.tenant_auth_completed && contractInfo?.landlord_auth_completed) {
+      if (
+        contractInfo?.tenant_auth_completed &&
+        contractInfo?.landlord_auth_completed
+      ) {
         return 'Autenticación completa - Esperando entrega';
       } else if (contractInfo?.landlord_auth_completed) {
         return 'Tu turno: Completa tu autenticación biométrica';
@@ -237,10 +258,10 @@ const TenantContractView: React.FC = () => {
         return 'Borrador aprobado - Avanzando a autenticación';
       }
     }
-    
+
     switch (currentStage) {
       case 1:
-        return process.workflow_data.visit_scheduled?.completed 
+        return process.workflow_data.visit_scheduled?.completed
           ? 'Visita completada - Avanzando a documentos'
           : 'Esperando coordinación de visita';
       case 2:
@@ -269,31 +290,35 @@ const TenantContractView: React.FC = () => {
     setDocumentsDialogOpen(true);
   }, []);
 
-  const handleStartTenantAuth = useCallback((process: TenantContractProcess) => {
-    if (!process.workflow_data.contract_created) return;
-    
-    const contractId = process.workflow_data.contract_created.contract_id;
-    
-    // Navegar a la página de autenticación biométrica
-    navigate(`/app/contracts/${contractId}/authenticate`);
-  }, [navigate]);
+  const handleStartTenantAuth = useCallback(
+    (process: TenantContractProcess) => {
+      if (!process.workflow_data.contract_created) return;
+
+      const contractId = process.workflow_data.contract_created.contract_id;
+
+      // Navegar a la página de autenticación biométrica
+      navigate(`/app/contracts/${contractId}/authenticate`);
+    },
+    [navigate],
+  );
 
   const handleViewContract = useCallback((process: TenantContractProcess) => {
     if (!process.workflow_data.contract_created) return;
-    
+
     const contractId = process.workflow_data.contract_created.contract_id;
-    
+
     // Abrir directamente el PDF del contrato
     // El arrendatario puede ver el PDF pero no necesariamente puede acceder a todos los detalles del contrato
     viewContractPDF(contractId);
   }, []);
 
   const submitContractReview = async () => {
-    if (!selectedProcess || !selectedProcess.workflow_data.contract_created) return;
+    if (!selectedProcess || !selectedProcess.workflow_data.contract_created)
+      return;
 
     try {
       setLoading(true);
-      
+
       const requestBody = {
         contract_id: selectedProcess.workflow_data.contract_created.contract_id,
         action: reviewAction,
@@ -301,13 +326,12 @@ const TenantContractView: React.FC = () => {
       };
 
       const response = await api.post('/contracts/tenant-review/', requestBody);
-      
+
       // Recargar procesos
       await fetchTenantProcesses();
-      
+
       setReviewDialogOpen(false);
       setSelectedProcess(null);
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al enviar revisión');
     } finally {
@@ -318,15 +342,15 @@ const TenantContractView: React.FC = () => {
   const renderStageActions = (process: TenantContractProcess) => {
     const contractInfo = process.workflow_data.contract_created;
     const currentStage = getProcessStage(process);
-    
+
     switch (currentStage) {
       case 1:
         return (
           <Button
-            variant="outlined"
-            color="info"
+            variant='outlined'
+            color='info'
             startIcon={<HourglassEmptyIcon />}
-            size="small"
+            size='small'
             disabled
           >
             Esperando coordinación de visita
@@ -336,11 +360,11 @@ const TenantContractView: React.FC = () => {
       case 2:
         return (
           <Button
-            variant="contained"
-            color="warning"
+            variant='contained'
+            color='warning'
             startIcon={<DocumentsIcon />}
             onClick={() => handleOpenDocuments(process)}
-            size="small"
+            size='small'
           >
             Subir Documentos
           </Button>
@@ -350,10 +374,10 @@ const TenantContractView: React.FC = () => {
         if (!contractInfo) {
           return (
             <Button
-              variant="outlined"
-              color="info"
+              variant='outlined'
+              color='info'
               startIcon={<HourglassEmptyIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Esperando creación del contrato
@@ -364,11 +388,11 @@ const TenantContractView: React.FC = () => {
         if (contractInfo.tenant_review_status === 'pending') {
           return (
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               startIcon={<ContractIcon />}
               onClick={() => handleReviewContract(process)}
-              size="small"
+              size='small'
             >
               Revisar Borrador del Contrato
             </Button>
@@ -376,10 +400,10 @@ const TenantContractView: React.FC = () => {
         } else if (contractInfo.tenant_review_status === 'changes_requested') {
           return (
             <Button
-              variant="outlined"
-              color="warning"
+              variant='outlined'
+              color='warning'
               startIcon={<EditIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Cambios solicitados - Esperando arrendador
@@ -388,10 +412,10 @@ const TenantContractView: React.FC = () => {
         } else {
           return (
             <Button
-              variant="outlined"
-              color="success"
+              variant='outlined'
+              color='success'
               startIcon={<ApproveIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Borrador aprobado
@@ -405,10 +429,10 @@ const TenantContractView: React.FC = () => {
         if (contractInfo.tenant_auth_completed) {
           return (
             <Button
-              variant="outlined"
-              color="success"
+              variant='outlined'
+              color='success'
               startIcon={<ApproveIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Tu autenticación completada
@@ -417,11 +441,11 @@ const TenantContractView: React.FC = () => {
         } else if (contractInfo.landlord_auth_completed) {
           return (
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               startIcon={<BiometricIcon />}
               onClick={() => handleStartTenantAuth(process)}
-              size="small"
+              size='small'
             >
               Iniciar Mi Autenticación
             </Button>
@@ -429,10 +453,10 @@ const TenantContractView: React.FC = () => {
         } else {
           return (
             <Button
-              variant="outlined"
-              color="info"
+              variant='outlined'
+              color='info'
               startIcon={<HourglassEmptyIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Esperando autenticación del arrendador
@@ -446,11 +470,11 @@ const TenantContractView: React.FC = () => {
         if (contractInfo.execution_started) {
           return (
             <Button
-              variant="contained"
-              color="success"
+              variant='contained'
+              color='success'
               startIcon={<HomeIcon />}
               onClick={() => handleViewContract(process)}
-              size="small"
+              size='small'
             >
               Ver Contrato Activo
             </Button>
@@ -458,10 +482,10 @@ const TenantContractView: React.FC = () => {
         } else if (contractInfo.keys_delivered) {
           return (
             <Button
-              variant="outlined"
-              color="info"
+              variant='outlined'
+              color='info'
               startIcon={<KeyIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Llaves entregadas - Esperando inicio
@@ -470,23 +494,25 @@ const TenantContractView: React.FC = () => {
         } else {
           return (
             <Button
-              variant="outlined"
-              color="warning"
+              variant='outlined'
+              color='warning'
               startIcon={<HourglassEmptyIcon />}
-              size="small"
+              size='small'
               disabled
             >
               Esperando entrega de llaves
             </Button>
           );
         }
-        
+
       default:
         return null;
     }
   };
 
-  const ProcessCard: React.FC<{ process: TenantContractProcess }> = ({ process }) => {
+  const ProcessCard: React.FC<{ process: TenantContractProcess }> = ({
+    process,
+  }) => {
     const formatCurrency = (amount: number) => {
       return new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -499,51 +525,69 @@ const TenantContractView: React.FC = () => {
       <Card sx={{ mb: 3, border: vhColors.accentBlueLight }}>
         <CardContent>
           {/* Header */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 2,
+            }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ width: 48, height: 48, bgcolor: 'secondary.main', mr: 2 }}>
+              <Avatar
+                sx={{ width: 48, height: 48, bgcolor: 'secondary.main', mr: 2 }}
+              >
                 <HomeIcon />
               </Avatar>
               <Box>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant='h6' fontWeight='bold'>
                   {process.property.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Proceso #{process.match_code}
                 </Typography>
               </Box>
             </Box>
-            <Chip 
+            <Chip
               label={getStageLabel(getProcessStage(process))}
               color={getStageColor(getProcessStage(process)) as any}
-              variant="filled"
-              size="medium"
+              variant='filled'
+              size='medium'
               sx={{ fontWeight: 'bold' }}
             />
           </Box>
 
           {/* Progress Bar */}
           <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
+            >
+              <Typography variant='body2' color='text.secondary'>
                 Progreso del Proceso
               </Typography>
-              <Typography variant="body2" fontWeight="bold" color="primary">
+              <Typography variant='body2' fontWeight='bold' color='primary'>
                 {Math.round((getProcessStage(process) / 5) * 100)}% completado
               </Typography>
             </Box>
-            <LinearProgress 
-              variant="determinate" 
+            <LinearProgress
+              variant='determinate'
               value={(getProcessStage(process) / 5) * 100}
               sx={{ height: 8, borderRadius: 4 }}
             />
           </Box>
 
           {/* Status Alert */}
-          <Alert 
-            severity={getProcessStage(process) === 5 ? 'success' : 'info'} 
+          <Alert
+            severity={getProcessStage(process) === 5 ? 'success' : 'info'}
             sx={{ mb: 2 }}
-            icon={getProcessStage(process) === 5 ? <ApproveIcon /> : <InfoIcon />}
+            icon={
+              getProcessStage(process) === 5 ? <ApproveIcon /> : <InfoIcon />
+            }
           >
             <AlertTitle>Estado Actual</AlertTitle>
             {getProcessStatusLabel(process)}
@@ -554,49 +598,68 @@ const TenantContractView: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <HomeIcon sx={{ color: 'primary.main', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+                <Typography variant='subtitle2' color='text.secondary'>
                   Información de la Propiedad
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   {process.property.address}
                 </Typography>
               </Box>
-              <Typography variant="h6" color="primary">
+              <Typography variant='h6' color='primary'>
                 {formatCurrency(process.property.rent_price)}/mes
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'text.secondary' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  color: 'text.secondary',
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <BedIcon sx={{ fontSize: 16 }} />
-                  <Typography variant="body2">{process.property.bedrooms} habitaciones</Typography>
+                  <Typography variant='body2'>
+                    {process.property.bedrooms} habitaciones
+                  </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <ShowerIcon sx={{ fontSize: 16 }} />
-                  <Typography variant="body2">{process.property.bathrooms} baños</Typography>
+                  <Typography variant='body2'>
+                    {process.property.bathrooms} baños
+                  </Typography>
                 </Box>
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <PersonIcon sx={{ color: 'secondary.main', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+                <Typography variant='subtitle2' color='text.secondary'>
                   Arrendador
                 </Typography>
               </Box>
-              <Typography variant="body2" fontWeight="medium">
+              <Typography variant='body2' fontWeight='medium'>
                 {process.landlord.full_name}
               </Typography>
               <Stack spacing={0.5}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <EmailIcon sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }} />
-                  <Typography variant="body2">{process.landlord.email}</Typography>
+                  <EmailIcon
+                    sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }}
+                  />
+                  <Typography variant='body2'>
+                    {process.landlord.email}
+                  </Typography>
                 </Box>
                 {process.landlord.phone && (
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PhoneIcon sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }} />
-                    <Typography variant="body2">{process.landlord.phone}</Typography>
+                    <PhoneIcon
+                      sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }}
+                    />
+                    <Typography variant='body2'>
+                      {process.landlord.phone}
+                    </Typography>
                   </Box>
                 )}
               </Stack>
@@ -605,17 +668,27 @@ const TenantContractView: React.FC = () => {
 
           {/* Move-in Date */}
           {process.preferred_move_in_date && (
-            <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: `1px solid ${vhColors.divider}` }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                bgcolor: 'grey.50',
+                borderRadius: 1,
+                border: `1px solid ${vhColors.divider}`,
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <CalendarIcon sx={{ color: 'primary.main', mr: 1 }} />
-                <Typography variant="subtitle2" color="text.secondary">
+                <Typography variant='subtitle2' color='text.secondary'>
                   Fecha de Mudanza Preferida
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography variant="body2" fontWeight="medium">
-                  {new Date(process.preferred_move_in_date).toLocaleDateString('es-CO')}
+                <Typography variant='body2' fontWeight='medium'>
+                  {new Date(process.preferred_move_in_date).toLocaleDateString(
+                    'es-CO',
+                  )}
                 </Typography>
               </Box>
             </Box>
@@ -623,10 +696,19 @@ const TenantContractView: React.FC = () => {
 
           {/* Contract Info */}
           {process.workflow_data.contract_created && (
-            <Box sx={{ mb: 2, p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.main' }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                bgcolor: 'primary.50',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'primary.main',
+              }}
+            >
               <Typography
-                variant="subtitle2"
-                color="primary"
+                variant='subtitle2'
+                color='primary'
                 gutterBottom
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
@@ -634,29 +716,45 @@ const TenantContractView: React.FC = () => {
                 Información del Contrato
               </Typography>
               <Stack spacing={0.5}>
-                <Typography variant="body2">
-                  <strong>ID:</strong> {process.workflow_data.contract_created.contract_id.slice(0, 8)}...
+                <Typography variant='body2'>
+                  <strong>ID:</strong>{' '}
+                  {process.workflow_data.contract_created.contract_id.slice(
+                    0,
+                    8,
+                  )}
+                  ...
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Estado:</strong> {process.workflow_data.contract_created.status}
+                <Typography variant='body2'>
+                  <strong>Estado:</strong>{' '}
+                  {process.workflow_data.contract_created.status}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Creado: {new Date(process.workflow_data.contract_created.created_at).toLocaleString()}
+                <Typography variant='caption' color='text.secondary'>
+                  Creado:{' '}
+                  {new Date(
+                    process.workflow_data.contract_created.created_at,
+                  ).toLocaleString()}
                 </Typography>
               </Stack>
             </Box>
           )}
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+            }}
+          >
             {renderStageActions(process)}
-            
+
             {/* Common action: View details */}
             <Button
-              variant="outlined"
-              color="secondary"
+              variant='outlined'
+              color='secondary'
               startIcon={<InfoIcon />}
-              size="small"
+              size='small'
               onClick={() => handleViewDetails(process)}
             >
               Ver Detalles
@@ -669,9 +767,18 @@ const TenantContractView: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          py: 4,
+        }}
+      >
         <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Cargando tus procesos de contratación...</Typography>
+        <Typography sx={{ ml: 2 }}>
+          Cargando tus procesos de contratación...
+        </Typography>
       </Box>
     );
   }
@@ -681,74 +788,91 @@ const TenantContractView: React.FC = () => {
       {/* Header */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 2,
+            }}
+          >
             <Box>
-              <Typography variant="h4" gutterBottom>
+              <Typography variant='h4' gutterBottom>
                 Mis Procesos de Contratación
               </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Sigue el progreso de tus solicitudes de arriendo y participa activamente en cada etapa.
+              <Typography variant='body1' color='text.secondary'>
+                Sigue el progreso de tus solicitudes de arriendo y participa
+                activamente en cada etapa.
               </Typography>
             </Box>
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={fetchTenantProcesses}
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} /> : <NextIcon />}
+              startIcon={
+                loading ? <CircularProgress size={20} /> : <NextIcon />
+              }
               sx={{ ml: 2 }}
             >
               {loading ? 'Actualizando...' : 'Actualizar'}
             </Button>
           </Box>
-          
+
           {/* Workflow Explanation for Tenants */}
           <Box sx={{ mt: 3 }}>
             <Typography
-              variant="h6"
+              variant='h6'
               gutterBottom
-              color="primary"
+              color='primary'
               sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
             >
               <SyncIcon />
               Tu Participación en el Proceso
             </Typography>
-            <Stepper activeStep={-1} sx={{ mb: 2 }} orientation="vertical">
+            <Stepper activeStep={-1} sx={{ mb: 2 }} orientation='vertical'>
               <Step>
-                <StepLabel icon={<HomeIcon color="info" />}>
-                  <Typography variant="body2">
-                    <strong>Etapa 1: Visita</strong><br />
+                <StepLabel icon={<HomeIcon color='info' />}>
+                  <Typography variant='body2'>
+                    <strong>Etapa 1: Visita</strong>
+                    <br />
                     VeriHome coordina tu visita a la propiedad
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel icon={<DocumentsIcon color="warning" />}>
-                  <Typography variant="body2">
-                    <strong>Etapa 2: Documentos</strong><br />
+                <StepLabel icon={<DocumentsIcon color='warning' />}>
+                  <Typography variant='body2'>
+                    <strong>Etapa 2: Documentos</strong>
+                    <br />
                     El arrendador revisa tu documentación
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel icon={<AssignmentIcon color="primary" />}>
-                  <Typography variant="body2">
-                    <strong>Etapa 3: Revisión del Contrato</strong><br />
-                    <strong>TU ACCIÓN:</strong> Revisa y aprueba el borrador del contrato
+                <StepLabel icon={<AssignmentIcon color='primary' />}>
+                  <Typography variant='body2'>
+                    <strong>Etapa 3: Revisión del Contrato</strong>
+                    <br />
+                    <strong>TU ACCIÓN:</strong> Revisa y aprueba el borrador del
+                    contrato
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel icon={<BiometricIcon color="secondary" />}>
-                  <Typography variant="body2">
-                    <strong>Etapa 4: Autenticación Biométrica</strong><br />
-                    <strong>TU ACCIÓN:</strong> Completa tu autenticación después del arrendador
+                <StepLabel icon={<BiometricIcon color='secondary' />}>
+                  <Typography variant='body2'>
+                    <strong>Etapa 4: Autenticación Biométrica</strong>
+                    <br />
+                    <strong>TU ACCIÓN:</strong> Completa tu autenticación
+                    después del arrendador
                   </Typography>
                 </StepLabel>
               </Step>
               <Step>
-                <StepLabel icon={<KeyIcon color="success" />}>
-                  <Typography variant="body2">
-                    <strong>Etapa 5: Mudanza</strong><br />
+                <StepLabel icon={<KeyIcon color='success' />}>
+                  <Typography variant='body2'>
+                    <strong>Etapa 5: Mudanza</strong>
+                    <br />
                     Recibe las llaves y múdate a tu nuevo hogar
                   </Typography>
                 </StepLabel>
@@ -759,7 +883,7 @@ const TenantContractView: React.FC = () => {
       </Card>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity='error' sx={{ mb: 3 }}>
           <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
@@ -767,103 +891,118 @@ const TenantContractView: React.FC = () => {
 
       {/* Processes List */}
       {processes.length === 0 ? (
-        <Alert severity="info">
+        <Alert severity='info'>
           <AlertTitle>No hay procesos activos</AlertTitle>
-          Cuando muestres interés en una propiedad y sea aceptado, aparecerá aquí para que puedas seguir el progreso.
+          Cuando muestres interés en una propiedad y sea aceptado, aparecerá
+          aquí para que puedas seguir el progreso.
         </Alert>
       ) : (
         <>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             Procesos Activos ({processes.length})
           </Typography>
-          
-          {processes.map((process) => (
+
+          {processes.map(process => (
             <ProcessCard key={process.id} process={process} />
           ))}
         </>
       )}
 
       {/* Contract Review Dialog */}
-      <Dialog 
-        open={reviewDialogOpen} 
+      <Dialog
+        open={reviewDialogOpen}
         onClose={() => setReviewDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <ContractIcon />
             <Box>
-              <Typography variant="h6">
+              <Typography variant='h6'>
                 Revisión del Borrador del Contrato
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {selectedProcess?.property.title}
               </Typography>
             </Box>
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
-            <Alert severity="info">
+            <Alert severity='info'>
               <AlertTitle>Instrucciones</AlertTitle>
-              Por favor revisa cuidadosamente el borrador del contrato. Puedes aprobarlo para continuar con la autenticación biométrica, o solicitar cambios si hay algo que necesita ajustarse.
+              Por favor revisa cuidadosamente el borrador del contrato. Puedes
+              aprobarlo para continuar con la autenticación biométrica, o
+              solicitar cambios si hay algo que necesita ajustarse.
             </Alert>
-            
+
             <FormControl fullWidth>
               <InputLabel>Tu Decisión</InputLabel>
               <Select
                 value={reviewAction}
-                onChange={(e: SelectChangeEvent<'approve' | 'request_changes'>) => 
-                  setReviewAction(e.target.value as 'approve' | 'request_changes')
+                onChange={(
+                  e: SelectChangeEvent<'approve' | 'request_changes'>,
+                ) =>
+                  setReviewAction(
+                    e.target.value as 'approve' | 'request_changes',
+                  )
                 }
-                label="Tu Decisión"
+                label='Tu Decisión'
               >
-                <MenuItem value="approve">
+                <MenuItem value='approve'>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ApproveIcon fontSize="small" color="success" />
+                    <ApproveIcon fontSize='small' color='success' />
                     Aprobar borrador y continuar
                   </Box>
                 </MenuItem>
-                <MenuItem value="request_changes">
+                <MenuItem value='request_changes'>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <EditIcon fontSize="small" color="warning" />
+                    <EditIcon fontSize='small' color='warning' />
                     Solicitar cambios
                   </Box>
                 </MenuItem>
               </Select>
             </FormControl>
-            
+
             <TextField
-              label={reviewAction === 'approve' ? 'Comentarios adicionales (opcional)' : 'Describe los cambios que necesitas'}
+              label={
+                reviewAction === 'approve'
+                  ? 'Comentarios adicionales (opcional)'
+                  : 'Describe los cambios que necesitas'
+              }
               multiline
               rows={4}
               value={reviewComments}
-              onChange={(e) => setReviewComments(e.target.value)}
+              onChange={e => setReviewComments(e.target.value)}
               fullWidth
               required={reviewAction === 'request_changes'}
               placeholder={
-                reviewAction === 'approve' 
+                reviewAction === 'approve'
                   ? 'Cualquier comentario adicional sobre el contrato...'
                   : 'Por favor describe específicamente qué cambios necesitas en el contrato...'
               }
             />
           </Stack>
         </DialogContent>
-        
+
         <DialogActions>
-          <Button onClick={() => setReviewDialogOpen(false)}>
-            Cancelar
-          </Button>
+          <Button onClick={() => setReviewDialogOpen(false)}>Cancelar</Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={submitContractReview}
-            disabled={reviewAction === 'request_changes' && !reviewComments.trim()}
+            disabled={
+              reviewAction === 'request_changes' && !reviewComments.trim()
+            }
             color={reviewAction === 'approve' ? 'success' : 'warning'}
-            startIcon={reviewAction === 'approve' ? <ThumbUpIcon /> : <ThumbDownIcon />}
+            startIcon={
+              reviewAction === 'approve' ? <ThumbUpIcon /> : <ThumbDownIcon />
+            }
           >
-            {reviewAction === 'approve' ? 'Aprobar Contrato' : 'Solicitar Cambios'}
+            {reviewAction === 'approve'
+              ? 'Aprobar Contrato'
+              : 'Solicitar Cambios'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -872,41 +1011,51 @@ const TenantContractView: React.FC = () => {
       <Dialog
         open={detailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <HomeIcon color="primary" />
+            <HomeIcon color='primary' />
             Detalles del Proceso de Contrato
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           {selectedProcess && (
             <Stack spacing={3}>
               {/* Property Information */}
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <HomeIcon color="primary" />
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <HomeIcon color='primary' />
                   Información de la Propiedad
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">Título</Typography>
-                    <Typography variant="body1" fontWeight="medium">
+                    <Typography variant='body2' color='text.secondary'>
+                      Título
+                    </Typography>
+                    <Typography variant='body1' fontWeight='medium'>
                       {selectedProcess.property.title}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">Código del Proceso</Typography>
-                    <Typography variant="body1" fontWeight="medium">
+                    <Typography variant='body2' color='text.secondary'>
+                      Código del Proceso
+                    </Typography>
+                    <Typography variant='body1' fontWeight='medium'>
                       #{selectedProcess.match_code}
                     </Typography>
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">Dirección</Typography>
-                    <Typography variant="body1">
+                    <Typography variant='body2' color='text.secondary'>
+                      Dirección
+                    </Typography>
+                    <Typography variant='body1'>
                       {selectedProcess.property.address}
                     </Typography>
                   </Grid>
@@ -915,35 +1064,45 @@ const TenantContractView: React.FC = () => {
 
               {/* Current Stage */}
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ScheduleIcon color="primary" />
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <ScheduleIcon color='primary' />
                   {getStageLabel(getProcessStage(selectedProcess))}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}
+                >
                   <Chip
                     label={`Etapa ${getProcessStage(selectedProcess)} de 5`}
-                    color="primary"
-                    variant="filled"
-                    size="medium"
+                    color='primary'
+                    variant='filled'
+                    size='medium'
                   />
                   <LinearProgress
-                    variant="determinate"
+                    variant='determinate'
                     value={(getProcessStage(selectedProcess) / 5) * 100}
                     sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
                   />
-                  <Typography variant="body2" fontWeight="bold" color="primary">
+                  <Typography variant='body2' fontWeight='bold' color='primary'>
                     {Math.round((getProcessStage(selectedProcess) / 5) * 100)}%
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
                   {getProcessStatusLabel(selectedProcess)}
                 </Typography>
               </Paper>
 
               {/* Workflow Data */}
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <InfoIcon color="primary" />
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <InfoIcon color='primary' />
                   Detalles del Proceso
                 </Typography>
                 <Stack spacing={2}>
@@ -951,8 +1110,8 @@ const TenantContractView: React.FC = () => {
                   {selectedProcess.workflow_data.visit_scheduled && (
                     <Box>
                       <Typography
-                        variant="subtitle2"
-                        color="primary"
+                        variant='subtitle2'
+                        color='primary'
                         gutterBottom
                         sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                       >
@@ -961,44 +1120,98 @@ const TenantContractView: React.FC = () => {
                       </Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">Fecha y Hora</Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" fontWeight="medium">
-                              {new Date(selectedProcess.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')}
+                          <Typography variant='body2' color='text.secondary'>
+                            Fecha y Hora
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            <CalendarIcon
+                              sx={{ fontSize: 16, color: 'text.secondary' }}
+                            />
+                            <Typography variant='body2' fontWeight='medium'>
+                              {new Date(
+                                selectedProcess.workflow_data.visit_scheduled.date,
+                              ).toLocaleDateString('es-CO')}
                             </Typography>
                           </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" fontWeight="medium">
-                              {selectedProcess.workflow_data.visit_scheduled.time}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            <TimeIcon
+                              sx={{ fontSize: 16, color: 'text.secondary' }}
+                            />
+                            <Typography variant='body2' fontWeight='medium'>
+                              {
+                                selectedProcess.workflow_data.visit_scheduled
+                                  .time
+                              }
                             </Typography>
                           </Box>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">Estado</Typography>
-                          <Chip 
-                            label={selectedProcess.workflow_data.visit_scheduled.completed ? 'Completada' : 'Programada'}
-                            color={selectedProcess.workflow_data.visit_scheduled.completed ? 'success' : 'warning'}
-                            size="small"
+                          <Typography variant='body2' color='text.secondary'>
+                            Estado
+                          </Typography>
+                          <Chip
+                            label={
+                              selectedProcess.workflow_data.visit_scheduled
+                                .completed
+                                ? 'Completada'
+                                : 'Programada'
+                            }
+                            color={
+                              selectedProcess.workflow_data.visit_scheduled
+                                .completed
+                                ? 'success'
+                                : 'warning'
+                            }
+                            size='small'
                           />
                         </Grid>
-                        {selectedProcess.workflow_data.visit_scheduled.notes && (
+                        {selectedProcess.workflow_data.visit_scheduled
+                          .notes && (
                           <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary">Mensaje del Arrendador</Typography>
-                            <Box sx={{
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: 1,
-                              p: 2,
-                              bgcolor: 'grey.50',
-                              borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'divider',
-                            }}>
-                              <ChatIcon sx={{ fontSize: 18, color: 'text.secondary', mt: 0.25 }} />
-                              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                                "{selectedProcess.workflow_data.visit_scheduled.notes}"
+                            <Typography variant='body2' color='text.secondary'>
+                              Mensaje del Arrendador
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 1,
+                                p: 2,
+                                bgcolor: 'grey.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              <ChatIcon
+                                sx={{
+                                  fontSize: 18,
+                                  color: 'text.secondary',
+                                  mt: 0.25,
+                                }}
+                              />
+                              <Typography
+                                variant='body2'
+                                sx={{ fontStyle: 'italic' }}
+                              >
+                                "
+                                {
+                                  selectedProcess.workflow_data.visit_scheduled
+                                    .notes
+                                }
+                                "
                               </Typography>
                             </Box>
                           </Grid>
@@ -1011,18 +1224,28 @@ const TenantContractView: React.FC = () => {
                   {selectedProcess.workflow_data.documents_reviewed && (
                     <Box>
                       <Typography
-                        variant="subtitle2"
-                        color="primary"
+                        variant='subtitle2'
+                        color='primary'
                         gutterBottom
                         sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                       >
                         <DocumentsIcon sx={{ fontSize: 18 }} />
                         Estado de Documentos
                       </Typography>
-                      <Chip 
-                        label={selectedProcess.workflow_data.documents_reviewed.approved ? 'Aprobados' : 'En Revisión'}
-                        color={selectedProcess.workflow_data.documents_reviewed.approved ? 'success' : 'warning'}
-                        size="small"
+                      <Chip
+                        label={
+                          selectedProcess.workflow_data.documents_reviewed
+                            .approved
+                            ? 'Aprobados'
+                            : 'En Revisión'
+                        }
+                        color={
+                          selectedProcess.workflow_data.documents_reviewed
+                            .approved
+                            ? 'success'
+                            : 'warning'
+                        }
+                        size='small'
                       />
                     </Box>
                   )}
@@ -1031,8 +1254,8 @@ const TenantContractView: React.FC = () => {
                   {selectedProcess.workflow_data.contract_created && (
                     <Box>
                       <Typography
-                        variant="subtitle2"
-                        color="primary"
+                        variant='subtitle2'
+                        color='primary'
                         gutterBottom
                         sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                       >
@@ -1041,25 +1264,42 @@ const TenantContractView: React.FC = () => {
                       </Typography>
                       <Grid container spacing={1}>
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">ID del Contrato</Typography>
-                          <Typography variant="body2" fontFamily="monospace">
-                            {selectedProcess.workflow_data.contract_created.contract_id}
+                          <Typography variant='body2' color='text.secondary'>
+                            ID del Contrato
+                          </Typography>
+                          <Typography variant='body2' fontFamily='monospace'>
+                            {
+                              selectedProcess.workflow_data.contract_created
+                                .contract_id
+                            }
                           </Typography>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">Estado de Revisión</Typography>
-                          <Chip 
+                          <Typography variant='body2' color='text.secondary'>
+                            Estado de Revisión
+                          </Typography>
+                          <Chip
                             label={
-                              selectedProcess.workflow_data.contract_created.tenant_review_status === 'approved' ? 'Aprobado' :
-                              selectedProcess.workflow_data.contract_created.tenant_review_status === 'changes_requested' ? 'Cambios Solicitados' :
-                              'Pendiente'
+                              selectedProcess.workflow_data.contract_created
+                                .tenant_review_status === 'approved'
+                                ? 'Aprobado'
+                                : selectedProcess.workflow_data.contract_created
+                                      .tenant_review_status ===
+                                    'changes_requested'
+                                  ? 'Cambios Solicitados'
+                                  : 'Pendiente'
                             }
                             color={
-                              selectedProcess.workflow_data.contract_created.tenant_review_status === 'approved' ? 'success' :
-                              selectedProcess.workflow_data.contract_created.tenant_review_status === 'changes_requested' ? 'warning' :
-                              'default'
+                              selectedProcess.workflow_data.contract_created
+                                .tenant_review_status === 'approved'
+                                ? 'success'
+                                : selectedProcess.workflow_data.contract_created
+                                      .tenant_review_status ===
+                                    'changes_requested'
+                                  ? 'warning'
+                                  : 'default'
                             }
-                            size="small"
+                            size='small'
                           />
                         </Grid>
                       </Grid>
@@ -1069,8 +1309,8 @@ const TenantContractView: React.FC = () => {
                   {/* Información Adicional del Proceso */}
                   <Box>
                     <Typography
-                      variant="subtitle2"
-                      color="primary"
+                      variant='subtitle2'
+                      color='primary'
                       gutterBottom
                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                     >
@@ -1079,11 +1319,30 @@ const TenantContractView: React.FC = () => {
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="body2" color="text.secondary">Proceso Iniciado</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            {new Date(selectedProcess.created_at).toLocaleDateString('es-CO')} a las {new Date(selectedProcess.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                        <Typography variant='body2' color='text.secondary'>
+                          Proceso Iniciado
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
+                          <CalendarIcon
+                            sx={{ fontSize: 16, color: 'text.secondary' }}
+                          />
+                          <Typography variant='body2'>
+                            {new Date(
+                              selectedProcess.created_at,
+                            ).toLocaleDateString('es-CO')}{' '}
+                            a las{' '}
+                            {new Date(
+                              selectedProcess.created_at,
+                            ).toLocaleTimeString('es-CO', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </Typography>
                         </Box>
                       </Grid>
@@ -1091,11 +1350,22 @@ const TenantContractView: React.FC = () => {
                       {/* Fecha de mudanza preferida */}
                       {selectedProcess.preferred_move_in_date && (
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">Fecha de Mudanza Preferida</Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'primary.main' }}>
+                          <Typography variant='body2' color='text.secondary'>
+                            Fecha de Mudanza Preferida
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              color: 'primary.main',
+                            }}
+                          >
                             <HomeIcon sx={{ fontSize: 16 }} />
-                            <Typography variant="body2" color="primary">
-                              {new Date(selectedProcess.preferred_move_in_date).toLocaleDateString('es-CO')}
+                            <Typography variant='body2' color='primary'>
+                              {new Date(
+                                selectedProcess.preferred_move_in_date,
+                              ).toLocaleDateString('es-CO')}
                             </Typography>
                           </Box>
                         </Grid>
@@ -1103,10 +1373,20 @@ const TenantContractView: React.FC = () => {
 
                       {/* Duración del contrato */}
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="body2" color="text.secondary">Duración Deseada del Contrato</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <AssignmentIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2">
+                        <Typography variant='body2' color='text.secondary'>
+                          Duración Deseada del Contrato
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
+                          <AssignmentIcon
+                            sx={{ fontSize: 16, color: 'text.secondary' }}
+                          />
+                          <Typography variant='body2'>
                             {selectedProcess.lease_duration_months || 12} meses
                           </Typography>
                         </Box>
@@ -1115,10 +1395,19 @@ const TenantContractView: React.FC = () => {
                       {/* Ingresos mensuales declarados */}
                       {selectedProcess.monthly_income && (
                         <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">Ingresos Declarados</Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'success.main' }}>
+                          <Typography variant='body2' color='text.secondary'>
+                            Ingresos Declarados
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              color: 'success.main',
+                            }}
+                          >
                             <MoneyIcon sx={{ fontSize: 16 }} />
-                            <Typography variant="body2" color="success.main">
+                            <Typography variant='body2' color='success.main'>
                               {new Intl.NumberFormat('es-CO', {
                                 style: 'currency',
                                 currency: 'COP',
@@ -1135,11 +1424,9 @@ const TenantContractView: React.FC = () => {
             </Stack>
           )}
         </DialogContent>
-        
+
         <DialogActions>
-          <Button onClick={() => setDetailsDialogOpen(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setDetailsDialogOpen(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 
@@ -1147,25 +1434,34 @@ const TenantContractView: React.FC = () => {
       <Dialog
         open={documentsDialogOpen}
         onClose={() => setDocumentsDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <DocumentsIcon color="primary" />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography
+              variant='h6'
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <DocumentsIcon color='primary' />
               Subir Documentos - Etapa 2
             </Typography>
-            <IconButton 
-              edge="end" 
-              color="inherit" 
+            <IconButton
+              edge='end'
+              color='inherit'
               onClick={() => setDocumentsDialogOpen(false)}
             >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           {selectedProcess && (
             <EnhancedTenantDocumentUpload

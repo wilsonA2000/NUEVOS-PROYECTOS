@@ -15,19 +15,24 @@ interface SnackbarContextType {
   showInfo: (message: string) => void;
 }
 
-const SnackbarContext = createContext<SnackbarContextType | undefined>(undefined);
+const SnackbarContext = createContext<SnackbarContextType | undefined>(
+  undefined,
+);
 
 function SlideTransition(props: SlideProps) {
-  return <Slide {...props} direction="up" />;
+  return <Slide {...props} direction='up' />;
 }
 
 let messageId = 0;
 
-export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [messages, setMessages] = useState<SnackbarMessage[]>([]);
 
   const addMessage = useCallback((message: string, severity: AlertColor) => {
-    const duration = severity === 'error' || severity === 'warning' ? 6000 : 4000;
+    const duration =
+      severity === 'error' || severity === 'warning' ? 6000 : 4000;
     const id = ++messageId;
     setMessages(prev => [...prev, { id, message, severity, duration }]);
   }, []);
@@ -36,13 +41,27 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setMessages(prev => prev.filter(m => m.id !== id));
   }, []);
 
-  const showSuccess = useCallback((message: string) => addMessage(message, 'success'), [addMessage]);
-  const showError = useCallback((message: string) => addMessage(message, 'error'), [addMessage]);
-  const showWarning = useCallback((message: string) => addMessage(message, 'warning'), [addMessage]);
-  const showInfo = useCallback((message: string) => addMessage(message, 'info'), [addMessage]);
+  const showSuccess = useCallback(
+    (message: string) => addMessage(message, 'success'),
+    [addMessage],
+  );
+  const showError = useCallback(
+    (message: string) => addMessage(message, 'error'),
+    [addMessage],
+  );
+  const showWarning = useCallback(
+    (message: string) => addMessage(message, 'warning'),
+    [addMessage],
+  );
+  const showInfo = useCallback(
+    (message: string) => addMessage(message, 'info'),
+    [addMessage],
+  );
 
   return (
-    <SnackbarContext.Provider value={{ showSuccess, showError, showWarning, showInfo }}>
+    <SnackbarContext.Provider
+      value={{ showSuccess, showError, showWarning, showInfo }}
+    >
       {children}
       {messages.map((msg, index) => (
         <Snackbar
@@ -57,7 +76,7 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           <Alert
             onClose={() => removeMessage(msg.id)}
             severity={msg.severity}
-            variant="filled"
+            variant='filled'
             sx={{ width: '100%', minWidth: 300, boxShadow: 3 }}
           >
             {msg.message}

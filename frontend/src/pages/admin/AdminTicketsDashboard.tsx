@@ -87,7 +87,10 @@ interface Ticket {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const priorityColor: Record<string, 'default' | 'error' | 'warning' | 'info' | 'success'> = {
+const priorityColor: Record<
+  string,
+  'default' | 'error' | 'warning' | 'info' | 'success'
+> = {
   low: 'default',
   medium: 'info',
   high: 'warning',
@@ -101,7 +104,10 @@ const priorityLabel: Record<string, string> = {
   urgent: 'Urgente',
 };
 
-const statusColor: Record<string, 'default' | 'error' | 'warning' | 'info' | 'success'> = {
+const statusColor: Record<
+  string,
+  'default' | 'error' | 'warning' | 'info' | 'success'
+> = {
   open: 'info',
   in_progress: 'warning',
   resolved: 'success',
@@ -155,12 +161,18 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
     }}
   >
     <CardContent>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}
+      >
         <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
+          <Typography variant='body2' color='text.secondary' gutterBottom>
             {title}
           </Typography>
-          <Typography variant="h3" fontWeight="bold" color={`${color}.main`}>
+          <Typography variant='h3' fontWeight='bold' color={`${color}.main`}>
             {value}
           </Typography>
         </Box>
@@ -215,7 +227,9 @@ const AdminTicketsDashboard: React.FC = () => {
           headers: authHeaders(),
           params,
         }),
-        axios.get(`${API_BASE}/core/tickets/stats/`, { headers: authHeaders() }),
+        axios.get(`${API_BASE}/core/tickets/stats/`, {
+          headers: authHeaders(),
+        }),
       ]);
 
       const ticketData = Array.isArray(ticketsRes.data)
@@ -224,7 +238,9 @@ const AdminTicketsDashboard: React.FC = () => {
       setTickets(ticketData);
       setStats(statsRes.data);
     } catch {
-      setError('No se pudieron cargar los tickets. Verifique su conexión o permisos.');
+      setError(
+        'No se pudieron cargar los tickets. Verifique su conexión o permisos.',
+      );
     } finally {
       setLoading(false);
     }
@@ -255,9 +271,12 @@ const AdminTicketsDashboard: React.FC = () => {
       setResponseMessage('');
       setIsInternal(false);
       // Refresh ticket detail
-      const res = await axios.get(`${API_BASE}/core/tickets/${selectedTicket.id}/`, {
-        headers: authHeaders(),
-      });
+      const res = await axios.get(
+        `${API_BASE}/core/tickets/${selectedTicket.id}/`,
+        {
+          headers: authHeaders(),
+        },
+      );
       setSelectedTicket(res.data);
       fetchData();
     } catch {
@@ -298,11 +317,15 @@ const AdminTicketsDashboard: React.FC = () => {
         {},
         { headers: authHeaders() },
       );
-      setActionSuccess(action === 'resolve' ? 'Ticket resuelto.' : 'Ticket cerrado.');
+      setActionSuccess(
+        action === 'resolve' ? 'Ticket resuelto.' : 'Ticket cerrado.',
+      );
       fetchData();
       setDialogOpen(false);
     } catch {
-      setActionError(`No se pudo ${action === 'resolve' ? 'resolver' : 'cerrar'} el ticket.`);
+      setActionError(
+        `No se pudo ${action === 'resolve' ? 'resolver' : 'cerrar'} el ticket.`,
+      );
     } finally {
       setActionLoading(false);
     }
@@ -322,17 +345,24 @@ const AdminTicketsDashboard: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Box>
-          <Typography variant="h4" fontWeight="bold" color="text.primary">
+          <Typography variant='h4' fontWeight='bold' color='text.primary'>
             Tickets de Soporte
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
             Gestione y resuelva las solicitudes de los usuarios
           </Typography>
         </Box>
-        <Tooltip title="Actualizar">
-          <IconButton onClick={fetchData} color="primary" disabled={loading}>
+        <Tooltip title='Actualizar'>
+          <IconButton onClick={fetchData} color='primary' disabled={loading}>
             <RefreshIcon />
           </IconButton>
         </Tooltip>
@@ -340,7 +370,7 @@ const AdminTicketsDashboard: React.FC = () => {
 
       {/* Error Banner */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -355,104 +385,117 @@ const AdminTicketsDashboard: React.FC = () => {
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <StatCard
-                title="Total"
+                title='Total'
                 value={stats?.total ?? 0}
                 icon={<TicketIcon />}
-                color="primary"
+                color='primary'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <StatCard
-                title="Abiertos"
+                title='Abiertos'
                 value={stats?.open ?? 0}
                 icon={<OpenIcon />}
-                color="info"
+                color='info'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <StatCard
-                title="En Progreso"
+                title='En Progreso'
                 value={stats?.in_progress ?? 0}
                 icon={<InProgressIcon />}
-                color="warning"
+                color='warning'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <StatCard
-                title="Resueltos"
+                title='Resueltos'
                 value={stats?.resolved ?? 0}
                 icon={<ResolvedIcon />}
-                color="success"
+                color='success'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2.4}>
               <StatCard
-                title="Cerrados"
+                title='Cerrados'
                 value={stats?.closed ?? 0}
                 icon={<ClosedIcon />}
-                color="error"
+                color='error'
               />
             </Grid>
           </Grid>
 
           {/* Filter Bar */}
           <Paper sx={{ p: 2, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-              <FilterIcon color="action" />
-              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+              }}
+            >
+              <FilterIcon color='action' />
+              <Typography variant='body2' color='text.secondary' sx={{ mr: 1 }}>
                 Filtros:
               </Typography>
 
-              <FormControl size="small" sx={{ minWidth: 160 }}>
+              <FormControl size='small' sx={{ minWidth: 160 }}>
                 <InputLabel>Departamento</InputLabel>
                 <Select
                   value={filterDept}
-                  label="Departamento"
-                  onChange={(e: SelectChangeEvent) => setFilterDept(e.target.value)}
+                  label='Departamento'
+                  onChange={(e: SelectChangeEvent) =>
+                    setFilterDept(e.target.value)
+                  }
                 >
-                  <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="support">Soporte</MenuItem>
-                  <MenuItem value="billing">Facturación</MenuItem>
-                  <MenuItem value="legal">Legal</MenuItem>
-                  <MenuItem value="technical">Técnico</MenuItem>
-                  <MenuItem value="general">General</MenuItem>
+                  <MenuItem value=''>Todos</MenuItem>
+                  <MenuItem value='support'>Soporte</MenuItem>
+                  <MenuItem value='billing'>Facturación</MenuItem>
+                  <MenuItem value='legal'>Legal</MenuItem>
+                  <MenuItem value='technical'>Técnico</MenuItem>
+                  <MenuItem value='general'>General</MenuItem>
                 </Select>
               </FormControl>
 
-              <FormControl size="small" sx={{ minWidth: 150 }}>
+              <FormControl size='small' sx={{ minWidth: 150 }}>
                 <InputLabel>Estado</InputLabel>
                 <Select
                   value={filterStatus}
-                  label="Estado"
-                  onChange={(e: SelectChangeEvent) => setFilterStatus(e.target.value)}
+                  label='Estado'
+                  onChange={(e: SelectChangeEvent) =>
+                    setFilterStatus(e.target.value)
+                  }
                 >
-                  <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="open">Abierto</MenuItem>
-                  <MenuItem value="in_progress">En Progreso</MenuItem>
-                  <MenuItem value="resolved">Resuelto</MenuItem>
-                  <MenuItem value="closed">Cerrado</MenuItem>
+                  <MenuItem value=''>Todos</MenuItem>
+                  <MenuItem value='open'>Abierto</MenuItem>
+                  <MenuItem value='in_progress'>En Progreso</MenuItem>
+                  <MenuItem value='resolved'>Resuelto</MenuItem>
+                  <MenuItem value='closed'>Cerrado</MenuItem>
                 </Select>
               </FormControl>
 
-              <FormControl size="small" sx={{ minWidth: 140 }}>
+              <FormControl size='small' sx={{ minWidth: 140 }}>
                 <InputLabel>Prioridad</InputLabel>
                 <Select
                   value={filterPriority}
-                  label="Prioridad"
-                  onChange={(e: SelectChangeEvent) => setFilterPriority(e.target.value)}
+                  label='Prioridad'
+                  onChange={(e: SelectChangeEvent) =>
+                    setFilterPriority(e.target.value)
+                  }
                 >
-                  <MenuItem value="">Todas</MenuItem>
-                  <MenuItem value="low">Baja</MenuItem>
-                  <MenuItem value="medium">Media</MenuItem>
-                  <MenuItem value="high">Alta</MenuItem>
-                  <MenuItem value="urgent">Urgente</MenuItem>
+                  <MenuItem value=''>Todas</MenuItem>
+                  <MenuItem value='low'>Baja</MenuItem>
+                  <MenuItem value='medium'>Media</MenuItem>
+                  <MenuItem value='high'>Alta</MenuItem>
+                  <MenuItem value='urgent'>Urgente</MenuItem>
                 </Select>
               </FormControl>
 
               {(filterDept || filterStatus || filterPriority) && (
                 <Button
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                   onClick={() => {
                     setFilterDept('');
                     setFilterStatus('');
@@ -473,8 +516,10 @@ const AdminTicketsDashboard: React.FC = () => {
               </Box>
             ) : tickets.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 6 }}>
-                <TicketIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                <Typography variant="h6" color="text.secondary">
+                <TicketIcon
+                  sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }}
+                />
+                <Typography variant='h6' color='text.secondary'>
                   No hay tickets con los filtros seleccionados
                 </Typography>
               </Box>
@@ -482,17 +527,31 @@ const AdminTicketsDashboard: React.FC = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell><Typography variant="subtitle2">#</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Asunto</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Departamento</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Prioridad</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Estado</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Asignado a</Typography></TableCell>
-                    <TableCell><Typography variant="subtitle2">Creado</Typography></TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>#</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Asunto</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Departamento</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Prioridad</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Estado</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Asignado a</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant='subtitle2'>Creado</Typography>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tickets.map((ticket) => (
+                  {tickets.map(ticket => (
                     <TableRow
                       key={ticket.id}
                       hover
@@ -500,49 +559,72 @@ const AdminTicketsDashboard: React.FC = () => {
                       onClick={() => openDetail(ticket)}
                     >
                       <TableCell>
-                        <Typography variant="body2" fontWeight="medium" color="primary.main">
+                        <Typography
+                          variant='body2'
+                          fontWeight='medium'
+                          color='primary.main'
+                        >
                           {ticket.ticket_number}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            maxWidth: 260,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {ticket.subject}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {departmentLabel[ticket.department] ?? ticket.department}
+                        <Typography variant='body2' color='text.secondary'>
+                          {departmentLabel[ticket.department] ??
+                            ticket.department}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={priorityLabel[ticket.priority] ?? ticket.priority}
+                          label={
+                            priorityLabel[ticket.priority] ?? ticket.priority
+                          }
                           color={priorityColor[ticket.priority]}
-                          size="small"
-                          variant="outlined"
+                          size='small'
+                          variant='outlined'
                         />
                       </TableCell>
                       <TableCell>
                         <Chip
                           label={statusLabel[ticket.status] ?? ticket.status}
                           color={statusColor[ticket.status]}
-                          size="small"
+                          size='small'
                         />
                       </TableCell>
                       <TableCell>
                         {ticket.assigned_to_name ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <PersonIcon fontSize="small" color="action" />
-                            <Typography variant="body2">{ticket.assigned_to_name}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
+                            <PersonIcon fontSize='small' color='action' />
+                            <Typography variant='body2'>
+                              {ticket.assigned_to_name}
+                            </Typography>
                           </Box>
                         ) : (
-                          <Typography variant="body2" color="text.disabled">
+                          <Typography variant='body2' color='text.disabled'>
                             Sin asignar
                           </Typography>
                         )}
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='caption' color='text.secondary'>
                           {formatDate(ticket.created_at)}
                         </Typography>
                       </TableCell>
@@ -559,75 +641,111 @@ const AdminTicketsDashboard: React.FC = () => {
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
         {selectedTicket && (
           <>
             <DialogTitle sx={{ pb: 1 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
                 <Box>
-                  <Typography variant="h6" fontWeight="bold">
+                  <Typography variant='h6' fontWeight='bold'>
                     {selectedTicket.ticket_number} — {selectedTicket.subject}
                   </Typography>
-                  <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                  <Stack direction='row' spacing={1} sx={{ mt: 0.5 }}>
                     <Chip
                       label={statusLabel[selectedTicket.status]}
                       color={statusColor[selectedTicket.status]}
-                      size="small"
+                      size='small'
                     />
                     <Chip
                       label={priorityLabel[selectedTicket.priority]}
                       color={priorityColor[selectedTicket.priority]}
-                      size="small"
-                      variant="outlined"
+                      size='small'
+                      variant='outlined'
                     />
                     <Chip
-                      label={departmentLabel[selectedTicket.department] ?? selectedTicket.department}
-                      size="small"
-                      variant="outlined"
+                      label={
+                        departmentLabel[selectedTicket.department] ??
+                        selectedTicket.department
+                      }
+                      size='small'
+                      variant='outlined'
                     />
                   </Stack>
                 </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ mt: 0.5 }}
+                >
                   {formatDate(selectedTicket.created_at)}
                 </Typography>
               </Box>
             </DialogTitle>
 
-            <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <DialogContent
+              dividers
+              sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+            >
               {/* Feedback */}
-              {actionError && <Alert severity="error" onClose={clearFeedback}>{actionError}</Alert>}
-              {actionSuccess && <Alert severity="success" onClose={clearFeedback}>{actionSuccess}</Alert>}
+              {actionError && (
+                <Alert severity='error' onClose={clearFeedback}>
+                  {actionError}
+                </Alert>
+              )}
+              {actionSuccess && (
+                <Alert severity='success' onClose={clearFeedback}>
+                  {actionSuccess}
+                </Alert>
+              )}
 
               {/* Description */}
               <Box>
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography variant='subtitle2' gutterBottom>
                   Descripcion
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
-                  <Typography variant="body2">{selectedTicket.description}</Typography>
+                <Paper
+                  variant='outlined'
+                  sx={{ p: 2, bgcolor: 'action.hover' }}
+                >
+                  <Typography variant='body2'>
+                    {selectedTicket.description}
+                  </Typography>
                 </Paper>
               </Box>
 
               {/* Assign */}
               <Box>
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography variant='subtitle2' gutterBottom>
                   Asignar Ticket
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
-                    size="small"
+                    size='small'
                     fullWidth
-                    placeholder="ID del usuario a asignar"
+                    placeholder='ID del usuario a asignar'
                     value={assignUserId}
-                    onChange={(e) => setAssignUserId(e.target.value)}
-                    InputProps={{ startAdornment: <AssignIcon fontSize="small" sx={{ mr: 1, color: 'action.active' }} /> }}
+                    onChange={e => setAssignUserId(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <AssignIcon
+                          fontSize='small'
+                          sx={{ mr: 1, color: 'action.active' }}
+                        />
+                      ),
+                    }}
                   />
                   <Button
-                    variant="outlined"
-                    size="small"
+                    variant='outlined'
+                    size='small'
                     onClick={handleAssign}
                     disabled={actionLoading || !assignUserId.trim()}
                     startIcon={<AssignIcon />}
@@ -636,7 +754,11 @@ const AdminTicketsDashboard: React.FC = () => {
                   </Button>
                 </Box>
                 {selectedTicket.assigned_to_name && (
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ mt: 0.5, display: 'block' }}
+                  >
                     Actualmente asignado a: {selectedTicket.assigned_to_name}
                   </Typography>
                 )}
@@ -646,38 +768,54 @@ const AdminTicketsDashboard: React.FC = () => {
 
               {/* Responses */}
               <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  Historial de Respuestas ({selectedTicket.responses?.length ?? 0})
+                <Typography variant='subtitle2' gutterBottom>
+                  Historial de Respuestas (
+                  {selectedTicket.responses?.length ?? 0})
                 </Typography>
                 {!selectedTicket.responses?.length ? (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Sin respuestas aun.
                   </Typography>
                 ) : (
                   <Stack spacing={1.5}>
-                    {selectedTicket.responses.map((r) => (
+                    {selectedTicket.responses.map(r => (
                       <Paper
                         key={r.id}
-                        variant="outlined"
+                        variant='outlined'
                         sx={{
                           p: 1.5,
                           borderLeft: 4,
-                          borderColor: r.is_internal ? 'warning.main' : 'primary.main',
-                          bgcolor: r.is_internal ? 'warning.lighter' : 'background.paper',
+                          borderColor: r.is_internal
+                            ? 'warning.main'
+                            : 'primary.main',
+                          bgcolor: r.is_internal
+                            ? 'warning.lighter'
+                            : 'background.paper',
                         }}
                       >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="caption" fontWeight="bold">
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            mb: 0.5,
+                          }}
+                        >
+                          <Typography variant='caption' fontWeight='bold'>
                             {r.responder_name}
                             {r.is_internal && (
-                              <Chip label="Interno" size="small" color="warning" sx={{ ml: 1, height: 16, fontSize: 10 }} />
+                              <Chip
+                                label='Interno'
+                                size='small'
+                                color='warning'
+                                sx={{ ml: 1, height: 16, fontSize: 10 }}
+                              />
                             )}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant='caption' color='text.secondary'>
                             {formatDate(r.created_at)}
                           </Typography>
                         </Box>
-                        <Typography variant="body2">{r.message}</Typography>
+                        <Typography variant='body2'>{r.message}</Typography>
                       </Paper>
                     ))}
                   </Stack>
@@ -689,28 +827,28 @@ const AdminTicketsDashboard: React.FC = () => {
               {/* Respond Form */}
               {selectedTicket.status !== 'closed' && (
                 <Box>
-                  <Typography variant="subtitle2" gutterBottom>
+                  <Typography variant='subtitle2' gutterBottom>
                     Agregar Respuesta
                   </Typography>
                   <TextField
                     multiline
                     rows={3}
                     fullWidth
-                    placeholder="Escriba la respuesta al usuario..."
+                    placeholder='Escriba la respuesta al usuario...'
                     value={responseMessage}
-                    onChange={(e) => setResponseMessage(e.target.value)}
-                    size="small"
+                    onChange={e => setResponseMessage(e.target.value)}
+                    size='small'
                   />
                   <FormControlLabel
                     control={
                       <Checkbox
-                        size="small"
+                        size='small'
                         checked={isInternal}
-                        onChange={(e) => setIsInternal(e.target.checked)}
+                        onChange={e => setIsInternal(e.target.checked)}
                       />
                     }
                     label={
-                      <Typography variant="body2">
+                      <Typography variant='body2'>
                         Nota interna (no visible para el usuario)
                       </Typography>
                     }
@@ -721,7 +859,7 @@ const AdminTicketsDashboard: React.FC = () => {
             </DialogContent>
 
             <DialogActions sx={{ p: 2, gap: 1, flexWrap: 'wrap' }}>
-              <Button onClick={() => setDialogOpen(false)} color="inherit">
+              <Button onClick={() => setDialogOpen(false)} color='inherit'>
                 Cerrar
               </Button>
               <Box sx={{ flex: 1 }} />
@@ -730,8 +868,8 @@ const AdminTicketsDashboard: React.FC = () => {
                 <>
                   {selectedTicket.status !== 'resolved' && (
                     <Button
-                      variant="outlined"
-                      color="success"
+                      variant='outlined'
+                      color='success'
                       startIcon={<ResolveIcon />}
                       onClick={() => handleStatusAction('resolve')}
                       disabled={actionLoading}
@@ -740,8 +878,8 @@ const AdminTicketsDashboard: React.FC = () => {
                     </Button>
                   )}
                   <Button
-                    variant="outlined"
-                    color="error"
+                    variant='outlined'
+                    color='error'
                     startIcon={<CloseIcon />}
                     onClick={() => handleStatusAction('close')}
                     disabled={actionLoading}
@@ -749,9 +887,15 @@ const AdminTicketsDashboard: React.FC = () => {
                     Cerrar ticket
                   </Button>
                   <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+                    variant='contained'
+                    color='primary'
+                    startIcon={
+                      actionLoading ? (
+                        <CircularProgress size={16} color='inherit' />
+                      ) : (
+                        <SendIcon />
+                      )
+                    }
                     onClick={handleRespond}
                     disabled={actionLoading || !responseMessage.trim()}
                   >

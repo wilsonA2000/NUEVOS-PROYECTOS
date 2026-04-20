@@ -24,12 +24,9 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   Paper,
   Divider,
   Badge,
-  IconButton,
-  Tooltip,
   LinearProgress,
   AlertTitle,
   CircularProgress,
@@ -73,9 +70,9 @@ import { es } from 'date-fns/locale';
 
 import { LandlordContractService } from '../../services/landlordContractService';
 import { contractService } from '../../services/contractService';
-import { 
-  LandlordControlledContractData, 
-  ContractWorkflowState, 
+import {
+  LandlordControlledContractData,
+  ContractWorkflowState,
 } from '../../types/landlordContract';
 import { Contract } from '../../types/contract';
 import { useAuth } from '../../hooks/useAuth';
@@ -96,22 +93,42 @@ interface TenantAction {
 }
 
 const TenantContractsDashboard: React.FC = () => {
-  const { user } = useAuth();
-  
+
   // Estados principales
   const [loading, setLoading] = useState(true);
-  const [contracts, setContracts] = useState<LandlordControlledContractData[]>([]);
-  const [pendingReviewContracts, setPendingReviewContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<LandlordControlledContractData[]>(
+    [],
+  );
+  const [pendingReviewContracts, setPendingReviewContracts] = useState<
+    Contract[]
+  >([]);
   const [workflowProcesses, setWorkflowProcesses] = useState<any[]>([]); // Procesos del workflow
   const [error, setError] = useState<string>('');
   const [activeStep, setActiveStep] = useState(0);
-  const [approvingContract, setApprovingContract] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{open: boolean, contractId: string | null}>({ open: false, contractId: null });
-  const [successDialog, setSuccessDialog] = useState<{open: boolean, title: string, message: string}>({ open: false, title: '', message: '' });
-  const [errorDialog, setErrorDialog] = useState<{open: boolean, title: string, message: string}>({ open: false, title: '', message: '' }); // ID del contrato siendo aprobado
+  const [approvingContract, setApprovingContract] = useState<string | null>(
+    null,
+  );
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    contractId: string | null;
+  }>({ open: false, contractId: null });
+  const [successDialog, setSuccessDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+  }>({ open: false, title: '', message: '' });
+  const [errorDialog, setErrorDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+  }>({ open: false, title: '', message: '' }); // ID del contrato siendo aprobado
   const [modificationModalOpen, setModificationModalOpen] = useState(false);
-  const [selectedContractForModification, setSelectedContractForModification] = useState<string | null>(null);
-  const [selectedContractData, setSelectedContractData] = useState<Record<string, unknown> | null>(null);
+  const [selectedContractForModification, setSelectedContractForModification] =
+    useState<string | null>(null);
+  const [selectedContractData, setSelectedContractData] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
 
   useEffect(() => {
     loadTenantContracts();
@@ -121,7 +138,7 @@ const TenantContractsDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       // Cargar procesos del workflow (PRIORIDAD)
       try {
         const { data } = await api.get('/contracts/tenant-processes/');
@@ -131,23 +148,25 @@ const TenantContractsDashboard: React.FC = () => {
       } catch (workflowError) {
         setWorkflowProcesses([]);
       }
-      
+
       // Cargar contratos del workflow del arrendador (SECUNDARIO)
       const response = await LandlordContractService.getTenantContracts();
-      
+
       // La respuesta puede tener la estructura { contracts: [], pagination: {} }
       // o ser directamente un array
       const contractsData = response?.contracts || response || [];
-      
+
       // Asegurar que siempre sea un array
       setContracts(Array.isArray(contractsData) ? contractsData : []);
 
       // Cargar contratos pendientes de revisión
-      const pendingContracts = await contractService.getPendingTenantReviewContracts();
+      const pendingContracts =
+        await contractService.getPendingTenantReviewContracts();
       setPendingReviewContracts(pendingContracts);
-      
     } catch (err: any) {
-      setError(`Error al cargar contratos: ${  err.message || 'Error desconocido'}`);
+      setError(
+        `Error al cargar contratos: ${err.message || 'Error desconocido'}`,
+      );
       setContracts([]); // Asegurar array vacío en caso de error
       setPendingReviewContracts([]);
     } finally {
@@ -181,16 +200,20 @@ const TenantContractsDashboard: React.FC = () => {
       setApprovingContract(contractId);
 
       // Llamar al endpoint específico para aprobar contrato desde el workflow
-      await api.post(`/contracts/tenant/contracts/${contractId}/approve_contract/`, {
-        approved: true,
-        tenant_notes: 'Aprobado desde el dashboard del arrendatario',
-        confirm_understanding: true,
-      });
+      await api.post(
+        `/contracts/tenant/contracts/${contractId}/approve_contract/`,
+        {
+          approved: true,
+          tenant_notes: 'Aprobado desde el dashboard del arrendatario',
+          confirm_understanding: true,
+        },
+      );
 
       setSuccessDialog({
         open: true,
         title: '¡Contrato Aprobado Exitosamente!',
-        message: 'El proceso ahora avanzará a la etapa de autenticación biométrica.',
+        message:
+          'El proceso ahora avanzará a la etapa de autenticación biométrica.',
       });
 
       // Recargar los datos para reflejar el cambio
@@ -199,7 +222,8 @@ const TenantContractsDashboard: React.FC = () => {
       setErrorDialog({
         open: true,
         title: 'Error al Aprobar el Contrato',
-        message: error.response?.data?.detail || error.message || 'Error desconocido',
+        message:
+          error.response?.data?.detail || error.message || 'Error desconocido',
       });
     } finally {
       setApprovingContract(null);
@@ -207,7 +231,9 @@ const TenantContractsDashboard: React.FC = () => {
   };
 
   // Obtener acciones pendientes para el arrendatario
-  const getPendingActions = (contract: LandlordControlledContractData): TenantAction[] => {
+  const getPendingActions = (
+    contract: LandlordControlledContractData,
+  ): TenantAction[] => {
     const actions: TenantAction[] = [];
 
     switch (contract.current_state) {
@@ -219,7 +245,8 @@ const TenantContractsDashboard: React.FC = () => {
           icon: <EmailIcon />,
           urgent: true,
           completed: false,
-          action: () => window.location.href = `/contracts/tenant/accept/${contract.invitation_token}`,
+          action: () =>
+            (window.location.href = `/contracts/tenant/accept/${contract.invitation_token}`),
         });
         break;
 
@@ -228,22 +255,26 @@ const TenantContractsDashboard: React.FC = () => {
           actions.push({
             id: 'complete_data',
             title: 'Completar Datos Personales',
-            description: 'Completa tu información personal, laboral y referencias para continuar con el proceso',
+            description:
+              'Completa tu información personal, laboral y referencias para continuar con el proceso',
             icon: <PersonIcon />,
             urgent: true,
             completed: false,
-            action: () => window.location.href = `/contracts/tenant/data/${contract.id}`,
+            action: () =>
+              (window.location.href = `/contracts/tenant/data/${contract.id}`),
           });
         }
 
         actions.push({
           id: 'review_contract',
           title: 'Revisar Términos del Contrato',
-          description: 'Revisa cuidadosamente todos los términos del contrato y presenta objeciones si es necesario',
+          description:
+            'Revisa cuidadosamente todos los términos del contrato y presenta objeciones si es necesario',
           icon: <DocumentIcon />,
           urgent: false,
           completed: contract.tenant_approved,
-          action: () => window.location.href = `/contracts/tenant/review/${contract.id}`,
+          action: () =>
+            (window.location.href = `/contracts/tenant/review/${contract.id}`),
         });
         break;
 
@@ -252,11 +283,13 @@ const TenantContractsDashboard: React.FC = () => {
           actions.push({
             id: 'sign_contract',
             title: 'Firmar Contrato Digitalmente',
-            description: 'Procede con la firma digital biométrica para finalizar el contrato',
+            description:
+              'Procede con la firma digital biométrica para finalizar el contrato',
             icon: <SignIcon />,
             urgent: true,
             completed: false,
-            action: () => window.location.href = `/contracts/sign/${contract.id}`,
+            action: () =>
+              (window.location.href = `/contracts/sign/${contract.id}`),
           });
         }
         break;
@@ -265,11 +298,13 @@ const TenantContractsDashboard: React.FC = () => {
         actions.push({
           id: 'review_objections',
           title: 'Revisar Respuesta a Objeciones',
-          description: 'El arrendador ha respondido a tus objeciones. Revisa su respuesta.',
+          description:
+            'El arrendador ha respondido a tus objeciones. Revisa su respuesta.',
           icon: <WarningIcon />,
           urgent: true,
           completed: false,
-          action: () => window.location.href = `/contracts/tenant/objections/${contract.id}`,
+          action: () =>
+            (window.location.href = `/contracts/tenant/objections/${contract.id}`),
         });
         break;
     }
@@ -278,18 +313,22 @@ const TenantContractsDashboard: React.FC = () => {
   };
 
   // Obtener el progreso del contrato como porcentaje
-  const getContractProgress = (contract: LandlordControlledContractData): number => {
+  const getContractProgress = (
+    contract: LandlordControlledContractData,
+  ): number => {
     const stateProgress = {
-      'TENANT_INVITED': 10,
-      'TENANT_REVIEWING': 30,
-      'LANDLORD_REVIEWING': 50,
-      'OBJECTIONS_PENDING': 40,
-      'BOTH_REVIEWING': 60,
-      'READY_TO_SIGN': 80,
-      'FULLY_SIGNED': 90,
-      'PUBLISHED': 100,
+      TENANT_INVITED: 10,
+      TENANT_REVIEWING: 30,
+      LANDLORD_REVIEWING: 50,
+      OBJECTIONS_PENDING: 40,
+      BOTH_REVIEWING: 60,
+      READY_TO_SIGN: 80,
+      FULLY_SIGNED: 90,
+      PUBLISHED: 100,
     };
-    return stateProgress[contract.current_state as keyof typeof stateProgress] || 0;
+    return (
+      stateProgress[contract.current_state as keyof typeof stateProgress] || 0
+    );
   };
 
   // Obtener los pasos del workflow
@@ -303,12 +342,16 @@ const TenantContractsDashboard: React.FC = () => {
       {
         label: 'Datos Completados',
         completed: contract.tenant_data?.full_name ? true : false,
-        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_data?.full_name,
+        active:
+          contract.current_state === 'TENANT_REVIEWING' &&
+          !contract.tenant_data?.full_name,
       },
       {
         label: 'Contrato Revisado',
         completed: contract.tenant_approved,
-        active: contract.current_state === 'TENANT_REVIEWING' && !contract.tenant_approved,
+        active:
+          contract.current_state === 'TENANT_REVIEWING' &&
+          !contract.tenant_approved,
       },
       {
         label: 'Aprobado por Arrendador',
@@ -317,7 +360,8 @@ const TenantContractsDashboard: React.FC = () => {
       },
       {
         label: 'Listo para Firmar',
-        completed: contract.current_state === 'READY_TO_SIGN' || contract.tenant_signed,
+        completed:
+          contract.current_state === 'READY_TO_SIGN' || contract.tenant_signed,
         active: contract.current_state === 'READY_TO_SIGN',
       },
       {
@@ -329,7 +373,9 @@ const TenantContractsDashboard: React.FC = () => {
   };
 
   // Obtener el color del estado
-  const getStateColor = (state: ContractWorkflowState): 'success' | 'warning' | 'error' | 'info' | 'default' => {
+  const getStateColor = (
+    state: ContractWorkflowState,
+  ): 'success' | 'warning' | 'error' | 'info' | 'default' => {
     switch (state) {
       case 'PUBLISHED':
         return 'success';
@@ -353,17 +399,17 @@ const TenantContractsDashboard: React.FC = () => {
   // Obtener texto amigable del estado
   const getStateText = (state: ContractWorkflowState): string => {
     const stateTexts = {
-      'TENANT_INVITED': 'Invitación Pendiente',
-      'TENANT_REVIEWING': 'Revisando Contrato',
-      'LANDLORD_REVIEWING': 'Arrendador Revisando',
-      'OBJECTIONS_PENDING': 'Objeciones Pendientes',
-      'BOTH_REVIEWING': 'Revisión Conjunta',
-      'READY_TO_SIGN': 'Listo para Firmar',
-      'FULLY_SIGNED': 'Contrato Firmado',
-      'PUBLISHED': 'Contrato Activo',
-      'EXPIRED': 'Expirado',
-      'TERMINATED': 'Terminado',
-      'CANCELLED': 'Cancelado',
+      TENANT_INVITED: 'Invitación Pendiente',
+      TENANT_REVIEWING: 'Revisando Contrato',
+      LANDLORD_REVIEWING: 'Arrendador Revisando',
+      OBJECTIONS_PENDING: 'Objeciones Pendientes',
+      BOTH_REVIEWING: 'Revisión Conjunta',
+      READY_TO_SIGN: 'Listo para Firmar',
+      FULLY_SIGNED: 'Contrato Firmado',
+      PUBLISHED: 'Contrato Activo',
+      EXPIRED: 'Expirado',
+      TERMINATED: 'Terminado',
+      CANCELLED: 'Cancelado',
     };
     return stateTexts[state as keyof typeof stateTexts] || state;
   };
@@ -373,16 +419,34 @@ const TenantContractsDashboard: React.FC = () => {
     const progress = getContractProgress(contract);
     const pendingActions = getPendingActions(contract);
     const workflowSteps = getWorkflowSteps(contract);
-    const daysUntilExpiration = contract.end_date ? differenceInDays(parseISO(contract.end_date), new Date()) : null;
+    const daysUntilExpiration = contract.end_date
+      ? differenceInDays(parseISO(contract.end_date), new Date())
+      : null;
 
     return (
       <Card key={contract.id} elevation={3} sx={{ mb: 3 }}>
         <CardContent>
           {/* Header con información básica */}
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='flex-start'
+            sx={{ mb: 2 }}
+          >
             <Box>
-              <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-                <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, mr: 1, fontSize: 14 }}>
+              <Typography
+                variant='h6'
+                sx={{ mb: 1, display: 'flex', alignItems: 'center' }}
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: 'primary.main',
+                    width: 32,
+                    height: 32,
+                    mr: 1,
+                    fontSize: 14,
+                  }}
+                >
                   <HomeIcon />
                 </Avatar>
                 {contract.property_address}
@@ -390,24 +454,24 @@ const TenantContractsDashboard: React.FC = () => {
               <Chip
                 label={getStateText(contract.current_state)}
                 color={getStateColor(contract.current_state)}
-                size="small"
+                size='small'
                 sx={{ mr: 1 }}
               />
               {pendingActions.some(a => a.urgent) && (
                 <Chip
-                  label="Acción Requerida"
-                  color="error"
-                  size="small"
+                  label='Acción Requerida'
+                  color='error'
+                  size='small'
                   icon={<WarningIcon />}
                 />
               )}
             </Box>
-            
-            <Box textAlign="right">
-              <Typography variant="h6" color="success.main">
+
+            <Box textAlign='right'>
+              <Typography variant='h6' color='success.main'>
                 ${contract.monthly_rent.toLocaleString('es-CO')}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 /mes
               </Typography>
             </Box>
@@ -415,16 +479,21 @@ const TenantContractsDashboard: React.FC = () => {
 
           {/* Barra de progreso */}
           <Box sx={{ mb: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Box
+              display='flex'
+              justifyContent='space-between'
+              alignItems='center'
+              sx={{ mb: 1 }}
+            >
+              <Typography variant='body2' color='text.secondary'>
                 Progreso del Contrato
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {progress}%
               </Typography>
             </Box>
             <LinearProgress
-              variant="determinate"
+              variant='determinate'
               value={progress}
               sx={{ height: 8, borderRadius: 4 }}
             />
@@ -432,21 +501,34 @@ const TenantContractsDashboard: React.FC = () => {
 
           {/* Información del arrendador */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography
+              variant='subtitle2'
+              color='text.secondary'
+              sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
               <PersonIcon sx={{ fontSize: 16 }} />
               Arrendador
             </Typography>
-            <Box display="flex" alignItems="center">
-              <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}>
+            <Box display='flex' alignItems='center'>
+              <Avatar
+                sx={{ bgcolor: 'secondary.main', width: 32, height: 32, mr: 1 }}
+              >
                 <LandlordIcon />
               </Avatar>
               <Box>
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   <strong>{contract.landlord_data.full_name}</strong>
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    color: 'text.secondary',
+                  }}
+                >
                   <EmailIcon sx={{ fontSize: 14 }} />
-                  <Typography variant="caption">
+                  <Typography variant='caption'>
                     {contract.landlord_data.email}
                   </Typography>
                 </Box>
@@ -457,15 +539,23 @@ const TenantContractsDashboard: React.FC = () => {
           {/* Acciones pendientes */}
           {pendingActions.length > 0 && (
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <PriorityHighIcon sx={{ fontSize: 16 }} color="warning" />
+              <Typography
+                variant='subtitle2'
+                color='text.secondary'
+                sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <PriorityHighIcon sx={{ fontSize: 16 }} color='warning' />
                 Acciones Pendientes
               </Typography>
               <List dense>
-                {pendingActions.map((action) => (
+                {pendingActions.map(action => (
                   <ListItem key={action.id} sx={{ pl: 0 }}>
                     <ListItemIcon>
-                      <Badge color="error" variant="dot" invisible={!action.urgent}>
+                      <Badge
+                        color='error'
+                        variant='dot'
+                        invisible={!action.urgent}
+                      >
                         {action.icon}
                       </Badge>
                     </ListItemIcon>
@@ -485,18 +575,35 @@ const TenantContractsDashboard: React.FC = () => {
 
           {/* Stepper de progreso */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography
+              variant='subtitle2'
+              color='text.secondary'
+              sx={{ mb: 1 }}
+            >
               Estado del Proceso
             </Typography>
-            <Stepper orientation="vertical" sx={{ pl: 2 }}>
+            <Stepper orientation='vertical' sx={{ pl: 2 }}>
               {workflowSteps.map((step, index) => (
-                <Step key={index} active={step.active} completed={step.completed}>
+                <Step
+                  key={index}
+                  active={step.active}
+                  completed={step.completed}
+                >
                   <StepLabel
                     StepIconProps={{
                       sx: { fontSize: 20 },
                     }}
                   >
-                    <Typography variant="body2" color={step.completed ? 'success.main' : step.active ? 'primary.main' : 'text.secondary'}>
+                    <Typography
+                      variant='body2'
+                      color={
+                        step.completed
+                          ? 'success.main'
+                          : step.active
+                            ? 'primary.main'
+                            : 'text.secondary'
+                      }
+                    >
                       {step.label}
                     </Typography>
                   </StepLabel>
@@ -509,37 +616,42 @@ const TenantContractsDashboard: React.FC = () => {
           <Divider sx={{ my: 2 }} />
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 Duración del Contrato
               </Typography>
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 {contract.contract_duration_months} meses
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 Depósito de Garantía
               </Typography>
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 ${contract.security_deposit.toLocaleString('es-CO')}
               </Typography>
             </Grid>
             {contract.start_date && (
               <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Fecha de Inicio
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   {format(parseISO(contract.start_date), 'PPP', { locale: es })}
                 </Typography>
               </Grid>
             )}
             {daysUntilExpiration !== null && daysUntilExpiration > 0 && (
               <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Días Restantes
                 </Typography>
-                <Typography variant="body2" color={daysUntilExpiration <= 30 ? 'warning.main' : 'text.primary'}>
+                <Typography
+                  variant='body2'
+                  color={
+                    daysUntilExpiration <= 30 ? 'warning.main' : 'text.primary'
+                  }
+                >
                   {daysUntilExpiration} días
                 </Typography>
               </Grid>
@@ -549,22 +661,26 @@ const TenantContractsDashboard: React.FC = () => {
 
         <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
           <Button
-            size="small"
+            size='small'
             startIcon={<ViewIcon />}
-            onClick={() => window.location.href = `/contracts/tenant/view/${contract.id}`}
+            onClick={() =>
+              (window.location.href = `/contracts/tenant/view/${contract.id}`)
+            }
           >
             Ver Contrato Completo
           </Button>
-          
+
           {pendingActions.length > 0 && (
             <Button
-              variant="contained"
-              size="small"
+              variant='contained'
+              size='small'
               color={pendingActions.some(a => a.urgent) ? 'error' : 'primary'}
               startIcon={<StartIcon />}
               onClick={pendingActions[0]?.action}
             >
-              {pendingActions.some(a => a.urgent) ? 'Acción Urgente' : 'Continuar Proceso'}
+              {pendingActions.some(a => a.urgent)
+                ? 'Acción Urgente'
+                : 'Continuar Proceso'}
             </Button>
           )}
         </CardActions>
@@ -573,30 +689,34 @@ const TenantContractsDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Cargando tus contratos..." />;
+    return <LoadingSpinner message='Cargando tus contratos...' />;
   }
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth='lg'>
       <Box py={3}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ mb: 1 }}>
+          <Typography variant='h4' sx={{ mb: 1 }}>
             Mis Contratos de Arrendamiento
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Gestiona todos tus contratos y mantente al día con las acciones pendientes
+          <Typography variant='body1' color='text.secondary'>
+            Gestiona todos tus contratos y mantente al día con las acciones
+            pendientes
           </Typography>
         </Box>
 
         {/* Procesos del Workflow - PRIORIDAD ALTA */}
         {workflowProcesses.length > 0 && (
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+            <Typography
+              variant='h5'
+              sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+            >
               <HomeIcon sx={{ mr: 1, color: 'primary.main' }} />
               Procesos Activos ({workflowProcesses.length})
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
               Tus procesos de arrendamiento en curso con PDF profesional
             </Typography>
             {workflowProcesses.map(process => (
@@ -604,68 +724,88 @@ const TenantContractsDashboard: React.FC = () => {
                 <CardContent>
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={8}>
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant='h6' gutterBottom>
                         {process.property?.title || 'Propiedad'}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
                         {process.property?.address}
                       </Typography>
-                      <Typography variant="subtitle1" color="primary" gutterBottom>
-                        Canon: ${process.property?.rent_price?.toLocaleString()}/mes
+                      <Typography
+                        variant='subtitle1'
+                        color='primary'
+                        gutterBottom
+                      >
+                        Canon: ${process.property?.rent_price?.toLocaleString()}
+                        /mes
                       </Typography>
-                      
+
                       {/* Estado del proceso mejorado */}
                       <Box sx={{ mt: 2 }}>
                         {/* Mostrar el estado actual de manera más clara */}
-                        {(process.status === 'biometric_pending' ||
-                          process.status === 'pending_biometric_authentication' ||
-                          process.workflow_status === 'pending_tenant_biometric' ||
-                          (process.workflow_stage === 4 && process.workflow_data?.contract_created?.tenant_approved)) ? (
+                        {process.status === 'biometric_pending' ||
+                        process.status === 'pending_biometric_authentication' ||
+                        process.workflow_status ===
+                          'pending_tenant_biometric' ||
+                        (process.workflow_stage === 4 &&
+                          process.workflow_data?.contract_created
+                            ?.tenant_approved) ? (
                           <>
-                            <Alert severity="info" sx={{ mb: 2 }}>
-                              <AlertTitle>⏳ Autenticación Biométrica Pendiente</AlertTitle>
-                              <Typography variant="body2">
-                                Tu contrato ha sido aprobado. El siguiente paso es completar la
-                                autenticación biométrica para activar el contrato.
+                            <Alert severity='info' sx={{ mb: 2 }}>
+                              <AlertTitle>
+                                ⏳ Autenticación Biométrica Pendiente
+                              </AlertTitle>
+                              <Typography variant='body2'>
+                                Tu contrato ha sido aprobado. El siguiente paso
+                                es completar la autenticación biométrica para
+                                activar el contrato.
                               </Typography>
                             </Alert>
                             <Chip
-                              label="Etapa 4: Esperando Autenticación Biométrica"
-                              color="warning"
-                              variant="filled"
+                              label='Etapa 4: Esperando Autenticación Biométrica'
+                              color='warning'
+                              variant='filled'
                               icon={<SecurityIcon />}
                               sx={{ mb: 1 }}
                             />
                           </>
                         ) : process.status === 'contract_approved_by_tenant' ? (
                           <>
-                            <Alert severity="success" sx={{ mb: 2 }}>
+                            <Alert severity='success' sx={{ mb: 2 }}>
                               <AlertTitle>Contrato Aprobado por Ti</AlertTitle>
-                              <Typography variant="body2">
-                                Has aprobado el contrato exitosamente. Ahora el arrendador debe revisar
-                                y aprobar para continuar al siguiente paso de autenticación biométrica.
+                              <Typography variant='body2'>
+                                Has aprobado el contrato exitosamente. Ahora el
+                                arrendador debe revisar y aprobar para continuar
+                                al siguiente paso de autenticación biométrica.
                               </Typography>
                             </Alert>
                             <Chip
-                              label="Etapa 3: Esperando aprobación del arrendador"
-                              color="warning"
-                              variant="filled"
+                              label='Etapa 3: Esperando aprobación del arrendador'
+                              color='warning'
+                              variant='filled'
                               icon={<InfoIcon />}
                               sx={{ mb: 1 }}
                             />
                           </>
-                        ) : process.status === 'contract_pending_tenant_approval' ? (
+                        ) : process.status ===
+                          'contract_pending_tenant_approval' ? (
                           <>
-                            <Alert severity="warning" sx={{ mb: 2 }}>
-                              <AlertTitle>Contrato Listo para Revisión</AlertTitle>
-                              <Typography variant="body2">
-                                El arrendador ha creado el contrato. ¡Es tu turno de revisarlo y aprobarlo!
+                            <Alert severity='warning' sx={{ mb: 2 }}>
+                              <AlertTitle>
+                                Contrato Listo para Revisión
+                              </AlertTitle>
+                              <Typography variant='body2'>
+                                El arrendador ha creado el contrato. ¡Es tu
+                                turno de revisarlo y aprobarlo!
                               </Typography>
                             </Alert>
                             <Chip
-                              label="Etapa 3: Revisión del Contrato - Tu Aprobación Requerida"
-                              color="warning"
-                              variant="filled"
+                              label='Etapa 3: Revisión del Contrato - Tu Aprobación Requerida'
+                              color='warning'
+                              variant='filled'
                               icon={<DocumentIcon />}
                               sx={{ mb: 1 }}
                             />
@@ -673,86 +813,189 @@ const TenantContractsDashboard: React.FC = () => {
                         ) : (
                           <Chip
                             label={`Etapa ${process.workflow_stage}: ${process.status}`}
-                            color="primary"
-                            variant="outlined"
+                            color='primary'
+                            variant='outlined'
                             sx={{ mb: 1 }}
                           />
                         )}
 
                         {/* Barra de progreso con etapas */}
                         <Box sx={{ mt: 2 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="caption">Progreso del Proceso</Typography>
-                            <Typography variant="caption">{Math.round((process.workflow_stage / 5) * 100)}%</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              mb: 1,
+                            }}
+                          >
+                            <Typography variant='caption'>
+                              Progreso del Proceso
+                            </Typography>
+                            <Typography variant='caption'>
+                              {Math.round((process.workflow_stage / 5) * 100)}%
+                            </Typography>
                           </Box>
                           <LinearProgress
-                            variant="determinate"
+                            variant='determinate'
                             value={(process.workflow_stage / 5) * 100}
                             sx={{ mb: 2, height: 8, borderRadius: 1 }}
                           />
 
                           {/* Lista de etapas */}
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <Typography variant="caption" color={process.workflow_stage >= 1 ? 'success.main' : 'text.disabled'}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 1,
+                            }}
+                          >
+                            <Typography
+                              variant='caption'
+                              color={
+                                process.workflow_stage >= 1
+                                  ? 'success.main'
+                                  : 'text.disabled'
+                              }
+                            >
                               Etapa 1: Solicitud enviada
                             </Typography>
-                            <Typography variant="caption" color={process.workflow_stage >= 2 ? 'success.main' : 'text.disabled'}>
+                            <Typography
+                              variant='caption'
+                              color={
+                                process.workflow_stage >= 2
+                                  ? 'success.main'
+                                  : 'text.disabled'
+                              }
+                            >
                               Etapa 2: Visita completada
                             </Typography>
-                            <Typography variant="caption" color={process.workflow_stage >= 3 ? 'success.main' : 'text.disabled'}>
+                            <Typography
+                              variant='caption'
+                              color={
+                                process.workflow_stage >= 3
+                                  ? 'success.main'
+                                  : 'text.disabled'
+                              }
+                            >
                               Etapa 3: Documentos aprobados
                             </Typography>
-                            <Typography variant="caption" color={process.workflow_stage >= 4 ? 'warning.main' : 'text.disabled'}>
+                            <Typography
+                              variant='caption'
+                              color={
+                                process.workflow_stage >= 4
+                                  ? 'warning.main'
+                                  : 'text.disabled'
+                              }
+                            >
                               Etapa 4: Autenticación biométrica
                             </Typography>
-                            <Typography variant="caption" color={process.workflow_stage >= 5 ? 'success.main' : 'text.disabled'}>
+                            <Typography
+                              variant='caption'
+                              color={
+                                process.workflow_stage >= 5
+                                  ? 'success.main'
+                                  : 'text.disabled'
+                              }
+                            >
                               Etapa 5: Contrato activo
                             </Typography>
                           </Box>
                         </Box>
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={12} md={4}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 1,
+                        }}
+                      >
                         {/* Acciones según el estado */}
                         {(process.status === 'biometric_pending' ||
-                          process.status === 'pending_biometric_authentication' ||
-                          process.workflow_status === 'pending_tenant_biometric' ||
-                          (process.workflow_stage === 4 && process.workflow_data?.contract_created?.tenant_approved)) && (
+                          process.status ===
+                            'pending_biometric_authentication' ||
+                          process.workflow_status ===
+                            'pending_tenant_biometric' ||
+                          (process.workflow_stage === 4 &&
+                            process.workflow_data?.contract_created
+                              ?.tenant_approved)) && (
                           <>
-                            <Alert severity="success" sx={{ mb: 2 }}>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                                ¡Es tu turno! Debes iniciar la autenticación biométrica
+                            <Alert severity='success' sx={{ mb: 2 }}>
+                              <Typography
+                                variant='subtitle2'
+                                sx={{ fontWeight: 'bold' }}
+                              >
+                                ¡Es tu turno! Debes iniciar la autenticación
+                                biométrica
                               </Typography>
-                              <Typography variant="body2" sx={{ mt: 1 }}>
+                              <Typography variant='body2' sx={{ mt: 1 }}>
                                 Orden del proceso:
                               </Typography>
-                              <Box component="ol" sx={{ pl: 2, mt: 0.5, mb: 1 }}>
-                                <Typography component="li" variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                              <Box
+                                component='ol'
+                                sx={{ pl: 2, mt: 0.5, mb: 1 }}
+                              >
+                                <Typography
+                                  component='li'
+                                  variant='body2'
+                                  color='primary'
+                                  sx={{ fontWeight: 'bold' }}
+                                >
                                   1. Tú (Arrendatario) ← AHORA
                                 </Typography>
-                                {process.workflow_data?.contract_created?.guarantor_id && (
-                                  <Typography component="li" variant="body2" color="text.secondary">
+                                {process.workflow_data?.contract_created
+                                  ?.guarantor_id && (
+                                  <Typography
+                                    component='li'
+                                    variant='body2'
+                                    color='text.secondary'
+                                  >
                                     2. Garante/Codeudor ← Después
                                   </Typography>
                                 )}
-                                <Typography component="li" variant="body2" color="text.secondary">
-                                  {process.workflow_data?.contract_created?.guarantor_id ? '3.' : '2.'} Arrendador ← Al final
+                                <Typography
+                                  component='li'
+                                  variant='body2'
+                                  color='text.secondary'
+                                >
+                                  {process.workflow_data?.contract_created
+                                    ?.guarantor_id
+                                    ? '3.'
+                                    : '2.'}{' '}
+                                  Arrendador ← Al final
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-                                <LightbulbIcon sx={{ fontSize: 16, mt: 0.25, color: 'warning.main' }} />
-                                <Typography variant="body2">
-                                  Una vez que completes tu verificación, {process.workflow_data?.contract_created?.guarantor_id ? 'el garante continuará y luego' : ''} el arrendador podrá proceder.
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: 0.5,
+                                }}
+                              >
+                                <LightbulbIcon
+                                  sx={{
+                                    fontSize: 16,
+                                    mt: 0.25,
+                                    color: 'warning.main',
+                                  }}
+                                />
+                                <Typography variant='body2'>
+                                  Una vez que completes tu verificación,{' '}
+                                  {process.workflow_data?.contract_created
+                                    ?.guarantor_id
+                                    ? 'el garante continuará y luego'
+                                    : ''}{' '}
+                                  el arrendador podrá proceder.
                                 </Typography>
                               </Box>
                             </Alert>
 
                             <Button
-                              variant="contained"
-                              color="success"
-                              size="large"
+                              variant='contained'
+                              color='success'
+                              size='large'
                               startIcon={<SecurityIcon />}
                               onClick={() => {
                                 // Navegar a autenticación biométrica
@@ -763,67 +1006,130 @@ const TenantContractsDashboard: React.FC = () => {
                               Iniciar mi autenticación biométrica
                             </Button>
 
-                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ textAlign: 'center', display: 'block' }}
+                            >
                               Proceso rápido y seguro — toma menos de 5 minutos
                             </Typography>
                           </>
                         )}
 
                         {/* Acciones para contrato pendiente de aprobación del arrendatario */}
-                        {process.status === 'contract_pending_tenant_approval' && (
+                        {process.status ===
+                          'contract_pending_tenant_approval' && (
                           <>
-                            <Alert severity="warning" sx={{ mb: 2 }}>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                            <Alert severity='warning' sx={{ mb: 2 }}>
+                              <Typography
+                                variant='subtitle2'
+                                sx={{ fontWeight: 'bold' }}
+                              >
                                 ¡Tu revisión es requerida!
                               </Typography>
-                              <Typography variant="body2" sx={{ mt: 1 }}>
-                                El arrendador ha creado el contrato y está esperando tu aprobación para continuar al siguiente paso.
+                              <Typography variant='body2' sx={{ mt: 1 }}>
+                                El arrendador ha creado el contrato y está
+                                esperando tu aprobación para continuar al
+                                siguiente paso.
                               </Typography>
                             </Alert>
 
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 1,
+                              }}
+                            >
                               <Button
-                                variant="outlined"
-                                color="primary"
-                                size="medium"
+                                variant='outlined'
+                                color='primary'
+                                size='medium'
                                 startIcon={<ViewIcon />}
-                                onClick={() => viewContractPDF(process.workflow_data?.contract_created?.contract_id)}
+                                onClick={() =>
+                                  viewContractPDF(
+                                    process.workflow_data?.contract_created
+                                      ?.contract_id,
+                                  )
+                                }
                                 fullWidth
                               >
                                 Ver Contrato PDF
                               </Button>
 
                               <Button
-                                variant="contained"
-                                color="success"
-                                size="large"
-                                startIcon={approvingContract === process.workflow_data?.contract_created?.contract_id ?
-                                  <CircularProgress size={16} color="inherit" /> : <TaskIcon />}
-                                onClick={() => handleApproveContract(process.workflow_data?.contract_created?.contract_id)}
-                                disabled={approvingContract === process.workflow_data?.contract_created?.contract_id}
-                                sx={{ py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+                                variant='contained'
+                                color='success'
+                                size='large'
+                                startIcon={
+                                  approvingContract ===
+                                  process.workflow_data?.contract_created
+                                    ?.contract_id ? (
+                                    <CircularProgress
+                                      size={16}
+                                      color='inherit'
+                                    />
+                                  ) : (
+                                    <TaskIcon />
+                                  )
+                                }
+                                onClick={() =>
+                                  handleApproveContract(
+                                    process.workflow_data?.contract_created
+                                      ?.contract_id,
+                                  )
+                                }
+                                disabled={
+                                  approvingContract ===
+                                  process.workflow_data?.contract_created
+                                    ?.contract_id
+                                }
+                                sx={{
+                                  py: 1.5,
+                                  fontSize: '1.1rem',
+                                  fontWeight: 'bold',
+                                }}
                                 fullWidth
                               >
-                                {approvingContract === process.workflow_data?.contract_created?.contract_id
+                                {approvingContract ===
+                                process.workflow_data?.contract_created
+                                  ?.contract_id
                                   ? 'APROBANDO...'
-                                  : 'Aprobar y continuar'
-                                }
+                                  : 'Aprobar y continuar'}
                               </Button>
 
                               <Button
-                                variant="outlined"
-                                color="warning"
-                                size="large"
+                                variant='outlined'
+                                color='warning'
+                                size='large'
                                 startIcon={<EditIcon />}
                                 onClick={() => {
-                                  setSelectedContractForModification(process.workflow_data?.contract_created?.contract_id);
+                                  setSelectedContractForModification(
+                                    process.workflow_data?.contract_created
+                                      ?.contract_id,
+                                  );
                                   // Pasar datos del contrato para mostrar valores actuales en el modal
                                   setSelectedContractData({
-                                    landlord_data: process.workflow_data?.contract_created?.landlord_data || process.workflow_data?.landlord_data,
-                                    tenant_data: process.workflow_data?.contract_created?.tenant_data || process.workflow_data?.tenant_data,
-                                    property_data: process.workflow_data?.contract_created?.property_data || process.workflow_data?.property_data,
-                                    economic_terms: process.workflow_data?.contract_created?.economic_terms || process.workflow_data?.economic_terms,
-                                    contract_terms: process.workflow_data?.contract_created?.contract_terms || process.workflow_data?.contract_terms,
+                                    landlord_data:
+                                      process.workflow_data?.contract_created
+                                        ?.landlord_data ||
+                                      process.workflow_data?.landlord_data,
+                                    tenant_data:
+                                      process.workflow_data?.contract_created
+                                        ?.tenant_data ||
+                                      process.workflow_data?.tenant_data,
+                                    property_data:
+                                      process.workflow_data?.contract_created
+                                        ?.property_data ||
+                                      process.workflow_data?.property_data,
+                                    economic_terms:
+                                      process.workflow_data?.contract_created
+                                        ?.economic_terms ||
+                                      process.workflow_data?.economic_terms,
+                                    contract_terms:
+                                      process.workflow_data?.contract_created
+                                        ?.contract_terms ||
+                                      process.workflow_data?.contract_terms,
                                   });
                                   setModificationModalOpen(true);
                                 }}
@@ -834,33 +1140,42 @@ const TenantContractsDashboard: React.FC = () => {
                               </Button>
 
                               <Button
-                                variant="outlined"
-                                color="error"
-                                size="medium"
+                                variant='outlined'
+                                color='error'
+                                size='medium'
                                 startIcon={<CloseIcon />}
                                 onClick={async () => {
-                                  const contractId = process.workflow_data?.contract_created?.contract_id;
+                                  const contractId =
+                                    process.workflow_data?.contract_created
+                                      ?.contract_id;
                                   if (!contractId) {
                                     setErrorDialog({
                                       open: true,
                                       title: 'Error',
-                                      message: 'No se encontró el ID del contrato.',
+                                      message:
+                                        'No se encontró el ID del contrato.',
                                     });
                                     return;
                                   }
                                   try {
-                                    await api.post(`/tenant/contracts/${contractId}/reject_contract/`);
+                                    await api.post(
+                                      `/tenant/contracts/${contractId}/reject_contract/`,
+                                    );
                                     setSuccessDialog({
                                       open: true,
                                       title: 'Contrato Rechazado',
-                                      message: 'El contrato ha sido rechazado exitosamente. El arrendador será notificado.',
+                                      message:
+                                        'El contrato ha sido rechazado exitosamente. El arrendador será notificado.',
                                     });
                                     await loadTenantContracts();
                                   } catch (err: any) {
                                     setErrorDialog({
                                       open: true,
                                       title: 'Error al Rechazar',
-                                      message: err?.response?.data?.error || err?.message || 'No se pudo rechazar el contrato. Intenta nuevamente.',
+                                      message:
+                                        err?.response?.data?.error ||
+                                        err?.message ||
+                                        'No se pudo rechazar el contrato. Intenta nuevamente.',
                                     });
                                   }
                                 }}
@@ -871,8 +1186,17 @@ const TenantContractsDashboard: React.FC = () => {
                               </Button>
                             </Box>
 
-                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mb: 2 }}>
-                              Revisa cuidadosamente todos los términos antes de aprobar
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{
+                                textAlign: 'center',
+                                display: 'block',
+                                mb: 2,
+                              }}
+                            >
+                              Revisa cuidadosamente todos los términos antes de
+                              aprobar
                             </Typography>
                           </>
                         )}
@@ -880,11 +1204,16 @@ const TenantContractsDashboard: React.FC = () => {
                         {/* Botón para ver contrato con PDF profesional */}
                         {process.workflow_data?.contract_created && (
                           <Button
-                            variant="outlined"
-                            color="primary"
+                            variant='outlined'
+                            color='primary'
                             startIcon={<ViewIcon />}
-                            onClick={() => viewContractPDF(process.workflow_data.contract_created.contract_id)}
-                            size="small"
+                            onClick={() =>
+                              viewContractPDF(
+                                process.workflow_data.contract_created
+                                  .contract_id,
+                              )
+                            }
+                            size='small'
                           >
                             Ver Contrato PDF
                           </Button>
@@ -892,16 +1221,46 @@ const TenantContractsDashboard: React.FC = () => {
 
                         {/* Información adicional */}
                         {process.workflow_data?.contract_created && (
-                          <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                            <Typography variant="caption" display="block" gutterBottom>
-                              <strong>Contrato No:</strong> {process.workflow_data.contract_created.contract_number}
+                          <Box
+                            sx={{
+                              mt: 2,
+                              p: 2,
+                              bgcolor: 'grey.50',
+                              borderRadius: 1,
+                            }}
+                          >
+                            <Typography
+                              variant='caption'
+                              display='block'
+                              gutterBottom
+                            >
+                              <strong>Contrato No:</strong>{' '}
+                              {
+                                process.workflow_data.contract_created
+                                  .contract_number
+                              }
                             </Typography>
-                            <Typography variant="caption" display="block" gutterBottom>
-                              <strong>Creado:</strong> {new Date(process.workflow_data.contract_created.created_at).toLocaleDateString()}
+                            <Typography
+                              variant='caption'
+                              display='block'
+                              gutterBottom
+                            >
+                              <strong>Creado:</strong>{' '}
+                              {new Date(
+                                process.workflow_data.contract_created.created_at,
+                              ).toLocaleDateString()}
                             </Typography>
-                            {process.workflow_data.contract_created.tenant_approved && (
-                              <Typography variant="caption" display="block" color="success.main">
-                                <strong>Aprobado:</strong> {new Date(process.workflow_data.contract_created.tenant_approved_at).toLocaleDateString()}
+                            {process.workflow_data.contract_created
+                              .tenant_approved && (
+                              <Typography
+                                variant='caption'
+                                display='block'
+                                color='success.main'
+                              >
+                                <strong>Aprobado:</strong>{' '}
+                                {new Date(
+                                  process.workflow_data.contract_created.tenant_approved_at,
+                                ).toLocaleDateString()}
                               </Typography>
                             )}
                           </Box>
@@ -917,7 +1276,7 @@ const TenantContractsDashboard: React.FC = () => {
 
         {/* Error Alert */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+          <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError('')}>
             {error}
           </Alert>
         )}
@@ -927,13 +1286,15 @@ const TenantContractsDashboard: React.FC = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center">
+                <Box display='flex' alignItems='center'>
                   <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
                     <ContractIcon />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5">{(contracts || []).length}</Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='h5'>
+                      {(contracts || []).length}
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
                       Total Contratos
                     </Typography>
                   </Box>
@@ -941,19 +1302,23 @@ const TenantContractsDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center">
+                <Box display='flex' alignItems='center'>
                   <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
                     <CompleteIcon />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5">
-                      {(contracts || []).filter(c => c.current_state === 'PUBLISHED').length}
+                    <Typography variant='h5'>
+                      {
+                        (contracts || []).filter(
+                          c => c.current_state === 'PUBLISHED',
+                        ).length
+                      }
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Activos
                     </Typography>
                   </Box>
@@ -961,19 +1326,27 @@ const TenantContractsDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center">
+                <Box display='flex' alignItems='center'>
                   <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
                     <ScheduleIcon />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5">
-                      {(contracts || []).filter(c => ['TENANT_INVITED', 'TENANT_REVIEWING', 'READY_TO_SIGN'].includes(c.current_state)).length}
+                    <Typography variant='h5'>
+                      {
+                        (contracts || []).filter(c =>
+                          [
+                            'TENANT_INVITED',
+                            'TENANT_REVIEWING',
+                            'READY_TO_SIGN',
+                          ].includes(c.current_state),
+                        ).length
+                      }
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Pendientes
                     </Typography>
                   </Box>
@@ -981,19 +1354,23 @@ const TenantContractsDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center">
+                <Box display='flex' alignItems='center'>
                   <Avatar sx={{ bgcolor: 'error.main', mr: 2 }}>
                     <TaskIcon />
                   </Avatar>
                   <Box>
-                    <Typography variant="h5">
-                      {contracts.reduce((acc, contract) => acc + getPendingActions(contract).length, 0)}
+                    <Typography variant='h5'>
+                      {contracts.reduce(
+                        (acc, contract) =>
+                          acc + getPendingActions(contract).length,
+                        0,
+                      )}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       Acciones Pendientes
                     </Typography>
                   </Box>
@@ -1004,88 +1381,142 @@ const TenantContractsDashboard: React.FC = () => {
         </Grid>
 
         {/* Contratos pendientes de revisión - Solo si NO hay procesos de workflow */}
-        {pendingReviewContracts.length > 0 && workflowProcesses.length === 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-              <WarningIcon sx={{ mr: 1, color: 'warning.main' }} />
-              Contratos Pendientes de tu Revisión
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Tienes {pendingReviewContracts.length} contrato{pendingReviewContracts.length !== 1 ? 's' : ''} que requiere{pendingReviewContracts.length === 1 ? '' : 'n'} tu aprobación o solicitud de cambios.
-            </Typography>
-            {pendingReviewContracts.map(contract => (
-              <TenantContractReview
-                key={contract.id}
-                contract={contract as any}
-                onReviewComplete={loadTenantContracts}
-              />
-            ))}
-          </Box>
-        )}
+        {pendingReviewContracts.length > 0 &&
+          workflowProcesses.length === 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant='h5'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
+                <WarningIcon sx={{ mr: 1, color: 'warning.main' }} />
+                Contratos Pendientes de tu Revisión
+              </Typography>
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+                Tienes {pendingReviewContracts.length} contrato
+                {pendingReviewContracts.length !== 1 ? 's' : ''} que requiere
+                {pendingReviewContracts.length === 1 ? '' : 'n'} tu aprobación o
+                solicitud de cambios.
+              </Typography>
+              {pendingReviewContracts.map(contract => (
+                <TenantContractReview
+                  key={contract.id}
+                  contract={contract as any}
+                  onReviewComplete={loadTenantContracts}
+                />
+              ))}
+            </Box>
+          )}
 
         {/* Lista de contratos */}
-        {(contracts || []).length === 0 && pendingReviewContracts.length === 0 ? (
+        {(contracts || []).length === 0 &&
+        pendingReviewContracts.length === 0 ? (
           <Card>
             <CardContent>
-              <Box textAlign="center" py={8}>
-                <Avatar sx={{ bgcolor: 'grey.100', width: 80, height: 80, mx: 'auto', mb: 2 }}>
+              <Box textAlign='center' py={8}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'grey.100',
+                    width: 80,
+                    height: 80,
+                    mx: 'auto',
+                    mb: 2,
+                  }}
+                >
                   <ContractIcon sx={{ fontSize: 40, color: 'grey.400' }} />
                 </Avatar>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
                   No tienes contratos aún
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body2' color='text.secondary'>
                   Cuando un arrendador te invite a un contrato, aparecerá aquí
                 </Typography>
               </Box>
             </CardContent>
           </Card>
-        ) : (contracts || []).length > 0 && (
-          <Box>
-            {/* Contratos con acciones urgentes primero */}
-            {contracts
-              .sort((a, b) => {
-                const aUrgent = getPendingActions(a).some(action => action.urgent);
-                const bUrgent = getPendingActions(b).some(action => action.urgent);
-                if (aUrgent && !bUrgent) return -1;
-                if (!aUrgent && bUrgent) return 1;
-                return 0;
-              })
-              .map(contract => renderContractCard(contract))
-            }
-          </Box>
+        ) : (
+          (contracts || []).length > 0 && (
+            <Box>
+              {/* Contratos con acciones urgentes primero */}
+              {contracts
+                .sort((a, b) => {
+                  const aUrgent = getPendingActions(a).some(
+                    action => action.urgent,
+                  );
+                  const bUrgent = getPendingActions(b).some(
+                    action => action.urgent,
+                  );
+                  if (aUrgent && !bUrgent) return -1;
+                  if (!aUrgent && bUrgent) return 1;
+                  return 0;
+                })
+                .map(contract => renderContractCard(contract))}
+            </Box>
+          )
         )}
 
         {/* Información de ayuda */}
         <Paper elevation={1} sx={{ p: 3, mt: 4, bgcolor: 'info.50' }}>
-          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+          <Typography
+            variant='h6'
+            sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+          >
             <InfoIcon sx={{ mr: 1 }} />
             ¿Necesitas Ayuda?
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
-                <EmailIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
-                <Typography variant="body2">
-                  <strong>Soporte por Email</strong><br />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 0.75,
+                  mb: 1,
+                }}
+              >
+                <EmailIcon
+                  sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }}
+                />
+                <Typography variant='body2'>
+                  <strong>Soporte por Email</strong>
+                  <br />
                   soporte@verihome.com
                 </Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
-                <PhoneIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
-                <Typography variant="body2">
-                  <strong>Atención Telefónica</strong><br />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 0.75,
+                  mb: 1,
+                }}
+              >
+                <PhoneIcon
+                  sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }}
+                />
+                <Typography variant='body2'>
+                  <strong>Atención Telefónica</strong>
+                  <br />
                   +57 (1) 123-4567
                 </Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mb: 1 }}>
-                <ChatIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }} />
-                <Typography variant="body2">
-                  <strong>Chat en Línea</strong><br />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 0.75,
+                  mb: 1,
+                }}
+              >
+                <ChatIcon
+                  sx={{ fontSize: 18, color: 'primary.main', mt: 0.25 }}
+                />
+                <Typography variant='body2'>
+                  <strong>Chat en Línea</strong>
+                  <br />
                   Disponible 24/7 en nuestra web
                 </Typography>
               </Box>
@@ -1098,10 +1529,18 @@ const TenantContractsDashboard: React.FC = () => {
       <Dialog
         open={confirmDialog.open}
         onClose={() => setConfirmDialog({ open: false, contractId: null })}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: 'warning.50', color: 'warning.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <DialogTitle
+          sx={{
+            bgcolor: 'warning.50',
+            color: 'warning.main',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <WarningIcon />
           Confirmación de Aprobación
         </DialogTitle>
@@ -1110,35 +1549,40 @@ const TenantContractsDashboard: React.FC = () => {
             ¿Estás seguro de que quieres aprobar este contrato?
           </DialogContentText>
           <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
-            <Typography variant="body2" sx={{ mb: 1 }}>
+            <Typography variant='body2' sx={{ mb: 1 }}>
               <strong>Al aprobar el contrato:</strong>
             </Typography>
-            <Typography variant="body2" component="ul" sx={{ m: 0, pl: 2 }}>
+            <Typography variant='body2' component='ul' sx={{ m: 0, pl: 2 }}>
               <li>Aceptas todos los términos y condiciones</li>
-              <li>El proceso avanzará a la etapa de autenticación biométrica</li>
+              <li>
+                El proceso avanzará a la etapa de autenticación biométrica
+              </li>
               <li>Esta decisión no se puede revertir fácilmente</li>
             </Typography>
           </Box>
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              Asegúrate de haber revisado completamente el contrato antes de continuar.
+          <Alert severity='warning' sx={{ mt: 2 }}>
+            <Typography variant='body2'>
+              Asegúrate de haber revisado completamente el contrato antes de
+              continuar.
             </Typography>
           </Alert>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button
             onClick={() => setConfirmDialog({ open: false, contractId: null })}
-            color="inherit"
-            variant="outlined"
+            color='inherit'
+            variant='outlined'
           >
             Cancelar
           </Button>
           <Button
             onClick={handleConfirmApproval}
-            color="success"
-            variant="contained"
+            color='success'
+            variant='contained'
             disabled={approvingContract !== null}
-            startIcon={approvingContract ? <CircularProgress size={16} /> : null}
+            startIcon={
+              approvingContract ? <CircularProgress size={16} /> : null
+            }
           >
             {approvingContract ? 'Aprobando...' : 'Sí, Aprobar Contrato'}
           </Button>
@@ -1148,11 +1592,19 @@ const TenantContractsDashboard: React.FC = () => {
       {/* Dialog de Éxito */}
       <Dialog
         open={successDialog.open}
-        onClose={() => setSuccessDialog({ open: false, title: '', message: '' })}
-        maxWidth="sm"
+        onClose={() =>
+          setSuccessDialog({ open: false, title: '', message: '' })
+        }
+        maxWidth='sm'
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: 'success.50', color: 'success.main', textAlign: 'center' }}>
+        <DialogTitle
+          sx={{
+            bgcolor: 'success.50',
+            color: 'success.main',
+            textAlign: 'center',
+          }}
+        >
           {successDialog.title}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
@@ -1162,10 +1614,12 @@ const TenantContractsDashboard: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', p: 3 }}>
           <Button
-            onClick={() => setSuccessDialog({ open: false, title: '', message: '' })}
-            color="success"
-            variant="contained"
-            size="large"
+            onClick={() =>
+              setSuccessDialog({ open: false, title: '', message: '' })
+            }
+            color='success'
+            variant='contained'
+            size='large'
           >
             Entendido
           </Button>
@@ -1176,7 +1630,7 @@ const TenantContractsDashboard: React.FC = () => {
       <Dialog
         open={errorDialog.open}
         onClose={() => setErrorDialog({ open: false, title: '', message: '' })}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle sx={{ bgcolor: 'error.50', color: 'error.main' }}>
@@ -1189,9 +1643,11 @@ const TenantContractsDashboard: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button
-            onClick={() => setErrorDialog({ open: false, title: '', message: '' })}
-            color="error"
-            variant="outlined"
+            onClick={() =>
+              setErrorDialog({ open: false, title: '', message: '' })
+            }
+            color='error'
+            variant='outlined'
             fullWidth
           >
             Cerrar
@@ -1209,18 +1665,38 @@ const TenantContractsDashboard: React.FC = () => {
             setSelectedContractData(null);
           }}
           contractId={selectedContractForModification}
-          contractData={selectedContractData ? {
-            landlord_data: selectedContractData.landlord_data as Record<string, unknown>,
-            tenant_data: selectedContractData.tenant_data as Record<string, unknown>,
-            property_data: selectedContractData.property_data as Record<string, unknown>,
-            economic_terms: selectedContractData.economic_terms as Record<string, unknown>,
-            contract_terms: selectedContractData.contract_terms as Record<string, unknown>,
-          } : undefined}
+          contractData={
+            selectedContractData
+              ? {
+                  landlord_data: selectedContractData.landlord_data as Record<
+                    string,
+                    unknown
+                  >,
+                  tenant_data: selectedContractData.tenant_data as Record<
+                    string,
+                    unknown
+                  >,
+                  property_data: selectedContractData.property_data as Record<
+                    string,
+                    unknown
+                  >,
+                  economic_terms: selectedContractData.economic_terms as Record<
+                    string,
+                    unknown
+                  >,
+                  contract_terms: selectedContractData.contract_terms as Record<
+                    string,
+                    unknown
+                  >,
+                }
+              : undefined
+          }
           onSuccess={() => {
             setSuccessDialog({
               open: true,
               title: 'Solicitud Enviada',
-              message: 'Tu solicitud de modificación ha sido enviada al arrendador. Te notificaremos cuando responda.',
+              message:
+                'Tu solicitud de modificación ha sido enviada al arrendador. Te notificaremos cuando responda.',
             });
             setModificationModalOpen(false);
             setSelectedContractForModification(null);

@@ -19,15 +19,15 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const displayMessage = message ?? t('common.loading');
   const content = (
     <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
+      display='flex'
+      flexDirection='column'
+      alignItems='center'
+      justifyContent='center'
       gap={2}
     >
       <CircularProgress size={size} color={color} />
       {displayMessage && (
-        <Box component="span" sx={{ color: 'text.secondary' }}>
+        <Box component='span' sx={{ color: 'text.secondary' }}>
           {displayMessage}
         </Box>
       )}

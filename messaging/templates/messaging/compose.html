@@ -23,7 +23,7 @@
         <!-- Formulario -->
         <form method="post" action="{% url 'messaging:compose' %}" class="space-y-6 p-6">
             {% csrf_token %}
-            
+
             <!-- Destinatarios -->
             <div>
                 <label for="recipients" class="block text-sm font-medium text-gray-700">Destinatarios</label>
@@ -135,4 +135,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-{% endblock %} 
+{% endblock %}

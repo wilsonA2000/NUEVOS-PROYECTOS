@@ -7,15 +7,12 @@ import {
   Tab,
   Typography,
   Badge,
-  IconButton,
   Button,
-  Drawer,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Divider,
-  Chip,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -39,26 +36,42 @@ import { MessageList } from '../../components/messages/MessageList';
 // Placeholder components for tabs (previously separate files, now inline)
 const Conversations: React.FC = () => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
-    <Typography variant="h6" gutterBottom>Conversaciones</Typography>
-    <Typography color="text.secondary">Las conversaciones activas aparecerán aquí.</Typography>
+    <Typography variant='h6' gutterBottom>
+      Conversaciones
+    </Typography>
+    <Typography color='text.secondary'>
+      Las conversaciones activas aparecerán aquí.
+    </Typography>
   </Box>
 );
 const Folders: React.FC = () => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
-    <Typography variant="h6" gutterBottom>Carpetas</Typography>
-    <Typography color="text.secondary">Organiza tus mensajes en carpetas personalizadas.</Typography>
+    <Typography variant='h6' gutterBottom>
+      Carpetas
+    </Typography>
+    <Typography color='text.secondary'>
+      Organiza tus mensajes en carpetas personalizadas.
+    </Typography>
   </Box>
 );
 const Templates: React.FC = () => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
-    <Typography variant="h6" gutterBottom>Plantillas</Typography>
-    <Typography color="text.secondary">Crea plantillas de mensajes para respuestas rápidas.</Typography>
+    <Typography variant='h6' gutterBottom>
+      Plantillas
+    </Typography>
+    <Typography color='text.secondary'>
+      Crea plantillas de mensajes para respuestas rápidas.
+    </Typography>
   </Box>
 );
 const MessagingStats: React.FC = () => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
-    <Typography variant="h6" gutterBottom>Estadísticas</Typography>
-    <Typography color="text.secondary">Estadísticas de mensajería próximamente.</Typography>
+    <Typography variant='h6' gutterBottom>
+      Estadísticas
+    </Typography>
+    <Typography color='text.secondary'>
+      Estadísticas de mensajería próximamente.
+    </Typography>
   </Box>
 );
 
@@ -73,7 +86,7 @@ function TabPanel(props: TabPanelProps) {
 
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`messages-tabpanel-${index}`}
       aria-labelledby={`messages-tab-${index}`}
@@ -88,15 +101,15 @@ const MessagesMain: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const {
-    messages, 
-    threads, 
-    folders, 
-    templates, 
-    conversations, 
-    unreadCount, 
-    messagingStats,
+    messages,
+    threads,
+    folders,
+    templates,
+    conversations,
+    unreadCount,
+
     isLoading,
     error,
   } = useMessages();
@@ -123,38 +136,36 @@ const MessagesMain: React.FC = () => {
 
   const getFilteredMessages = () => {
     if (!messagesArray.length) return [];
-    
+
     if (selectedFolder) {
-      return messagesArray.filter((msg: any) => msg.folder_id === selectedFolder);
+      return messagesArray.filter(
+        (msg: any) => msg.folder_id === selectedFolder,
+      );
     }
-    
+
     return messagesArray;
   };
 
   const getUnreadCountForFolder = (folderId: string | null) => {
     if (!messagesArray.length) return 0;
-    
+
     if (folderId) {
-      return messagesArray.filter((msg: any) => 
-        msg.folder_id === folderId && !msg.read,
+      return messagesArray.filter(
+        (msg: any) => msg.folder_id === folderId && !msg.read,
       ).length;
     }
-    
+
     return unreadCount || 0;
   };
 
   // Si no está autenticado, mostrar mensaje
   if (!isAuthenticated && !authLoading) {
-
-return (
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="info" sx={{ mb: 2 }}>
+    return (
+      <Container maxWidth='md' sx={{ mt: 4, mb: 4 }}>
+        <Alert severity='info' sx={{ mb: 2 }}>
           Necesitas iniciar sesión para ver los mensajes
         </Alert>
-        <Button
-          variant="contained"
-          onClick={() => navigate('/login')}
-        >
+        <Button variant='contained' onClick={() => navigate('/login')}>
           Iniciar Sesión
         </Button>
       </Container>
@@ -163,10 +174,9 @@ return (
 
   // Si está cargando la autenticación
   if (authLoading) {
-
-return (
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" py={4}>
+    return (
+      <Container maxWidth='md' sx={{ mt: 4, mb: 4 }}>
+        <Box display='flex' justifyContent='center' alignItems='center' py={4}>
           <CircularProgress />
           <Typography sx={{ ml: 2 }}>Verificando autenticación...</Typography>
         </Box>
@@ -175,10 +185,9 @@ return (
   }
 
   if (isLoading) {
-
-return (
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" py={4}>
+    return (
+      <Container maxWidth='md' sx={{ mt: 4, mb: 4 }}>
+        <Box display='flex' justifyContent='center' alignItems='center' py={4}>
           <CircularProgress />
           <Typography sx={{ ml: 2 }}>Cargando mensajes...</Typography>
         </Box>
@@ -188,16 +197,18 @@ return (
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
+      <Container maxWidth='md' sx={{ mt: 4, mb: 4 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           Error al cargar los mensajes
         </Alert>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
           Detalles del error: {error.message || 'Error desconocido'}
         </Typography>
         <Button
-          variant="outlined"
-          onClick={() => queryClient.invalidateQueries({ queryKey: ['messages'] })}
+          variant='outlined'
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ['messages'] })
+          }
         >
           Reintentar
         </Button>
@@ -205,19 +216,25 @@ return (
     );
   }
 
-return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+  return (
+    <Container maxWidth='xl' sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ height: 'calc(100vh - 200px)' }}>
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* Sidebar */}
           <Box sx={{ width: 280, borderRight: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Mensajes</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Typography variant='h6'>Mensajes</Typography>
                 <Button
-                  variant="contained"
+                  variant='contained'
                   startIcon={<AddIcon />}
-                  size="small"
+                  size='small'
                   onClick={() => navigate('/app/messages/new')}
                 >
                   Nuevo
@@ -226,18 +243,21 @@ return (
             </Box>
 
             <List sx={{ p: 0 }}>
-              <ListItem 
-                button 
+              <ListItem
+                button
                 selected={!selectedFolder}
                 onClick={() => handleFolderSelect(null)}
               >
                 <ListItemIcon>
-                  <Badge badgeContent={getUnreadCountForFolder(null)} color="error">
+                  <Badge
+                    badgeContent={getUnreadCountForFolder(null)}
+                    color='error'
+                  >
                     <InboxIcon />
                   </Badge>
                 </ListItemIcon>
-                <ListItemText 
-                  primary="Bandeja de entrada" 
+                <ListItemText
+                  primary='Bandeja de entrada'
                   secondary={`${getUnreadCountForFolder(null)} no leídos`}
                 />
               </ListItem>
@@ -246,45 +266,51 @@ return (
                 <ListItemIcon>
                   <SendIcon />
                 </ListItemIcon>
-                <ListItemText primary="Enviados" />
+                <ListItemText primary='Enviados' />
               </ListItem>
 
               <ListItem button>
                 <ListItemIcon>
                   <StarIcon />
                 </ListItemIcon>
-                <ListItemText primary="Destacados" />
+                <ListItemText primary='Destacados' />
               </ListItem>
 
               <ListItem button>
                 <ListItemIcon>
                   <ArchiveIcon />
                 </ListItemIcon>
-                <ListItemText primary="Archivados" />
+                <ListItemText primary='Archivados' />
               </ListItem>
 
               <Divider />
 
               <ListItem>
-                <ListItemText 
-                  primary="Carpetas" 
-                  primaryTypographyProps={{ variant: 'subtitle2', color: 'text.secondary' }}
+                <ListItemText
+                  primary='Carpetas'
+                  primaryTypographyProps={{
+                    variant: 'subtitle2',
+                    color: 'text.secondary',
+                  }}
                 />
               </ListItem>
 
               {foldersArray.map((folder: any) => (
-                <ListItem 
+                <ListItem
                   key={folder.id}
-                  button 
+                  button
                   selected={selectedFolder === folder.id}
                   onClick={() => handleFolderSelect(folder.id)}
                 >
                   <ListItemIcon>
-                    <Badge badgeContent={getUnreadCountForFolder(folder.id)} color="error">
+                    <Badge
+                      badgeContent={getUnreadCountForFolder(folder.id)}
+                      color='error'
+                    >
                       <FolderIcon />
                     </Badge>
                   </ListItemIcon>
-                  <ListItemText 
+                  <ListItemText
                     primary={folder.name}
                     secondary={`${getUnreadCountForFolder(folder.id)} no leídos`}
                   />
@@ -297,14 +323,14 @@ return (
                 <ListItemIcon>
                   <TemplateIcon />
                 </ListItemIcon>
-                <ListItemText primary="Plantillas" />
+                <ListItemText primary='Plantillas' />
               </ListItem>
 
               <ListItem button onClick={() => setTabValue(4)}>
                 <ListItemIcon>
                   <SettingsIcon />
                 </ListItemIcon>
-                <ListItemText primary="Configuración" />
+                <ListItemText primary='Configuración' />
               </ListItem>
             </List>
           </Box>
@@ -314,11 +340,11 @@ return (
             {/* Tabs */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={tabValue} onChange={handleTabChange}>
-                <Tab label="Mensajes" />
-                <Tab label="Conversaciones" />
-                <Tab label="Carpetas" />
-                <Tab label="Plantillas" />
-                <Tab label="Estadísticas" />
+                <Tab label='Mensajes' />
+                <Tab label='Conversaciones' />
+                <Tab label='Carpetas' />
+                <Tab label='Plantillas' />
+                <Tab label='Estadísticas' />
               </Tabs>
             </Box>
 
@@ -327,19 +353,19 @@ return (
               <TabPanel value={tabValue} index={0}>
                 <MessageList />
               </TabPanel>
-              
+
               <TabPanel value={tabValue} index={1}>
                 <Conversations />
               </TabPanel>
-              
+
               <TabPanel value={tabValue} index={2}>
                 <Folders />
               </TabPanel>
-              
+
               <TabPanel value={tabValue} index={3}>
                 <Templates />
               </TabPanel>
-              
+
               <TabPanel value={tabValue} index={4}>
                 <MessagingStats />
               </TabPanel>
@@ -351,4 +377,4 @@ return (
   );
 };
 
-export default MessagesMain; 
+export default MessagesMain;

@@ -16,7 +16,6 @@ import {
   FormControlLabel,
   Divider,
   Alert,
-  Button,
 } from '@mui/material';
 import {
   Wifi as ConnectedIcon,
@@ -32,10 +31,9 @@ interface OptimizedWebSocketStatusProps {
   showControls?: boolean;
 }
 
-export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> = ({
-  compact = false,
-  showControls = true,
-}) => {
+export const OptimizedWebSocketStatus: React.FC<
+  OptimizedWebSocketStatusProps
+> = ({ compact = false, showControls = true }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const {
     isConnected,
@@ -60,8 +58,7 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
       } else {
         await enableRealTime();
       }
-    } catch (error) {
-    }
+    } catch (error) {}
     handleMenuClose();
   };
 
@@ -78,9 +75,10 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
   };
 
   const getStatusIcon = () => {
-    if (isConnected) return <ConnectedIcon fontSize="small" />;
-    if (connectionHealth.failedConnections > 0) return <WarningIcon fontSize="small" />;
-    return <DisconnectedIcon fontSize="small" />;
+    if (isConnected) return <ConnectedIcon fontSize='small' />;
+    if (connectionHealth.failedConnections > 0)
+      return <WarningIcon fontSize='small' />;
+    return <DisconnectedIcon fontSize='small' />;
   };
 
   if (compact) {
@@ -90,10 +88,10 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
           icon={getStatusIcon()}
           label={isConnected ? onlineCount : '0'}
           color={getStatusColor() as any}
-          size="small"
-          variant="outlined"
+          size='small'
+          variant='outlined'
           onClick={showControls ? handleMenuOpen : undefined}
-          sx={{ 
+          sx={{
             cursor: showControls ? 'pointer' : 'default',
             minWidth: 60,
           }}
@@ -104,18 +102,18 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
 
   return (
     <>
-      <Box display="flex" alignItems="center" gap={1}>
+      <Box display='flex' alignItems='center' gap={1}>
         <Chip
           icon={getStatusIcon()}
           label={`${getStatusText()} (${onlineCount})`}
           color={getStatusColor() as any}
-          variant="outlined"
+          variant='outlined'
         />
-        
+
         {showControls && (
-          <Tooltip title="Configurar tiempo real">
-            <IconButton size="small" onClick={handleMenuOpen}>
-              <SettingsIcon fontSize="small" />
+          <Tooltip title='Configurar tiempo real'>
+            <IconButton size='small' onClick={handleMenuOpen}>
+              <SettingsIcon fontSize='small' />
             </IconButton>
           </Tooltip>
         )}
@@ -130,10 +128,13 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
           sx: { width: 280, p: 1 },
         }}
       >
-        <Typography variant="subtitle2" sx={{ px: 2, py: 1, fontWeight: 'bold' }}>
+        <Typography
+          variant='subtitle2'
+          sx={{ px: 2, py: 1, fontWeight: 'bold' }}
+        >
           Configuración Tiempo Real
         </Typography>
-        
+
         <Divider sx={{ my: 1 }} />
 
         <MenuItem>
@@ -142,10 +143,10 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
               <Switch
                 checked={isConnected}
                 onChange={handleToggleRealTime}
-                size="small"
+                size='small'
               />
             }
-            label="Activar tiempo real"
+            label='Activar tiempo real'
             sx={{ width: '100%' }}
           />
         </MenuItem>
@@ -153,18 +154,16 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
         <Divider sx={{ my: 1 }} />
 
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="caption" color="text.secondary" gutterBottom>
+          <Typography variant='caption' color='text.secondary' gutterBottom>
             Estado de Conexión
           </Typography>
-          
-          <Box display="flex" alignItems="center" gap={1} mb={1}>
+
+          <Box display='flex' alignItems='center' gap={1} mb={1}>
             {getStatusIcon()}
-            <Typography variant="body2">
-              {getStatusText()}
-            </Typography>
+            <Typography variant='body2'>{getStatusText()}</Typography>
           </Box>
 
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             Usuarios en línea: {onlineCount}
           </Typography>
         </Box>
@@ -172,8 +171,8 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
         {connectionHealth.failedConnections > 0 && (
           <>
             <Divider sx={{ my: 1 }} />
-            <Alert severity="warning" sx={{ mx: 1 }}>
-              <Typography variant="caption">
+            <Alert severity='warning' sx={{ mx: 1 }}>
+              <Typography variant='caption'>
                 {connectionHealth.failedConnections} conexión(es) fallida(s)
               </Typography>
             </Alert>
@@ -183,10 +182,15 @@ export const OptimizedWebSocketStatus: React.FC<OptimizedWebSocketStatusProps> =
         <Divider sx={{ my: 1 }} />
 
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            display='block'
+            gutterBottom
+          >
             El tiempo real permite:
           </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
+          <Typography variant='caption' color='text.secondary' display='block'>
             • Chat en vivo • Notificaciones instantáneas • Estado de usuarios
           </Typography>
         </Box>

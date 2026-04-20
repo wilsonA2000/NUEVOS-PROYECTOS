@@ -39,8 +39,12 @@ jest.mock('../../services/userService', () => ({
   },
 }));
 
-jest.mock('../../components/users/UserStatusSelector', () => () => <div>User Status</div>);
-jest.mock('../../components/common/OptimizedWebSocketStatus', () => () => <div>WebSocket Status</div>);
+jest.mock('../../components/users/UserStatusSelector', () => () => (
+  <div>User Status</div>
+));
+jest.mock('../../components/common/OptimizedWebSocketStatus', () => () => (
+  <div>WebSocket Status</div>
+));
 
 // Import after mocks
 import Settings from '../settings/Settings';
@@ -52,9 +56,7 @@ const combinedWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BrowserRouter>{children}</BrowserRouter>
     </QueryClientProvider>
   );
 };

@@ -69,6 +69,9 @@ export interface MessageFilters {
   recipientId?: number;
 }
 
-export type MessageFormData = Omit<Message, 'id' | 'created_at' | 'updated_at' | 'sender' | 'recipient' | 'is_read'> & {
+export type MessageFormData = Omit<
+  Message,
+  'id' | 'created_at' | 'updated_at' | 'sender' | 'recipient' | 'is_read'
+> & {
   recipient_id: number;
-}; 
+};

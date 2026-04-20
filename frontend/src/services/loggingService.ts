@@ -11,7 +11,7 @@ export enum LogLevel {
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export enum LogCategory {
@@ -21,7 +21,7 @@ export enum LogCategory {
   PERFORMANCE = 'performance',
   SECURITY = 'security',
   BUSINESS = 'business',
-  UI = 'ui'
+  UI = 'ui',
 }
 
 export interface LogEntry {
@@ -128,19 +128,40 @@ class LoggingService {
   /**
    * Métodos de conveniencia para diferentes niveles
    */
-  debug(category: LogCategory, message: string, details?: Record<string, any>, component?: string): void {
+  debug(
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    component?: string,
+  ): void {
     this.log(LogLevel.DEBUG, category, message, details, component);
   }
 
-  info(category: LogCategory, message: string, details?: Record<string, any>, component?: string): void {
+  info(
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    component?: string,
+  ): void {
     this.log(LogLevel.INFO, category, message, details, component);
   }
 
-  warn(category: LogCategory, message: string, details?: Record<string, any>, component?: string): void {
+  warn(
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    component?: string,
+  ): void {
     this.log(LogLevel.WARN, category, message, details, component);
   }
 
-  error(category: LogCategory, message: string, details?: Record<string, any>, component?: string, error?: Error): void {
+  error(
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    component?: string,
+    error?: Error,
+  ): void {
     const logDetails = {
       ...details,
       ...(error && {
@@ -153,7 +174,12 @@ class LoggingService {
     this.log(LogLevel.ERROR, category, message, logDetails, component);
   }
 
-  critical(category: LogCategory, message: string, details?: Record<string, any>, component?: string): void {
+  critical(
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    component?: string,
+  ): void {
     this.log(LogLevel.CRITICAL, category, message, details, component);
   }
 
@@ -179,19 +205,35 @@ class LoggingService {
     // Enviar al backend para auditoría (con manejo mejorado de errores)
     this.sendActivityToBackend(activityData).catch(error => {
       // Solo loguear errores que no sean de conectividad en desarrollo
-      if (!import.meta.env.DEV || !error.message.includes('Backend no disponible')) {
-        this.error(LogCategory.SYSTEM, 'Failed to send activity log to backend', { error: error.message });
+      if (
+        !import.meta.env.DEV ||
+        !error.message.includes('Backend no disponible')
+      ) {
+        this.error(
+          LogCategory.SYSTEM,
+          'Failed to send activity log to backend',
+          { error: error.message },
+        );
       }
     });
 
     const endTime = performance.now();
-    performanceMonitor.trackAPICall('/api/activity-logs', 'POST', endTime - startTime, 200);
+    performanceMonitor.trackAPICall(
+      '/api/activity-logs',
+      'POST',
+      endTime - startTime,
+      200,
+    );
   }
 
   /**
    * Logging de performance integrado con performanceMonitor
    */
-  logPerformance(operation: string, duration: number, metadata?: Record<string, any>): void {
+  logPerformance(
+    operation: string,
+    duration: number,
+    metadata?: Record<string, any>,
+  ): void {
     this.log(
       LogLevel.INFO,
       LogCategory.PERFORMANCE,
@@ -239,20 +281,29 @@ class LoggingService {
         filteredLogs = filteredLogs.filter(log => log.level === filters.level);
       }
       if (filters.category) {
-        filteredLogs = filteredLogs.filter(log => log.category === filters.category);
+        filteredLogs = filteredLogs.filter(
+          log => log.category === filters.category,
+        );
       }
       if (filters.component) {
-        filteredLogs = filteredLogs.filter(log => log.component === filters.component);
+        filteredLogs = filteredLogs.filter(
+          log => log.component === filters.component,
+        );
       }
       if (filters.since) {
-        filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= filters.since!);
+        filteredLogs = filteredLogs.filter(
+          log => new Date(log.timestamp) >= filters.since!,
+        );
       }
       if (filters.limit) {
         filteredLogs = filteredLogs.slice(-filters.limit);
       }
     }
 
-    return filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return filteredLogs.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
   }
 
   /**
@@ -260,21 +311,30 @@ class LoggingService {
    */
   exportLogs(format: 'json' | 'csv' = 'json'): string {
     const logs = this.getLogs();
-    
+
     if (format === 'json') {
       return JSON.stringify(logs, null, 2);
     } else {
-      const headers = ['timestamp', 'level', 'category', 'message', 'component', 'userId'];
+      const headers = [
+        'timestamp',
+        'level',
+        'category',
+        'message',
+        'component',
+        'userId',
+      ];
       const csv = [
         headers.join(','),
-        ...logs.map(log => [
-          log.timestamp,
-          log.level,
-          log.category,
-          `"${log.message.replace(/"/g, '""')}"`,
-          log.component || '',
-          log.userId || '',
-        ].join(',')),
+        ...logs.map(log =>
+          [
+            log.timestamp,
+            log.level,
+            log.category,
+            `"${log.message.replace(/"/g, '""')}"`,
+            log.component || '',
+            log.userId || '',
+          ].join(','),
+        ),
       ].join('\n');
       return csv;
     }
@@ -293,8 +353,10 @@ class LoggingService {
     const logsByLevel = {} as Record<LogLevel, number>;
     const logsByCategory = {} as Record<LogCategory, number>;
 
-    Object.values(LogLevel).forEach(level => logsByLevel[level] = 0);
-    Object.values(LogCategory).forEach(category => logsByCategory[category] = 0);
+    Object.values(LogLevel).forEach(level => (logsByLevel[level] = 0));
+    Object.values(LogCategory).forEach(
+      category => (logsByCategory[category] = 0),
+    );
 
     this.logs.forEach(log => {
       logsByLevel[log.level]++;
@@ -302,7 +364,9 @@ class LoggingService {
     });
 
     const recentErrors = this.logs
-      .filter(log => log.level === LogLevel.ERROR || log.level === LogLevel.CRITICAL)
+      .filter(
+        log => log.level === LogLevel.ERROR || log.level === LogLevel.CRITICAL,
+      )
       .slice(-10);
 
     return {
@@ -329,7 +393,10 @@ class LoggingService {
    */
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
-    this.info(LogCategory.SYSTEM, `Logging ${enabled ? 'enabled' : 'disabled'}`);
+    this.info(
+      LogCategory.SYSTEM,
+      `Logging ${enabled ? 'enabled' : 'disabled'}`,
+    );
   }
 
   // Métodos privados
@@ -344,7 +411,7 @@ class LoggingService {
 
   private addToLocalLogs(logEntry: LogEntry): void {
     this.logs.push(logEntry);
-    
+
     // Mantener solo los últimos N logs localmente
     if (this.logs.length > this.maxLocalLogs) {
       this.logs = this.logs.slice(-this.maxLocalLogs);
@@ -354,7 +421,7 @@ class LoggingService {
   private logToConsole(logEntry: LogEntry): void {
     const { level, category, message, component, details } = logEntry;
     const prefix = `[${level.toUpperCase()}] [${category}]${component ? ` [${component}]` : ''}`;
-    
+
     switch (level) {
       case LogLevel.DEBUG:
         console.debug(prefix, message, details);
@@ -389,14 +456,18 @@ class LoggingService {
         width: window.innerWidth,
         height: window.innerHeight,
       },
-      connection: (navigator as any).connection ? {
-        effectiveType: (navigator as any).connection.effectiveType,
-        downlink: (navigator as any).connection.downlink,
-      } : undefined,
-      memory: (performance as any).memory ? {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
-      } : undefined,
+      connection: (navigator as any).connection
+        ? {
+            effectiveType: (navigator as any).connection.effectiveType,
+            downlink: (navigator as any).connection.downlink,
+          }
+        : undefined,
+      memory: (performance as any).memory
+        ? {
+            usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
+            totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
+          }
+        : undefined,
     };
   }
 
@@ -410,7 +481,7 @@ class LoggingService {
 
   private setupErrorCapture(): void {
     // Capturar errores no manejados
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       this.error(
         LogCategory.SYSTEM,
         'Unhandled JavaScript error',
@@ -426,14 +497,10 @@ class LoggingService {
     });
 
     // Capturar promesas rechazadas
-    window.addEventListener('unhandledrejection', (event) => {
-      this.error(
-        LogCategory.SYSTEM,
-        'Unhandled promise rejection',
-        {
-          reason: event.reason,
-        },
-      );
+    window.addEventListener('unhandledrejection', event => {
+      this.error(LogCategory.SYSTEM, 'Unhandled promise rejection', {
+        reason: event.reason,
+      });
     });
   }
 
@@ -441,12 +508,13 @@ class LoggingService {
     // Integrar con Performance Observer API si está disponible
     if ('PerformanceObserver' in window) {
       try {
-        const observer = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+        const observer = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
             if (entry.entryType === 'navigation') {
               this.logPerformance('page_load', entry.duration, {
                 entryType: entry.entryType,
-                loadEventEnd: (entry as PerformanceNavigationTiming).loadEventEnd,
+                loadEventEnd: (entry as PerformanceNavigationTiming)
+                  .loadEventEnd,
               });
             }
           });
@@ -460,16 +528,18 @@ class LoggingService {
 
   private async flushLogs(): Promise<void> {
     if (this.pendingLogs.length === 0) return;
-    
+
     // Verificar si el logging al backend está deshabilitado
     if (import.meta.env.VITE_DISABLE_BACKEND_LOGGING === 'true') {
-      console.debug('🔌 Backend logging deshabilitado - limpiando cola de logs');
+      console.debug(
+        '🔌 Backend logging deshabilitado - limpiando cola de logs',
+      );
       this.pendingLogs.length = 0; // Limpiar la cola
       return;
     }
-    
+
     // Verificar conectividad antes de intentar enviar logs
-    if (!await this.checkBackendConnectivity()) {
+    if (!(await this.checkBackendConnectivity())) {
       if (import.meta.env.DEV) {
         console.debug('🔌 Backend no disponible - manteniendo logs en cola');
         return;
@@ -483,29 +553,32 @@ class LoggingService {
         logs: logsToSend,
         sessionId: this.sessionId,
       });
-      
+
       // Si el envío fue exitoso, marcar backend como disponible
       this.isBackendAvailable = true;
-      
     } catch (error) {
       // Si falla el envío, volver a agregar a la cola
       this.pendingLogs.unshift(...logsToSend);
-      
+
       // Verificar si es un error de conectividad
-      if (error instanceof Error && (
-        error.message.includes('Network Error') ||
-        error.message.includes('No se pudo conectar') ||
-        error.message.includes('ECONNREFUSED')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Network Error') ||
+          error.message.includes('No se pudo conectar') ||
+          error.message.includes('ECONNREFUSED'))
+      ) {
         this.isBackendAvailable = false;
         this.lastBackendCheck = Date.now();
-        
+
         if (import.meta.env.DEV) {
-          console.debug('🔌 Error de conectividad en flush - logs en cola:', error.message);
+          console.debug(
+            '🔌 Error de conectividad en flush - logs en cola:',
+            error.message,
+          );
           return;
         }
       }
-      
+
       console.error('Failed to send logs to server:', error);
     }
   }
@@ -513,22 +586,22 @@ class LoggingService {
   private isBackendAvailable: boolean = true;
   private lastBackendCheck: number = 0;
   private readonly BACKEND_CHECK_INTERVAL = 60000; // 1 minuto
-  
+
   private async checkBackendConnectivity(): Promise<boolean> {
     const now = Date.now();
-    
+
     // Solo verificar cada minuto
     if (now - this.lastBackendCheck < this.BACKEND_CHECK_INTERVAL) {
       return this.isBackendAvailable;
     }
-    
+
     try {
       // Hacer una petición ligera al backend
       const response = await fetch('/api/v1/users/auth/login/', {
         method: 'HEAD',
         timeout: 3000, // 3 segundos timeout
       } as any);
-      
+
       this.isBackendAvailable = response.status !== 0; // 0 significa no hay conexión
       this.lastBackendCheck = now;
       return this.isBackendAvailable;
@@ -539,15 +612,17 @@ class LoggingService {
     }
   }
 
-  private async sendActivityToBackend(activityData: ActivityLogEntry): Promise<void> {
+  private async sendActivityToBackend(
+    activityData: ActivityLogEntry,
+  ): Promise<void> {
     // Verificar si el logging al backend está deshabilitado
     if (import.meta.env.VITE_DISABLE_BACKEND_LOGGING === 'true') {
       console.debug('🔌 Backend logging deshabilitado - logs solo en consola');
       return;
     }
-    
+
     // Verificar conectividad antes de intentar enviar
-    if (!await this.checkBackendConnectivity()) {
+    if (!(await this.checkBackendConnectivity())) {
       // No lanzar error, solo fallar silenciosamente en desarrollo
       if (import.meta.env.DEV) {
         console.debug('🔌 Backend no disponible - logs solo en consola');
@@ -555,7 +630,7 @@ class LoggingService {
       }
       throw new Error('Backend no disponible');
     }
-    
+
     try {
       await api.post('/core/activity-logs/', {
         activity_type: activityData.action,
@@ -571,28 +646,33 @@ class LoggingService {
         user_agent: navigator.userAgent,
         performed_by_admin: false,
       });
-      
+
       // Si el envío fue exitoso, marcar backend como disponible
       this.isBackendAvailable = true;
-      
     } catch (error) {
       // Marcar backend como no disponible por problemas de conectividad
-      if (error instanceof Error && (
-        error.message.includes('Network Error') ||
-        error.message.includes('No se pudo conectar') ||
-        error.message.includes('ECONNREFUSED')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Network Error') ||
+          error.message.includes('No se pudo conectar') ||
+          error.message.includes('ECONNREFUSED'))
+      ) {
         this.isBackendAvailable = false;
         this.lastBackendCheck = Date.now();
-        
+
         // En desarrollo, fallar silenciosamente
         if (import.meta.env.DEV) {
-          console.debug('🔌 Error de conectividad - logs solo en consola:', error.message);
+          console.debug(
+            '🔌 Error de conectividad - logs solo en consola:',
+            error.message,
+          );
           return;
         }
       }
-      
-      throw new Error(`Failed to send activity log: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      throw new Error(
+        `Failed to send activity log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 }
@@ -602,19 +682,36 @@ export const loggingService = new LoggingService();
 
 // Hook de React para logging
 export const useLogging = (component: string) => {
-  const debug = (category: LogCategory, message: string, details?: Record<string, any>) => {
+  const debug = (
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+  ) => {
     loggingService.debug(category, message, details, component);
   };
 
-  const info = (category: LogCategory, message: string, details?: Record<string, any>) => {
+  const info = (
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+  ) => {
     loggingService.info(category, message, details, component);
   };
 
-  const warn = (category: LogCategory, message: string, details?: Record<string, any>) => {
+  const warn = (
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+  ) => {
     loggingService.warn(category, message, details, component);
   };
 
-  const error = (category: LogCategory, message: string, details?: Record<string, any>, error?: Error) => {
+  const error = (
+    category: LogCategory,
+    message: string,
+    details?: Record<string, any>,
+    error?: Error,
+  ) => {
     loggingService.error(category, message, details, component, error);
   };
 
@@ -622,8 +719,16 @@ export const useLogging = (component: string) => {
     loggingService.logUserActivity(activityData);
   };
 
-  const logPerformance = (operation: string, duration: number, metadata?: Record<string, any>) => {
-    loggingService.logPerformance(`${component}.${operation}`, duration, metadata);
+  const logPerformance = (
+    operation: string,
+    duration: number,
+    metadata?: Record<string, any>,
+  ) => {
+    loggingService.logPerformance(
+      `${component}.${operation}`,
+      duration,
+      metadata,
+    );
   };
 
   return {

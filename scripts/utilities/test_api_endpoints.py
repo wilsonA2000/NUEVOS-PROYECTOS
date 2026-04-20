@@ -3,6 +3,7 @@
 Script de Testing Automatizado de APIs - VeriHome
 Prueba los endpoints críticos con las credenciales de testing
 """
+
 import requests
 import json
 from datetime import datetime
@@ -13,8 +14,12 @@ BASE_URL = "http://localhost:8000/api/v1"
 CREDENTIALS = {
     "landlord": {"email": "admin@verihome.com", "password": "admin123"},
     "tenant": {"email": "letefon100@gmail.com", "password": "adim123"},
-    "service_provider": {"email": "serviceprovider@verihome.com", "password": "service123"}
+    "service_provider": {
+        "email": "serviceprovider@verihome.com",
+        "password": "service123",
+    },
 }
+
 
 class APITester:
     def __init__(self):
@@ -28,7 +33,7 @@ class APITester:
             "status": status,  # ✅ ⚠️ ❌
             "endpoint": endpoint,
             "message": message,
-            "details": details
+            "details": details,
         }
         self.results.append(result)
 
@@ -42,21 +47,25 @@ class APITester:
         try:
             creds = CREDENTIALS[user_type]
             response = requests.post(
-                f"{BASE_URL}/users/auth/login/",
-                json=creds,
-                timeout=10
+                f"{BASE_URL}/users/auth/login/", json=creds, timeout=10
             )
 
             if response.status_code == 200:
                 data = response.json()
                 self.tokens[user_type] = data.get("access")
-                self.log("✅", f"LOGIN {user_type}",
-                        f"Autenticación exitosa para {creds['email']}")
+                self.log(
+                    "✅",
+                    f"LOGIN {user_type}",
+                    f"Autenticación exitosa para {creds['email']}",
+                )
                 return True
             else:
-                self.log("❌", f"LOGIN {user_type}",
-                        f"Error {response.status_code}",
-                        response.json())
+                self.log(
+                    "❌",
+                    f"LOGIN {user_type}",
+                    f"Error {response.status_code}",
+                    response.json(),
+                )
                 return False
 
         except Exception as e:
@@ -67,7 +76,7 @@ class APITester:
         """Obtener headers con JWT token"""
         return {
             "Authorization": f"Bearer {self.tokens.get(user_type, '')}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
     def test_properties_list(self):
@@ -77,11 +86,13 @@ class APITester:
             if response.status_code == 200:
                 data = response.json()
                 count = data.get("count", len(data.get("results", [])))
-                self.log("✅", "GET /properties/",
-                        f"Listado exitoso: {count} propiedades encontradas")
+                self.log(
+                    "✅",
+                    "GET /properties/",
+                    f"Listado exitoso: {count} propiedades encontradas",
+                )
             else:
-                self.log("⚠️", "GET /properties/",
-                        f"Status {response.status_code}")
+                self.log("⚠️", "GET /properties/", f"Status {response.status_code}")
         except Exception as e:
             self.log("❌", "GET /properties/", f"Exception: {str(e)}")
 
@@ -89,15 +100,21 @@ class APITester:
         """Test: Propiedades del arrendador"""
         try:
             headers = self.get_headers("landlord")
-            response = requests.get(f"{BASE_URL}/properties/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/properties/", headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 data = response.json()
                 count = data.get("count", len(data.get("results", [])))
-                self.log("✅", "GET /properties/ (landlord)",
-                        f"{count} propiedades del arrendador")
+                self.log(
+                    "✅",
+                    "GET /properties/ (landlord)",
+                    f"{count} propiedades del arrendador",
+                )
             else:
-                self.log("⚠️", "GET /properties/ (landlord)",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️", "GET /properties/ (landlord)", f"Status {response.status_code}"
+                )
         except Exception as e:
             self.log("❌", "GET /properties/ (landlord)", f"Exception: {str(e)}")
 
@@ -105,15 +122,19 @@ class APITester:
         """Test: Listar contratos"""
         try:
             headers = self.get_headers("landlord")
-            response = requests.get(f"{BASE_URL}/contracts/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/contracts/", headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 data = response.json()
                 count = len(data) if isinstance(data, list) else data.get("count", 0)
-                self.log("✅", "GET /contracts/ (landlord)",
-                        f"{count} contratos encontrados")
+                self.log(
+                    "✅", "GET /contracts/ (landlord)", f"{count} contratos encontrados"
+                )
             else:
-                self.log("⚠️", "GET /contracts/ (landlord)",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️", "GET /contracts/ (landlord)", f"Status {response.status_code}"
+                )
         except Exception as e:
             self.log("❌", "GET /contracts/ (landlord)", f"Exception: {str(e)}")
 
@@ -121,15 +142,23 @@ class APITester:
         """Test: Solicitudes de matching"""
         try:
             headers = self.get_headers("tenant")
-            response = requests.get(f"{BASE_URL}/matching/requests/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/matching/requests/", headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 data = response.json()
                 count = len(data) if isinstance(data, list) else data.get("count", 0)
-                self.log("✅", "GET /matching/requests/ (tenant)",
-                        f"{count} solicitudes de matching")
+                self.log(
+                    "✅",
+                    "GET /matching/requests/ (tenant)",
+                    f"{count} solicitudes de matching",
+                )
             else:
-                self.log("⚠️", "GET /matching/requests/ (tenant)",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️",
+                    "GET /matching/requests/ (tenant)",
+                    f"Status {response.status_code}",
+                )
         except Exception as e:
             self.log("❌", "GET /matching/requests/ (tenant)", f"Exception: {str(e)}")
 
@@ -137,15 +166,21 @@ class APITester:
         """Test: Threads de mensajes"""
         try:
             headers = self.get_headers("tenant")
-            response = requests.get(f"{BASE_URL}/messages/threads/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/messages/threads/", headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 data = response.json()
                 count = len(data) if isinstance(data, list) else data.get("count", 0)
-                self.log("✅", "GET /messages/threads/ (tenant)",
-                        f"{count} conversaciones")
+                self.log(
+                    "✅", "GET /messages/threads/ (tenant)", f"{count} conversaciones"
+                )
             else:
-                self.log("⚠️", "GET /messages/threads/ (tenant)",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️",
+                    "GET /messages/threads/ (tenant)",
+                    f"Status {response.status_code}",
+                )
         except Exception as e:
             self.log("❌", "GET /messages/threads/ (tenant)", f"Exception: {str(e)}")
 
@@ -153,34 +188,57 @@ class APITester:
         """Test: Listar pagos"""
         try:
             headers = self.get_headers("landlord")
-            response = requests.get(f"{BASE_URL}/payments/transactions/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/payments/transactions/", headers=headers, timeout=10
+            )
             if response.status_code in [200, 404]:  # 404 es OK si no hay pagos
                 if response.status_code == 200:
                     data = response.json()
-                    count = len(data) if isinstance(data, list) else data.get("count", 0)
-                    self.log("✅", "GET /payments/transactions/ (landlord)",
-                            f"{count} transacciones")
+                    count = (
+                        len(data) if isinstance(data, list) else data.get("count", 0)
+                    )
+                    self.log(
+                        "✅",
+                        "GET /payments/transactions/ (landlord)",
+                        f"{count} transacciones",
+                    )
                 else:
-                    self.log("✅", "GET /payments/transactions/ (landlord)",
-                            "Endpoint existe (sin datos)")
+                    self.log(
+                        "✅",
+                        "GET /payments/transactions/ (landlord)",
+                        "Endpoint existe (sin datos)",
+                    )
             else:
-                self.log("⚠️", "GET /payments/transactions/ (landlord)",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️",
+                    "GET /payments/transactions/ (landlord)",
+                    f"Status {response.status_code}",
+                )
         except Exception as e:
-            self.log("❌", "GET /payments/transactions/ (landlord)", f"Exception: {str(e)}")
+            self.log(
+                "❌", "GET /payments/transactions/ (landlord)", f"Exception: {str(e)}"
+            )
 
     def test_user_profile(self, user_type):
         """Test: Obtener perfil de usuario"""
         try:
             headers = self.get_headers(user_type)
-            response = requests.get(f"{BASE_URL}/users/auth/me/", headers=headers, timeout=10)
+            response = requests.get(
+                f"{BASE_URL}/users/auth/me/", headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 data = response.json()
-                self.log("✅", f"GET /users/auth/me/ ({user_type})",
-                        f"Perfil obtenido: {data.get('email')}")
+                self.log(
+                    "✅",
+                    f"GET /users/auth/me/ ({user_type})",
+                    f"Perfil obtenido: {data.get('email')}",
+                )
             else:
-                self.log("⚠️", f"GET /users/auth/me/ ({user_type})",
-                        f"Status {response.status_code}")
+                self.log(
+                    "⚠️",
+                    f"GET /users/auth/me/ ({user_type})",
+                    f"Status {response.status_code}",
+                )
         except Exception as e:
             self.log("❌", f"GET /users/auth/me/ ({user_type})", f"Exception: {str(e)}")
 
@@ -247,6 +305,7 @@ class APITester:
         with open("test_results.json", "w") as f:
             json.dump(self.results, f, indent=2)
         print("\n📄 Resultados guardados en: test_results.json")
+
 
 if __name__ == "__main__":
     tester = APITester()

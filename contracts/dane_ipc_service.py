@@ -85,8 +85,7 @@ class DaneIPCService:
             return rate
 
         logger.warning(
-            "No se pudo obtener el IPC del DANE. "
-            "Usando tasa por defecto: %s%%",
+            "No se pudo obtener el IPC del DANE. " "Usando tasa por defecto: %s%%",
             DEFAULT_IPC_RATE,
         )
         return DEFAULT_IPC_RATE
@@ -241,7 +240,5 @@ class DaneIPCService:
         try:
             return Decimal(str(raw)).quantize(Decimal("0.01"))
         except (InvalidOperation, TypeError) as exc:
-            logger.error(
-                "No se pudo convertir '%s' a Decimal: %s", raw, exc
-            )
+            logger.error("No se pudo convertir '%s' a Decimal: %s", raw, exc)
             return None

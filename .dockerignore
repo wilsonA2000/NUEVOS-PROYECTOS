@@ -92,4 +92,4 @@ docker-compose*
 
 # Development scripts
 manage_dev.py
-build_frontend.py 
+build_frontend.py

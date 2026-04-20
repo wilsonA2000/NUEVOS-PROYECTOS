@@ -62,9 +62,9 @@ run_test_suite() {
     local test_name=$1
     local test_command=$2
     local required=${3:-true}
-    
+
     print_status "Running $test_name..."
-    
+
     if eval "$test_command"; then
         print_success "$test_name completed successfully"
         return 0
@@ -140,7 +140,7 @@ done
 
 print_status "Test configuration:"
 echo "  - Unit tests: $RUN_UNIT"
-echo "  - E2E tests: $RUN_E2E" 
+echo "  - E2E tests: $RUN_E2E"
 echo "  - Linting: $RUN_LINT"
 echo "  - Build verification: $RUN_BUILD"
 echo "  - Coverage: $COVERAGE"
@@ -179,10 +179,10 @@ if [ "$RUN_UNIT" = true ]; then
     else
         TEST_COMMAND="npm run test -- --watchAll=false"
     fi
-    
+
     if run_test_suite "Unit tests" "$TEST_COMMAND"; then
         RESULTS+=("✅ Unit tests")
-        
+
         if [ "$COVERAGE" = true ]; then
             print_status "Generating coverage report..."
             if [ -f "coverage/lcov.info" ]; then
@@ -199,14 +199,14 @@ fi
 # Specific test suites
 if [ "$RUN_UNIT" = true ]; then
     print_status "Running specific test suites..."
-    
+
     # Authentication tests
     if run_test_suite "Authentication tests" "npm run test:auth" false; then
         RESULTS+=("✅ Auth tests")
     else
         RESULTS+=("⚠️ Auth tests")
     fi
-    
+
     # Properties tests
     if run_test_suite "Properties tests" "npm run test:properties" false; then
         RESULTS+=("✅ Properties tests")
@@ -228,35 +228,35 @@ fi
 # E2E tests (require servers to be running)
 if [ "$RUN_E2E" = true ]; then
     print_status "Checking if servers are running..."
-    
+
     # Check if frontend server is running
     if ! curl -s http://localhost:5176 > /dev/null; then
         print_warning "Frontend server not detected on port 5176"
         print_status "Please start the frontend server: npm run dev"
     fi
-    
+
     # Check if backend server is running
     if ! curl -s http://localhost:8000/api/v1/ > /dev/null; then
         print_warning "Backend server not detected on port 8000"
         print_status "Please start the backend server"
     fi
-    
+
     print_status "Running E2E tests..."
-    
+
     # Run auth flow tests
     if run_test_suite "E2E Auth flow" "npx cypress run --spec 'cypress/e2e/auth-flow.cy.ts'" false; then
         RESULTS+=("✅ E2E Auth")
     else
         RESULTS+=("⚠️ E2E Auth")
     fi
-    
+
     # Run property management tests
     if run_test_suite "E2E Properties" "npx cypress run --spec 'cypress/e2e/property-management.cy.ts'" false; then
         RESULTS+=("✅ E2E Properties")
     else
         RESULTS+=("⚠️ E2E Properties")
     fi
-    
+
     # Copy Cypress videos and screenshots if they exist
     if [ -d "cypress/videos" ]; then
         cp -r cypress/videos reports/ 2>/dev/null || true
@@ -295,7 +295,7 @@ EOF
 
 if [ "$COVERAGE" = true ] && [ -f "coverage/lcov.info" ]; then
     echo "Coverage report available at: reports/coverage.html" >> reports/test-report.md
-    
+
     # Extract coverage percentages
     if command -v lcov &> /dev/null; then
         COVERAGE_SUMMARY=$(lcov --summary coverage/lcov.info 2>/dev/null | grep -E '(functions|lines)' || echo "Coverage summary not available")

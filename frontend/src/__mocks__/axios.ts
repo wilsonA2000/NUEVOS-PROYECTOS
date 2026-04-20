@@ -29,9 +29,16 @@ const mockAxios = {
   },
 
   create: jest.fn().mockImplementation(() => mockAxios),
-  get: jest.fn().mockImplementation(() => Promise.resolve({ data: mockData.get })),
+  get: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ data: mockData.get })),
   post: jest.fn().mockImplementation((url: string, data: any) => {
-    const newItem = { ...data, id: mockData.get.length + 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    const newItem = {
+      ...data,
+      id: mockData.get.length + 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
     mockData.get.push(newItem);
     return Promise.resolve({ data: newItem });
   }),
@@ -39,7 +46,11 @@ const mockAxios = {
     const id = parseInt(url.split('/').pop() || '0');
     const index = mockData.get.findIndex((item: any) => item.id === id);
     if (index !== -1) {
-      mockData.get[index] = { ...mockData.get[index], ...data.data, updated_at: new Date().toISOString() };
+      mockData.get[index] = {
+        ...mockData.get[index],
+        ...data.data,
+        updated_at: new Date().toISOString(),
+      };
       return Promise.resolve({ data: mockData.get[index] });
     }
     return Promise.reject(new Error('Item not found'));
@@ -65,4 +76,4 @@ const mockAxios = {
   },
 } as unknown as MockAxios;
 
-export default mockAxios; 
+export default mockAxios;

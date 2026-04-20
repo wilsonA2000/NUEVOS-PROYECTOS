@@ -1,13 +1,19 @@
 import { api } from './api';
-import { Property, CreatePropertyDto, UpdatePropertyDto, PropertySearchFilters } from '../types/property';
+import {
+  Property,
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  PropertySearchFilters,
+} from '../types/property';
 
 export const propertyService = {
-  getProperties: async (filters?: PropertySearchFilters): Promise<Property[]> => {
+  getProperties: async (
+    filters?: PropertySearchFilters,
+  ): Promise<Property[]> => {
     try {
+      const response = await api.get('/properties/', { params: filters });
 
-const response = await api.get('/properties/', { params: filters });
-
-return response.data.results || response.data;
+      return response.data.results || response.data;
     } catch (error: any) {
       throw error;
     }
@@ -18,14 +24,20 @@ return response.data.results || response.data;
     return response.data;
   },
 
-  createProperty: async (data: CreatePropertyDto | FormData): Promise<Property> => {
+  createProperty: async (
+    data: CreatePropertyDto | FormData,
+  ): Promise<Property> => {
     try {
-      const response = await api.post('/properties/', data,
-        data instanceof FormData ? {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        } : undefined,
+      const response = await api.post(
+        '/properties/',
+        data,
+        data instanceof FormData
+          ? {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          : undefined,
       );
 
       return response.data;
@@ -34,16 +46,21 @@ return response.data.results || response.data;
     }
   },
 
-  updateProperty: async (id: string, data: UpdatePropertyDto | FormData): Promise<Property> => {
+  updateProperty: async (
+    id: string,
+    data: UpdatePropertyDto | FormData,
+  ): Promise<Property> => {
     try {
       const response = await api.put(
         `/properties/${id}/`,
         data,
-        data instanceof FormData ? {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        } : undefined,
+        data instanceof FormData
+          ? {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          : undefined,
       );
 
       return response.data;
@@ -56,7 +73,9 @@ return response.data.results || response.data;
     await api.delete(`/properties/${id}/`);
   },
 
-  searchProperties: async (filters: PropertySearchFilters): Promise<Property[]> => {
+  searchProperties: async (
+    filters: PropertySearchFilters,
+  ): Promise<Property[]> => {
     const response = await api.get('/properties/search/', { params: filters });
     return response.data.results || response.data;
   },
@@ -82,7 +101,9 @@ return response.data.results || response.data;
   },
 
   toggleFavorite: async (propertyId: string): Promise<{ message: string }> => {
-    const response = await api.post(`/properties/${propertyId}/toggle-favorite/`);
+    const response = await api.post(
+      `/properties/${propertyId}/toggle-favorite/`,
+    );
     return response.data;
   },
 
@@ -91,12 +112,17 @@ return response.data.results || response.data;
     return response.data.results || response.data;
   },
 
-  contactLandlord: async (propertyId: string, data: any): Promise<{ message: string }> => {
+  contactLandlord: async (
+    propertyId: string,
+    data: any,
+  ): Promise<{ message: string }> => {
     try {
+      const response = await api.post(
+        `/properties/${propertyId}/contact-landlord/`,
+        data,
+      );
 
-const response = await api.post(`/properties/${propertyId}/contact-landlord/`, data);
-
-return response.data;
+      return response.data;
     } catch (error: any) {
       throw error;
     }

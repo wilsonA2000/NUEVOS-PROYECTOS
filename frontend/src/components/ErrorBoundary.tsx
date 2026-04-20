@@ -109,8 +109,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <Translation ns="common">
-          {(t) => (
+        <Translation ns='common'>
+          {t => (
             <Box
               sx={{
                 p: 3,
@@ -120,36 +120,42 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
             >
               <Paper elevation={2} sx={{ p: 4 }}>
-                <Alert severity="error" sx={{ mb: 3 }}>
-                  <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Alert severity='error' sx={{ mb: 3 }}>
+                  <AlertTitle
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     <BugIcon />
                     {t('errors.somethingWentWrong')}
                   </AlertTitle>
                   {this.props.module && (
-                    <Typography variant="body2" sx={{ mt: 1 }}
+                    <Typography
+                      variant='body2'
+                      sx={{ mt: 1 }}
                       dangerouslySetInnerHTML={{
-                        __html: t('errors.errorInModule', { module: this.props.module }),
+                        __html: t('errors.errorInModule', {
+                          module: this.props.module,
+                        }),
                       }}
                     />
                   )}
                 </Alert>
 
-                <Typography variant="h6" gutterBottom>
+                <Typography variant='h6' gutterBottom>
                   {t('errors.unexpectedError')}
                 </Typography>
 
-                <Typography variant="body1" color="text.secondary" paragraph>
+                <Typography variant='body1' color='text.secondary' paragraph>
                   {t('errors.tryReload')}
                 </Typography>
 
                 {process.env.NODE_ENV === 'development' && this.state.error && (
                   <>
                     <Divider sx={{ my: 2 }} />
-                    <Typography variant="subtitle2" color="error" gutterBottom>
+                    <Typography variant='subtitle2' color='error' gutterBottom>
                       {t('errors.devDetails')}
                     </Typography>
                     <Box
-                      component="pre"
+                      component='pre'
                       sx={{
                         backgroundColor: 'grey.100',
                         p: 2,
@@ -172,7 +178,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
                 <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Button
-                    variant="contained"
+                    variant='contained'
                     startIcon={<RefreshIcon />}
                     onClick={this.handleRetry}
                   >
@@ -180,17 +186,14 @@ export class ErrorBoundary extends Component<Props, State> {
                   </Button>
 
                   <Button
-                    variant="outlined"
+                    variant='outlined'
                     startIcon={<HomeIcon />}
                     onClick={this.handleGoHome}
                   >
                     {t('actions.goHome')}
                   </Button>
 
-                  <Button
-                    variant="text"
-                    onClick={this.handleReload}
-                  >
+                  <Button variant='text' onClick={this.handleReload}>
                     {t('actions.reloadPage')}
                   </Button>
                 </Box>

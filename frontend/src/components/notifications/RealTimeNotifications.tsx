@@ -39,7 +39,14 @@ import { toast } from 'react-toastify';
 
 interface Notification {
   id: string;
-  type: 'message' | 'property' | 'payment' | 'contract' | 'rating' | 'user' | 'system';
+  type:
+    | 'message'
+    | 'property'
+    | 'payment'
+    | 'contract'
+    | 'rating'
+    | 'user'
+    | 'system';
   title: string;
   message: string;
   timestamp: string;
@@ -74,13 +81,8 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
 
   // WebSocket connection for notifications
-  const {
-    isConnected,
-    send,
-    subscribe,
-    connectionStatus,
-  } = useNotifications({
-    onConnectionChange: (status) => {
+  const { isConnected, send, subscribe } = useNotifications({
+    onConnectionChange: status => {
       if (status.connected) {
         // Request pending notifications on connect
         send({
@@ -93,54 +95,66 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
 
   // Handle incoming notifications
   useEffect(() => {
-    const unsubscribeNewNotification = subscribe('new_notification', (message) => {
-      const notification: Notification = {
-        id: message.data.id,
-        type: message.data.type,
-        title: message.data.title,
-        message: message.data.message,
-        timestamp: message.data.timestamp,
-        read: false,
-        priority: message.data.priority || 'medium',
-        data: message.data.data,
-        actions: message.data.actions,
-      };
+    const unsubscribeNewNotification = subscribe(
+      'new_notification',
+      message => {
+        const notification: Notification = {
+          id: message.data.id,
+          type: message.data.type,
+          title: message.data.title,
+          message: message.data.message,
+          timestamp: message.data.timestamp,
+          read: false,
+          priority: message.data.priority || 'medium',
+          data: message.data.data,
+          actions: message.data.actions,
+        };
 
-      setNotifications(prev => {
-        const updated = [notification, ...prev];
-        return updated.slice(0, maxDisplayCount);
-      });
-
-      // Show toast for high priority notifications
-      if (notification.priority === 'high' || notification.priority === 'urgent') {
-        toast.info(notification.title, {
-          onClick: () => setDrawerOpen(true),
+        setNotifications(prev => {
+          const updated = [notification, ...prev];
+          return updated.slice(0, maxDisplayCount);
         });
-      }
 
-      // Auto-mark as read after delay for low priority
-      if (notification.priority === 'low' && autoMarkReadDelay > 0) {
-        setTimeout(() => {
-          markAsRead(notification.id);
-        }, autoMarkReadDelay);
-      }
-    });
+        // Show toast for high priority notifications
+        if (
+          notification.priority === 'high' ||
+          notification.priority === 'urgent'
+        ) {
+          toast.info(notification.title, {
+            onClick: () => setDrawerOpen(true),
+          });
+        }
 
-    const unsubscribeNotificationRead = subscribe('notification_read', (message) => {
-      const { notification_id } = message.data;
-      
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notification_id ? { ...notif, read: true } : notif,
-        ),
-      );
-    });
+        // Auto-mark as read after delay for low priority
+        if (notification.priority === 'low' && autoMarkReadDelay > 0) {
+          setTimeout(() => {
+            markAsRead(notification.id);
+          }, autoMarkReadDelay);
+        }
+      },
+    );
 
-    const unsubscribeNotificationsList = subscribe('notifications_list', (message) => {
-      const { notifications: notificationsList } = message.data;
-      
-      setNotifications(notificationsList.slice(0, maxDisplayCount));
-    });
+    const unsubscribeNotificationRead = subscribe(
+      'notification_read',
+      message => {
+        const { notification_id } = message.data;
+
+        setNotifications(prev =>
+          prev.map(notif =>
+            notif.id === notification_id ? { ...notif, read: true } : notif,
+          ),
+        );
+      },
+    );
+
+    const unsubscribeNotificationsList = subscribe(
+      'notifications_list',
+      message => {
+        const { notifications: notificationsList } = message.data;
+
+        setNotifications(notificationsList.slice(0, maxDisplayCount));
+      },
+    );
 
     return () => {
       unsubscribeNewNotification();
@@ -156,14 +170,17 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
   }, [notifications]);
 
   // Mark notification as read
-  const markAsRead = useCallback((notificationId: string) => {
-    if (isConnected) {
-      send({
-        type: 'mark_notification_read',
-        data: { notification_id: notificationId },
-      });
-    }
-  }, [isConnected, send]);
+  const markAsRead = useCallback(
+    (notificationId: string) => {
+      if (isConnected) {
+        send({
+          type: 'mark_notification_read',
+          data: { notification_id: notificationId },
+        });
+      }
+    },
+    [isConnected, send],
+  );
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(() => {
@@ -228,24 +245,36 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
   // Get icon for notification type
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
-      case 'message': return <MessageIcon />;
-      case 'property': return <PropertyIcon />;
-      case 'payment': return <PaymentIcon />;
-      case 'contract': return <ContractIcon />;
-      case 'rating': return <RatingIcon />;
-      case 'user': return <UserIcon />;
-      default: return <NotificationsIcon />;
+      case 'message':
+        return <MessageIcon />;
+      case 'property':
+        return <PropertyIcon />;
+      case 'payment':
+        return <PaymentIcon />;
+      case 'contract':
+        return <ContractIcon />;
+      case 'rating':
+        return <RatingIcon />;
+      case 'user':
+        return <UserIcon />;
+      default:
+        return <NotificationsIcon />;
     }
   };
 
   // Get priority color
   const getPriorityColor = (priority: Notification['priority']) => {
     switch (priority) {
-      case 'urgent': return 'error';
-      case 'high': return 'warning';
-      case 'medium': return 'info';
-      case 'low': return 'default';
-      default: return 'default';
+      case 'urgent':
+        return 'error';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'info';
+      case 'low':
+        return 'default';
+      default:
+        return 'default';
     }
   };
 
@@ -254,17 +283,17 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
       {/* Notification Bell */}
       <IconButton
         onClick={() => setDrawerOpen(true)}
-        color="inherit"
+        color='inherit'
         sx={{ position: 'relative' }}
       >
-        <Badge badgeContent={unreadCount} color="error" max={99}>
+        <Badge badgeContent={unreadCount} color='error' max={99}>
           <NotificationsIcon />
         </Badge>
       </IconButton>
 
       {/* Notifications Drawer */}
       <Drawer
-        anchor="right"
+        anchor='right'
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         PaperProps={{
@@ -272,34 +301,34 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
         }}
       >
         <Box sx={{ p: 2 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">
-              Notificaciones
-            </Typography>
-            
-            <Box display="flex" gap={1}>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            mb={2}
+          >
+            <Typography variant='h6'>Notificaciones</Typography>
+
+            <Box display='flex' gap={1}>
               {unreadCount > 0 && (
                 <Button
-                  size="small"
+                  size='small'
                   startIcon={<MarkReadIcon />}
                   onClick={markAllAsRead}
                 >
                   Marcar todo
                 </Button>
               )}
-              
+
               <IconButton
-                size="small"
+                size='small'
                 onClick={clearAllNotifications}
-                title="Limpiar todo"
+                title='Limpiar todo'
               >
                 <ClearAllIcon />
               </IconButton>
-              
-              <IconButton
-                size="small"
-                onClick={() => setDrawerOpen(false)}
-              >
+
+              <IconButton size='small' onClick={() => setDrawerOpen(false)}>
                 <CloseIcon />
               </IconButton>
             </Box>
@@ -307,10 +336,10 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
 
           {/* Connection Status */}
           <Chip
-            size="small"
+            size='small'
             label={isConnected ? 'Conectado' : 'Desconectado'}
             color={isConnected ? 'success' : 'error'}
-            variant="outlined"
+            variant='outlined'
             sx={{ mb: 2 }}
           />
         </Box>
@@ -320,23 +349,27 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
         {/* Notifications List */}
         {notifications.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <NotificationsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-            <Typography variant="body2" color="text.secondary">
+            <NotificationsIcon
+              sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }}
+            />
+            <Typography variant='body2' color='text.secondary'>
               No tienes notificaciones
             </Typography>
           </Box>
         ) : (
           <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-            {notifications.map((notification) => (
+            {notifications.map(notification => (
               <ListItem
                 key={notification.id}
                 button
                 onClick={() => handleNotificationClick(notification)}
                 sx={{
-                  backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                  backgroundColor: notification.read
+                    ? 'transparent'
+                    : 'action.hover',
                   borderLeft: 4,
-                  borderLeftColor: notification.read 
-                    ? 'transparent' 
+                  borderLeftColor: notification.read
+                    ? 'transparent'
                     : `${getPriorityColor(notification.priority)}.main`,
                   '&:hover': {
                     backgroundColor: 'action.selected',
@@ -354,12 +387,16 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
                     {getNotificationIcon(notification.type)}
                   </Avatar>
                 </ListItemIcon>
-                
+
                 <ListItemText
                   primary={
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                    <Box
+                      display='flex'
+                      justifyContent='space-between'
+                      alignItems='flex-start'
+                    >
                       <Typography
-                        variant="subtitle2"
+                        variant='subtitle2'
                         sx={{
                           fontWeight: notification.read ? 'normal' : 'bold',
                           lineHeight: 1.2,
@@ -367,10 +404,10 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
                       >
                         {notification.title}
                       </Typography>
-                      
+
                       <Typography
-                        variant="caption"
-                        color="text.secondary"
+                        variant='caption'
+                        color='text.secondary'
                         sx={{ ml: 1, flexShrink: 0 }}
                       >
                         {formatDistanceToNow(new Date(notification.timestamp), {
@@ -382,8 +419,8 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
                   }
                   secondary={
                     <Typography
-                      variant="body2"
-                      color="text.secondary"
+                      variant='body2'
+                      color='text.secondary'
                       sx={{
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
@@ -402,7 +439,7 @@ const RealTimeNotifications: React.FC<RealTimeNotificationsProps> = ({
         )}
 
         {!isConnected && (
-          <Alert severity="warning" sx={{ m: 2 }}>
+          <Alert severity='warning' sx={{ m: 2 }}>
             Sin conexión. Las notificaciones pueden no estar actualizadas.
           </Alert>
         )}

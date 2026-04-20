@@ -10,27 +10,27 @@ from django.utils.text import slugify
 
 class ServiceCategory(models.Model):
     """Categorías principales de servicios."""
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, verbose_name="Nombre de la Categoría")
     slug = models.SlugField(max_length=120, unique=True, blank=True)
     description = models.TextField(verbose_name="Descripción", blank=True)
     icon_name = models.CharField(
-        max_length=50, 
+        max_length=50,
         verbose_name="Icono (Material-UI)",
         help_text="Nombre del icono de Material-UI (ej: 'Build', 'AccountBalance', 'Security')",
-        default="Build"
+        default="Build",
     )
     color = models.CharField(
         max_length=7,
         verbose_name="Color",
         help_text="Color hexadecimal (ej: #2196F3)",
-        default="#2196F3"
+        default="#2196F3",
     )
     order = models.PositiveIntegerField(
         verbose_name="Orden de visualización",
         default=0,
-        help_text="Menor número aparece primero"
+        help_text="Menor número aparece primero",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     is_featured = models.BooleanField(default=False, verbose_name="Destacado")
@@ -40,7 +40,7 @@ class ServiceCategory(models.Model):
     class Meta:
         verbose_name = "Categoría de Servicio"
         verbose_name_plural = "Categorías de Servicios"
-        ordering = ['order', 'name']
+        ordering = ["order", "name"]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -53,131 +53,128 @@ class ServiceCategory(models.Model):
 
 class Service(models.Model):
     """Servicios específicos dentro de cada categoría."""
-    
+
     DIFFICULTY_CHOICES = [
-        ('easy', 'Fácil'),
-        ('medium', 'Medio'),
-        ('hard', 'Difícil'),
-        ('expert', 'Experto'),
+        ("easy", "Fácil"),
+        ("medium", "Medio"),
+        ("hard", "Difícil"),
+        ("expert", "Experto"),
     ]
-    
+
     PRICING_TYPE_CHOICES = [
-        ('fixed', 'Precio Fijo'),
-        ('hourly', 'Por Hora'),
-        ('consultation', 'Consulta'),
-        ('quote', 'Bajo Cotización'),
+        ("fixed", "Precio Fijo"),
+        ("hourly", "Por Hora"),
+        ("consultation", "Consulta"),
+        ("quote", "Bajo Cotización"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.ForeignKey(
-        ServiceCategory, 
-        on_delete=models.CASCADE, 
-        related_name='services',
-        verbose_name="Categoría"
+        ServiceCategory,
+        on_delete=models.CASCADE,
+        related_name="services",
+        verbose_name="Categoría",
     )
     name = models.CharField(max_length=150, verbose_name="Nombre del Servicio")
     slug = models.SlugField(max_length=180, unique=True, blank=True)
     short_description = models.CharField(
-        max_length=200, 
+        max_length=200,
         verbose_name="Descripción Corta",
-        help_text="Descripción breve para las tarjetas"
+        help_text="Descripción breve para las tarjetas",
     )
     full_description = models.TextField(
         verbose_name="Descripción Completa",
-        help_text="Descripción detallada del servicio"
+        help_text="Descripción detallada del servicio",
     )
-    
+
     # Información de precios
     pricing_type = models.CharField(
-        max_length=20, 
+        max_length=20,
         choices=PRICING_TYPE_CHOICES,
-        default='quote',
-        verbose_name="Tipo de Precio"
+        default="quote",
+        verbose_name="Tipo de Precio",
     )
     base_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        null=True,
         blank=True,
         verbose_name="Precio Base",
-        help_text="Precio en COP (opcional)"
+        help_text="Precio en COP (opcional)",
     )
     price_range_min = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        null=True,
         blank=True,
-        verbose_name="Precio Mínimo"
+        verbose_name="Precio Mínimo",
     )
     price_range_max = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        null=True, 
+        max_digits=10,
+        decimal_places=2,
+        null=True,
         blank=True,
-        verbose_name="Precio Máximo"
+        verbose_name="Precio Máximo",
     )
-    
+
     # Características del servicio
     difficulty = models.CharField(
         max_length=20,
         choices=DIFFICULTY_CHOICES,
-        default='medium',
-        verbose_name="Dificultad"
+        default="medium",
+        verbose_name="Dificultad",
     )
     estimated_duration = models.CharField(
         max_length=100,
         verbose_name="Duración Estimada",
         help_text="Ej: '2-4 horas', '1 día', '1-2 semanas'",
-        blank=True
+        blank=True,
     )
     requirements = models.TextField(
         verbose_name="Requisitos",
         help_text="Que necesita el cliente para este servicio",
-        blank=True
+        blank=True,
     )
-    
+
     # SVC-02: proveedor vinculado (opcional para compat con catálogo existente).
     # Solo service_providers con suscripción activa pueden crear servicios.
     provider = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='provided_services',
+        related_name="provided_services",
         verbose_name="Proveedor",
-        limit_choices_to={'user_type': 'service_provider'},
+        limit_choices_to={"user_type": "service_provider"},
     )
 
     # Información del proveedor
     provider_info = models.TextField(
         verbose_name="Información del Proveedor",
         help_text="Información sobre quien ofrece este servicio",
-        blank=True
+        blank=True,
     )
-    contact_email = models.EmailField(
-        verbose_name="Email de Contacto",
-        blank=True
-    )
+    contact_email = models.EmailField(verbose_name="Email de Contacto", blank=True)
     contact_phone = models.CharField(
-        max_length=20,
-        verbose_name="Teléfono de Contacto",
-        blank=True
+        max_length=20, verbose_name="Teléfono de Contacto", blank=True
     )
-    
+
     # Métricas y estado
     popularity_score = models.PositiveIntegerField(
         default=0,
         verbose_name="Puntuación de Popularidad",
-        help_text="Mayor número = más popular"
+        help_text="Mayor número = más popular",
     )
     views_count = models.PositiveIntegerField(default=0, verbose_name="Vistas")
     requests_count = models.PositiveIntegerField(default=0, verbose_name="Solicitudes")
-    
+
     # Estados
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     is_featured = models.BooleanField(default=False, verbose_name="Destacado")
-    is_most_requested = models.BooleanField(default=False, verbose_name="Más Solicitado")
-    
+    is_most_requested = models.BooleanField(
+        default=False, verbose_name="Más Solicitado"
+    )
+
     # Fechas
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -185,12 +182,12 @@ class Service(models.Model):
     class Meta:
         verbose_name = "Servicio"
         verbose_name_plural = "Servicios"
-        ordering = ['-popularity_score', '-is_featured', '-is_most_requested', 'name']
+        ordering = ["-popularity_score", "-is_featured", "-is_most_requested", "name"]
         indexes = [
-            models.Index(fields=['category', 'is_active']),
-            models.Index(fields=['is_featured', 'is_active']),
-            models.Index(fields=['is_most_requested', 'is_active']),
-            models.Index(fields=['popularity_score']),
+            models.Index(fields=["category", "is_active"]),
+            models.Index(fields=["is_featured", "is_active"]),
+            models.Index(fields=["is_most_requested", "is_active"]),
+            models.Index(fields=["popularity_score"]),
         ]
 
     def save(self, *args, **kwargs):
@@ -203,13 +200,13 @@ class Service(models.Model):
 
     def get_price_display(self):
         """Retorna el precio formateado para mostrar."""
-        if self.pricing_type == 'fixed' and self.base_price:
+        if self.pricing_type == "fixed" and self.base_price:
             return f"${self.base_price:,.0f} COP"
-        elif self.pricing_type == 'hourly' and self.base_price:
+        elif self.pricing_type == "hourly" and self.base_price:
             return f"${self.base_price:,.0f} COP/hora"
         elif self.price_range_min and self.price_range_max:
             return f"${self.price_range_min:,.0f} - ${self.price_range_max:,.0f} COP"
-        elif self.pricing_type == 'consultation':
+        elif self.pricing_type == "consultation":
             return "Consulta disponible"
         else:
             return "Precio bajo cotización"
@@ -217,31 +214,26 @@ class Service(models.Model):
     def increment_views(self):
         """Incrementa el contador de vistas."""
         self.views_count += 1
-        self.save(update_fields=['views_count'])
+        self.save(update_fields=["views_count"])
 
     def increment_requests(self):
         """Incrementa el contador de solicitudes."""
         self.requests_count += 1
-        self.save(update_fields=['requests_count'])
+        self.save(update_fields=["requests_count"])
 
 
 class ServiceImage(models.Model):
     """Imágenes para los servicios."""
-    
+
     service = models.ForeignKey(
-        Service, 
-        on_delete=models.CASCADE, 
-        related_name='images',
-        verbose_name="Servicio"
+        Service,
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="Servicio",
     )
-    image = models.ImageField(
-        upload_to='services/images/',
-        verbose_name="Imagen"
-    )
+    image = models.ImageField(upload_to="services/images/", verbose_name="Imagen")
     alt_text = models.CharField(
-        max_length=200,
-        verbose_name="Texto Alternativo",
-        blank=True
+        max_length=200, verbose_name="Texto Alternativo", blank=True
     )
     is_main = models.BooleanField(default=False, verbose_name="Imagen Principal")
     order = models.PositiveIntegerField(default=0, verbose_name="Orden")
@@ -249,7 +241,7 @@ class ServiceImage(models.Model):
     class Meta:
         verbose_name = "Imagen de Servicio"
         verbose_name_plural = "Imágenes de Servicios"
-        ordering = ['-is_main', 'order']
+        ordering = ["-is_main", "order"]
 
     def __str__(self):
         return f"Imagen de {self.service.name}"
@@ -257,88 +249,77 @@ class ServiceImage(models.Model):
 
 class ServiceRequest(models.Model):
     """Solicitudes de servicios por parte de usuarios."""
-    
+
     STATUS_CHOICES = [
-        ('pending', 'Pendiente'),
-        ('contacted', 'Contactado'),
-        ('in_progress', 'En Progreso'),
-        ('completed', 'Completado'),
-        ('cancelled', 'Cancelado'),
+        ("pending", "Pendiente"),
+        ("contacted", "Contactado"),
+        ("in_progress", "En Progreso"),
+        ("completed", "Completado"),
+        ("cancelled", "Cancelado"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     service = models.ForeignKey(
         Service,
         on_delete=models.CASCADE,
-        related_name='service_requests',
-        verbose_name="Servicio"
+        related_name="service_requests",
+        verbose_name="Servicio",
     )
 
     # 1.9.3: FKs relacionales para trazabilidad end-to-end.
     # Nullable para preservar solicitudes anónimas (requester_* string fields
     # siguen siendo la fuente de contacto canónico para esos casos).
     requester = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='catalog_service_requests',
-        verbose_name='Usuario solicitante',
-        help_text='Usuario autenticado que creó la solicitud (null para anónimas)'
+        related_name="catalog_service_requests",
+        verbose_name="Usuario solicitante",
+        help_text="Usuario autenticado que creó la solicitud (null para anónimas)",
     )
     property = models.ForeignKey(
-        'properties.Property',
+        "properties.Property",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='catalog_service_requests',
-        verbose_name='Propiedad relacionada',
-        help_text='Propiedad sobre la que recae el servicio (si aplica)'
+        related_name="catalog_service_requests",
+        verbose_name="Propiedad relacionada",
+        help_text="Propiedad sobre la que recae el servicio (si aplica)",
     )
     contract = models.ForeignKey(
-        'contracts.Contract',
+        "contracts.Contract",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='catalog_service_requests',
-        verbose_name='Contrato relacionado',
-        help_text='Contrato de arrendamiento que origina el servicio (ej: mantenimiento bajo contrato)'
+        related_name="catalog_service_requests",
+        verbose_name="Contrato relacionado",
+        help_text="Contrato de arrendamiento que origina el servicio (ej: mantenimiento bajo contrato)",
     )
 
     requester_name = models.CharField(max_length=100, verbose_name="Nombre")
     requester_email = models.EmailField(verbose_name="Email")
     requester_phone = models.CharField(max_length=20, verbose_name="Teléfono")
     message = models.TextField(
-        verbose_name="Mensaje",
-        help_text="Detalles de lo que necesita"
+        verbose_name="Mensaje", help_text="Detalles de lo que necesita"
     )
     preferred_date = models.DateField(
-        null=True, 
-        blank=True,
-        verbose_name="Fecha Preferida"
+        null=True, blank=True, verbose_name="Fecha Preferida"
     )
     budget_range = models.CharField(
-        max_length=100,
-        verbose_name="Presupuesto Estimado",
-        blank=True
+        max_length=100, verbose_name="Presupuesto Estimado", blank=True
     )
     status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='pending',
-        verbose_name="Estado"
+        max_length=20, choices=STATUS_CHOICES, default="pending", verbose_name="Estado"
     )
-    admin_notes = models.TextField(
-        verbose_name="Notas del Administrador",
-        blank=True
-    )
+    admin_notes = models.TextField(verbose_name="Notas del Administrador", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Solicitud de Servicio"
         verbose_name_plural = "Solicitudes de Servicios"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Solicitud: {self.service.name} - {self.requester_name}"
@@ -348,6 +329,7 @@ class ServiceRequest(models.Model):
 # SISTEMA DE SUSCRIPCIONES PARA PRESTADORES DE SERVICIOS
 # ══════════════════════════════════════════════════════════════
 
+
 class SubscriptionPlan(models.Model):
     """
     Plan de suscripción disponible para prestadores de servicios.
@@ -355,43 +337,55 @@ class SubscriptionPlan(models.Model):
     """
 
     BILLING_CYCLE = [
-        ('monthly', 'Mensual'),
-        ('quarterly', 'Trimestral'),
-        ('annual', 'Anual'),
+        ("monthly", "Mensual"),
+        ("quarterly", "Trimestral"),
+        ("annual", "Anual"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField('Nombre del plan', max_length=50)
-    slug = models.SlugField('Slug', unique=True)
-    description = models.TextField('Descripción')
-    billing_cycle = models.CharField('Ciclo de facturación', max_length=15, choices=BILLING_CYCLE, default='monthly')
+    name = models.CharField("Nombre del plan", max_length=50)
+    slug = models.SlugField("Slug", unique=True)
+    description = models.TextField("Descripción")
+    billing_cycle = models.CharField(
+        "Ciclo de facturación", max_length=15, choices=BILLING_CYCLE, default="monthly"
+    )
 
     # Precios en COP
-    price = models.DecimalField('Precio (COP)', max_digits=10, decimal_places=0)
-    discount_percentage = models.PositiveIntegerField('Descuento (%)', default=0, help_text='Descuento aplicado sobre el precio base')
+    price = models.DecimalField("Precio (COP)", max_digits=10, decimal_places=0)
+    discount_percentage = models.PositiveIntegerField(
+        "Descuento (%)", default=0, help_text="Descuento aplicado sobre el precio base"
+    )
 
     # Límites y funcionalidades
-    max_active_services = models.PositiveIntegerField('Máx. servicios activos', default=3)
-    max_monthly_requests = models.PositiveIntegerField('Máx. solicitudes/mes', default=20)
-    featured_listing = models.BooleanField('Listado destacado', default=False)
-    priority_in_search = models.BooleanField('Prioridad en búsquedas', default=False)
-    verified_badge = models.BooleanField('Badge verificado', default=False)
-    access_to_analytics = models.BooleanField('Acceso a analíticas', default=False)
-    direct_messaging = models.BooleanField('Mensajería directa', default=True)
-    payment_gateway_access = models.BooleanField('Pasarela de pagos propia', default=False)
+    max_active_services = models.PositiveIntegerField(
+        "Máx. servicios activos", default=3
+    )
+    max_monthly_requests = models.PositiveIntegerField(
+        "Máx. solicitudes/mes", default=20
+    )
+    featured_listing = models.BooleanField("Listado destacado", default=False)
+    priority_in_search = models.BooleanField("Prioridad en búsquedas", default=False)
+    verified_badge = models.BooleanField("Badge verificado", default=False)
+    access_to_analytics = models.BooleanField("Acceso a analíticas", default=False)
+    direct_messaging = models.BooleanField("Mensajería directa", default=True)
+    payment_gateway_access = models.BooleanField(
+        "Pasarela de pagos propia", default=False
+    )
 
     # Estado
-    is_active = models.BooleanField('Activo', default=True)
-    is_recommended = models.BooleanField('Recomendado', default=False, help_text='Mostrar badge "Recomendado" en la UI')
-    sort_order = models.PositiveIntegerField('Orden de visualización', default=0)
+    is_active = models.BooleanField("Activo", default=True)
+    is_recommended = models.BooleanField(
+        "Recomendado", default=False, help_text='Mostrar badge "Recomendado" en la UI'
+    )
+    sort_order = models.PositiveIntegerField("Orden de visualización", default=0)
 
-    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
-    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+    created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
+    updated_at = models.DateTimeField("Última actualización", auto_now=True)
 
     class Meta:
-        verbose_name = 'Plan de Suscripción'
-        verbose_name_plural = 'Planes de Suscripción'
-        ordering = ['sort_order', 'price']
+        verbose_name = "Plan de Suscripción"
+        verbose_name_plural = "Planes de Suscripción"
+        ordering = ["sort_order", "price"]
 
     def __str__(self):
         return f"{self.name} - ${self.price:,.0f}/{'mes' if self.billing_cycle == 'monthly' else 'trim' if self.billing_cycle == 'quarterly' else 'año'}"
@@ -415,55 +409,61 @@ class ServiceSubscription(models.Model):
     """
 
     STATUS_CHOICES = [
-        ('trial', 'Período de Prueba'),
-        ('active', 'Activa'),
-        ('past_due', 'Pago Vencido'),
-        ('suspended', 'Suspendida'),
-        ('cancelled', 'Cancelada'),
-        ('expired', 'Expirada'),
+        ("trial", "Período de Prueba"),
+        ("active", "Activa"),
+        ("past_due", "Pago Vencido"),
+        ("suspended", "Suspendida"),
+        ("cancelled", "Cancelada"),
+        ("expired", "Expirada"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     service_provider = models.OneToOneField(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        related_name='service_subscription',
-        limit_choices_to={'user_type': 'service_provider'},
-        verbose_name='Prestador de servicios',
+        related_name="service_subscription",
+        limit_choices_to={"user_type": "service_provider"},
+        verbose_name="Prestador de servicios",
     )
     plan = models.ForeignKey(
         SubscriptionPlan,
         on_delete=models.PROTECT,
-        related_name='subscriptions',
-        verbose_name='Plan',
+        related_name="subscriptions",
+        verbose_name="Plan",
     )
-    status = models.CharField('Estado', max_length=15, choices=STATUS_CHOICES, default='trial')
+    status = models.CharField(
+        "Estado", max_length=15, choices=STATUS_CHOICES, default="trial"
+    )
 
     # Fechas
-    start_date = models.DateTimeField('Fecha de inicio')
-    end_date = models.DateTimeField('Fecha de vencimiento')
-    trial_end_date = models.DateTimeField('Fin del período de prueba', null=True, blank=True)
-    cancelled_at = models.DateTimeField('Fecha de cancelación', null=True, blank=True)
+    start_date = models.DateTimeField("Fecha de inicio")
+    end_date = models.DateTimeField("Fecha de vencimiento")
+    trial_end_date = models.DateTimeField(
+        "Fin del período de prueba", null=True, blank=True
+    )
+    cancelled_at = models.DateTimeField("Fecha de cancelación", null=True, blank=True)
 
     # Facturación
-    next_billing_date = models.DateField('Próxima fecha de cobro', null=True, blank=True)
-    auto_renew = models.BooleanField('Renovación automática', default=True)
+    next_billing_date = models.DateField(
+        "Próxima fecha de cobro", null=True, blank=True
+    )
+    auto_renew = models.BooleanField("Renovación automática", default=True)
 
     # Uso actual
-    services_published = models.PositiveIntegerField('Servicios publicados', default=0)
-    requests_this_month = models.PositiveIntegerField('Solicitudes este mes', default=0)
+    services_published = models.PositiveIntegerField("Servicios publicados", default=0)
+    requests_this_month = models.PositiveIntegerField("Solicitudes este mes", default=0)
 
     # Metadatos
-    cancellation_reason = models.TextField('Motivo de cancelación', blank=True)
-    admin_notes = models.TextField('Notas admin', blank=True)
+    cancellation_reason = models.TextField("Motivo de cancelación", blank=True)
+    admin_notes = models.TextField("Notas admin", blank=True)
 
-    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
-    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+    created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
+    updated_at = models.DateTimeField("Última actualización", auto_now=True)
 
     class Meta:
-        verbose_name = 'Suscripción de Servicio'
-        verbose_name_plural = 'Suscripciones de Servicios'
-        ordering = ['-created_at']
+        verbose_name = "Suscripción de Servicio"
+        verbose_name_plural = "Suscripciones de Servicios"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.service_provider.get_full_name()} - {self.plan.name} ({self.get_status_display()})"
@@ -471,7 +471,8 @@ class ServiceSubscription(models.Model):
     @property
     def is_valid(self):
         from django.utils import timezone
-        return self.status in ('trial', 'active') and self.end_date > timezone.now()
+
+        return self.status in ("trial", "active") and self.end_date > timezone.now()
 
     @property
     def can_publish_service(self):
@@ -479,7 +480,9 @@ class ServiceSubscription(models.Model):
 
     @property
     def can_receive_requests(self):
-        return self.is_valid and self.requests_this_month < self.plan.max_monthly_requests
+        return (
+            self.is_valid and self.requests_this_month < self.plan.max_monthly_requests
+        )
 
 
 class SubscriptionBillingHistory(models.Model):
@@ -489,37 +492,40 @@ class SubscriptionBillingHistory(models.Model):
     subscription = models.ForeignKey(
         ServiceSubscription,
         on_delete=models.CASCADE,
-        related_name='billing_history',
-        verbose_name='Suscripción',
+        related_name="billing_history",
+        verbose_name="Suscripción",
     )
-    amount = models.DecimalField('Monto cobrado (COP)', max_digits=10, decimal_places=0)
-    billing_date = models.DateField('Fecha de cobro')
-    payment_method = models.CharField('Método de pago', max_length=50, blank=True)
-    transaction_ref = models.CharField('Referencia de transacción', max_length=100, blank=True)
+    amount = models.DecimalField("Monto cobrado (COP)", max_digits=10, decimal_places=0)
+    billing_date = models.DateField("Fecha de cobro")
+    payment_method = models.CharField("Método de pago", max_length=50, blank=True)
+    transaction_ref = models.CharField(
+        "Referencia de transacción", max_length=100, blank=True
+    )
     status = models.CharField(
-        'Estado',
+        "Estado",
         max_length=15,
         choices=[
-            ('pending', 'Pendiente'),
-            ('paid', 'Pagado'),
-            ('failed', 'Fallido'),
-            ('refunded', 'Reembolsado'),
+            ("pending", "Pendiente"),
+            ("paid", "Pagado"),
+            ("failed", "Fallido"),
+            ("refunded", "Reembolsado"),
         ],
-        default='pending',
+        default="pending",
     )
-    notes = models.TextField('Notas', blank=True)
+    notes = models.TextField("Notas", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Historial de Facturación'
-        verbose_name_plural = 'Historial de Facturación'
-        ordering = ['-billing_date']
+        verbose_name = "Historial de Facturación"
+        verbose_name_plural = "Historial de Facturación"
+        ordering = ["-billing_date"]
 
     def __str__(self):
         return f"{self.subscription.service_provider.get_full_name()} - ${self.amount:,.0f} ({self.get_status_display()})"
 
 
 # T2.1 · Órdenes de pago de servicios prestador↔cliente
+
 
 class ServiceOrder(models.Model):
     """Orden de servicio creada por un prestador para cobrar a un cliente.
@@ -531,48 +537,52 @@ class ServiceOrder(models.Model):
     """
 
     STATUS_CHOICES = [
-        ('draft', 'Borrador'),
-        ('sent', 'Enviada al cliente'),
-        ('accepted', 'Aceptada (lista para pago)'),
-        ('paid', 'Pagada'),
-        ('rejected', 'Rechazada'),
-        ('cancelled', 'Cancelada'),
+        ("draft", "Borrador"),
+        ("sent", "Enviada al cliente"),
+        ("accepted", "Aceptada (lista para pago)"),
+        ("paid", "Pagada"),
+        ("rejected", "Rechazada"),
+        ("cancelled", "Cancelada"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     provider = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.PROTECT,
-        related_name='service_orders_issued',
-        limit_choices_to={'user_type': 'service_provider'},
-        verbose_name='Prestador',
+        related_name="service_orders_issued",
+        limit_choices_to={"user_type": "service_provider"},
+        verbose_name="Prestador",
     )
     client = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.PROTECT,
-        related_name='service_orders_received',
-        verbose_name='Cliente (arrendador o arrendatario)',
+        related_name="service_orders_received",
+        verbose_name="Cliente (arrendador o arrendatario)",
     )
     service = models.ForeignKey(
         Service,
         on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='orders',
-        help_text='Catálogo de referencia (opcional, puede ser servicio ad-hoc).',
+        null=True,
+        blank=True,
+        related_name="orders",
+        help_text="Catálogo de referencia (opcional, puede ser servicio ad-hoc).",
     )
-    title = models.CharField('Título', max_length=200)
-    description = models.TextField('Descripción del trabajo', blank=True)
-    amount = models.DecimalField('Monto', max_digits=12, decimal_places=2)
-    status = models.CharField('Estado', max_length=20, choices=STATUS_CHOICES, default='draft')
-    due_date = models.DateField('Fecha de pago esperada', null=True, blank=True)
+    title = models.CharField("Título", max_length=200)
+    description = models.TextField("Descripción del trabajo", blank=True)
+    amount = models.DecimalField("Monto", max_digits=12, decimal_places=2)
+    status = models.CharField(
+        "Estado", max_length=20, choices=STATUS_CHOICES, default="draft"
+    )
+    due_date = models.DateField("Fecha de pago esperada", null=True, blank=True)
 
     # Enlace al consecutivo unificado (T1.4)
     payment_order = models.OneToOneField(
-        'payments.PaymentOrder',
+        "payments.PaymentOrder",
         on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='service_order',
-        help_text='Generada cuando el cliente acepta.',
+        null=True,
+        blank=True,
+        related_name="service_order",
+        help_text="Generada cuando el cliente acepta.",
     )
 
     # Auditoría
@@ -580,22 +590,22 @@ class ServiceOrder(models.Model):
     accepted_at = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
-    notes = models.TextField('Notas internas', blank=True)
+    notes = models.TextField("Notas internas", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Orden de Servicio'
-        verbose_name_plural = 'Órdenes de Servicio'
-        ordering = ['-created_at']
+        verbose_name = "Orden de Servicio"
+        verbose_name_plural = "Órdenes de Servicio"
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['provider', 'status']),
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=["provider", "status"]),
+            models.Index(fields=["client", "status"]),
+            models.Index(fields=["status", "created_at"]),
         ]
 
     def __str__(self):
-        return f'OS · {self.title} · {self.amount} · {self.get_status_display()}'
+        return f"OS · {self.title} · {self.amount} · {self.get_status_display()}"
 
 
 class ServiceOrderHistory(models.Model):
@@ -609,69 +619,73 @@ class ServiceOrderHistory(models.Model):
     """
 
     ACTION_TYPES = [
-        ('CREATE', 'Crear orden'),
-        ('STATE_CHANGE', 'Cambio de estado'),
-        ('SEND', 'Enviada al cliente'),
-        ('ACCEPT', 'Aceptada'),
-        ('REJECT', 'Rechazada'),
-        ('CANCEL', 'Cancelada'),
-        ('PAY', 'Pagada'),
-        ('UPDATE', 'Actualización'),
-        ('SYSTEM_ACTION', 'Acción del sistema'),
+        ("CREATE", "Crear orden"),
+        ("STATE_CHANGE", "Cambio de estado"),
+        ("SEND", "Enviada al cliente"),
+        ("ACCEPT", "Aceptada"),
+        ("REJECT", "Rechazada"),
+        ("CANCEL", "Cancelada"),
+        ("PAY", "Pagada"),
+        ("UPDATE", "Actualización"),
+        ("SYSTEM_ACTION", "Acción del sistema"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.ForeignKey(
         ServiceOrder,
         on_delete=models.CASCADE,
-        related_name='history_entries',
-        verbose_name='Orden de servicio',
+        related_name="history_entries",
+        verbose_name="Orden de servicio",
     )
     action_type = models.CharField(
-        'Tipo de acción', max_length=20, choices=ACTION_TYPES
+        "Tipo de acción", max_length=20, choices=ACTION_TYPES
     )
     action_description = models.CharField(
-        'Descripción de la acción', max_length=500,
-        help_text='Texto legible para auditoría.',
+        "Descripción de la acción",
+        max_length=500,
+        help_text="Texto legible para auditoría.",
     )
     performed_by = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='service_order_actions',
-        verbose_name='Realizado por',
-        help_text='Null cuando lo ejecuta el sistema (signal / cron).',
+        related_name="service_order_actions",
+        verbose_name="Realizado por",
+        help_text="Null cuando lo ejecuta el sistema (signal / cron).",
     )
     user_role = models.CharField(
-        'Rol del usuario', max_length=20,
+        "Rol del usuario",
+        max_length=20,
         choices=[
-            ('service_provider', 'Prestador'),
-            ('client', 'Cliente'),
-            ('system', 'Sistema'),
-            ('admin', 'Administrador'),
+            ("service_provider", "Prestador"),
+            ("client", "Cliente"),
+            ("system", "Sistema"),
+            ("admin", "Administrador"),
         ],
-        default='system',
+        default="system",
     )
-    old_status = models.CharField('Estado anterior', max_length=20, blank=True)
-    new_status = models.CharField('Estado nuevo', max_length=20, blank=True)
+    old_status = models.CharField("Estado anterior", max_length=20, blank=True)
+    new_status = models.CharField("Estado nuevo", max_length=20, blank=True)
     metadata = models.JSONField(
-        'Metadatos', default=dict, blank=True,
-        help_text='Información adicional: monto, notas, payment_order_id, etc.',
+        "Metadatos",
+        default=dict,
+        blank=True,
+        help_text="Información adicional: monto, notas, payment_order_id, etc.",
     )
-    timestamp = models.DateTimeField('Fecha', auto_now_add=True)
+    timestamp = models.DateTimeField("Fecha", auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Historial de Orden de Servicio'
-        verbose_name_plural = 'Historial de Órdenes de Servicio'
-        ordering = ['-timestamp']
+        verbose_name = "Historial de Orden de Servicio"
+        verbose_name_plural = "Historial de Órdenes de Servicio"
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['order', '-timestamp']),
-            models.Index(fields=['action_type', '-timestamp']),
+            models.Index(fields=["order", "-timestamp"]),
+            models.Index(fields=["action_type", "-timestamp"]),
         ]
 
     def __str__(self):
-        return f'OSH · {self.action_type} · OS {self.order_id} · {self.timestamp:%Y-%m-%d %H:%M}'
+        return f"OSH · {self.action_type} · OS {self.order_id} · {self.timestamp:%Y-%m-%d %H:%M}"
 
 
 class ServicePayment(models.Model):
@@ -686,33 +700,34 @@ class ServicePayment(models.Model):
     order = models.ForeignKey(
         ServiceOrder,
         on_delete=models.CASCADE,
-        related_name='payments',
+        related_name="payments",
     )
-    amount_paid = models.DecimalField('Monto pagado', max_digits=12, decimal_places=2)
+    amount_paid = models.DecimalField("Monto pagado", max_digits=12, decimal_places=2)
     gateway = models.CharField(
-        'Pasarela',
+        "Pasarela",
         max_length=20,
         choices=[
-            ('stripe', 'Stripe'),
-            ('wompi', 'Wompi'),
-            ('pse', 'PSE'),
-            ('manual', 'Manual / efectivo'),
+            ("stripe", "Stripe"),
+            ("wompi", "Wompi"),
+            ("pse", "PSE"),
+            ("manual", "Manual / efectivo"),
         ],
     )
     transaction = models.ForeignKey(
-        'payments.Transaction',
+        "payments.Transaction",
         on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='service_payments',
-        help_text='Transaction de la pasarela cuando el webhook reconcilia.',
+        null=True,
+        blank=True,
+        related_name="service_payments",
+        help_text="Transaction de la pasarela cuando el webhook reconcilia.",
     )
     paid_at = models.DateTimeField(auto_now_add=True)
-    notes = models.CharField('Referencia', max_length=200, blank=True)
+    notes = models.CharField("Referencia", max_length=200, blank=True)
 
     class Meta:
-        verbose_name = 'Pago de Servicio'
-        verbose_name_plural = 'Pagos de Servicio'
-        ordering = ['-paid_at']
+        verbose_name = "Pago de Servicio"
+        verbose_name_plural = "Pagos de Servicio"
+        ordering = ["-paid_at"]
 
     def __str__(self):
-        return f'Pago {self.amount_paid} a OS {self.order_id} via {self.gateway}'
+        return f"Pago {self.amount_paid} a OS {self.order_id} via {self.gateway}"

@@ -17,14 +17,11 @@ import {
   ListItemSecondaryAction,
   Button,
   Chip,
-  Avatar,
   Divider,
   Tab,
   Tabs,
-  Alert,
   Switch,
   FormControlLabel,
-  Snackbar,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -47,7 +44,14 @@ import { toast } from 'react-toastify';
 
 interface Notification {
   id: string;
-  type: 'message' | 'property' | 'payment' | 'contract' | 'rating' | 'user' | 'system';
+  type:
+    | 'message'
+    | 'property'
+    | 'payment'
+    | 'contract'
+    | 'rating'
+    | 'user'
+    | 'system';
   title: string;
   body: string;
   timestamp: string;
@@ -88,7 +92,8 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
   const [activeTab, setActiveTab] = useState(0);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(enableSound);
-  const [permissionState, setPermissionState] = useState<NotificationPermission>('default');
+  const [permissionState, setPermissionState] =
+    useState<NotificationPermission>('default');
 
   // No WebSocket dependency - static offline status
   const isConnected = false;
@@ -106,9 +111,9 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setNotifications(prev => 
-        prev.filter(notif => 
-          now - new Date(notif.timestamp).getTime() < autoClearAfter,
+      setNotifications(prev =>
+        prev.filter(
+          notif => now - new Date(notif.timestamp).getTime() < autoClearAfter,
         ),
       );
     }, 60000); // Check every minute
@@ -152,66 +157,73 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
     addNotification(notification);
   }, []);
 
-  const addNotification = useCallback((notification: Notification) => {
-    setNotifications(prev => {
-      const updated = [notification, ...prev].slice(0, maxNotifications);
-      return updated;
-    });
-
-    // Show browser notification if enabled
-    if (pushEnabled && 'Notification' in window && Notification.permission === 'granted') {
-      const browserNotification = new Notification(notification.title, {
-        body: notification.body,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: notification.id,
-        requireInteraction: notification.priority === 'urgent',
-        silent: !soundEnabled,
+  const addNotification = useCallback(
+    (notification: Notification) => {
+      setNotifications(prev => {
+        const updated = [notification, ...prev].slice(0, maxNotifications);
+        return updated;
       });
 
-      browserNotification.onclick = () => {
-        window.focus();
-        handleNotificationClick(notification);
-        browserNotification.close();
+      // Show browser notification if enabled
+      if (
+        pushEnabled &&
+        'Notification' in window &&
+        Notification.permission === 'granted'
+      ) {
+        const browserNotification = new Notification(notification.title, {
+          body: notification.body,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: notification.id,
+          requireInteraction: notification.priority === 'urgent',
+          silent: !soundEnabled,
+        });
+
+        browserNotification.onclick = () => {
+          window.focus();
+          handleNotificationClick(notification);
+          browserNotification.close();
+        };
+
+        // Auto-close after 5 seconds (except urgent)
+        if (notification.priority !== 'urgent') {
+          setTimeout(() => browserNotification.close(), 5000);
+        }
+      }
+
+      // Show toast notification
+      const autoCloseValue = notification.priority === 'urgent' ? false : 5000;
+      const toastOptions = {
+        autoClose: autoCloseValue,
+        onClick: () => handleNotificationClick(notification),
       };
 
-      // Auto-close after 5 seconds (except urgent)
-      if (notification.priority !== 'urgent') {
-        setTimeout(() => browserNotification.close(), 5000);
+      switch (notification.priority) {
+        case 'urgent':
+          toast.error(notification.body, toastOptions as any);
+          break;
+        case 'high':
+          toast.warning(notification.body, toastOptions as any);
+          break;
+        case 'medium':
+          toast.info(notification.body, toastOptions as any);
+          break;
+        default:
+          toast.success(notification.body, toastOptions as any);
       }
-    }
 
-    // Show toast notification
-    const autoCloseValue = notification.priority === 'urgent' ? false : 5000;
-    const toastOptions = {
-      autoClose: autoCloseValue,
-      onClick: () => handleNotificationClick(notification),
-    };
-
-    switch (notification.priority) {
-      case 'urgent':
-        toast.error(notification.body, toastOptions as any);
-        break;
-      case 'high':
-        toast.warning(notification.body, toastOptions as any);
-        break;
-      case 'medium':
-        toast.info(notification.body, toastOptions as any);
-        break;
-      default:
-        toast.success(notification.body, toastOptions as any);
-    }
-
-    // Play sound if enabled
-    if (soundEnabled && notification.priority !== 'low') {
-      playNotificationSound(notification.priority);
-    }
-  }, [pushEnabled, soundEnabled, maxNotifications]);
+      // Play sound if enabled
+      if (soundEnabled && notification.priority !== 'low') {
+        playNotificationSound(notification.priority);
+      }
+    },
+    [pushEnabled, soundEnabled, maxNotifications],
+  );
 
   const playNotificationSound = (priority: string) => {
     try {
       const audio = new Audio();
-      
+
       // Different sounds for different priorities
       switch (priority) {
         case 'urgent':
@@ -223,13 +235,12 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
         default:
           audio.src = '/sounds/notification.mp3';
       }
-      
+
       audio.volume = 0.3;
       audio.play().catch(() => {
         // Ignore autoplay policy errors
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -238,7 +249,7 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
 
     // Navigate based on notification type
     const { data } = notification;
-    
+
     if (data?.url) {
       window.location.href = data.url;
       return;
@@ -286,7 +297,7 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
       const permission = await Notification.requestPermission();
       setPermissionState(permission);
       setPushEnabled(permission === 'granted');
-      
+
       if (permission === 'granted') {
         toast.success('Notificaciones push activadas');
       } else if (permission === 'denied') {
@@ -296,17 +307,13 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
   };
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif,
-      ),
+    setNotifications(prev =>
+      prev.map(notif => (notif.id === id ? { ...notif, read: true } : notif)),
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true })),
-    );
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
   };
 
   const clearAll = () => {
@@ -321,32 +328,46 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
   const getNotificationIcon = (type: string) => {
     const iconProps = { fontSize: 'small' as const };
     switch (type) {
-      case 'message': return <MessageIcon {...iconProps} />;
-      case 'property': return <PropertyIcon {...iconProps} />;
-      case 'payment': return <PaymentIcon {...iconProps} />;
-      case 'contract': return <ContractIcon {...iconProps} />;
-      case 'rating': return <RatingIcon {...iconProps} />;
-      case 'user': return <UserIcon {...iconProps} />;
-      default: return <NotificationsIcon {...iconProps} />;
+      case 'message':
+        return <MessageIcon {...iconProps} />;
+      case 'property':
+        return <PropertyIcon {...iconProps} />;
+      case 'payment':
+        return <PaymentIcon {...iconProps} />;
+      case 'contract':
+        return <ContractIcon {...iconProps} />;
+      case 'rating':
+        return <RatingIcon {...iconProps} />;
+      case 'user':
+        return <UserIcon {...iconProps} />;
+      default:
+        return <NotificationsIcon {...iconProps} />;
     }
   };
 
   // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'error';
-      case 'high': return 'warning';
-      case 'medium': return 'info';
-      default: return 'default';
+      case 'urgent':
+        return 'error';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
   // Filter notifications by tab
   const filteredNotifications = notifications.filter((notif, index) => {
     switch (activeTab) {
-      case 1: return !notif.read; // Unread
-      case 2: return notif.read;   // Read
-      default: return true;        // All
+      case 1:
+        return !notif.read; // Unread
+      case 2:
+        return notif.read; // Read
+      default:
+        return true; // All
     }
   });
 
@@ -363,14 +384,14 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
           '&:hover': { transform: 'scale(1.1)' },
         }}
       >
-        <Badge badgeContent={unreadCount} color="error" max={99}>
+        <Badge badgeContent={unreadCount} color='error' max={99}>
           <NotificationsIcon />
         </Badge>
       </IconButton>
 
       {/* Notification Drawer */}
       <Drawer
-        anchor="right"
+        anchor='right'
         open={isOpen}
         onClose={() => setIsOpen(false)}
         PaperProps={{
@@ -380,19 +401,23 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-            <Box display="flex" alignItems="center" justifyContent="space-between">
-              <Typography variant="h6">Notificaciones</Typography>
-              <IconButton onClick={() => setIsOpen(false)} size="small">
+            <Box
+              display='flex'
+              alignItems='center'
+              justifyContent='space-between'
+            >
+              <Typography variant='h6'>Notificaciones</Typography>
+              <IconButton onClick={() => setIsOpen(false)} size='small'>
                 <CloseIcon />
               </IconButton>
             </Box>
 
             {/* Connection Status */}
             <Chip
-              size="small"
+              size='small'
               label={isConnected ? 'En línea' : 'Desconectado'}
               color={isConnected ? 'success' : 'error'}
-              variant="outlined"
+              variant='outlined'
               sx={{ mt: 1 }}
             />
           </Box>
@@ -410,22 +435,22 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                       setPushEnabled(false);
                     }
                   }}
-                  size="small"
+                  size='small'
                 />
               }
-              label="Push notifications"
+              label='Push notifications'
               sx={{ mr: 2 }}
             />
-            
+
             <FormControlLabel
               control={
                 <Switch
                   checked={soundEnabled}
-                  onChange={(e) => setSoundEnabled(e.target.checked)}
-                  size="small"
+                  onChange={e => setSoundEnabled(e.target.checked)}
+                  size='small'
                 />
               }
-              label="Sonido"
+              label='Sonido'
             />
           </Box>
 
@@ -433,19 +458,19 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
           <Tabs
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
-            variant="fullWidth"
+            variant='fullWidth'
             sx={{ borderBottom: 1, borderColor: 'divider' }}
           >
             <Tab label={`Todas (${notifications.length})`} />
             <Tab label={`No leídas (${unreadCount})`} />
-            <Tab label="Leídas" />
+            <Tab label='Leídas' />
           </Tabs>
 
           {/* Actions */}
           <Box sx={{ p: 1, borderBottom: 1, borderColor: 'divider' }}>
-            <Box display="flex" gap={1}>
+            <Box display='flex' gap={1}>
               <Button
-                size="small"
+                size='small'
                 startIcon={<MarkReadIcon />}
                 onClick={markAllAsRead}
                 disabled={unreadCount === 0}
@@ -453,7 +478,7 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                 Marcar todas
               </Button>
               <Button
-                size="small"
+                size='small'
                 startIcon={<ClearAllIcon />}
                 onClick={clearRead}
                 disabled={notifications.filter(n => n.read).length === 0}
@@ -477,9 +502,13 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                   textAlign: 'center',
                 }}
               >
-                <NotificationsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                <Typography color="text.secondary">
-                  {activeTab === 1 ? 'No hay notificaciones sin leer' : 'No hay notificaciones'}
+                <NotificationsIcon
+                  sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }}
+                />
+                <Typography color='text.secondary'>
+                  {activeTab === 1
+                    ? 'No hay notificaciones sin leer'
+                    : 'No hay notificaciones'}
                 </Typography>
               </Box>
             ) : (
@@ -488,16 +517,18 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                   <React.Fragment key={notification.id}>
                     <ListItem
                       sx={{
-                        bgcolor: notification.read ? 'transparent' : 'action.hover',
+                        bgcolor: notification.read
+                          ? 'transparent'
+                          : 'action.hover',
                         '&:hover': { bgcolor: 'action.selected' },
                         cursor: 'pointer',
                       }}
                       onClick={() => handleNotificationClick(notification)}
-                      component="div"
+                      component='div'
                     >
                       <ListItemIcon>
                         <Badge
-                          variant="dot"
+                          variant='dot'
                           color={getPriorityColor(notification.priority) as any}
                           invisible={notification.read}
                         >
@@ -508,10 +539,12 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                       <ListItemText
                         primary={
                           <Typography
-                            variant="subtitle2"
+                            variant='subtitle2'
                             sx={{
                               fontWeight: notification.read ? 'normal' : 'bold',
-                              color: notification.read ? 'text.secondary' : 'text.primary',
+                              color: notification.read
+                                ? 'text.secondary'
+                                : 'text.primary',
                             }}
                           >
                             {notification.title}
@@ -520,13 +553,16 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                         secondary={
                           <Box>
                             <Typography
-                              variant="body2"
-                              color="text.secondary"
+                              variant='body2'
+                              color='text.secondary'
                               sx={{ mb: 0.5 }}
                             >
                               {notification.body}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                            >
                               {formatDistanceToNow(
                                 new Date(notification.timestamp),
                                 { addSuffix: true, locale: es },
@@ -539,14 +575,14 @@ export const PushNotificationCenter: React.FC<PushNotificationCenterProps> = ({
                       <ListItemSecondaryAction>
                         {!notification.read && (
                           <IconButton
-                            edge="end"
-                            size="small"
-                            onClick={(e) => {
+                            edge='end'
+                            size='small'
+                            onClick={e => {
                               e.stopPropagation();
                               markAsRead(notification.id);
                             }}
                           >
-                            <CheckIcon fontSize="small" />
+                            <CheckIcon fontSize='small' />
                           </IconButton>
                         )}
                       </ListItemSecondaryAction>

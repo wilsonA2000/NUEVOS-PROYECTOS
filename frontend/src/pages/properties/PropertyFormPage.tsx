@@ -11,17 +11,21 @@ const PropertyFormPage: React.FC = () => {
   const { id } = useParams();
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
-  
+
   // Determinar si estamos en modo edición
   const isEditMode = Boolean(id);
-  
+
   // Cargar datos de la propiedad si estamos en modo edición
-  const { property, isLoading: isLoadingProperty, error: propertyError } = useProperty(id || '');
+  const {
+    property,
+    isLoading: isLoadingProperty,
+    error: propertyError,
+  } = useProperty(id || '');
 
   const handleSubmit = async (formData: FormData): Promise<any> => {
     try {
       let result;
-      
+
       if (isEditMode && id) {
         // Modo edición - actualizar propiedad existente usando hook
         result = await updateProperty.mutateAsync({ id, data: formData });
@@ -29,7 +33,7 @@ const PropertyFormPage: React.FC = () => {
         // Modo creación - crear nueva propiedad
         result = await createProperty.mutateAsync(formData);
       }
-      
+
       return result;
     } catch (error: any) {
       throw error;
@@ -39,9 +43,17 @@ const PropertyFormPage: React.FC = () => {
   // Estado de carga mientras se obtienen los datos de la propiedad
   if (isEditMode && isLoadingProperty) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="400px">
+      <Box
+        display='flex'
+        flexDirection='column'
+        alignItems='center'
+        justifyContent='center'
+        minHeight='400px'
+      >
         <CircularProgress size={40} />
-        <Typography sx={{ mt: 2 }}>Cargando datos de la propiedad...</Typography>
+        <Typography sx={{ mt: 2 }}>
+          Cargando datos de la propiedad...
+        </Typography>
       </Box>
     );
   }
@@ -50,7 +62,7 @@ const PropertyFormPage: React.FC = () => {
   if (isEditMode && propertyError) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           Error cargando la propiedad: {propertyError.message}
         </Alert>
       </Box>
@@ -61,9 +73,7 @@ const PropertyFormPage: React.FC = () => {
   if (isEditMode && !property) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="warning">
-          Propiedad no encontrada
-        </Alert>
+        <Alert severity='warning'>Propiedad no encontrada</Alert>
       </Box>
     );
   }
@@ -71,12 +81,18 @@ const PropertyFormPage: React.FC = () => {
   return (
     <PropertyForm
       onSubmit={handleSubmit}
-      isLoading={isEditMode ? updateProperty.isPending : createProperty.isPending}
-      error={isEditMode ? updateProperty.error?.message : createProperty.error?.message}
+      isLoading={
+        isEditMode ? updateProperty.isPending : createProperty.isPending
+      }
+      error={
+        isEditMode
+          ? updateProperty.error?.message
+          : createProperty.error?.message
+      }
       initialData={isEditMode ? property : undefined}
       isEditMode={isEditMode}
     />
   );
 };
 
-export default PropertyFormPage; 
+export default PropertyFormPage;

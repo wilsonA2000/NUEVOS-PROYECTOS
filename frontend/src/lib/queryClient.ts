@@ -1,5 +1,4 @@
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query';
-import { notificationService } from '../services/notificationService';
 
 // Configuración avanzada de cache para diferentes tipos de datos
 const CACHE_STRATEGIES = {
@@ -44,11 +43,11 @@ const queryCache = new QueryCache({
 
 // Cache global para mutations
 const mutationCache = new MutationCache({
-  onError: (error, variables, context, mutation) => {
+  onError: (error, mutation) => {
     if (error instanceof Error) {
     }
   },
-  onSuccess: (data, variables, context, mutation) => {
+  onSuccess: (data, mutation) => {
     if (process.env.NODE_ENV === 'development') {
     }
   },
@@ -73,7 +72,7 @@ export const queryClient = new QueryClient({
         }
         return failureCount < 3;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Configuración por defecto - se puede sobrescribir
       staleTime: CACHE_STRATEGIES.dynamic.staleTime,
       gcTime: CACHE_STRATEGIES.dynamic.cacheTime,
@@ -87,8 +86,7 @@ export const queryClient = new QueryClient({
     mutations: {
       retry: false,
       networkMode: 'online',
-      onError: (error) => {
-      },
+      onError: error => {},
     },
   },
 });
@@ -119,7 +117,11 @@ export const cacheUtils = {
   },
 
   // Establecer datos en cache manualmente
-  setCachedData: <T>(queryKey: readonly unknown[], data: T, options?: { staleTime?: number }) => {
+  setCachedData: <T>(
+    queryKey: readonly unknown[],
+    data: T,
+    options?: { staleTime?: number },
+  ) => {
     queryClient.setQueryData(queryKey, data);
     if (options?.staleTime) {
       queryClient.setQueryDefaults(queryKey, {
@@ -129,7 +131,11 @@ export const cacheUtils = {
   },
 
   // Prefetch de datos
-  prefetchQuery: <T>(queryKey: readonly unknown[], queryFn: () => Promise<T>, options?: { staleTime?: number }) => {
+  prefetchQuery: <T>(
+    queryKey: readonly unknown[],
+    queryFn: () => Promise<T>,
+    options?: { staleTime?: number },
+  ) => {
     return queryClient.prefetchQuery({
       queryKey,
       queryFn,
@@ -146,4 +152,4 @@ export const cacheUtils = {
   cancelQueries: (queryKey: readonly unknown[]) => {
     return queryClient.cancelQueries({ queryKey });
   },
-}; 
+};

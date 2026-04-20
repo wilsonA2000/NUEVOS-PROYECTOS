@@ -28,7 +28,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import MaintenanceRequestForm from '../../components/maintenance/MaintenanceRequestForm';
 import MaintenanceRequestList from '../../components/maintenance/MaintenanceRequestList';
-import { requestService, MaintenanceRequest } from '../../services/requestService';
+import {
+  requestService,
+  MaintenanceRequest,
+} from '../../services/requestService';
 import { vhColors } from '../../theme/tokens';
 
 interface StatsData {
@@ -39,10 +42,34 @@ interface StatsData {
 }
 
 const STAT_CARDS = [
-  { key: 'total' as const, label: 'Total', icon: <TotalIcon />, color: vhColors.accentBlue, bgColor: vhColors.accentBlueBg },
-  { key: 'pending' as const, label: 'Pendientes', icon: <PendingIcon />, color: vhColors.warning, bgColor: vhColors.warningBg },
-  { key: 'in_progress' as const, label: 'En Progreso', icon: <InProgressIcon />, color: vhColors.info, bgColor: vhColors.infoBg },
-  { key: 'completed' as const, label: 'Completadas', icon: <CompletedIcon />, color: vhColors.success, bgColor: vhColors.successBg },
+  {
+    key: 'total' as const,
+    label: 'Total',
+    icon: <TotalIcon />,
+    color: vhColors.accentBlue,
+    bgColor: vhColors.accentBlueBg,
+  },
+  {
+    key: 'pending' as const,
+    label: 'Pendientes',
+    icon: <PendingIcon />,
+    color: vhColors.warning,
+    bgColor: vhColors.warningBg,
+  },
+  {
+    key: 'in_progress' as const,
+    label: 'En Progreso',
+    icon: <InProgressIcon />,
+    color: vhColors.info,
+    bgColor: vhColors.infoBg,
+  },
+  {
+    key: 'completed' as const,
+    label: 'Completadas',
+    icon: <CompletedIcon />,
+    color: vhColors.success,
+    bgColor: vhColors.successBg,
+  },
 ];
 
 const MaintenancePage: React.FC = () => {
@@ -52,19 +79,27 @@ const MaintenancePage: React.FC = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [stats, setStats] = useState<StatsData>({ total: 0, pending: 0, in_progress: 0, completed: 0 });
+  const [stats, setStats] = useState<StatsData>({
+    total: 0,
+    pending: 0,
+    in_progress: 0,
+    completed: 0,
+  });
 
   const fetchStats = useCallback(async () => {
     try {
       const response = await requestService.getMaintenanceRequests();
-      const data: MaintenanceRequest[] = response?.data?.results || response?.data || [];
+      const data: MaintenanceRequest[] =
+        response?.data?.results || response?.data || [];
       const list = Array.isArray(data) ? data : [];
 
       setStats({
         total: list.length,
         pending: list.filter(r => r.status === 'pending').length,
         in_progress: list.filter(r => r.status === 'in_progress').length,
-        completed: list.filter(r => ['completed', 'rejected', 'cancelled'].includes(r.status)).length,
+        completed: list.filter(r =>
+          ['completed', 'rejected', 'cancelled'].includes(r.status),
+        ).length,
       });
     } catch {
       // Stats silently fail, list component handles its own errors
@@ -80,43 +115,43 @@ const MaintenancePage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+    <Container maxWidth='lg' sx={{ py: { xs: 2, md: 4 } }}>
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
-          underline="hover"
-          color="inherit"
+          underline='hover'
+          color='inherit'
           sx={{ cursor: 'pointer' }}
           onClick={() => navigate('/app/dashboard')}
         >
           Inicio
         </Link>
-        <Typography color="text.primary">Mantenimiento</Typography>
+        <Typography color='text.primary'>Mantenimiento</Typography>
       </Breadcrumbs>
 
       {/* Header */}
       <Box
-        display="flex"
-        justifyContent="space-between"
+        display='flex'
+        justifyContent='space-between'
         alignItems={isMobile ? 'flex-start' : 'center'}
         flexDirection={isMobile ? 'column' : 'row'}
         gap={2}
         mb={3}
       >
-        <Box display="flex" alignItems="center" gap={1.5}>
+        <Box display='flex' alignItems='center' gap={1.5}>
           <MaintenanceIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <Box>
             <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700}>
               Mantenimiento
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Gestiona las solicitudes de mantenimiento de tus propiedades
             </Typography>
           </Box>
         </Box>
 
         <Button
-          variant="contained"
+          variant='contained'
           startIcon={<AddIcon />}
           onClick={() => setFormOpen(true)}
           size={isMobile ? 'medium' : 'large'}
@@ -134,7 +169,7 @@ const MaintenancePage: React.FC = () => {
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
-        {STAT_CARDS.map((stat) => (
+        {STAT_CARDS.map(stat => (
           <Grid item xs={6} sm={3} key={stat.key}>
             <Card
               elevation={1}
@@ -144,8 +179,13 @@ const MaintenancePage: React.FC = () => {
                 '&:hover': { transform: 'translateY(-2px)' },
               }}
             >
-              <CardContent sx={{ p: { xs: 1.5, md: 2 }, '&:last-child': { pb: { xs: 1.5, md: 2 } } }}>
-                <Box display="flex" alignItems="center" gap={1.5}>
+              <CardContent
+                sx={{
+                  p: { xs: 1.5, md: 2 },
+                  '&:last-child': { pb: { xs: 1.5, md: 2 } },
+                }}
+              >
+                <Box display='flex' alignItems='center' gap={1.5}>
                   <Box
                     sx={{
                       bgcolor: stat.bgColor,
@@ -160,10 +200,18 @@ const MaintenancePage: React.FC = () => {
                     {stat.icon}
                   </Box>
                   <Box>
-                    <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} color={stat.color}>
+                    <Typography
+                      variant={isMobile ? 'h5' : 'h4'}
+                      fontWeight={700}
+                      color={stat.color}
+                    >
                       {stats[stat.key]}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      fontWeight={500}
+                    >
                       {stat.label}
                     </Typography>
                   </Box>

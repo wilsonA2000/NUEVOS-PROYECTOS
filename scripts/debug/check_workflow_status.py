@@ -2,11 +2,12 @@
 """
 Script para verificar el estado actual del workflow entre arrendador y arrendatario
 """
+
 import os
 import django
 
 # Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from matching.models import MatchRequest
@@ -14,6 +15,7 @@ from contracts.models import LandlordControlledContract
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 def main():
     print("=== VERIFICACIÓN DE ESTADO DEL WORKFLOW ===\n")
@@ -52,6 +54,7 @@ def main():
         print(f"Property: {contract.property.title}")
         print(f"Created: {contract.created_at}")
         print("---")
+
 
 if __name__ == "__main__":
     main()

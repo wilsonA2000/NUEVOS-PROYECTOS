@@ -14,8 +14,8 @@ const ScrollToTopButton: React.FC = () => {
   return (
     <Fade in={visible}>
       <Fab
-        size="small"
-        aria-label="Volver arriba"
+        size='small'
+        aria-label='Volver arriba'
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         sx={{
           position: 'fixed',

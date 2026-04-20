@@ -1,4 +1,10 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryOptions,
+  UseMutationOptions,
+} from '@tanstack/react-query';
 import { CACHE_STRATEGIES } from '../lib/queryClient';
 
 // Types para las diferentes estrategias de cache
@@ -12,7 +18,7 @@ export function useOptimizedQuery<TData = unknown, TError = Error>(
   options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>,
 ) {
   const strategy = CACHE_STRATEGIES[cacheStrategy];
-  
+
   return useQuery({
     queryKey,
     queryFn,
@@ -66,9 +72,16 @@ export function useStaticQuery<TData = unknown, TError = Error>(
 }
 
 // Hook optimizado para mutations con invalidación inteligente
-export function useOptimizedMutation<TData = unknown, TError = Error, TVariables = void>(
+export function useOptimizedMutation<
+  TData = unknown,
+  TError = Error,
+  TVariables = void,
+>(
   mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: Omit<UseMutationOptions<TData, TError, TVariables>, 'mutationFn'> & {
+  options?: Omit<
+    UseMutationOptions<TData, TError, TVariables>,
+    'mutationFn'
+  > & {
     invalidateQueries?: string[][];
     updateQueries?: Array<{
       queryKey: string[];
@@ -81,7 +94,7 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
   },
 ) {
   const queryClient = useQueryClient();
-  
+
   return useMutation<TData, TError, TVariables>({
     mutationFn,
     ...options,
@@ -107,7 +120,7 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
         (options.onSuccess as any)(data, variables, context);
       }
     },
-    onMutate: async (variables) => {
+    onMutate: async variables => {
       // Actualización optimista
       if (options?.optimisticUpdate) {
         const { queryKey, updater } = options.optimisticUpdate;
@@ -140,7 +153,12 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
     },
     onError: (error, variables, context) => {
       // Rollback en caso de error con actualización optimista
-      if (options?.optimisticUpdate && context && typeof context === 'object' && 'previousData' in context) {
+      if (
+        options?.optimisticUpdate &&
+        context &&
+        typeof context === 'object' &&
+        'previousData' in context
+      ) {
         const { queryKey } = options.optimisticUpdate;
         queryClient.setQueryData(queryKey, (context as any).previousData);
       }
@@ -169,31 +187,33 @@ export function usePaginatedQuery<TData = unknown, TError = Error>(
     cacheStrategy = 'dynamic',
     keepPreviousData = true,
   } = options || {};
-  
+
   const queryClient = useQueryClient();
-  
+
   const prefetchNextPage = (currentPage: number) => {
     const nextPage = currentPage + 1;
     const nextQueryKey = [...baseQueryKey, 'page', nextPage, 'limit', pageSize];
-    
+
     queryClient.prefetchQuery({
       queryKey: nextQueryKey,
       queryFn: () => queryFn(nextPage, pageSize),
       staleTime: CACHE_STRATEGIES[cacheStrategy].staleTime,
     });
   };
-  
+
   return {
     prefetchNextPage,
     usePageQuery: (page: number) => {
       const queryKey = [...baseQueryKey, 'page', page, 'limit', pageSize];
-      
+
       return useOptimizedQuery(
         queryKey,
         () => queryFn(page, pageSize),
         cacheStrategy,
         {
-          placeholderData: keepPreviousData ? (previousData) => previousData : undefined,
+          placeholderData: keepPreviousData
+            ? previousData => previousData
+            : undefined,
         },
       );
     },
@@ -207,12 +227,15 @@ export function useOptimizedInfiniteQuery<TData = unknown, TError = Error>(
   options?: {
     cacheStrategy?: CacheStrategy;
     getNextPageParam?: (lastPage: TData, pages: TData[]) => number | undefined;
-    getPreviousPageParam?: (firstPage: TData, pages: TData[]) => number | undefined;
+    getPreviousPageParam?: (
+      firstPage: TData,
+      pages: TData[]
+    ) => number | undefined;
   },
 ) {
   const { cacheStrategy = 'dynamic', ...restOptions } = options || {};
   const strategy = CACHE_STRATEGIES[cacheStrategy];
-  
+
   return useQuery({
     queryKey,
     queryFn: async () => {
@@ -232,7 +255,10 @@ export function useOptimizedInfiniteQuery<TData = unknown, TError = Error>(
 export const usePropertiesQuery = (filters?: Record<string, any>) => {
   return useDynamicQuery(
     ['properties', 'list', ...(filters ? [JSON.stringify(filters)] : [])],
-    () => import('../services/propertyService').then(m => m.propertyService.getProperties(filters)),
+    () =>
+      import('../services/propertyService').then(m =>
+        m.propertyService.getProperties(filters),
+      ),
     {
       enabled: true,
       select: (data: any) => ({
@@ -242,7 +268,10 @@ export const usePropertiesQuery = (filters?: Record<string, any>) => {
           // Procesar datos de la propiedad
           images: property.images?.map((img: string) => ({
             url: img,
-            optimized: typeof img === 'string' ? img.replace(/\.(jpg|jpeg|png)$/i, '.webp') : img, // Optimización de imágenes
+            optimized:
+              typeof img === 'string'
+                ? img.replace(/\.(jpg|jpeg|png)$/i, '.webp')
+                : img, // Optimización de imágenes
           })),
         })),
       }),
@@ -253,7 +282,10 @@ export const usePropertiesQuery = (filters?: Record<string, any>) => {
 export const useContractsQuery = (userId?: number) => {
   return useDynamicQuery(
     ['contracts', 'list', userId ?? 0],
-    () => import('../services/contractService').then(m => m.contractService.getContracts()),
+    () =>
+      import('../services/contractService').then(m =>
+        m.contractService.getContracts(),
+      ),
     {
       enabled: !!userId,
     },
@@ -263,7 +295,10 @@ export const useContractsQuery = (userId?: number) => {
 export const useMessagesQuery = (conversationId?: number) => {
   return useRealtimeQuery(
     ['messages', 'conversation', conversationId ?? 0],
-    () => import('../services/messageService').then(m => m.messageService.getMessages(String(conversationId!))),
+    () =>
+      import('../services/messageService').then(m =>
+        m.messageService.getMessages(String(conversationId!)),
+      ),
     {
       enabled: !!conversationId,
       refetchInterval: 10000, // Refresh cada 10 segundos
@@ -274,7 +309,10 @@ export const useMessagesQuery = (conversationId?: number) => {
 export const useUserProfileQuery = (userId: number) => {
   return useStableQuery(
     ['user', 'profile', userId],
-    () => import('../services/authService').then(m => m.authService.getCurrentUser()),
+    () =>
+      import('../services/authService').then(m =>
+        m.authService.getCurrentUser(),
+      ),
     {
       enabled: !!userId,
     },
@@ -284,7 +322,10 @@ export const useUserProfileQuery = (userId: number) => {
 export const useNotificationsQuery = () => {
   return useRealtimeQuery(
     ['notifications', 'unread'],
-    () => import('../services/notificationService').then(m => m.notificationService?.getNotifications?.(1) || Promise.resolve([])),
+    () =>
+      import('../services/notificationService').then(
+        m => m.notificationService?.getNotifications?.(1) || Promise.resolve([]),
+      ),
     {
       refetchInterval: 30000, // Refresh cada 30 segundos
     },

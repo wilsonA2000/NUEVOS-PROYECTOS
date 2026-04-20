@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -16,13 +16,10 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Button,
-  Alert,
   Tabs,
   Tab,
   Menu,
   MenuItem,
-  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -46,7 +43,13 @@ import { vhColors } from '../../theme/tokens';
 interface MatchConversation {
   id: string;
   match_code: string;
-  status: 'pending' | 'viewed' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+  status:
+    | 'pending'
+    | 'viewed'
+    | 'accepted'
+    | 'rejected'
+    | 'expired'
+    | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   property: {
     id: string;
@@ -102,17 +105,34 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedConversation, setSelectedConversation] = useState<MatchConversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<MatchConversation | null>(null);
 
   const isLandlord = user?.user_type === 'landlord';
   const isTenant = user?.user_type === 'tenant';
 
   const statusTabs = [
     { label: 'Todas', value: 'all', count: conversations.length },
-    { label: 'Pendientes', value: 'pending', count: conversations.filter(c => c.status === 'pending').length },
-    { label: 'Vistas', value: 'viewed', count: conversations.filter(c => c.status === 'viewed').length },
-    { label: 'Aceptadas', value: 'accepted', count: conversations.filter(c => c.status === 'accepted').length },
-    { label: 'Rechazadas', value: 'rejected', count: conversations.filter(c => c.status === 'rejected').length },
+    {
+      label: 'Pendientes',
+      value: 'pending',
+      count: conversations.filter(c => c.status === 'pending').length,
+    },
+    {
+      label: 'Vistas',
+      value: 'viewed',
+      count: conversations.filter(c => c.status === 'viewed').length,
+    },
+    {
+      label: 'Aceptadas',
+      value: 'accepted',
+      count: conversations.filter(c => c.status === 'accepted').length,
+    },
+    {
+      label: 'Rechazadas',
+      value: 'rejected',
+      count: conversations.filter(c => c.status === 'rejected').length,
+    },
   ];
 
   const getStatusConfig = (status: string) => {
@@ -122,42 +142,42 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
           color: vhColors.warning,
           bgColor: vhColors.warningBg,
           label: 'Pendiente',
-          icon: <PendingIcon fontSize="small" />,
+          icon: <PendingIcon fontSize='small' />,
         };
       case 'viewed':
         return {
           color: vhColors.info,
           bgColor: vhColors.infoBg,
           label: 'Vista',
-          icon: <ViewedIcon fontSize="small" />,
+          icon: <ViewedIcon fontSize='small' />,
         };
       case 'accepted':
         return {
           color: vhColors.success,
           bgColor: vhColors.successBg,
           label: 'Aceptada',
-          icon: <AcceptedIcon fontSize="small" />,
+          icon: <AcceptedIcon fontSize='small' />,
         };
       case 'rejected':
         return {
           color: vhColors.error,
           bgColor: vhColors.errorBg,
           label: 'Rechazada',
-          icon: <RejectedIcon fontSize="small" />,
+          icon: <RejectedIcon fontSize='small' />,
         };
       case 'expired':
         return {
           color: vhColors.textSecondary,
           bgColor: vhColors.surfaceMuted,
           label: 'Expirada',
-          icon: <CalendarIcon fontSize="small" />,
+          icon: <CalendarIcon fontSize='small' />,
         };
       default:
         return {
           color: vhColors.textSecondary,
           bgColor: vhColors.surfaceMuted,
           label: status,
-          icon: <PendingIcon fontSize="small" />,
+          icon: <PendingIcon fontSize='small' />,
         };
     }
   };
@@ -203,7 +223,10 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
     } else if (diffDays < 7) {
       return `${diffDays}d`;
     } else {
-      return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('es-ES', {
+        month: 'short',
+        day: 'numeric',
+      });
     }
   };
 
@@ -211,15 +234,15 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
     if (conversation.last_message) {
       return conversation.last_message.content;
     }
-    
+
     if (conversation.landlord_response && isLandlord) {
       return `Tú: ${conversation.landlord_response}`;
     }
-    
+
     if (conversation.landlord_response && isTenant) {
       return conversation.landlord_response;
     }
-    
+
     return conversation.tenant_message;
   };
 
@@ -245,7 +268,10 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
     return true;
   });
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, conversation: MatchConversation) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    conversation: MatchConversation,
+  ) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedConversation(conversation);
@@ -304,14 +330,19 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
               mb: 2,
             }}
           />
-          <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+          <Typography
+            variant='h6'
+            sx={{ color: 'var(--color-text-secondary)', mb: 1 }}
+          >
             No hay conversaciones de match
           </Typography>
-          <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'var(--color-text-secondary)' }}
+          >
             {isTenant
               ? 'Envía solicitudes de match para comenzar conversaciones'
-              : 'Las solicitudes de match aparecerán aquí'
-            }
+              : 'Las solicitudes de match aparecerán aquí'}
           </Typography>
         </Box>
       </Card>
@@ -330,23 +361,25 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
         flexDirection: 'column',
       }}
     >
-      <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <CardContent
+        sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
         {/* Header */}
         <Box sx={{ p: 2, borderBottom: '1px solid var(--color-border)' }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
             Conversaciones de Match
           </Typography>
 
           {/* Search */}
           <TextField
             fullWidth
-            size="small"
-            placeholder="Buscar conversaciones..."
+            size='small'
+            placeholder='Buscar conversaciones...'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position='start'>
                   <SearchIcon sx={{ color: 'var(--color-text-secondary)' }} />
                 </InputAdornment>
               ),
@@ -363,8 +396,8 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
           <Tabs
             value={selectedTab}
             onChange={(_, newValue) => setSelectedTab(newValue)}
-            variant="scrollable"
-            scrollButtons="auto"
+            variant='scrollable'
+            scrollButtons='auto'
             sx={{
               mt: 2,
               '& .MuiTab-root': {
@@ -382,7 +415,7 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                     {tab.count > 0 && (
                       <Chip
                         label={tab.count}
-                        size="small"
+                        size='small'
                         sx={{
                           height: 20,
                           fontSize: '0.75rem',
@@ -402,14 +435,19 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
         <List sx={{ flex: 1, overflow: 'auto', p: 0 }}>
           {filteredConversations.length === 0 ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'var(--color-text-secondary)' }}
+              >
                 No se encontraron conversaciones
               </Typography>
             </Box>
           ) : (
-            filteredConversations.map((conversation) => {
+            filteredConversations.map(conversation => {
               const statusConfig = getStatusConfig(conversation.status);
-              const otherUser = isTenant ? conversation.landlord : conversation.tenant;
+              const otherUser = isTenant
+                ? conversation.landlord
+                : conversation.tenant;
               const isSelected = conversation.id === selectedConversationId;
 
               return (
@@ -420,9 +458,13 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                   selected={isSelected}
                   sx={{
                     borderBottom: '1px solid var(--color-border)',
-                    backgroundColor: isSelected ? 'var(--color-primary-light)' : 'transparent',
+                    backgroundColor: isSelected
+                      ? 'var(--color-primary-light)'
+                      : 'transparent',
                     '&:hover': {
-                      backgroundColor: isSelected ? 'var(--color-primary-light)' : 'var(--color-background)',
+                      backgroundColor: isSelected
+                        ? 'var(--color-primary-light)'
+                        : 'var(--color-background)',
                     },
                     '&.Mui-selected': {
                       backgroundColor: 'var(--color-primary-light)',
@@ -435,7 +477,7 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                   <ListItemAvatar>
                     <Badge
                       badgeContent={conversation.unread_count}
-                      color="error"
+                      color='error'
                       invisible={conversation.unread_count === 0}
                     >
                       <Avatar
@@ -452,33 +494,51 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
 
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 0.5,
+                        }}
+                      >
                         <Typography
-                          variant="body1"
+                          variant='body1'
                           sx={{
-                            fontWeight: conversation.unread_count > 0 ? 600 : 500,
+                            fontWeight:
+                              conversation.unread_count > 0 ? 600 : 500,
                             flex: 1,
                           }}
                         >
-                          {isTenant ? conversation.property.title : otherUser.name}
+                          {isTenant
+                            ? conversation.property.title
+                            : otherUser.name}
                         </Typography>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
                           {conversation.priority !== 'medium' && (
                             <Box
                               sx={{
                                 width: 8,
                                 height: 8,
                                 borderRadius: '50%',
-                                backgroundColor: getPriorityColor(conversation.priority),
+                                backgroundColor: getPriorityColor(
+                                  conversation.priority,
+                                ),
                               }}
                             />
                           )}
-                          
+
                           <Chip
                             icon={statusConfig.icon}
                             label={statusConfig.label}
-                            size="small"
+                            size='small'
                             sx={{
                               height: 20,
                               fontSize: '0.7rem',
@@ -492,7 +552,7 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                     secondary={
                       <Box>
                         <Typography
-                          variant="body2"
+                          variant='body2'
                           sx={{
                             color: 'var(--color-text-secondary)',
                             display: '-webkit-box',
@@ -504,27 +564,62 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
                         >
                           {getPreviewMessage(conversation)}
                         </Typography>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
                             {isTenant && (
-                              <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-                                {conversation.property.city} • {formatCurrency(conversation.property.rent_price)}
+                              <Typography
+                                variant='caption'
+                                sx={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                {conversation.property.city} •{' '}
+                                {formatCurrency(
+                                  conversation.property.rent_price,
+                                )}
                               </Typography>
                             )}
-                            
+
                             {conversation.compatibility_score && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                                <StarIcon sx={{ fontSize: 12, color: vhColors.warning }} />
-                                <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.25,
+                                }}
+                              >
+                                <StarIcon
+                                  sx={{ fontSize: 12, color: vhColors.warning }}
+                                />
+                                <Typography
+                                  variant='caption'
+                                  sx={{ color: 'var(--color-text-secondary)' }}
+                                >
                                   {conversation.compatibility_score}%
                                 </Typography>
                               </Box>
                             )}
                           </Box>
-                          
-                          <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-                            {formatDate(conversation.last_message?.timestamp || conversation.created_at)}
+
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'var(--color-text-secondary)' }}
+                          >
+                            {formatDate(
+                              conversation.last_message?.timestamp ||
+                                conversation.created_at,
+                            )}
                           </Typography>
                         </Box>
                       </Box>
@@ -533,8 +628,8 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
 
                   <ListItemSecondaryAction>
                     <IconButton
-                      edge="end"
-                      onClick={(e) => handleMenuOpen(e, conversation)}
+                      edge='end'
+                      onClick={e => handleMenuOpen(e, conversation)}
                       sx={{ color: 'var(--color-text-secondary)' }}
                     >
                       <MoreVertIcon />
@@ -547,9 +642,19 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
         </List>
 
         {/* Status Summary */}
-        <Box sx={{ p: 2, borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)' }}>
-          <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-            {filteredConversations.length} de {conversations.length} conversaciones
+        <Box
+          sx={{
+            p: 2,
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-background)',
+          }}
+        >
+          <Typography
+            variant='caption'
+            sx={{ color: 'var(--color-text-secondary)' }}
+          >
+            {filteredConversations.length} de {conversations.length}{' '}
+            conversaciones
           </Typography>
         </Box>
       </CardContent>
@@ -566,23 +671,33 @@ const MatchConversationList: React.FC<MatchConversationListProps> = ({
           },
         }}
       >
-        {isLandlord && selectedConversation?.status === 'pending' && [
-          <MenuItem key="mark-viewed" onClick={() => handleStatusChange('viewed')}>
-            <ViewedIcon sx={{ mr: 1 }} fontSize="small" />
-            Marcar como vista
-          </MenuItem>,
-          <MenuItem key="accept" onClick={() => handleStatusChange('accepted')}>
-            <AcceptedIcon sx={{ mr: 1 }} fontSize="small" />
-            Aceptar solicitud
-          </MenuItem>,
-          <MenuItem key="reject" onClick={() => handleStatusChange('rejected')}>
-            <RejectedIcon sx={{ mr: 1 }} fontSize="small" />
-            Rechazar solicitud
-          </MenuItem>,
-        ]}
-        
+        {isLandlord &&
+          selectedConversation?.status === 'pending' && [
+            <MenuItem
+              key='mark-viewed'
+              onClick={() => handleStatusChange('viewed')}
+            >
+              <ViewedIcon sx={{ mr: 1 }} fontSize='small' />
+              Marcar como vista
+            </MenuItem>,
+            <MenuItem
+              key='accept'
+              onClick={() => handleStatusChange('accepted')}
+            >
+              <AcceptedIcon sx={{ mr: 1 }} fontSize='small' />
+              Aceptar solicitud
+            </MenuItem>,
+            <MenuItem
+              key='reject'
+              onClick={() => handleStatusChange('rejected')}
+            >
+              <RejectedIcon sx={{ mr: 1 }} fontSize='small' />
+              Rechazar solicitud
+            </MenuItem>,
+          ]}
+
         <MenuItem onClick={() => onConversationSelect(selectedConversation!)}>
-          <MessageIcon sx={{ mr: 1 }} fontSize="small" />
+          <MessageIcon sx={{ mr: 1 }} fontSize='small' />
           Abrir conversación
         </MenuItem>
       </Menu>

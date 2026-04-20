@@ -6,11 +6,11 @@ Incluye recordatorios automáticos y escalamiento de pagos vencidos.
 import logging
 from celery import shared_task
 
-logger = logging.getLogger('payments')
+logger = logging.getLogger("payments")
 
 
 @shared_task(
-    name='payments.tasks.check_payment_reminders',
+    name="payments.tasks.check_payment_reminders",
     bind=True,
     max_retries=3,
     default_retry_delay=300,
@@ -34,7 +34,7 @@ def check_payment_reminders(self):
 
 
 @shared_task(
-    name='payments.tasks.escalate_overdue_payments',
+    name="payments.tasks.escalate_overdue_payments",
     bind=True,
     max_retries=3,
     default_retry_delay=600,
@@ -58,7 +58,7 @@ def escalate_overdue_payments(self):
 
 
 @shared_task(
-    name='payments.tasks.process_auto_rent_charges',
+    name="payments.tasks.process_auto_rent_charges",
     bind=True,
     max_retries=3,
     default_retry_delay=600,

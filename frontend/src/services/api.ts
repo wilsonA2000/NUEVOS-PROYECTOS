@@ -1,4 +1,4 @@
-import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { performanceMonitor } from '../utils/performanceMonitor';
 import { auditMiddleware } from '../utils/auditMiddleware';
 import { setupAxiosCache } from './apiCache';
@@ -16,7 +16,9 @@ declare module 'axios' {
   // AxiosError type extension removed to avoid duplicate declaration
 }
 
-const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:8000/api/v1';
+const API_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  'http://localhost:8000/api/v1';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -25,10 +27,14 @@ export const api = axios.create({
   },
   // Configuración adicional para mejor manejo de errores
   timeout: 10000, // 10 segundos
-  validateStatus: (status) => {
+  validateStatus: status => {
     // Considerar válidos: 2xx (éxito), 4xx (errores del cliente), 401 (autenticación)
     // Esto permite manejar errores de validación (400) como respuestas válidas
-    return (status >= 200 && status < 300) || (status >= 400 && status < 500) || status === 401;
+    return (
+      (status >= 200 && status < 300) ||
+      (status >= 400 && status < 500) ||
+      status === 401
+    );
   },
 });
 
@@ -56,57 +62,57 @@ const requiresAuth = (url: string): boolean => {
 
 // Request interceptor to add auth token and start performance tracking
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('access_token');
     const endpoint = config.url || '';
     const needsAuth = requiresAuth(endpoint);
-    
+
     // Logs deshabilitados en producción
     //
 
-//
+    //
 
-//
+    //
 
-//
+    //
 
-// Start performance tracking
+    // Start performance tracking
     const requestId = `${config.method?.toUpperCase()}_${config.url}_${Date.now()}`;
     config.metadata = { requestId, startTime: performance.now() };
-    
+
     // Si el endpoint requiere autenticación pero no hay token
     if (needsAuth && !token) {
       // console.error('❌ API Interceptor: Intento de acceso a endpoint protegido sin token');
       // Cancelar la petición y redirigir a login
       const controller = new AbortController();
       controller.abort('No authentication token available');
-      
+
       // Disparar evento para que AuthContext maneje la redirección
-      window.dispatchEvent(new CustomEvent('authRequired', { 
-        detail: { 
-          endpoint, 
-          message: 'Necesitas iniciar sesión para acceder a este recurso', 
-        }, 
-      }));
-      
+      window.dispatchEvent(
+        new CustomEvent('authRequired', {
+          detail: {
+            endpoint,
+            message: 'Necesitas iniciar sesión para acceder a este recurso',
+          },
+        }),
+      );
+
       return {
         ...config,
         signal: controller.signal,
       };
     }
-    
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       //
-
-} else if (!needsAuth) {
+    } else if (!needsAuth) {
       //
+    }
 
-}
-    
     return config;
   },
-  (error) => {
+  error => {
     // console.error('❌ API Interceptor: Error en request:', error);
     return Promise.reject(error);
   },
@@ -114,17 +120,22 @@ api.interceptors.request.use(
 
 // Response interceptor to handle errors and track performance
 api.interceptors.response.use(
-  (response) => {
+  response => {
     // Track API performance
     if (response.config.metadata) {
       const { startTime } = response.config.metadata;
       const duration = performance.now() - (startTime ?? 0);
       const endpoint = response.config.url || '';
       const method = response.config.method || '';
-      
-      performanceMonitor.trackAPICall(endpoint, method.toUpperCase(), duration, response.status);
+
+      performanceMonitor.trackAPICall(
+        endpoint,
+        method.toUpperCase(),
+        duration,
+        response.status,
+      );
     }
-    
+
     // Para códigos 4xx, rechazar como error para que sea manejado por el catch
     if (response.status >= 400 && response.status < 500) {
       const error: AxiosError = Object.assign(
@@ -141,10 +152,10 @@ api.interceptors.response.use(
       );
       return Promise.reject(error);
     }
-    
+
     return response;
   },
-  (error) => {
+  error => {
     // Track performance for failed requests
     if (error.config?.metadata) {
       const { startTime } = error.config.metadata;
@@ -152,10 +163,15 @@ api.interceptors.response.use(
       const endpoint = error.config.url || '';
       const method = error.config.method || '';
       const status = error.response?.status || 0;
-      
-      performanceMonitor.trackAPICall(endpoint, method.toUpperCase(), duration, status);
+
+      performanceMonitor.trackAPICall(
+        endpoint,
+        method.toUpperCase(),
+        duration,
+        status,
+      );
     }
-    
+
     // Manejar errores de red
     if (error.code === 'ECONNABORTED') {
       // console.error('Timeout en la petición:', error.config.url);
@@ -168,7 +184,7 @@ api.interceptors.response.use(
       return Promise.reject(new Error('No se pudo conectar con el servidor'));
     }
 
-    const { status, data } = error.response;
+    const { status } = error.response;
 
     // Manejar errores específicos
     switch (status) {
@@ -176,7 +192,7 @@ api.interceptors.response.use(
         // Token expired or invalid
         //
 
-localStorage.removeItem('token');
+        localStorage.removeItem('token');
         localStorage.removeItem('refresh');
         // Disparar evento personalizado para notificar al AuthContext
         window.dispatchEvent(new CustomEvent('tokenInvalid'));
@@ -191,7 +207,7 @@ localStorage.removeItem('token');
         // console.error('Error interno del servidor:', data);
         break;
       default:
-        // console.error(`Error ${status}:`, data);
+      // console.error(`Error ${status}:`, data);
     }
 
     // Return the audit-processed error
@@ -215,4 +231,3 @@ export default api;
 /* Cache busted: 2025-08-06T04:42:27.049Z - API_CONFIG */
 
 /* FORCE RELOAD 1754456937872 - API_CONFIG - Nuclear fix applied */
-

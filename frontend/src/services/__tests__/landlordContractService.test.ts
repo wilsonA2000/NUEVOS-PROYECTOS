@@ -80,7 +80,7 @@ describe('LandlordContractService', () => {
             monthly_rent: 2500000,
             duration_months: 12,
           }),
-        }),
+        })
       );
       expect(result).toEqual(mockContract);
     });
@@ -110,7 +110,7 @@ describe('LandlordContractService', () => {
             monthly_rent: 3000000,
             duration_months: 24,
           }),
-        }),
+        })
       );
     });
   });
@@ -135,7 +135,7 @@ describe('LandlordContractService', () => {
         expect.objectContaining({
           property: 'prop-456',
           pets_allowed: true,
-        }),
+        })
       );
       expect(result).toEqual(mockContract);
     });
@@ -148,13 +148,19 @@ describe('LandlordContractService', () => {
       const updatedContract = { ...mockContract, monthly_rent: 2800000 };
       mockedApi.patch.mockResolvedValueOnce({ data: updatedContract });
 
-      const result = await LandlordContractService.updateContractDraft('contract-123', {
-        monthly_rent: 2800000,
-      } as any);
+      const result = await LandlordContractService.updateContractDraft(
+        'contract-123',
+        {
+          monthly_rent: 2800000,
+        } as any
+      );
 
-      expect(mockedApi.patch).toHaveBeenCalledWith('/contracts/landlord/contracts/contract-123/', {
-        monthly_rent: 2800000,
-      });
+      expect(mockedApi.patch).toHaveBeenCalledWith(
+        '/contracts/landlord/contracts/contract-123/',
+        {
+          monthly_rent: 2800000,
+        }
+      );
       expect(result.monthly_rent).toBe(2800000);
     });
   });
@@ -169,16 +175,28 @@ describe('LandlordContractService', () => {
       };
       mockedApi.get.mockResolvedValueOnce({ data: mockResponse });
 
-      const result = await LandlordContractService.getLandlordContracts(undefined, 1, 10);
+      const result = await LandlordContractService.getLandlordContracts(
+        undefined,
+        1,
+        10
+      );
 
-      expect(mockedApi.get).toHaveBeenCalledWith(expect.stringContaining('/contracts/landlord/contracts/'));
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        expect.stringContaining('/contracts/landlord/contracts/')
+      );
       expect(result.contracts).toHaveLength(1);
     });
 
     it('should pass filters as URL params', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: { contracts: [], total_count: 0 } });
+      mockedApi.get.mockResolvedValueOnce({
+        data: { contracts: [], total_count: 0 },
+      });
 
-      await LandlordContractService.getLandlordContracts({ state: ['DRAFT'] } as any, 2, 5);
+      await LandlordContractService.getLandlordContracts(
+        { state: ['DRAFT'] } as any,
+        2,
+        5
+      );
 
       const calledUrl = mockedApi.get.mock.calls[0][0] as string;
       expect(calledUrl).toContain('page=2');
@@ -191,9 +209,12 @@ describe('LandlordContractService', () => {
     it('should fetch a specific contract by id', async () => {
       mockedApi.get.mockResolvedValueOnce({ data: mockContract });
 
-      const result = await LandlordContractService.getLandlordContract('contract-123');
+      const result =
+        await LandlordContractService.getLandlordContract('contract-123');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/contracts/landlord/contracts/contract-123/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/contracts/landlord/contracts/contract-123/'
+      );
       expect(result.id).toBe('contract-123');
     });
   });
@@ -214,7 +235,7 @@ describe('LandlordContractService', () => {
         '/contracts/landlord/contracts/contract-123/send-invitation/',
         expect.objectContaining({
           tenant_email: 'tenant@example.com',
-        }),
+        })
       );
       expect(result.success).toBe(true);
     });
@@ -245,10 +266,15 @@ describe('LandlordContractService', () => {
   describe('verifyInvitationToken', () => {
     it('should verify a valid token', async () => {
       mockedApi.post.mockResolvedValueOnce({
-        data: { is_valid: true, contract_id: 'contract-123', landlord_name: 'Juan Perez' },
+        data: {
+          is_valid: true,
+          contract_id: 'contract-123',
+          landlord_name: 'Juan Perez',
+        },
       });
 
-      const result = await LandlordContractService.verifyInvitationToken('valid-token');
+      const result =
+        await LandlordContractService.verifyInvitationToken('valid-token');
 
       expect(result.is_valid).toBe(true);
       expect(result.contract_id).toBe('contract-123');
@@ -259,7 +285,8 @@ describe('LandlordContractService', () => {
         data: { is_valid: false },
       });
 
-      const result = await LandlordContractService.verifyInvitationToken('bad-token');
+      const result =
+        await LandlordContractService.verifyInvitationToken('bad-token');
 
       expect(result.is_valid).toBe(false);
     });
@@ -269,24 +296,40 @@ describe('LandlordContractService', () => {
 
   describe('acceptTenantInvitation', () => {
     it('should accept invitation with token', async () => {
-      const acceptedContract = { ...mockContract, current_state: 'TENANT_REVIEWING' };
+      const acceptedContract = {
+        ...mockContract,
+        current_state: 'TENANT_REVIEWING',
+      };
       mockedApi.post.mockResolvedValueOnce({ data: acceptedContract });
 
       const result = await LandlordContractService.acceptTenantInvitation({
         invitation_token: 'token-abc',
       });
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/tenant/accept-invitation/', {
-        invitation_token: 'token-abc',
-      });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/tenant/accept-invitation/',
+        {
+          invitation_token: 'token-abc',
+        }
+      );
       expect(result.current_state).toBe('TENANT_REVIEWING');
     });
   });
 
   describe('completeTenantData', () => {
     it('should submit tenant personal data', async () => {
-      const tenantData = { full_name: 'Ana Gonzalez', document_type: 'CC', document_number: '87654321' };
-      mockedApi.post.mockResolvedValueOnce({ data: { ...mockContract, tenant_data: tenantData, current_state: 'LANDLORD_REVIEWING' } });
+      const tenantData = {
+        full_name: 'Ana Gonzalez',
+        document_type: 'CC',
+        document_number: '87654321',
+      };
+      mockedApi.post.mockResolvedValueOnce({
+        data: {
+          ...mockContract,
+          tenant_data: tenantData,
+          current_state: 'LANDLORD_REVIEWING',
+        },
+      });
 
       const result = await LandlordContractService.completeTenantData({
         contract_id: 'contract-123',
@@ -304,13 +347,19 @@ describe('LandlordContractService', () => {
       const guarantee = { id: 'guar-1', type: 'personal', status: 'pending' };
       mockedApi.post.mockResolvedValueOnce({ data: guarantee });
 
-      const result = await LandlordContractService.createGuarantee('contract-123', {
-        guarantee_type: 'personal',
-      } as any);
+      const result = await LandlordContractService.createGuarantee(
+        'contract-123',
+        {
+          guarantee_type: 'personal',
+        } as any
+      );
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/contract-123/guarantees/', {
-        guarantee_type: 'personal',
-      });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/contract-123/guarantees/',
+        {
+          guarantee_type: 'personal',
+        }
+      );
       expect(result.id).toBe('guar-1');
     });
   });
@@ -319,22 +368,33 @@ describe('LandlordContractService', () => {
     it('should fetch guarantees for a contract', async () => {
       mockedApi.get.mockResolvedValueOnce({ data: [{ id: 'guar-1' }] });
 
-      const result = await LandlordContractService.getContractGuarantees('contract-123');
+      const result =
+        await LandlordContractService.getContractGuarantees('contract-123');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/contracts/contract-123/guarantees/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/contracts/contract-123/guarantees/'
+      );
       expect(result).toHaveLength(1);
     });
   });
 
   describe('verifyGuarantee', () => {
     it('should verify guarantee with notes', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { id: 'guar-1', verified: true } });
-
-      const result = await LandlordContractService.verifyGuarantee('guar-1', 'Verificacion aprobada');
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/guarantees/guar-1/verify/', {
-        verification_notes: 'Verificacion aprobada',
+      mockedApi.post.mockResolvedValueOnce({
+        data: { id: 'guar-1', verified: true },
       });
+
+      const result = await LandlordContractService.verifyGuarantee(
+        'guar-1',
+        'Verificacion aprobada'
+      );
+
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/guarantees/guar-1/verify/',
+        {
+          verification_notes: 'Verificacion aprobada',
+        }
+      );
     });
   });
 
@@ -342,13 +402,19 @@ describe('LandlordContractService', () => {
 
   describe('generateContractPDF', () => {
     it('should generate PDF with options', async () => {
-      const pdfResponse = { pdf_generated: true, download_url: '/download/contract.pdf' };
+      const pdfResponse = {
+        pdf_generated: true,
+        download_url: '/download/contract.pdf',
+      };
       mockedApi.get.mockResolvedValueOnce({ data: pdfResponse });
 
-      const result = await LandlordContractService.generateContractPDF('contract-123', {
-        includeSignatures: true,
-        includeBiometric: true,
-      });
+      const result = await LandlordContractService.generateContractPDF(
+        'contract-123',
+        {
+          includeSignatures: true,
+          includeBiometric: true,
+        }
+      );
 
       const calledUrl = mockedApi.get.mock.calls[0][0] as string;
       expect(calledUrl).toContain('include_signatures=true');
@@ -359,11 +425,19 @@ describe('LandlordContractService', () => {
 
   describe('generateContractPreview', () => {
     it('should generate a preview PDF', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { pdf_url: 'https://example.com/preview.pdf', expires_at: '2025-02-01' } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: {
+          pdf_url: 'https://example.com/preview.pdf',
+          expires_at: '2025-02-01',
+        },
+      });
 
-      const result = await LandlordContractService.generateContractPreview('contract-123');
+      const result =
+        await LandlordContractService.generateContractPreview('contract-123');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/contract-123/generate-preview/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/contract-123/generate-preview/'
+      );
       expect(result.pdf_url).toBeDefined();
     });
   });
@@ -372,22 +446,34 @@ describe('LandlordContractService', () => {
 
   describe('approveLandlordContract', () => {
     it('should approve contract as landlord', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { ...mockContract, landlord_approved: true } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { ...mockContract, landlord_approved: true },
+      });
 
-      const result = await LandlordContractService.approveLandlordContract({ contract_id: 'contract-123' });
+      const result = await LandlordContractService.approveLandlordContract({
+        contract_id: 'contract-123',
+      });
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/landlord/contracts/contract-123/approve/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/landlord/contracts/contract-123/approve/'
+      );
       expect(result.landlord_approved).toBe(true);
     });
   });
 
   describe('publishContract', () => {
     it('should publish a fully signed contract', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { ...mockContract, published: true, current_state: 'PUBLISHED' } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { ...mockContract, published: true, current_state: 'PUBLISHED' },
+      });
 
-      const result = await LandlordContractService.publishContract({ contract_id: 'contract-123' });
+      const result = await LandlordContractService.publishContract({
+        contract_id: 'contract-123',
+      });
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/landlord/contracts/contract-123/publish/');
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/landlord/contracts/contract-123/publish/'
+      );
       expect(result.published).toBe(true);
       expect(result.current_state).toBe('PUBLISHED');
     });
@@ -410,7 +496,9 @@ describe('LandlordContractService', () => {
   describe('isContractReadyForNextStep', () => {
     it('should return true for DRAFT with valid landlord data and rent', () => {
       const contract = { ...mockContract, current_state: 'DRAFT' as any };
-      expect(LandlordContractService.isContractReadyForNextStep(contract as any)).toBe(true);
+      expect(
+        LandlordContractService.isContractReadyForNextStep(contract as any)
+      ).toBe(true);
     });
 
     it('should return false for DRAFT without landlord name', () => {
@@ -420,7 +508,9 @@ describe('LandlordContractService', () => {
         landlord_data: { ...mockContract.landlord_data, full_name: '' },
         monthly_rent: 0,
       };
-      expect(LandlordContractService.isContractReadyForNextStep(contract as any)).toBe(false);
+      expect(
+        LandlordContractService.isContractReadyForNextStep(contract as any)
+      ).toBe(false);
     });
 
     it('should return true for BOTH_REVIEWING when both approved', () => {
@@ -430,24 +520,39 @@ describe('LandlordContractService', () => {
         landlord_approved: true,
         tenant_approved: true,
       };
-      expect(LandlordContractService.isContractReadyForNextStep(contract as any)).toBe(true);
+      expect(
+        LandlordContractService.isContractReadyForNextStep(contract as any)
+      ).toBe(true);
     });
   });
 
   describe('getNextRequiredAction', () => {
     it('should return correct action for landlord on DRAFT', () => {
-      const action = LandlordContractService.getNextRequiredAction(mockContract as any, 'landlord');
+      const action = LandlordContractService.getNextRequiredAction(
+        mockContract as any,
+        'landlord'
+      );
       expect(action).toBe('Completar datos y enviar invitación');
     });
 
     it('should return correct action for tenant on DRAFT', () => {
-      const action = LandlordContractService.getNextRequiredAction(mockContract as any, 'tenant');
+      const action = LandlordContractService.getNextRequiredAction(
+        mockContract as any,
+        'tenant'
+      );
       expect(action).toBe('Esperando invitación');
     });
 
     it('should return sign action for unsigned landlord on READY_TO_SIGN', () => {
-      const contract = { ...mockContract, current_state: 'READY_TO_SIGN' as any, landlord_signed: false };
-      const action = LandlordContractService.getNextRequiredAction(contract as any, 'landlord');
+      const contract = {
+        ...mockContract,
+        current_state: 'READY_TO_SIGN' as any,
+        landlord_signed: false,
+      };
+      const action = LandlordContractService.getNextRequiredAction(
+        contract as any,
+        'landlord'
+      );
       expect(action).toBe('Firmar digitalmente');
     });
   });
@@ -462,15 +567,24 @@ describe('LandlordContractService', () => {
         LandlordContractService.createContractDraft({
           property_id: '',
           contract_template: '',
-          basic_terms: { monthly_rent: 0, security_deposit: 0, duration_months: 0, utilities_included: false, pets_allowed: false, smoking_allowed: false },
-        }),
+          basic_terms: {
+            monthly_rent: 0,
+            security_deposit: 0,
+            duration_months: 0,
+            utilities_included: false,
+            pets_allowed: false,
+            smoking_allowed: false,
+          },
+        })
       ).rejects.toThrow('Validation failed');
     });
 
     it('should propagate 404 errors', async () => {
       mockedApi.get.mockRejectedValueOnce(new Error('Not found'));
 
-      await expect(LandlordContractService.getLandlordContract('nonexistent')).rejects.toThrow('Not found');
+      await expect(
+        LandlordContractService.getLandlordContract('nonexistent')
+      ).rejects.toThrow('Not found');
     });
   });
 });

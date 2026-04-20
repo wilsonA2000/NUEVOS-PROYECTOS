@@ -14,38 +14,38 @@ def delete_all_properties(apps, schema_editor):
     PropertyFavorite = apps.get_model('properties', 'PropertyFavorite')
     PropertyView = apps.get_model('properties', 'PropertyView')
     PropertyInquiry = apps.get_model('properties', 'PropertyInquiry')
-    
+
     print("🗑️ Limpiando base de datos de propiedades...")
-    
+
     # Delete all related data first
     count_inquiries = PropertyInquiry.objects.count()
     PropertyInquiry.objects.all().delete()
     print(f"   ✅ Eliminadas {count_inquiries} consultas")
-    
+
     count_views = PropertyView.objects.count()
     PropertyView.objects.all().delete()
     print(f"   ✅ Eliminadas {count_views} visualizaciones")
-    
+
     count_favorites = PropertyFavorite.objects.count()
     PropertyFavorite.objects.all().delete()
     print(f"   ✅ Eliminados {count_favorites} favoritos")
-    
+
     count_amenities = PropertyAmenityRelation.objects.count()
     PropertyAmenityRelation.objects.all().delete()
     print(f"   ✅ Eliminadas {count_amenities} relaciones de amenidades")
-    
+
     count_videos = PropertyVideo.objects.count()
     PropertyVideo.objects.all().delete()
     print(f"   ✅ Eliminados {count_videos} videos")
-    
+
     count_images = PropertyImage.objects.count()
     PropertyImage.objects.all().delete()
     print(f"   ✅ Eliminadas {count_images} imágenes")
-    
+
     count_properties = Property.objects.count()
     Property.objects.all().delete()
     print(f"   ✅ Eliminadas {count_properties} propiedades")
-    
+
     print("🎉 Base de datos limpiada exitosamente - listo para crear propiedades desde cero")
 
 

@@ -19,7 +19,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepConnector,
   useTheme,
   useMediaQuery,
   Tooltip,
@@ -48,24 +47,64 @@ import {
   Inbox as EmptyIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { requestService, MaintenanceRequest, RequestActionData } from '../../services/requestService';
+import {
+  requestService,
+  MaintenanceRequest,
+  RequestActionData,
+} from '../../services/requestService';
 import { vhColors } from '../../theme/tokens';
 
 type TabStatus = 'all' | 'pending' | 'in_progress' | 'completed';
 
-const TAB_CONFIG: { value: TabStatus; label: string; icon: React.ReactNode }[] = [
-  { value: 'all', label: 'Todas', icon: <RepairIcon fontSize="small" /> },
-  { value: 'pending', label: 'Pendientes', icon: <PendingIcon fontSize="small" /> },
-  { value: 'in_progress', label: 'En Progreso', icon: <InProgressIcon fontSize="small" /> },
-  { value: 'completed', label: 'Completadas', icon: <CompletedIcon fontSize="small" /> },
-];
+const TAB_CONFIG: { value: TabStatus; label: string; icon: React.ReactNode }[] =
+  [
+    { value: 'all', label: 'Todas', icon: <RepairIcon fontSize='small' /> },
+    {
+      value: 'pending',
+      label: 'Pendientes',
+      icon: <PendingIcon fontSize='small' />,
+    },
+    {
+      value: 'in_progress',
+      label: 'En Progreso',
+      icon: <InProgressIcon fontSize='small' />,
+    },
+    {
+      value: 'completed',
+      label: 'Completadas',
+      icon: <CompletedIcon fontSize='small' />,
+    },
+  ];
 
-const MAINTENANCE_TYPE_MAP: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  emergency: { label: 'Emergencia', icon: <EmergencyIcon />, color: vhColors.error },
-  routine: { label: 'Rutinario', icon: <RoutineIcon />, color: vhColors.accentBlue },
-  preventive: { label: 'Preventivo', icon: <PreventiveIcon />, color: vhColors.success },
-  repair: { label: 'Reparaci\u00f3n', icon: <RepairIcon />, color: vhColors.warning },
-  improvement: { label: 'Mejora', icon: <ImprovementIcon />, color: vhColors.purple },
+const MAINTENANCE_TYPE_MAP: Record<
+  string,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
+  emergency: {
+    label: 'Emergencia',
+    icon: <EmergencyIcon />,
+    color: vhColors.error,
+  },
+  routine: {
+    label: 'Rutinario',
+    icon: <RoutineIcon />,
+    color: vhColors.accentBlue,
+  },
+  preventive: {
+    label: 'Preventivo',
+    icon: <PreventiveIcon />,
+    color: vhColors.success,
+  },
+  repair: {
+    label: 'Reparaci\u00f3n',
+    icon: <RepairIcon />,
+    color: vhColors.warning,
+  },
+  improvement: {
+    label: 'Mejora',
+    icon: <ImprovementIcon />,
+    color: vhColors.purple,
+  },
 };
 
 const STATUS_STEPS = [
@@ -78,7 +117,9 @@ interface MaintenanceRequestListProps {
   refreshTrigger?: number;
 }
 
-const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refreshTrigger }) => {
+const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({
+  refreshTrigger,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -87,7 +128,10 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabStatus>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; requestId: string | null }>({
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+    requestId: string | null;
+  }>({
     open: false,
     requestId: null,
   });
@@ -114,26 +158,38 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
   const filteredRequests = useMemo(() => {
     if (activeTab === 'all') return requests;
     if (activeTab === 'completed') {
-      return requests.filter(r => ['completed', 'rejected', 'cancelled'].includes(r.status));
+      return requests.filter(r =>
+        ['completed', 'rejected', 'cancelled'].includes(r.status),
+      );
     }
     return requests.filter(r => r.status === activeTab);
   }, [requests, activeTab]);
 
-  const tabCounts = useMemo(() => ({
-    all: requests.length,
-    pending: requests.filter(r => r.status === 'pending').length,
-    in_progress: requests.filter(r => r.status === 'in_progress').length,
-    completed: requests.filter(r => ['completed', 'rejected', 'cancelled'].includes(r.status)).length,
-  }), [requests]);
+  const tabCounts = useMemo(
+    () => ({
+      all: requests.length,
+      pending: requests.filter(r => r.status === 'pending').length,
+      in_progress: requests.filter(r => r.status === 'in_progress').length,
+      completed: requests.filter(r =>
+        ['completed', 'rejected', 'cancelled'].includes(r.status),
+      ).length,
+    }),
+    [requests],
+  );
 
   const getActiveStep = (status: string): number => {
     switch (status) {
-      case 'pending': return 0;
-      case 'in_progress': return 1;
-      case 'completed': return 2;
+      case 'pending':
+        return 0;
+      case 'in_progress':
+        return 1;
+      case 'completed':
+        return 2;
       case 'rejected':
-      case 'cancelled': return -1;
-      default: return 0;
+      case 'cancelled':
+        return -1;
+      default:
+        return 0;
     }
   };
 
@@ -145,8 +201,14 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
     if (!cancelDialog.requestId) return;
     setCancelling(true);
     try {
-      const actionData: RequestActionData = { action: 'cancel', message: 'Cancelada por el arrendatario' };
-      await requestService.performRequestAction(cancelDialog.requestId, actionData);
+      const actionData: RequestActionData = {
+        action: 'cancel',
+        message: 'Cancelada por el arrendatario',
+      };
+      await requestService.performRequestAction(
+        cancelDialog.requestId,
+        actionData,
+      );
       setCancelDialog({ open: false, requestId: null });
       fetchRequests();
     } catch (err: any) {
@@ -157,14 +219,20 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
   };
 
   const getTypeInfo = (type: string) => {
-    return MAINTENANCE_TYPE_MAP[type] || { label: type, icon: <RepairIcon />, color: vhColors.textSecondary };
+    return (
+      MAINTENANCE_TYPE_MAP[type] || {
+        label: type,
+        icon: <RepairIcon />,
+        color: vhColors.textSecondary,
+      }
+    );
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" py={6}>
+      <Box display='flex' justifyContent='center' alignItems='center' py={6}>
         <CircularProgress />
-        <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+        <Typography variant='body2' color='text.secondary' sx={{ ml: 2 }}>
           Cargando solicitudes...
         </Typography>
       </Box>
@@ -174,7 +242,7 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
   return (
     <Box>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity='error' sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -188,7 +256,7 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
           flexWrap: 'wrap',
         }}
       >
-        {TAB_CONFIG.map((tab) => (
+        {TAB_CONFIG.map(tab => (
           <Button
             key={tab.value}
             variant={activeTab === tab.value ? 'contained' : 'outlined'}
@@ -207,8 +275,8 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Tooltip title="Actualizar">
-          <IconButton onClick={fetchRequests} size="small" color="primary">
+        <Tooltip title='Actualizar'>
+          <IconButton onClick={fetchRequests} size='small' color='primary'>
             <RefreshIcon />
           </IconButton>
         </Tooltip>
@@ -219,7 +287,7 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
         <EmptyState tab={activeTab} />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {filteredRequests.map((request) => {
+          {filteredRequests.map(request => {
             const typeInfo = getTypeInfo(request.maintenance_type);
             const isExpanded = expandedId === request.id;
             const activeStep = getActiveStep(request.status);
@@ -235,16 +303,26 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
                   '&:hover': { elevation: 3 },
                 }}
               >
-                <CardContent sx={{ p: { xs: 2, md: 3 }, '&:last-child': { pb: { xs: 2, md: 3 } } }}>
+                <CardContent
+                  sx={{
+                    p: { xs: 2, md: 3 },
+                    '&:last-child': { pb: { xs: 2, md: 3 } },
+                  }}
+                >
                   {/* Encabezado de la card */}
                   <Box
-                    display="flex"
-                    alignItems="flex-start"
-                    justifyContent="space-between"
+                    display='flex'
+                    alignItems='flex-start'
+                    justifyContent='space-between'
                     sx={{ cursor: 'pointer' }}
                     onClick={() => handleToggleExpand(request.id)}
                   >
-                    <Box display="flex" alignItems="flex-start" gap={2} sx={{ flex: 1, minWidth: 0 }}>
+                    <Box
+                      display='flex'
+                      alignItems='flex-start'
+                      gap={2}
+                      sx={{ flex: 1, minWidth: 0 }}
+                    >
                       <Box
                         sx={{
                           bgcolor: `${typeInfo.color}15`,
@@ -260,43 +338,74 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
                         {typeInfo.icon}
                       </Box>
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle1" fontWeight={600} noWrap>
-                          {request.title || request.issue_description?.substring(0, 60) || 'Solicitud de mantenimiento'}
+                        <Typography variant='subtitle1' fontWeight={600} noWrap>
+                          {request.title ||
+                            request.issue_description?.substring(0, 60) ||
+                            'Solicitud de mantenimiento'}
                         </Typography>
-                        <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
+                        <Box display='flex' gap={1} flexWrap='wrap' mt={0.5}>
                           <Chip
                             label={typeInfo.label}
-                            size="small"
-                            sx={{ bgcolor: `${typeInfo.color}15`, color: typeInfo.color, fontWeight: 600 }}
+                            size='small'
+                            sx={{
+                              bgcolor: `${typeInfo.color}15`,
+                              color: typeInfo.color,
+                              fontWeight: 600,
+                            }}
                           />
                           <Chip
                             label={requestService.getStatusText(request.status)}
-                            size="small"
-                            color={requestService.getStatusColor(request.status)}
+                            size='small'
+                            color={requestService.getStatusColor(
+                              request.status,
+                            )}
                           />
                           <Chip
-                            label={requestService.getPriorityText(request.priority)}
-                            size="small"
-                            color={requestService.getPriorityColor(request.priority)}
-                            variant="outlined"
+                            label={requestService.getPriorityText(
+                              request.priority,
+                            )}
+                            size='small'
+                            color={requestService.getPriorityColor(
+                              request.priority,
+                            )}
+                            variant='outlined'
                           />
                         </Box>
                         {!isMobile && (
-                          <Box display="flex" gap={2} mt={1} alignItems="center">
+                          <Box
+                            display='flex'
+                            gap={2}
+                            mt={1}
+                            alignItems='center'
+                          >
                             {request.affected_area && (
-                              <Typography variant="caption" color="text.secondary" display="flex" alignItems="center" gap={0.5}>
-                                <LocationIcon fontSize="inherit" /> {request.affected_area}
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                                display='flex'
+                                alignItems='center'
+                                gap={0.5}
+                              >
+                                <LocationIcon fontSize='inherit' />{' '}
+                                {request.affected_area}
                               </Typography>
                             )}
-                            <Typography variant="caption" color="text.secondary" display="flex" alignItems="center" gap={0.5}>
-                              <CalendarIcon fontSize="inherit" /> {requestService.formatDate(request.created_at)}
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              display='flex'
+                              alignItems='center'
+                              gap={0.5}
+                            >
+                              <CalendarIcon fontSize='inherit' />{' '}
+                              {requestService.formatDate(request.created_at)}
                             </Typography>
                           </Box>
                         )}
                       </Box>
                     </Box>
 
-                    <IconButton size="small">
+                    <IconButton size='small'>
                       {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
                   </Box>
@@ -312,9 +421,11 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
                           activeStep={activeStep}
                           alternativeLabel={!isMobile}
                           orientation={isMobile ? 'vertical' : 'horizontal'}
-                          sx={{ '& .MuiStepLabel-label': { fontSize: '0.75rem' } }}
+                          sx={{
+                            '& .MuiStepLabel-label': { fontSize: '0.75rem' },
+                          }}
                         >
-                          {STATUS_STEPS.map((step) => (
+                          {STATUS_STEPS.map(step => (
                             <Step key={step.key}>
                               <StepLabel>{step.label}</StepLabel>
                             </Step>
@@ -323,54 +434,86 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
                       </Box>
                     )}
 
-                    {(request.status === 'cancelled' || request.status === 'rejected') && (
-                      <Alert severity={request.status === 'cancelled' ? 'warning' : 'error'} sx={{ mb: 2 }}>
-                        Esta solicitud fue {request.status === 'cancelled' ? 'cancelada' : 'rechazada'}.
-                        {request.response_message && ` Motivo: ${request.response_message}`}
+                    {(request.status === 'cancelled' ||
+                      request.status === 'rejected') && (
+                      <Alert
+                        severity={
+                          request.status === 'cancelled' ? 'warning' : 'error'
+                        }
+                        sx={{ mb: 2 }}
+                      >
+                        Esta solicitud fue{' '}
+                        {request.status === 'cancelled'
+                          ? 'cancelada'
+                          : 'rechazada'}
+                        .
+                        {request.response_message &&
+                          ` Motivo: ${request.response_message}`}
                       </Alert>
                     )}
 
                     {/* Detalles */}
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                        <Typography
+                          variant='caption'
+                          color='text.secondary'
+                          fontWeight={600}
+                        >
                           Descripci\u00f3n del problema
                         </Typography>
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                          {request.issue_description || request.description || 'Sin descripci\u00f3n'}
+                        <Typography variant='body2' sx={{ mt: 0.5 }}>
+                          {request.issue_description ||
+                            request.description ||
+                            'Sin descripci\u00f3n'}
                         </Typography>
                       </Grid>
 
                       <Grid item xs={12} md={6}>
-                        <Box display="flex" flexDirection="column" gap={1}>
+                        <Box display='flex' flexDirection='column' gap={1}>
                           {request.property_title && (
                             <Box>
-                              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                                fontWeight={600}
+                              >
                                 Propiedad
                               </Typography>
-                              <Typography variant="body2">{request.property_title}</Typography>
+                              <Typography variant='body2'>
+                                {request.property_title}
+                              </Typography>
                             </Box>
                           )}
                           {request.affected_area && (
                             <Box>
-                              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                                fontWeight={600}
+                              >
                                 \u00c1rea afectada
                               </Typography>
-                              <Typography variant="body2">{request.affected_area}</Typography>
+                              <Typography variant='body2'>
+                                {request.affected_area}
+                              </Typography>
                             </Box>
                           )}
                           {request.estimated_duration_hours && (
-                            <Box display="flex" alignItems="center" gap={0.5}>
-                              <TimeIcon fontSize="small" color="action" />
-                              <Typography variant="body2">
-                                Duraci\u00f3n estimada: {request.estimated_duration_hours}h
+                            <Box display='flex' alignItems='center' gap={0.5}>
+                              <TimeIcon fontSize='small' color='action' />
+                              <Typography variant='body2'>
+                                Duraci\u00f3n estimada:{' '}
+                                {request.estimated_duration_hours}h
                               </Typography>
                             </Box>
                           )}
                           {request.requires_tenant_presence && (
-                            <Box display="flex" alignItems="center" gap={0.5}>
-                              <PersonIcon fontSize="small" color="action" />
-                              <Typography variant="body2">Requiere presencia del arrendatario</Typography>
+                            <Box display='flex' alignItems='center' gap={0.5}>
+                              <PersonIcon fontSize='small' color='action' />
+                              <Typography variant='body2'>
+                                Requiere presencia del arrendatario
+                              </Typography>
                             </Box>
                           )}
                         </Box>
@@ -378,10 +521,14 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
 
                       {request.access_instructions && (
                         <Grid item xs={12}>
-                          <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                          <Typography
+                            variant='caption'
+                            color='text.secondary'
+                            fontWeight={600}
+                          >
                             Instrucciones de acceso
                           </Typography>
-                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                          <Typography variant='body2' sx={{ mt: 0.5 }}>
                             {request.access_instructions}
                           </Typography>
                         </Grid>
@@ -390,16 +537,24 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
                       {/* Fechas */}
                       <Grid item xs={12}>
                         <Divider sx={{ my: 1 }} />
-                        <Box display="flex" gap={3} flexWrap="wrap">
-                          <Typography variant="caption" color="text.secondary">
-                            Creada: {requestService.formatDateTime(request.created_at)}
+                        <Box display='flex' gap={3} flexWrap='wrap'>
+                          <Typography variant='caption' color='text.secondary'>
+                            Creada:{' '}
+                            {requestService.formatDateTime(request.created_at)}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Actualizada: {requestService.formatDateTime(request.updated_at)}
+                          <Typography variant='caption' color='text.secondary'>
+                            Actualizada:{' '}
+                            {requestService.formatDateTime(request.updated_at)}
                           </Typography>
                           {request.completed_at && (
-                            <Typography variant="caption" color="text.secondary">
-                              Completada: {requestService.formatDateTime(request.completed_at)}
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                            >
+                              Completada:{' '}
+                              {requestService.formatDateTime(
+                                request.completed_at,
+                              )}
                             </Typography>
                           )}
                         </Box>
@@ -408,15 +563,18 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
 
                     {/* Acciones */}
                     {request.status === 'pending' && (
-                      <Box display="flex" justifyContent="flex-end" mt={2}>
+                      <Box display='flex' justifyContent='flex-end' mt={2}>
                         <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
+                          variant='outlined'
+                          color='error'
+                          size='small'
                           startIcon={<CancelIcon />}
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
-                            setCancelDialog({ open: true, requestId: request.id });
+                            setCancelDialog({
+                              open: true,
+                              requestId: request.id,
+                            });
                           }}
                         >
                           Cancelar Solicitud
@@ -434,13 +592,15 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
       {/* Di\u00e1logo de confirmaci\u00f3n de cancelaci\u00f3n */}
       <Dialog
         open={cancelDialog.open}
-        onClose={() => !cancelling && setCancelDialog({ open: false, requestId: null })}
+        onClose={() =>
+          !cancelling && setCancelDialog({ open: false, requestId: null })
+        }
       >
         <DialogTitle>Cancelar Solicitud</DialogTitle>
         <DialogContent>
           <Typography>
-            \u00bfEst\u00e1s seguro de que deseas cancelar esta solicitud de mantenimiento?
-            Esta acci\u00f3n no se puede deshacer.
+            \u00bfEst\u00e1s seguro de que deseas cancelar esta solicitud de
+            mantenimiento? Esta acci\u00f3n no se puede deshacer.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -452,10 +612,12 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({ refresh
           </Button>
           <Button
             onClick={handleCancelRequest}
-            color="error"
-            variant="contained"
+            color='error'
+            variant='contained'
             disabled={cancelling}
-            startIcon={cancelling ? <CircularProgress size={16} /> : <CancelIcon />}
+            startIcon={
+              cancelling ? <CircularProgress size={16} /> : <CancelIcon />
+            }
           >
             {cancelling ? 'Cancelando...' : 'S\u00ed, cancelar'}
           </Button>
@@ -470,19 +632,23 @@ const EmptyState: React.FC<{ tab: TabStatus }> = ({ tab }) => {
   const messages: Record<TabStatus, { title: string; description: string }> = {
     all: {
       title: 'No hay solicitudes de mantenimiento',
-      description: 'Cuando crees una solicitud de mantenimiento, aparecer\u00e1 aqu\u00ed. Usa el bot\u00f3n "Nueva Solicitud" para comenzar.',
+      description:
+        'Cuando crees una solicitud de mantenimiento, aparecer\u00e1 aqu\u00ed. Usa el bot\u00f3n "Nueva Solicitud" para comenzar.',
     },
     pending: {
       title: 'No hay solicitudes pendientes',
-      description: 'Las solicitudes que env\u00edes y est\u00e9n esperando atenci\u00f3n aparecer\u00e1n en esta secci\u00f3n.',
+      description:
+        'Las solicitudes que env\u00edes y est\u00e9n esperando atenci\u00f3n aparecer\u00e1n en esta secci\u00f3n.',
     },
     in_progress: {
       title: 'No hay solicitudes en progreso',
-      description: 'Las solicitudes que est\u00e9n siendo atendidas por el equipo de mantenimiento aparecer\u00e1n aqu\u00ed.',
+      description:
+        'Las solicitudes que est\u00e9n siendo atendidas por el equipo de mantenimiento aparecer\u00e1n aqu\u00ed.',
     },
     completed: {
       title: 'No hay solicitudes completadas',
-      description: 'El historial de solicitudes finalizadas, rechazadas o canceladas aparecer\u00e1 en esta secci\u00f3n.',
+      description:
+        'El historial de solicitudes finalizadas, rechazadas o canceladas aparecer\u00e1 en esta secci\u00f3n.',
     },
   };
 
@@ -490,16 +656,14 @@ const EmptyState: React.FC<{ tab: TabStatus }> = ({ tab }) => {
 
   return (
     <Alert
-      severity="info"
+      severity='info'
       icon={<EmptyIcon />}
       sx={{ textAlign: 'center', py: 4 }}
     >
-      <Typography variant="h6" gutterBottom>
+      <Typography variant='h6' gutterBottom>
         {msg.title}
       </Typography>
-      <Typography variant="body2">
-        {msg.description}
-      </Typography>
+      <Typography variant='body2'>{msg.description}</Typography>
     </Alert>
   );
 };

@@ -91,12 +91,14 @@ class PropertyVideoService {
         formData,
         {
           // Don't set Content-Type manually - let axios set the boundary for multipart/form-data
-          onUploadProgress: (progressEvent) => {
+          onUploadProgress: progressEvent => {
             if (onProgress && progressEvent.total) {
               const progress: VideoUploadProgress = {
                 loaded: progressEvent.loaded,
                 total: progressEvent.total,
-                percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total),
+                percentage: Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total,
+                ),
               };
               onProgress(progress);
             }
@@ -139,12 +141,14 @@ class PropertyVideoService {
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: progressEvent => {
           if (onProgress && progressEvent.total) {
             onProgress({
               loaded: progressEvent.loaded,
               total: progressEvent.total,
-              percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total),
+              percentage: Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total,
+              ),
             });
           }
         },
@@ -176,9 +180,7 @@ class PropertyVideoService {
    */
   async deleteVideo(propertyId: string, videoId: number): Promise<void> {
     try {
-      await api.delete(
-        `/properties/property-videos/${videoId}/`,
-      );
+      await api.delete(`/properties/property-videos/${videoId}/`);
     } catch (error) {
       throw error;
     }
@@ -256,15 +258,24 @@ class PropertyVideoService {
     const errors: string[] = [];
 
     // Validar tipo de archivo
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/avi'];
+    const allowedTypes = [
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+      'video/avi',
+    ];
     if (!allowedTypes.includes(file.type)) {
-      errors.push(`Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes.join(', ')}`);
+      errors.push(
+        `Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes.join(', ')}`,
+      );
     }
 
     // Validar tamaño (50MB máximo)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-      errors.push(`Archivo muy grande. Tamaño máximo: ${maxSize / (1024 * 1024)}MB`);
+      errors.push(
+        `Archivo muy grande. Tamaño máximo: ${maxSize / (1024 * 1024)}MB`,
+      );
     }
 
     // Validar duración mínima del nombre

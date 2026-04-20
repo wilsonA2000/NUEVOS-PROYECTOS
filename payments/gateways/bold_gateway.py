@@ -36,15 +36,15 @@ class BoldGateway(BasePaymentGateway):
     """
 
     # Bold usa pesos COP directamente (no centavos)
-    BASE_URL = 'https://integrations.bold.co'
+    BASE_URL = "https://integrations.bold.co"
 
     STATUS_MAP = {
-        'APPROVED': 'completed',
-        'PENDING': 'pending',
-        'DECLINED': 'failed',
-        'VOIDED': 'voided',
-        'ERROR': 'failed',
-        'EXPIRED': 'expired',
+        "APPROVED": "completed",
+        "PENDING": "pending",
+        "DECLINED": "failed",
+        "VOIDED": "voided",
+        "ERROR": "failed",
+        "EXPIRED": "expired",
     }
 
     def __init__(self, config: Dict[str, Any]):
@@ -57,11 +57,11 @@ class BoldGateway(BasePaymentGateway):
             sandbox_mode (bool): True = keys test_*; False = keys prod_*
         """
         super().__init__(config)
-        self.integrity_secret = config.get('integrity_secret', '')
+        self.integrity_secret = config.get("integrity_secret", "")
 
     def validate_config(self):
         """Validar que api_key esté presente."""
-        if not self.config.get('api_key'):
+        if not self.config.get("api_key"):
             raise ValueError("BoldGateway requiere 'api_key' en la configuración")
 
     # ------------------------------------------------------------------
@@ -76,7 +76,7 @@ class BoldGateway(BasePaymentGateway):
         customer_name: str,
         description: str,
         reference: str,
-        **kwargs
+        **kwargs,
     ) -> PaymentResult:
         """
         Crea un payment link en Bold y retorna la URL de checkout.
@@ -88,40 +88,43 @@ class BoldGateway(BasePaymentGateway):
             expiration_hours (int): horas de validez del link (default 24)
             redirect_url (str): URL de retorno tras el pago
         """
-        if currency != 'COP':
+        if currency != "COP":
             return PaymentResult(
                 success=False,
-                error_message='Bold solo soporta COP',
-                error_code='INVALID_CURRENCY',
+                error_message="Bold solo soporta COP",
+                error_code="INVALID_CURRENCY",
             )
 
-        expiration_hours = kwargs.get('expiration_hours', 24)
+        expiration_hours = kwargs.get("expiration_hours", 24)
         expires_at = (
             datetime.now(tz=timezone.utc) + timedelta(hours=expiration_hours)
-        ).strftime('%Y-%m-%dT%H:%M:%S-05:00')  # UTC-5 Colombia
+        ).strftime("%Y-%m-%dT%H:%M:%S-05:00")  # UTC-5 Colombia
 
         payload: Dict[str, Any] = {
-            'amount_type': 'CLOSE',        # monto fijo
-            'amount': int(amount),          # Bold espera entero en pesos COP
-            'currency': 'COP',
-            'description': description[:255],
-            'reference': reference,
-            'expiration_date': expires_at,
+            "amount_type": "CLOSE",  # monto fijo
+            "amount": int(amount),  # Bold espera entero en pesos COP
+            "currency": "COP",
+            "description": description[:255],
+            "reference": reference,
+            "expiration_date": expires_at,
         }
 
-        redirect_url = kwargs.get('redirect_url')
+        redirect_url = kwargs.get("redirect_url")
         if redirect_url:
-            payload['redirect_url'] = redirect_url
+            payload["redirect_url"] = redirect_url
 
         headers = self._auth_headers()
 
         try:
-            self.log_info(f"Creando Bold payment link para {reference}", {
-                'amount': str(amount),
-            })
+            self.log_info(
+                f"Creando Bold payment link para {reference}",
+                {
+                    "amount": str(amount),
+                },
+            )
 
             response = requests.post(
-                f'{self.BASE_URL}/online/link/v1',
+                f"{self.BASE_URL}/online/link/v1",
                 json=payload,
                 headers=headers,
                 timeout=30,
@@ -129,21 +132,21 @@ class BoldGateway(BasePaymentGateway):
             response.raise_for_status()
             data = response.json()
 
-            link_payload = data.get('payload', {})
-            payment_link = link_payload.get('payment_link', '')
-            link_id = link_payload.get('payment_link_id', '')
+            link_payload = data.get("payload", {})
+            payment_link = link_payload.get("payment_link", "")
+            link_id = link_payload.get("payment_link_id", "")
 
             return PaymentResult(
                 success=True,
                 transaction_id=reference,
                 gateway_reference=link_id,
                 amount=amount,
-                currency='COP',
-                status='pending',
+                currency="COP",
+                status="pending",
                 metadata={
-                    'checkout_url': payment_link,
-                    'payment_link_id': link_id,
-                    'expires_at': expires_at,
+                    "checkout_url": payment_link,
+                    "payment_link_id": link_id,
+                    "expires_at": expires_at,
                 },
                 raw_response=data,
             )
@@ -151,22 +154,22 @@ class BoldGateway(BasePaymentGateway):
         except requests.HTTPError as e:
             error_data = self._safe_json(e.response)
             error_msg = (
-                error_data.get('errors', [{}])[0].get('message', str(e))
-                if isinstance(error_data.get('errors'), list)
+                error_data.get("errors", [{}])[0].get("message", str(e))
+                if isinstance(error_data.get("errors"), list)
                 else str(e)
             )
-            self.log_error(f"Bold API error: {error_msg}", {'reference': reference})
+            self.log_error(f"Bold API error: {error_msg}", {"reference": reference})
             return PaymentResult(
                 success=False,
                 error_message=error_msg,
-                error_code='BOLD_API_ERROR',
+                error_code="BOLD_API_ERROR",
             )
         except requests.RequestException as e:
             self.log_error(f"Bold network error: {e}")
             return PaymentResult(
                 success=False,
-                error_message=f'Error de red: {e}',
-                error_code='NETWORK_ERROR',
+                error_message=f"Error de red: {e}",
+                error_code="NETWORK_ERROR",
             )
 
     def confirm_payment(self, transaction_id: str) -> PaymentResult:
@@ -179,29 +182,29 @@ class BoldGateway(BasePaymentGateway):
         headers = self._auth_headers()
         try:
             response = requests.get(
-                f'{self.BASE_URL}/online/link/v1/{transaction_id}',
+                f"{self.BASE_URL}/online/link/v1/{transaction_id}",
                 headers=headers,
                 timeout=30,
             )
             response.raise_for_status()
             data = response.json()
-            link_data = data.get('payload', {})
+            link_data = data.get("payload", {})
 
-            bold_status = link_data.get('status', 'PENDING')
-            mapped_status = self.STATUS_MAP.get(bold_status, 'pending')
-            amount = Decimal(str(link_data.get('amount', 0)))
+            bold_status = link_data.get("status", "PENDING")
+            mapped_status = self.STATUS_MAP.get(bold_status, "pending")
+            amount = Decimal(str(link_data.get("amount", 0)))
 
             return PaymentResult(
-                success=mapped_status == 'completed',
-                transaction_id=link_data.get('reference', transaction_id),
+                success=mapped_status == "completed",
+                transaction_id=link_data.get("reference", transaction_id),
                 gateway_reference=transaction_id,
                 amount=amount,
-                currency='COP',
+                currency="COP",
                 status=mapped_status,
                 metadata={
-                    'bold_status': bold_status,
-                    'payment_method': link_data.get('payment_method'),
-                    'finalized_at': link_data.get('finalized_at'),
+                    "bold_status": bold_status,
+                    "payment_method": link_data.get("payment_method"),
+                    "finalized_at": link_data.get("finalized_at"),
                 },
                 raw_response=data,
             )
@@ -212,16 +215,16 @@ class BoldGateway(BasePaymentGateway):
                 success=False,
                 transaction_id=transaction_id,
                 error_message=str(error_data) or str(e),
-                error_code='CONFIRMATION_ERROR',
+                error_code="CONFIRMATION_ERROR",
             )
         except Exception as e:
-            return self.handle_error(e, {'transaction_id': transaction_id})
+            return self.handle_error(e, {"transaction_id": transaction_id})
 
     def refund_payment(
         self,
         transaction_id: str,
         amount: Optional[Decimal] = None,
-        reason: str = '',
+        reason: str = "",
     ) -> PaymentResult:
         """
         Bold no expone endpoint de reembolso vía API pública — se gestionan
@@ -230,58 +233,60 @@ class BoldGateway(BasePaymentGateway):
         """
         self.log_error(
             "Reembolso Bold no disponible vía API — gestionar en dashboard.bold.co",
-            {'transaction_id': transaction_id},
+            {"transaction_id": transaction_id},
         )
         return PaymentResult(
             success=False,
             transaction_id=transaction_id,
             error_message=(
-                'Los reembolsos Bold se gestionan manualmente desde '
-                'dashboard.bold.co o contactando a soporte Bold.'
+                "Los reembolsos Bold se gestionan manualmente desde "
+                "dashboard.bold.co o contactando a soporte Bold."
             ),
-            error_code='REFUND_NOT_SUPPORTED',
+            error_code="REFUND_NOT_SUPPORTED",
         )
 
-    def handle_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> PaymentResult:
+    def handle_webhook(
+        self, payload: Dict[str, Any], headers: Dict[str, str]
+    ) -> PaymentResult:
         """
         Procesa el webhook enviado por Bold tras actualizar una transacción.
 
         Bold firma el payload con HMAC-SHA256 usando el integrity_secret.
         Header: 'x-bold-signature'
         """
-        signature = headers.get('x-bold-signature', headers.get('X-Bold-Signature', ''))
+        signature = headers.get("x-bold-signature", headers.get("X-Bold-Signature", ""))
         if self.integrity_secret and not self._verify_signature(payload, signature):
             self.log_error("Firma inválida en webhook Bold")
             return PaymentResult(
                 success=False,
-                error_message='Firma de webhook inválida',
-                error_code='INVALID_SIGNATURE',
+                error_message="Firma de webhook inválida",
+                error_code="INVALID_SIGNATURE",
             )
 
-        event_type = payload.get('type', '')
-        data = payload.get('data', {})
+        event_type = payload.get("type", "")
+        data = payload.get("data", {})
 
-        transaction_id = data.get('reference', '')
-        bold_status = data.get('status', 'PENDING')
-        mapped_status = self.STATUS_MAP.get(bold_status, 'pending')
-        amount = Decimal(str(data.get('amount', 0)))
+        transaction_id = data.get("reference", "")
+        bold_status = data.get("status", "PENDING")
+        mapped_status = self.STATUS_MAP.get(bold_status, "pending")
+        amount = Decimal(str(data.get("amount", 0)))
 
         self.log_info(
             f"Bold webhook recibido: {event_type} ref={transaction_id} status={bold_status}"
         )
 
         return PaymentResult(
-            success=mapped_status == 'completed',
+            success=mapped_status == "completed",
             transaction_id=transaction_id,
-            gateway_reference=data.get('order_id', ''),
+            gateway_reference=data.get("order_id", ""),
             amount=amount,
-            currency=data.get('currency', 'COP'),
+            currency=data.get("currency", "COP"),
             status=mapped_status,
             metadata={
-                'event_type': event_type,
-                'bold_status': bold_status,
-                'payment_method': data.get('payment_method'),
-                'order_id': data.get('order_id'),
+                "event_type": event_type,
+                "bold_status": bold_status,
+                "payment_method": data.get("payment_method"),
+                "order_id": data.get("order_id"),
             },
             raw_response=payload,
         )
@@ -295,7 +300,7 @@ class BoldGateway(BasePaymentGateway):
         Retorna los métodos de pago soportados por Bold.
         Bold no tiene endpoint de consulta; la lista es fija según plan.
         """
-        return ['PSE', 'NEQUI', 'DAVIPLATA', 'BANCOLOMBIA_QR', 'CARD', 'EFECTY']
+        return ["PSE", "NEQUI", "DAVIPLATA", "BANCOLOMBIA_QR", "CARD", "EFECTY"]
 
     # ------------------------------------------------------------------
     # Helpers privados
@@ -303,9 +308,9 @@ class BoldGateway(BasePaymentGateway):
 
     def _auth_headers(self) -> Dict[str, str]:
         return {
-            'Authorization': f'x-api-key {self.config["api_key"]}',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            "Authorization": f'x-api-key {self.config["api_key"]}',
+            "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
     def _verify_signature(self, payload: Dict[str, Any], signature: str) -> bool:
@@ -316,9 +321,9 @@ class BoldGateway(BasePaymentGateway):
         if not signature:
             return False
         try:
-            payload_string = json.dumps(payload, separators=(',', ':'), sort_keys=True)
+            payload_string = json.dumps(payload, separators=(",", ":"), sort_keys=True)
             expected = hashlib.sha256(
-                f'{payload_string}{self.integrity_secret}'.encode('utf-8')
+                f"{payload_string}{self.integrity_secret}".encode("utf-8")
             ).hexdigest()
             return hmac.compare_digest(expected, signature)
         except Exception as e:

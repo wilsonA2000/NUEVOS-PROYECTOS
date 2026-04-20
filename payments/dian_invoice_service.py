@@ -30,21 +30,21 @@ logger = logging.getLogger(__name__)
 
 # Configuración DIAN (se lee de settings o .env)
 DIAN_CONFIG = {
-    'nit_emisor': getattr(settings, 'DIAN_NIT_EMISOR', '901234567'),
-    'razon_social': getattr(settings, 'DIAN_RAZON_SOCIAL', 'VeriHome S.A.S.'),
-    'regimen': 'Responsable de IVA',
-    'tipo_documento': 'NIT',
-    'direccion': 'Calle 13 #28-42, San Alonso',
-    'ciudad': 'Bucaramanga',
-    'departamento': 'Santander',
-    'pais': 'CO',
-    'telefono': '+57 (7) 123-4567',
-    'email': 'facturacion@verihome.com',
-    'prefijo_factura': 'VH',
-    'resolucion_dian': '',  # Número de resolución de habilitación
-    'rango_desde': 1,
-    'rango_hasta': 999999,
-    'ambiente': 'test',  # 'test' o 'production'
+    "nit_emisor": getattr(settings, "DIAN_NIT_EMISOR", "901234567"),
+    "razon_social": getattr(settings, "DIAN_RAZON_SOCIAL", "VeriHome S.A.S."),
+    "regimen": "Responsable de IVA",
+    "tipo_documento": "NIT",
+    "direccion": "Calle 13 #28-42, San Alonso",
+    "ciudad": "Bucaramanga",
+    "departamento": "Santander",
+    "pais": "CO",
+    "telefono": "+57 (7) 123-4567",
+    "email": "facturacion@verihome.com",
+    "prefijo_factura": "VH",
+    "resolucion_dian": "",  # Número de resolución de habilitación
+    "rango_desde": 1,
+    "rango_hasta": 999999,
+    "ambiente": "test",  # 'test' o 'production'
 }
 
 
@@ -52,39 +52,40 @@ class DIANInvoiceData:
     """Estructura de datos para una factura electrónica DIAN."""
 
     def __init__(self):
-        self.invoice_number = ''
+        self.invoice_number = ""
         self.issue_date = timezone.now()
         self.due_date = None
-        self.currency = 'COP'
+        self.currency = "COP"
 
         # Emisor (VeriHome)
         self.issuer = DIAN_CONFIG.copy()
 
         # Receptor
-        self.recipient_nit = ''
-        self.recipient_name = ''
-        self.recipient_address = ''
-        self.recipient_city = ''
-        self.recipient_email = ''
-        self.recipient_phone = ''
+        self.recipient_nit = ""
+        self.recipient_name = ""
+        self.recipient_address = ""
+        self.recipient_city = ""
+        self.recipient_email = ""
+        self.recipient_phone = ""
 
         # Líneas
         self.items = []  # List of dicts: {description, quantity, unit_price, tax_rate, total}
 
         # Totales
-        self.subtotal = Decimal('0')
-        self.tax_total = Decimal('0')
-        self.total = Decimal('0')
+        self.subtotal = Decimal("0")
+        self.tax_total = Decimal("0")
+        self.total = Decimal("0")
 
         # Referencia
-        self.contract_number = ''
-        self.payment_reference = ''
-        self.notes = ''
+        self.contract_number = ""
+        self.payment_reference = ""
+        self.notes = ""
 
 
 def generate_invoice_number():
     """Genera número de factura secuencial con prefijo VeriHome."""
     from payments.models import Invoice
+
     year = timezone.now().year
     count = Invoice.objects.filter(created_at__year=year).count() + 1
     return f"{DIAN_CONFIG['prefijo_factura']}-{year}-{count:06d}"
@@ -102,8 +103,8 @@ def create_dian_invoice_from_transaction(transaction):
     """
     from payments.models import Invoice, InvoiceItem
 
-    if transaction.status != 'completed':
-        raise ValueError('Solo se pueden facturar transacciones completadas')
+    if transaction.status != "completed":
+        raise ValueError("Solo se pueden facturar transacciones completadas")
 
     invoice_number = generate_invoice_number()
 
@@ -113,27 +114,35 @@ def create_dian_invoice_from_transaction(transaction):
 
     invoice = Invoice.objects.create(
         invoice_number=invoice_number,
-        invoice_type='rent' if transaction.transaction_type == 'rent_payment' else 'commission',
+        invoice_type="rent"
+        if transaction.transaction_type == "rent_payment"
+        else "commission",
         issuer=issuer,
         recipient=recipient,
         subtotal=transaction.amount,
-        tax_rate=Decimal('0'),  # Arrendamiento residencial exento de IVA en Colombia
-        tax_amount=Decimal('0'),
+        tax_rate=Decimal("0"),  # Arrendamiento residencial exento de IVA en Colombia
+        tax_amount=Decimal("0"),
         total_amount=transaction.amount,
-        status='sent',
-        notes=f'Factura generada automáticamente. Ref: {transaction.id}',
+        status="sent",
+        notes=f"Factura generada automáticamente. Ref: {transaction.id}",
         metadata={
-            'dian_format': 'UBL_2.1',
-            'transaction_id': str(transaction.id),
-            'contract_id': str(transaction.contract_id) if transaction.contract_id else None,
-            'ambiente': DIAN_CONFIG['ambiente'],
-            'nit_emisor': DIAN_CONFIG['nit_emisor'],
-            'resolucion': DIAN_CONFIG['resolucion_dian'],
+            "dian_format": "UBL_2.1",
+            "transaction_id": str(transaction.id),
+            "contract_id": str(transaction.contract_id)
+            if transaction.contract_id
+            else None,
+            "ambiente": DIAN_CONFIG["ambiente"],
+            "nit_emisor": DIAN_CONFIG["nit_emisor"],
+            "resolucion": DIAN_CONFIG["resolucion_dian"],
         },
     )
 
     # Crear línea de factura
-    description = 'Canon de arrendamiento' if transaction.transaction_type == 'rent_payment' else f'{transaction.get_transaction_type_display()}'
+    description = (
+        "Canon de arrendamiento"
+        if transaction.transaction_type == "rent_payment"
+        else f"{transaction.get_transaction_type_display()}"
+    )
     if transaction.contract:
         description += f' - Contrato {transaction.contract.contract_number if hasattr(transaction.contract, "contract_number") else transaction.contract_id}'
 
@@ -143,11 +152,13 @@ def create_dian_invoice_from_transaction(transaction):
         quantity=1,
         unit_price=transaction.amount,
         total_price=transaction.amount,
-        tax_rate=Decimal('0'),
-        discount_rate=Decimal('0'),
+        tax_rate=Decimal("0"),
+        discount_rate=Decimal("0"),
     )
 
-    logger.info(f"DIAN invoice {invoice_number} created for transaction {transaction.id}")
+    logger.info(
+        f"DIAN invoice {invoice_number} created for transaction {transaction.id}"
+    )
     return invoice
 
 
@@ -256,27 +267,29 @@ def calculate_cufe(invoice, technical_key: str | None = None) -> str:
         str: hash hexadecimal SHA-384 de 96 caracteres.
     """
     if technical_key is None:
-        technical_key = getattr(settings, 'DIAN_TECHNICAL_KEY', 'placeholder-technical-key')
+        technical_key = getattr(
+            settings, "DIAN_TECHNICAL_KEY", "placeholder-technical-key"
+        )
 
     # `metadata` puede no existir en el modelo Invoice (no es un campo
     # declarado al 2026-04-18); resolver a dict vacío si el attr falta.
-    meta = getattr(invoice, 'metadata', None) or {}
-    ambiente_code = '1' if DIAN_CONFIG['ambiente'] == 'production' else '2'
+    meta = getattr(invoice, "metadata", None) or {}
+    ambiente_code = "1" if DIAN_CONFIG["ambiente"] == "production" else "2"
 
-    issue_date = (invoice.issue_date or invoice.created_at.date()).strftime('%Y-%m-%d')
-    issue_time = invoice.created_at.strftime('%H:%M:%S-05:00')
+    issue_date = (invoice.issue_date or invoice.created_at.date()).strftime("%Y-%m-%d")
+    issue_time = invoice.created_at.strftime("%H:%M:%S-05:00")
 
     # Normalizar montos a 2 decimales sin separadores
     def _fmt(amount) -> str:
-        return f'{Decimal(amount):.2f}'
+        return f"{Decimal(amount):.2f}"
 
     # Receptor: NIT (31) si recipient.profile tiene nit, si no CC (13).
-    recipient_doc_type = '13'
-    recipient_doc = ''
+    recipient_doc_type = "13"
+    recipient_doc = ""
     if invoice.recipient_id:
-        recipient_doc = str(getattr(invoice.recipient, 'document_number', '') or '')
-        if getattr(invoice.recipient, 'document_type', '') == 'NIT':
-            recipient_doc_type = '31'
+        recipient_doc = str(getattr(invoice.recipient, "document_number", "") or "")
+        if getattr(invoice.recipient, "document_type", "") == "NIT":
+            recipient_doc_type = "31"
 
     data_string = (
         f"{invoice.invoice_number}"
@@ -293,11 +306,14 @@ def calculate_cufe(invoice, technical_key: str | None = None) -> str:
         f"{ambiente_code}"
     )
 
-    return hashlib.sha384(data_string.encode('utf-8')).hexdigest()
+    return hashlib.sha384(data_string.encode("utf-8")).hexdigest()
 
 
-def sign_invoice_xml(xml: str, certificate_path: str | None = None,
-                     certificate_password: str | None = None) -> str:
+def sign_invoice_xml(
+    xml: str,
+    certificate_path: str | None = None,
+    certificate_password: str | None = None,
+) -> str:
     """Firma el XML de una factura con XAdES-BES.
 
     **Stub de implementación**. La firma real requiere:
@@ -320,19 +336,19 @@ def sign_invoice_xml(xml: str, certificate_path: str | None = None,
             pendiente para producción.
     """
     if certificate_path is None:
-        certificate_path = getattr(settings, 'DIAN_CERTIFICATE_PATH', '')
+        certificate_path = getattr(settings, "DIAN_CERTIFICATE_PATH", "")
     if certificate_password is None:
-        certificate_password = getattr(settings, 'DIAN_CERTIFICATE_PASSWORD', '')
+        certificate_password = getattr(settings, "DIAN_CERTIFICATE_PASSWORD", "")
 
     if not certificate_path or not certificate_password:
         # Modo stub: devolver XML con placeholder de firma.
         placeholder = (
-            '\n  <!-- XAdES-BES signature pending: set DIAN_CERTIFICATE_PATH '
-            'and DIAN_CERTIFICATE_PASSWORD in settings, then integrate '
-            'signxml lib. See payments.dian_invoice_service.sign_invoice_xml -->'
+            "\n  <!-- XAdES-BES signature pending: set DIAN_CERTIFICATE_PATH "
+            "and DIAN_CERTIFICATE_PASSWORD in settings, then integrate "
+            "signxml lib. See payments.dian_invoice_service.sign_invoice_xml -->"
         )
         # Insertar antes del cierre </Invoice>
-        return xml.replace('</Invoice>', f'{placeholder}\n</Invoice>')
+        return xml.replace("</Invoice>", f"{placeholder}\n</Invoice>")
 
     # TODO (producción): integrar signxml real.
     #   from signxml import XMLSigner, methods
@@ -348,8 +364,8 @@ def sign_invoice_xml(xml: str, certificate_path: str | None = None,
     #   )
     #   return etree.tostring(signed_root, pretty_print=True).decode()
     logger.warning(
-        'DIAN_CERTIFICATE_PATH configurado pero signxml no integrado. '
-        'Implementar sign_invoice_xml antes de habilitar facturación real.'
+        "DIAN_CERTIFICATE_PATH configurado pero signxml no integrado. "
+        "Implementar sign_invoice_xml antes de habilitar facturación real."
     )
     return xml
 
@@ -359,15 +375,17 @@ def auto_invoice_rent_payment(transaction):
     Genera factura automáticamente cuando se confirma un pago de arriendo.
     Se llama desde el reconciliation_service después de confirmar pago.
     """
-    if transaction.transaction_type != 'rent_payment':
+    if transaction.transaction_type != "rent_payment":
         return None
 
-    if transaction.status != 'completed':
+    if transaction.status != "completed":
         return None
 
     try:
         invoice = create_dian_invoice_from_transaction(transaction)
-        logger.info(f"Auto-invoice {invoice.invoice_number} for rent payment {transaction.id}")
+        logger.info(
+            f"Auto-invoice {invoice.invoice_number} for rent payment {transaction.id}"
+        )
         return invoice
     except Exception as e:
         logger.error(f"Failed to auto-invoice transaction {transaction.id}: {e}")

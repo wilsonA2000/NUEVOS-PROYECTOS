@@ -8,7 +8,6 @@ import {
   CardContent,
   Button,
   Chip,
-  Avatar,
   List,
   ListItem,
   ListItemIcon,
@@ -32,31 +31,39 @@ import LandingFooter from '../components/layout/LandingFooter';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
-const sectionConfig: Record<string, { title: string; subtitle: string; section: string }> = {
+const sectionConfig: Record<
+  string,
+  { title: string; subtitle: string; section: string }
+> = {
   '/blog': {
     title: 'Blog y Contenido',
-    subtitle: 'Mantente actualizado con las últimas noticias, tendencias y consejos del sector inmobiliario colombiano.',
+    subtitle:
+      'Mantente actualizado con las últimas noticias, tendencias y consejos del sector inmobiliario colombiano.',
     section: 'blog',
   },
   '/events': {
     title: 'Eventos',
-    subtitle: 'Participa en webinars, talleres y eventos de networking del sector inmobiliario.',
+    subtitle:
+      'Participa en webinars, talleres y eventos de networking del sector inmobiliario.',
     section: 'events',
   },
   '/partners': {
     title: 'Programa de Socios',
-    subtitle: 'Únete a nuestro programa de socios y expande tu negocio en el sector inmobiliario.',
+    subtitle:
+      'Únete a nuestro programa de socios y expande tu negocio en el sector inmobiliario.',
     section: 'partners',
   },
   '/careers': {
     title: 'Oportunidades Laborales',
-    subtitle: 'Encuentra las mejores oportunidades profesionales en el sector inmobiliario colombiano.',
+    subtitle:
+      'Encuentra las mejores oportunidades profesionales en el sector inmobiliario colombiano.',
     section: 'careers',
   },
 };
 
 const CARD_HOVER_SX = {
-  transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
+  transition:
+    'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
   '&:hover': {
     transform: 'translateY(-3px)',
     boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
@@ -73,12 +80,14 @@ interface CommunityFeature {
   premium: boolean;
 }
 
-const CommunityFeaturesSection: React.FC<{ features: CommunityFeature[] }> = ({ features }) => {
+const CommunityFeaturesSection: React.FC<{ features: CommunityFeature[] }> = ({
+  features,
+}) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.08 });
   return (
-    <Box component="section" id="community-features">
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Box component='section' id='community-features'>
+      <Container maxWidth='lg' sx={{ py: 8 }}>
+        <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
           ¿Qué Ofrece Nuestra Comunidad?
         </Typography>
         <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
@@ -92,27 +101,31 @@ const CommunityFeaturesSection: React.FC<{ features: CommunityFeature[] }> = ({ 
                         {feature.icon}
                       </Box>
                       <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="h6" component="h3" gutterBottom>
+                        <Typography variant='h6' component='h3' gutterBottom>
                           {feature.title}
                         </Typography>
                         {feature.premium && (
                           <Chip
                             icon={<LockIcon />}
-                            label="Exclusivo"
-                            color="primary"
-                            size="small"
+                            label='Exclusivo'
+                            color='primary'
+                            size='small'
                           />
                         )}
                       </Box>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                    >
                       {feature.description}
                     </Typography>
                     <List dense>
                       {feature.benefits.map((benefit, idx) => (
                         <ListItem key={idx} sx={{ py: 0 }}>
                           <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CheckCircleIcon color="primary" fontSize="small" />
+                            <CheckCircleIcon color='primary' fontSize='small' />
                           </ListItemIcon>
                           <ListItemText primary={benefit} />
                         </ListItem>
@@ -137,16 +150,24 @@ interface BlogPost {
   premium: boolean;
 }
 
-const BlogSection: React.FC<{ posts: BlogPost[]; onReadMore: () => void }> = ({ posts, onReadMore }) => {
+const BlogSection: React.FC<{ posts: BlogPost[]; onReadMore: () => void }> = ({
+  posts,
+  onReadMore,
+}) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.08 });
   return (
-    <Box component="section" id="blog" sx={{ bgcolor: 'grey.50', py: 8 }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Box component='section' id='blog' sx={{ bgcolor: 'grey.50', py: 8 }}>
+      <Container maxWidth='lg'>
+        <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
           Blog y Contenido
         </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
-          Mantente actualizado con las últimas noticias, tendencias y consejos del sector inmobiliario.
+        <Typography
+          variant='body1'
+          textAlign='center'
+          sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}
+        >
+          Mantente actualizado con las últimas noticias, tendencias y consejos
+          del sector inmobiliario.
         </Typography>
         <Grid ref={ref} container spacing={4}>
           {posts.map((post, index) => (
@@ -154,28 +175,48 @@ const BlogSection: React.FC<{ posts: BlogPost[]; onReadMore: () => void }> = ({ 
               <Grow in={isVisible} timeout={400 + index * 150}>
                 <Card sx={{ height: '100%', ...CARD_HOVER_SX }}>
                   <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                      <Chip label={post.category} size="small" color="secondary" />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                      }}
+                    >
+                      <Chip
+                        label={post.category}
+                        size='small'
+                        color='secondary'
+                      />
                       {post.premium && (
                         <Chip
                           icon={<LockIcon />}
-                          label="Premium"
-                          color="primary"
-                          size="small"
+                          label='Premium'
+                          color='primary'
+                          size='small'
                         />
                       )}
                     </Box>
-                    <Typography variant="h6" component="h3" gutterBottom>
+                    <Typography variant='h6' component='h3' gutterBottom>
                       {post.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" paragraph>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                    >
                       {post.excerpt}
                     </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="caption" color="text.secondary">
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography variant='caption' color='text.secondary'>
                         {post.readTime} de lectura
                       </Typography>
-                      <Button size="small" color="primary" onClick={onReadMore}>
+                      <Button size='small' color='primary' onClick={onReadMore}>
                         Leer más
                       </Button>
                     </Box>
@@ -199,12 +240,15 @@ interface UpcomingEvent {
   premium: boolean;
 }
 
-const EventsSection: React.FC<{ events: UpcomingEvent[]; onRegister: () => void }> = ({ events, onRegister }) => {
+const EventsSection: React.FC<{
+  events: UpcomingEvent[];
+  onRegister: () => void;
+}> = ({ events, onRegister }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.08 });
   return (
-    <Box component="section" id="events">
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Box component='section' id='events'>
+      <Container maxWidth='lg' sx={{ py: 8 }}>
+        <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
           Próximos Eventos
         </Typography>
         <Grid ref={ref} container spacing={4} sx={{ mt: 4 }}>
@@ -213,32 +257,52 @@ const EventsSection: React.FC<{ events: UpcomingEvent[]; onRegister: () => void 
               <Grow in={isVisible} timeout={400 + index * 150}>
                 <Card sx={{ ...CARD_HOVER_SX }}>
                   <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6" component="h3">
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                      }}
+                    >
+                      <Typography variant='h6' component='h3'>
                         {event.title}
                       </Typography>
                       {event.premium && (
                         <Chip
                           icon={<LockIcon />}
-                          label="Exclusivo"
-                          color="primary"
-                          size="small"
+                          label='Exclusivo'
+                          color='primary'
+                          size='small'
                         />
                       )}
                     </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                    >
                       {event.description}
                     </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {event.date} - {event.time}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='caption' color='text.secondary'>
                           {event.attendees}
                         </Typography>
                       </Box>
-                      <Button variant="outlined" size="small" onClick={onRegister}>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={onRegister}
+                      >
                         Registrarse
                       </Button>
                     </Box>
@@ -253,29 +317,40 @@ const EventsSection: React.FC<{ events: UpcomingEvent[]; onRegister: () => void 
   );
 };
 
-const PartnersSection: React.FC<{ benefits: string[]; onContact: () => void }> = ({ benefits, onContact }) => {
+const PartnersSection: React.FC<{
+  benefits: string[];
+  onContact: () => void;
+}> = ({ benefits, onContact }) => {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.08 });
   return (
-    <Box component="section" id="partners" sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
+    <Box
+      component='section'
+      id='partners'
+      sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}
+    >
+      <Container maxWidth='lg'>
+        <Typography variant='h3' component='h2' textAlign='center' gutterBottom>
           Programa de Socios
         </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}>
+        <Typography
+          variant='body1'
+          textAlign='center'
+          sx={{ maxWidth: 600, mx: 'auto', mb: 6 }}
+        >
           Únete a nuestro programa de socios y forma parte del crecimiento de la
           comunidad inmobiliaria más importante de Colombia.
         </Typography>
         <Fade in={isVisible} timeout={700}>
           <Grid ref={ref} container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h5" component="h3" gutterBottom>
+              <Typography variant='h5' component='h3' gutterBottom>
                 Beneficios Exclusivos
               </Typography>
               <List>
                 {benefits.map((benefit, index) => (
                   <ListItem key={index} sx={{ py: 0 }}>
                     <ListItemIcon sx={{ minWidth: 30 }}>
-                      <CheckCircleIcon color="inherit" fontSize="small" />
+                      <CheckCircleIcon color='inherit' fontSize='small' />
                     </ListItemIcon>
                     <ListItemText primary={benefit} />
                   </ListItem>
@@ -284,16 +359,16 @@ const PartnersSection: React.FC<{ benefits: string[]; onContact: () => void }> =
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" component="div" gutterBottom>
+                <Typography variant='h4' component='div' gutterBottom>
                   ¿Listo para Unirte?
                 </Typography>
-                <Typography variant="body1" paragraph>
-                  Conviértete en socio de VeriHome y accede a beneficios exclusivos
-                  mientras ayudas a otros a encontrar su hogar ideal.
+                <Typography variant='body1' paragraph>
+                  Conviértete en socio de VeriHome y accede a beneficios
+                  exclusivos mientras ayudas a otros a encontrar su hogar ideal.
                 </Typography>
                 <Button
-                  variant="contained"
-                  size="large"
+                  variant='contained'
+                  size='large'
                   onClick={onContact}
                   sx={{
                     bgcolor: 'white',
@@ -327,29 +402,48 @@ const CommunityPage: React.FC = () => {
     {
       icon: <PeopleIcon sx={{ fontSize: 40 }} />,
       title: 'Red de Profesionales',
-      description: 'Conecta con propietarios, inquilinos y prestadores de servicios verificados.',
-      benefits: ['Perfiles verificados', 'Calificaciones reales', 'Red de confianza'],
+      description:
+        'Conecta con propietarios, inquilinos y prestadores de servicios verificados.',
+      benefits: [
+        'Perfiles verificados',
+        'Calificaciones reales',
+        'Red de confianza',
+      ],
       premium: true,
     },
     {
       icon: <EventIcon sx={{ fontSize: 40 }} />,
       title: 'Eventos Exclusivos',
-      description: 'Participa en webinars, talleres y networking events del sector inmobiliario.',
-      benefits: ['Webinars mensuales', 'Talleres prácticos', 'Networking profesional'],
+      description:
+        'Participa en webinars, talleres y networking events del sector inmobiliario.',
+      benefits: [
+        'Webinars mensuales',
+        'Talleres prácticos',
+        'Networking profesional',
+      ],
       premium: true,
     },
     {
       icon: <BusinessIcon sx={{ fontSize: 40 }} />,
       title: 'Programa de Socios',
       description: 'Únete a nuestro programa de socios y expande tu negocio.',
-      benefits: ['Comisiones atractivas', 'Soporte dedicado', 'Herramientas exclusivas'],
+      benefits: [
+        'Comisiones atractivas',
+        'Soporte dedicado',
+        'Herramientas exclusivas',
+      ],
       premium: true,
     },
     {
       icon: <WorkIcon sx={{ fontSize: 40 }} />,
       title: 'Oportunidades Laborales',
-      description: 'Encuentra las mejores oportunidades en el sector inmobiliario.',
-      benefits: ['Ofertas exclusivas', 'Empresas verificadas', 'Proceso simplificado'],
+      description:
+        'Encuentra las mejores oportunidades en el sector inmobiliario.',
+      benefits: [
+        'Ofertas exclusivas',
+        'Empresas verificadas',
+        'Proceso simplificado',
+      ],
       premium: true,
     },
   ];
@@ -357,21 +451,24 @@ const CommunityPage: React.FC = () => {
   const blogPosts = [
     {
       title: 'Tendencias del Mercado Inmobiliario 2026',
-      excerpt: 'Descubre las principales tendencias que están transformando el sector inmobiliario en Colombia.',
+      excerpt:
+        'Descubre las principales tendencias que están transformando el sector inmobiliario en Colombia.',
       category: 'Mercado',
       readTime: '5 min',
       premium: false,
     },
     {
       title: 'Guía Completa para Invertir en Propiedades',
-      excerpt: 'Todo lo que necesitas saber para hacer inversiones inmobiliarias inteligentes.',
+      excerpt:
+        'Todo lo que necesitas saber para hacer inversiones inmobiliarias inteligentes.',
       category: 'Inversión',
       readTime: '8 min',
       premium: true,
     },
     {
       title: 'Cómo Maximizar el Rendimiento de tu Propiedad',
-      excerpt: 'Estrategias probadas para aumentar la rentabilidad de tus inversiones inmobiliarias.',
+      excerpt:
+        'Estrategias probadas para aumentar la rentabilidad de tus inversiones inmobiliarias.',
       category: 'Gestión',
       readTime: '6 min',
       premium: true,
@@ -383,7 +480,8 @@ const CommunityPage: React.FC = () => {
       title: 'Webinar: Financiamiento Inmobiliario',
       date: '15 de Abril, 2026',
       time: '7:00 PM',
-      description: 'Aprende sobre las mejores opciones de financiamiento para tu próxima inversión.',
+      description:
+        'Aprende sobre las mejores opciones de financiamiento para tu próxima inversión.',
       attendees: '150+ registrados',
       premium: true,
     },
@@ -391,7 +489,8 @@ const CommunityPage: React.FC = () => {
       title: 'Taller: Gestión Eficiente de Propiedades',
       date: '22 de Abril, 2026',
       time: '2:00 PM',
-      description: 'Herramientas y estrategias para optimizar la gestión de tus propiedades.',
+      description:
+        'Herramientas y estrategias para optimizar la gestión de tus propiedades.',
       attendees: '80+ registrados',
       premium: true,
     },
@@ -409,7 +508,7 @@ const CommunityPage: React.FC = () => {
   // ── Section render functions (ordered by route) ──────────────────────────
   const sectionBlog = (
     <BlogSection
-      key="blog"
+      key='blog'
       posts={blogPosts}
       onReadMore={() => navigate('/register')}
     />
@@ -417,7 +516,7 @@ const CommunityPage: React.FC = () => {
 
   const sectionEvents = (
     <EventsSection
-      key="events"
+      key='events'
       events={upcomingEvents}
       onRegister={() => navigate('/register')}
     />
@@ -425,14 +524,14 @@ const CommunityPage: React.FC = () => {
 
   const sectionPartners = (
     <PartnersSection
-      key="partners"
+      key='partners'
       benefits={partnerBenefits}
       onContact={() => navigate('/contact')}
     />
   );
 
   const sectionCommunity = (
-    <CommunityFeaturesSection key="community" features={communityFeatures} />
+    <CommunityFeaturesSection key='community' features={communityFeatures} />
   );
 
   const getSectionOrder = (): React.ReactNode[] => {
@@ -450,7 +549,9 @@ const CommunityPage: React.FC = () => {
     }
   };
 
-  const { ref: ctaRef, isVisible: ctaVisible } = useScrollReveal({ threshold: 0.1 });
+  const { ref: ctaRef, isVisible: ctaVisible } = useScrollReveal({
+    threshold: 0.1,
+  });
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -466,11 +567,21 @@ const CommunityPage: React.FC = () => {
             pb: 8,
           }}
         >
-          <Container maxWidth="lg">
-            <Typography variant="h2" component="h1" textAlign="center" gutterBottom>
+          <Container maxWidth='lg'>
+            <Typography
+              variant='h2'
+              component='h1'
+              textAlign='center'
+              gutterBottom
+            >
               {config.title}
             </Typography>
-            <Typography variant="h5" component="h2" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Typography
+              variant='h5'
+              component='h2'
+              textAlign='center'
+              sx={{ maxWidth: 800, mx: 'auto' }}
+            >
               {config.subtitle}
             </Typography>
           </Container>
@@ -481,27 +592,39 @@ const CommunityPage: React.FC = () => {
       {getSectionOrder()}
 
       {/* CTA Final */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth='lg' sx={{ py: 8 }}>
         <Fade in={ctaVisible} timeout={700}>
-          <Box ref={ctaRef} textAlign="center">
-            <Typography variant="h4" component="h2" gutterBottom>
+          <Box ref={ctaRef} textAlign='center'>
+            <Typography variant='h4' component='h2' gutterBottom>
               Únete a Nuestra Comunidad Exclusiva
             </Typography>
-            <Typography variant="body1" paragraph sx={{ maxWidth: 600, mx: 'auto' }}>
-              Accede a contenido premium, eventos exclusivos, networking profesional
-              y oportunidades únicas en el sector inmobiliario colombiano.
+            <Typography
+              variant='body1'
+              paragraph
+              sx={{ maxWidth: 600, mx: 'auto' }}
+            >
+              Accede a contenido premium, eventos exclusivos, networking
+              profesional y oportunidades únicas en el sector inmobiliario
+              colombiano.
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={() => navigate('/register')}
               >
                 Registrarse Gratis
               </Button>
               <Button
-                variant="outlined"
-                size="large"
+                variant='outlined'
+                size='large'
                 onClick={() => navigate('/contact')}
               >
                 Conocer Más

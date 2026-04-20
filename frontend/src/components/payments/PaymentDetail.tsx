@@ -35,14 +35,19 @@ export const PaymentDetail: React.FC = () => {
   }
 
   if (error || !payment) {
-    return <Typography color="error">Error al cargar el pago</Typography>;
+    return <Typography color='error'>Error al cargar el pago</Typography>;
   }
 
   return (
     <Card>
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Typography variant="h5" component="div">
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='flex-start'
+          mb={2}
+        >
+          <Typography variant='h5' component='div'>
             Pago #{payment.id}
           </Typography>
           <Chip
@@ -51,8 +56,8 @@ export const PaymentDetail: React.FC = () => {
               payment.status === 'paid'
                 ? 'success'
                 : payment.status === 'overdue'
-                ? 'error'
-                : 'warning'
+                  ? 'error'
+                  : 'warning'
             }
           />
         </Box>
@@ -65,7 +70,7 @@ export const PaymentDetail: React.FC = () => {
                   <DescriptionIcon />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Contrato"
+                  primary='Contrato'
                   secondary={payment.contractId}
                 />
               </ListItem>
@@ -74,7 +79,7 @@ export const PaymentDetail: React.FC = () => {
                   <AttachMoneyIcon />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Monto"
+                  primary='Monto'
                   secondary={`$${payment.amount.toLocaleString()}`}
                 />
               </ListItem>
@@ -87,7 +92,7 @@ export const PaymentDetail: React.FC = () => {
                   <CalendarIcon />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Fecha de Vencimiento"
+                  primary='Fecha de Vencimiento'
                   secondary={new Date(payment.dueDate).toLocaleDateString()}
                 />
               </ListItem>
@@ -97,8 +102,10 @@ export const PaymentDetail: React.FC = () => {
                     <CalendarIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Fecha de Pago"
-                    secondary={new Date(payment.paymentDate).toLocaleDateString()}
+                    primary='Fecha de Pago'
+                    secondary={new Date(
+                      payment.paymentDate,
+                    ).toLocaleDateString()}
                   />
                 </ListItem>
               )}
@@ -112,13 +119,13 @@ export const PaymentDetail: React.FC = () => {
                     <PaymentIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Método de Pago"
+                    primary='Método de Pago'
                     secondary={
                       payment.paymentMethod === 'cash'
                         ? 'Efectivo'
                         : payment.paymentMethod === 'bank_transfer'
-                        ? 'Transferencia Bancaria'
-                        : 'Tarjeta de Crédito'
+                          ? 'Transferencia Bancaria'
+                          : 'Tarjeta de Crédito'
                     }
                   />
                 </ListItem>
@@ -128,7 +135,7 @@ export const PaymentDetail: React.FC = () => {
                       <ReceiptIcon />
                     </ListItemIcon>
                     <ListItemText
-                      primary="Referencia"
+                      primary='Referencia'
                       secondary={payment.reference}
                     />
                   </ListItem>
@@ -141,25 +148,22 @@ export const PaymentDetail: React.FC = () => {
         {payment.notes && (
           <>
             <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Notas
             </Typography>
-            <Typography variant="body1" paragraph>
+            <Typography variant='body1' paragraph>
               {payment.notes}
             </Typography>
           </>
         )}
 
-        <Box display="flex" gap={2} mt={3}>
-          <Button
-            variant="outlined"
-            onClick={() => navigate('/app/payments')}
-          >
+        <Box display='flex' gap={2} mt={3}>
+          <Button variant='outlined' onClick={() => navigate('/app/payments')}>
             Volver
           </Button>
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             onClick={() => navigate(`/app/payments/${payment.id}/edit`)}
           >
             Editar
@@ -168,4 +172,4 @@ export const PaymentDetail: React.FC = () => {
       </CardContent>
     </Card>
   );
-}; 
+};

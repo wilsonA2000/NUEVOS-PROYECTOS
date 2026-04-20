@@ -56,12 +56,17 @@ export interface Property {
   updated_at: string;
 }
 
-export type PropertyCreateInput = Omit<Property, 'id' | 'created_at' | 'updated_at'>;
-export type PropertyUpdateInput = Partial<Omit<Property, 'id' | 'created_at' | 'updated_at'>>;
+export type PropertyCreateInput = Omit<
+  Property,
+  'id' | 'created_at' | 'updated_at'
+>;
+export type PropertyUpdateInput = Partial<
+  Omit<Property, 'id' | 'created_at' | 'updated_at'>
+>;
 
 export interface MockData {
   get: any[];
   post: any;
   patch: any;
   delete: any;
-} 
+}

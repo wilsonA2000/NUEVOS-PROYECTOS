@@ -36,11 +36,12 @@ export interface UseWebSocketReturn {
 }
 
 // Simple hook for URL string compatibility with useNotifications
-export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWebSocketReturn & { lastMessage?: WebSocketMessage } => {
+export const useWebSocket = (
+  urlOrOptions: string | UseWebSocketOptions,
+): UseWebSocketReturn & { lastMessage?: WebSocketMessage } => {
   // Handle both string URL and options object
-  const options: UseWebSocketOptions = typeof urlOrOptions === 'string' 
-    ? { url: urlOrOptions } 
-    : urlOrOptions;
+  const options: UseWebSocketOptions =
+    typeof urlOrOptions === 'string' ? { url: urlOrOptions } : urlOrOptions;
   const {
     url,
     protocols,
@@ -51,14 +52,17 @@ export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWeb
     onClose,
     onError,
     onMessage,
-    shouldReconnect = (closeEvent) => closeEvent.code !== 1000, // No reconectar si cierre normal
+    shouldReconnect = closeEvent => closeEvent.code !== 1000, // No reconectar si cierre normal
   } = options;
 
   const { token, isAuthenticated } = useAuth();
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [connectionState, setConnectionState] = useState<UseWebSocketReturn['connectionState']>('disconnected');
-  const [lastMessage, setLastMessage] = useState<WebSocketMessage | undefined>();
-  
+  const [connectionState, setConnectionState] =
+    useState<UseWebSocketReturn['connectionState']>('disconnected');
+  const [lastMessage, setLastMessage] = useState<
+    WebSocketMessage | undefined
+  >();
+
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
@@ -82,7 +86,7 @@ export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWeb
 
     try {
       setConnectionState('connecting');
-      
+
       // Construir URL correcta para WebSocket
       let wsUrl: string;
       if (url.startsWith('ws://') || url.startsWith('wss://')) {
@@ -92,28 +96,32 @@ export const useWebSocket = (urlOrOptions: string | UseWebSocketOptions): UseWeb
         // URL relativa - construir URL completa
         const baseUrl = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
-        const port = process.env.NODE_ENV === 'development' ? '8001' : window.location.port;
+        const port =
+          process.env.NODE_ENV === 'development'
+            ? '8001'
+            : window.location.port;
         wsUrl = `${baseUrl}//${host}:${port}${url.startsWith('/') ? url : `/${url}`}`;
       }
-      
+
       // Agregar token de autenticación
       const urlWithToken = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${token}`;
 
       const newSocket = new WebSocket(urlWithToken, protocols);
 
-      newSocket.onopen = (event) => {
-
-setConnectionState('connected');
+      newSocket.onopen = event => {
+        setConnectionState('connected');
         reconnectAttemptsRef.current = 0;
-        
+
         // Configurar heartbeat
         if (heartbeatInterval > 0) {
           heartbeatIntervalRef.current = setInterval(() => {
             if (newSocket.readyState === WebSocket.OPEN) {
-              newSocket.send(JSON.stringify({ 
-                type: 'ping', 
-                timestamp: new Date().toISOString(), 
-              }));
+              newSocket.send(
+                JSON.stringify({
+                  type: 'ping',
+                  timestamp: new Date().toISOString(),
+                }),
+              );
             }
           }, heartbeatInterval);
         }
@@ -121,34 +129,40 @@ setConnectionState('connected');
         onOpen?.(event);
       };
 
-      newSocket.onclose = (event) => {
-
-setConnectionState('disconnected');
+      newSocket.onclose = event => {
+        setConnectionState('disconnected');
         setSocket(null);
         clearTimeouts();
 
         onClose?.(event);
 
         // Intentar reconexión si es necesario
-        if (shouldReconnectRef.current && shouldReconnect(event) && reconnectAttemptsRef.current < reconnectAttempts) {
+        if (
+          shouldReconnectRef.current &&
+          shouldReconnect(event) &&
+          reconnectAttemptsRef.current < reconnectAttempts
+        ) {
           reconnectAttemptsRef.current++;
 
-reconnectTimeoutRef.current = setTimeout(() => {
-            createWebSocket();
-          }, reconnectInterval * Math.pow(1.5, reconnectAttemptsRef.current - 1)); // Backoff exponencial
+          reconnectTimeoutRef.current = setTimeout(
+            () => {
+              createWebSocket();
+            },
+            reconnectInterval * Math.pow(1.5, reconnectAttemptsRef.current - 1),
+          ); // Backoff exponencial
         }
       };
 
-      newSocket.onerror = (event) => {
+      newSocket.onerror = event => {
         // WebSocket error event
         setConnectionState('error');
         onError?.(event);
       };
 
-      newSocket.onmessage = (event) => {
+      newSocket.onmessage = event => {
         try {
           const message = JSON.parse(event.data) as WebSocketMessage;
-          
+
           // Manejar pong para heartbeat
           if (message.type === 'pong') {
             return;
@@ -167,21 +181,40 @@ reconnectTimeoutRef.current = setTimeout(() => {
       // WebSocket creation error
       setConnectionState('error');
     }
-  }, [url, protocols, token, isAuthenticated, onOpen, onClose, onError, onMessage, shouldReconnect, reconnectAttempts, reconnectInterval, heartbeatInterval]);
+  }, [
+    url,
+    protocols,
+    token,
+    isAuthenticated,
+    onOpen,
+    onClose,
+    onError,
+    onMessage,
+    shouldReconnect,
+    reconnectAttempts,
+    reconnectInterval,
+    heartbeatInterval,
+  ]);
 
   // Función para enviar mensajes
-  const sendMessage = useCallback((message: WebSocketMessage) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
-    } else {
-      // WebSocket not connected, message not sent
-    }
-  }, [socket]);
+  const sendMessage = useCallback(
+    (message: WebSocketMessage) => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
+      } else {
+        // WebSocket not connected, message not sent
+      }
+    },
+    [socket],
+  );
 
   // Función para enviar datos JSON
-  const sendJsonMessage = useCallback((data: any) => {
-    sendMessage(data);
-  }, [sendMessage]);
+  const sendJsonMessage = useCallback(
+    (data: any) => {
+      sendMessage(data);
+    },
+    [sendMessage],
+  );
 
   // Función para reconectar manualmente
   const reconnect = useCallback(() => {

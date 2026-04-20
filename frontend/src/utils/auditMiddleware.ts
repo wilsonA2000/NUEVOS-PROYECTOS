@@ -3,7 +3,7 @@
  * Intercepta y registra automáticamente eventos importantes
  */
 
-import { loggingService, LogLevel, LogCategory } from '../services/loggingService';
+import { loggingService, LogCategory } from '../services/loggingService';
 import { performanceMonitor } from './performanceMonitor';
 
 // Configuración del middleware
@@ -47,12 +47,10 @@ class AuditMiddleware {
     this.setupPerformanceLogging();
 
     this.isInitialized = true;
-    
-    loggingService.info(
-      LogCategory.SYSTEM, 
-      'Audit middleware initialized',
-      { config: this.config },
-    );
+
+    loggingService.info(LogCategory.SYSTEM, 'Audit middleware initialized', {
+      config: this.config,
+    });
   }
 
   /**
@@ -65,7 +63,11 @@ class AuditMiddleware {
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
 
-    history.pushState = function(state: any, title: string, url?: string | URL | null) {
+    history.pushState = function (
+      state: any,
+      title: string,
+      url?: string | URL | null,
+    ) {
       loggingService.logUserActivity({
         action: 'navigation',
         description: `Navigated to ${url || 'unknown'}`,
@@ -81,7 +83,11 @@ class AuditMiddleware {
       return originalPushState.apply(history, [state, title, url]);
     };
 
-    history.replaceState = function(state: any, title: string, url?: string | URL | null) {
+    history.replaceState = function (
+      state: any,
+      title: string,
+      url?: string | URL | null,
+    ) {
       loggingService.logUserActivity({
         action: 'navigation_replace',
         description: `Replaced route to ${url || 'unknown'}`,
@@ -98,7 +104,7 @@ class AuditMiddleware {
     };
 
     // Logging del evento popstate (back/forward buttons)
-    window.addEventListener('popstate', (event) => {
+    window.addEventListener('popstate', event => {
       loggingService.logUserActivity({
         action: 'navigation_back_forward',
         description: 'Browser back/forward navigation',
@@ -118,13 +124,13 @@ class AuditMiddleware {
     if (!this.config.logUserActions) return;
 
     // Interceptar clics en elementos importantes
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', event => {
       const target = event.target as HTMLElement;
-      
+
       // Solo registrar clics en elementos interactivos importantes
       if (this.isImportantElement(target)) {
         const elementInfo = this.getElementInfo(target);
-        
+
         loggingService.logUserActivity({
           action: 'click',
           description: `Clicked on ${elementInfo.type}: ${elementInfo.text}`,
@@ -141,7 +147,7 @@ class AuditMiddleware {
     });
 
     // Interceptar envíos de formularios
-    document.addEventListener('submit', (event) => {
+    document.addEventListener('submit', event => {
       const form = event.target as HTMLFormElement;
       const formData = new FormData(form);
       const sanitizedData = this.sanitizeFormData(formData);
@@ -161,9 +167,9 @@ class AuditMiddleware {
     });
 
     // Interceptar cambios importantes en inputs
-    document.addEventListener('input', (event) => {
+    document.addEventListener('input', event => {
       const target = event.target as HTMLInputElement;
-      
+
       if (this.isImportantInput(target)) {
         loggingService.debug(
           LogCategory.USER_ACTION,
@@ -186,7 +192,7 @@ class AuditMiddleware {
     if (!this.config.logErrors) return;
 
     // Ya está configurado en loggingService, pero podemos agregar más contexto
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       loggingService.error(
         LogCategory.SYSTEM,
         'JavaScript error intercepted by audit middleware',
@@ -203,22 +209,26 @@ class AuditMiddleware {
     });
 
     // Interceptar errores de recursos (imágenes, scripts, etc.)
-    window.addEventListener('error', (event) => {
-      if (event.target !== window) {
-        const element = event.target as HTMLElement;
-        loggingService.error(
-          LogCategory.SYSTEM,
-          'Resource loading error',
-          {
-            elementType: element.tagName,
-            resourceUrl: (element as any).src || (element as any).href,
-            elementId: element.id,
-            elementClass: element.className,
-          },
-          'AuditMiddleware',
-        );
-      }
-    }, true);
+    window.addEventListener(
+      'error',
+      event => {
+        if (event.target !== window) {
+          const element = event.target as HTMLElement;
+          loggingService.error(
+            LogCategory.SYSTEM,
+            'Resource loading error',
+            {
+              elementType: element.tagName,
+              resourceUrl: (element as any).src || (element as any).href,
+              elementId: element.id,
+              elementClass: element.className,
+            },
+            'AuditMiddleware',
+          );
+        }
+      },
+      true,
+    );
   }
 
   /**
@@ -231,8 +241,8 @@ class AuditMiddleware {
     if ('PerformanceObserver' in window) {
       try {
         // Largest Contentful Paint (LCP)
-        const lcpObserver = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+        const lcpObserver = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
             loggingService.logPerformance(
               'largest_contentful_paint',
               entry.startTime,
@@ -247,8 +257,8 @@ class AuditMiddleware {
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
 
         // First Input Delay (FID)
-        const fidObserver = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+        const fidObserver = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
             loggingService.logPerformance(
               'first_input_delay',
               (entry as any).processingStart - entry.startTime,
@@ -265,22 +275,23 @@ class AuditMiddleware {
         // Cumulative Layout Shift (CLS) - Acumular valores y loguear solo al final
         let clsValue = 0;
         let clsDebounceTimer: any = null;
-        
-        const clsObserver = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+
+        const clsObserver = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
             // Solo contar shifts sin input reciente del usuario
             if (!(entry as any).hadRecentInput) {
               clsValue += (entry as any).value;
             }
           });
-          
+
           // Debounce para evitar logs excesivos - solo loguear después de 5 segundos de inactividad
           if (clsDebounceTimer) {
             clearTimeout(clsDebounceTimer);
           }
-          
+
           clsDebounceTimer = setTimeout(() => {
-            if (clsValue > 0.1) { // Solo loguear si el CLS es significativo
+            if (clsValue > 0.1) {
+              // Solo loguear si el CLS es significativo
               loggingService.logPerformance(
                 'cumulative_layout_shift',
                 clsValue,
@@ -294,21 +305,22 @@ class AuditMiddleware {
           }, 5000);
         });
         clsObserver.observe({ entryTypes: ['layout-shift'] });
-
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     // Logging de carga de página
     window.addEventListener('load', () => {
       setTimeout(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const navigation = performance.getEntriesByType(
+          'navigation',
+        )[0] as PerformanceNavigationTiming;
 
         loggingService.logPerformance(
           'page_load_complete',
           navigation.loadEventEnd - navigation.fetchStart,
           {
-            domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
+            domContentLoaded:
+              navigation.domContentLoadedEventEnd - navigation.fetchStart,
             firstPaint: this.getFirstPaint(),
             firstContentfulPaint: this.getFirstContentfulPaint(),
             resources: performance.getEntriesByType('resource').length,
@@ -419,11 +431,12 @@ class AuditMiddleware {
   private isImportantElement(element: HTMLElement): boolean {
     const tagName = element.tagName.toLowerCase();
     const role = element.getAttribute('role');
-    
+
     return (
       tagName === 'button' ||
       tagName === 'a' ||
-      (tagName === 'input' && ['submit', 'button'].includes((element as HTMLInputElement).type)) ||
+      (tagName === 'input' &&
+        ['submit', 'button'].includes((element as HTMLInputElement).type)) ||
       role === 'button' ||
       element.hasAttribute('data-audit-log') ||
       element.closest('[data-audit-important]') !== null
@@ -433,7 +446,7 @@ class AuditMiddleware {
   private isImportantInput(input: HTMLInputElement): boolean {
     const type = input.type;
     const name = input.name;
-    
+
     return (
       ['email', 'password', 'search', 'tel'].includes(type) ||
       (name && name.includes('search')) ||
@@ -452,44 +465,45 @@ class AuditMiddleware {
 
   private sanitizeFormData(formData: FormData): Map<string, boolean> {
     const sanitized = new Map<string, boolean>();
-    
+
     for (const [key] of formData.entries()) {
       // Solo registrar si el campo existe, no el valor
-      const isSensitive = this.config.sensitiveFields.some(field => 
+      const isSensitive = this.config.sensitiveFields.some(field =>
         key.toLowerCase().includes(field.toLowerCase()),
       );
       sanitized.set(key, !isSensitive);
     }
-    
+
     return sanitized;
   }
 
   private sanitizeData(data: any): any {
     if (!data) return data;
-    
+
     if (typeof data === 'object') {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(data)) {
-        const isSensitive = this.config.sensitiveFields.some(field => 
+        const isSensitive = this.config.sensitiveFields.some(field =>
           key.toLowerCase().includes(field.toLowerCase()),
         );
         sanitized[key] = isSensitive ? '[SANITIZED]' : value;
       }
       return sanitized;
     }
-    
+
     return '[DATA]';
   }
 
   private sanitizeHeaders(headers: any): any {
     if (!headers) return headers;
-    
+
     const sanitized: any = {};
     for (const [key, value] of Object.entries(headers)) {
-      const isSensitive = this.config.sensitiveFields.some(field => 
-        key.toLowerCase().includes(field.toLowerCase()),
-      ) || key.toLowerCase().includes('authorization');
-      
+      const isSensitive =
+        this.config.sensitiveFields.some(field =>
+          key.toLowerCase().includes(field.toLowerCase()),
+        ) || key.toLowerCase().includes('authorization');
+
       sanitized[key] = isSensitive ? '[SANITIZED]' : value;
     }
     return sanitized;
@@ -503,7 +517,9 @@ class AuditMiddleware {
 
   private getFirstContentfulPaint(): number | undefined {
     const paintEntries = performance.getEntriesByType('paint');
-    const firstContentfulPaint = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+    const firstContentfulPaint = paintEntries.find(
+      entry => entry.name === 'first-contentful-paint',
+    );
     return firstContentfulPaint?.startTime;
   }
 }
@@ -538,15 +554,15 @@ export const useAuditTrack = (componentName: string) => {
     );
   };
 
-  const trackPerformance = (operation: string, duration: number, metadata?: Record<string, any>) => {
-    loggingService.logPerformance(
-      `${componentName}.${operation}`,
-      duration,
-      {
-        component: componentName,
-        ...metadata,
-      },
-    );
+  const trackPerformance = (
+    operation: string,
+    duration: number,
+    metadata?: Record<string, any>,
+  ) => {
+    loggingService.logPerformance(`${componentName}.${operation}`, duration, {
+      component: componentName,
+      ...metadata,
+    });
   };
 
   return {

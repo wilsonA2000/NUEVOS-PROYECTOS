@@ -35,10 +35,10 @@ class LegalInterestRateModelTests(TestCase):
         rate = LegalInterestRate.objects.create(
             year=2030,
             month=1,
-            monthly_rate=Decimal('0.018'),
-            source='Test',
+            monthly_rate=Decimal("0.018"),
+            source="Test",
         )
-        self.assertEqual(rate.monthly_rate, Decimal('0.018'))
+        self.assertEqual(rate.monthly_rate, Decimal("0.018"))
 
     def test_reject_rate_above_usury_cap(self):
         """Tasa > MAX_USURY_MONTHLY_RATE rechazada por clean()."""
@@ -46,9 +46,9 @@ class LegalInterestRateModelTests(TestCase):
             LegalInterestRate.objects.create(
                 year=2030,
                 month=2,
-                monthly_rate=Decimal('0.05'),  # 5% mensual > tope
+                monthly_rate=Decimal("0.05"),  # 5% mensual > tope
             )
-        self.assertIn('monthly_rate', ctx.exception.message_dict)
+        self.assertIn("monthly_rate", ctx.exception.message_dict)
 
     def test_reject_negative_rate(self):
         """Tasa negativa rechazada."""
@@ -56,17 +56,21 @@ class LegalInterestRateModelTests(TestCase):
             LegalInterestRate.objects.create(
                 year=2030,
                 month=3,
-                monthly_rate=Decimal('-0.01'),
+                monthly_rate=Decimal("-0.01"),
             )
 
     def test_unique_year_month(self):
         """unique_together (year, month) impide duplicados."""
         LegalInterestRate.objects.create(
-            year=2030, month=4, monthly_rate=Decimal('0.018'),
+            year=2030,
+            month=4,
+            monthly_rate=Decimal("0.018"),
         )
         with self.assertRaises((IntegrityError, ValidationError)):
             LegalInterestRate.objects.create(
-                year=2030, month=4, monthly_rate=Decimal('0.019'),
+                year=2030,
+                month=4,
+                monthly_rate=Decimal("0.019"),
             )
 
     def test_get_rate_for_returns_active_rate(self):
@@ -82,13 +86,20 @@ class LegalInterestRateModelTests(TestCase):
         result = LegalInterestRate.get_rate_for(2050, 12)
         self.assertIsNotNone(result)
         # Debe ser el más reciente activo
-        latest = LegalInterestRate.objects.filter(is_active=True).order_by('-year', '-month').first()
+        latest = (
+            LegalInterestRate.objects.filter(is_active=True)
+            .order_by("-year", "-month")
+            .first()
+        )
         self.assertEqual(result.id, latest.id)
 
     def test_inactive_rate_excluded_from_get(self):
         """get_rate_for() ignora tasas inactivas."""
         rate = LegalInterestRate.objects.create(
-            year=2031, month=1, monthly_rate=Decimal('0.018'), is_active=False,
+            year=2031,
+            month=1,
+            monthly_rate=Decimal("0.018"),
+            is_active=False,
         )
         # Pedir su período debe caer al fallback (último activo)
         result = LegalInterestRate.get_rate_for(2031, 1)
@@ -96,5 +107,5 @@ class LegalInterestRateModelTests(TestCase):
 
     def test_str_representation(self):
         rate = LegalInterestRate.objects.filter(year=2025, month=1).first()
-        self.assertIn('01/2025', str(rate))
-        self.assertIn('%', str(rate))
+        self.assertIn("01/2025", str(rate))
+        self.assertIn("%", str(rate))

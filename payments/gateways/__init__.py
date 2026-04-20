@@ -9,9 +9,9 @@ from .pse_gateway import PSEGateway
 from .wompi_gateway import WompiGateway
 
 __all__ = [
-    'BasePaymentGateway',
-    'PaymentResult',
-    'BoldGateway',
-    'PSEGateway',
-    'WompiGateway',
+    "BasePaymentGateway",
+    "PaymentResult",
+    "BoldGateway",
+    "PSEGateway",
+    "WompiGateway",
 ]

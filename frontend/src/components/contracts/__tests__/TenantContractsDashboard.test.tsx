@@ -8,7 +8,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Mock useAuth hook
-const mockUser = { id: 'tenant-1', user_type: 'tenant', first_name: 'Carlos', last_name: 'Gomez', email: 'carlos@test.com' };
+const mockUser = {
+  id: 'tenant-1',
+  user_type: 'tenant',
+  first_name: 'Carlos',
+  last_name: 'Gomez',
+  email: 'carlos@test.com',
+};
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({ user: mockUser }),
 }));
@@ -25,7 +31,8 @@ jest.mock('../../../services/landlordContractService', () => ({
 const mockGetPendingTenantReviewContracts = jest.fn();
 jest.mock('../../../services/contractService', () => ({
   contractService: {
-    getPendingTenantReviewContracts: () => mockGetPendingTenantReviewContracts(),
+    getPendingTenantReviewContracts: () =>
+      mockGetPendingTenantReviewContracts(),
   },
 }));
 
@@ -42,12 +49,19 @@ jest.mock('../../../services/api', () => ({
 
 // Mock sub-components
 jest.mock('../../common/LoadingSpinner', () => ({
-  LoadingSpinner: (props: any) => React.createElement('div', { 'data-testid': 'loading-spinner' }, props.message || 'Loading...'),
+  LoadingSpinner: (props: any) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'loading-spinner' },
+      props.message || 'Loading...'
+    ),
 }));
 
 jest.mock('../TenantContractReview', () => {
   return function MockTenantContractReview() {
-    return React.createElement('div', { 'data-testid': 'tenant-contract-review' });
+    return React.createElement('div', {
+      'data-testid': 'tenant-contract-review',
+    });
   };
 });
 
@@ -71,8 +85,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(TenantContractsDashboard),
-    ),
+      React.createElement(TenantContractsDashboard)
+    )
   );
 };
 
@@ -101,7 +115,9 @@ describe('TenantContractsDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Error al cargar contratos/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Error al cargar contratos/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -110,7 +126,11 @@ describe('TenantContractsDashboard', () => {
 
     await waitFor(() => {
       const allText = document.body.textContent || '';
-      expect(allText.includes('Arrendatario') || allText.includes('contrato') || allText.includes('Contrato')).toBeTruthy();
+      expect(
+        allText.includes('Arrendatario') ||
+          allText.includes('contrato') ||
+          allText.includes('Contrato')
+      ).toBeTruthy();
     });
   });
 

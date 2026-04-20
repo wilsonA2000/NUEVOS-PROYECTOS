@@ -5,21 +5,18 @@ Rutas organizadas para el workflow paso a paso del tenant.
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .tenant_api_views import (
-    TenantContractViewSet,
-    TenantDashboardView
-)
+from .tenant_api_views import TenantContractViewSet, TenantDashboardView
 
 # Router para ViewSets del arrendatario
 tenant_router = DefaultRouter()
-tenant_router.register(r'contracts', TenantContractViewSet, basename='tenant-contracts')
-tenant_router.register(r'dashboard', TenantDashboardView, basename='tenant-dashboard')
+tenant_router.register(r"contracts", TenantContractViewSet, basename="tenant-contracts")
+tenant_router.register(r"dashboard", TenantDashboardView, basename="tenant-dashboard")
 
-app_name = 'tenant_contracts'
+app_name = "tenant_contracts"
 
 urlpatterns = [
     # APIs principales del workflow para arrendatarios
-    path('tenant/', include(tenant_router.urls)),
+    path("tenant/", include(tenant_router.urls)),
 ]
 
 # Documentación completa de endpoints del arrendatario:
@@ -112,7 +109,7 @@ TENANT CONTRACT WORKFLOW API ENDPOINTS:
    Filters: ?current_state=TENANT_REVIEWING&published=false
    Search: ?search=landlord_name
    Ordering: ?ordering=-created_at
-   
+
    Response: Lista optimizada desde perspectiva del tenant con:
    - Información del arrendador
    - Estado del progreso personal
@@ -121,7 +118,7 @@ TENANT CONTRACT WORKFLOW API ENDPOINTS:
 
 8. DETALLE DE CONTRATO (Vista Tenant)
    GET /api/tenant/contracts/{id}/
-   
+
    Response: Vista completa con:
    - Detalles del arrendador y propiedad
    - Progreso personal y próximas acciones
@@ -132,18 +129,18 @@ TENANT CONTRACT WORKFLOW API ENDPOINTS:
 9. MIS OBJECIONES EN UN CONTRATO
    GET /api/tenant/contracts/{id}/objections/
    Filters: ?status=PENDING&priority=HIGH
-   
+
    Response: Objeciones filtradas del contrato específico
 
 10. HISTORIAL DEL CONTRATO (Vista Tenant)
     GET /api/tenant/contracts/{id}/history/
     Pagination: ?limit=50&offset=0
-    
+
     Response: Historial de actividades del contrato
 
 11. VISTA PREVIA DEL CONTRATO
     GET /api/tenant/contracts/{id}/contract_preview/
-    
+
     Response: {
         "contract_content": "contenido_html_del_contrato",
         "contract_data": {...},
@@ -153,12 +150,12 @@ TENANT CONTRACT WORKFLOW API ENDPOINTS:
 
 12. INVITACIONES PENDIENTES
     GET /api/tenant/contracts/pending_invitations/
-    
+
     Response: Lista de contratos donde fui invitado pero no he aceptado
 
 13. ESTADÍSTICAS DEL ARRENDATARIO
     GET /api/tenant/contracts/stats/
-    
+
     Response: {
         "total_contracts": 5,
         "active_contracts": 2,
@@ -180,7 +177,7 @@ TENANT CONTRACT WORKFLOW API ENDPOINTS:
 
 14. VISTA GENERAL DEL DASHBOARD
     GET /api/tenant/dashboard/overview/
-    
+
     Response: {
         "active_contracts_count": 2,
         "total_monthly_rent": 2800000,

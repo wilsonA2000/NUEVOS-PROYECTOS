@@ -24,6 +24,7 @@ User = get_user_model()
 
 # -- Helpers -----------------------------------------------------------------
 
+
 def _make_user(email, first_name="Test", last_name="User", **kwargs):
     """Crea un usuario con email-based auth."""
     return User.objects.create_user(
@@ -60,6 +61,7 @@ def _make_message(thread, sender, recipient, content="Test message"):
 
 
 # -- MessageThread Model Tests ----------------------------------------------
+
 
 class MessageThreadModelTests(TestCase):
     """Tests para el modelo MessageThread."""
@@ -109,6 +111,7 @@ class MessageThreadModelTests(TestCase):
 
 # -- ThreadParticipant Model Tests -------------------------------------------
 
+
 class ThreadParticipantModelTests(TestCase):
     """Tests para el modelo ThreadParticipant."""
 
@@ -139,6 +142,7 @@ class ThreadParticipantModelTests(TestCase):
 
 
 # -- Message Model Tests -----------------------------------------------------
+
 
 class MessageModelTests(TestCase):
     """Tests para el modelo Message."""
@@ -186,6 +190,7 @@ class MessageModelTests(TestCase):
 
 # -- MessageReaction Model Tests ---------------------------------------------
 
+
 class MessageReactionModelTests(TestCase):
     """Tests para el modelo MessageReaction."""
 
@@ -221,6 +226,7 @@ class MessageReactionModelTests(TestCase):
 
 # -- MessageFolder Model Tests -----------------------------------------------
 
+
 class MessageFolderModelTests(TestCase):
     """Tests para el modelo MessageFolder."""
 
@@ -253,6 +259,7 @@ class MessageFolderModelTests(TestCase):
 
 # -- MessageTemplate Model Tests ---------------------------------------------
 
+
 class MessageTemplateModelTests(TestCase):
     """Tests para el modelo MessageTemplate."""
 
@@ -282,6 +289,7 @@ class MessageTemplateModelTests(TestCase):
 
 # -- Messaging API Tests -----------------------------------------------------
 
+
 class MessagingAPITests(APITestCase):
     """Tests para los endpoints de la API de mensajeria."""
 
@@ -310,10 +318,13 @@ class MessagingAPITests(APITestCase):
             "content": "Hola, estoy interesado en la propiedad.",
         }
         response = self.client.post("/api/v1/messages/send/", payload)
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK,
-            status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_201_CREATED,
+            ],
+        )
 
     # -- mark read -----
 
@@ -323,10 +334,13 @@ class MessagingAPITests(APITestCase):
         response = self.client.post(
             f"/api/v1/messages/mark-read/{msg.pk}/",
         )
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK,
-            status.HTTP_204_NO_CONTENT,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_204_NO_CONTENT,
+            ],
+        )
 
     # -- stats ---------
 
@@ -358,9 +372,9 @@ class MessagingAPITests(APITestCase):
         self.client.force_authenticate(user=self.user1)
         response = self.client.get("/api/v1/messages/search/?q=Hola")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data['results'] if 'results' in response.data else response.data
+        data = response.data["results"] if "results" in response.data else response.data
         self.assertEqual(len(data), 1)
-        self.assertIn("Hola", data[0]['content'])
+        self.assertIn("Hola", data[0]["content"])
 
     def test_search_requires_authentication(self):
         response = self.client.get("/api/v1/messages/search/")
@@ -374,16 +388,16 @@ class MessagingAPITests(APITestCase):
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/messages/threads/{self.thread.pk}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('last_message', response.data)
-        if response.data['last_message'] is not None:
-            self.assertEqual(response.data['last_message']['content'], "Último mensaje")
+        self.assertIn("last_message", response.data)
+        if response.data["last_message"] is not None:
+            self.assertEqual(response.data["last_message"]["content"], "Último mensaje")
 
     def test_thread_serializer_last_message_none_when_empty(self):
         """Si el thread no tiene mensajes, last_message es None."""
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/messages/threads/{self.thread.pk}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(response.data.get('last_message'))
+        self.assertIsNone(response.data.get("last_message"))
 
     # -- can-communicate endpoint ---------
 
@@ -400,7 +414,9 @@ class MessagingAPITests(APITestCase):
         msg = _make_message(self.thread, self.user1, self.user2, "Importante")
         self.client.force_authenticate(user=self.user2)
         response = self.client.post(f"/api/v1/messages/star/{msg.pk}/")
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
+        )
 
     # -- mark-unread ---------
 
@@ -410,4 +426,6 @@ class MessagingAPITests(APITestCase):
         msg.save()
         self.client.force_authenticate(user=self.user2)
         response = self.client.post(f"/api/v1/messages/mark-unread/{msg.pk}/")
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
+        )

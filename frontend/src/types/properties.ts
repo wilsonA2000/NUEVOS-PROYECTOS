@@ -28,4 +28,7 @@ export interface PropertyFilters {
   status?: string;
 }
 
-export type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'owner'>; 
+export type PropertyFormData = Omit<
+  Property,
+  'id' | 'created_at' | 'updated_at' | 'owner'
+>;

@@ -33,33 +33,50 @@ class AdminPendingContractsView(APIView):
 
     Endpoint: /api/v1/contracts/admin/pending/
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
         """Obtener lista de contratos pendientes de revisión"""
-        pending_contracts = LandlordControlledContract.objects.filter(
-            current_state='PENDING_ADMIN_REVIEW'
-        ).select_related(
-            'landlord', 'property'
-        ).order_by('-created_at')
+        pending_contracts = (
+            LandlordControlledContract.objects.filter(
+                current_state="PENDING_ADMIN_REVIEW"
+            )
+            .select_related("landlord", "property")
+            .order_by("-created_at")
+        )
 
         contracts_data = []
         for contract in pending_contracts:
-            contracts_data.append({
-                'id': str(contract.id),
-                'contract_number': contract.contract_number,
-                'landlord_name': contract.landlord.get_full_name() if contract.landlord else 'N/A',
-                'landlord_email': contract.landlord.email if contract.landlord else 'N/A',
-                'property_address': contract.property_data.get('property_address', 'N/A') if contract.property_data else 'N/A',
-                'created_at': contract.created_at.isoformat(),
-                'monthly_rent': contract.economic_terms.get('monthly_rent', 0) if contract.economic_terms else 0,
-                'days_pending': (timezone.now() - contract.created_at).days,
-            })
+            contracts_data.append(
+                {
+                    "id": str(contract.id),
+                    "contract_number": contract.contract_number,
+                    "landlord_name": contract.landlord.get_full_name()
+                    if contract.landlord
+                    else "N/A",
+                    "landlord_email": contract.landlord.email
+                    if contract.landlord
+                    else "N/A",
+                    "property_address": contract.property_data.get(
+                        "property_address", "N/A"
+                    )
+                    if contract.property_data
+                    else "N/A",
+                    "created_at": contract.created_at.isoformat(),
+                    "monthly_rent": contract.economic_terms.get("monthly_rent", 0)
+                    if contract.economic_terms
+                    else 0,
+                    "days_pending": (timezone.now() - contract.created_at).days,
+                }
+            )
 
-        return Response({
-            'count': len(contracts_data),
-            'contracts': contracts_data,
-        })
+        return Response(
+            {
+                "count": len(contracts_data),
+                "contracts": contracts_data,
+            }
+        )
 
 
 class AdminContractDetailView(APIView):
@@ -68,95 +85,94 @@ class AdminContractDetailView(APIView):
 
     Endpoint: /api/v1/contracts/admin/contracts/<uuid:contract_id>/
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request, contract_id):
         """Obtener detalles completos del contrato para revisión"""
         try:
             contract = LandlordControlledContract.objects.select_related(
-                'landlord', 'property'
+                "landlord", "property"
             ).get(id=contract_id)
         except LandlordControlledContract.DoesNotExist:
             return Response(
-                {'error': 'Contrato no encontrado'},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Contrato no encontrado"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # Obtener cláusulas que se usarán
         contract_type = self._get_contract_type(contract)
         clauses = self._get_clauses_preview(contract_type)
 
-        return Response({
-            'id': str(contract.id),
-            'contract_number': contract.contract_number,
-            'current_state': contract.current_state,
-            'current_state_display': contract.get_current_state_display(),
-            'created_at': contract.created_at.isoformat(),
-            'updated_at': contract.updated_at.isoformat(),
-
-            # Datos del arrendador
-            'landlord': {
-                'id': str(contract.landlord.id) if contract.landlord else None,
-                'name': contract.landlord.get_full_name() if contract.landlord else 'N/A',
-                'email': contract.landlord.email if contract.landlord else 'N/A',
-            },
-
-            # Datos de la propiedad
-            'property_data': contract.property_data or {},
-
-            # Términos económicos
-            'economic_terms': contract.economic_terms or {},
-
-            # Términos del contrato
-            'contract_terms': contract.contract_terms or {},
-
-            # Datos del inquilino (si existen)
-            'tenant_data': contract.tenant_data or {},
-
-            # Preview de cláusulas que se incluirán
-            'clauses_preview': clauses,
-
-            # Estado de revisión admin
-            'admin_review': {
-                'reviewed': contract.admin_reviewed,
-                'reviewed_at': contract.admin_reviewed_at.isoformat() if contract.admin_reviewed_at else None,
-                'reviewer': contract.admin_reviewer.get_full_name() if contract.admin_reviewer else None,
-                'notes': contract.admin_review_notes,
+        return Response(
+            {
+                "id": str(contract.id),
+                "contract_number": contract.contract_number,
+                "current_state": contract.current_state,
+                "current_state_display": contract.get_current_state_display(),
+                "created_at": contract.created_at.isoformat(),
+                "updated_at": contract.updated_at.isoformat(),
+                # Datos del arrendador
+                "landlord": {
+                    "id": str(contract.landlord.id) if contract.landlord else None,
+                    "name": contract.landlord.get_full_name()
+                    if contract.landlord
+                    else "N/A",
+                    "email": contract.landlord.email if contract.landlord else "N/A",
+                },
+                # Datos de la propiedad
+                "property_data": contract.property_data or {},
+                # Términos económicos
+                "economic_terms": contract.economic_terms or {},
+                # Términos del contrato
+                "contract_terms": contract.contract_terms or {},
+                # Datos del inquilino (si existen)
+                "tenant_data": contract.tenant_data or {},
+                # Preview de cláusulas que se incluirán
+                "clauses_preview": clauses,
+                # Estado de revisión admin
+                "admin_review": {
+                    "reviewed": contract.admin_reviewed,
+                    "reviewed_at": contract.admin_reviewed_at.isoformat()
+                    if contract.admin_reviewed_at
+                    else None,
+                    "reviewer": contract.admin_reviewer.get_full_name()
+                    if contract.admin_reviewer
+                    else None,
+                    "notes": contract.admin_review_notes,
+                },
             }
-        })
+        )
 
     def _get_contract_type(self, contract) -> str:
         """Determinar tipo de contrato basado en property_data"""
         if not contract.property_data:
-            return 'rental_urban'
+            return "rental_urban"
 
-        property_type = contract.property_data.get('property_type', '').lower()
+        property_type = contract.property_data.get("property_type", "").lower()
         type_mapping = {
-            'apartment': 'rental_urban',
-            'apartamento': 'rental_urban',
-            'house': 'rental_urban',
-            'casa': 'rental_urban',
-            'commercial': 'rental_commercial',
-            'local': 'rental_commercial',
-            'room': 'rental_room',
-            'habitación': 'rental_room',
-            'rural': 'rental_rural',
-            'finca': 'rental_rural',
+            "apartment": "rental_urban",
+            "apartamento": "rental_urban",
+            "house": "rental_urban",
+            "casa": "rental_urban",
+            "commercial": "rental_commercial",
+            "local": "rental_commercial",
+            "room": "rental_room",
+            "habitación": "rental_room",
+            "rural": "rental_rural",
+            "finca": "rental_rural",
         }
-        return type_mapping.get(property_type, 'rental_urban')
+        return type_mapping.get(property_type, "rental_urban")
 
     def _get_clauses_preview(self, contract_type: str) -> list:
         """Obtener preview de cláusulas para el tipo de contrato"""
         try:
             template = ContractTypeTemplate.objects.filter(
-                contract_type=contract_type,
-                is_active=True
+                contract_type=contract_type, is_active=True
             ).first()
 
             if not template:
                 template = ContractTypeTemplate.objects.filter(
-                    contract_type='rental_urban',
-                    is_active=True
+                    contract_type="rental_urban", is_active=True
                 ).first()
 
             if not template:
@@ -165,13 +181,15 @@ class AdminContractDetailView(APIView):
             clauses = template.get_ordered_clauses()
             return [
                 {
-                    'number': c.clause_number,
-                    'ordinal': c.ordinal_text,
-                    'title': c.title,
-                    'category': c.category,
-                    'legal_reference': c.legal_reference,
+                    "number": c.clause_number,
+                    "ordinal": c.ordinal_text,
+                    "title": c.title,
+                    "category": c.category,
+                    "legal_reference": c.legal_reference,
                     # No incluir contenido completo por eficiencia
-                    'content_preview': c.content[:200] + '...' if len(c.content) > 200 else c.content,
+                    "content_preview": c.content[:200] + "..."
+                    if len(c.content) > 200
+                    else c.content,
                 }
                 for c in clauses
             ]
@@ -186,6 +204,7 @@ class AdminContractApprovalView(APIView):
 
     Endpoint: /api/v1/contracts/admin/contracts/<uuid:contract_id>/approve/
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request, contract_id):
@@ -194,19 +213,20 @@ class AdminContractApprovalView(APIView):
             contract = LandlordControlledContract.objects.get(id=contract_id)
         except LandlordControlledContract.DoesNotExist:
             return Response(
-                {'error': 'Contrato no encontrado'},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Contrato no encontrado"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # El admin aprueba tanto en la primera revisión como en las
         # re-revisiones del ciclo circular (Fase A1).
-        if contract.current_state not in ('PENDING_ADMIN_REVIEW', 'RE_PENDING_ADMIN'):
+        if contract.current_state not in ("PENDING_ADMIN_REVIEW", "RE_PENDING_ADMIN"):
             return Response(
-                {'error': f'El contrato no está en estado de revisión. Estado actual: {contract.get_current_state_display()}'},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"El contrato no está en estado de revisión. Estado actual: {contract.get_current_state_display()}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        notes = request.data.get('notes', '')
+        notes = request.data.get("notes", "")
 
         try:
             contract.approve_by_admin(request.user, notes)
@@ -214,20 +234,19 @@ class AdminContractApprovalView(APIView):
             # Enviar notificación al arrendador
             self._notify_landlord_approved(contract)
 
-            return Response({
-                'success': True,
-                'message': 'Contrato aprobado exitosamente',
-                'contract_id': str(contract.id),
-                'contract_number': contract.contract_number,
-                'new_state': contract.current_state,
-                'new_state_display': contract.get_current_state_display(),
-            })
+            return Response(
+                {
+                    "success": True,
+                    "message": "Contrato aprobado exitosamente",
+                    "contract_id": str(contract.id),
+                    "contract_number": contract.contract_number,
+                    "new_state": contract.current_state,
+                    "new_state_display": contract.get_current_state_display(),
+                }
+            )
         except Exception as e:
             logger.error(f"Error aprobando contrato {contract_id}: {e}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def _notify_landlord_approved(self, contract):
         """Enviar email al arrendador notificando aprobación"""
@@ -235,7 +254,7 @@ class AdminContractApprovalView(APIView):
             if not contract.landlord or not contract.landlord.email:
                 return
 
-            subject = f'[VeriHome] Contrato #{contract.contract_number} Aprobado'
+            subject = f"[VeriHome] Contrato #{contract.contract_number} Aprobado"
             message = f"""
 Estimado(a) {contract.landlord.get_full_name()},
 
@@ -272,6 +291,7 @@ class AdminContractRejectionView(APIView):
 
     Endpoint: /api/v1/contracts/admin/contracts/<uuid:contract_id>/reject/
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request, contract_id):
@@ -280,21 +300,24 @@ class AdminContractRejectionView(APIView):
             contract = LandlordControlledContract.objects.get(id=contract_id)
         except LandlordControlledContract.DoesNotExist:
             return Response(
-                {'error': 'Contrato no encontrado'},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Contrato no encontrado"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        if contract.current_state != 'PENDING_ADMIN_REVIEW':
+        if contract.current_state != "PENDING_ADMIN_REVIEW":
             return Response(
-                {'error': f'El contrato no está en estado de revisión. Estado actual: {contract.get_current_state_display()}'},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"El contrato no está en estado de revisión. Estado actual: {contract.get_current_state_display()}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        notes = request.data.get('notes', '')
+        notes = request.data.get("notes", "")
         if not notes:
             return Response(
-                {'error': 'Debe proporcionar notas explicando las correcciones necesarias'},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": "Debe proporcionar notas explicando las correcciones necesarias"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -303,19 +326,18 @@ class AdminContractRejectionView(APIView):
             # Enviar notificación al arrendador
             self._notify_landlord_rejected(contract, notes)
 
-            return Response({
-                'success': True,
-                'message': 'Contrato devuelto para correcciones',
-                'contract_id': str(contract.id),
-                'contract_number': contract.contract_number,
-                'rejection_notes': notes,
-            })
+            return Response(
+                {
+                    "success": True,
+                    "message": "Contrato devuelto para correcciones",
+                    "contract_id": str(contract.id),
+                    "contract_number": contract.contract_number,
+                    "rejection_notes": notes,
+                }
+            )
         except Exception as e:
             logger.error(f"Error rechazando contrato {contract_id}: {e}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def _notify_landlord_rejected(self, contract, notes):
         """Enviar email al arrendador notificando rechazo con correcciones"""
@@ -323,7 +345,9 @@ class AdminContractRejectionView(APIView):
             if not contract.landlord or not contract.landlord.email:
                 return
 
-            subject = f'[VeriHome] Contrato #{contract.contract_number} Requiere Correcciones'
+            subject = (
+                f"[VeriHome] Contrato #{contract.contract_number} Requiere Correcciones"
+            )
             message = f"""
 Estimado(a) {contract.landlord.get_full_name()},
 
@@ -358,6 +382,7 @@ class AdminContractStatsView(APIView):
 
     Endpoint: /api/v1/contracts/admin/stats/
     """
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -365,38 +390,43 @@ class AdminContractStatsView(APIView):
         from django.db.models import Count, Q
 
         stats = LandlordControlledContract.objects.aggregate(
-            total=Count('id'),
-            pending_review=Count('id', filter=Q(current_state='PENDING_ADMIN_REVIEW')),
-            draft=Count('id', filter=Q(current_state='DRAFT')),
-            active=Count('id', filter=Q(current_state='ACTIVE')),
-            completed=Count('id', filter=Q(current_state='COMPLETED')),
-            cancelled=Count('id', filter=Q(current_state='CANCELLED')),
+            total=Count("id"),
+            pending_review=Count("id", filter=Q(current_state="PENDING_ADMIN_REVIEW")),
+            draft=Count("id", filter=Q(current_state="DRAFT")),
+            active=Count("id", filter=Q(current_state="ACTIVE")),
+            completed=Count("id", filter=Q(current_state="COMPLETED")),
+            cancelled=Count("id", filter=Q(current_state="CANCELLED")),
         )
 
         # Contratos recientes
         recent_pending = LandlordControlledContract.objects.filter(
-            current_state='PENDING_ADMIN_REVIEW'
-        ).order_by('-created_at')[:5]
+            current_state="PENDING_ADMIN_REVIEW"
+        ).order_by("-created_at")[:5]
 
-        return Response({
-            'statistics': stats,
-            'recent_pending': [
-                {
-                    'id': str(c.id),
-                    'contract_number': c.contract_number,
-                    'landlord_name': c.landlord.get_full_name() if c.landlord else 'N/A',
-                    'created_at': c.created_at.isoformat(),
-                    'days_pending': (timezone.now() - c.created_at).days,
-                }
-                for c in recent_pending
-            ],
-            'alert_level': 'high' if stats['pending_review'] > 5 else 'normal',
-        })
+        return Response(
+            {
+                "statistics": stats,
+                "recent_pending": [
+                    {
+                        "id": str(c.id),
+                        "contract_number": c.contract_number,
+                        "landlord_name": c.landlord.get_full_name()
+                        if c.landlord
+                        else "N/A",
+                        "created_at": c.created_at.isoformat(),
+                        "days_pending": (timezone.now() - c.created_at).days,
+                    }
+                    for c in recent_pending
+                ],
+                "alert_level": "high" if stats["pending_review"] > 5 else "normal",
+            }
+        )
 
 
 # =============================================================================
 # SEÑALES DE NOTIFICACIÓN AUTOMÁTICA
 # =============================================================================
+
 
 @receiver(post_save, sender=LandlordControlledContract)
 def notify_admin_pending_review(sender, instance, created, **kwargs):
@@ -407,7 +437,7 @@ def notify_admin_pending_review(sender, instance, created, **kwargs):
     1. Se crea un nuevo contrato (created=True)
     2. Se actualiza un contrato existente
     """
-    if instance.current_state != 'PENDING_ADMIN_REVIEW':
+    if instance.current_state != "PENDING_ADMIN_REVIEW":
         return
 
     # Solo notificar si el contrato acaba de entrar en este estado
@@ -419,10 +449,11 @@ def notify_admin_pending_review(sender, instance, created, **kwargs):
 def _send_admin_notification(contract):
     """Enviar notificación al admin sobre contrato pendiente"""
     try:
-        admin_email = getattr(settings, 'ADMIN_EMAIL', None)
+        admin_email = getattr(settings, "ADMIN_EMAIL", None)
         if not admin_email:
             # Intentar obtener el email del primer superuser
             from django.contrib.auth import get_user_model
+
             User = get_user_model()
             admin_user = User.objects.filter(is_superuser=True, is_active=True).first()
             if admin_user:
@@ -432,7 +463,7 @@ def _send_admin_notification(contract):
             logger.warning("No se encontró email de admin para notificación")
             return
 
-        subject = f'[VeriHome] Nuevo Contrato Pendiente de Revisión - #{contract.contract_number}'
+        subject = f"[VeriHome] Nuevo Contrato Pendiente de Revisión - #{contract.contract_number}"
         message = f"""
 NUEVO CONTRATO PENDIENTE DE REVISIÓN
 

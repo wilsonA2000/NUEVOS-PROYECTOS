@@ -11,9 +11,12 @@ export const handlers = [
   }),
 
   http.post('/api/v1/auth/register/', () => {
-    return HttpResponse.json({
-      user_id: 1,
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        user_id: 1,
+      },
+      { status: 201 }
+    );
   }),
 
   http.get('/api/v1/auth/me/', () => {
@@ -38,7 +41,7 @@ export const handlers = [
     const url = new URL(request.url);
     const search = url.searchParams.get('search');
     const propertyType = url.searchParams.get('property_type');
-    
+
     let properties = [
       {
         id: 1,
@@ -55,9 +58,7 @@ export const handlers = [
         bathrooms: 2,
         area: 120,
         is_available: true,
-        images: [
-          { id: 1, image: '/media/property1.jpg', is_primary: true },
-        ],
+        images: [{ id: 1, image: '/media/property1.jpg', is_primary: true }],
         landlord: {
           id: 1,
           first_name: 'Juan',
@@ -82,9 +83,7 @@ export const handlers = [
         bathrooms: 3,
         area: 200,
         is_available: true,
-        images: [
-          { id: 2, image: '/media/property2.jpg', is_primary: true },
-        ],
+        images: [{ id: 2, image: '/media/property2.jpg', is_primary: true }],
         landlord: {
           id: 2,
           first_name: 'María',
@@ -98,15 +97,18 @@ export const handlers = [
 
     // Filter by search
     if (search) {
-      properties = properties.filter(property =>
-        property.title.toLowerCase().includes(search.toLowerCase()) ||
-        property.description.toLowerCase().includes(search.toLowerCase())
+      properties = properties.filter(
+        property =>
+          property.title.toLowerCase().includes(search.toLowerCase()) ||
+          property.description.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     // Filter by property type
     if (propertyType) {
-      properties = properties.filter(property => property.property_type === propertyType);
+      properties = properties.filter(
+        property => property.property_type === propertyType
+      );
     }
 
     return HttpResponse.json({
@@ -119,7 +121,7 @@ export const handlers = [
 
   http.get('/api/v1/properties/:id/', ({ params }) => {
     const { id } = params;
-    
+
     if (id === '1') {
       return HttpResponse.json({
         id: 1,
@@ -136,9 +138,7 @@ export const handlers = [
         bathrooms: 2,
         area: 120,
         is_available: true,
-        images: [
-          { id: 1, image: '/media/property1.jpg', is_primary: true },
-        ],
+        images: [{ id: 1, image: '/media/property1.jpg', is_primary: true }],
         latitude: 4.5709,
         longitude: -74.2973,
         landlord: {
@@ -160,20 +160,23 @@ export const handlers = [
   }),
 
   http.post('/api/v1/properties/', () => {
-    return HttpResponse.json({
-      id: 3,
-      title: 'Nueva Propiedad',
-      description: 'Propiedad creada por test',
-      property_type: 'apartment',
-      price: 2000000,
-      bedrooms: 2,
-      bathrooms: 1,
-      area: 80,
-      city: 'Cali',
-      is_available: true,
-      created_at: '2025-01-03T00:00:00Z',
-      updated_at: '2025-01-03T00:00:00Z',
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        id: 3,
+        title: 'Nueva Propiedad',
+        description: 'Propiedad creada por test',
+        property_type: 'apartment',
+        price: 2000000,
+        bedrooms: 2,
+        bathrooms: 1,
+        area: 80,
+        city: 'Cali',
+        is_available: true,
+        created_at: '2025-01-03T00:00:00Z',
+        updated_at: '2025-01-03T00:00:00Z',
+      },
+      { status: 201 }
+    );
   }),
 
   http.put('/api/v1/properties/:id/', ({ params }) => {
@@ -215,7 +218,7 @@ export const handlers = [
   http.get('/api/v1/properties/search/', ({ request }) => {
     const url = new URL(request.url);
     const query = url.searchParams.get('q');
-    
+
     if (query?.includes('apartamento')) {
       return HttpResponse.json({
         results: [
@@ -237,12 +240,15 @@ export const handlers = [
 
   // Messages endpoints
   http.post('/api/v1/messages/', () => {
-    return HttpResponse.json({
-      id: 1,
-      subject: 'Consulta sobre propiedad',
-      content: 'Estoy interesado en esta propiedad',
-      created_at: new Date().toISOString(),
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        id: 1,
+        subject: 'Consulta sobre propiedad',
+        content: 'Estoy interesado en esta propiedad',
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 }
+    );
   }),
 
   // Contracts endpoints
@@ -271,11 +277,14 @@ export const handlers = [
   }),
 
   http.post('/api/v1/contracts/', () => {
-    return HttpResponse.json({
-      id: 2,
-      status: 'pending',
-      created_at: new Date().toISOString(),
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        id: 2,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 }
+    );
   }),
 
   // Payments endpoints
@@ -300,12 +309,15 @@ export const handlers = [
   }),
 
   http.post('/api/v1/payments/', () => {
-    return HttpResponse.json({
-      id: 2,
-      amount: 2500000,
-      status: 'pending',
-      created_at: new Date().toISOString(),
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        id: 2,
+        amount: 2500000,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 }
+    );
   }),
 
   // Error handlers for testing error scenarios
@@ -317,10 +329,7 @@ export const handlers = [
   }),
 
   http.get('/api/v1/properties/error', () => {
-    return HttpResponse.json(
-      { detail: 'Error del servidor' },
-      { status: 500 }
-    );
+    return HttpResponse.json({ detail: 'Error del servidor' }, { status: 500 });
   }),
 
   // Network error simulation
@@ -330,22 +339,22 @@ export const handlers = [
 ];
 
 // Export individual handlers for test customization
-export const authHandlers = handlers.filter(handler => 
+export const authHandlers = handlers.filter(handler =>
   handler.info.path?.includes('/auth/')
 );
 
-export const propertyHandlers = handlers.filter(handler => 
+export const propertyHandlers = handlers.filter(handler =>
   handler.info.path?.includes('/properties/')
 );
 
-export const messageHandlers = handlers.filter(handler => 
+export const messageHandlers = handlers.filter(handler =>
   handler.info.path?.includes('/messages/')
 );
 
-export const contractHandlers = handlers.filter(handler => 
+export const contractHandlers = handlers.filter(handler =>
   handler.info.path?.includes('/contracts/')
 );
 
-export const paymentHandlers = handlers.filter(handler => 
+export const paymentHandlers = handlers.filter(handler =>
   handler.info.path?.includes('/payments/')
 );

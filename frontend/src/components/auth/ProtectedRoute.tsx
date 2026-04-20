@@ -14,11 +14,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (isLoading) {
     return (
       <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-        flexDirection="column"
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='100vh'
+        flexDirection='column'
         gap={2}
       >
         <CircularProgress />
@@ -29,8 +29,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!isAuthenticated) {
     // Redirigir a la landing page en lugar de /login
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Navigate to='/' state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
-}; 
+};

@@ -4,13 +4,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Alert,
-  Paper,
-} from '@mui/material';
+import { Box, Typography, Button, Alert, Paper } from '@mui/material';
 import {
   AccountCircle as ProfileIcon,
   Refresh as RefreshIcon,
@@ -53,22 +47,30 @@ const UsersFallback: React.FC = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 600, mx: 'auto', mt: 4 }}>
       <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity='error' sx={{ mb: 3 }}>
           Error en el módulo de Usuarios
         </Alert>
 
-        <Typography variant="h5" gutterBottom>
+        <Typography variant='h5' gutterBottom>
           Problema con la información del usuario
         </Typography>
 
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Ha ocurrido un error al cargar la información del usuario. 
-          Esto puede deberse a un problema de autenticación o del servidor.
+        <Typography variant='body1' color='text.secondary' paragraph>
+          Ha ocurrido un error al cargar la información del usuario. Esto puede
+          deberse a un problema de autenticación o del servidor.
         </Typography>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            mt: 3,
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <Button
-            variant="contained"
+            variant='contained'
             startIcon={<RefreshIcon />}
             onClick={handleRetry}
           >
@@ -78,7 +80,7 @@ const UsersFallback: React.FC = () => {
           {isAuthenticated ? (
             <>
               <Button
-                variant="outlined"
+                variant='outlined'
                 startIcon={<ProfileIcon />}
                 onClick={handleGoToProfile}
               >
@@ -86,7 +88,7 @@ const UsersFallback: React.FC = () => {
               </Button>
 
               <Button
-                variant="text"
+                variant='text'
                 startIcon={<HomeIcon />}
                 onClick={handleGoToDashboard}
               >
@@ -94,8 +96,8 @@ const UsersFallback: React.FC = () => {
               </Button>
 
               <Button
-                variant="text"
-                color="error"
+                variant='text'
+                color='error'
                 onClick={handleLogoutAndRetry}
               >
                 Cerrar Sesión
@@ -103,7 +105,7 @@ const UsersFallback: React.FC = () => {
             </>
           ) : (
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<LoginIcon />}
               onClick={handleGoToLogin}
             >
@@ -112,7 +114,11 @@ const UsersFallback: React.FC = () => {
           )}
         </Box>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          sx={{ mt: 2, display: 'block' }}
+        >
           Si el problema persiste, verifica tu conexión o contacta soporte
         </Typography>
       </Paper>
@@ -120,10 +126,12 @@ const UsersFallback: React.FC = () => {
   );
 };
 
-const UsersErrorBoundary: React.FC<UsersErrorBoundaryProps> = ({ children }) => {
+const UsersErrorBoundary: React.FC<UsersErrorBoundaryProps> = ({
+  children,
+}) => {
   return (
     <ErrorBoundary
-      module="Users"
+      module='Users'
       fallback={<UsersFallback />}
       onError={(error, errorInfo) => {
         // Users-specific error handling

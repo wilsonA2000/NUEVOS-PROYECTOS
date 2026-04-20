@@ -3,13 +3,11 @@
  * Features: Modern UX, Smooth Animations, Real-time Preview, Smart Compression
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
-  Button,
   Grid,
   IconButton,
   Chip,
@@ -63,39 +61,45 @@ const uploadAnimation = keyframes`
 
 // Styled Components
 const DropZone = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isDragActive' && prop !== 'hasImages',
-})<{ isDragActive: boolean; hasImages: boolean }>(({ theme, isDragActive, hasImages }) => ({
-  border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
-  borderRadius: theme.spacing(2),
-  padding: theme.spacing(4),
-  textAlign: 'center',
-  cursor: 'pointer',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  background: isDragActive 
-    ? `linear-gradient(135deg, ${theme.palette.primary.main}10, ${theme.palette.primary.main}20)`
-    : hasImages ? 'transparent' : theme.palette.background.default,
-  minHeight: hasImages ? 120 : 200,
-  position: 'relative',
-  overflow: 'hidden',
-  
-  '&:hover': {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: `${theme.palette.primary.main}08`,
-    transform: 'translateY(-2px)',
-    boxShadow: `0 8px 24px ${theme.palette.primary.main}20`,
-  },
+  shouldForwardProp: prop => prop !== 'isDragActive' && prop !== 'hasImages',
+})<{ isDragActive: boolean; hasImages: boolean }>(
+  ({ theme, isDragActive, hasImages }) => ({
+    border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
+    borderRadius: theme.spacing(2),
+    padding: theme.spacing(4),
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: isDragActive
+      ? `linear-gradient(135deg, ${theme.palette.primary.main}10, ${theme.palette.primary.main}20)`
+      : hasImages
+        ? 'transparent'
+        : theme.palette.background.default,
+    minHeight: hasImages ? 120 : 200,
+    position: 'relative',
+    overflow: 'hidden',
 
-  '&::before': isDragActive ? {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}30, transparent)`,
-    animation: `${shimmerAnimation} 1.5s infinite`,
-  } : {},
-}));
+    '&:hover': {
+      borderColor: theme.palette.primary.main,
+      backgroundColor: `${theme.palette.primary.main}08`,
+      transform: 'translateY(-2px)',
+      boxShadow: `0 8px 24px ${theme.palette.primary.main}20`,
+    },
+
+    '&::before': isDragActive
+      ? {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '100%',
+          height: '100%',
+          background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}30, transparent)`,
+          animation: `${shimmerAnimation} 1.5s infinite`,
+        }
+      : {},
+  }),
+);
 
 const ImageCard = styled(Card)(({ theme }) => ({
   position: 'relative',
@@ -104,7 +108,7 @@ const ImageCard = styled(Card)(({ theme }) => ({
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
   animation: `${uploadAnimation} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`,
-  
+
   '&:hover': {
     transform: 'translateY(-8px) scale(1.02)',
     boxShadow: `0 12px 32px ${theme.palette.common.black}20`,
@@ -123,7 +127,8 @@ const ImageOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%)',
+  background:
+    'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%)',
   opacity: 0,
   transition: 'opacity 0.3s ease',
   display: 'flex',
@@ -200,7 +205,9 @@ interface EnhancedPropertyImageUploadProps {
   autoCompress?: boolean;
 }
 
-export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadProps> = ({
+export const EnhancedPropertyImageUpload: React.FC<
+  EnhancedPropertyImageUploadProps
+> = ({
   images,
   onImagesChange,
   maxImages = 20,
@@ -217,58 +224,61 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Image compression utility
-  const compressImage = useCallback(async (file: File, targetQuality = quality): Promise<File> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.onload = () => {
-        // Calculate optimal dimensions
-        const maxWidth = 1920;
-        const maxHeight = 1080;
-        let { width, height } = img;
-        
-        if (width > maxWidth || height > maxHeight) {
-          const aspectRatio = width / height;
-          if (width > height) {
-            width = maxWidth;
-            height = width / aspectRatio;
-          } else {
-            height = maxHeight;
-            width = height * aspectRatio;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        // Apply high-quality scaling
-        ctx!.imageSmoothingEnabled = true;
-        ctx!.imageSmoothingQuality = 'high';
-        ctx!.drawImage(img, 0, 0, width, height);
-        
-        // Convert to blob with quality
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
+  const compressImage = useCallback(
+    async (file: File, targetQuality = quality): Promise<File> => {
+      return new Promise(resolve => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+          // Calculate optimal dimensions
+          const maxWidth = 1920;
+          const maxHeight = 1080;
+          let { width, height } = img;
+
+          if (width > maxWidth || height > maxHeight) {
+            const aspectRatio = width / height;
+            if (width > height) {
+              width = maxWidth;
+              height = width / aspectRatio;
             } else {
-              resolve(file);
+              height = maxHeight;
+              width = height * aspectRatio;
             }
-          },
-          'image/jpeg',
-          targetQuality,
-        );
-      };
-      
-      img.src = URL.createObjectURL(file);
-    });
-  }, [quality]);
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Apply high-quality scaling
+          ctx!.imageSmoothingEnabled = true;
+          ctx!.imageSmoothingQuality = 'high';
+          ctx!.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob with quality
+          canvas.toBlob(
+            blob => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            targetQuality,
+          );
+        };
+
+        img.src = URL.createObjectURL(file);
+      });
+    },
+    [quality],
+  );
 
   const handleFileSelect = useCallback(
     async (files: FileList) => {
@@ -293,21 +303,21 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
 
         const imageId = `upload-${Date.now()}-${index}`;
         const originalSize = file.size;
-        
+
         // Compress image if needed
         let processedFile = file;
         let compressed = false;
-        
-        if (autoCompress && file.size > 500 * 1024) { // Compress files larger than 500KB
+
+        if (autoCompress && file.size > 500 * 1024) {
+          // Compress files larger than 500KB
           try {
             processedFile = await compressImage(file);
             compressed = true;
-          } catch (error) {
-          }
+          } catch (error) {}
         }
 
         const url = URL.createObjectURL(processedFile);
-        
+
         const newImage: ImageFile = {
           id: imageId,
           file: processedFile,
@@ -321,7 +331,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
         };
 
         newImages.push(newImage);
-        
+
         // Simulate upload progress
         const simulateUpload = () => {
           let progress = 0;
@@ -330,7 +340,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
             if (progress >= 100) {
               progress = 100;
               clearInterval(interval);
-              
+
               // Mark as uploaded
               onImagesChange([
                 ...images,
@@ -338,7 +348,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                 { ...newImage, uploading: false, progress: 100 },
                 ...newImages.slice(index + 1),
               ]);
-              
+
               setUploadingCount(prev => Math.max(0, prev - 1));
             } else {
               // Update progress
@@ -351,7 +361,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
             }
           }, 200);
         };
-        
+
         // Start upload simulation
         setTimeout(simulateUpload, index * 100);
       }
@@ -359,7 +369,15 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       // Add all new images immediately
       onImagesChange([...images, ...newImages]);
     },
-    [images, onImagesChange, maxImages, maxSize, disabled, autoCompress, compressImage],
+    [
+      images,
+      onImagesChange,
+      maxImages,
+      maxSize,
+      disabled,
+      autoCompress,
+      compressImage,
+    ],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -376,7 +394,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragActive(false);
-      
+
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         handleFileSelect(files);
@@ -400,7 +418,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
   const handleImageDelete = useCallback(
     (imageId: string) => {
       const updatedImages = images.filter(img => img.id !== imageId);
-      
+
       // If deleted image was main, make first image main
       if (updatedImages.length > 0) {
         const wasMain = images.find(img => img.id === imageId)?.isMain;
@@ -408,7 +426,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
           updatedImages[0]!.isMain = true;
         }
       }
-      
+
       onImagesChange(updatedImages);
     },
     [images, onImagesChange],
@@ -448,7 +466,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))  } ${  sizes[i]}`;
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
   return (
@@ -464,15 +482,15 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       >
         <input
           ref={fileInputRef}
-          type="file"
+          type='file'
           multiple
-          accept="image/*"
+          accept='image/*'
           onChange={handleFileInputChange}
           style={{ display: 'none' }}
           disabled={disabled || images.length >= maxImages}
         />
-        
-        <Stack spacing={2} alignItems="center">
+
+        <Stack spacing={2} alignItems='center'>
           {dragActive ? (
             <Zoom in>
               <Box>
@@ -486,31 +504,33 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
               </Box>
             </Fade>
           )}
-          
-          <Box textAlign="center">
-            <Typography variant="h6" gutterBottom>
+
+          <Box textAlign='center'>
+            <Typography variant='h6' gutterBottom>
               {dragActive
                 ? '¡Suelta las imágenes aquí!'
                 : images.length === 0
-                ? 'Arrastra imágenes aquí o haz clic para seleccionar'
-                : `Agregar más imágenes (${images.length}/${maxImages})`}
+                  ? 'Arrastra imágenes aquí o haz clic para seleccionar'
+                  : `Agregar más imágenes (${images.length}/${maxImages})`}
             </Typography>
-            
+
             {!dragActive && (
-              <Typography variant="body2" color="text.secondary">
-                Formatos: JPG, PNG, WebP • Máximo {formatFileSize(maxSize)} cada una
+              <Typography variant='body2' color='text.secondary'>
+                Formatos: JPG, PNG, WebP • Máximo {formatFileSize(maxSize)} cada
+                una
                 {autoCompress && ' • Compresión automática habilitada'}
               </Typography>
             )}
           </Box>
 
           {uploadingCount > 0 && (
-            <Slide direction="up" in>
-              <Alert severity="info" sx={{ mt: 2 }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
+            <Slide direction='up' in>
+              <Alert severity='info' sx={{ mt: 2 }}>
+                <Stack direction='row' alignItems='center' spacing={1}>
                   <CircularProgress size={16} />
-                  <Typography variant="body2">
-                    Procesando {uploadingCount} imagen{uploadingCount > 1 ? 'es' : ''}...
+                  <Typography variant='body2'>
+                    Procesando {uploadingCount} imagen
+                    {uploadingCount > 1 ? 'es' : ''}...
                   </Typography>
                 </Stack>
               </Alert>
@@ -523,8 +543,8 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       {images.length > 0 && (
         <Box mt={3}>
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="images" direction="horizontal">
-              {(provided) => (
+            <Droppable droppableId='images' direction='horizontal'>
+              {provided => (
                 <Grid
                   container
                   spacing={2}
@@ -532,7 +552,11 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                   {...provided.droppableProps}
                 >
                   {images.map((image, index) => (
-                    <Draggable key={image.id} draggableId={image.id} index={index}>
+                    <Draggable
+                      key={image.id}
+                      draggableId={image.id}
+                      index={index}
+                    >
                       {(provided, snapshot) => (
                         <Grid
                           item
@@ -559,7 +583,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                               }}
                             >
                               <Box
-                                component="img"
+                                component='img'
                                 src={image.url}
                                 alt={`Image ${index + 1}`}
                                 sx={{
@@ -572,7 +596,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                                   transition: 'transform 0.3s ease',
                                 }}
                               />
-                              
+
                               {/* Main image badge */}
                               {image.isMain && (
                                 <MainImageBadge>
@@ -580,69 +604,88 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                                   Principal
                                 </MainImageBadge>
                               )}
-                              
+
                               {/* Compression badge */}
                               {image.compressed && (
                                 <CompressionChip
                                   icon={<CompressIcon sx={{ fontSize: 14 }} />}
                                   label={`-${getSavingsPercentage(image.originalSize, image.compressedSize)}%`}
-                                  size="small"
+                                  size='small'
                                 />
                               )}
-                              
+
                               {/* Overlay */}
-                              <ImageOverlay className="image-overlay">
+                              <ImageOverlay className='image-overlay'>
                                 <Box />
-                                <ImageActions className="image-actions">
-                                  <Tooltip title="Vista previa">
+                                <ImageActions className='image-actions'>
+                                  <Tooltip title='Vista previa'>
                                     <IconButton
-                                      size="small"
+                                      size='small'
                                       onClick={() => setPreviewImage(image.url)}
                                       sx={{
-                                        backgroundColor: 'rgba(255,255,255,0.9)',
+                                        backgroundColor:
+                                          'rgba(255,255,255,0.9)',
                                         '&:hover': { backgroundColor: 'white' },
                                       }}
                                     >
-                                      <PreviewIcon fontSize="small" />
+                                      <PreviewIcon fontSize='small' />
                                     </IconButton>
                                   </Tooltip>
-                                  
-                                  <Tooltip title={image.isMain ? 'Es imagen principal' : 'Marcar como principal'}>
+
+                                  <Tooltip
+                                    title={
+                                      image.isMain
+                                        ? 'Es imagen principal'
+                                        : 'Marcar como principal'
+                                    }
+                                  >
                                     <IconButton
-                                      size="small"
-                                      onClick={() => handleSetMainImage(image.id)}
+                                      size='small'
+                                      onClick={() =>
+                                        handleSetMainImage(image.id)
+                                      }
                                       sx={{
-                                        backgroundColor: image.isMain 
-                                          ? 'rgba(255,193,7,0.9)' 
+                                        backgroundColor: image.isMain
+                                          ? 'rgba(255,193,7,0.9)'
                                           : 'rgba(255,255,255,0.9)',
-                                        color: image.isMain ? 'white' : 'inherit',
-                                        '&:hover': { 
-                                          backgroundColor: image.isMain 
-                                            ? 'rgba(255,193,7,1)' 
-                                            : 'white', 
+                                        color: image.isMain
+                                          ? 'white'
+                                          : 'inherit',
+                                        '&:hover': {
+                                          backgroundColor: image.isMain
+                                            ? 'rgba(255,193,7,1)'
+                                            : 'white',
                                         },
                                       }}
                                     >
-                                      {image.isMain ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+                                      {image.isMain ? (
+                                        <StarIcon fontSize='small' />
+                                      ) : (
+                                        <StarBorderIcon fontSize='small' />
+                                      )}
                                     </IconButton>
                                   </Tooltip>
-                                  
-                                  <Tooltip title="Eliminar">
+
+                                  <Tooltip title='Eliminar'>
                                     <IconButton
-                                      size="small"
-                                      onClick={() => handleImageDelete(image.id)}
+                                      size='small'
+                                      onClick={() =>
+                                        handleImageDelete(image.id)
+                                      }
                                       sx={{
                                         backgroundColor: 'rgba(244,67,54,0.9)',
                                         color: 'white',
-                                        '&:hover': { backgroundColor: 'rgba(244,67,54,1)' },
+                                        '&:hover': {
+                                          backgroundColor: 'rgba(244,67,54,1)',
+                                        },
                                       }}
                                     >
-                                      <DeleteIcon fontSize="small" />
+                                      <DeleteIcon fontSize='small' />
                                     </IconButton>
                                   </Tooltip>
                                 </ImageActions>
                               </ImageOverlay>
-                              
+
                               {/* Drag handle */}
                               <Box
                                 {...provided.dragHandleProps}
@@ -656,20 +699,30 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                                   '&:hover': { opacity: 1 },
                                 }}
                               >
-                                <DragIcon sx={{ color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+                                <DragIcon
+                                  sx={{
+                                    color: 'white',
+                                    filter:
+                                      'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
+                                  }}
+                                />
                               </Box>
                             </Box>
-                            
+
                             {/* Upload progress */}
                             {image.uploading && (
                               <UploadProgress>
-                                <Stack direction="row" alignItems="center" spacing={1}>
+                                <Stack
+                                  direction='row'
+                                  alignItems='center'
+                                  spacing={1}
+                                >
                                   <LinearProgress
-                                    variant="determinate"
+                                    variant='determinate'
                                     value={image.progress || 0}
                                     sx={{ flex: 1 }}
                                   />
-                                  <Typography variant="caption">
+                                  <Typography variant='caption'>
                                     {Math.round(image.progress || 0)}%
                                   </Typography>
                                 </Stack>
@@ -692,7 +745,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
       <Dialog
         open={!!previewImage}
         onClose={() => setPreviewImage(null)}
-        maxWidth="lg"
+        maxWidth='lg'
         fullWidth
         PaperProps={{
           sx: {
@@ -701,7 +754,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
           },
         }}
       >
-        <Backdrop open sx={{ zIndex: (theme) => theme.zIndex.modal - 1 }}>
+        <Backdrop open sx={{ zIndex: theme => theme.zIndex.modal - 1 }}>
           <DialogContent
             onClick={() => setPreviewImage(null)}
             sx={{
@@ -714,9 +767,9 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
           >
             {previewImage && (
               <Box
-                component="img"
+                component='img'
                 src={previewImage}
-                alt="Preview"
+                alt='Preview'
                 sx={{
                   maxWidth: '90vw',
                   maxHeight: '90vh',
@@ -724,7 +777,7 @@ export const EnhancedPropertyImageUpload: React.FC<EnhancedPropertyImageUploadPr
                   borderRadius: 2,
                   boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
                 }}
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               />
             )}
           </DialogContent>

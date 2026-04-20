@@ -13,7 +13,8 @@ export const useError = () => {
     if (error.response) {
       // Error de respuesta del servidor
       setError({
-        message: error.response.data.message || 'Ha ocurrido un error en el servidor',
+        message:
+          error.response.data.message || 'Ha ocurrido un error en el servidor',
         code: error.response.status.toString(),
         details: error.response.data,
       });
@@ -40,4 +41,4 @@ export const useError = () => {
     handleError,
     clearError,
   };
-}; 
+};

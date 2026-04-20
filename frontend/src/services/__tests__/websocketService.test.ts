@@ -172,7 +172,8 @@ class WebSocketService {
         this.updateConnectionStatus(endpoint, {
           connected: false,
           connecting: false,
-          reconnectAttempts: this.getConnectionStatus(endpoint).reconnectAttempts,
+          reconnectAttempts:
+            this.getConnectionStatus(endpoint).reconnectAttempts,
         });
         reject(new Error(`WebSocket error on ${endpoint}`));
       };
@@ -229,11 +230,13 @@ class WebSocketService {
   }
 
   getConnectionStatus(endpoint: string): any {
-    return this.connectionStatus.get(endpoint) || {
-      connected: false,
-      connecting: false,
-      reconnectAttempts: 0,
-    };
+    return (
+      this.connectionStatus.get(endpoint) || {
+        connected: false,
+        connecting: false,
+        reconnectAttempts: 0,
+      }
+    );
   }
 
   isConnected(endpoint: string): boolean {
@@ -243,29 +246,42 @@ class WebSocketService {
 
   getConnectedEndpoints(): string[] {
     return Array.from(this.connections.keys()).filter(endpoint =>
-      this.isConnected(endpoint),
+      this.isConnected(endpoint)
     );
   }
 
   private handleMessage(endpoint: string, data: string): void {
     try {
       const message = JSON.parse(data);
-      if (message.type === 'pong' || message.type === 'connection_established') {
+      if (
+        message.type === 'pong' ||
+        message.type === 'connection_established'
+      ) {
         return;
       }
       const callbacks = this.eventCallbacks.get(message.type);
       if (callbacks) {
         callbacks.forEach(callback => {
-          try { callback(message); } catch { /* ignore */ }
+          try {
+            callback(message);
+          } catch {
+            /* ignore */
+          }
         });
       }
       const globalCallbacks = this.eventCallbacks.get('*');
       if (globalCallbacks) {
         globalCallbacks.forEach(callback => {
-          try { callback(message); } catch { /* ignore */ }
+          try {
+            callback(message);
+          } catch {
+            /* ignore */
+          }
         });
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   private handleDisconnection(endpoint: string, code: number): void {
@@ -285,7 +301,10 @@ class WebSocketService {
 
   private startPingInterval(endpoint: string): void {
     const interval = setInterval(() => {
-      this.send(endpoint, { type: 'ping', timestamp: new Date().toISOString() });
+      this.send(endpoint, {
+        type: 'ping',
+        timestamp: new Date().toISOString(),
+      });
     }, this.PING_INTERVAL);
     this.pingIntervals.set(endpoint, interval);
   }
@@ -293,7 +312,11 @@ class WebSocketService {
   private updateConnectionStatus(endpoint: string, status: any): void {
     this.connectionStatus.set(endpoint, status);
     this.statusCallbacks.forEach(callback => {
-      try { callback(status); } catch { /* ignore */ }
+      try {
+        callback(status);
+      } catch {
+        /* ignore */
+      }
     });
   }
 
@@ -319,7 +342,10 @@ describe('WebSocketService', () => {
   };
 
   beforeAll(() => {
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
   });
 
   beforeEach(() => {
@@ -341,7 +367,10 @@ describe('WebSocketService', () => {
 
   describe('connect', () => {
     it('should create a WebSocket connection with token', async () => {
-      const connectPromise = websocketService.connect('messaging', 'test-token');
+      const connectPromise = websocketService.connect(
+        'messaging',
+        'test-token'
+      );
       const ws = wsInstances[wsInstances.length - 1];
 
       expect(ws).toBeDefined();
@@ -355,7 +384,10 @@ describe('WebSocketService', () => {
     });
 
     it('should resolve immediately if already connected', async () => {
-      const connectPromise1 = websocketService.connect('messaging', 'test-token');
+      const connectPromise1 = websocketService.connect(
+        'messaging',
+        'test-token'
+      );
       const ws = wsInstances[wsInstances.length - 1];
       ws.simulateOpen();
       await connectPromise1;
@@ -369,24 +401,33 @@ describe('WebSocketService', () => {
 
     it('should reject when no auth token is available', async () => {
       localStorageMock.getItem.mockReturnValue(null);
-      await expect(
-        websocketService.connect('messaging'),
-      ).rejects.toThrow('No authentication token available');
+      await expect(websocketService.connect('messaging')).rejects.toThrow(
+        'No authentication token available'
+      );
     });
 
     it('should reject on WebSocket error', async () => {
-      const connectPromise = websocketService.connect('messaging', 'test-token');
+      const connectPromise = websocketService.connect(
+        'messaging',
+        'test-token'
+      );
       const ws = wsInstances[wsInstances.length - 1];
       ws.simulateError();
 
-      await expect(connectPromise).rejects.toThrow('WebSocket error on messaging');
+      await expect(connectPromise).rejects.toThrow(
+        'WebSocket error on messaging'
+      );
     });
 
     it('should update connection status to connecting then connected', async () => {
-      const connectPromise = websocketService.connect('messaging', 'test-token');
+      const connectPromise = websocketService.connect(
+        'messaging',
+        'test-token'
+      );
 
       // Should be in connecting state
-      const statusDuringConnect = websocketService.getConnectionStatus('messaging');
+      const statusDuringConnect =
+        websocketService.getConnectionStatus('messaging');
       expect(statusDuringConnect.connecting).toBe(true);
       expect(statusDuringConnect.connected).toBe(false);
 
@@ -395,7 +436,8 @@ describe('WebSocketService', () => {
       await connectPromise;
 
       // Should be in connected state
-      const statusAfterConnect = websocketService.getConnectionStatus('messaging');
+      const statusAfterConnect =
+        websocketService.getConnectionStatus('messaging');
       expect(statusAfterConnect.connected).toBe(true);
       expect(statusAfterConnect.connecting).toBe(false);
       expect(statusAfterConnect.reconnectAttempts).toBe(0);
@@ -405,7 +447,8 @@ describe('WebSocketService', () => {
   describe('connectAuthenticated', () => {
     it('should use token from localStorage', async () => {
       localStorageMock.getItem.mockReturnValue('stored-token');
-      const connectPromise = websocketService.connectAuthenticated('notifications');
+      const connectPromise =
+        websocketService.connectAuthenticated('notifications');
       const ws = wsInstances[wsInstances.length - 1];
 
       expect(ws.url).toContain('token=stored-token');
@@ -418,7 +461,7 @@ describe('WebSocketService', () => {
       localStorageMock.getItem.mockReturnValue(null);
 
       await expect(
-        websocketService.connectAuthenticated('notifications'),
+        websocketService.connectAuthenticated('notifications')
       ).rejects.toThrow('User not authenticated');
     });
   });
@@ -490,7 +533,10 @@ describe('WebSocketService', () => {
       ws.simulateMessage({ type: 'message.new', data: { text: 'Hello' } });
 
       expect(callback).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'message.new', data: { text: 'Hello' } }),
+        expect.objectContaining({
+          type: 'message.new',
+          data: { text: 'Hello' },
+        })
       );
     });
 
@@ -553,13 +599,15 @@ describe('WebSocketService', () => {
 
       // Should have been called at least for connecting and connected states
       expect(statusCallback).toHaveBeenCalled();
-      const lastCall = statusCallback.mock.calls[statusCallback.mock.calls.length - 1][0];
+      const lastCall =
+        statusCallback.mock.calls[statusCallback.mock.calls.length - 1][0];
       expect(lastCall.connected).toBe(true);
     });
 
     it('should allow unsubscribing from status changes', () => {
       const statusCallback = jest.fn();
-      const unsubscribe = websocketService.onConnectionStatusChange(statusCallback);
+      const unsubscribe =
+        websocketService.onConnectionStatusChange(statusCallback);
 
       unsubscribe();
 

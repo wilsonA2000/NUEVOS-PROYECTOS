@@ -63,7 +63,9 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
       return;
     }
     if (notes.trim().length < 20) {
-      setError('Por favor proporciona una explicación más detallada (mínimo 20 caracteres)');
+      setError(
+        'Por favor proporciona una explicación más detallada (mínimo 20 caracteres)',
+      );
       return;
     }
     setError('');
@@ -83,15 +85,15 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar sx={{ bgcolor: 'error.light' }}>
             <RejectIcon sx={{ color: 'error.main' }} />
           </Avatar>
           <Box>
-            <Typography variant="h6">Rechazar / Solicitar Cambios</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='h6'>Rechazar / Solicitar Cambios</Typography>
+            <Typography variant='body2' color='text.secondary'>
               {contractTitle}
             </Typography>
           </Box>
@@ -100,20 +102,25 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
 
       <DialogContent>
         {/* Alerta de advertencia */}
-        <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 3 }}>
-          <Typography variant="body2" gutterBottom fontWeight="medium">
-            Al rechazar, el contrato será devuelto al arrendador para correcciones.
+        <Alert severity='warning' icon={<WarningIcon />} sx={{ mb: 3 }}>
+          <Typography variant='body2' gutterBottom fontWeight='medium'>
+            Al rechazar, el contrato será devuelto al arrendador para
+            correcciones.
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               PENDING_ADMIN_REVIEW
             </Typography>
-            <ArrowIcon fontSize="small" />
-            <Typography variant="caption" fontWeight="medium" color="error.main">
+            <ArrowIcon fontSize='small' />
+            <Typography
+              variant='caption'
+              fontWeight='medium'
+              color='error.main'
+            >
               LANDLORD_CORRECTING
             </Typography>
-            <ArrowIcon fontSize="small" />
-            <Typography variant="caption" color="text.secondary">
+            <ArrowIcon fontSize='small' />
+            <Typography variant='caption' color='text.secondary'>
               RE_PENDING_ADMIN
             </Typography>
           </Box>
@@ -121,13 +128,13 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
 
         {/* Campo de notas obligatorio */}
         <TextField
-          label="Motivo del rechazo *"
-          placeholder="Describe los problemas encontrados y las correcciones necesarias..."
+          label='Motivo del rechazo *'
+          placeholder='Describe los problemas encontrados y las correcciones necesarias...'
           multiline
           rows={4}
           fullWidth
           value={notes}
-          onChange={(e) => {
+          onChange={e => {
             setNotes(e.target.value);
             if (error) setError('');
           }}
@@ -139,7 +146,12 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
 
         {/* Sugerencias */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" gutterBottom display="block">
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            gutterBottom
+            display='block'
+          >
             Sugerencias de motivos comunes:
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -149,12 +161,16 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
               'Monto de depósito incorrecto',
               'Fecha de inicio inválida',
               'Dirección incompleta',
-            ].map((suggestion) => (
+            ].map(suggestion => (
               <Button
                 key={suggestion}
-                size="small"
-                variant="outlined"
-                onClick={() => setNotes((prev) => (prev ? `${prev}\n- ${suggestion}` : suggestion))}
+                size='small'
+                variant='outlined'
+                onClick={() =>
+                  setNotes(prev =>
+                    prev ? `${prev}\n- ${suggestion}` : suggestion,
+                  )
+                }
                 disabled={isLoading}
                 sx={{ textTransform: 'none', fontSize: '0.75rem' }}
               >
@@ -169,14 +185,16 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
           control={
             <Checkbox
               checked={requiresResubmission}
-              onChange={(e) => setRequiresResubmission(e.target.checked)}
+              onChange={e => setRequiresResubmission(e.target.checked)}
               disabled={isLoading}
             />
           }
           label={
             <Box>
-              <Typography variant="body2">Requiere re-envío para aprobación</Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='body2'>
+                Requiere re-envío para aprobación
+              </Typography>
+              <Typography variant='caption' color='text.secondary'>
                 El arrendador deberá corregir y re-enviar el contrato
               </Typography>
             </Box>
@@ -187,10 +205,15 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
 
         {/* Información adicional */}
         <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1 }}>
-          <Typography variant="body2" fontWeight="medium" gutterBottom>
+          <Typography variant='body2' fontWeight='medium' gutterBottom>
             ¿Qué sucede después?
           </Typography>
-          <Typography variant="caption" color="text.secondary" component="ul" sx={{ pl: 2, m: 0 }}>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            component='ul'
+            sx={{ pl: 2, m: 0 }}
+          >
             <li>El arrendador recibirá una notificación con tus notas</li>
             <li>El contrato pasará a estado "En Corrección"</li>
             <li>Una vez corregido, volverá a tu bandeja de pendientes</li>
@@ -204,11 +227,13 @@ const ContractRejectionModal: React.FC<ContractRejectionModalProps> = ({
           Cancelar
         </Button>
         <Button
-          variant="contained"
-          color="error"
+          variant='contained'
+          color='error'
           onClick={handleConfirm}
           disabled={isLoading || !notes.trim()}
-          startIcon={isLoading ? <CircularProgress size={20} /> : <RejectIcon />}
+          startIcon={
+            isLoading ? <CircularProgress size={20} /> : <RejectIcon />
+          }
         >
           {isLoading ? 'Procesando...' : 'Rechazar y Solicitar Cambios'}
         </Button>

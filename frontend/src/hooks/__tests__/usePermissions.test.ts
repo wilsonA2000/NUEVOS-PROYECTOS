@@ -13,11 +13,7 @@ const createWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('usePermissions Hook', () => {
@@ -26,17 +22,42 @@ describe('usePermissions Hook', () => {
       id: 1,
       name: 'admin',
       permissions: [
-        { id: 1, name: 'Can view properties', codename: 'view_property', description: 'View properties' },
-        { id: 2, name: 'Can edit properties', codename: 'edit_property', description: 'Edit properties' },
-        { id: 3, name: 'Can delete properties', codename: 'delete_property', description: 'Delete properties' },
+        {
+          id: 1,
+          name: 'Can view properties',
+          codename: 'view_property',
+          description: 'View properties',
+        },
+        {
+          id: 2,
+          name: 'Can edit properties',
+          codename: 'edit_property',
+          description: 'Edit properties',
+        },
+        {
+          id: 3,
+          name: 'Can delete properties',
+          codename: 'delete_property',
+          description: 'Delete properties',
+        },
       ],
     },
     {
       id: 2,
       name: 'landlord',
       permissions: [
-        { id: 4, name: 'Can create contracts', codename: 'create_contract', description: 'Create contracts' },
-        { id: 5, name: 'Can manage tenants', codename: 'manage_tenants', description: 'Manage tenants' },
+        {
+          id: 4,
+          name: 'Can create contracts',
+          codename: 'create_contract',
+          description: 'Create contracts',
+        },
+        {
+          id: 5,
+          name: 'Can manage tenants',
+          codename: 'manage_tenants',
+          description: 'Manage tenants',
+        },
       ],
     },
   ];
@@ -65,7 +86,9 @@ describe('usePermissions Hook', () => {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.hasAnyPermission(['view_property', 'edit_property'])).toBe(false);
+    expect(
+      result.current.hasAnyPermission(['view_property', 'edit_property'])
+    ).toBe(false);
   });
 
   it('should return false for hasAllPermissions when data is not loaded', () => {
@@ -73,7 +96,9 @@ describe('usePermissions Hook', () => {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.hasAllPermissions(['view_property', 'edit_property'])).toBe(false);
+    expect(
+      result.current.hasAllPermissions(['view_property', 'edit_property'])
+    ).toBe(false);
   });
 
   it('should check hasPermission correctly when data is loaded', async () => {
@@ -100,7 +125,9 @@ describe('usePermissions Hook', () => {
     });
 
     // With empty permissions, should return false
-    expect(result.current.hasAnyPermission(['view_property', 'non_existent'])).toBe(false);
+    expect(
+      result.current.hasAnyPermission(['view_property', 'non_existent'])
+    ).toBe(false);
   });
 
   it('should check hasAllPermissions correctly with loaded data', async () => {
@@ -113,7 +140,9 @@ describe('usePermissions Hook', () => {
     });
 
     // With empty permissions, should return false
-    expect(result.current.hasAllPermissions(['view_property', 'edit_property'])).toBe(false);
+    expect(
+      result.current.hasAllPermissions(['view_property', 'edit_property'])
+    ).toBe(false);
   });
 
   it('should expose loading state via permissions query', () => {

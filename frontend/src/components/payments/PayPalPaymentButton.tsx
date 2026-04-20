@@ -24,7 +24,10 @@ import {
   Error as ErrorIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
-import { paypalService, PayPalPaymentResult } from '../../services/paypalService';
+import {
+  paypalService,
+  PayPalPaymentResult,
+} from '../../services/paypalService';
 import { loggingService, LogCategory } from '../../services/loggingService';
 
 export interface PayPalPaymentButtonProps {
@@ -44,13 +47,21 @@ export interface PayPalPaymentButtonProps {
     layout?: 'vertical' | 'horizontal';
     color?: 'gold' | 'blue' | 'silver' | 'white' | 'black';
     shape?: 'rect' | 'pill';
-    label?: 'paypal' | 'checkout' | 'buynow' | 'pay' | 'installment' | 'subscribe' | 'donate';
+    label?:
+      | 'paypal'
+      | 'checkout'
+      | 'buynow'
+      | 'pay'
+      | 'installment'
+      | 'subscribe'
+      | 'donate';
     tagline?: boolean;
     height?: number;
   };
 }
 
-interface PayPalButtonContentProps extends Omit<PayPalPaymentButtonProps, 'clientId' | 'environment'> {}
+interface PayPalButtonContentProps
+  extends Omit<PayPalPaymentButtonProps, 'clientId' | 'environment'> {}
 
 const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
   amount,
@@ -109,11 +120,17 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
 
       const order = await paypalService.createOrder(orderData);
       setOrderCreated(true);
-      loggingService.info(LogCategory.BUSINESS, 'PayPal order created', { orderId: order.id });
+      loggingService.info(LogCategory.BUSINESS, 'PayPal order created', {
+        orderId: order.id,
+      });
 
       return order.id;
     } catch (error) {
-      loggingService.error(LogCategory.BUSINESS, 'Error creating PayPal order', { error });
+      loggingService.error(
+        LogCategory.BUSINESS,
+        'Error creating PayPal order',
+        { error },
+      );
       onError('Error al crear la orden de PayPal');
       throw error;
     } finally {
@@ -128,15 +145,24 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
       const result = await paypalService.captureOrder(data.orderID);
 
       if (result.success) {
-        loggingService.info(LogCategory.BUSINESS, 'PayPal payment captured', { orderId: data.orderID });
+        loggingService.info(LogCategory.BUSINESS, 'PayPal payment captured', {
+          orderId: data.orderID,
+        });
         onSuccess(result);
       } else {
-        loggingService.error(LogCategory.BUSINESS, 'PayPal capture failed', { error: result.error });
+        loggingService.error(LogCategory.BUSINESS, 'PayPal capture failed', {
+          error: result.error,
+        });
         onError(result.error || 'Error al capturar el pago');
       }
     } catch (error) {
-      loggingService.error(LogCategory.BUSINESS, 'Error capturing PayPal payment', { error });
-      const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
+      loggingService.error(
+        LogCategory.BUSINESS,
+        'Error capturing PayPal payment',
+        { error },
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al procesar el pago';
       onError(paypalService.handlePayPalError({ message: errorMessage }));
     } finally {
       setIsProcessing(false);
@@ -144,13 +170,19 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
   };
 
   const onErrorHandler = (error: any) => {
-    loggingService.error(LogCategory.BUSINESS, 'PayPal button error', { error });
+    loggingService.error(LogCategory.BUSINESS, 'PayPal button error', {
+      error,
+    });
     onError(paypalService.handlePayPalError(error));
     setIsProcessing(false);
   };
 
   const onCancelHandler = () => {
-    loggingService.info(LogCategory.USER_ACTION, 'PayPal payment cancelled', {});
+    loggingService.info(
+      LogCategory.USER_ACTION,
+      'PayPal payment cancelled',
+      {},
+    );
     setIsProcessing(false);
     if (onCancel) {
       onCancel();
@@ -180,12 +212,19 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
         },
       };
 
-      const subscription = await paypalService.createSubscription(subscriptionData);
-      loggingService.info(LogCategory.BUSINESS, 'PayPal subscription created', { subscriptionId: subscription.id });
+      const subscription =
+        await paypalService.createSubscription(subscriptionData);
+      loggingService.info(LogCategory.BUSINESS, 'PayPal subscription created', {
+        subscriptionId: subscription.id,
+      });
 
       return subscription.id;
     } catch (error) {
-      loggingService.error(LogCategory.BUSINESS, 'Error creating PayPal subscription', { error });
+      loggingService.error(
+        LogCategory.BUSINESS,
+        'Error creating PayPal subscription',
+        { error },
+      );
       onError('Error al crear la suscripción');
       throw error;
     } finally {
@@ -197,7 +236,12 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
     return (
       <Card>
         <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" py={4}>
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
+            py={4}
+          >
             <CircularProgress sx={{ mr: 2 }} />
             <Typography>Cargando PayPal...</Typography>
           </Box>
@@ -210,10 +254,11 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
     return (
       <Card>
         <CardContent>
-          <Alert severity="error">
-            <Typography variant="h6">Error al cargar PayPal</Typography>
-            <Typography variant="body2">
-              No se pudo cargar el SDK de PayPal. Por favor, verifique su conexión a internet e intente nuevamente.
+          <Alert severity='error'>
+            <Typography variant='h6'>Error al cargar PayPal</Typography>
+            <Typography variant='body2'>
+              No se pudo cargar el SDK de PayPal. Por favor, verifique su
+              conexión a internet e intente nuevamente.
             </Typography>
           </Alert>
         </CardContent>
@@ -225,7 +270,12 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
     return (
       <Card>
         <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" py={4}>
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
+            py={4}
+          >
             <CircularProgress sx={{ mr: 2 }} />
             <Typography>Inicializando PayPal...</Typography>
           </Box>
@@ -237,14 +287,14 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box display="flex" alignItems="center" mb={3}>
-          <PaymentIcon color="primary" sx={{ mr: 1 }} />
-          <Typography variant="h6">Pagar con PayPal</Typography>
+        <Box display='flex' alignItems='center' mb={3}>
+          <PaymentIcon color='primary' sx={{ mr: 1 }} />
+          <Typography variant='h6'>Pagar con PayPal</Typography>
         </Box>
 
         {/* Resumen del pago */}
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="body1">
+        <Alert severity='info' sx={{ mb: 3 }}>
+          <Typography variant='body1'>
             <strong>Total a pagar: </strong>
             {new Intl.NumberFormat('en-US', {
               style: 'currency',
@@ -252,7 +302,7 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
             }).format(amount)}
           </Typography>
           {description && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               {description}
             </Typography>
           )}
@@ -265,15 +315,15 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
               control={
                 <Switch
                   checked={enableSubscription}
-                  onChange={(e) => setEnableSubscription(e.target.checked)}
+                  onChange={e => setEnableSubscription(e.target.checked)}
                   disabled={disabled || isProcessing}
                 />
               }
-              label="Configurar como pago recurrente"
+              label='Configurar como pago recurrente'
             />
             {enableSubscription && (
-              <Alert severity="info" sx={{ mt: 1 }}>
-                <Typography variant="body2">
+              <Alert severity='info' sx={{ mt: 1 }}>
+                <Typography variant='body2'>
                   Este pago se configurará como una suscripción recurrente
                 </Typography>
               </Alert>
@@ -283,10 +333,10 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
 
         {/* Estados del proceso */}
         {isProcessing && (
-          <Alert severity="info" sx={{ mb: 2 }}>
-            <Box display="flex" alignItems="center">
+          <Alert severity='info' sx={{ mb: 2 }}>
+            <Box display='flex' alignItems='center'>
               <CircularProgress size={20} sx={{ mr: 1 }} />
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 {orderCreated ? 'Procesando pago...' : 'Creando orden...'}
               </Typography>
             </Box>
@@ -319,20 +369,20 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
         {/* Información de seguridad y métodos de pago */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={6}>
-            <Alert severity="success" sx={{ height: '100%' }}>
-              <Box display="flex" alignItems="center">
+            <Alert severity='success' sx={{ height: '100%' }}>
+              <Box display='flex' alignItems='center'>
                 <SecurityIcon sx={{ mr: 1 }} />
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   Pagos seguros protegidos por PayPal
                 </Typography>
               </Box>
             </Alert>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Alert severity="info" sx={{ height: '100%' }}>
-              <Box display="flex" alignItems="center">
+            <Alert severity='info' sx={{ height: '100%' }}>
+              <Box display='flex' alignItems='center'>
                 <CheckCircleIcon sx={{ mr: 1 }} />
-                <Typography variant="body2">
+                <Typography variant='body2'>
                   No se comparten datos de tarjeta
                 </Typography>
               </Box>
@@ -342,22 +392,22 @@ const PayPalButtonContent: React.FC<PayPalButtonContentProps> = ({
 
         {/* Métodos de pago aceptados */}
         <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
+          <Typography variant='body2' color='text.secondary' gutterBottom>
             Métodos de pago aceptados:
           </Typography>
-          <Box display="flex" gap={1} flexWrap="wrap">
-            <Chip size="small" label="PayPal Balance" />
-            <Chip size="small" label="Tarjetas de Crédito" />
-            <Chip size="small" label="Transferencia Bancaria" />
-            <Chip size="small" label="PayPal Credit" />
+          <Box display='flex' gap={1} flexWrap='wrap'>
+            <Chip size='small' label='PayPal Balance' />
+            <Chip size='small' label='Tarjetas de Crédito' />
+            <Chip size='small' label='Transferencia Bancaria' />
+            <Chip size='small' label='PayPal Credit' />
           </Box>
         </Box>
 
         {/* Botón de cancelación */}
         {onCancel && (
-          <Box display="flex" justifyContent="center" mt={2}>
+          <Box display='flex' justifyContent='center' mt={2}>
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={onCancel}
               disabled={disabled || isProcessing}
             >
@@ -389,7 +439,10 @@ export const PayPalPaymentButton: React.FC<PayPalPaymentButtonProps> = ({
     setScriptOptions((prev: Record<string, string>) => ({
       ...prev,
       currency: props.currency || 'USD',
-      intent: props.showSubscriptions && props.subscriptionPlanId ? 'subscription' : 'capture',
+      intent:
+        props.showSubscriptions && props.subscriptionPlanId
+          ? 'subscription'
+          : 'capture',
     }));
   }, [props.currency, props.showSubscriptions, props.subscriptionPlanId]);
 

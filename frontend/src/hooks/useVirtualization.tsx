@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 interface VirtualizationOptions {
   itemHeight: number;
@@ -23,7 +23,7 @@ export function useVirtualization<T>(
     itemHeight,
     containerHeight,
     overscan = 5,
-    estimatedItemHeight,
+
     getItemHeight,
   } = options;
 
@@ -59,10 +59,12 @@ export function useVirtualization<T>(
 
     for (let i = start; i <= end; i++) {
       const size = getItemHeight ? getItemHeight(i) : itemHeight;
-      
+
       // Calcular posición real del item
       if (getItemHeight) {
-        currentStart = items.slice(0, i).reduce((total, _, index) => total + getItemHeight(index), 0);
+        currentStart = items
+          .slice(0, i)
+          .reduce((total, _, index) => total + getItemHeight(index), 0);
       } else {
         currentStart = i * itemHeight;
       }
@@ -76,7 +78,14 @@ export function useVirtualization<T>(
     }
 
     return virtualItems;
-  }, [scrollTop, containerHeight, items.length, itemHeight, overscan, getItemHeight]);
+  }, [
+    scrollTop,
+    containerHeight,
+    items.length,
+    itemHeight,
+    overscan,
+    getItemHeight,
+  ]);
 
   // Handler para el scroll
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
@@ -93,24 +102,29 @@ export function useVirtualization<T>(
   }, []);
 
   // Scroll a un elemento específico
-  const scrollToIndex = useCallback((index: number, align: 'start' | 'center' | 'end' = 'start') => {
-    const element = document.getElementById(`virtual-item-${index}`);
-    if (element) {
-      const itemStart = getItemHeight 
-        ? items.slice(0, index).reduce((total, _, i) => total + getItemHeight(i), 0)
-        : index * itemHeight;
+  const scrollToIndex = useCallback(
+    (index: number, align: 'start' | 'center' | 'end' = 'start') => {
+      const element = document.getElementById(`virtual-item-${index}`);
+      if (element) {
+        const itemStart = getItemHeight
+          ? items
+              .slice(0, index)
+              .reduce((total, _, i) => total + getItemHeight(i), 0)
+          : index * itemHeight;
 
-      let scrollTo = itemStart;
+        let scrollTo = itemStart;
 
-      if (align === 'center') {
-        scrollTo = itemStart - containerHeight / 2 + itemHeight / 2;
-      } else if (align === 'end') {
-        scrollTo = itemStart - containerHeight + itemHeight;
+        if (align === 'center') {
+          scrollTo = itemStart - containerHeight / 2 + itemHeight / 2;
+        } else if (align === 'end') {
+          scrollTo = itemStart - containerHeight + itemHeight;
+        }
+
+        element.scrollTop = Math.max(0, scrollTo);
       }
-
-      element.scrollTop = Math.max(0, scrollTo);
-    }
-  }, [items, itemHeight, containerHeight, getItemHeight]);
+    },
+    [items, itemHeight, containerHeight, getItemHeight],
+  );
 
   return {
     virtualItems,
@@ -184,7 +198,7 @@ export function useInfiniteScroll(options: InfiniteScrollOptions) {
   const handleScroll = useCallback(
     async (event: React.UIEvent<HTMLDivElement>) => {
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-      
+
       if (
         scrollHeight - scrollTop - clientHeight < threshold &&
         hasNextPage &&
@@ -207,17 +221,22 @@ export function useInfiniteScroll(options: InfiniteScrollOptions) {
 
 // Hook para detectar scroll direction
 export function useScrollDirection() {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(
+    null,
+  );
   const [lastScrollTop, setLastScrollTop] = useState(0);
 
-  const updateScrollDirection = useCallback((scrollTop: number) => {
-    if (scrollTop > lastScrollTop) {
-      setScrollDirection('down');
-    } else if (scrollTop < lastScrollTop) {
-      setScrollDirection('up');
-    }
-    setLastScrollTop(scrollTop);
-  }, [lastScrollTop]);
+  const updateScrollDirection = useCallback(
+    (scrollTop: number) => {
+      if (scrollTop > lastScrollTop) {
+        setScrollDirection('down');
+      } else if (scrollTop < lastScrollTop) {
+        setScrollDirection('up');
+      }
+      setLastScrollTop(scrollTop);
+    },
+    [lastScrollTop],
+  );
 
   return { scrollDirection, updateScrollDirection };
 }
@@ -249,22 +268,20 @@ export function VirtualizedList<T>({
   style,
 }: VirtualizedListProps<T>) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  
-  const { virtualItems, totalHeight, isScrolling, handleScroll } = useVirtualization(
-    items,
-    {
+
+  const { virtualItems, totalHeight, isScrolling, handleScroll } =
+    useVirtualization(items, {
       itemHeight,
       containerHeight: height,
       overscan,
       estimatedItemHeight,
       getItemHeight,
-    },
-  );
+    });
 
   const onScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
       handleScroll(event);
-      
+
       // Detectar scroll end
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
       if (scrollTop + clientHeight >= scrollHeight - 10) {
@@ -287,7 +304,7 @@ export function VirtualizedList<T>({
       onScroll={onScroll}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
-        {virtualItems.map((virtualItem) => (
+        {virtualItems.map(virtualItem => (
           <div
             key={virtualItem.index}
             id={`virtual-item-${virtualItem.index}`}
@@ -298,7 +315,11 @@ export function VirtualizedList<T>({
               width: '100%',
             }}
           >
-            {renderItem(items[virtualItem.index]!, virtualItem.index, isScrolling)}
+            {renderItem(
+              items[virtualItem.index]!,
+              virtualItem.index,
+              isScrolling,
+            )}
           </div>
         ))}
       </div>
@@ -307,10 +328,7 @@ export function VirtualizedList<T>({
 }
 
 // Hook para memoización inteligente de items
-export function useSmartMemo<T>(
-  items: T[],
-  dependencies: any[] = [],
-): T[] {
+export function useSmartMemo<T>(items: T[], dependencies: any[] = []): T[] {
   return useMemo(() => items, [items.length, ...dependencies]);
 }
 
@@ -324,25 +342,28 @@ interface VirtualPaginationOptions {
 export function useVirtualPagination(options: VirtualPaginationOptions) {
   const { pageSize, totalItems, initialPage = 1 } = options;
   const [currentPage, setCurrentPage] = useState(initialPage);
-  
+
   const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalItems);
-  
-  const goToPage = useCallback((page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  }, [totalPages]);
-  
+
+  const goToPage = useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+        setCurrentPage(page);
+      }
+    },
+    [totalPages],
+  );
+
   const nextPage = useCallback(() => {
     goToPage(currentPage + 1);
   }, [currentPage, goToPage]);
-  
+
   const prevPage = useCallback(() => {
     goToPage(currentPage - 1);
   }, [currentPage, goToPage]);
-  
+
   return {
     currentPage,
     totalPages,

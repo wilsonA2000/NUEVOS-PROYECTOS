@@ -1,17 +1,25 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../services/propertyService';
-import { Property, CreatePropertyDto, UpdatePropertyDto, PropertySearchFilters, PropertyStats, PropertyFiltersResponse } from '../types/property';
+import {
+  Property,
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  PropertySearchFilters,
+  PropertyStats,
+  PropertyFiltersResponse,
+} from '../types/property';
 import { useAuth } from './useAuth';
-import { useDynamicQuery, useStableQuery, useStaticQuery, useOptimizedMutation, usePaginatedQuery } from './useOptimizedQueries';
-import { cacheUtils } from '../lib/queryClient';
+import { useDynamicQuery } from './useOptimizedQueries';
 
 export const useProperties = (filters?: PropertySearchFilters) => {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
 
   if (!queryClient) {
-    throw new Error('QueryClient no está disponible. Verifica que QueryClientProvider esté configurado.');
+    throw new Error(
+      'QueryClient no está disponible. Verifica que QueryClientProvider esté configurado.',
+    );
   }
 
   // Apply role-based filtering
@@ -26,8 +34,17 @@ export const useProperties = (filters?: PropertySearchFilters) => {
     return combinedFilters;
   }, [filters, user?.user_type]);
 
-  const { data: properties, isLoading, error } = useDynamicQuery<Property[]>(
-    ['properties', 'list', JSON.stringify(roleBasedFilters), user?.user_type ?? ''],
+  const {
+    data: properties,
+    isLoading,
+    error,
+  } = useDynamicQuery<Property[]>(
+    [
+      'properties',
+      'list',
+      JSON.stringify(roleBasedFilters),
+      user?.user_type ?? '',
+    ],
     () => {
       return propertyService.getProperties(roleBasedFilters);
     },
@@ -39,7 +56,10 @@ export const useProperties = (filters?: PropertySearchFilters) => {
 
         // For tenants, ensure only available properties are shown
         if (user?.user_type === 'tenant') {
-          filteredData = data?.filter((property: Property) => property.status === 'available') || [];
+          filteredData =
+            data?.filter(
+              (property: Property) => property.status === 'available',
+            ) || [];
         }
 
         // Optimizar datos de propiedades
@@ -47,7 +67,10 @@ export const useProperties = (filters?: PropertySearchFilters) => {
           ...property,
           // Precargar imágenes optimizadas
           images: property.images?.map((img: any) => {
-            const imgUrl = typeof img === 'string' ? img : img?.image || img?.image_url || img;
+            const imgUrl =
+              typeof img === 'string'
+                ? img
+                : img?.image || img?.image_url || img;
             if (typeof imgUrl === 'string') {
               return {
                 original: imgUrl,
@@ -60,14 +83,21 @@ export const useProperties = (filters?: PropertySearchFilters) => {
           // Calcular métricas de rendimiento
           performance: {
             pricePerSqm: null,
-            isNew: property.created_at ? new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) : false,
+            isNew: property.created_at
+              ? new Date(property.created_at) >
+                new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+              : false,
           },
         }));
       },
     } as any,
   );
 
-  const createProperty = useMutation<Property, Error, FormData | CreatePropertyDto>({
+  const createProperty = useMutation<
+    Property,
+    Error,
+    FormData | CreatePropertyDto
+  >({
     mutationFn: propertyService.createProperty,
     onSuccess: () => {
       if (!queryClient) {
@@ -94,7 +124,11 @@ export const useProperties = (filters?: PropertySearchFilters) => {
     },
   });
 
-  const updateProperty = useMutation<Property, Error, { id: string; data: UpdatePropertyDto }>({
+  const updateProperty = useMutation<
+    Property,
+    Error,
+    { id: string; data: UpdatePropertyDto }
+  >({
     mutationFn: ({ id, data }: { id: string; data: UpdatePropertyDto }) =>
       propertyService.updateProperty(id, data),
     onSuccess: () => {
@@ -115,12 +149,17 @@ export const useProperties = (filters?: PropertySearchFilters) => {
     },
   });
 
-  const searchProperties = useMutation<Property[], Error, PropertySearchFilters>({
+  const searchProperties = useMutation<
+    Property[],
+    Error,
+    PropertySearchFilters
+  >({
     mutationFn: propertyService.searchProperties,
   });
 
   const toggleFavorite = useMutation<{ message: string }, Error, string>({
-    mutationFn: (propertyId: string) => propertyService.toggleFavorite(propertyId),
+    mutationFn: (propertyId: string) =>
+      propertyService.toggleFavorite(propertyId),
     onSuccess: () => {
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -142,7 +181,11 @@ export const useProperties = (filters?: PropertySearchFilters) => {
 };
 
 export const useProperty = (id: string) => {
-  const { data: property, isLoading, error } = useQuery<Property>({
+  const {
+    data: property,
+    isLoading,
+    error,
+  } = useQuery<Property>({
     queryKey: ['property', id],
     queryFn: () => propertyService.getProperty(id),
     enabled: !!id,
@@ -156,7 +199,11 @@ export const useProperty = (id: string) => {
 };
 
 export const useFeaturedProperties = () => {
-  const { data: properties, isLoading, error } = useQuery<Property[]>({
+  const {
+    data: properties,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
     queryKey: ['featured-properties'],
     queryFn: propertyService.getFeaturedProperties,
   });
@@ -169,7 +216,11 @@ export const useFeaturedProperties = () => {
 };
 
 export const useTrendingProperties = () => {
-  const { data: properties, isLoading, error } = useQuery<Property[]>({
+  const {
+    data: properties,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
     queryKey: ['trending-properties'],
     queryFn: propertyService.getTrendingProperties,
   });
@@ -182,7 +233,11 @@ export const useTrendingProperties = () => {
 };
 
 export const usePropertyFilters = () => {
-  const { data: filters, isLoading, error } = useQuery<PropertyFiltersResponse>({
+  const {
+    data: filters,
+    isLoading,
+    error,
+  } = useQuery<PropertyFiltersResponse>({
     queryKey: ['property-filters'],
     queryFn: propertyService.getPropertyFilters,
   });
@@ -195,7 +250,11 @@ export const usePropertyFilters = () => {
 };
 
 export const usePropertyStats = () => {
-  const { data: stats, isLoading, error } = useQuery<PropertyStats>({
+  const {
+    data: stats,
+    isLoading,
+    error,
+  } = useQuery<PropertyStats>({
     queryKey: ['property-stats'],
     queryFn: propertyService.getPropertyStats,
   });
@@ -208,7 +267,11 @@ export const usePropertyStats = () => {
 };
 
 export const useFavorites = () => {
-  const { data: favorites, isLoading, error } = useQuery<Property[]>({
+  const {
+    data: favorites,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
     queryKey: ['favorites'],
     queryFn: propertyService.getFavorites,
   });

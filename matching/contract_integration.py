@@ -18,73 +18,78 @@ from matching.models import MatchRequest
 
 class MatchContractIntegrationService:
     """Servicio para crear contratos desde matches aceptados"""
-    
+
     @staticmethod
     def validate_match_for_contract(match_request: MatchRequest) -> Dict[str, any]:
         """Valida que un match puede convertirse en contrato"""
         errors = []
         warnings = []
-        
+
         # Validación 1: Match debe estar aceptado
-        if match_request.status != 'accepted':
+        if match_request.status != "accepted":
             errors.append("El match debe estar aceptado por ambas partes")
-        
+
         # Validación 2: Verificar identidades
         tenant = match_request.tenant
         landlord = match_request.property.landlord
-        
+
         if not tenant.is_verified:
             errors.append("El inquilino debe tener identidad verificada")
-        
+
         if not landlord.is_verified:
             errors.append("El arrendador debe tener identidad verificada")
-        
+
         # Validación 3: Propiedad debe estar disponible
-        if match_request.property.status != 'available' or not match_request.property.is_active:
+        if (
+            match_request.property.status != "available"
+            or not match_request.property.is_active
+        ):
             errors.append("La propiedad no está disponible")
-        
+
         # Validación 4: Documentos requeridos
-        
+
         # Aquí verificarías los documentos subidos
-        
+
         # Validación 5: Información financiera
         if match_request.monthly_income < match_request.property.rent_price * 3:
             warnings.append("Ingresos del inquilino menores a 3x el arriendo")
-        
+
         return {
-            'valid': len(errors) == 0,
-            'errors': errors,
-            'warnings': warnings,
-            'match_data': {
-                'tenant': {
-                    'id': str(tenant.id),
-                    'name': tenant.get_full_name(),
-                    'email': tenant.email,
-                    'is_verified': tenant.is_verified
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "match_data": {
+                "tenant": {
+                    "id": str(tenant.id),
+                    "name": tenant.get_full_name(),
+                    "email": tenant.email,
+                    "is_verified": tenant.is_verified,
                 },
-                'landlord': {
-                    'id': str(landlord.id),
-                    'name': landlord.get_full_name(),
-                    'email': landlord.email,
-                    'is_verified': landlord.is_verified
+                "landlord": {
+                    "id": str(landlord.id),
+                    "name": landlord.get_full_name(),
+                    "email": landlord.email,
+                    "is_verified": landlord.is_verified,
                 },
-                'property': {
-                    'id': str(match_request.property.id),
-                    'title': match_request.property.title,
-                    'address': match_request.property.address,
-                    'city': match_request.property.city,
-                    'state': match_request.property.state,
-                    'rent_price': float(match_request.property.rent_price),
-                    'status': match_request.property.status
+                "property": {
+                    "id": str(match_request.property.id),
+                    "title": match_request.property.title,
+                    "address": match_request.property.address,
+                    "city": match_request.property.city,
+                    "state": match_request.property.state,
+                    "rent_price": float(match_request.property.rent_price),
+                    "status": match_request.property.status,
                 },
-                'financial_info': {
-                    'monthly_rent': float(match_request.property.rent_price),
-                    'tenant_income': float(match_request.monthly_income) if match_request.monthly_income else None,
-                    'lease_duration': match_request.lease_duration_months
-                }
-            }
+                "financial_info": {
+                    "monthly_rent": float(match_request.property.rent_price),
+                    "tenant_income": float(match_request.monthly_income)
+                    if match_request.monthly_income
+                    else None,
+                    "lease_duration": match_request.lease_duration_months,
+                },
+            },
         }
-    
+
     @staticmethod
     @transaction.atomic
     def create_contract_from_match(
@@ -100,8 +105,10 @@ class MatchContractIntegrationService:
         """
         from contracts.models import Contract
 
-        validation = MatchContractIntegrationService.validate_match_for_contract(match_request)
-        if not validation['valid']:
+        validation = MatchContractIntegrationService.validate_match_for_contract(
+            match_request
+        )
+        if not validation["valid"]:
             raise ValidationError(
                 f"No se puede crear contrato: {', '.join(validation['errors'])}"
             )
@@ -111,6 +118,6 @@ class MatchContractIntegrationService:
 
         if not match_request.has_contract:
             match_request.has_contract = True
-            match_request.save(update_fields=['has_contract'])
+            match_request.save(update_fields=["has_contract"])
 
         return contract

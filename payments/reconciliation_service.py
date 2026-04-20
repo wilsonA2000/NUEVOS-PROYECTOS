@@ -21,12 +21,12 @@ def reconcile_payment(transaction):
     Returns:
         bool: True si se reconcilió exitosamente
     """
-    if transaction.status != 'completed':
+    if transaction.status != "completed":
         return False
 
-    if transaction.transaction_type in ('rent_payment', 'monthly_rent'):
+    if transaction.transaction_type in ("rent_payment", "monthly_rent"):
         return _reconcile_rent_payment(transaction)
-    if transaction.transaction_type == 'service_payment':
+    if transaction.transaction_type == "service_payment":
         return _reconcile_service_payment(transaction)
 
     return False
@@ -52,21 +52,25 @@ def _reconcile_rent_payment(transaction):
 
         # Actualizar fecha de último pago
         schedule.last_payment_date = timezone.now().date()
-        schedule.save(update_fields=['last_payment_date', 'updated_at'])
+        schedule.save(update_fields=["last_payment_date", "updated_at"])
 
         # Marcar la siguiente PaymentOrder pendiente del schedule como pagada
-        next_order = PaymentOrder.objects.filter(
-            rent_schedule=schedule,
-            status__in=['pending', 'partial', 'overdue'],
-        ).order_by('date_due').first()
+        next_order = (
+            PaymentOrder.objects.filter(
+                rent_schedule=schedule,
+                status__in=["pending", "partial", "overdue"],
+            )
+            .order_by("date_due")
+            .first()
+        )
         if next_order:
             next_order.paid_amount = next_order.total_amount
-            next_order.status = 'paid'
+            next_order.status = "paid"
             next_order.transaction = transaction
             next_order.paid_at = timezone.now()
             next_order.add_audit_event(
-                'paid_via_webhook',
-                f'Pagada vía transacción {transaction.transaction_number}',
+                "paid_via_webhook",
+                f"Pagada vía transacción {transaction.transaction_number}",
                 save=False,
             )
             next_order.save()
@@ -74,11 +78,14 @@ def _reconcile_rent_payment(transaction):
         # Auto-generar factura DIAN
         try:
             from .dian_invoice_service import auto_invoice_rent_payment
+
             auto_invoice_rent_payment(transaction)
         except Exception as e:
             logger.warning(f"Auto-invoice failed for {transaction.id}: {e}")
 
-        logger.info(f"Reconciled transaction {transaction.id} with schedule {schedule.id}")
+        logger.info(
+            f"Reconciled transaction {transaction.id} with schedule {schedule.id}"
+        )
         return True
 
     except Exception as e:
@@ -101,53 +108,57 @@ def _reconcile_service_payment(transaction):
         # y payer. En producción se debería pasar el order_id en el webhook
         # para evitar ambigüedad.
         candidate_orders = PaymentOrder.objects.filter(
-            order_type='service',
+            order_type="service",
             payer=transaction.payer,
             payee=transaction.payee,
             amount=transaction.amount,
-            status__in=['pending', 'partial'],
-        ).order_by('-created_at')
+            status__in=["pending", "partial"],
+        ).order_by("-created_at")
 
         po = candidate_orders.first()
         if po is None:
             logger.info(
-                f'No matching PaymentOrder for service transaction {transaction.id}'
+                f"No matching PaymentOrder for service transaction {transaction.id}"
             )
             return False
 
         # Marcar la PaymentOrder como pagada
         po.paid_amount = po.total_amount
-        po.status = 'paid'
+        po.status = "paid"
         po.transaction = transaction
         po.paid_at = timezone.now()
         po.add_audit_event(
-            'paid_via_webhook',
-            f'Pagada vía transacción {transaction.transaction_number}',
+            "paid_via_webhook",
+            f"Pagada vía transacción {transaction.transaction_number}",
             save=False,
         )
         po.save()
 
         # Marcar la ServiceOrder como paid y crear ServicePayment
         service_order = ServiceOrder.objects.filter(payment_order=po).first()
-        if service_order and service_order.status == 'accepted':
-            service_order.status = 'paid'
+        if service_order and service_order.status == "accepted":
+            service_order.status = "paid"
             service_order.paid_at = timezone.now()
             service_order.save()
             ServicePayment.objects.create(
                 order=service_order,
                 amount_paid=transaction.amount,
-                gateway=transaction.payment_method.payment_type if transaction.payment_method else 'manual',
+                gateway=transaction.payment_method.payment_type
+                if transaction.payment_method
+                else "manual",
                 transaction=transaction,
-                notes=f'Reconciliado vía webhook {transaction.transaction_number}',
+                notes=f"Reconciliado vía webhook {transaction.transaction_number}",
             )
             logger.info(
-                f'ServiceOrder {service_order.id} marked as paid via {transaction.id}'
+                f"ServiceOrder {service_order.id} marked as paid via {transaction.id}"
             )
 
         return True
 
     except Exception as e:
-        logger.error(f"Service reconciliation error for transaction {transaction.id}: {e}")
+        logger.error(
+            f"Service reconciliation error for transaction {transaction.id}: {e}"
+        )
         return False
 
 
@@ -167,7 +178,7 @@ def send_payment_confirmation(transaction):
     if payer and payer.email:
         try:
             send_mail(
-                subject='[VeriHome] Pago confirmado',
+                subject="[VeriHome] Pago confirmado",
                 message=(
                     f'Estimado/a {payer.get_full_name()},\n\n'
                     f'Su pago ha sido confirmado exitosamente.\n\n'
@@ -189,7 +200,7 @@ def send_payment_confirmation(transaction):
     if payee and payee.email:
         try:
             send_mail(
-                subject='[VeriHome] Pago recibido',
+                subject="[VeriHome] Pago recibido",
                 message=(
                     f'Estimado/a {payee.get_full_name()},\n\n'
                     f'Se ha recibido un pago en su cuenta.\n\n'
@@ -218,7 +229,7 @@ def send_payment_failure_notification(transaction):
     if payer and payer.email:
         try:
             send_mail(
-                subject='[VeriHome] Pago no procesado',
+                subject="[VeriHome] Pago no procesado",
                 message=(
                     f'Estimado/a {payer.get_full_name()},\n\n'
                     f'Su pago no pudo ser procesado.\n\n'

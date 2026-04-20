@@ -21,8 +21,8 @@ module.exports = {
   ],
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/build/'],
   coveragePathIgnorePatterns: [
-    '/node_modules/', 
-    '/dist/', 
+    '/node_modules/',
+    '/dist/',
     '/build/',
     'src/vite-env.d.ts',
     'src/main.tsx',
@@ -52,7 +52,7 @@ module.exports = {
   moduleDirectories: ['node_modules', 'src'],
   roots: ['<rootDir>/src'],
   testMatch: [
-    '**/__tests__/**/*.+(ts|tsx|js)', 
+    '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)'
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -64,4 +64,4 @@ module.exports = {
   verbose: true,
   testTimeout: 10000,
   maxWorkers: '50%'
-}; 
+};

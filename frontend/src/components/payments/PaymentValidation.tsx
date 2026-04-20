@@ -71,17 +71,21 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
   });
 
   const [overallScore, setOverallScore] = useState(0);
-  const [securityLevel, setSecurityLevel] = useState<'low' | 'medium' | 'high'>('low');
+  const [securityLevel, setSecurityLevel] = useState<'low' | 'medium' | 'high'>(
+    'low',
+  );
 
   // Validar número de tarjeta
-  const validateCardNumber = (number: string): { isValid: boolean; brand?: string; error?: string } => {
+  const validateCardNumber = (
+    number: string,
+  ): { isValid: boolean; brand?: string; error?: string } => {
     if (!number) {
       return { isValid: false, error: 'Número de tarjeta requerido' };
     }
 
     // Usar el servicio de Stripe para validación
     const validation = stripeService.validateCardNumber(number);
-    
+
     if (!validation.isValid) {
       return { isValid: false, error: 'Número de tarjeta inválido' };
     }
@@ -89,16 +93,26 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
     // Validar longitud según la marca
     const cleanNumber = number.replace(/\D/g, '');
     if (validation.brand === 'amex' && cleanNumber.length !== 15) {
-      return { isValid: false, brand: validation.brand, error: 'American Express debe tener 15 dígitos' };
+      return {
+        isValid: false,
+        brand: validation.brand,
+        error: 'American Express debe tener 15 dígitos',
+      };
     } else if (validation.brand !== 'amex' && cleanNumber.length !== 16) {
-      return { isValid: false, brand: validation.brand, error: 'La tarjeta debe tener 16 dígitos' };
+      return {
+        isValid: false,
+        brand: validation.brand,
+        error: 'La tarjeta debe tener 16 dígitos',
+      };
     }
 
     return { isValid: true, brand: validation.brand };
   };
 
   // Validar fecha de vencimiento
-  const validateExpiry = (expiry: string): { isValid: boolean; error?: string } => {
+  const validateExpiry = (
+    expiry: string,
+  ): { isValid: boolean; error?: string } => {
     if (!expiry) {
       return { isValid: false, error: 'Fecha de vencimiento requerida' };
     }
@@ -116,7 +130,10 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
     const expiryYear = parseInt(year ?? '0');
     const expiryMonth = parseInt(month ?? '0');
 
-    if (expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth)) {
+    if (
+      expiryYear < currentYear ||
+      (expiryYear === currentYear && expiryMonth < currentMonth)
+    ) {
       return { isValid: false, error: 'Tarjeta vencida' };
     }
 
@@ -128,13 +145,16 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
   };
 
   // Validar CVC
-  const validateCVC = (cvc: string, brand?: string): { isValid: boolean; error?: string } => {
+  const validateCVC = (
+    cvc: string,
+    brand?: string,
+  ): { isValid: boolean; error?: string } => {
     if (!cvc) {
       return { isValid: false, error: 'CVC requerido' };
     }
 
     const cleanCVC = cvc.replace(/\D/g, '');
-    
+
     if (brand === 'amex' && cleanCVC.length !== 4) {
       return { isValid: false, error: 'American Express requiere 4 dígitos' };
     } else if (brand !== 'amex' && cleanCVC.length !== 3) {
@@ -178,7 +198,12 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
     const ukZip = /^[A-Za-z]{1,2}\d[A-Za-z\d]? \d[A-Za-z]{2}$/;
     const generalZip = /^[\d\w\s-]{3,10}$/;
 
-    if (usZip.test(zip) || caZip.test(zip) || ukZip.test(zip) || generalZip.test(zip)) {
+    if (
+      usZip.test(zip) ||
+      caZip.test(zip) ||
+      ukZip.test(zip) ||
+      generalZip.test(zip)
+    ) {
       return { isValid: true };
     }
 
@@ -205,9 +230,14 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
   };
 
   // Manejar cambios en los campos
-  const handleFieldChange = (field: keyof CardValidationState, value: string) => {
+  const handleFieldChange = (
+    field: keyof CardValidationState,
+    value: string,
+  ) => {
     let formattedValue = value;
-    let validation: { isValid: boolean; brand?: string; error?: string } = { isValid: false };
+    let validation: { isValid: boolean; brand?: string; error?: string } = {
+      isValid: false,
+    };
 
     switch (field) {
       case 'number':
@@ -249,9 +279,9 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
     const validFields = fields.filter(field => field.isValid).length;
     const totalFields = fields.length;
     const score = (validFields / totalFields) * 100;
-    
+
     setOverallScore(score);
-    
+
     if (score >= 80) {
       setSecurityLevel('high');
     } else if (score >= 50) {
@@ -296,27 +326,37 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box display="flex" alignItems="center" mb={2}>
-          <SecurityIcon color="primary" sx={{ mr: 1 }} />
-          <Typography variant="h6">Validación de Tarjeta</Typography>
+        <Box display='flex' alignItems='center' mb={2}>
+          <SecurityIcon color='primary' sx={{ mr: 1 }} />
+          <Typography variant='h6'>Validación de Tarjeta</Typography>
         </Box>
 
         {/* Indicador de seguridad */}
         <Box sx={{ mb: 3 }}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-            <Typography variant="body2">Nivel de Seguridad</Typography>
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+            mb={1}
+          >
+            <Typography variant='body2'>Nivel de Seguridad</Typography>
             <Chip
-              size="small"
+              size='small'
               label={`${securityLevel.toUpperCase()} (${Math.round(overallScore)}%)`}
               color={getSecurityColor()}
               icon={
-                securityLevel === 'high' ? <CheckCircleIcon /> :
-                securityLevel === 'medium' ? <WarningIcon /> : <ErrorIcon />
+                securityLevel === 'high' ? (
+                  <CheckCircleIcon />
+                ) : securityLevel === 'medium' ? (
+                  <WarningIcon />
+                ) : (
+                  <ErrorIcon />
+                )
               }
             />
           </Box>
           <LinearProgress
-            variant="determinate"
+            variant='determinate'
             value={overallScore}
             color={getSecurityColor()}
             sx={{ height: 8, borderRadius: 4 }}
@@ -328,28 +368,30 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Número de Tarjeta"
+              label='Número de Tarjeta'
               value={validationState.number.value}
-              onChange={(e) => handleFieldChange('number', e.target.value)}
+              onChange={e => handleFieldChange('number', e.target.value)}
               disabled={disabled}
               error={!!validationState.number.error}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
+                  <InputAdornment position='start'>
                     {getBrandIcon(validationState.number.brand)}
                   </InputAdornment>
                 ),
                 endAdornment: validationState.number.isValid && (
-                  <InputAdornment position="end">
-                    <CheckCircleIcon color="success" />
+                  <InputAdornment position='end'>
+                    <CheckCircleIcon color='success' />
                   </InputAdornment>
                 ),
               }}
-              placeholder="1234 5678 9012 3456"
+              placeholder='1234 5678 9012 3456'
               inputProps={{ maxLength: 19 }}
             />
             {validationState.number.error && (
-              <FormHelperText error>{validationState.number.error}</FormHelperText>
+              <FormHelperText error>
+                {validationState.number.error}
+              </FormHelperText>
             )}
             {validationState.number.brand && !validationState.number.error && (
               <FormHelperText>
@@ -362,23 +404,25 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Fecha de Vencimiento"
+              label='Fecha de Vencimiento'
               value={validationState.expiry.value}
-              onChange={(e) => handleFieldChange('expiry', e.target.value)}
+              onChange={e => handleFieldChange('expiry', e.target.value)}
               disabled={disabled}
               error={!!validationState.expiry.error}
               InputProps={{
                 endAdornment: validationState.expiry.isValid && (
-                  <InputAdornment position="end">
-                    <CheckCircleIcon color="success" />
+                  <InputAdornment position='end'>
+                    <CheckCircleIcon color='success' />
                   </InputAdornment>
                 ),
               }}
-              placeholder="MM/YY"
+              placeholder='MM/YY'
               inputProps={{ maxLength: 5 }}
             />
             {validationState.expiry.error && (
-              <FormHelperText error>{validationState.expiry.error}</FormHelperText>
+              <FormHelperText error>
+                {validationState.expiry.error}
+              </FormHelperText>
             )}
           </Grid>
 
@@ -386,19 +430,21 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="CVC"
+              label='CVC'
               value={validationState.cvc.value}
-              onChange={(e) => handleFieldChange('cvc', e.target.value)}
+              onChange={e => handleFieldChange('cvc', e.target.value)}
               disabled={disabled}
               error={!!validationState.cvc.error}
               InputProps={{
                 endAdornment: validationState.cvc.isValid && (
-                  <InputAdornment position="end">
-                    <CheckCircleIcon color="success" />
+                  <InputAdornment position='end'>
+                    <CheckCircleIcon color='success' />
                   </InputAdornment>
                 ),
               }}
-              placeholder={validationState.number.brand === 'amex' ? '1234' : '123'}
+              placeholder={
+                validationState.number.brand === 'amex' ? '1234' : '123'
+              }
               inputProps={{ maxLength: 4 }}
             />
             {validationState.cvc.error && (
@@ -410,22 +456,24 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
           <Grid item xs={12} sm={8}>
             <TextField
               fullWidth
-              label="Nombre del Titular"
+              label='Nombre del Titular'
               value={validationState.name.value}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
+              onChange={e => handleFieldChange('name', e.target.value)}
               disabled={disabled}
               error={!!validationState.name.error}
               InputProps={{
                 endAdornment: validationState.name.isValid && (
-                  <InputAdornment position="end">
-                    <CheckCircleIcon color="success" />
+                  <InputAdornment position='end'>
+                    <CheckCircleIcon color='success' />
                   </InputAdornment>
                 ),
               }}
-              placeholder="Juan Pérez"
+              placeholder='Juan Pérez'
             />
             {validationState.name.error && (
-              <FormHelperText error>{validationState.name.error}</FormHelperText>
+              <FormHelperText error>
+                {validationState.name.error}
+              </FormHelperText>
             )}
           </Grid>
 
@@ -433,19 +481,19 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
           <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
-              label="Código Postal"
+              label='Código Postal'
               value={validationState.zip.value}
-              onChange={(e) => handleFieldChange('zip', e.target.value)}
+              onChange={e => handleFieldChange('zip', e.target.value)}
               disabled={disabled}
               error={!!validationState.zip.error}
               InputProps={{
                 endAdornment: validationState.zip.isValid && (
-                  <InputAdornment position="end">
-                    <CheckCircleIcon color="success" />
+                  <InputAdornment position='end'>
+                    <CheckCircleIcon color='success' />
                   </InputAdornment>
                 ),
               }}
-              placeholder="12345"
+              placeholder='12345'
             />
             {validationState.zip.error && (
               <FormHelperText error>{validationState.zip.error}</FormHelperText>
@@ -456,22 +504,22 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
         {/* Alertas de seguridad */}
         <Box sx={{ mt: 3 }}>
           {securityLevel === 'low' && (
-            <Alert severity="error">
-              <Typography variant="body2">
+            <Alert severity='error'>
+              <Typography variant='body2'>
                 Complete todos los campos para proceder con el pago
               </Typography>
             </Alert>
           )}
           {securityLevel === 'medium' && (
-            <Alert severity="warning">
-              <Typography variant="body2">
+            <Alert severity='warning'>
+              <Typography variant='body2'>
                 Verifique que todos los datos sean correctos
               </Typography>
             </Alert>
           )}
           {securityLevel === 'high' && (
-            <Alert severity="success">
-              <Typography variant="body2">
+            <Alert severity='success'>
+              <Typography variant='body2'>
                 ✅ Datos validados correctamente. Puede proceder con el pago.
               </Typography>
             </Alert>
@@ -480,8 +528,9 @@ export const PaymentValidation: React.FC<PaymentValidationProps> = ({
 
         {/* Información de seguridad */}
         <Box sx={{ mt: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            🔒 Sus datos están protegidos con encriptación SSL de 256 bits y no se almacenan en nuestros servidores
+          <Typography variant='caption' color='text.secondary'>
+            🔒 Sus datos están protegidos con encriptación SSL de 256 bits y no
+            se almacenan en nuestros servidores
           </Typography>
         </Box>
       </CardContent>

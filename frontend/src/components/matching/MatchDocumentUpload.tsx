@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -44,11 +44,23 @@ const DOCUMENT_TYPES = [
   { value: 'tomador_cedula_extranjeria', label: 'Cédula de Extranjería' },
   { value: 'tomador_certificado_laboral', label: 'Certificado Laboral' },
   { value: 'tomador_carta_recomendacion', label: 'Carta de Recomendación' },
-  { value: 'codeudor_cedula_ciudadania', label: 'Codeudor: Cédula de Ciudadanía' },
+  {
+    value: 'codeudor_cedula_ciudadania',
+    label: 'Codeudor: Cédula de Ciudadanía',
+  },
   { value: 'codeudor_pasaporte', label: 'Codeudor: Pasaporte' },
-  { value: 'codeudor_cedula_extranjeria', label: 'Codeudor: Cédula de Extranjería' },
-  { value: 'codeudor_certificado_laboral', label: 'Codeudor: Certificado Laboral' },
-  { value: 'codeudor_libertad_tradicion', label: 'Codeudor: Certificado de Libertad y Tradición' },
+  {
+    value: 'codeudor_cedula_extranjeria',
+    label: 'Codeudor: Cédula de Extranjería',
+  },
+  {
+    value: 'codeudor_certificado_laboral',
+    label: 'Codeudor: Certificado Laboral',
+  },
+  {
+    value: 'codeudor_libertad_tradicion',
+    label: 'Codeudor: Certificado de Libertad y Tradición',
+  },
   { value: 'otros', label: 'Otros Documentos' },
 ];
 
@@ -92,7 +104,9 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
     }
 
     if (documentType === 'otros' && !otherDescription.trim()) {
-      setError('Debe proporcionar una descripción para documentos tipo "Otros"');
+      setError(
+        'Debe proporcionar una descripción para documentos tipo "Otros"',
+      );
       return;
     }
 
@@ -131,9 +145,9 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
           handleClose();
         }, 1500);
       }
-
     } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || 'Error desconocido';
+      const errorMsg =
+        err.response?.data?.error || err.message || 'Error desconocido';
       setError(errorMsg);
     } finally {
       setUploading(false);
@@ -152,58 +166,52 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle sx={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
+    <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
+      <DialogTitle
+        sx={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <DocumentIcon sx={{ mr: 1 }} />
           Subir Documento del Arrendatario
         </Box>
-        <IconButton size="small" onClick={handleClose} sx={{ color: 'white' }}>
+        <IconButton size='small' onClick={handleClose} sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
         {success && (
-          <Alert
-            severity="success"
-            icon={<CheckIcon />}
-            sx={{ mb: 2 }}
-          >
+          <Alert severity='success' icon={<CheckIcon />} sx={{ mb: 2 }}>
             Documento subido exitosamente. El arrendador será notificado.
           </Alert>
         )}
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity='error' sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
-        <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 3 }}>
-          Los documentos se vincularán automáticamente a esta solicitud de match y serán revisados por el arrendador.
+        <Alert severity='info' icon={<InfoIcon />} sx={{ mb: 3 }}>
+          Los documentos se vincularán automáticamente a esta solicitud de match
+          y serán revisados por el arrendador.
         </Alert>
 
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel>Tipo de Documento *</InputLabel>
           <Select
             value={documentType}
-            onChange={(e) => setDocumentType(e.target.value)}
-            label="Tipo de Documento *"
+            onChange={e => setDocumentType(e.target.value)}
+            label='Tipo de Documento *'
             disabled={uploading || success}
           >
-            {DOCUMENT_TYPES.map((type) => (
+            {DOCUMENT_TYPES.map(type => (
               <MenuItem key={type.value} value={type.value}>
                 {type.label}
               </MenuItem>
@@ -214,12 +222,12 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
         {documentType === 'otros' && (
           <TextField
             fullWidth
-            label="Descripción del documento"
+            label='Descripción del documento'
             value={otherDescription}
-            onChange={(e) => setOtherDescription(e.target.value)}
+            onChange={e => setOtherDescription(e.target.value)}
             disabled={uploading || success}
             sx={{ mb: 3 }}
-            helperText="Especifique qué tipo de documento está subiendo"
+            helperText='Especifique qué tipo de documento está subiendo'
           />
         )}
 
@@ -234,17 +242,17 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
           }}
         >
           <input
-            accept="application/pdf"
+            accept='application/pdf'
             style={{ display: 'none' }}
-            id="document-upload-file"
-            type="file"
+            id='document-upload-file'
+            type='file'
             onChange={handleFileChange}
             disabled={uploading || success}
           />
-          <label htmlFor="document-upload-file">
+          <label htmlFor='document-upload-file'>
             <Button
-              variant="outlined"
-              component="span"
+              variant='outlined'
+              component='span'
               startIcon={<UploadIcon />}
               disabled={uploading || success}
               sx={{ mb: 1 }}
@@ -259,52 +267,54 @@ export const MatchDocumentUpload: React.FC<MatchDocumentUploadProps> = ({
                 icon={<DocumentIcon />}
                 label={file.name}
                 onDelete={() => setFile(null)}
-                color="success"
+                color='success'
                 sx={{ maxWidth: '100%' }}
               />
-              <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+              <Typography
+                variant='caption'
+                display='block'
+                sx={{ mt: 1, color: 'text.secondary' }}
+              >
                 Tamaño: {(file.size / 1024).toFixed(2)} KB
               </Typography>
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
               Solo archivos PDF (máx. 5MB)
             </Typography>
           )}
         </Paper>
 
-        <Alert severity="warning" sx={{ mt: 3 }}>
+        <Alert severity='warning' sx={{ mt: 3 }}>
           <strong>Importante:</strong>
           <List dense sx={{ mt: 1 }}>
             <ListItem sx={{ py: 0 }}>
               <ListItemIcon sx={{ minWidth: 32 }}>•</ListItemIcon>
-              <ListItemText primary="Solo se permiten archivos PDF" />
+              <ListItemText primary='Solo se permiten archivos PDF' />
             </ListItem>
             <ListItem sx={{ py: 0 }}>
               <ListItemIcon sx={{ minWidth: 32 }}>•</ListItemIcon>
-              <ListItemText primary="Tamaño máximo: 5MB" />
+              <ListItemText primary='Tamaño máximo: 5MB' />
             </ListItem>
             <ListItem sx={{ py: 0 }}>
               <ListItemIcon sx={{ minWidth: 32 }}>•</ListItemIcon>
-              <ListItemText primary="Asegúrese de que el documento sea legible" />
+              <ListItemText primary='Asegúrese de que el documento sea legible' />
             </ListItem>
           </List>
         </Alert>
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
-        <Button
-          onClick={handleClose}
-          disabled={uploading}
-          variant="outlined"
-        >
+        <Button onClick={handleClose} disabled={uploading} variant='outlined'>
           Cancelar
         </Button>
         <Button
           onClick={handleUpload}
           disabled={!documentType || !file || uploading || success}
-          variant="contained"
-          startIcon={uploading ? <CircularProgress size={20} /> : <UploadIcon />}
+          variant='contained'
+          startIcon={
+            uploading ? <CircularProgress size={20} /> : <UploadIcon />
+          }
           sx={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             '&:hover': {

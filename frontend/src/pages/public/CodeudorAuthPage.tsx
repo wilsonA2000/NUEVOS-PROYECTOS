@@ -12,7 +12,7 @@
  * 5. Al completar, se muestra modal de confirmación
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -26,12 +26,10 @@ import {
   Grid,
   Divider,
   Chip,
-  LinearProgress,
   Stepper,
   Step,
   StepLabel,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Avatar,
@@ -66,7 +64,8 @@ import ProfessionalBiometricFlow from '../../components/contracts/ProfessionalBi
 import { vh } from '../../theme/tokens';
 
 // API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 interface CodeudorTokenInfo {
   id: string;
@@ -107,7 +106,8 @@ const CodeudorAuthPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tokenInfo, setTokenInfo] = useState<CodeudorTokenInfo | null>(null);
-  const [biometricSession, setBiometricSession] = useState<BiometricSession | null>(null);
+  const [biometricSession, setBiometricSession] =
+    useState<BiometricSession | null>(null);
   const [showBiometricFlow, setShowBiometricFlow] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -132,7 +132,9 @@ const CodeudorAuthPage: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/contracts/public/codeudor/validate/${token}/`);
+        const response = await fetch(
+          `${API_BASE_URL}/contracts/public/codeudor/validate/${token}/`,
+        );
         const data = await response.json();
 
         if (!response.ok) {
@@ -167,12 +169,15 @@ const CodeudorAuthPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/contracts/public/codeudor/biometric/start/${token}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE_URL}/contracts/public/codeudor/biometric/start/${token}/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       const data = await response.json();
 
@@ -199,16 +204,19 @@ const CodeudorAuthPage: React.FC = () => {
     setLoading(true);
     try {
       // Enviar datos biométricos al backend
-      const response = await fetch(`${API_BASE_URL}/contracts/public/codeudor/biometric/complete/${token}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_BASE_URL}/contracts/public/codeudor/biometric/complete/${token}/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: biometricSession?.session_id,
+            biometric_data: biometricData,
+          }),
         },
-        body: JSON.stringify({
-          session_id: biometricSession?.session_id,
-          biometric_data: biometricData,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -250,8 +258,8 @@ const CodeudorAuthPage: React.FC = () => {
   // Formatear tipo de codeudor
   const formatCodeudorType = (type: string) => {
     const types: Record<string, string> = {
-      'codeudor_salario': 'Codeudor con Respaldo Salarial',
-      'codeudor_finca_raiz': 'Codeudor con Finca Raíz',
+      codeudor_salario: 'Codeudor con Respaldo Salarial',
+      codeudor_finca_raiz: 'Codeudor con Finca Raíz',
     };
     return types[type] || type;
   };
@@ -260,15 +268,15 @@ const CodeudorAuthPage: React.FC = () => {
   if (loading && !tokenInfo) {
     return (
       <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='100vh'
         sx={{ bgcolor: 'grey.50' }}
       >
         <CircularProgress size={60} sx={{ mb: 3 }} />
-        <Typography variant="h6" color="text.secondary">
+        <Typography variant='h6' color='text.secondary'>
           Verificando invitación...
         </Typography>
       </Box>
@@ -279,11 +287,11 @@ const CodeudorAuthPage: React.FC = () => {
   if (error || tokenExpired || alreadyCompleted) {
     return (
       <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
+        display='flex'
+        flexDirection='column'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='100vh'
         sx={{ bgcolor: 'grey.50', p: 3 }}
       >
         <Paper
@@ -305,37 +313,45 @@ const CodeudorAuthPage: React.FC = () => {
               mb: 3,
             }}
           >
-            {alreadyCompleted ? <CheckCircle sx={{ fontSize: 48 }} /> : <ErrorIcon sx={{ fontSize: 48 }} />}
+            {alreadyCompleted ? (
+              <CheckCircle sx={{ fontSize: 48 }} />
+            ) : (
+              <ErrorIcon sx={{ fontSize: 48 }} />
+            )}
           </Avatar>
 
-          <Typography variant="h5" gutterBottom fontWeight="bold">
-            {alreadyCompleted ? 'Autenticación Completada' : tokenExpired ? 'Enlace Expirado' : 'Error de Acceso'}
+          <Typography variant='h5' gutterBottom fontWeight='bold'>
+            {alreadyCompleted
+              ? 'Autenticación Completada'
+              : tokenExpired
+                ? 'Enlace Expirado'
+                : 'Error de Acceso'}
           </Typography>
 
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
             {error}
           </Typography>
 
           {alreadyCompleted && (
-            <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
-              <Typography variant="body2">
-                Ya completaste tu autenticación biométrica como codeudor.
-                El arrendador será notificado y el proceso continuará.
+            <Alert severity='success' sx={{ mb: 3, textAlign: 'left' }}>
+              <Typography variant='body2'>
+                Ya completaste tu autenticación biométrica como codeudor. El
+                arrendador será notificado y el proceso continuará.
               </Typography>
             </Alert>
           )}
 
           {tokenExpired && (
-            <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
-              <Typography variant="body2">
-                Los enlaces de invitación son válidos por 7 días.
-                Contacta al arrendador para solicitar un nuevo enlace.
+            <Alert severity='warning' sx={{ mb: 3, textAlign: 'left' }}>
+              <Typography variant='body2'>
+                Los enlaces de invitación son válidos por 7 días. Contacta al
+                arrendador para solicitar un nuevo enlace.
               </Typography>
             </Alert>
           )}
 
           <Button
-            variant="contained"
+            variant='contained'
             onClick={() => navigate('/')}
             sx={{ mt: 2 }}
           >
@@ -354,7 +370,7 @@ const CodeudorAuthPage: React.FC = () => {
     <>
       {/* Contenido principal */}
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth='lg'>
           {/* Header con branding VeriHome */}
           <Paper
             elevation={2}
@@ -366,23 +382,26 @@ const CodeudorAuthPage: React.FC = () => {
               borderRadius: 3,
             }}
           >
-            <Box display="flex" alignItems="center" gap={2} mb={2}>
-              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+            <Box display='flex' alignItems='center' gap={2} mb={2}>
+              <Avatar
+                sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}
+              >
                 <Shield sx={{ fontSize: 32 }} />
               </Avatar>
               <Box>
-                <Typography variant="h4" fontWeight="bold">
+                <Typography variant='h4' fontWeight='bold'>
                   VeriHome - Autenticación de Codeudor
                 </Typography>
-                <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
+                <Typography variant='subtitle1' sx={{ opacity: 0.9 }}>
                   Sistema de Verificación Biométrica Segura
                 </Typography>
               </Box>
             </Box>
 
-            <Typography variant="body1" sx={{ mb: 2, opacity: 0.95 }}>
-              Hola <strong>{tokenInfo.codeudor_name}</strong>, has sido invitado como codeudor
-              para el contrato <strong>{tokenInfo.contract_info.contract_number}</strong>.
+            <Typography variant='body1' sx={{ mb: 2, opacity: 0.95 }}>
+              Hola <strong>{tokenInfo.codeudor_name}</strong>, has sido invitado
+              como codeudor para el contrato{' '}
+              <strong>{tokenInfo.contract_info.contract_number}</strong>.
             </Typography>
 
             <Chip
@@ -412,77 +431,79 @@ const CodeudorAuthPage: React.FC = () => {
             <Grid item xs={12} md={8}>
               <Card elevation={2} sx={{ mb: 3, borderRadius: 2 }}>
                 <CardContent>
-                  <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <Assignment color="primary" />
-                    <Typography variant="h6" fontWeight="600">
+                  <Box display='flex' alignItems='center' gap={1} mb={2}>
+                    <Assignment color='primary' />
+                    <Typography variant='h6' fontWeight='600'>
                       Detalles del Contrato
                     </Typography>
                   </Box>
 
-                  <Typography variant="h6" color="primary" gutterBottom>
+                  <Typography variant='h6' color='primary' gutterBottom>
                     Contrato #{tokenInfo.contract_info.contract_number}
                   </Typography>
 
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <Home fontSize="small" color="action" />
-                        <Typography variant="body2" fontWeight="500">
+                      <Box display='flex' alignItems='center' gap={1} mb={1}>
+                        <Home fontSize='small' color='action' />
+                        <Typography variant='body2' fontWeight='500'>
                           Propiedad
                         </Typography>
                       </Box>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant='body2' color='text.secondary'>
                         {tokenInfo.contract_info.property_address}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant='body2' color='text.secondary'>
                         {tokenInfo.contract_info.property_city}
                       </Typography>
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <Person fontSize="small" color="action" />
-                        <Typography variant="body2" fontWeight="500">
+                      <Box display='flex' alignItems='center' gap={1} mb={1}>
+                        <Person fontSize='small' color='action' />
+                        <Typography variant='body2' fontWeight='500'>
                           Partes del Contrato
                         </Typography>
                       </Box>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Arrendador:</strong> {tokenInfo.contract_info.landlord_name}
+                      <Typography variant='body2' color='text.secondary'>
+                        <strong>Arrendador:</strong>{' '}
+                        {tokenInfo.contract_info.landlord_name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Arrendatario:</strong> {tokenInfo.contract_info.tenant_name}
+                      <Typography variant='body2' color='text.secondary'>
+                        <strong>Arrendatario:</strong>{' '}
+                        {tokenInfo.contract_info.tenant_name}
                       </Typography>
                     </Grid>
                   </Grid>
 
                   <Divider sx={{ my: 2 }} />
 
-                  <Typography variant="subtitle1" fontWeight="600" gutterBottom>
+                  <Typography variant='subtitle1' fontWeight='600' gutterBottom>
                     Información Financiera
                   </Typography>
 
                   <Grid container spacing={2}>
                     <Grid item xs={6} sm={3}>
-                      <Typography variant="body2" fontWeight="500">
+                      <Typography variant='body2' fontWeight='500'>
                         Renta Mensual
                       </Typography>
-                      <Typography variant="h6" color="primary">
+                      <Typography variant='h6' color='primary'>
                         {formatCurrency(tokenInfo.contract_info.monthly_rent)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6} sm={3}>
-                      <Typography variant="body2" fontWeight="500">
+                      <Typography variant='body2' fontWeight='500'>
                         Fecha Inicio
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography variant='body2'>
                         {formatDate(tokenInfo.contract_info.start_date)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6} sm={3}>
-                      <Typography variant="body2" fontWeight="500">
+                      <Typography variant='body2' fontWeight='500'>
                         Fecha Fin
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography variant='body2'>
                         {formatDate(tokenInfo.contract_info.end_date)}
                       </Typography>
                     </Grid>
@@ -493,34 +514,47 @@ const CodeudorAuthPage: React.FC = () => {
               {/* Información del codeudor */}
               <Card elevation={2} sx={{ borderRadius: 2 }}>
                 <CardContent>
-                  <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <Person color="primary" />
-                    <Typography variant="h6" fontWeight="600">
+                  <Box display='flex' alignItems='center' gap={1} mb={2}>
+                    <Person color='primary' />
+                    <Typography variant='h6' fontWeight='600'>
                       Tu Información como Codeudor
                     </Typography>
                   </Box>
 
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" fontWeight="500">Nombre Completo</Typography>
-                      <Typography variant="body1">{tokenInfo.codeudor_name}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" fontWeight="500">Email</Typography>
-                      <Typography variant="body1">{tokenInfo.codeudor_email}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" fontWeight="500">Documento</Typography>
-                      <Typography variant="body1">
-                        {tokenInfo.codeudor_document_type}: {tokenInfo.codeudor_document_number}
+                      <Typography variant='body2' fontWeight='500'>
+                        Nombre Completo
+                      </Typography>
+                      <Typography variant='body1'>
+                        {tokenInfo.codeudor_name}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" fontWeight="500">Tipo de Garantía</Typography>
+                      <Typography variant='body2' fontWeight='500'>
+                        Email
+                      </Typography>
+                      <Typography variant='body1'>
+                        {tokenInfo.codeudor_email}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant='body2' fontWeight='500'>
+                        Documento
+                      </Typography>
+                      <Typography variant='body1'>
+                        {tokenInfo.codeudor_document_type}:{' '}
+                        {tokenInfo.codeudor_document_number}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant='body2' fontWeight='500'>
+                        Tipo de Garantía
+                      </Typography>
                       <Chip
                         label={formatCodeudorType(tokenInfo.codeudor_type)}
-                        color="primary"
-                        size="small"
+                        color='primary'
+                        size='small'
                       />
                     </Grid>
                   </Grid>
@@ -530,74 +564,77 @@ const CodeudorAuthPage: React.FC = () => {
 
             {/* Panel de acciones */}
             <Grid item xs={12} md={4}>
-              <Card elevation={2} sx={{ position: 'sticky', top: 20, borderRadius: 2 }}>
+              <Card
+                elevation={2}
+                sx={{ position: 'sticky', top: 20, borderRadius: 2 }}
+              >
                 <CardContent>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant='h6' gutterBottom>
                     Proceso de Autenticación
                   </Typography>
 
                   <List dense>
                     <ListItem>
                       <ListItemIcon>
-                        <CameraAlt color="primary" />
+                        <CameraAlt color='primary' />
                       </ListItemIcon>
                       <ListItemText
-                        primary="Captura Facial"
-                        secondary="Verificación biométrica de identidad"
+                        primary='Captura Facial'
+                        secondary='Verificación biométrica de identidad'
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
-                        <DocumentScanner color="primary" />
+                        <DocumentScanner color='primary' />
                       </ListItemIcon>
                       <ListItemText
-                        primary="Documento de Identidad"
-                        secondary="Verificación de documento colombiano"
+                        primary='Documento de Identidad'
+                        secondary='Verificación de documento colombiano'
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
-                        <RecordVoiceOver color="primary" />
+                        <RecordVoiceOver color='primary' />
                       </ListItemIcon>
                       <ListItemText
-                        primary="Grabación de Voz"
-                        secondary="Verificación vocal y cultural"
+                        primary='Grabación de Voz'
+                        secondary='Verificación vocal y cultural'
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
-                        <Draw color="primary" />
+                        <Draw color='primary' />
                       </ListItemIcon>
                       <ListItemText
-                        primary="Firma Digital"
-                        secondary="Firma biométrica del contrato"
+                        primary='Firma Digital'
+                        secondary='Firma biométrica del contrato'
                       />
                     </ListItem>
                   </List>
 
                   <Divider sx={{ my: 2 }} />
 
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Timer fontSize="small" />
-                      <Typography variant="caption">
+                  <Alert severity='info' sx={{ mb: 2 }}>
+                    <Box display='flex' alignItems='center' gap={1}>
+                      <Timer fontSize='small' />
+                      <Typography variant='caption'>
                         Enlace válido hasta: {formatDate(tokenInfo.expires_at)}
                       </Typography>
                     </Box>
                   </Alert>
 
-                  <Alert severity="warning" sx={{ mb: 2 }}>
-                    <Typography variant="caption">
-                      <strong>Importante:</strong> Como codeudor, aceptas ser responsable
-                      solidario de las obligaciones del arrendatario según las condiciones
-                      del contrato.
+                  <Alert severity='warning' sx={{ mb: 2 }}>
+                    <Typography variant='caption'>
+                      <strong>Importante:</strong> Como codeudor, aceptas ser
+                      responsable solidario de las obligaciones del arrendatario
+                      según las condiciones del contrato.
                     </Typography>
                   </Alert>
 
                   {currentStep === 1 && (
                     <Button
-                      variant="contained"
-                      size="large"
+                      variant='contained'
+                      size='large'
                       fullWidth
                       onClick={handleStartBiometric}
                       startIcon={<Security />}
@@ -608,7 +645,7 @@ const CodeudorAuthPage: React.FC = () => {
                       }}
                     >
                       {loading ? (
-                        <CircularProgress size={24} color="inherit" />
+                        <CircularProgress size={24} color='inherit' />
                       ) : (
                         'Iniciar Autenticación Biométrica'
                       )}
@@ -617,8 +654,8 @@ const CodeudorAuthPage: React.FC = () => {
 
                   {currentStep === 2 && !showBiometricFlow && (
                     <Button
-                      variant="contained"
-                      size="large"
+                      variant='contained'
+                      size='large'
                       fullWidth
                       onClick={() => setShowBiometricFlow(true)}
                       startIcon={<Security />}
@@ -628,8 +665,8 @@ const CodeudorAuthPage: React.FC = () => {
                   )}
 
                   {currentStep === 3 && (
-                    <Alert severity="success" icon={<CheckCircle />}>
-                      <Typography variant="body2" fontWeight="500">
+                    <Alert severity='success' icon={<CheckCircle />}>
+                      <Typography variant='body2' fontWeight='500'>
                         Autenticación completada exitosamente
                       </Typography>
                     </Alert>
@@ -667,7 +704,7 @@ const CodeudorAuthPage: React.FC = () => {
       {/* Modal de éxito */}
       <Dialog
         open={showSuccessModal}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
         PaperProps={{
           sx: { borderRadius: 3 },
@@ -688,40 +725,51 @@ const CodeudorAuthPage: React.FC = () => {
                 <Celebration sx={{ fontSize: 60 }} />
               </Avatar>
 
-              <Typography variant="h4" gutterBottom fontWeight="bold" color="success.main">
+              <Typography
+                variant='h4'
+                gutterBottom
+                fontWeight='bold'
+                color='success.main'
+              >
                 ¡Autenticación Exitosa!
               </Typography>
 
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                Has completado exitosamente tu autenticación biométrica como codeudor
-                del contrato <strong>{tokenInfo.contract_info.contract_number}</strong>.
+              <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+                Has completado exitosamente tu autenticación biométrica como
+                codeudor del contrato{' '}
+                <strong>{tokenInfo.contract_info.contract_number}</strong>.
               </Typography>
 
-              <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
-                <Typography variant="body2">
+              <Alert severity='success' sx={{ mb: 3, textAlign: 'left' }}>
+                <Typography variant='body2'>
                   <strong>¿Qué sigue?</strong>
                   <br />
-                  El arrendador será notificado automáticamente y el proceso de firma
-                  del contrato continuará. Recibirás una copia del contrato firmado
-                  una vez que todas las partes completen su autenticación.
+                  El arrendador será notificado automáticamente y el proceso de
+                  firma del contrato continuará. Recibirás una copia del
+                  contrato firmado una vez que todas las partes completen su
+                  autenticación.
                 </Typography>
               </Alert>
 
               <Box sx={{ p: 2, bgcolor: 'grey.100', borderRadius: 2, mb: 3 }}>
-                <Grid container spacing={2} textAlign="left">
+                <Grid container spacing={2} textAlign='left'>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Tu Rol</Typography>
-                    <Typography variant="body2" fontWeight="500">
+                    <Typography variant='caption' color='text.secondary'>
+                      Tu Rol
+                    </Typography>
+                    <Typography variant='body2' fontWeight='500'>
                       {formatCodeudorType(tokenInfo.codeudor_type)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Estado</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Estado
+                    </Typography>
                     <Chip
                       icon={<Verified />}
-                      label="Verificado"
-                      color="success"
-                      size="small"
+                      label='Verificado'
+                      color='success'
+                      size='small'
                     />
                   </Grid>
                 </Grid>
@@ -731,8 +779,8 @@ const CodeudorAuthPage: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
           <Button
-            variant="contained"
-            size="large"
+            variant='contained'
+            size='large'
             onClick={() => {
               setShowSuccessModal(false);
               navigate('/');

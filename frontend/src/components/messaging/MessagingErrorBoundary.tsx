@@ -4,13 +4,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Alert,
-  Paper,
-} from '@mui/material';
+import { Box, Typography, Button, Alert, Paper } from '@mui/material';
 import {
   Message as MessageIcon,
   Refresh as RefreshIcon,
@@ -47,8 +41,8 @@ const MessagingFallback: React.FC = () => {
   const handleRefreshConnection = () => {
     // Clear any cached message data and reload
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => registration.unregister());
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => registration.unregister());
       });
     }
     localStorage.removeItem('messageCache');
@@ -59,29 +53,37 @@ const MessagingFallback: React.FC = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 600, mx: 'auto', mt: 4 }}>
       <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity='error' sx={{ mb: 3 }}>
           Error en el sistema de Mensajería
         </Alert>
 
-        <Typography variant="h5" gutterBottom>
+        <Typography variant='h5' gutterBottom>
           Problema con la comunicación
         </Typography>
 
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Ha ocurrido un error en el sistema de mensajería. 
-          Los mensajes pueden no estar actualizados.
+        <Typography variant='body1' color='text.secondary' paragraph>
+          Ha ocurrido un error en el sistema de mensajería. Los mensajes pueden
+          no estar actualizados.
         </Typography>
 
-        <Alert severity="info" sx={{ mb: 3, textAlign: 'left' }}>
-          <Typography variant="body2">
-            <strong>Nota:</strong> Tus mensajes están guardados de forma segura. 
+        <Alert severity='info' sx={{ mb: 3, textAlign: 'left' }}>
+          <Typography variant='body2'>
+            <strong>Nota:</strong> Tus mensajes están guardados de forma segura.
             Este error no afecta tu historial de conversaciones.
           </Typography>
         </Alert>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            mt: 3,
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <Button
-            variant="contained"
+            variant='contained'
             startIcon={<RefreshIcon />}
             onClick={handleRetry}
           >
@@ -89,7 +91,7 @@ const MessagingFallback: React.FC = () => {
           </Button>
 
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<MessageIcon />}
             onClick={handleGoToMessages}
           >
@@ -97,7 +99,7 @@ const MessagingFallback: React.FC = () => {
           </Button>
 
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<NotificationIcon />}
             onClick={handleGoToNotifications}
           >
@@ -105,7 +107,7 @@ const MessagingFallback: React.FC = () => {
           </Button>
 
           <Button
-            variant="text"
+            variant='text'
             startIcon={<HomeIcon />}
             onClick={handleGoToDashboard}
           >
@@ -113,15 +115,19 @@ const MessagingFallback: React.FC = () => {
           </Button>
 
           <Button
-            variant="text"
-            color="warning"
+            variant='text'
+            color='warning'
             onClick={handleRefreshConnection}
           >
             Reconectar
           </Button>
         </Box>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          sx={{ mt: 2, display: 'block' }}
+        >
           Si no puedes enviar mensajes, verifica tu conexión a internet
         </Typography>
       </Paper>
@@ -129,10 +135,12 @@ const MessagingFallback: React.FC = () => {
   );
 };
 
-const MessagingErrorBoundary: React.FC<MessagingErrorBoundaryProps> = ({ children }) => {
+const MessagingErrorBoundary: React.FC<MessagingErrorBoundaryProps> = ({
+  children,
+}) => {
   return (
     <ErrorBoundary
-      module="Messaging"
+      module='Messaging'
       fallback={<MessagingFallback />}
       onError={(error, errorInfo) => {
         // Messaging-specific error handling

@@ -15,8 +15,7 @@ export const useLanguage = () => {
       try {
         const module = await import(`../translations/${language}.json`);
         setTranslations(module.default);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     loadTranslations();
@@ -47,4 +46,4 @@ export const useLanguage = () => {
     setLanguage: setAppLanguage,
     t,
   };
-}; 
+};

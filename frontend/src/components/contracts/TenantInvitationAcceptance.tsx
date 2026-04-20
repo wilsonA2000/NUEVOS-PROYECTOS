@@ -16,7 +16,6 @@ import {
   Grid,
   Avatar,
   Paper,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
@@ -25,7 +24,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   LinearProgress,
   Dialog,
   DialogTitle,
@@ -55,7 +53,7 @@ import {
   Download as DownloadIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import { format, formatDistanceToNow, isAfter, isBefore } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { LandlordContractService } from '../../services/landlordContractService';
@@ -131,16 +129,17 @@ const ACCEPTANCE_STEPS = [
   'Confirmar Aceptación',
 ];
 
-export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProps> = ({
-  invitationToken,
-  onAcceptComplete,
-  onError,
-}) => {
+export const TenantInvitationAcceptance: React.FC<
+  TenantInvitationAcceptanceProps
+> = ({ invitationToken, onAcceptComplete, onError }) => {
   // Estados principales
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [invitationInfo, setInvitationInfo] = useState<InvitationInfo | null>(null);
-  const [contract, setContract] = useState<LandlordControlledContractData | null>(null);
+  const [invitationInfo, setInvitationInfo] = useState<InvitationInfo | null>(
+    null,
+  );
+  const [contract, setContract] =
+    useState<LandlordControlledContractData | null>(null);
   const [tenantData, setTenantData] = useState<TenantData>({
     full_name: '',
     document_type: 'CC',
@@ -173,25 +172,32 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       setLoading(true);
 
       // Verificar token de invitación
-      const tokenVerification = await LandlordContractService.verifyInvitationToken(invitationToken);
-      
+      const tokenVerification =
+        await LandlordContractService.verifyInvitationToken(invitationToken);
+
       if (!tokenVerification.is_valid) {
         onError('La invitación no es válida o ha expirado');
         return;
       }
 
       // Obtener información de la invitación
-      const invitationData = await LandlordContractService.getContractInvitationInfo(invitationToken);
+      const invitationData =
+        await LandlordContractService.getContractInvitationInfo(
+          invitationToken,
+        );
       setInvitationInfo(invitationData as InvitationInfo);
 
       // Cargar contrato completo
-      const contractData = await LandlordContractService.getTenantContract(invitationData.contract_id);
+      const contractData = await LandlordContractService.getTenantContract(
+        invitationData.contract_id,
+      );
       setContract(contractData as any);
 
       setCurrentStep(1);
-
     } catch (error: any) {
-      onError(`Error al verificar invitación: ${  error.message || 'Error desconocido'}`);
+      onError(
+        `Error al verificar invitación: ${error.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -230,7 +236,10 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       errors.push('El teléfono de emergencia es requerido');
     }
 
-    if (tenantData.employment_status === 'employed' && !tenantData.employer_name.trim()) {
+    if (
+      tenantData.employment_status === 'employed' &&
+      !tenantData.employer_name.trim()
+    ) {
       errors.push('El nombre del empleador es requerido');
     }
 
@@ -258,12 +267,14 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
         invitation_token: invitationToken,
       };
 
-      const acceptedContract = await LandlordContractService.acceptTenantInvitation(payload);
+      const acceptedContract =
+        await LandlordContractService.acceptTenantInvitation(payload);
       setContract(acceptedContract);
       setCurrentStep(2);
-
     } catch (error: any) {
-      onError(`Error al aceptar invitación: ${  error.message || 'Error desconocido'}`);
+      onError(
+        `Error al aceptar invitación: ${error.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -285,11 +296,13 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
         tenant_data: tenantData as any,
       };
 
-      const updatedContract = await LandlordContractService.completeTenantData(payload);
+      const updatedContract =
+        await LandlordContractService.completeTenantData(payload);
       onAcceptComplete(updatedContract);
-
     } catch (error: any) {
-      onError(`Error al completar datos: ${  error.message || 'Error desconocido'}`);
+      onError(
+        `Error al completar datos: ${error.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -299,15 +312,24 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
     switch (step) {
       case 0:
         return (
-          <Box textAlign="center" py={4}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 64, height: 64, mx: 'auto', mb: 2 }}>
+          <Box textAlign='center' py={4}>
+            <Avatar
+              sx={{
+                bgcolor: 'primary.main',
+                width: 64,
+                height: 64,
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
               <SecurityIcon sx={{ fontSize: 32 }} />
             </Avatar>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant='h6' sx={{ mb: 2 }}>
               Verificando Invitación
             </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-              Validando el token de invitación y cargando información del contrato...
+            <Typography color='text.secondary' sx={{ mb: 3 }}>
+              Validando el token de invitación y cargando información del
+              contrato...
             </Typography>
             <LinearProgress />
           </Box>
@@ -316,38 +338,59 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       case 1:
         return invitationInfo ? (
           <Box>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant='h6' sx={{ mb: 2 }}>
               Información del Contrato
             </Typography>
-            
+
             {/* Información básica */}
             <Paper sx={{ p: 2, mb: 3, bgcolor: 'primary.50' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="caption" color="text.secondary">Propiedad</Typography>
-                  <Typography variant="h6">{invitationInfo.property_address}</Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    Propiedad
+                  </Typography>
+                  <Typography variant='h6'>
+                    {invitationInfo.property_address}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="caption" color="text.secondary">Arrendador</Typography>
-                  <Typography variant="h6">{invitationInfo.landlord_name}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="caption" color="text.secondary">Canon Mensual</Typography>
-                  <Typography variant="h6" color="primary">
-                    {LandlordContractService.formatCurrency(invitationInfo.monthly_rent)}
+                  <Typography variant='caption' color='text.secondary'>
+                    Arrendador
+                  </Typography>
+                  <Typography variant='h6'>
+                    {invitationInfo.landlord_name}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Typography variant="caption" color="text.secondary">Duración</Typography>
-                  <Typography variant="h6">{invitationInfo.contract_duration_months} meses</Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    Canon Mensual
+                  </Typography>
+                  <Typography variant='h6' color='primary'>
+                    {LandlordContractService.formatCurrency(
+                      invitationInfo.monthly_rent,
+                    )}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Typography variant="caption" color="text.secondary">Invitación expira</Typography>
-                  <Typography variant="body1" color="warning.main">
-                    {formatDistanceToNow(new Date(invitationInfo.invitation_expires_at), { 
-                      addSuffix: true, 
-                      locale: es, 
-                    })}
+                  <Typography variant='caption' color='text.secondary'>
+                    Duración
+                  </Typography>
+                  <Typography variant='h6'>
+                    {invitationInfo.contract_duration_months} meses
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant='caption' color='text.secondary'>
+                    Invitación expira
+                  </Typography>
+                  <Typography variant='body1' color='warning.main'>
+                    {formatDistanceToNow(
+                      new Date(invitationInfo.invitation_expires_at),
+                      {
+                        addSuffix: true,
+                        locale: es,
+                      },
+                    )}
                   </Typography>
                 </Grid>
               </Grid>
@@ -356,35 +399,63 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
             {/* Detalles de la propiedad */}
             {invitationInfo.property_details && (
               <Paper sx={{ p: 2, mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+                >
                   <HomeIcon sx={{ mr: 1 }} />
                   Detalles de la Propiedad
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6} md={3}>
-                    <Typography variant="caption" color="text.secondary">Tipo</Typography>
-                    <Typography variant="body1">{invitationInfo.property_details.type}</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Tipo
+                    </Typography>
+                    <Typography variant='body1'>
+                      {invitationInfo.property_details.type}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Typography variant="caption" color="text.secondary">Área</Typography>
-                    <Typography variant="body1">{invitationInfo.property_details.area} m²</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Área
+                    </Typography>
+                    <Typography variant='body1'>
+                      {invitationInfo.property_details.area} m²
+                    </Typography>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Typography variant="caption" color="text.secondary">Habitaciones</Typography>
-                    <Typography variant="body1">{invitationInfo.property_details.rooms}</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Habitaciones
+                    </Typography>
+                    <Typography variant='body1'>
+                      {invitationInfo.property_details.rooms}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Typography variant="caption" color="text.secondary">Baños</Typography>
-                    <Typography variant="body1">{invitationInfo.property_details.bathrooms}</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Baños
+                    </Typography>
+                    <Typography variant='body1'>
+                      {invitationInfo.property_details.bathrooms}
+                    </Typography>
                   </Grid>
                 </Grid>
                 {invitationInfo.property_details.amenities.length > 0 && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" color="text.secondary">Amenidades</Typography>
-                    <Box display="flex" gap={1} flexWrap="wrap" sx={{ mt: 1 }}>
-                      {invitationInfo.property_details.amenities.map((amenity, index) => (
-                        <Chip key={index} label={amenity} size="small" variant="outlined" />
-                      ))}
+                    <Typography variant='caption' color='text.secondary'>
+                      Amenidades
+                    </Typography>
+                    <Box display='flex' gap={1} flexWrap='wrap' sx={{ mt: 1 }}>
+                      {invitationInfo.property_details.amenities.map(
+                        (amenity, index) => (
+                          <Chip
+                            key={index}
+                            label={amenity}
+                            size='small'
+                            variant='outlined'
+                          />
+                        ),
+                      )}
                     </Box>
                   </Box>
                 )}
@@ -392,30 +463,34 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
             )}
 
             {/* Alertas */}
-            <Alert severity="info" sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                Al aceptar esta invitación, podrás revisar el contrato completo y agregar tus datos personales.
-                Tendrás la oportunidad de presentar objeciones si algo no te parece correcto.
+            <Alert severity='info' sx={{ mb: 2 }}>
+              <Typography variant='body2'>
+                Al aceptar esta invitación, podrás revisar el contrato completo
+                y agregar tus datos personales. Tendrás la oportunidad de
+                presentar objeciones si algo no te parece correcto.
               </Typography>
             </Alert>
 
-            <Alert severity="warning">
-              <Typography variant="body2">
-                ⏰ Esta invitación expirará el {format(new Date(invitationInfo.invitation_expires_at), 'PPP', { locale: es })}.
-                No podrás acceder después de esa fecha.
+            <Alert severity='warning'>
+              <Typography variant='body2'>
+                ⏰ Esta invitación expirará el{' '}
+                {format(new Date(invitationInfo.invitation_expires_at), 'PPP', {
+                  locale: es,
+                })}
+                . No podrás acceder después de esa fecha.
               </Typography>
             </Alert>
 
-            <Box display="flex" gap={2} justifyContent="center" sx={{ mt: 3 }}>
+            <Box display='flex' gap={2} justifyContent='center' sx={{ mt: 3 }}>
               <Button
-                variant="outlined"
+                variant='outlined'
                 startIcon={<ViewIcon />}
                 onClick={() => setShowContractPreview(true)}
               >
                 Ver Vista Previa
               </Button>
               <LoadingButton
-                variant="contained"
+                variant='contained'
                 loading={loading}
                 onClick={handleAcceptInvitation}
                 startIcon={<CheckIcon />}
@@ -431,18 +506,20 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       case 2:
         return (
           <Box>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant='h6' sx={{ mb: 2 }}>
               Completar Datos Personales
             </Typography>
-            
+
             {validationErrors.length > 0 && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Errores encontrados:</Typography>
+              <Alert severity='error' sx={{ mb: 2 }}>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Errores encontrados:
+                </Typography>
                 <List dense>
                   {validationErrors.map((error, index) => (
                     <ListItem key={index}>
                       <ListItemIcon>
-                        <ErrorIcon color="error" />
+                        <ErrorIcon color='error' />
                       </ListItemIcon>
                       <ListItemText primary={error} />
                     </ListItem>
@@ -453,7 +530,10 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
             {/* Información Personal */}
             <Paper sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='subtitle1'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
                 <PersonIcon sx={{ mr: 1 }} />
                 Información Personal
               </Typography>
@@ -461,9 +541,14 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Nombre Completo"
+                    label='Nombre Completo'
                     value={tenantData.full_name}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, full_name: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        full_name: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
@@ -472,8 +557,13 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                     <InputLabel>Tipo de Documento</InputLabel>
                     <Select
                       value={tenantData.document_type}
-                      onChange={(e) => setTenantData(prev => ({ ...prev, document_type: e.target.value }))}
-                      label="Tipo de Documento"
+                      onChange={e =>
+                        setTenantData(prev => ({
+                          ...prev,
+                          document_type: e.target.value,
+                        }))
+                      }
+                      label='Tipo de Documento'
                     >
                       {DOCUMENT_TYPES.map(type => (
                         <MenuItem key={type.value} value={type.value}>
@@ -486,23 +576,33 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Número de Documento"
+                    label='Número de Documento'
                     value={tenantData.document_number}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, document_number: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        document_number: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Email"
-                    type="email"
+                    label='Email'
+                    type='email'
                     value={tenantData.email}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     required
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
+                        <InputAdornment position='start'>
                           <EmailIcon />
                         </InputAdornment>
                       ),
@@ -512,13 +612,18 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Teléfono"
+                    label='Teléfono'
                     value={tenantData.phone}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     required
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
+                        <InputAdornment position='start'>
                           <PhoneIcon />
                         </InputAdornment>
                       ),
@@ -528,9 +633,14 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Dirección Actual"
+                    label='Dirección Actual'
                     value={tenantData.current_address}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, current_address: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        current_address: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
@@ -539,25 +649,35 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
             {/* Contacto de Emergencia */}
             <Paper sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              <Typography variant='subtitle1' sx={{ mb: 2 }}>
                 Contacto de Emergencia
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Nombre del Contacto"
+                    label='Nombre del Contacto'
                     value={tenantData.emergency_contact_name}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        emergency_contact_name: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Teléfono del Contacto"
+                    label='Teléfono del Contacto'
                     value={tenantData.emergency_contact_phone}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        emergency_contact_phone: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
@@ -566,7 +686,10 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
             {/* Información Laboral */}
             <Paper sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='subtitle1'
+                sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
+              >
                 <WorkIcon sx={{ mr: 1 }} />
                 Información Laboral
               </Typography>
@@ -576,8 +699,13 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                     <InputLabel>Estado Laboral</InputLabel>
                     <Select
                       value={tenantData.employment_status}
-                      onChange={(e) => setTenantData(prev => ({ ...prev, employment_status: e.target.value }))}
-                      label="Estado Laboral"
+                      onChange={e =>
+                        setTenantData(prev => ({
+                          ...prev,
+                          employment_status: e.target.value,
+                        }))
+                      }
+                      label='Estado Laboral'
                     >
                       {EMPLOYMENT_OPTIONS.map(option => (
                         <MenuItem key={option.value} value={option.value}>
@@ -591,9 +719,14 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Nombre del Empleador"
+                      label='Nombre del Empleador'
                       value={tenantData.employer_name}
-                      onChange={(e) => setTenantData(prev => ({ ...prev, employer_name: e.target.value }))}
+                      onChange={e =>
+                        setTenantData(prev => ({
+                          ...prev,
+                          employer_name: e.target.value,
+                        }))
+                      }
                       required
                     />
                   </Grid>
@@ -601,14 +734,19 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Ingresos Mensuales"
-                    type="number"
+                    label='Ingresos Mensuales'
+                    type='number'
                     value={tenantData.monthly_income}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, monthly_income: Number(e.target.value) }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        monthly_income: Number(e.target.value),
+                      }))
+                    }
                     required
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
+                        <InputAdornment position='start'>
                           <BankIcon />
                         </InputAdornment>
                       ),
@@ -618,10 +756,15 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Años de Experiencia Laboral"
-                    type="number"
+                    label='Años de Experiencia Laboral'
+                    type='number'
                     value={tenantData.work_experience_years}
-                    onChange={(e) => setTenantData(prev => ({ ...prev, work_experience_years: Number(e.target.value) }))}
+                    onChange={e =>
+                      setTenantData(prev => ({
+                        ...prev,
+                        work_experience_years: Number(e.target.value),
+                      }))
+                    }
                   />
                 </Grid>
               </Grid>
@@ -629,36 +772,51 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
 
             {/* Referencias */}
             <Paper sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              <Typography variant='subtitle1' sx={{ mb: 2 }}>
                 Referencias Personales
               </Typography>
               {tenantData.references.map((reference, index) => (
-                <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'grey.300', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                <Box
+                  key={index}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'grey.300',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Typography variant='subtitle2' sx={{ mb: 1 }}>
                     Referencia {index + 1} ({reference.relationship})
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Nombre"
+                        label='Nombre'
                         value={reference.name}
-                        onChange={(e) => {
+                        onChange={e => {
                           const newReferences = [...tenantData.references];
                           newReferences[index]!.name = e.target.value;
-                          setTenantData(prev => ({ ...prev, references: newReferences }));
+                          setTenantData(prev => ({
+                            ...prev,
+                            references: newReferences,
+                          }));
                         }}
                       />
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Teléfono"
+                        label='Teléfono'
                         value={reference.phone}
-                        onChange={(e) => {
+                        onChange={e => {
                           const newReferences = [...tenantData.references];
                           newReferences[index]!.phone = e.target.value;
-                          setTenantData(prev => ({ ...prev, references: newReferences }));
+                          setTenantData(prev => ({
+                            ...prev,
+                            references: newReferences,
+                          }));
                         }}
                       />
                     </Grid>
@@ -667,16 +825,19 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
                         <InputLabel>Relación</InputLabel>
                         <Select
                           value={reference.relationship}
-                          onChange={(e) => {
+                          onChange={e => {
                             const newReferences = [...tenantData.references];
                             newReferences[index]!.relationship = e.target.value;
-                            setTenantData(prev => ({ ...prev, references: newReferences }));
+                            setTenantData(prev => ({
+                              ...prev,
+                              references: newReferences,
+                            }));
                           }}
-                          label="Relación"
+                          label='Relación'
                         >
-                          <MenuItem value="Familiar">Familiar</MenuItem>
-                          <MenuItem value="Laboral">Laboral</MenuItem>
-                          <MenuItem value="Personal">Personal</MenuItem>
+                          <MenuItem value='Familiar'>Familiar</MenuItem>
+                          <MenuItem value='Laboral'>Laboral</MenuItem>
+                          <MenuItem value='Personal'>Personal</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -685,10 +846,10 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
               ))}
             </Paper>
 
-            <Box textAlign="center">
+            <Box textAlign='center'>
               <LoadingButton
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 loading={loading}
                 onClick={handleCompleteTenantData}
                 startIcon={<CheckIcon />}
@@ -705,25 +866,33 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
   };
 
   return (
-    <Box maxWidth="lg" mx="auto" p={2}>
+    <Box maxWidth='lg' mx='auto' p={2}>
       <Card>
         <CardContent>
           {/* Header */}
-          <Box textAlign="center" sx={{ mb: 4 }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 64, height: 64, mx: 'auto', mb: 2 }}>
+          <Box textAlign='center' sx={{ mb: 4 }}>
+            <Avatar
+              sx={{
+                bgcolor: 'primary.main',
+                width: 64,
+                height: 64,
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
               <DocumentIcon sx={{ fontSize: 32 }} />
             </Avatar>
-            <Typography variant="h4" sx={{ mb: 1 }}>
+            <Typography variant='h4' sx={{ mb: 1 }}>
               Invitación de Contrato
             </Typography>
-            <Typography color="text.secondary">
+            <Typography color='text.secondary'>
               Has sido invitado a participar en un contrato de arrendamiento
             </Typography>
           </Box>
 
           {/* Stepper */}
           <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 4 }}>
-            {ACCEPTANCE_STEPS.map((label) => (
+            {ACCEPTANCE_STEPS.map(label => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
@@ -739,44 +908,59 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
       <Dialog
         open={showContractPreview}
         onClose={() => setShowContractPreview(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          Vista Previa del Contrato
-        </DialogTitle>
+        <DialogTitle>Vista Previa del Contrato</DialogTitle>
         <DialogContent>
           {contract ? (
             <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>
+              <Typography variant='h6' sx={{ mb: 2 }}>
                 Contrato de Arrendamiento
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Esta es una vista previa. El contrato completo estará disponible después de completar tus datos.
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+                Esta es una vista previa. El contrato completo estará disponible
+                después de completar tus datos.
               </Typography>
-              
+
               {/* Información básica del contrato */}
               <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="caption" color="text.secondary">Propiedad</Typography>
-                    <Typography variant="body1">{contract.property_address}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="caption" color="text.secondary">Canon Mensual</Typography>
-                    <Typography variant="body1" color="primary">
-                      {LandlordContractService.formatCurrency(contract.monthly_rent)}
+                    <Typography variant='caption' color='text.secondary'>
+                      Propiedad
+                    </Typography>
+                    <Typography variant='body1'>
+                      {contract.property_address}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="caption" color="text.secondary">Depósito</Typography>
-                    <Typography variant="body1">
-                      {LandlordContractService.formatCurrency(contract.security_deposit)}
+                    <Typography variant='caption' color='text.secondary'>
+                      Canon Mensual
+                    </Typography>
+                    <Typography variant='body1' color='primary'>
+                      {LandlordContractService.formatCurrency(
+                        contract.monthly_rent,
+                      )}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="caption" color="text.secondary">Duración</Typography>
-                    <Typography variant="body1">{contract.contract_duration_months} meses</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Depósito
+                    </Typography>
+                    <Typography variant='body1'>
+                      {LandlordContractService.formatCurrency(
+                        contract.security_deposit,
+                      )}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Duración
+                    </Typography>
+                    <Typography variant='body1'>
+                      {contract.contract_duration_months} meses
+                    </Typography>
                   </Grid>
                 </Grid>
               </Paper>
@@ -786,9 +970,7 @@ export const TenantInvitationAcceptance: React.FC<TenantInvitationAcceptanceProp
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowContractPreview(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setShowContractPreview(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>

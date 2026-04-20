@@ -13,7 +13,6 @@ import {
   Button,
   Card,
   CardContent,
-  FormControl,
   FormControlLabel,
   Grid,
   Switch,
@@ -30,7 +29,10 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
 } from '@mui/icons-material';
-import { stripeService, StripePaymentResult } from '../../services/stripeService';
+import {
+  stripeService,
+  StripePaymentResult,
+} from '../../services/stripeService';
 import { loggingService, LogCategory } from '../../services/loggingService';
 
 export interface StripePaymentFormProps {
@@ -154,7 +156,11 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
 
         setClientSecret(paymentIntent.client_secret);
       } catch (error) {
-        loggingService.error(LogCategory.BUSINESS, 'Error creating payment intent', { error });
+        loggingService.error(
+          LogCategory.BUSINESS,
+          'Error creating payment intent',
+          { error },
+        );
         onError('Error al inicializar el pago');
       }
     };
@@ -182,7 +188,9 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
           break;
       }
 
-      setCardComplete(cardNumberComplete && cardExpiryComplete && cardCvcComplete);
+      setCardComplete(
+        cardNumberComplete && cardExpiryComplete && cardCvcComplete,
+      );
     } else {
       // Manejo para campo único
       setCardComplete(event.complete);
@@ -193,7 +201,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
   const handleBillingDetailsChange = (field: string, value: string) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.') as [string, string];
-      setBillingDetails((prev) => ({
+      setBillingDetails(prev => ({
         ...prev,
         [parent]: {
           ...(prev[parent as keyof BillingDetails] as any),
@@ -201,7 +209,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
         },
       }));
     } else {
-      setBillingDetails((prev) => ({
+      setBillingDetails(prev => ({
         ...prev,
         [field]: value,
       }));
@@ -229,42 +237,53 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
     setIsProcessing(true);
 
     try {
-      const cardElement = (enableSeparateFields
-        ? elements.getElement(CardNumberElement)
-        : elements.getElement(CardElement)) as any;
+      const cardElement = (
+        enableSeparateFields
+          ? elements.getElement(CardNumberElement)
+          : elements.getElement(CardElement)
+      ) as any;
 
       if (!cardElement) {
         throw new Error('Card element not found');
       }
 
-      const result = await stripeService.confirmPayment(clientSecret, elements, {
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: billingDetails.name,
-          email: billingDetails.email,
-          address: {
-            line1: billingDetails.address.line1,
-            line2: billingDetails.address.line2,
-            city: billingDetails.address.city,
-            state: billingDetails.address.state,
-            postal_code: billingDetails.address.postal_code,
-            country: billingDetails.address.country,
+      const result = await stripeService.confirmPayment(
+        clientSecret,
+        elements,
+        {
+          type: 'card',
+          card: cardElement,
+          billing_details: {
+            name: billingDetails.name,
+            email: billingDetails.email,
+            address: {
+              line1: billingDetails.address.line1,
+              line2: billingDetails.address.line2,
+              city: billingDetails.address.city,
+              state: billingDetails.address.state,
+              postal_code: billingDetails.address.postal_code,
+              country: billingDetails.address.country,
+            },
           },
         },
-      });
+      );
 
       if (result.success) {
         onSuccess(result);
       } else if (result.requiresAction) {
         // El pago requiere autenticación adicional (3D Secure)
-        onError('Se requiere autenticación adicional. Por favor, complete la verificación.');
+        onError(
+          'Se requiere autenticación adicional. Por favor, complete la verificación.',
+        );
       } else {
         onError(result.error || 'Error al procesar el pago');
       }
     } catch (error) {
-      loggingService.error(LogCategory.BUSINESS, 'Error processing payment', { error });
-      const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
+      loggingService.error(LogCategory.BUSINESS, 'Error processing payment', {
+        error,
+      });
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al procesar el pago';
       onError(stripeService.handleStripeError({ message: errorMessage }));
     } finally {
       setIsProcessing(false);
@@ -276,7 +295,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
       return (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant='subtitle2' gutterBottom>
               Número de Tarjeta
             </Typography>
             <Box
@@ -298,7 +317,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
             )}
           </Grid>
           <Grid item xs={6}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant='subtitle2' gutterBottom>
               Fecha de Vencimiento
             </Typography>
             <Box
@@ -320,7 +339,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
             )}
           </Grid>
           <Grid item xs={6}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant='subtitle2' gutterBottom>
               CVC
             </Typography>
             <Box
@@ -347,7 +366,7 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
 
     return (
       <Box>
-        <Typography variant="subtitle2" gutterBottom>
+        <Typography variant='subtitle2' gutterBottom>
           <CreditCardIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
           Información de la Tarjeta
         </Typography>
@@ -360,7 +379,10 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
             backgroundColor: 'background.paper',
           }}
         >
-          <CardElement options={CARD_ELEMENT_OPTIONS} onChange={handleCardChange} />
+          <CardElement
+            options={CARD_ELEMENT_OPTIONS}
+            onChange={handleCardChange}
+          />
         </Box>
         {cardError && <FormHelperText error>{cardError}</FormHelperText>}
       </Box>
@@ -370,15 +392,15 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Box display="flex" alignItems="center" mb={3}>
-            <SecurityIcon color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Pago Seguro con Stripe</Typography>
+        <Box component='form' onSubmit={handleSubmit}>
+          <Box display='flex' alignItems='center' mb={3}>
+            <SecurityIcon color='primary' sx={{ mr: 1 }} />
+            <Typography variant='h6'>Pago Seguro con Stripe</Typography>
           </Box>
 
           {/* Resumen del pago */}
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body1">
+          <Alert severity='info' sx={{ mb: 3 }}>
+            <Typography variant='body1'>
               <strong>Total a pagar: </strong>
               {new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -386,23 +408,25 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
               }).format(amount)}
             </Typography>
             {description && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {description}
               </Typography>
             )}
           </Alert>
 
           {/* Información de facturación */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant='subtitle1' gutterBottom>
             Información de Facturación
           </Typography>
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Nombre completo"
+                label='Nombre completo'
                 value={billingDetails.name}
-                onChange={(e) => handleBillingDetailsChange('name', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange('name', e.target.value)
+                }
                 required
                 disabled={disabled || isProcessing}
               />
@@ -410,10 +434,12 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Email"
-                type="email"
+                label='Email'
+                type='email'
                 value={billingDetails.email}
-                onChange={(e) => handleBillingDetailsChange('email', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange('email', e.target.value)
+                }
                 required
                 disabled={disabled || isProcessing}
               />
@@ -421,36 +447,47 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Dirección"
+                label='Dirección'
                 value={billingDetails.address.line1}
-                onChange={(e) => handleBillingDetailsChange('address.line1', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange('address.line1', e.target.value)
+                }
                 disabled={disabled || isProcessing}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Ciudad"
+                label='Ciudad'
                 value={billingDetails.address.city}
-                onChange={(e) => handleBillingDetailsChange('address.city', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange('address.city', e.target.value)
+                }
                 disabled={disabled || isProcessing}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Estado"
+                label='Estado'
                 value={billingDetails.address.state}
-                onChange={(e) => handleBillingDetailsChange('address.state', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange('address.state', e.target.value)
+                }
                 disabled={disabled || isProcessing}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Código Postal"
+                label='Código Postal'
                 value={billingDetails.address.postal_code}
-                onChange={(e) => handleBillingDetailsChange('address.postal_code', e.target.value)}
+                onChange={e =>
+                  handleBillingDetailsChange(
+                    'address.postal_code',
+                    e.target.value,
+                  )
+                }
                 disabled={disabled || isProcessing}
               />
             </Grid>
@@ -467,30 +504,31 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
               control={
                 <Switch
                   checked={saveCard}
-                  onChange={(e) => setSaveCard(e.target.checked)}
+                  onChange={e => setSaveCard(e.target.checked)}
                   disabled={disabled || isProcessing}
                 />
               }
-              label="Guardar esta tarjeta para futuros pagos"
+              label='Guardar esta tarjeta para futuros pagos'
               sx={{ mb: 2 }}
             />
           )}
 
           {/* Indicadores de seguridad */}
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Box display="flex" alignItems="center">
+          <Alert severity='success' sx={{ mb: 3 }}>
+            <Box display='flex' alignItems='center'>
               <CheckCircleIcon sx={{ mr: 1 }} />
-              <Typography variant="body2">
-                Sus datos están protegidos con encriptación SSL de 256 bits y cumplimiento PCI DSS
+              <Typography variant='body2'>
+                Sus datos están protegidos con encriptación SSL de 256 bits y
+                cumplimiento PCI DSS
               </Typography>
             </Box>
           </Alert>
 
           {/* Botones de acción */}
-          <Box display="flex" gap={2} justifyContent="flex-end">
+          <Box display='flex' gap={2} justifyContent='flex-end'>
             {onCancel && (
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={onCancel}
                 disabled={disabled || isProcessing}
               >
@@ -498,9 +536,15 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
               </Button>
             )}
             <Button
-              type="submit"
-              variant="contained"
-              disabled={disabled || isProcessing || !cardComplete || !stripe || !elements}
+              type='submit'
+              variant='contained'
+              disabled={
+                disabled ||
+                isProcessing ||
+                !cardComplete ||
+                !stripe ||
+                !elements
+              }
               startIcon={
                 isProcessing ? (
                   <CircularProgress size={20} />
@@ -509,7 +553,9 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
                 )
               }
             >
-              {isProcessing ? 'Procesando...' : `Pagar ${currency} ${amount.toFixed(2)}`}
+              {isProcessing
+                ? 'Procesando...'
+                : `Pagar ${currency} ${amount.toFixed(2)}`}
             </Button>
           </Box>
         </Box>
@@ -518,9 +564,11 @@ const StripePaymentFormContent: React.FC<StripePaymentFormProps> = ({
   );
 };
 
-export const StripePaymentForm: React.FC<StripePaymentFormProps & {
-  stripePromise: Promise<any>;
-}> = ({ stripePromise, ...props }) => {
+export const StripePaymentForm: React.FC<
+  StripePaymentFormProps & {
+    stripePromise: Promise<any>;
+  }
+> = ({ stripePromise, ...props }) => {
   return (
     <Elements stripe={stripePromise}>
       <StripePaymentFormContent {...props} />

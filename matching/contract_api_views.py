@@ -32,11 +32,13 @@ class ValidateMatchForContractAPIView(APIView):
 
         if request.user not in [match_request.tenant, match_request.property.landlord]:
             return Response(
-                {'error': 'No tienes permisos para esta operación'},
+                {"error": "No tienes permisos para esta operación"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        result = MatchContractIntegrationService.validate_match_for_contract(match_request)
+        result = MatchContractIntegrationService.validate_match_for_contract(
+            match_request
+        )
         return Response(result)
 
 
@@ -49,27 +51,29 @@ class CreateContractFromMatchAPIView(APIView):
 
         if request.user != match_request.property.landlord:
             return Response(
-                {'error': 'Solo el arrendador puede crear el contrato'},
+                {"error": "Solo el arrendador puede crear el contrato"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         try:
             contract = MatchContractIntegrationService.create_contract_from_match(
                 match_request=match_request,
-                contract_type=request.data.get('contract_type'),
-                additional_data=request.data.get('additional_data', {}),
+                contract_type=request.data.get("contract_type"),
+                additional_data=request.data.get("additional_data", {}),
             )
         except ValidationError as exc:
-            return Response({'errors': exc.messages}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"errors": exc.messages}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             {
-                'match_id': str(match_request.id),
-                'contract_id': str(contract.id),
-                'landlord_controlled_contract_id': str(contract.id),
-                'status': contract.status,
-                'shared_uuid': True,
-                'next_step': 'biometric_authentication',
+                "match_id": str(match_request.id),
+                "contract_id": str(contract.id),
+                "landlord_controlled_contract_id": str(contract.id),
+                "status": contract.status,
+                "shared_uuid": True,
+                "next_step": "biometric_authentication",
             },
             status=status.HTTP_201_CREATED,
         )

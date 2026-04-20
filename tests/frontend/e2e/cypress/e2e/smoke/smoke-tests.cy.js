@@ -1,18 +1,18 @@
 describe('Smoke Tests - Critical Application Functionality', () => {
   // Smoke tests verify that the most critical parts of the application work
   // These should be fast, reliable tests that catch major breakages
-  
+
   describe('Application Startup', () => {
     it('should load the application homepage', () => {
       cy.visit('/')
-      
+
       // Measure page load performance
       cy.measurePageLoad(3000)
-      
+
       // Basic page elements should be present
       cy.get('body').should('be.visible')
       cy.title().should('not.be.empty')
-      
+
       // Should have navigation or login elements
       cy.get('[data-cy=login-button], [data-cy=navigation], [data-cy=header]').should('exist')
     })
@@ -24,7 +24,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         { method: 'GET', url: '/contracts/', requiresAuth: true },
         { method: 'GET', url: '/messages/', requiresAuth: true },
       ]
-      
+
       // Test public endpoints
       criticalEndpoints
         .filter(ep => !ep.requiresAuth)
@@ -34,10 +34,10 @@ describe('Smoke Tests - Critical Application Functionality', () => {
             cy.log(`${endpoint.method} ${endpoint.url}: ${responseTime}ms`)
           })
         })
-      
+
       // Test authenticated endpoints
       cy.quickLogin('landlord')
-      
+
       criticalEndpoints
         .filter(ep => ep.requiresAuth)
         .forEach(endpoint => {
@@ -65,28 +65,28 @@ describe('Smoke Tests - Critical Application Functionality', () => {
   describe('Authentication Critical Path', () => {
     it('should allow user login', () => {
       cy.visit('/login')
-      
+
       // Login form should be present
       cy.get('[data-cy=email-input]').should('be.visible')
       cy.get('[data-cy=password-input]').should('be.visible')
       cy.get('[data-cy=login-button]').should('be.visible')
-      
+
       // Should be able to login
       cy.loginAs('landlord')
-      
+
       // Should redirect to dashboard
       cy.url().should('include', '/dashboard')
-      
+
       // User should be authenticated
       cy.get('[data-cy=user-menu]').should('be.visible')
     })
 
     it('should maintain authentication state', () => {
       cy.loginAs('landlord')
-      
+
       // Navigate to different pages
       const pages = ['/properties', '/contracts', '/messages']
-      
+
       pages.forEach(page => {
         cy.visit(page)
         cy.get('[data-cy=user-menu]').should('be.visible') // Still authenticated
@@ -96,14 +96,14 @@ describe('Smoke Tests - Critical Application Functionality', () => {
 
     it('should handle logout', () => {
       cy.loginAs('landlord')
-      
+
       // Logout
       cy.get('[data-cy=user-menu]').click()
       cy.get('[data-cy=logout-button]').click()
-      
+
       // Should redirect to login
       cy.url().should('include', '/login')
-      
+
       // Should clear authentication
       cy.window().its('localStorage').invoke('getItem', 'access_token').should('be.null')
     })
@@ -116,43 +116,43 @@ describe('Smoke Tests - Critical Application Functionality', () => {
 
     it('should display property list', () => {
       cy.visit('/properties')
-      
+
       // Page should load
       cy.get('[data-cy=property-list], [data-cy=empty-state]').should('be.visible')
-      
+
       // Should have search functionality
       cy.get('[data-cy=search-input]').should('be.visible')
-      
+
       // Should have add property option for landlords
       cy.get('[data-cy=add-property-button]').should('be.visible')
     })
 
     it('should display contract list', () => {
       cy.visit('/contracts')
-      
+
       // Page should load
       cy.get('[data-cy=contract-list], [data-cy=empty-state]').should('be.visible')
-      
+
       // Should have new contract option for landlords
       cy.get('[data-cy=new-contract-button]').should('be.visible')
     })
 
     it('should display messages interface', () => {
       cy.visit('/messages')
-      
+
       // Page should load
       cy.get('[data-cy=message-interface]').should('be.visible')
-      
+
       // Should have basic messaging elements
       cy.get('[data-cy=conversation-list], [data-cy=new-message-button]').should('exist')
     })
 
     it('should display user dashboard', () => {
       cy.visit('/dashboard')
-      
+
       // Dashboard should load with key metrics
       cy.get('[data-cy=dashboard]').should('be.visible')
-      
+
       // Should show user-specific information
       cy.get('[data-cy=user-stats], [data-cy=recent-activity]').should('exist')
     })
@@ -165,13 +165,13 @@ describe('Smoke Tests - Critical Application Functionality', () => {
 
     it('should have functional navigation menu', () => {
       cy.visit('/dashboard')
-      
+
       // Main navigation should be present
       cy.get('[data-cy=navigation], [data-cy=nav-menu]').should('be.visible')
-      
+
       // Key navigation items should be present
       const navItems = ['dashboard', 'properties', 'contracts', 'messages']
-      
+
       navItems.forEach(item => {
         cy.get(`[data-cy=nav-${item}]`).should('be.visible')
       })
@@ -184,7 +184,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         { path: '/contracts', element: '[data-cy=contract-list], [data-cy=empty-state]' },
         { path: '/messages', element: '[data-cy=message-interface]' }
       ]
-      
+
       sections.forEach(section => {
         cy.visit(section.path)
         cy.get(section.element).should('be.visible')
@@ -200,19 +200,19 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         cy.log('WebSocket tests disabled, skipping...')
         return
       }
-      
+
       cy.loginAs('landlord')
     })
 
     it('should establish WebSocket connections', () => {
       if (!Cypress.env('ENABLE_WEBSOCKET_TESTS')) return
-      
+
       const websocketEndpoints = [
         '/messaging/',
         '/notifications/',
         '/user-status/'
       ]
-      
+
       websocketEndpoints.forEach(endpoint => {
         cy.task('testWebSocketConnection', {
           url: `${Cypress.env('WS_URL')}${endpoint}`,
@@ -226,12 +226,12 @@ describe('Smoke Tests - Critical Application Functionality', () => {
 
     it('should show WebSocket status indicators', () => {
       if (!Cypress.env('ENABLE_WEBSOCKET_TESTS')) return
-      
+
       cy.visit('/messages')
-      
+
       // Should have WebSocket status indicator
       cy.get('[data-cy=websocket-status]', { timeout: 10000 }).should('be.visible')
-      
+
       // Should show connected status
       cy.get('[data-cy=websocket-status]').should('contain', 'Connected')
     })
@@ -240,17 +240,17 @@ describe('Smoke Tests - Critical Application Functionality', () => {
   describe('Error Handling', () => {
     it('should handle 404 errors gracefully', () => {
       cy.visit('/nonexistent-page', { failOnStatusCode: false })
-      
+
       // Should show 404 page or redirect
       cy.get('[data-cy=not-found], [data-cy=error-page]').should('be.visible')
-      
+
       // Should have way to navigate back
       cy.get('[data-cy=back-to-home], [data-cy=navigation]').should('be.visible')
     })
 
     it('should handle API errors gracefully', () => {
       cy.loginAs('landlord')
-      
+
       // Make request to non-existent endpoint
       cy.request({
         method: 'GET',
@@ -259,7 +259,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
       }).then((response) => {
         expect(response.status).to.eq(404)
       })
-      
+
       // Application should still be functional
       cy.visit('/dashboard')
       cy.get('[data-cy=dashboard]').should('be.visible')
@@ -268,17 +268,17 @@ describe('Smoke Tests - Critical Application Functionality', () => {
     it('should handle network errors gracefully', () => {
       cy.loginAs('landlord')
       cy.visit('/properties')
-      
+
       // Simulate network error by intercepting API calls
       cy.intercept('GET', '**/api/v1/properties/', { forceNetworkError: true })
-      
+
       // Reload page to trigger API call
       cy.reload()
-      
+
       // Should show error state
       cy.get('[data-cy=error-message], [data-cy=network-error]', { timeout: 10000 })
         .should('be.visible')
-      
+
       // Should have retry option
       cy.get('[data-cy=retry-button]').should('be.visible')
     })
@@ -290,7 +290,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         { path: '/', name: 'Homepage' },
         { path: '/login', name: 'Login' }
       ]
-      
+
       pages.forEach(page => {
         cy.visit(page.path)
         cy.measurePageLoad(3000).then(loadTime => {
@@ -302,7 +302,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
 
     it('should handle concurrent API requests', () => {
       cy.quickLogin('landlord')
-      
+
       // Make multiple concurrent API requests
       const requests = [
         cy.apiRequest('GET', '/properties/'),
@@ -310,7 +310,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         cy.apiRequest('GET', '/messages/'),
         cy.apiRequest('GET', '/users/profile/')
       ]
-      
+
       // All requests should complete successfully
       Cypress.Promise.all(requests).then(responses => {
         responses.forEach((response, index) => {
@@ -324,7 +324,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
   describe('Data Integrity', () => {
     it('should have consistent data across different views', () => {
       cy.loginAs('landlord')
-      
+
       // Create a test property
       cy.createTestProperty({
         title: 'Consistency Test Property'
@@ -332,7 +332,7 @@ describe('Smoke Tests - Critical Application Functionality', () => {
         // Check property appears in list view
         cy.visit('/properties')
         cy.get('[data-cy=property-list]').should('contain', property.title)
-        
+
         // Check property details are consistent
         cy.get('[data-cy=property-card]').contains(property.title).click()
         cy.get('[data-cy=property-title]').should('contain', property.title)
@@ -346,9 +346,9 @@ describe('Smoke Tests - Critical Application Functionality', () => {
       // Clear any existing authentication
       cy.clearLocalStorage()
       cy.clearCookies()
-      
+
       const protectedRoutes = ['/dashboard', '/properties', '/contracts', '/messages']
-      
+
       protectedRoutes.forEach(route => {
         cy.visit(route)
         // Should redirect to login or show login form
@@ -361,9 +361,9 @@ describe('Smoke Tests - Critical Application Functionality', () => {
       cy.window().then(win => {
         win.localStorage.setItem('access_token', 'invalid_token')
       })
-      
+
       cy.visit('/dashboard')
-      
+
       // Should redirect to login or show authentication error
       cy.url({ timeout: 10000 }).should('match', /\/(login|auth)/)
     })
@@ -375,32 +375,32 @@ describe('Smoke Tests - Critical Application Functionality', () => {
       // 1. Load application
       cy.visit('/')
       cy.get('body').should('be.visible')
-      
+
       // 2. Login
       cy.loginAs('landlord')
       cy.url().should('include', '/dashboard')
-      
+
       // 3. Navigate to properties
       cy.visit('/properties')
       cy.get('[data-cy=property-list], [data-cy=empty-state]').should('be.visible')
-      
+
       // 4. Check contracts
       cy.visit('/contracts')
       cy.get('[data-cy=contract-list], [data-cy=empty-state]').should('be.visible')
-      
+
       // 5. Check messages
       cy.visit('/messages')
       cy.get('[data-cy=message-interface]').should('be.visible')
-      
+
       // 6. Return to dashboard
       cy.visit('/dashboard')
       cy.get('[data-cy=dashboard]').should('be.visible')
-      
+
       // 7. Logout
       cy.get('[data-cy=user-menu]').click()
       cy.get('[data-cy=logout-button]').click()
       cy.url().should('include', '/login')
-      
+
       cy.log('✅ Critical user journey completed successfully')
     })
   })

@@ -26,7 +26,7 @@ export const ResetPassword: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -59,21 +59,23 @@ export const ResetPassword: React.FC = () => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError('Error al restablecer la contraseña. Por favor, intente nuevamente.');
+      setError(
+        'Error al restablecer la contraseña. Por favor, intente nuevamente.',
+      );
     }
   };
 
   if (!token || !uid) {
     return (
-      <Container maxWidth="sm">
+      <Container maxWidth='sm'>
         <Box sx={{ mt: 8 }}>
-          <Alert severity="error">
+          <Alert severity='error'>
             Token de restablecimiento no válido o expirado
           </Alert>
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               onClick={() => navigate('/forgot-password')}
             >
               Solicitar nuevo enlace
@@ -85,53 +87,54 @@ export const ResetPassword: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth='sm'>
       <Box sx={{ mt: 8 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+          <Typography variant='h4' component='h1' gutterBottom align='center'>
             Restablecer Contraseña
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity='error' sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
 
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Contraseña restablecida exitosamente. Redirigiendo al inicio de sesión...
+            <Alert severity='success' sx={{ mb: 2 }}>
+              Contraseña restablecida exitosamente. Redirigiendo al inicio de
+              sesión...
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              name="password"
-              label="Nueva Contraseña"
-              type="password"
+              name='password'
+              label='Nueva Contraseña'
+              type='password'
               value={formData.password}
               onChange={handleChange}
               disabled={success}
             />
             <TextField
-              margin="normal"
+              margin='normal'
               required
               fullWidth
-              name="confirmPassword"
-              label="Confirmar Contraseña"
-              type="password"
+              name='confirmPassword'
+              label='Confirmar Contraseña'
+              type='password'
               value={formData.confirmPassword}
               onChange={handleChange}
               disabled={success}
             />
             <Button
-              type="submit"
+              type='submit'
               fullWidth
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               sx={{ mt: 3 }}
               disabled={success}
             >
@@ -142,4 +145,4 @@ export const ResetPassword: React.FC = () => {
       </Box>
     </Container>
   );
-}; 
+};

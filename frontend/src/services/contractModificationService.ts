@@ -27,7 +27,10 @@ const ContractModificationService = {
   async createModificationRequest(
     payload: CreateModificationRequestPayload,
   ): Promise<ContractModificationRequest> {
-    const response = await api.post<ContractModificationRequest>(`${BASE_URL  }/`, payload);
+    const response = await api.post<ContractModificationRequest>(
+      `${BASE_URL}/`,
+      payload,
+    );
     return response.data;
   },
 
@@ -125,7 +128,9 @@ const ContractModificationService = {
    *
    * @returns Promesa con array de solicitudes pendientes
    */
-  async getPendingModificationRequests(): Promise<ContractModificationRequest[]> {
+  async getPendingModificationRequests(): Promise<
+    ContractModificationRequest[]
+  > {
     return this.listModificationRequests({ status: 'PENDING' });
   },
 

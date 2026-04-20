@@ -35,7 +35,10 @@ interface RatingsErrorBoundaryProps {
   showDetails?: boolean;
 }
 
-class RatingsErrorBoundary extends Component<RatingsErrorBoundaryProps, RatingsErrorBoundaryState> {
+class RatingsErrorBoundary extends Component<
+  RatingsErrorBoundaryProps,
+  RatingsErrorBoundaryState
+> {
   constructor(props: RatingsErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -46,9 +49,11 @@ class RatingsErrorBoundary extends Component<RatingsErrorBoundaryProps, RatingsE
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<RatingsErrorBoundaryState> {
+  static getDerivedStateFromError(
+    error: Error,
+  ): Partial<RatingsErrorBoundaryState> {
     const errorId = `ratings-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
@@ -110,7 +115,9 @@ class RatingsErrorBoundary extends Component<RatingsErrorBoundaryProps, RatingsE
   };
 
   private handleReportIssue = () => {
-    const subject = encodeURIComponent(`Error en Sistema de Calificaciones - ${this.state.errorId}`);
+    const subject = encodeURIComponent(
+      `Error en Sistema de Calificaciones - ${this.state.errorId}`,
+    );
     const body = encodeURIComponent(`
 Error en el módulo de calificaciones:
 
@@ -133,13 +140,13 @@ Descripción detallada del problema:
 [ ] Sí - Es urgente
 [ ] No - Puedo esperar
     `);
-    
+
     window.open(`mailto:soporte@verihome.com?subject=${subject}&body=${body}`);
   };
 
   private getErrorCategory = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('rating') || message.includes('calificación')) {
       return 'Calificación';
     }
@@ -161,13 +168,13 @@ Descripción detallada del problema:
     if (message.includes('duplicate') || message.includes('already')) {
       return 'Duplicado';
     }
-    
+
     return 'Sistema';
   };
 
   private getErrorSeverity = (error: Error): 'error' | 'warning' | 'info' => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('critical') || message.includes('fatal')) {
       return 'error';
     }
@@ -177,13 +184,13 @@ Descripción detallada del problema:
     if (message.includes('permission') || message.includes('not found')) {
       return 'info';
     }
-    
+
     return 'error';
   };
 
   private getUserFriendlyMessage = (error: Error): string => {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('rating') && message.includes('required')) {
       return 'La calificación es requerida. Por favor selecciona un número de estrellas antes de enviar.';
     }
@@ -208,40 +215,46 @@ Descripción detallada del problema:
     if (message.includes('expired') || message.includes('too late')) {
       return 'El período para calificar ha expirado. Solo puedes enviar calificaciones dentro de los 30 días posteriores a la transacción.';
     }
-    
+
     return 'Ha ocurrido un error inesperado con el sistema de calificaciones. Inténtalo nuevamente en unos momentos.';
   };
 
   private getHelpfulTips = (error: Error): string[] => {
     const message = error.message.toLowerCase();
     const tips: string[] = [];
-    
+
     if (message.includes('rating') || message.includes('calificación')) {
-      tips.push('Asegúrate de seleccionar un número de estrellas antes de enviar');
+      tips.push(
+        'Asegúrate de seleccionar un número de estrellas antes de enviar',
+      );
       tips.push('Las calificaciones van de 1 a 10 estrellas');
     }
-    
+
     if (message.includes('comment') || message.includes('comentario')) {
       tips.push('Los comentarios son opcionales pero muy útiles');
       tips.push('Máximo 1000 caracteres para el comentario');
     }
-    
+
     if (message.includes('permission')) {
       tips.push('Solo puedes calificar después de completar una transacción');
       tips.push('Cada transacción permite una sola calificación mutua');
     }
-    
+
     if (message.includes('network')) {
       tips.push('Verifica tu conexión a internet');
-      tips.push('Las calificaciones se guardan automáticamente cuando hay conexión');
+      tips.push(
+        'Las calificaciones se guardan automáticamente cuando hay conexión',
+      );
     }
-    
+
     // Tips generales si no hay específicos
     if (tips.length === 0) {
       tips.push('Recarga la página e intenta nuevamente');
-      tips.push('Las calificaciones son importantes para la confianza en la plataforma');
+      tips.push(
+        'Las calificaciones son importantes para la confianza en la plataforma',
+      );
     }
-    
+
     return tips;
   };
 
@@ -285,8 +298,12 @@ Descripción detallada del problema:
                   <ErrorIcon
                     sx={{
                       fontSize: 64,
-                      color: errorSeverity === 'error' ? 'var(--color-error)' : 
-                             errorSeverity === 'warning' ? 'var(--color-warning)' : 'var(--color-info)',
+                      color:
+                        errorSeverity === 'error'
+                          ? 'var(--color-error)'
+                          : errorSeverity === 'warning'
+                            ? 'var(--color-warning)'
+                            : 'var(--color-info)',
                       mb: 2,
                     }}
                   />
@@ -303,7 +320,7 @@ Descripción detallada del problema:
               </Box>
 
               {/* Error Title */}
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              <Typography variant='h5' sx={{ fontWeight: 600, mb: 2 }}>
                 Error en Sistema de Calificaciones
               </Typography>
 
@@ -311,12 +328,20 @@ Descripción detallada del problema:
               <Box sx={{ mb: 3 }}>
                 <Chip
                   label={errorCategory}
-                  size="small"
+                  size='small'
                   sx={{
-                    backgroundColor: errorSeverity === 'error' ? 'var(--color-error-light)' : 
-                                    errorSeverity === 'warning' ? 'var(--color-warning-light)' : 'var(--color-info-light)',
-                    color: errorSeverity === 'error' ? 'var(--color-error-dark)' : 
-                           errorSeverity === 'warning' ? 'var(--color-warning-dark)' : 'var(--color-info-dark)',
+                    backgroundColor:
+                      errorSeverity === 'error'
+                        ? 'var(--color-error-light)'
+                        : errorSeverity === 'warning'
+                          ? 'var(--color-warning-light)'
+                          : 'var(--color-info-light)',
+                    color:
+                      errorSeverity === 'error'
+                        ? 'var(--color-error-dark)'
+                        : errorSeverity === 'warning'
+                          ? 'var(--color-warning-dark)'
+                          : 'var(--color-info-dark)',
                     fontWeight: 500,
                   }}
                 />
@@ -334,9 +359,7 @@ Descripción detallada del problema:
                   },
                 }}
               >
-                <Typography variant="body2">
-                  {userFriendlyMessage}
-                </Typography>
+                <Typography variant='body2'>{userFriendlyMessage}</Typography>
               </Alert>
 
               {/* Helpful Tips */}
@@ -351,16 +374,25 @@ Descripción detallada del problema:
                     textAlign: 'left',
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <FeedbackIcon fontSize="small" />
+                  <Typography
+                    variant='subtitle2'
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <FeedbackIcon fontSize='small' />
                     Consejos Útiles:
                   </Typography>
-                  <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                  <Box component='ul' sx={{ pl: 2, m: 0 }}>
                     {helpfulTips.map((tip, index) => (
                       <Typography
                         key={index}
-                        variant="body2"
-                        component="li"
+                        variant='body2'
+                        component='li'
                         sx={{ color: 'var(--color-text-secondary)', mb: 0.5 }}
                       >
                         {tip}
@@ -380,7 +412,10 @@ Descripción detallada del problema:
                   mb: 3,
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, textAlign: 'center' }}>
+                <Typography
+                  variant='subtitle2'
+                  sx={{ fontWeight: 600, mb: 2, textAlign: 'center' }}
+                >
                   Sistema de Calificaciones VeriHome
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -395,49 +430,72 @@ Descripción detallada del problema:
                     }}
                   />
                 </Box>
-                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', textAlign: 'center', fontSize: '0.875rem' }}>
-                  Las calificaciones van de 1 a 10 estrellas y son fundamentales para<br />
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'var(--color-text-secondary)',
+                    textAlign: 'center',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Las calificaciones van de 1 a 10 estrellas y son fundamentales
+                  para
+                  <br />
                   construir confianza entre usuarios de VeriHome
                 </Typography>
               </Box>
 
               {/* Error ID */}
-              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 3 }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'var(--color-text-secondary)', mb: 3 }}
+              >
                 ID del error: <code>{this.state.errorId}</code>
               </Typography>
 
               {/* Technical details */}
-              {this.props.showDetails && process.env.NODE_ENV === 'development' && (
-                <>
-                  <Divider sx={{ my: 3 }} />
-                  <Box sx={{ textAlign: 'left', mb: 3 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                      Detalles Técnicos:
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      component="pre"
-                      sx={{
-                        backgroundColor: 'var(--color-background)',
-                        p: 2,
-                        borderRadius: 1,
-                        fontSize: '0.75rem',
-                        overflow: 'auto',
-                        maxHeight: 200,
-                        border: '1px solid var(--color-border)',
-                      }}
-                    >
-                      {error.message}
-                      {error.stack && `\n\nStack trace:\n${error.stack}`}
-                    </Typography>
-                  </Box>
-                </>
-              )}
+              {this.props.showDetails &&
+                process.env.NODE_ENV === 'development' && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Box sx={{ textAlign: 'left', mb: 3 }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 600, mb: 1 }}
+                      >
+                        Detalles Técnicos:
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        component='pre'
+                        sx={{
+                          backgroundColor: 'var(--color-background)',
+                          p: 2,
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          overflow: 'auto',
+                          maxHeight: 200,
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        {error.message}
+                        {error.stack && `\n\nStack trace:\n${error.stack}`}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Button
-                  variant="contained"
+                  variant='contained'
                   startIcon={<RefreshIcon />}
                   onClick={this.handleRetry}
                   sx={{
@@ -451,7 +509,7 @@ Descripción detallada del problema:
                 </Button>
 
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<HomeIcon />}
                   onClick={this.handleGoHome}
                   sx={{
@@ -466,7 +524,7 @@ Descripción detallada del problema:
                 </Button>
 
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<FeedbackIcon />}
                   onClick={this.handleReportIssue}
                   sx={{
@@ -483,14 +541,23 @@ Descripción detallada del problema:
               </Box>
 
               {/* Support info */}
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid var(--color-border)' }}>
-                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: 1 }}>
+              <Box
+                sx={{
+                  mt: 4,
+                  pt: 3,
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'var(--color-text-secondary)', mb: 1 }}
+                >
                   ¿Problemas con calificaciones? Estamos aquí para ayudar:
                 </Typography>
                 <Button
-                  variant="text"
+                  variant='text'
                   startIcon={<SupportIcon />}
-                  href="mailto:soporte@verihome.com"
+                  href='mailto:soporte@verihome.com'
                   sx={{
                     color: 'var(--color-primary)',
                     textTransform: 'none',

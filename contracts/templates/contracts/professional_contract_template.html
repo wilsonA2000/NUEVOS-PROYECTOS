@@ -8,7 +8,7 @@
         /* ===============================================
            ESTILO PROFESIONAL PARA CONTRATO DE ARRENDAMIENTO
            =============================================== */
-        
+
         @page {
             size: Letter;
             margin: 2.5cm 2cm 2cm 2cm;
@@ -174,7 +174,7 @@
 
         /* Espacios de página */
         .page-break { page-break-before: always; }
-        
+
         /* Numeración de cláusulas */
         .clause-number {
             font-weight: bold;
@@ -187,7 +187,7 @@
                 padding: 15px;
                 font-size: 10pt;
             }
-            
+
             .signature-box {
                 width: 100%;
                 margin: 20px 0;
@@ -200,7 +200,7 @@
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
             }
-            
+
             .contract-header {
                 background: #007BFF !important;
                 -webkit-print-color-adjust: exact;
@@ -278,7 +278,7 @@
         <div class="clause-content">
             EL ARRENDATARIO destinará el inmueble arrendado única y exclusivamente para <strong>{{ property_type|lower }}</strong>, destinación que no podrá ser cambiada. En el evento que esto ocurra, EL ARRENDADOR puede dar por terminado el arrendamiento, exigir la entrega inmediata del inmueble arrendado y solicitar el pago de la correspondiente indemnización de perjuicios o de las penalidades a que haya lugar.
         </div>
-        
+
         <div class="paragraph-title">PARÁGRAFO PRIMERO:</div>
         <div class="paragraph">
             EL ARRENDATARIO no destinará el inmueble para fines ilícitos, y en consecuencia se obliga de forma especial a no utilizarlo para ocultar o depositar armas, explosivos o dineros de grupos terroristas o artículos de contrabando o hurtados, o para que en él se elaboren, almacenen o vendan drogas, estupefacientes o sustancias alucinógenas y afines. EL ARRENDATARIO se obliga a no guardar o permitir que se guarden en el inmueble sustancias inflamables o explosivas que pongan en peligro la seguridad del mismo.
@@ -327,7 +327,7 @@
                     <div class="clause-content">
                         {{ clause.formatted_content }}
                     </div>
-                    
+
                     {% if clause.paragraphs %}
                         {% for paragraph in clause.paragraphs %}
                             <div class="paragraph-title">{{ paragraph.type }}:</div>
@@ -370,7 +370,7 @@
     <!-- ÁREA DE FIRMAS PROFESIONAL -->
     <div class="signatures-area">
         <h3 class="text-center mb-20">FIRMAS</h3>
-        
+
         <div class="signature-box">
             <div class="signature-line"></div>
             <div class="signature-info">

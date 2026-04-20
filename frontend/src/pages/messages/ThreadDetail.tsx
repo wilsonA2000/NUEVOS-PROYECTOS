@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Typography,
@@ -14,16 +14,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Chip,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -118,8 +108,7 @@ const ThreadDetail: React.FC = () => {
     try {
       const response = await api.post(`/messages/threads/${threadId}/star/`);
       setThread(response.data);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleArchiveThread = async () => {
@@ -129,16 +118,14 @@ const ThreadDetail: React.FC = () => {
       if (response.data.archived) {
         navigate('/messages/inbox');
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleDeleteThread = async () => {
     try {
       await api.delete(`/messages/threads/${threadId}/delete/`);
       navigate('/messages/inbox');
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -155,14 +142,21 @@ const ThreadDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   if (error || !thread) {
-    return <Typography color="error">{error || 'Thread not found'}</Typography>;
+    return <Typography color='error'>{error || 'Thread not found'}</Typography>;
   }
 
   return (
@@ -171,7 +165,7 @@ const ThreadDetail: React.FC = () => {
         <IconButton onClick={() => navigate('/messages')} sx={{ mr: 1 }}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" sx={{ flexGrow: 1 }}>
+        <Typography variant='h5' sx={{ flexGrow: 1 }}>
           {thread.subject}
         </Typography>
         <IconButton onClick={handleStarThread}>
@@ -189,7 +183,7 @@ const ThreadDetail: React.FC = () => {
         <List>
           {messages.map((message, index) => (
             <React.Fragment key={message.id}>
-              <ListItem alignItems="flex-start">
+              <ListItem alignItems='flex-start'>
                 <ListItemAvatar>
                   <Avatar src={message.sender.avatar || undefined}>
                     {message.sender.full_name.charAt(0)}
@@ -200,13 +194,13 @@ const ThreadDetail: React.FC = () => {
                   secondary={
                     <>
                       <Typography
-                        component="span"
-                        variant="body2"
-                        color="text.primary"
+                        component='span'
+                        variant='body2'
+                        color='text.primary'
                       >
                         {new Date(message.created_at).toLocaleString()}
                       </Typography>
-                      <Typography variant="body1" sx={{ mt: 1 }}>
+                      <Typography variant='body1' sx={{ mt: 1 }}>
                         {message.content}
                       </Typography>
                     </>
@@ -219,19 +213,19 @@ const ThreadDetail: React.FC = () => {
         </List>
       </Paper>
 
-      <Paper component="form" onSubmit={handleSendMessage} sx={{ p: 2 }}>
+      <Paper component='form' onSubmit={handleSendMessage} sx={{ p: 2 }}>
         <TextField
           fullWidth
           multiline
           rows={3}
-          placeholder="Escribe tu mensaje..."
+          placeholder='Escribe tu mensaje...'
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={e => setNewMessage(e.target.value)}
           sx={{ mb: 2 }}
         />
         <Button
-          type="submit"
-          variant="contained"
+          type='submit'
+          variant='contained'
           disabled={!newMessage.trim() || sendMessageMutation.isPending}
         >
           Enviar
@@ -241,4 +235,4 @@ const ThreadDetail: React.FC = () => {
   );
 };
 
-export default ThreadDetail; 
+export default ThreadDetail;

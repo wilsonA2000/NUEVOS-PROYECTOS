@@ -98,27 +98,27 @@ if "%1"=="contracts" (
 if "%1"=="full" (
     echo 🔥 Running complete E2E test suite...
     echo.
-    
+
     echo 🧪 Running Smoke Tests...
     npx cypress run --spec "cypress/e2e/smoke/**/*.cy.js" --browser electron --headless
     if !errorlevel! neq 0 goto :test_failed
-    
+
     echo 🧪 Running Authentication Tests...
     npx cypress run --spec "cypress/e2e/auth/**/*.cy.js" --browser electron --headless
     if !errorlevel! neq 0 goto :test_failed
-    
+
     echo 🧪 Running Property Management Tests...
     npx cypress run --spec "cypress/e2e/properties/**/*.cy.js" --browser electron --headless
     if !errorlevel! neq 0 goto :test_failed
-    
+
     echo 🧪 Running WebSocket Tests...
     npx cypress run --spec "cypress/e2e/websocket/**/*.cy.js" --browser electron --headless
     if !errorlevel! neq 0 goto :test_failed
-    
+
     echo 🧪 Running Contract Tests...
     npx cypress run --spec "cypress/e2e/contracts/**/*.cy.js" --browser electron --headless
     if !errorlevel! neq 0 goto :test_failed
-    
+
     echo ✅ All E2E tests completed successfully!
     echo ✨ Your VeriHome application is fully tested and working correctly!
     goto :end

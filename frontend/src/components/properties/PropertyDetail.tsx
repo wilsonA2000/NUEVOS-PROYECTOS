@@ -21,7 +21,6 @@ import {
   Tooltip,
   Fab,
   CircularProgress,
-  Alert,
   Skeleton,
 } from '@mui/material';
 import {
@@ -65,11 +64,11 @@ import { styled, alpha, useTheme } from '@mui/material/styles';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProperty, useProperties } from '../../hooks/useProperties';
 import { useAuth } from '../../hooks/useAuth';
-import PropertyImage from '../common/PropertyImage';
+
 import { ModernImageGallery } from './ModernImageGallery';
 import MatchRequestForm from '../matching/MatchRequestForm';
 import { matchingService } from '../../services/matchingService';
-import { api } from '../../services/api';
+
 import { propertyService } from '../../services/propertyService';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
@@ -106,7 +105,8 @@ const ImageOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+  background:
+    'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-end',
@@ -138,7 +138,7 @@ const FeatureChip = styled(Chip)(({ theme }) => ({
   },
 }));
 
-const PriceDisplay = styled(Typography)(({ theme }) => ({
+const PriceDisplay = styled(Typography)(() => ({
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
@@ -223,11 +223,14 @@ const FloatingActions = styled(Box)(({ theme }) => ({
 }));
 
 // Enhanced Video Player Component
-const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) => {
+const VideoPlayer: React.FC<{ video: any; index: number }> = ({
+  video,
+  index,
+}) => {
   const getYouTubeEmbedUrl = (url: string) => {
     try {
       let videoId = '';
-      
+
       if (url.includes('v=')) {
         // Standard YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
         videoId = url.split('v=')[1]?.split('&')[0] ?? '';
@@ -242,24 +245,23 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
         const parts = url.split('/');
         videoId = (parts[parts.length - 1] ?? '').split('?')[0] ?? '';
       }
-      
+
       // Validate video ID (YouTube video IDs are typically 11 characters, can contain letters, numbers, _ and -)
       const validIdPattern = /^[a-zA-Z0-9_-]{10,12}$/;
       if (!videoId || !validIdPattern.test(videoId)) {
         return '';
       }
-      
+
       const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1`;
       return embedUrl;
-      
     } catch (error) {
       return '';
     }
   };
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         borderRadius: 2,
         overflow: 'hidden',
         boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
@@ -276,13 +278,19 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
           const embedUrl = getYouTubeEmbedUrl(video.youtube_url);
           if (embedUrl) {
             return (
-              <Box sx={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  paddingBottom: '56.25%',
+                  height: 0,
+                }}
+              >
                 <iframe
                   src={embedUrl}
                   title={video.title || `Video ${index + 1}`}
-                  frameBorder="0"
+                  frameBorder='0'
                   allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -297,8 +305,8 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
           } else {
             // Invalid YouTube URL
             return (
-              <Box 
-                sx={{ 
+              <Box
+                sx={{
                   height: 200,
                   display: 'flex',
                   alignItems: 'center',
@@ -310,7 +318,7 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
                 }}
               >
                 <VideoIcon sx={{ fontSize: 48, opacity: 0.7 }} />
-                <Typography variant="caption" align="center">
+                <Typography variant='caption' align='center'>
                   URL de YouTube inválida
                   <br />
                   {video.youtube_url}
@@ -324,13 +332,13 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
           return (
             <video
               controls
-              preload="metadata"
+              preload='metadata'
               style={{ width: '100%', height: 'auto', display: 'block' }}
               poster={video.thumbnail_url || video.thumbnail}
             >
-              <source src={video.video_url || video.video} type="video/mp4" />
-              <source src={video.video_url || video.video} type="video/webm" />
-              <source src={video.video_url || video.video} type="video/ogg" />
+              <source src={video.video_url || video.video} type='video/mp4' />
+              <source src={video.video_url || video.video} type='video/webm' />
+              <source src={video.video_url || video.video} type='video/ogg' />
               Tu navegador no soporta el elemento de video.
             </video>
           );
@@ -338,8 +346,8 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
         // No video available
         else {
           return (
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 height: 200,
                 display: 'flex',
                 alignItems: 'center',
@@ -351,38 +359,46 @@ const VideoPlayer: React.FC<{ video: any; index: number }> = ({ video, index }) 
               }}
             >
               <VideoIcon sx={{ fontSize: 48, opacity: 0.5 }} />
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 Video no disponible
               </Typography>
             </Box>
           );
         }
       })()}
-      
+
       {(video.title || video.description) && (
         <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
           {video.title && (
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+            <Typography variant='subtitle1' fontWeight={600} gutterBottom>
               {video.title}
             </Typography>
           )}
           {video.description && (
-            <Typography variant="body2" color="text.secondary" sx={{ 
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               {video.description}
             </Typography>
           )}
           {video.duration && (
-            <Typography variant="caption" color="primary.main" sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5,
-              mt: 1, 
-            }}>
+            <Typography
+              variant='caption'
+              color='primary.main'
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                mt: 1,
+              }}
+            >
               <VideoIcon sx={{ fontSize: 14 }} />
               Duración: {video.duration}
             </Typography>
@@ -402,7 +418,7 @@ export const PropertyDetail: React.FC = () => {
   const { deleteProperty } = useProperties();
   const { showError } = useSnackbar();
   const { confirm, ConfirmDialog } = useConfirmDialog();
-  
+
   // State management
   const [matchRequestDialogOpen, setMatchRequestDialogOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -412,7 +428,7 @@ export const PropertyDetail: React.FC = () => {
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
   const [existingMatchRequest, setExistingMatchRequest] = useState<any>(null);
   const [checkingExistingRequest, setCheckingExistingRequest] = useState(true);
-  
+
   // Effects
   useEffect(() => {
     if (property) {
@@ -433,7 +449,9 @@ export const PropertyDetail: React.FC = () => {
       }
 
       try {
-        const response = await matchingService.checkExistingMatchRequest(property.id);
+        const response = await matchingService.checkExistingMatchRequest(
+          property.id,
+        );
         if (response.data.has_existing_request) {
           setExistingMatchRequest(response.data.request);
         }
@@ -476,11 +494,16 @@ export const PropertyDetail: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'success';
-      case 'rented': return 'primary';
-      case 'maintenance': return 'warning';
-      case 'pending': return 'info';
-      default: return 'default';
+      case 'available':
+        return 'success';
+      case 'rented':
+        return 'primary';
+      case 'maintenance':
+        return 'warning';
+      case 'pending':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
@@ -498,11 +521,11 @@ export const PropertyDetail: React.FC = () => {
   const handleImageNavigation = (direction: 'prev' | 'next') => {
     if (!property?.images) return;
     if (direction === 'prev') {
-      setCurrentImageIndex(prev => 
+      setCurrentImageIndex(prev =>
         prev === 0 ? property.images.length - 1 : prev - 1,
       );
     } else {
-      setCurrentImageIndex(prev => 
+      setCurrentImageIndex(prev =>
         prev === property.images.length - 1 ? 0 : prev + 1,
       );
     }
@@ -522,20 +545,22 @@ export const PropertyDetail: React.FC = () => {
 
   const handleCancelExistingRequest = async () => {
     if (!property?.id) return;
-    
+
     try {
       await matchingService.cancelMatchRequest(property.id);
       setExistingMatchRequest(null);
       // Mostrar notificación de éxito
     } catch (error) {
       console.error('Error al cancelar solicitud:', error);
-      showError('No se pudo cancelar la solicitud. Por favor, intenta de nuevo.');
+      showError(
+        'No se pudo cancelar la solicitud. Por favor, intenta de nuevo.',
+      );
     }
   };
 
   const handleMatchRequestSubmit = async (data: any) => {
     if (!property || !user) return;
-    
+
     setIsSubmittingMatch(true);
     try {
       const response = await matchingService.createMatchRequest({
@@ -557,10 +582,9 @@ export const PropertyDetail: React.FC = () => {
         priority: data.priority || 'medium',
       });
 
-      
       // Cerrar modal y mostrar éxito
       setMatchRequestDialogOpen(false);
-      
+
       // Actualizar estado para reflejar que ahora hay una solicitud enviada
       setExistingMatchRequest({
         id: response.data.id,
@@ -572,10 +596,9 @@ export const PropertyDetail: React.FC = () => {
         can_update: true,
         can_cancel: true,
       });
-      
+
       // Opcional: Redirigir a dashboard de matches
       // navigate('/app/requests');
-      
     } catch (error: any) {
       throw error; // Re-throw para que MatchRequestForm maneje el error
     } finally {
@@ -585,31 +608,58 @@ export const PropertyDetail: React.FC = () => {
 
   const getAmenityIcon = (category: string) => {
     switch (category) {
-      case 'security': return <SecurityIcon />;
-      case 'recreation': return <PoolIcon />;
-      case 'parking': return <ParkingIcon />;
-      case 'utilities': return <WifiIcon />;
-      default: return <HomeIcon />;
+      case 'security':
+        return <SecurityIcon />;
+      case 'recreation':
+        return <PoolIcon />;
+      case 'parking':
+        return <ParkingIcon />;
+      case 'utilities':
+        return <WifiIcon />;
+      default:
+        return <HomeIcon />;
     }
   };
 
   // Loading state with skeleton
   if (isLoading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 3 }}>
-        <Skeleton variant="rectangular" height={60} sx={{ mb: 2, borderRadius: 2 }} />
+      <Container maxWidth='xl' sx={{ py: 3 }}>
+        <Skeleton
+          variant='rectangular'
+          height={60}
+          sx={{ mb: 2, borderRadius: 2 }}
+        />
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            <Skeleton variant="rectangular" height={500} sx={{ borderRadius: 2, mb: 2 }} />
-            <Box display="flex" gap={1}>
+            <Skeleton
+              variant='rectangular'
+              height={500}
+              sx={{ borderRadius: 2, mb: 2 }}
+            />
+            <Box display='flex' gap={1}>
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} variant="rectangular" width={120} height={80} sx={{ borderRadius: 1 }} />
+                <Skeleton
+                  key={i}
+                  variant='rectangular'
+                  width={120}
+                  height={80}
+                  sx={{ borderRadius: 1 }}
+                />
               ))}
             </Box>
           </Grid>
           <Grid item xs={12} lg={4}>
-            <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2, mb: 2 }} />
-            <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
+            <Skeleton
+              variant='rectangular'
+              height={300}
+              sx={{ borderRadius: 2, mb: 2 }}
+            />
+            <Skeleton
+              variant='rectangular'
+              height={400}
+              sx={{ borderRadius: 2 }}
+            />
           </Grid>
         </Grid>
       </Container>
@@ -618,7 +668,7 @@ export const PropertyDetail: React.FC = () => {
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+      <Container maxWidth='md' sx={{ py: 8, textAlign: 'center' }}>
         <Box
           sx={{
             background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
@@ -628,15 +678,15 @@ export const PropertyDetail: React.FC = () => {
             mb: 3,
           }}
         >
-          <Typography variant="h4" gutterBottom fontWeight={700}>
+          <Typography variant='h4' gutterBottom fontWeight={700}>
             ¡Oops! Algo salió mal
           </Typography>
-          <Typography variant="body1" sx={{ opacity: 0.9, mb: 3 }}>
+          <Typography variant='body1' sx={{ opacity: 0.9, mb: 3 }}>
             {error.message || 'No pudimos cargar los detalles de la propiedad'}
           </Typography>
           <ActionButton
-            variant="contained"
-            size="large"
+            variant='contained'
+            size='large'
             onClick={() => window.location.reload()}
             sx={{
               bgcolor: 'rgba(255,255,255,0.2)',
@@ -655,7 +705,7 @@ export const PropertyDetail: React.FC = () => {
 
   if (!property) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+      <Container maxWidth='md' sx={{ py: 8, textAlign: 'center' }}>
         <Box
           sx={{
             background: 'linear-gradient(135deg, #ffa726, #ff7043)',
@@ -665,15 +715,15 @@ export const PropertyDetail: React.FC = () => {
             mb: 3,
           }}
         >
-          <Typography variant="h4" gutterBottom fontWeight={700}>
+          <Typography variant='h4' gutterBottom fontWeight={700}>
             Propiedad no encontrada
           </Typography>
-          <Typography variant="body1" sx={{ opacity: 0.9, mb: 3 }}>
+          <Typography variant='body1' sx={{ opacity: 0.9, mb: 3 }}>
             La propiedad que buscas no está disponible o ha sido removida
           </Typography>
           <ActionButton
-            variant="contained"
-            size="large"
+            variant='contained'
+            size='large'
             onClick={() => navigate('/app/properties')}
             sx={{
               bgcolor: 'rgba(255,255,255,0.2)',
@@ -703,40 +753,46 @@ export const PropertyDetail: React.FC = () => {
     if (!property.images || property.images.length === 0) {
       return property.main_image_url || '/images/property-placeholder.svg';
     }
-    
+
     // Look for image marked as main
     const mainImg = property.images.find(img => img.is_main);
     if (mainImg) {
       return mainImg.image_url || mainImg.image;
     }
-    
+
     // Fallback to first image
     const firstImg = property.images[0];
-    return firstImg?.image_url || firstImg?.image || '/images/property-placeholder.svg';
+    return (
+      firstImg?.image_url ||
+      firstImg?.image ||
+      '/images/property-placeholder.svg'
+    );
   })();
 
   // Get all images sorted by order and main status
-  const sortedImages = property.images ? [...property.images].sort((a, b) => {
-    if (a.is_main) return -1;
-    if (b.is_main) return 1;
-    return a.order - b.order;
-  }) : [];
+  const sortedImages = property.images
+    ? [...property.images].sort((a, b) => {
+        if (a.is_main) return -1;
+        if (b.is_main) return 1;
+        return a.order - b.order;
+      })
+    : [];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
+    <Container maxWidth='xl' sx={{ py: 3 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
+        separator={<NavigateNextIcon fontSize='small' />}
         sx={{ mb: 3 }}
       >
         <Button
-          color="inherit"
+          color='inherit'
           onClick={() => navigate('/app/properties')}
           sx={{ p: 0, minWidth: 'auto', textTransform: 'none' }}
         >
           Propiedades
         </Button>
-        <Typography color="text.primary" fontWeight={600}>
+        <Typography color='text.primary' fontWeight={600}>
           {property.title}
         </Typography>
       </Breadcrumbs>
@@ -764,7 +820,7 @@ export const PropertyDetail: React.FC = () => {
                 <Chip
                   label={getStatusLabel(property.status)}
                   color={getStatusColor(property.status) as any}
-                  sx={{ 
+                  sx={{
                     fontWeight: 600,
                     fontSize: '0.875rem',
                     bgcolor: 'rgba(255,255,255,0.95)',
@@ -773,17 +829,19 @@ export const PropertyDetail: React.FC = () => {
                     mb: 2,
                   }}
                 />
-                
+
                 <Box
                   sx={{
                     // EFECTO GLASSMORPHISM - Vidrio translúcido
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%)',
+                    background:
+                      'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%)',
                     backdropFilter: 'blur(15px) saturate(180%)',
                     borderRadius: 4,
                     p: 3,
                     color: '#1a1a1a',
                     maxWidth: 420,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)',
+                    boxShadow:
+                      '0 20px 60px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)',
                     border: '1px solid rgba(255,255,255,0.3)',
                     position: 'relative',
                     textShadow: 'none', // Quitar text-shadow para mejor legibilidad
@@ -791,7 +849,8 @@ export const PropertyDetail: React.FC = () => {
                       content: '""',
                       position: 'absolute',
                       inset: 0,
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
                       borderRadius: 4,
                       zIndex: -1,
                     },
@@ -799,15 +858,16 @@ export const PropertyDetail: React.FC = () => {
                       content: '""',
                       position: 'absolute',
                       inset: 0,
-                      background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%)',
+                      background:
+                        'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%)',
                       borderRadius: 4,
                       zIndex: -1,
                     },
                   }}
                 >
-                  <Typography 
-                    variant="h4" 
-                    fontWeight={800} 
+                  <Typography
+                    variant='h4'
+                    fontWeight={800}
                     gutterBottom
                     sx={{
                       color: '#1a1a1a',
@@ -818,15 +878,17 @@ export const PropertyDetail: React.FC = () => {
                   >
                     {property.title}
                   </Typography>
-                  
-                  <Box display="flex" alignItems="center" gap={1} mb={1}>
-                    <LocationIcon sx={{ 
-                      fontSize: 18,
-                      color: 'grey.900',
-                    }} />
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
+
+                  <Box display='flex' alignItems='center' gap={1} mb={1}>
+                    <LocationIcon
+                      sx={{
+                        fontSize: 18,
+                        color: 'grey.900',
+                      }}
+                    />
+                    <Typography
+                      variant='body1'
+                      sx={{
                         color: '#2a2a2a',
                         fontWeight: 600,
                         textShadow: '0 1px 2px rgba(255,255,255,0.3)',
@@ -836,14 +898,15 @@ export const PropertyDetail: React.FC = () => {
                     </Typography>
                   </Box>
 
-                  <Box display="flex" alignItems="center" gap={2} mt={2}>
+                  <Box display='flex' alignItems='center' gap={2} mt={2}>
                     {property.rent_price && (
-                      <Typography 
-                        variant="h5" 
-                        fontWeight={800} 
-                        sx={{ 
+                      <Typography
+                        variant='h5'
+                        fontWeight={800}
+                        sx={{
                           color: '#1B5E20', // Verde oscuro para contraste
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
+                          background:
+                            'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
                           padding: '8px 16px',
                           borderRadius: 3,
                           border: '1px solid rgba(27, 94, 32, 0.2)',
@@ -856,12 +919,13 @@ export const PropertyDetail: React.FC = () => {
                       </Typography>
                     )}
                     {property.sale_price && (
-                      <Typography 
-                        variant="h5" 
-                        fontWeight={800} 
-                        sx={{ 
+                      <Typography
+                        variant='h5'
+                        fontWeight={800}
+                        sx={{
                           color: '#1B5E20', // Verde oscuro para contraste
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
+                          background:
+                            'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
                           padding: '8px 16px',
                           borderRadius: 3,
                           border: '1px solid rgba(27, 94, 32, 0.2)',
@@ -877,12 +941,20 @@ export const PropertyDetail: React.FC = () => {
                 </Box>
               </Box>
 
-              <Box sx={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
+              <Box
+                sx={{
+                  pointerEvents: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  alignItems: 'flex-end',
+                }}
+              >
                 {property.images && property.images.length > 0 && (
                   <Chip
                     icon={<PhotoIcon />}
                     label={`${property.images.length} foto${property.images.length > 1 ? 's' : ''}`}
-                    sx={{ 
+                    sx={{
                       bgcolor: 'rgba(0,0,0,0.8)',
                       color: 'white',
                       backdropFilter: 'blur(10px)',
@@ -893,8 +965,8 @@ export const PropertyDetail: React.FC = () => {
                   <Chip
                     icon={<VideoIcon />}
                     label={`${property.videos.length} video${property.videos.length > 1 ? 's' : ''}`}
-                    sx={{ 
-                      bgcolor: 'rgba(0,0,0,0.8)', 
+                    sx={{
+                      bgcolor: 'rgba(0,0,0,0.8)',
                       color: 'white',
                       backdropFilter: 'blur(10px)',
                     }}
@@ -902,7 +974,7 @@ export const PropertyDetail: React.FC = () => {
                 )}
               </Box>
             </Box>
-            
+
             {/* Modern Image Gallery Component */}
             <ModernImageGallery
               images={sortedImages}
@@ -918,54 +990,62 @@ export const PropertyDetail: React.FC = () => {
             <Grid item xs={12}>
               <StyledCard>
                 <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" fontWeight={700} gutterBottom>
+                  <Typography variant='h5' fontWeight={700} gutterBottom>
                     Características Principales
                   </Typography>
-                  
+
                   <Grid container spacing={3}>
                     <Grid item xs={6} sm={3}>
                       <StatBox>
-                        <HotelIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
-                        <Typography variant="h4" fontWeight={700}>
+                        <HotelIcon
+                          sx={{ fontSize: 32, color: 'primary.main', mb: 1 }}
+                        />
+                        <Typography variant='h4' fontWeight={700}>
                           {property.bedrooms}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           Habitaciones
                         </Typography>
                       </StatBox>
                     </Grid>
-                    
+
                     <Grid item xs={6} sm={3}>
                       <StatBox>
-                        <BathtubIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
-                        <Typography variant="h4" fontWeight={700}>
+                        <BathtubIcon
+                          sx={{ fontSize: 32, color: 'primary.main', mb: 1 }}
+                        />
+                        <Typography variant='h4' fontWeight={700}>
                           {property.bathrooms}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           Baños
                         </Typography>
                       </StatBox>
                     </Grid>
-                    
+
                     <Grid item xs={6} sm={3}>
                       <StatBox>
-                        <SquareFootIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
-                        <Typography variant="h4" fontWeight={700}>
+                        <SquareFootIcon
+                          sx={{ fontSize: 32, color: 'primary.main', mb: 1 }}
+                        />
+                        <Typography variant='h4' fontWeight={700}>
                           {property.total_area}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           m² totales
                         </Typography>
                       </StatBox>
                     </Grid>
-                    
+
                     <Grid item xs={6} sm={3}>
                       <StatBox>
-                        <CarIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
-                        <Typography variant="h4" fontWeight={700}>
+                        <CarIcon
+                          sx={{ fontSize: 32, color: 'primary.main', mb: 1 }}
+                        />
+                        <Typography variant='h4' fontWeight={700}>
                           {property.parking_spaces}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           Parqueaderos
                         </Typography>
                       </StatBox>
@@ -974,17 +1054,17 @@ export const PropertyDetail: React.FC = () => {
                 </CardContent>
               </StyledCard>
             </Grid>
-            
+
             {/* Property Description */}
             <Grid item xs={12}>
               <StyledCard>
                 <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" fontWeight={700} gutterBottom>
+                  <Typography variant='h5' fontWeight={700} gutterBottom>
                     Descripción
                   </Typography>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
+                  <Typography
+                    variant='body1'
+                    sx={{
                       lineHeight: 1.8,
                       color: 'text.secondary',
                       fontSize: '1.1rem',
@@ -1001,16 +1081,22 @@ export const PropertyDetail: React.FC = () => {
               <Grid item xs={12}>
                 <StyledCard>
                   <CardContent sx={{ p: 3 }}>
-                    <Box display="flex" alignItems="center" gap={2} mb={3}>
+                    <Box display='flex' alignItems='center' gap={2} mb={3}>
                       <VideoIcon sx={{ fontSize: 28, color: 'primary.main' }} />
-                      <Typography variant="h5" fontWeight={700}>
+                      <Typography variant='h5' fontWeight={700}>
                         Videos de la Propiedad ({property.videos.length})
                       </Typography>
                     </Box>
-                    
+
                     <Grid container spacing={3}>
                       {property.videos.map((video, index) => (
-                        <Grid item xs={12} sm={6} lg={4} key={video.id || index}>
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          lg={4}
+                          key={video.id || index}
+                        >
                           <VideoPlayer video={video} index={index} />
                         </Grid>
                       ))}
@@ -1021,190 +1107,217 @@ export const PropertyDetail: React.FC = () => {
             )}
 
             {/* Amenities Section */}
-            {property.amenity_relations && property.amenity_relations.length > 0 && (
-              <Grid item xs={12}>
-                <StyledCard>
-                  <CardContent sx={{ p: 3 }}>
-                    <Typography variant="h5" fontWeight={700} gutterBottom>
-                      Amenidades
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {property.amenity_relations
-                        .filter(relation => relation.available)
-                        .map((relation) => (
-                          <Grid item key={relation.id}>
-                            <FeatureChip 
-                              icon={getAmenityIcon(relation.amenity.category)}
-                              label={relation.amenity.name}
-                              variant="outlined"
-                              color="primary"
-                            />
-                          </Grid>
-                        ))}
-                    </Grid>
-                  </CardContent>
-                </StyledCard>
-              </Grid>
-            )}
+            {property.amenity_relations &&
+              property.amenity_relations.length > 0 && (
+                <Grid item xs={12}>
+                  <StyledCard>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant='h5' fontWeight={700} gutterBottom>
+                        Amenidades
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {property.amenity_relations
+                          .filter(relation => relation.available)
+                          .map(relation => (
+                            <Grid item key={relation.id}>
+                              <FeatureChip
+                                icon={getAmenityIcon(relation.amenity.category)}
+                                label={relation.amenity.name}
+                                variant='outlined'
+                                color='primary'
+                              />
+                            </Grid>
+                          ))}
+                      </Grid>
+                    </CardContent>
+                  </StyledCard>
+                </Grid>
+              )}
 
             {/* Features and Utilities */}
             <Grid item xs={12}>
               <StyledCard>
                 <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" fontWeight={700} gutterBottom>
+                  <Typography variant='h5' fontWeight={700} gutterBottom>
                     Características Adicionales
                   </Typography>
-                  
+
                   <Grid container spacing={3}>
                     {/* Property Features */}
-                    {property.property_features && property.property_features.length > 0 && (
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="h6" fontWeight={600} gutterBottom color="primary">
-                          Características
-                        </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
-                          {property.property_features.map((feature, index) => (
-                            <FeatureChip
-                              key={index}
-                              label={feature}
-                              variant="filled"
-                              color="secondary"
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    )}
-                    
+                    {property.property_features &&
+                      property.property_features.length > 0 && (
+                        <Grid item xs={12} md={6}>
+                          <Typography
+                            variant='h6'
+                            fontWeight={600}
+                            gutterBottom
+                            color='primary'
+                          >
+                            Características
+                          </Typography>
+                          <Box display='flex' flexWrap='wrap' gap={1}>
+                            {property.property_features.map(
+                              (feature, index) => (
+                                <FeatureChip
+                                  key={index}
+                                  label={feature}
+                                  variant='filled'
+                                  color='secondary'
+                                  size='small'
+                                />
+                              ),
+                            )}
+                          </Box>
+                        </Grid>
+                      )}
+
                     {/* Utilities Included */}
-                    {property.utilities_included && property.utilities_included.length > 0 && (
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="h6" fontWeight={600} gutterBottom color="success.main">
-                          Utilidades Incluidas
-                        </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
-                          {property.utilities_included.map((utility, index) => (
-                            <FeatureChip
-                              key={index}
-                              label={utility}
-                              variant="filled"
-                              color="success"
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    )}
-                    
+                    {property.utilities_included &&
+                      property.utilities_included.length > 0 && (
+                        <Grid item xs={12} md={6}>
+                          <Typography
+                            variant='h6'
+                            fontWeight={600}
+                            gutterBottom
+                            color='success.main'
+                          >
+                            Utilidades Incluidas
+                          </Typography>
+                          <Box display='flex' flexWrap='wrap' gap={1}>
+                            {property.utilities_included.map(
+                              (utility, index) => (
+                                <FeatureChip
+                                  key={index}
+                                  label={utility}
+                                  variant='filled'
+                                  color='success'
+                                  size='small'
+                                />
+                              ),
+                            )}
+                          </Box>
+                        </Grid>
+                      )}
+
                     {/* Nearby Amenities */}
-                    {property.nearby_amenities && property.nearby_amenities.length > 0 && (
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="h6" fontWeight={600} gutterBottom color="info.main">
-                          Lugares Cercanos
-                        </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
-                          {property.nearby_amenities.map((amenity, index) => (
-                            <FeatureChip
-                              key={index}
-                              label={amenity}
-                              variant="filled"
-                              color="info"
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    )}
-                    
+                    {property.nearby_amenities &&
+                      property.nearby_amenities.length > 0 && (
+                        <Grid item xs={12} md={6}>
+                          <Typography
+                            variant='h6'
+                            fontWeight={600}
+                            gutterBottom
+                            color='info.main'
+                          >
+                            Lugares Cercanos
+                          </Typography>
+                          <Box display='flex' flexWrap='wrap' gap={1}>
+                            {property.nearby_amenities.map((amenity, index) => (
+                              <FeatureChip
+                                key={index}
+                                label={amenity}
+                                variant='filled'
+                                color='info'
+                                size='small'
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                      )}
+
                     {/* Transportation */}
-                    {property.transportation && property.transportation.length > 0 && (
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="h6" fontWeight={600} gutterBottom color="warning.main">
-                          Transporte
-                        </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
-                          {property.transportation.map((transport, index) => (
-                            <FeatureChip
-                              key={index}
-                              label={transport}
-                              variant="filled"
-                              color="warning"
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </Grid>
-                    )}
+                    {property.transportation &&
+                      property.transportation.length > 0 && (
+                        <Grid item xs={12} md={6}>
+                          <Typography
+                            variant='h6'
+                            fontWeight={600}
+                            gutterBottom
+                            color='warning.main'
+                          >
+                            Transporte
+                          </Typography>
+                          <Box display='flex' flexWrap='wrap' gap={1}>
+                            {property.transportation.map((transport, index) => (
+                              <FeatureChip
+                                key={index}
+                                label={transport}
+                                variant='filled'
+                                color='warning'
+                                size='small'
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                      )}
                   </Grid>
 
                   {/* Property Rules and Details */}
                   <Divider sx={{ my: 3 }} />
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
+                      <Box textAlign='center' p={2}>
                         {property.furnished ? (
                           <Box sx={{ color: 'success.main' }}>
                             <KitchenIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2" fontWeight={600}>
+                            <Typography variant='body2' fontWeight={600}>
                               Amueblado
                             </Typography>
                           </Box>
                         ) : (
                           <Box sx={{ color: 'text.disabled' }}>
                             <KitchenIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2">
+                            <Typography variant='body2'>
                               Sin amueblar
                             </Typography>
                           </Box>
                         )}
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
+                      <Box textAlign='center' p={2}>
                         {property.pets_allowed ? (
                           <Box sx={{ color: 'success.main' }}>
                             <PetsIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2" fontWeight={600}>
+                            <Typography variant='body2' fontWeight={600}>
                               Mascotas OK
                             </Typography>
                           </Box>
                         ) : (
                           <Box sx={{ color: 'error.main' }}>
                             <PetsIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2">
-                              No mascotas
-                            </Typography>
+                            <Typography variant='body2'>No mascotas</Typography>
                           </Box>
                         )}
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
+                      <Box textAlign='center' p={2}>
                         {property.smoking_allowed ? (
                           <Box sx={{ color: 'warning.main' }}>
                             <SmokingIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2">
+                            <Typography variant='body2'>
                               Fumar permitido
                             </Typography>
                           </Box>
                         ) : (
                           <Box sx={{ color: 'success.main' }}>
                             <NoSmokingIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="body2" fontWeight={600}>
+                            <Typography variant='body2' fontWeight={600}>
                               No fumar
                             </Typography>
                           </Box>
                         )}
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
+                      <Box textAlign='center' p={2}>
                         <Box sx={{ color: 'primary.main' }}>
                           <CalendarIcon sx={{ fontSize: 32, mb: 1 }} />
-                          <Typography variant="body2" fontWeight={600}>
+                          <Typography variant='body2' fontWeight={600}>
                             {property.minimum_lease_term} meses mín.
                           </Typography>
                         </Box>
@@ -1216,81 +1329,105 @@ export const PropertyDetail: React.FC = () => {
             </Grid>
           </Grid>
         </Grid>
-        
+
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
           {/* Contact Card */}
           <StyledCard sx={{ mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h5" fontWeight={700} gutterBottom>
+              <Typography variant='h5' fontWeight={700} gutterBottom>
                 Información de Contacto
               </Typography>
-              
+
               {/* Landlord Info */}
-              <Box display="flex" alignItems="center" gap={2} mb={3}>
+              <Box display='flex' alignItems='center' gap={2} mb={3}>
                 <Avatar
-                  sx={{ 
-                    width: 60, 
+                  sx={{
+                    width: 60,
                     height: 60,
                     bgcolor: 'primary.main',
                     fontSize: '1.5rem',
                     fontWeight: 700,
                   }}
                 >
-                  {property.landlord.first_name?.[0]}{property.landlord.last_name?.[0]}
+                  {property.landlord.first_name?.[0]}
+                  {property.landlord.last_name?.[0]}
                 </Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight={600}>
+                  <Typography variant='h6' fontWeight={600}>
                     {property.landlord.first_name} {property.landlord.last_name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Propietario
                   </Typography>
-                  <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
-                    <Rating value={(property as any)?.average_rating || 0} size="small" readOnly precision={0.1} />
-                    <Typography variant="caption" color="text.secondary">
+                  <Box display='flex' alignItems='center' gap={0.5} mt={0.5}>
+                    <Rating
+                      value={(property as any)?.average_rating || 0}
+                      size='small'
+                      readOnly
+                      precision={0.1}
+                    />
+                    <Typography variant='caption' color='text.secondary'>
                       ({(property as any)?.total_ratings || 0} reseñas)
                     </Typography>
                   </Box>
                 </Box>
               </Box>
-              
+
               {/* Price Summary */}
               <InfoSection elevation={0} sx={{ mb: 3 }}>
                 {property.rent_price && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="body1">Renta mensual</Typography>
-                    <Typography variant="h6" fontWeight={700} color="primary">
+                  <Box
+                    display='flex'
+                    justifyContent='space-between'
+                    alignItems='center'
+                    mb={1}
+                  >
+                    <Typography variant='body1'>Renta mensual</Typography>
+                    <Typography variant='h6' fontWeight={700} color='primary'>
                       {formatPrice(property.rent_price, 'rent')}
                     </Typography>
                   </Box>
                 )}
                 {property.security_deposit && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="body2" color="text.secondary">Depósito</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                  <Box
+                    display='flex'
+                    justifyContent='space-between'
+                    alignItems='center'
+                    mb={1}
+                  >
+                    <Typography variant='body2' color='text.secondary'>
+                      Depósito
+                    </Typography>
+                    <Typography variant='body2' fontWeight={600}>
                       {formatPrice(property.security_deposit)}
                     </Typography>
                   </Box>
                 )}
                 {property.maintenance_fee && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body2" color="text.secondary">Administración</Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                  <Box
+                    display='flex'
+                    justifyContent='space-between'
+                    alignItems='center'
+                  >
+                    <Typography variant='body2' color='text.secondary'>
+                      Administración
+                    </Typography>
+                    <Typography variant='body2' fontWeight={600}>
                       {formatPrice(property.maintenance_fee)}
                     </Typography>
                   </Box>
                 )}
               </InfoSection>
-              
+
               {/* Action Buttons */}
               <Stack spacing={2}>
                 {canContact && (
                   <>
                     {checkingExistingRequest ? (
                       <ActionButton
-                        variant="outlined"
-                        size="large"
+                        variant='outlined'
+                        size='large'
                         disabled
                         fullWidth
                       >
@@ -1298,37 +1435,69 @@ export const PropertyDetail: React.FC = () => {
                       </ActionButton>
                     ) : existingMatchRequest ? (
                       <Box>
-                        <InfoSection sx={{ mb: 2, p: 2, background: 'rgba(25, 118, 210, 0.1)', border: '1px solid rgba(25, 118, 210, 0.3)' }}>
-                          <Typography variant="h6" sx={{ mb: 1, color: 'primary.main' }}>
+                        <InfoSection
+                          sx={{
+                            mb: 2,
+                            p: 2,
+                            background: 'rgba(25, 118, 210, 0.1)',
+                            border: '1px solid rgba(25, 118, 210, 0.3)',
+                          }}
+                        >
+                          <Typography
+                            variant='h6'
+                            sx={{ mb: 1, color: 'primary.main' }}
+                          >
                             Ya tienes una solicitud enviada
                           </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            <strong>Código:</strong> {existingMatchRequest.match_code}
+                          <Typography variant='body2' sx={{ mb: 1 }}>
+                            <strong>Código:</strong>{' '}
+                            {existingMatchRequest.match_code}
                           </Typography>
-                          <Typography variant="body2" component="div" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={{
+                              mb: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
                             <strong>Estado:</strong>
                             <Chip
-                              label={existingMatchRequest.status === 'pending' ? 'Pendiente' : existingMatchRequest.status}
-                              color={existingMatchRequest.status === 'pending' ? 'warning' : 'info'}
-                              size="small"
+                              label={
+                                existingMatchRequest.status === 'pending'
+                                  ? 'Pendiente'
+                                  : existingMatchRequest.status
+                              }
+                              color={
+                                existingMatchRequest.status === 'pending'
+                                  ? 'warning'
+                                  : 'info'
+                              }
+                              size='small'
                             />
                           </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            <strong>Mensaje:</strong> {existingMatchRequest.tenant_message}
+                          <Typography variant='body2' sx={{ mb: 1 }}>
+                            <strong>Mensaje:</strong>{' '}
+                            {existingMatchRequest.tenant_message}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Enviada el {new Date(existingMatchRequest.created_at).toLocaleDateString('es-CO')}
+                          <Typography variant='caption' color='text.secondary'>
+                            Enviada el{' '}
+                            {new Date(
+                              existingMatchRequest.created_at,
+                            ).toLocaleDateString('es-CO')}
                           </Typography>
                         </InfoSection>
-                        
+
                         {existingMatchRequest.can_cancel && (
                           <ActionButton
-                            variant="outlined"
-                            size="large"
+                            variant='outlined'
+                            size='large'
                             startIcon={<CancelIcon />}
                             onClick={handleCancelExistingRequest}
                             fullWidth
-                            color="error"
+                            color='error'
                           >
                             Cancelar Solicitud
                           </ActionButton>
@@ -1336,18 +1505,20 @@ export const PropertyDetail: React.FC = () => {
                       </Box>
                     ) : (
                       <ActionButton
-                        variant="contained"
-                        size="large"
+                        variant='contained'
+                        size='large'
                         startIcon={<HandshakeIcon />}
                         onClick={() => setMatchRequestDialogOpen(true)}
                         fullWidth
                         disabled={isSubmittingMatch}
                         sx={{
-                          background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                          background:
+                            'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                           boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
                           color: 'white',
                           '&:hover': {
-                            background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+                            background:
+                              'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
                           },
                         }}
                       >
@@ -1356,35 +1527,48 @@ export const PropertyDetail: React.FC = () => {
                     )}
                   </>
                 )}
-                
+
                 {canEdit && (
                   <>
                     <ActionButton
-                      variant="contained"
-                      color="primary"
+                      variant='contained'
+                      color='primary'
                       startIcon={<EditIcon />}
-                      onClick={() => navigate(`/app/properties/${property.id}/edit`)}
+                      onClick={() =>
+                        navigate(`/app/properties/${property.id}/edit`)
+                      }
                       fullWidth
                     >
                       Editar Propiedad
                     </ActionButton>
-                    
+
                     <ActionButton
-                      variant="outlined"
-                      color="error"
+                      variant='outlined'
+                      color='error'
                       startIcon={<DeleteIcon />}
                       onClick={async () => {
                         const confirmed = await confirm(
                           '¿Estás seguro de que quieres eliminar esta propiedad?',
-                          { title: 'Eliminar propiedad', confirmText: 'Eliminar', confirmColor: 'error' },
+                          {
+                            title: 'Eliminar propiedad',
+                            confirmText: 'Eliminar',
+                            confirmColor: 'error',
+                          },
                         );
                         if (confirmed) {
                           try {
-                            await deleteProperty.mutateAsync(property.id.toString());
+                            await deleteProperty.mutateAsync(
+                              property.id.toString(),
+                            );
                             navigate('/app/properties');
                           } catch (error) {
-                            console.error('Error al eliminar propiedad:', error);
-                            showError('No se pudo eliminar la propiedad. Por favor, intenta de nuevo.');
+                            console.error(
+                              'Error al eliminar propiedad:',
+                              error,
+                            );
+                            showError(
+                              'No se pudo eliminar la propiedad. Por favor, intenta de nuevo.',
+                            );
                           }
                         }
                       }}
@@ -1397,33 +1581,37 @@ export const PropertyDetail: React.FC = () => {
               </Stack>
             </CardContent>
           </StyledCard>
-          
+
           {/* Property Stats */}
           <StyledCard sx={{ mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={700} gutterBottom>
+              <Typography variant='h6' fontWeight={700} gutterBottom>
                 Estadísticas
               </Typography>
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Box textAlign="center">
-                    <ViewsIcon sx={{ fontSize: 28, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="h5" fontWeight={700}>
+                  <Box textAlign='center'>
+                    <ViewsIcon
+                      sx={{ fontSize: 28, color: 'primary.main', mb: 1 }}
+                    />
+                    <Typography variant='h5' fontWeight={700}>
                       {property.views_count || 0}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Visualizaciones
                     </Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={6}>
-                  <Box textAlign="center">
-                    <FavoriteIcon sx={{ fontSize: 28, color: 'error.main', mb: 1 }} />
-                    <Typography variant="h5" fontWeight={700}>
+                  <Box textAlign='center'>
+                    <FavoriteIcon
+                      sx={{ fontSize: 28, color: 'error.main', mb: 1 }}
+                    />
+                    <Typography variant='h5' fontWeight={700}>
                       {property.favorites_count || 0}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Favoritos
                     </Typography>
                   </Box>
@@ -1431,16 +1619,16 @@ export const PropertyDetail: React.FC = () => {
               </Grid>
             </CardContent>
           </StyledCard>
-          
+
           {/* Map Section */}
           <StyledCard>
             <CardContent sx={{ p: 0 }}>
               <Box sx={{ p: 3, pb: 2 }}>
-                <Typography variant="h6" fontWeight={700}>
+                <Typography variant='h6' fontWeight={700}>
                   Ubicación
                 </Typography>
               </Box>
-              
+
               <MapContainer>
                 {mapLoaded ? (
                   <Box
@@ -1454,26 +1642,33 @@ export const PropertyDetail: React.FC = () => {
                       gap: 2,
                     }}
                   >
-                    <LocationIcon sx={{ fontSize: 48, color: 'primary.main' }} />
-                    <Box textAlign="center">
-                      <Typography variant="h6" fontWeight={600}>
+                    <LocationIcon
+                      sx={{ fontSize: 48, color: 'primary.main' }}
+                    />
+                    <Box textAlign='center'>
+                      <Typography variant='h6' fontWeight={600}>
                         {property.address}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant='body2' color='text.secondary'>
                         {property.city}, {property.state}
                       </Typography>
                       {property.postal_code && (
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='caption' color='text.secondary'>
                           C.P. {property.postal_code}
                         </Typography>
                       )}
                     </Box>
                     <ActionButton
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                       onClick={() => {
-                        const query = encodeURIComponent(`${property.address}, ${property.city}`);
-                        window.open(`https://maps.google.com/maps?q=${query}`, '_blank');
+                        const query = encodeURIComponent(
+                          `${property.address}, ${property.city}`,
+                        );
+                        window.open(
+                          `https://maps.google.com/maps?q=${query}`,
+                          '_blank',
+                        );
                       }}
                     >
                       Ver en Google Maps
@@ -1500,11 +1695,14 @@ export const PropertyDetail: React.FC = () => {
       {/* Floating Action Buttons */}
       <FloatingActions>
         {isAuthenticated && (
-          <Tooltip title={isFavorited ? 'Quitar de favoritos' : 'Agregar a favoritos'} placement="left">
+          <Tooltip
+            title={isFavorited ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            placement='left'
+          >
             <Fab
               color={isFavorited ? 'error' : 'default'}
               onClick={toggleFavorite}
-              sx={{ 
+              sx={{
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                 '&:hover': {
                   transform: 'scale(1.1)',
@@ -1515,11 +1713,11 @@ export const PropertyDetail: React.FC = () => {
             </Fab>
           </Tooltip>
         )}
-        
-        <Tooltip title="Volver a propiedades" placement="left">
+
+        <Tooltip title='Volver a propiedades' placement='left'>
           <Fab
             onClick={() => navigate('/app/properties')}
-            sx={{ 
+            sx={{
               bgcolor: 'background.paper',
               boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
               '&:hover': {
@@ -1564,21 +1762,21 @@ export const PropertyDetail: React.FC = () => {
           >
             {/* Modal Header */}
             <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
+              display='flex'
+              justifyContent='space-between'
+              alignItems='center'
               p={2}
               borderBottom={1}
-              borderColor="divider"
+              borderColor='divider'
             >
-              <Typography variant="h6" fontWeight={700}>
+              <Typography variant='h6' fontWeight={700}>
                 Imagen {currentImageIndex + 1} de {property.images?.length}
               </Typography>
               <IconButton onClick={() => setImageModalOpen(false)}>
                 <CloseIcon />
               </IconButton>
             </Box>
-            
+
             {/* Modal Content */}
             <Box
               sx={{
@@ -1592,8 +1790,11 @@ export const PropertyDetail: React.FC = () => {
             >
               {property.images && property.images[currentImageIndex] && (
                 <Box
-                  component="img"
-                  src={property.images[currentImageIndex].image_url || property.images[currentImageIndex].image}
+                  component='img'
+                  src={
+                    property.images[currentImageIndex].image_url ||
+                    property.images[currentImageIndex].image
+                  }
                   alt={`Vista ${currentImageIndex + 1}`}
                   sx={{
                     maxWidth: '100%',
@@ -1602,7 +1803,7 @@ export const PropertyDetail: React.FC = () => {
                   }}
                 />
               )}
-              
+
               {/* Navigation buttons */}
               {property.images && property.images.length > 1 && (
                 <>
@@ -1616,7 +1817,7 @@ export const PropertyDetail: React.FC = () => {
                       '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
                     }}
                   >
-                    <ChevronLeftIcon fontSize="large" />
+                    <ChevronLeftIcon fontSize='large' />
                   </IconButton>
                   <IconButton
                     onClick={() => handleImageNavigation('next')}
@@ -1628,12 +1829,12 @@ export const PropertyDetail: React.FC = () => {
                       '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
                     }}
                   >
-                    <ChevronRightIcon fontSize="large" />
+                    <ChevronRightIcon fontSize='large' />
                   </IconButton>
                 </>
               )}
             </Box>
-            
+
             {/* Thumbnail strip */}
             {property.images && property.images.length > 1 && (
               <Box
@@ -1655,8 +1856,12 @@ export const PropertyDetail: React.FC = () => {
                       borderRadius: 1,
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      border: currentImageIndex === index ? '2px solid' : '1px solid',
-                      borderColor: currentImageIndex === index ? 'primary.main' : 'divider',
+                      border:
+                        currentImageIndex === index ? '2px solid' : '1px solid',
+                      borderColor:
+                        currentImageIndex === index
+                          ? 'primary.main'
+                          : 'divider',
                       opacity: currentImageIndex === index ? 1 : 0.7,
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
@@ -1665,7 +1870,7 @@ export const PropertyDetail: React.FC = () => {
                     }}
                   >
                     <Box
-                      component="img"
+                      component='img'
                       src={image.image_url || image.image}
                       alt={`Thumbnail ${index + 1}`}
                       sx={{
@@ -1699,7 +1904,7 @@ export const PropertyDetail: React.FC = () => {
             total_area: property.total_area,
             pets_allowed: property.pets_allowed,
             landlord: {
-              name: `${property.landlord?.first_name  } ${  property.landlord?.last_name}`,
+              name: `${property.landlord?.first_name} ${property.landlord?.last_name}`,
               email: property.landlord?.email || '',
             },
           }}

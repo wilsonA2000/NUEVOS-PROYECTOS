@@ -20,7 +20,7 @@ import logging
 
 from .landlord_contract_models import (
     LandlordControlledContract,
-    ContractWorkflowHistory
+    ContractWorkflowHistory,
 )
 from .landlord_contract_service import LandlordContractService
 from .tenant_serializers import (
@@ -31,7 +31,7 @@ from .tenant_serializers import (
     TenantContractApprovalSerializer,
     TenantContractSignatureSerializer,
     InvitationAcceptanceSerializer,
-    TenantContractStatsSerializer
+    TenantContractStatsSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -39,16 +39,16 @@ logger = logging.getLogger(__name__)
 
 class IsTenantPermission(permissions.BasePermission):
     """Permiso para verificar que el usuario es arrendatario."""
-    
+
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        
+
         # Verificar que el usuario sea arrendatario o que tenga contratos como tenant
         # El campo user_type está directamente en el modelo User
         return (
-            request.user.user_type == 'tenant' or
-            LandlordControlledContract.objects.filter(tenant=request.user).exists()
+            request.user.user_type == "tenant"
+            or LandlordControlledContract.objects.filter(tenant=request.user).exists()
         )
 
 
@@ -57,32 +57,33 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet para operaciones de contratos desde la perspectiva del arrendatario.
     Los arrendatarios no pueden crear contratos, solo participar en el workflow.
     """
-    
+
     permission_classes = [IsAuthenticated, IsTenantPermission]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['current_state', 'published', 'tenant_approved']
-    search_fields = ['contract_number', 'landlord__email', 'property__title']
-    ordering_fields = ['created_at', 'updated_at', 'monthly_rent']
-    ordering = ['-created_at']
-    
+    filterset_fields = ["current_state", "published", "tenant_approved"]
+    search_fields = ["contract_number", "landlord__email", "property__title"]
+    ordering_fields = ["created_at", "updated_at", "monthly_rent"]
+    ordering = ["-created_at"]
+
     def get_queryset(self):
         """Filtrar contratos donde el usuario es arrendatario o fue invitado."""
-        return LandlordControlledContract.objects.filter(
-            Q(tenant=self.request.user) | Q(tenant_identifier=self.request.user.email)
-        ).select_related(
-            'landlord', 'tenant', 'property'
-        ).prefetch_related(
-            'objections', 'guarantees', 'history_entries'
+        return (
+            LandlordControlledContract.objects.filter(
+                Q(tenant=self.request.user)
+                | Q(tenant_identifier=self.request.user.email)
+            )
+            .select_related("landlord", "tenant", "property")
+            .prefetch_related("objections", "guarantees", "history_entries")
         )
-    
+
     def get_serializer_class(self):
         """Seleccionar serializer según la acción."""
-        if self.action == 'list':
+        if self.action == "list":
             return TenantContractListSerializer
         else:
             return TenantContractDetailSerializer
-    
-    @action(detail=False, methods=['post'])
+
+    @action(detail=False, methods=["post"])
     def accept_invitation(self, request):
         """
         Aceptar invitación de contrato usando token (Paso 4 del workflow).
@@ -90,255 +91,273 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = InvitationAcceptanceSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             service = LandlordContractService()
             contract = service.accept_tenant_invitation(
-                invitation_token=serializer.validated_data['invitation_token'],
-                tenant=request.user
+                invitation_token=serializer.validated_data["invitation_token"],
+                tenant=request.user,
             )
-            
+
             return Response(
-                TenantContractDetailSerializer(contract).data,
-                status=status.HTTP_200_OK
+                TenantContractDetailSerializer(contract).data, status=status.HTTP_200_OK
             )
-            
+
         except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=True, methods=['post'])
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"])
     def complete_tenant_data(self, request, pk=None):
         """
         Completar datos del arrendatario (Paso 5 del workflow).
         """
         contract = self.get_object()
-        
+
         # Verificar que el usuario sea el arrendatario
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para completar datos en este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para completar datos en este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        if contract.current_state != 'TENANT_REVIEWING':
+
+        if contract.current_state != "TENANT_REVIEWING":
             return Response(
-                {'error': f'No se pueden completar datos en estado {contract.current_state}'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"No se pueden completar datos en estado {contract.current_state}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         serializer = TenantDataSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             # Transform serializer data to match service expectations
             tenant_data = serializer.validated_data.copy()
-            
+
             # Convert date objects to strings for JSON serialization
-            if 'birth_date' in tenant_data and tenant_data['birth_date']:
-                tenant_data['birth_date'] = tenant_data['birth_date'].isoformat()
-            if 'employment_start_date' in tenant_data and tenant_data['employment_start_date']:
-                tenant_data['employment_start_date'] = tenant_data['employment_start_date'].isoformat()
-                
+            if "birth_date" in tenant_data and tenant_data["birth_date"]:
+                tenant_data["birth_date"] = tenant_data["birth_date"].isoformat()
+            if (
+                "employment_start_date" in tenant_data
+                and tenant_data["employment_start_date"]
+            ):
+                tenant_data["employment_start_date"] = tenant_data[
+                    "employment_start_date"
+                ].isoformat()
+
             # Convert Decimal objects to float for JSON serialization
-            if 'monthly_income' in tenant_data and tenant_data['monthly_income']:
-                tenant_data['monthly_income'] = float(tenant_data['monthly_income'])
-            
+            if "monthly_income" in tenant_data and tenant_data["monthly_income"]:
+                tenant_data["monthly_income"] = float(tenant_data["monthly_income"])
+
             # Create references array from individual reference fields
             references = []
-            if tenant_data.get('reference_1_name'):
-                references.append({
-                    'name': tenant_data.get('reference_1_name'),
-                    'phone': tenant_data.get('reference_1_phone'),
-                    'relationship': tenant_data.get('reference_1_relationship')
-                })
-                
-            if tenant_data.get('reference_2_name'):
-                references.append({
-                    'name': tenant_data.get('reference_2_name'),
-                    'phone': tenant_data.get('reference_2_phone'),
-                    'relationship': tenant_data.get('reference_2_relationship')
-                })
-            
-            tenant_data['references'] = references
-            
+            if tenant_data.get("reference_1_name"):
+                references.append(
+                    {
+                        "name": tenant_data.get("reference_1_name"),
+                        "phone": tenant_data.get("reference_1_phone"),
+                        "relationship": tenant_data.get("reference_1_relationship"),
+                    }
+                )
+
+            if tenant_data.get("reference_2_name"):
+                references.append(
+                    {
+                        "name": tenant_data.get("reference_2_name"),
+                        "phone": tenant_data.get("reference_2_phone"),
+                        "relationship": tenant_data.get("reference_2_relationship"),
+                    }
+                )
+
+            tenant_data["references"] = references
+
             service = LandlordContractService()
             updated_contract = service.complete_tenant_data(
-                contract_id=contract.id,
-                tenant=request.user,
-                tenant_data=tenant_data
+                contract_id=contract.id, tenant=request.user, tenant_data=tenant_data
             )
-            
+
             return Response(
                 TenantContractDetailSerializer(updated_contract).data,
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
-            
+
         except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=True, methods=['post'])
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"])
     def create_objection(self, request, pk=None):
         """
         Crear objeción a algún término del contrato como arrendatario.
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para objetar en este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para objetar en este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        if contract.current_state not in ['LANDLORD_REVIEWING', 'TENANT_REVIEWING', 'OBJECTIONS_PENDING']:
+
+        if contract.current_state not in [
+            "LANDLORD_REVIEWING",
+            "TENANT_REVIEWING",
+            "OBJECTIONS_PENDING",
+        ]:
             return Response(
-                {'error': 'No se pueden crear objeciones en el estado actual'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "No se pueden crear objeciones en el estado actual"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         serializer = TenantContractObjectionCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             service = LandlordContractService()
             objection = service.submit_objection(
                 contract_id=contract.id,
                 user=request.user,
-                field_name=serializer.validated_data['field_name'],
-                current_value=serializer.validated_data['current_value'],
-                proposed_value=serializer.validated_data['proposed_value'],
-                justification=serializer.validated_data['justification'],
-                priority=serializer.validated_data.get('priority', 'MEDIUM')
+                field_name=serializer.validated_data["field_name"],
+                current_value=serializer.validated_data["current_value"],
+                proposed_value=serializer.validated_data["proposed_value"],
+                justification=serializer.validated_data["justification"],
+                priority=serializer.validated_data.get("priority", "MEDIUM"),
             )
-            
+
             from .landlord_contract_serializers import ContractObjectionSerializer
+
             return Response(
-                ContractObjectionSerializer(objection).data, 
-                status=status.HTTP_201_CREATED
+                ContractObjectionSerializer(objection).data,
+                status=status.HTTP_201_CREATED,
             )
-            
+
         except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=True, methods=['post'])
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"])
     def respond_to_objection(self, request, pk=None):
         """
         Responder a una objeción presentada por el arrendador.
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para responder objeciones en este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {
+                    "error": "No tienes permisos para responder objeciones en este contrato"
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        objection_id = request.data.get('objection_id')
+
+        objection_id = request.data.get("objection_id")
         if not objection_id:
             return Response(
-                {'error': 'objection_id es requerido'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "objection_id es requerido"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         from .landlord_contract_serializers import ContractObjectionResponseSerializer
+
         serializer = ContractObjectionResponseSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             service = LandlordContractService()
             objection = service.respond_to_objection(
                 objection_id=objection_id,
                 user=request.user,
-                response=serializer.validated_data['response'],
-                response_note=serializer.validated_data.get('response_note', '')
+                response=serializer.validated_data["response"],
+                response_note=serializer.validated_data.get("response_note", ""),
             )
-            
+
             from .landlord_contract_serializers import ContractObjectionSerializer
+
             return Response(
-                ContractObjectionSerializer(objection).data, 
-                status=status.HTTP_200_OK
+                ContractObjectionSerializer(objection).data, status=status.HTTP_200_OK
             )
-            
+
         except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=True, methods=['post'])
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"])
     def approve_contract(self, request, pk=None):
         """
         Aprobar el contrato final por parte del arrendatario.
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para aprobar este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para aprobar este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        if contract.current_state != 'BOTH_REVIEWING':
+
+        if contract.current_state != "BOTH_REVIEWING":
             return Response(
-                {'error': 'El contrato no está listo para aprobación'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "El contrato no está listo para aprobación"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         serializer = TenantContractApprovalSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not serializer.validated_data['approved']:
+
+        if not serializer.validated_data["approved"]:
             return Response(
-                {'error': 'Para rechazar el contrato use la acción reject_contract'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Para rechazar el contrato use la acción reject_contract"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         try:
             service = LandlordContractService()
             updated_contract = service.approve_contract(
-                contract_id=contract.id,
-                user=request.user
+                contract_id=contract.id, user=request.user
             )
 
             # Sincronizar workflow_data con MatchRequest (reutilizando lógica existente)
             try:
                 from matching.models import MatchRequest
+
                 match_request = MatchRequest.objects.filter(
-                    tenant=request.user,
-                    property=updated_contract.property
+                    tenant=request.user, property=updated_contract.property
                 ).first()
 
                 if match_request:
                     # Avanzar a etapa 4 - FLUJO SECUENCIAL: Arrendatario primero
                     match_request.workflow_stage = 4
-                    match_request.workflow_status = 'pending_tenant_biometric'
-                    match_request.status = 'contract_approved_by_tenant'
+                    match_request.workflow_status = "pending_tenant_biometric"
+                    match_request.status = "contract_approved_by_tenant"
 
                     # Actualizar workflow_data
-                    if 'contract_created' in match_request.workflow_data:
-                        match_request.workflow_data['contract_created']['tenant_approved'] = True
-                        match_request.workflow_data['contract_created']['tenant_approved_at'] = timezone.now().isoformat()
-                        match_request.workflow_data['contract_created']['status'] = updated_contract.current_state
+                    if "contract_created" in match_request.workflow_data:
+                        match_request.workflow_data["contract_created"][
+                            "tenant_approved"
+                        ] = True
+                        match_request.workflow_data["contract_created"][
+                            "tenant_approved_at"
+                        ] = timezone.now().isoformat()
+                        match_request.workflow_data["contract_created"]["status"] = (
+                            updated_contract.current_state
+                        )
                         # Remover flag de pending_tenant_approval
-                        if 'pending_tenant_approval' in match_request.workflow_data['contract_created']:
-                            del match_request.workflow_data['contract_created']['pending_tenant_approval']
+                        if (
+                            "pending_tenant_approval"
+                            in match_request.workflow_data["contract_created"]
+                        ):
+                            del match_request.workflow_data["contract_created"][
+                                "pending_tenant_approval"
+                            ]
 
                     match_request.save()
-                    logger.info(f"✅ MatchRequest {match_request.id} advanced to stage 4 - Tenant approved contract")
+                    logger.info(
+                        f"✅ MatchRequest {match_request.id} advanced to stage 4 - Tenant approved contract"
+                    )
                 else:
-                    logger.warning(f"⚠️ No MatchRequest found for tenant {request.user.id} and property {updated_contract.property.id}")
+                    logger.warning(
+                        f"⚠️ No MatchRequest found for tenant {request.user.id} and property {updated_contract.property.id}"
+                    )
 
             except Exception as e:
                 logger.warning(f"⚠️ Error updating workflow: {e}")
@@ -346,35 +365,37 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
             # CRÍTICO: Sincronizar Contract OLD para sistema biométrico
             try:
                 from .models import Contract
+
                 old_contract = Contract.objects.filter(id=updated_contract.id).first()
                 if old_contract:
                     # Mapear estados del sistema NEW al OLD
-                    if updated_contract.current_state == 'BOTH_REVIEWING':
-                        old_contract.status = 'ready_for_authentication'
-                    elif updated_contract.current_state == 'READY_TO_SIGN':
-                        old_contract.status = 'pending_biometric'
+                    if updated_contract.current_state == "BOTH_REVIEWING":
+                        old_contract.status = "ready_for_authentication"
+                    elif updated_contract.current_state == "READY_TO_SIGN":
+                        old_contract.status = "pending_biometric"
 
                     old_contract.save()
-                    logger.info(f"✅ Contract OLD {old_contract.id} synchronized with state: {old_contract.status}")
+                    logger.info(
+                        f"✅ Contract OLD {old_contract.id} synchronized with state: {old_contract.status}"
+                    )
                 else:
-                    logger.warning(f"⚠️ No Contract OLD found for ID {updated_contract.id}")
+                    logger.warning(
+                        f"⚠️ No Contract OLD found for ID {updated_contract.id}"
+                    )
 
             except Exception as e:
                 logger.warning(f"⚠️ Error synchronizing Contract OLD: {e}")
                 # No fallar el proceso principal si hay error en la sincronización
 
             return Response(
-                TenantContractDetailSerializer(updated_contract).data, 
-                status=status.HTTP_200_OK
-            )
-            
-        except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+                TenantContractDetailSerializer(updated_contract).data,
+                status=status.HTTP_200_OK,
             )
 
-    @action(detail=True, methods=['post'])
+        except (ValidationError, PermissionDenied) as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"])
     def reject_contract(self, request, pk=None):
         """
         Rechazar el contrato por parte del arrendatario.
@@ -383,17 +404,17 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
 
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para rechazar este contrato'},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para rechazar este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        if contract.current_state not in ['BOTH_REVIEWING', 'READY_TO_SIGN']:
+        if contract.current_state not in ["BOTH_REVIEWING", "READY_TO_SIGN"]:
             return Response(
-                {'error': 'El contrato no está en un estado que permita rechazo'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "El contrato no está en un estado que permita rechazo"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        reason = request.data.get('reason', 'Rechazado por el arrendatario')
+        reason = request.data.get("reason", "Rechazado por el arrendatario")
 
         try:
             with transaction.atomic():
@@ -402,308 +423,309 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
                 # no `TENANT_REJECTED` que nunca estuvo en choices.
                 contract.tenant_approved = False
                 previous_state = contract.current_state
-                contract.current_state = 'REJECTED_BY_TENANT'
+                contract.current_state = "REJECTED_BY_TENANT"
                 contract.save()
 
                 ContractWorkflowHistory.objects.create(
                     contract=contract,
-                    action='TENANT_REJECTED',
+                    action="TENANT_REJECTED",
                     performed_by=request.user,
                     notes=reason,
                     from_state=previous_state,
-                    to_state='REJECTED_BY_TENANT'
+                    to_state="REJECTED_BY_TENANT",
                 )
 
                 # Update MatchRequest if exists
                 try:
                     from matching.models import MatchRequest
+
                     match_request = MatchRequest.objects.filter(
-                        tenant=request.user,
-                        property=contract.property
+                        tenant=request.user, property=contract.property
                     ).first()
 
                     if match_request:
-                        match_request.workflow_status = 'contract_rejected_by_tenant'
-                        match_request.status = 'contract_rejected'
-                        if match_request.workflow_data and 'contract_created' in match_request.workflow_data:
-                            match_request.workflow_data['contract_created']['tenant_rejected'] = True
-                            match_request.workflow_data['contract_created']['rejection_reason'] = reason
-                            match_request.workflow_data['contract_created']['rejected_at'] = timezone.now().isoformat()
+                        match_request.workflow_status = "contract_rejected_by_tenant"
+                        match_request.status = "contract_rejected"
+                        if (
+                            match_request.workflow_data
+                            and "contract_created" in match_request.workflow_data
+                        ):
+                            match_request.workflow_data["contract_created"][
+                                "tenant_rejected"
+                            ] = True
+                            match_request.workflow_data["contract_created"][
+                                "rejection_reason"
+                            ] = reason
+                            match_request.workflow_data["contract_created"][
+                                "rejected_at"
+                            ] = timezone.now().isoformat()
                         match_request.save()
-                        logger.info(f"MatchRequest {match_request.id} updated - Tenant rejected contract")
+                        logger.info(
+                            f"MatchRequest {match_request.id} updated - Tenant rejected contract"
+                        )
                 except Exception as e:
                     logger.warning(f"Error updating MatchRequest on rejection: {e}")
 
                 return Response(
-                    {'message': 'Contrato rechazado exitosamente', 'reason': reason},
-                    status=status.HTTP_200_OK
+                    {"message": "Contrato rechazado exitosamente", "reason": reason},
+                    status=status.HTTP_200_OK,
                 )
         except Exception as e:
             logger.error(f"Error rejecting contract: {e}")
             return Response(
-                {'error': 'Error al rechazar el contrato'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Error al rechazar el contrato"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def sign_contract(self, request, pk=None):
         """
         Firmar digitalmente el contrato por parte del arrendatario.
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para firmar este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para firmar este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        if contract.current_state != 'READY_TO_SIGN':
+
+        if contract.current_state != "READY_TO_SIGN":
             return Response(
-                {'error': 'El contrato no está listo para firmar'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "El contrato no está listo para firmar"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         serializer = TenantContractSignatureSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             service = LandlordContractService()
             updated_contract = service.record_digital_signature(
                 contract_id=contract.id,
                 user=request.user,
-                signature_data=serializer.validated_data
+                signature_data=serializer.validated_data,
             )
-            
+
             return Response(
-                TenantContractDetailSerializer(updated_contract).data, 
-                status=status.HTTP_200_OK
+                TenantContractDetailSerializer(updated_contract).data,
+                status=status.HTTP_200_OK,
             )
-            
+
         except (ValidationError, PermissionDenied) as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=True, methods=['get'])
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["get"])
     def objections(self, request, pk=None):
         """
         Listar todas las objeciones del contrato (vista del arrendatario).
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para ver objeciones de este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para ver objeciones de este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        objections = contract.objections.order_by('-submitted_at')
-        
+
+        objections = contract.objections.order_by("-submitted_at")
+
         # Filtros opcionales
-        status_filter = request.query_params.get('status')
+        status_filter = request.query_params.get("status")
         if status_filter:
             objections = objections.filter(status=status_filter)
-        
-        priority_filter = request.query_params.get('priority')
+
+        priority_filter = request.query_params.get("priority")
         if priority_filter:
             objections = objections.filter(priority=priority_filter)
-        
+
         from .landlord_contract_serializers import ContractObjectionSerializer
+
         serializer = ContractObjectionSerializer(objections, many=True)
         return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
+
+    @action(detail=True, methods=["get"])
     def history(self, request, pk=None):
         """
         Obtener historial del workflow del contrato (vista del arrendatario).
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para ver el historial de este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para ver el historial de este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
-        history = contract.history_entries.order_by('-timestamp')
-        
+
+        history = contract.history_entries.order_by("-timestamp")
+
         # Paginación simple
-        limit = int(request.query_params.get('limit', 50))
-        offset = int(request.query_params.get('offset', 0))
-        
-        history_page = history[offset:offset + limit]
-        
+        limit = int(request.query_params.get("limit", 50))
+        offset = int(request.query_params.get("offset", 0))
+
+        history_page = history[offset : offset + limit]
+
         from .landlord_contract_serializers import ContractWorkflowHistorySerializer
+
         serializer = ContractWorkflowHistorySerializer(history_page, many=True)
-        
-        return Response({
-            'count': history.count(),
-            'results': serializer.data
-        })
-    
-    @action(detail=False, methods=['get'])
+
+        return Response({"count": history.count(), "results": serializer.data})
+
+    @action(detail=False, methods=["get"])
     def stats(self, request):
         """
         Estadísticas de contratos del arrendatario.
         """
         queryset = self.get_queryset()
-        
+
         # Estadísticas básicas del arrendatario
         total_contracts = queryset.count()
         active_contracts = queryset.filter(
-            published=True, 
-            current_state='PUBLISHED'
+            published=True, current_state="PUBLISHED"
         ).count()
-        
+
         completed_contracts = queryset.filter(
-            current_state__in=['TERMINATED', 'EXPIRED']
+            current_state__in=["TERMINATED", "EXPIRED"]
         ).count()
-        
+
         pending_approval = queryset.filter(
-            current_state='BOTH_REVIEWING',
-            tenant_approved=False
+            current_state="BOTH_REVIEWING", tenant_approved=False
         ).count()
-        
+
         pending_signature = queryset.filter(
-            current_state='READY_TO_SIGN',
-            tenant_signed=False
+            current_state="READY_TO_SIGN", tenant_signed=False
         ).count()
-        
+
         waiting_for_landlord = queryset.filter(
-            current_state__in=[
-                'LANDLORD_REVIEWING', 
-                'OBJECTIONS_PENDING'
-            ]
+            current_state__in=["LANDLORD_REVIEWING", "OBJECTIONS_PENDING"]
         ).count()
-        
+
         # Gastos mensuales en rentas
-        monthly_rent_expenses = queryset.filter(
-            published=True
-        ).aggregate(
-            total=models.Sum('monthly_rent')
-        )['total'] or Decimal('0.00')
-        
+        monthly_rent_expenses = queryset.filter(published=True).aggregate(
+            total=models.Sum("monthly_rent")
+        )["total"] or Decimal("0.00")
+
         # Promedio de tiempo desde invitación hasta firma
         signed_contracts = queryset.filter(
-            tenant_signed_at__isnull=False,
-            invitation_expires_at__isnull=False
+            tenant_signed_at__isnull=False, invitation_expires_at__isnull=False
         ).annotate(
             days_to_sign=models.ExpressionWrapper(
-                models.F('tenant_signed_at') - models.F('created_at'),
-                output_field=models.DurationField()
+                models.F("tenant_signed_at") - models.F("created_at"),
+                output_field=models.DurationField(),
             )
         )
-        
-        avg_days_to_sign = signed_contracts.aggregate(
-            avg_days=Avg('days_to_sign')
-        )['avg_days']
-        
-        avg_signing_days = (
-            avg_days_to_sign.days if avg_days_to_sign else 0
-        )
-        
+
+        avg_days_to_sign = signed_contracts.aggregate(avg_days=Avg("days_to_sign"))[
+            "avg_days"
+        ]
+
+        avg_signing_days = avg_days_to_sign.days if avg_days_to_sign else 0
+
         # Objeciones del arrendatario (temporalmente deshabilitado - modelo no soporta objected_by)
         # tenant_objections = ContractObjection.objects.filter(
         #     contract__tenant=request.user,
         #     objected_by=request.user
         # )
-        
+
         total_objections_made = 0  # tenant_objections.count()
-        accepted_objections = 0    # tenant_objections.filter(status='ACCEPTED').count()
-        rejected_objections = 0    # tenant_objections.filter(status='REJECTED').count()
-        
+        accepted_objections = 0  # tenant_objections.filter(status='ACCEPTED').count()
+        rejected_objections = 0  # tenant_objections.filter(status='REJECTED').count()
+
         # Desglose por estado
         state_breakdown = dict(
-            queryset.values('current_state').annotate(
-                count=Count('id')
-            ).values_list('current_state', 'count')
+            queryset.values("current_state")
+            .annotate(count=Count("id"))
+            .values_list("current_state", "count")
         )
-        
+
         # Contratos por tipo de propiedad
         property_types = dict(
-            queryset.filter(
-                property__isnull=False
-            ).values('property__property_type').annotate(
-                count=Count('id')
-            ).values_list('property__property_type', 'count')
+            queryset.filter(property__isnull=False)
+            .values("property__property_type")
+            .annotate(count=Count("id"))
+            .values_list("property__property_type", "count")
         )
-        
+
         stats_data = {
-            'total_contracts': total_contracts,
-            'active_contracts': active_contracts,
-            'completed_contracts': completed_contracts,
-            'pending_approval': pending_approval,
-            'pending_signature': pending_signature,
-            'waiting_for_landlord': waiting_for_landlord,
-            'monthly_rent_expenses': monthly_rent_expenses,
-            'average_signing_days': avg_signing_days,
-            'total_objections_made': total_objections_made,
-            'accepted_objections': accepted_objections,
-            'rejected_objections': rejected_objections,
-            'objection_success_rate': (
-                (accepted_objections / total_objections_made * 100) 
-                if total_objections_made > 0 else 0
+            "total_contracts": total_contracts,
+            "active_contracts": active_contracts,
+            "completed_contracts": completed_contracts,
+            "pending_approval": pending_approval,
+            "pending_signature": pending_signature,
+            "waiting_for_landlord": waiting_for_landlord,
+            "monthly_rent_expenses": monthly_rent_expenses,
+            "average_signing_days": avg_signing_days,
+            "total_objections_made": total_objections_made,
+            "accepted_objections": accepted_objections,
+            "rejected_objections": rejected_objections,
+            "objection_success_rate": (
+                (accepted_objections / total_objections_made * 100)
+                if total_objections_made > 0
+                else 0
             ),
-            'state_breakdown': state_breakdown,
-            'property_types': property_types
+            "state_breakdown": state_breakdown,
+            "property_types": property_types,
         }
-        
+
         serializer = TenantContractStatsSerializer(stats_data)
         return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
+
+    @action(detail=True, methods=["get"])
     def contract_preview(self, request, pk=None):
         """
         Vista previa del contrato generado con todos los datos.
         Solo disponible cuando ambas partes han completado sus datos.
         """
         contract = self.get_object()
-        
+
         if contract.tenant != request.user:
             return Response(
-                {'error': 'No tienes permisos para ver este contrato'}, 
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "No tienes permisos para ver este contrato"},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         if contract.current_state not in [
-            'BOTH_REVIEWING', 'READY_TO_SIGN', 'FULLY_SIGNED', 'PUBLISHED'
+            "BOTH_REVIEWING",
+            "READY_TO_SIGN",
+            "FULLY_SIGNED",
+            "PUBLISHED",
         ]:
             return Response(
-                {'error': 'El contrato no está listo para vista previa'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "El contrato no está listo para vista previa"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         try:
             service = LandlordContractService()
             contract_content = service.generate_contract_content(contract)
-            
-            return Response({
-                'contract_content': contract_content,
-                'contract_data': TenantContractDetailSerializer(contract).data,
-                'can_sign': contract.current_state == 'READY_TO_SIGN',
-                'is_published': contract.published
-            })
-            
+
+            return Response(
+                {
+                    "contract_content": contract_content,
+                    "contract_data": TenantContractDetailSerializer(contract).data,
+                    "can_sign": contract.current_state == "READY_TO_SIGN",
+                    "is_published": contract.published,
+                }
+            )
+
         except Exception as e:
             logger.error(f"Error generating contract preview: {e}")
             return Response(
-                {'error': 'Error generando vista previa del contrato'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Error generando vista previa del contrato"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-    
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=["get"])
     def pending_invitations(self, request):
         """
         Listar invitaciones pendientes para el arrendatario.
         """
         pending_contracts = LandlordControlledContract.objects.filter(
             tenant_identifier=request.user.email,
-            current_state='TENANT_INVITED',
-            invitation_expires_at__gt=timezone.now()
-        ).select_related('landlord', 'property')
+            current_state="TENANT_INVITED",
+            invitation_expires_at__gt=timezone.now(),
+        ).select_related("landlord", "property")
 
         serializer = TenantContractListSerializer(pending_contracts, many=True)
         return Response(serializer.data)
@@ -712,7 +734,7 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
     # 🔄 FLUJO CIRCULAR: Devolución de contrato al arrendador (Plan Maestro V2.0)
     # =======================================================================
 
-    @action(detail=True, methods=['post'], url_path='return_to_landlord')
+    @action(detail=True, methods=["post"], url_path="return_to_landlord")
     def return_to_landlord(self, request, pk=None):
         """
         🔄 FLUJO CIRCULAR: Arrendatario devuelve el contrato al arrendador para correcciones.
@@ -742,137 +764,151 @@ class TenantContractViewSet(viewsets.ReadOnlyModelViewSet):
         if contract.tenant != request.user:
             return Response(
                 {
-                    'error': 'No tienes permisos para devolver este contrato',
-                    'code': 'NOT_TENANT'
+                    "error": "No tienes permisos para devolver este contrato",
+                    "code": "NOT_TENANT",
                 },
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # Verificar que el contrato no esté bloqueado
         if contract.is_locked:
             return Response(
                 {
-                    'error': '🔒 El contrato está bloqueado y no puede ser modificado',
-                    'code': 'CONTRACT_LOCKED',
-                    'locked_at': contract.locked_at.isoformat() if contract.locked_at else None,
-                    'locked_reason': contract.locked_reason
+                    "error": "🔒 El contrato está bloqueado y no puede ser modificado",
+                    "code": "CONTRACT_LOCKED",
+                    "locked_at": contract.locked_at.isoformat()
+                    if contract.locked_at
+                    else None,
+                    "locked_reason": contract.locked_reason,
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Verificar estado actual
-        allowed_states = ['TENANT_REVIEWING', 'BOTH_REVIEWING', 'DRAFT']
+        allowed_states = ["TENANT_REVIEWING", "BOTH_REVIEWING", "DRAFT"]
         if contract.current_state not in allowed_states:
             return Response(
                 {
-                    'error': f'No se puede devolver el contrato en estado {contract.current_state}',
-                    'code': 'INVALID_STATE',
-                    'current_state': contract.current_state,
-                    'allowed_states': allowed_states
+                    "error": f"No se puede devolver el contrato en estado {contract.current_state}",
+                    "code": "INVALID_STATE",
+                    "current_state": contract.current_state,
+                    "allowed_states": allowed_states,
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Validar notas de devolución (obligatorias)
-        notes = request.data.get('notes', '').strip()
+        notes = request.data.get("notes", "").strip()
         if not notes:
             return Response(
                 {
-                    'error': 'Las notas de devolución son obligatorias',
-                    'code': 'NOTES_REQUIRED',
-                    'hint': 'Proporciona una explicación detallada de los cambios requeridos'
+                    "error": "Las notas de devolución son obligatorias",
+                    "code": "NOTES_REQUIRED",
+                    "hint": "Proporciona una explicación detallada de los cambios requeridos",
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if len(notes) < 20:
             return Response(
                 {
-                    'error': 'Las notas deben tener al menos 20 caracteres',
-                    'code': 'NOTES_TOO_SHORT',
-                    'min_length': 20,
-                    'current_length': len(notes)
+                    "error": "Las notas deben tener al menos 20 caracteres",
+                    "code": "NOTES_TOO_SHORT",
+                    "min_length": 20,
+                    "current_length": len(notes),
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             # Obtener preocupaciones específicas (opcional)
-            specific_concerns = request.data.get('specific_concerns', [])
+            specific_concerns = request.data.get("specific_concerns", [])
 
             # Ejecutar la devolución usando el método del modelo
-            success = contract.return_to_landlord(
-                tenant_user=request.user,
-                notes=notes
-            )
+            success = contract.return_to_landlord(tenant_user=request.user, notes=notes)
 
             if not success:
                 return Response(
                     {
-                        'error': 'No se pudo devolver el contrato',
-                        'code': 'RETURN_FAILED'
+                        "error": "No se pudo devolver el contrato",
+                        "code": "RETURN_FAILED",
                     },
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Agregar evento adicional si hay preocupaciones específicas
             if specific_concerns:
                 contract.add_workflow_event(
-                    event_type='SPECIFIC_CONCERNS_ADDED',
+                    event_type="SPECIFIC_CONCERNS_ADDED",
                     user=request.user,
                     details={
-                        'concerns': specific_concerns,
-                        'concerns_count': len(specific_concerns)
-                    }
+                        "concerns": specific_concerns,
+                        "concerns_count": len(specific_concerns),
+                    },
                 )
 
             # Sincronizar con MatchRequest si existe
             try:
                 from matching.models import MatchRequest
+
                 match_request = MatchRequest.objects.filter(
-                    tenant=request.user,
-                    property=contract.property
+                    tenant=request.user, property=contract.property
                 ).first()
 
                 if match_request:
-                    match_request.workflow_status = 'contract_returned_by_tenant'
-                    if 'contract_created' in match_request.workflow_data:
-                        match_request.workflow_data['contract_created']['tenant_returned'] = True
-                        match_request.workflow_data['contract_created']['tenant_return_notes'] = notes
-                        match_request.workflow_data['contract_created']['tenant_return_date'] = timezone.now().isoformat()
-                        match_request.workflow_data['contract_created']['review_cycle'] = contract.review_cycle_count
+                    match_request.workflow_status = "contract_returned_by_tenant"
+                    if "contract_created" in match_request.workflow_data:
+                        match_request.workflow_data["contract_created"][
+                            "tenant_returned"
+                        ] = True
+                        match_request.workflow_data["contract_created"][
+                            "tenant_return_notes"
+                        ] = notes
+                        match_request.workflow_data["contract_created"][
+                            "tenant_return_date"
+                        ] = timezone.now().isoformat()
+                        match_request.workflow_data["contract_created"][
+                            "review_cycle"
+                        ] = contract.review_cycle_count
                     match_request.save()
-                    logger.info(f"✅ MatchRequest {match_request.id} updated - contract returned by tenant")
+                    logger.info(
+                        f"✅ MatchRequest {match_request.id} updated - contract returned by tenant"
+                    )
             except Exception as e:
                 logger.warning(f"⚠️ Error updating MatchRequest: {e}")
 
             # Refrescar contrato
             contract.refresh_from_db()
 
-            return Response({
-                'message': '✅ Contrato devuelto al arrendador exitosamente',
-                'contract_id': str(contract.id),
-                'new_state': contract.current_state,
-                'review_cycle': contract.review_cycle_count,
-                'return_notes': contract.tenant_return_notes,
-                'return_date': contract.last_return_date.isoformat() if contract.last_return_date else None,
-                'next_step': 'El arrendador debe revisar tus comentarios y re-enviar el contrato para aprobación del administrador'
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "✅ Contrato devuelto al arrendador exitosamente",
+                    "contract_id": str(contract.id),
+                    "new_state": contract.current_state,
+                    "review_cycle": contract.review_cycle_count,
+                    "return_notes": contract.tenant_return_notes,
+                    "return_date": contract.last_return_date.isoformat()
+                    if contract.last_return_date
+                    else None,
+                    "next_step": "El arrendador debe revisar tus comentarios y re-enviar el contrato para aprobación del administrador",
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except ValidationError as e:
             return Response(
-                {'error': str(e), 'code': 'VALIDATION_ERROR'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": str(e), "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             logger.error(f"Error returning contract to landlord: {e}")
             return Response(
                 {
-                    'error': 'Error interno al devolver el contrato',
-                    'code': 'INTERNAL_ERROR',
-                    'details': str(e)
+                    "error": "Error interno al devolver el contrato",
+                    "code": "INTERNAL_ERROR",
+                    "details": str(e),
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -881,10 +917,10 @@ class TenantDashboardView(viewsets.GenericViewSet):
     ViewSet específico para el dashboard del arrendatario.
     Proporciona vistas agregadas y resúmenes.
     """
-    
+
     permission_classes = [IsAuthenticated, IsTenantPermission]
-    
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=["get"])
     def overview(self, request):
         """
         Vista general del dashboard del arrendatario.
@@ -892,95 +928,102 @@ class TenantDashboardView(viewsets.GenericViewSet):
         user_contracts = LandlordControlledContract.objects.filter(
             Q(tenant=request.user) | Q(tenant_identifier=request.user.email)
         )
-        
+
         # Contratos activos
         active_contracts = user_contracts.filter(
-            published=True,
-            current_state='PUBLISHED'
-        ).select_related('property', 'landlord')
-        
+            published=True, current_state="PUBLISHED"
+        ).select_related("property", "landlord")
+
         # Acciones pendientes
         pending_actions = []
-        
+
         # Invitaciones pendientes
         pending_invitations = user_contracts.filter(
-            current_state='TENANT_INVITED',
-            invitation_expires_at__gt=timezone.now()
+            current_state="TENANT_INVITED", invitation_expires_at__gt=timezone.now()
         ).count()
         if pending_invitations > 0:
-            pending_actions.append({
-                'type': 'invitation',
-                'count': pending_invitations,
-                'message': f'{pending_invitations} invitación(es) pendiente(s)',
-                'action_url': '/tenant/contracts/pending-invitations/'
-            })
-        
+            pending_actions.append(
+                {
+                    "type": "invitation",
+                    "count": pending_invitations,
+                    "message": f"{pending_invitations} invitación(es) pendiente(s)",
+                    "action_url": "/tenant/contracts/pending-invitations/",
+                }
+            )
+
         # Datos por completar
         pending_data = user_contracts.filter(
-            current_state='TENANT_REVIEWING',
-            tenant=request.user
+            current_state="TENANT_REVIEWING", tenant=request.user
         ).count()
         if pending_data > 0:
-            pending_actions.append({
-                'type': 'complete_data',
-                'count': pending_data,
-                'message': f'{pending_data} contrato(s) esperando tus datos',
-                'action_url': '/tenant/contracts/?current_state=TENANT_REVIEWING'
-            })
-        
+            pending_actions.append(
+                {
+                    "type": "complete_data",
+                    "count": pending_data,
+                    "message": f"{pending_data} contrato(s) esperando tus datos",
+                    "action_url": "/tenant/contracts/?current_state=TENANT_REVIEWING",
+                }
+            )
+
         # Aprobaciones pendientes
         pending_approvals = user_contracts.filter(
-            current_state='BOTH_REVIEWING',
-            tenant_approved=False,
-            tenant=request.user
+            current_state="BOTH_REVIEWING", tenant_approved=False, tenant=request.user
         ).count()
         if pending_approvals > 0:
-            pending_actions.append({
-                'type': 'approval',
-                'count': pending_approvals,
-                'message': f'{pending_approvals} contrato(s) esperando tu aprobación',
-                'action_url': '/tenant/contracts/?current_state=BOTH_REVIEWING'
-            })
-        
+            pending_actions.append(
+                {
+                    "type": "approval",
+                    "count": pending_approvals,
+                    "message": f"{pending_approvals} contrato(s) esperando tu aprobación",
+                    "action_url": "/tenant/contracts/?current_state=BOTH_REVIEWING",
+                }
+            )
+
         # Firmas pendientes
         pending_signatures = user_contracts.filter(
-            current_state='READY_TO_SIGN',
-            tenant_signed=False,
-            tenant=request.user
+            current_state="READY_TO_SIGN", tenant_signed=False, tenant=request.user
         ).count()
         if pending_signatures > 0:
-            pending_actions.append({
-                'type': 'signature',
-                'count': pending_signatures,
-                'message': f'{pending_signatures} contrato(s) esperando tu firma',
-                'action_url': '/tenant/contracts/?current_state=READY_TO_SIGN'
-            })
-        
+            pending_actions.append(
+                {
+                    "type": "signature",
+                    "count": pending_signatures,
+                    "message": f"{pending_signatures} contrato(s) esperando tu firma",
+                    "action_url": "/tenant/contracts/?current_state=READY_TO_SIGN",
+                }
+            )
+
         # Próximos vencimientos
         upcoming_expirations = active_contracts.filter(
             end_date__lte=timezone.now().date() + timedelta(days=60),
-            end_date__gte=timezone.now().date()
+            end_date__gte=timezone.now().date(),
         )
-        
-        return Response({
-            'active_contracts_count': active_contracts.count(),
-            'total_monthly_rent': active_contracts.aggregate(
-                total=models.Sum('monthly_rent')
-            )['total'] or 0,
-            'pending_actions': pending_actions,
-            'upcoming_expirations': TenantContractListSerializer(
-                upcoming_expirations, many=True
-            ).data,
-            'recent_activity': self._get_recent_activity(request.user)
-        })
-    
+
+        return Response(
+            {
+                "active_contracts_count": active_contracts.count(),
+                "total_monthly_rent": active_contracts.aggregate(
+                    total=models.Sum("monthly_rent")
+                )["total"]
+                or 0,
+                "pending_actions": pending_actions,
+                "upcoming_expirations": TenantContractListSerializer(
+                    upcoming_expirations, many=True
+                ).data,
+                "recent_activity": self._get_recent_activity(request.user),
+            }
+        )
+
     def _get_recent_activity(self, user):
         """Obtener actividad reciente del arrendatario."""
-        recent_history = ContractWorkflowHistory.objects.filter(
-            Q(contract__tenant=user) | Q(performed_by=user)
-        ).select_related(
-            'contract', 'performed_by'
-        ).order_by('-timestamp')[:10]
-        
+        recent_history = (
+            ContractWorkflowHistory.objects.filter(
+                Q(contract__tenant=user) | Q(performed_by=user)
+            )
+            .select_related("contract", "performed_by")
+            .order_by("-timestamp")[:10]
+        )
+
         from .landlord_contract_serializers import ContractWorkflowHistorySerializer
+
         return ContractWorkflowHistorySerializer(recent_history, many=True).data

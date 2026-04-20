@@ -10,21 +10,8 @@ import {
   Avatar,
   IconButton,
   Paper,
-  Chip,
   Divider,
-  TextField,
-  InputAdornment,
   Button,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  CircularProgress,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -79,27 +66,24 @@ const Inbox: React.FC = () => {
   const handleStarThread = async (threadId: number) => {
     try {
       const response = await api.post(`/messages/threads/${threadId}/star/`);
-      setThreads(threads.map(thread => 
-        thread.id === threadId ? response.data : thread,
-      ));
-    } catch (error) {
-    }
+      setThreads(
+        threads.map(thread => (thread.id === threadId ? response.data : thread)),
+      );
+    } catch (error) {}
   };
 
   const handleArchiveThread = async (threadId: number) => {
     try {
       const response = await api.post(`/messages/threads/${threadId}/archive/`);
       setThreads(threads.filter(thread => thread.id !== threadId));
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleDeleteThread = async (threadId: number) => {
     try {
       await api.delete(`/messages/threads/${threadId}/delete/`);
       setThreads(threads.filter(thread => thread.id !== threadId));
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   if (loading) {
@@ -107,15 +91,15 @@ const Inbox: React.FC = () => {
   }
 
   if (error) {
-    return <Typography color="error">Error loading messages</Typography>;
+    return <Typography color='error'>Error loading messages</Typography>;
   }
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Bandeja de Entrada</Typography>
+        <Typography variant='h5'>Bandeja de Entrada</Typography>
         <Button
-          variant="contained"
+          variant='contained'
           startIcon={<AddIcon />}
           onClick={() => navigate('/messages/new')}
         >
@@ -131,19 +115,19 @@ const Inbox: React.FC = () => {
                 secondaryAction={
                   <Box>
                     <IconButton
-                      edge="end"
+                      edge='end'
                       onClick={() => handleStarThread(thread.id)}
                     >
                       {thread.is_starred ? <StarIcon /> : <StarBorderIcon />}
                     </IconButton>
                     <IconButton
-                      edge="end"
+                      edge='end'
                       onClick={() => handleArchiveThread(thread.id)}
                     >
                       <ArchiveIcon />
                     </IconButton>
                     <IconButton
-                      edge="end"
+                      edge='end'
                       onClick={() => handleDeleteThread(thread.id)}
                     >
                       <DeleteIcon />
@@ -162,7 +146,11 @@ const Inbox: React.FC = () => {
                   primary={thread.subject}
                   secondary={
                     <>
-                      <Typography component="span" variant="body2" color="text.primary">
+                      <Typography
+                        component='span'
+                        variant='body2'
+                        color='text.primary'
+                      >
                         {thread.participants[0]?.full_name}
                       </Typography>
                       {' — '}
@@ -180,4 +168,4 @@ const Inbox: React.FC = () => {
   );
 };
 
-export default Inbox; 
+export default Inbox;

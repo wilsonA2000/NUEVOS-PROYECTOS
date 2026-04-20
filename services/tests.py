@@ -20,9 +20,15 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 
 from .models import (
-    ServiceCategory, Service, ServiceRequest, ServiceImage,
-    SubscriptionPlan, ServiceSubscription,
-    ServiceOrder, ServicePayment, ServiceOrderHistory,
+    ServiceCategory,
+    Service,
+    ServiceRequest,
+    ServiceImage,
+    SubscriptionPlan,
+    ServiceSubscription,
+    ServiceOrder,
+    ServicePayment,
+    ServiceOrderHistory,
 )
 
 User = get_user_model()
@@ -31,6 +37,7 @@ User = get_user_model()
 # ---------------------------------------------------------------------------
 # Helper factory
 # ---------------------------------------------------------------------------
+
 
 def _make_category(**kwargs):
     """Create and return a ServiceCategory with sensible defaults."""
@@ -289,9 +296,7 @@ class ServiceModelTests(TestCase):
         self.service.price_range_min = None
         self.service.price_range_max = None
         self.service.save()
-        self.assertEqual(
-            self.service.get_price_display(), "Precio bajo cotización"
-        )
+        self.assertEqual(self.service.get_price_display(), "Precio bajo cotización")
 
     # -- Pricing type choices validation ------------------------------------
 
@@ -471,9 +476,7 @@ class ServiceRequestModelTests(TestCase):
 
     def test_ordering_most_recent_first(self):
         req2 = _make_service_request(service=self.service, requester_name="Segundo")
-        qs = ServiceRequest.objects.filter(
-            pk__in=[self.request_obj.pk, req2.pk]
-        )
+        qs = ServiceRequest.objects.filter(pk__in=[self.request_obj.pk, req2.pk])
         self.assertEqual(qs.first(), req2)
 
     # -- Timestamps ---------------------------------------------------------
@@ -586,9 +589,7 @@ class ServiceCategoryAPITests(APITestCase):
         self.assertNotIn("Jardineria", names)
 
     def test_read_only_no_post(self):
-        response = self.client.post(
-            "/api/v1/services/categories/", {"name": "Hacking"}
-        )
+        response = self.client.post("/api/v1/services/categories/", {"name": "Hacking"})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
@@ -612,9 +613,7 @@ class ServiceAPITests(APITestCase):
 
     def test_retrieve_service_increments_views(self):
         initial_views = self.service.views_count
-        response = self.client.get(
-            f"/api/v1/services/services/{self.service.pk}/"
-        )
+        response = self.client.get(f"/api/v1/services/services/{self.service.pk}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.service.refresh_from_db()
         self.assertEqual(self.service.views_count, initial_views + 1)
@@ -645,76 +644,101 @@ class ServiceAPITests(APITestCase):
         self.assertIn("total_categories", response.data)
 
     def test_search_filter(self):
-        response = self.client.get(
-            "/api/v1/services/services/", {"search": "WiFi"}
-        )
+        response = self.client.get("/api/v1/services/services/", {"search": "WiFi"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_anonymous_cannot_post(self):
         """SVC-02: POST sin auth → 403 (antes era 405 con ReadOnlyModelViewSet)."""
         response = self.client.post("/api/v1/services/services/", {"name": "X"})
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+        )
 
     def test_subscriber_can_post(self):
         """SVC-02: prestador con suscripción activa puede crear servicios."""
         from django.contrib.auth import get_user_model
+
         User = get_user_model()
         sp = User.objects.create_user(
-            email='provider@test.com', password='Test1234!',
-            first_name='Proveedor', last_name='Test', user_type='service_provider',
+            email="provider@test.com",
+            password="Test1234!",
+            first_name="Proveedor",
+            last_name="Test",
+            user_type="service_provider",
         )
         plan = SubscriptionPlan.objects.first()
         if not plan:
             plan = SubscriptionPlan.objects.create(
-                name='Test', slug='test', price=50000, description='Plan test',
+                name="Test",
+                slug="test",
+                price=50000,
+                description="Plan test",
                 max_active_services=10,
             )
         ServiceSubscription.objects.create(
-            service_provider=sp, plan=plan, status='active',
+            service_provider=sp,
+            plan=plan,
+            status="active",
             start_date=timezone.now().date(),
             end_date=(timezone.now() + timedelta(days=30)).date(),
         )
         self.client.force_authenticate(user=sp)
-        response = self.client.post("/api/v1/services/services/", {
-            "name": "Limpieza Express",
-            "short_description": "Limpieza profesional",
-            "full_description": "Limpieza profesional de interiores.",
-            "category": str(self.category.id),
-            "pricing_type": "fixed",
-            "base_price": "80000",
-        })
+        response = self.client.post(
+            "/api/v1/services/services/",
+            {
+                "name": "Limpieza Express",
+                "short_description": "Limpieza profesional",
+                "full_description": "Limpieza profesional de interiores.",
+                "category": str(self.category.id),
+                "pricing_type": "fixed",
+                "base_price": "80000",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['provider_name'], 'Proveedor Test')
+        self.assertEqual(response.data["provider_name"], "Proveedor Test")
 
     def test_subscriber_respects_max_active_services(self):
         """SVC-001: al alcanzar el tope del plan, la creación debe rechazarse."""
         from django.contrib.auth import get_user_model
+
         User = get_user_model()
         sp = User.objects.create_user(
-            email='provider_cap@test.com', password='Test1234!',
-            first_name='Cap', last_name='Provider', user_type='service_provider',
+            email="provider_cap@test.com",
+            password="Test1234!",
+            first_name="Cap",
+            last_name="Provider",
+            user_type="service_provider",
         )
         plan = SubscriptionPlan.objects.create(
-            name='Mini', slug='mini', price=10000,
-            description='Plan con 1 slot', max_active_services=1,
+            name="Mini",
+            slug="mini",
+            price=10000,
+            description="Plan con 1 slot",
+            max_active_services=1,
         )
         ServiceSubscription.objects.create(
-            service_provider=sp, plan=plan, status='active',
+            service_provider=sp,
+            plan=plan,
+            status="active",
             start_date=timezone.now().date(),
             end_date=(timezone.now() + timedelta(days=30)).date(),
             services_published=1,  # cupo ya consumido
         )
         self.client.force_authenticate(user=sp)
-        response = self.client.post("/api/v1/services/services/", {
-            "name": "Servicio Extra",
-            "short_description": "No debería crearse",
-            "full_description": "Debería rechazarse por cupo.",
-            "category": str(self.category.id),
-            "pricing_type": "fixed",
-            "base_price": "50000",
-        })
+        response = self.client.post(
+            "/api/v1/services/services/",
+            {
+                "name": "Servicio Extra",
+                "short_description": "No debería crearse",
+                "full_description": "Debería rechazarse por cupo.",
+                "category": str(self.category.id),
+                "pricing_type": "fixed",
+                "base_price": "50000",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn('máximo', str(response.data).lower())
+        self.assertIn("máximo", str(response.data).lower())
 
 
 class ServiceRequestAPITests(APITestCase):
@@ -723,9 +747,7 @@ class ServiceRequestAPITests(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.category = _make_category(name="Asesoria")
-        self.service = _make_service(
-            category=self.category, name="Asesoria Legal"
-        )
+        self.service = _make_service(category=self.category, name="Asesoria Legal")
 
     def test_create_request(self):
         data = {
@@ -835,9 +857,7 @@ class AdditionalListViewAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_by_category_list_view(self):
-        response = self.client.get(
-            f"/api/v1/services/category/{self.category.slug}/"
-        )
+        response = self.client.get(f"/api/v1/services/category/{self.category.slug}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_search_view(self):
@@ -851,45 +871,54 @@ class AdditionalListViewAPITests(APITestCase):
 # T2.1 · ServiceOrder + ServicePayment models
 # ---------------------------------------------------------------------------
 
+
 class ServiceOrderModelTests(TestCase):
     """Tests del modelo ServiceOrder."""
 
     def setUp(self):
         self.provider = User.objects.create_user(
-            email='prov@test.com', password='test1234',
-            first_name='Pro', last_name='V',
-            user_type='service_provider',
+            email="prov@test.com",
+            password="test1234",
+            first_name="Pro",
+            last_name="V",
+            user_type="service_provider",
         )
         self.client_user = User.objects.create_user(
-            email='client@test.com', password='test1234',
-            first_name='Cli', last_name='Ent',
-            user_type='tenant',
+            email="client@test.com",
+            password="test1234",
+            first_name="Cli",
+            last_name="Ent",
+            user_type="tenant",
         )
 
     def test_create_service_order_default_status_draft(self):
         order = ServiceOrder.objects.create(
             provider=self.provider,
             client=self.client_user,
-            title='Limpieza profunda',
-            description='Limpieza del apto completo',
-            amount=Decimal('250000'),
+            title="Limpieza profunda",
+            description="Limpieza del apto completo",
+            amount=Decimal("250000"),
         )
-        self.assertEqual(order.status, 'draft')
+        self.assertEqual(order.status, "draft")
         self.assertIsNone(order.payment_order)
 
     def test_str_representation(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.client_user,
-            title='Pintura', amount=Decimal('500000'),
+            provider=self.provider,
+            client=self.client_user,
+            title="Pintura",
+            amount=Decimal("500000"),
         )
         s = str(order)
-        self.assertIn('Pintura', s)
-        self.assertIn('500000', s)
+        self.assertIn("Pintura", s)
+        self.assertIn("500000", s)
 
     def test_uuid_primary_key(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.client_user,
-            title='Test', amount=Decimal('100000'),
+            provider=self.provider,
+            client=self.client_user,
+            title="Test",
+            amount=Decimal("100000"),
         )
         self.assertIsInstance(order.id, uuid.UUID)
 
@@ -898,39 +927,44 @@ class ServiceOrderModelTests(TestCase):
     def test_signal_records_creation_entry(self):
         """Al crear una orden, signal registra una fila CREATE."""
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.client_user,
-            title='Signal create', amount=Decimal('100000'),
+            provider=self.provider,
+            client=self.client_user,
+            title="Signal create",
+            amount=Decimal("100000"),
         )
         entries = ServiceOrderHistory.objects.filter(order=order)
         self.assertEqual(entries.count(), 1)
-        self.assertEqual(entries.first().action_type, 'CREATE')
-        self.assertEqual(entries.first().new_status, 'draft')
+        self.assertEqual(entries.first().action_type, "CREATE")
+        self.assertEqual(entries.first().new_status, "draft")
 
     def test_signal_records_status_transitions(self):
         """Cada cambio de status añade una fila al historial."""
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.client_user,
-            title='Signal transition', amount=Decimal('200000'),
+            provider=self.provider,
+            client=self.client_user,
+            title="Signal transition",
+            amount=Decimal("200000"),
         )
-        order.status = 'sent'
+        order.status = "sent"
         order.save()
-        order.status = 'accepted'
+        order.status = "accepted"
         order.save()
 
-        entries = ServiceOrderHistory.objects.filter(order=order).order_by('timestamp')
+        entries = ServiceOrderHistory.objects.filter(order=order).order_by("timestamp")
         self.assertEqual(entries.count(), 3)  # CREATE + SEND + ACCEPT
-        self.assertEqual([e.action_type for e in entries],
-                         ['CREATE', 'SEND', 'ACCEPT'])
-        self.assertEqual(entries[2].old_status, 'sent')
-        self.assertEqual(entries[2].new_status, 'accepted')
+        self.assertEqual([e.action_type for e in entries], ["CREATE", "SEND", "ACCEPT"])
+        self.assertEqual(entries[2].old_status, "sent")
+        self.assertEqual(entries[2].new_status, "accepted")
 
     def test_signal_noop_when_status_unchanged(self):
         """Guardar sin cambiar status no duplica filas."""
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.client_user,
-            title='Signal noop', amount=Decimal('300000'),
+            provider=self.provider,
+            client=self.client_user,
+            title="Signal noop",
+            amount=Decimal("300000"),
         )
-        order.notes = 'sólo metadatos'
+        order.notes = "sólo metadatos"
         order.save()
         entries = ServiceOrderHistory.objects.filter(order=order)
         self.assertEqual(entries.count(), 1)  # sólo CREATE
@@ -941,35 +975,45 @@ class ServicePaymentModelTests(TestCase):
 
     def setUp(self):
         provider = User.objects.create_user(
-            email='prov2@test.com', password='test1234',
-            first_name='X', last_name='Y',
-            user_type='service_provider',
+            email="prov2@test.com",
+            password="test1234",
+            first_name="X",
+            last_name="Y",
+            user_type="service_provider",
         )
         client_user = User.objects.create_user(
-            email='client2@test.com', password='test1234',
-            first_name='X', last_name='Y',
-            user_type='tenant',
+            email="client2@test.com",
+            password="test1234",
+            first_name="X",
+            last_name="Y",
+            user_type="tenant",
         )
         self.order = ServiceOrder.objects.create(
-            provider=provider, client=client_user,
-            title='Test', amount=Decimal('300000'),
+            provider=provider,
+            client=client_user,
+            title="Test",
+            amount=Decimal("300000"),
         )
 
     def test_create_payment(self):
         payment = ServicePayment.objects.create(
             order=self.order,
-            amount_paid=Decimal('300000'),
-            gateway='stripe',
+            amount_paid=Decimal("300000"),
+            gateway="stripe",
         )
-        self.assertEqual(payment.amount_paid, Decimal('300000'))
-        self.assertEqual(payment.gateway, 'stripe')
+        self.assertEqual(payment.amount_paid, Decimal("300000"))
+        self.assertEqual(payment.gateway, "stripe")
 
     def test_payment_order_relation(self):
         ServicePayment.objects.create(
-            order=self.order, amount_paid=Decimal('100000'), gateway='manual',
+            order=self.order,
+            amount_paid=Decimal("100000"),
+            gateway="manual",
         )
         ServicePayment.objects.create(
-            order=self.order, amount_paid=Decimal('200000'), gateway='wompi',
+            order=self.order,
+            amount_paid=Decimal("200000"),
+            gateway="wompi",
         )
         # Una orden puede tener múltiples pagos
         self.assertEqual(self.order.payments.count(), 2)
@@ -979,139 +1023,183 @@ class ServicePaymentModelTests(TestCase):
 # T2.2 · ServiceOrderViewSet API
 # ---------------------------------------------------------------------------
 
+
 class ServiceOrderAPITests(APITestCase):
     """Endpoints CRUD + workflow de ServiceOrder."""
 
     def setUp(self):
         self.client = APIClient()
         self.admin = User.objects.create_user(
-            email='admin@svc.com', password='test1234',
-            first_name='A', last_name='X',
-            user_type='landlord', is_staff=True,
+            email="admin@svc.com",
+            password="test1234",
+            first_name="A",
+            last_name="X",
+            user_type="landlord",
+            is_staff=True,
         )
         self.provider = User.objects.create_user(
-            email='prov@svc.com', password='test1234',
-            first_name='Prov', last_name='X',
-            user_type='service_provider',
+            email="prov@svc.com",
+            password="test1234",
+            first_name="Prov",
+            last_name="X",
+            user_type="service_provider",
         )
         self.tenant = User.objects.create_user(
-            email='tt@svc.com', password='test1234',
-            first_name='Ten', last_name='X',
-            user_type='tenant',
+            email="tt@svc.com",
+            password="test1234",
+            first_name="Ten",
+            last_name="X",
+            user_type="tenant",
         )
         # Crear suscripción activa para el provider
         plan = SubscriptionPlan.objects.create(
-            name='Plan Test', slug='plan-test', description='x',
-            price=Decimal('50000'),
+            name="Plan Test",
+            slug="plan-test",
+            description="x",
+            price=Decimal("50000"),
         )
         ServiceSubscription.objects.create(
-            service_provider=self.provider, plan=plan, status='active',
+            service_provider=self.provider,
+            plan=plan,
+            status="active",
             start_date=timezone.now(),
             end_date=timezone.now() + timedelta(days=30),
         )
 
     def test_unauthenticated_returns_401(self):
-        response = self.client.get('/api/v1/services/orders/')
+        response = self.client.get("/api/v1/services/orders/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_provider_can_create_order(self):
         self.client.force_authenticate(user=self.provider)
-        response = self.client.post('/api/v1/services/orders/', {
-            'client': str(self.tenant.id),
-            'title': 'Limpieza profunda',
-            'description': 'Apto completo',
-            'amount': '250000',
-        }, format='json')
+        response = self.client.post(
+            "/api/v1/services/orders/",
+            {
+                "client": str(self.tenant.id),
+                "title": "Limpieza profunda",
+                "description": "Apto completo",
+                "amount": "250000",
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['status'], 'draft')
+        self.assertEqual(response.data["status"], "draft")
 
     def test_tenant_cannot_create_order(self):
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.post('/api/v1/services/orders/', {
-            'client': str(self.tenant.id),
-            'title': 'X', 'amount': '100000',
-        }, format='json')
+        response = self.client.post(
+            "/api/v1/services/orders/",
+            {
+                "client": str(self.tenant.id),
+                "title": "X",
+                "amount": "100000",
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_provider_without_subscription_blocked(self):
         prov2 = User.objects.create_user(
-            email='nosub@svc.com', password='x',
-            first_name='X', last_name='Y',
-            user_type='service_provider',
+            email="nosub@svc.com",
+            password="x",
+            first_name="X",
+            last_name="Y",
+            user_type="service_provider",
         )
         self.client.force_authenticate(user=prov2)
-        response = self.client.post('/api/v1/services/orders/', {
-            'client': str(self.tenant.id),
-            'title': 'X', 'amount': '100000',
-        }, format='json')
+        response = self.client.post(
+            "/api/v1/services/orders/",
+            {
+                "client": str(self.tenant.id),
+                "title": "X",
+                "amount": "100000",
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_send_action(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.tenant,
-            title='X', amount=Decimal('100000'),
+            provider=self.provider,
+            client=self.tenant,
+            title="X",
+            amount=Decimal("100000"),
         )
         self.client.force_authenticate(user=self.provider)
-        response = self.client.post(f'/api/v1/services/orders/{order.id}/send/')
+        response = self.client.post(f"/api/v1/services/orders/{order.id}/send/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'sent')
+        self.assertEqual(order.status, "sent")
         self.assertIsNotNone(order.sent_at)
 
     def test_accept_creates_payment_order(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.tenant,
-            title='Servicio X', amount=Decimal('300000'),
-            status='sent',
+            provider=self.provider,
+            client=self.tenant,
+            title="Servicio X",
+            amount=Decimal("300000"),
+            status="sent",
         )
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.post(f'/api/v1/services/orders/{order.id}/accept/')
+        response = self.client.post(f"/api/v1/services/orders/{order.id}/accept/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'accepted')
+        self.assertEqual(order.status, "accepted")
         self.assertIsNotNone(order.payment_order)
-        self.assertEqual(order.payment_order.amount, Decimal('300000'))
-        self.assertEqual(order.payment_order.order_type, 'service')
-        self.assertTrue(order.payment_order.order_number.startswith('PO-'))
+        self.assertEqual(order.payment_order.amount, Decimal("300000"))
+        self.assertEqual(order.payment_order.order_type, "service")
+        self.assertTrue(order.payment_order.order_number.startswith("PO-"))
 
     def test_reject_action(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.tenant,
-            title='X', amount=Decimal('100000'), status='sent',
+            provider=self.provider,
+            client=self.tenant,
+            title="X",
+            amount=Decimal("100000"),
+            status="sent",
         )
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.post(f'/api/v1/services/orders/{order.id}/reject/')
+        response = self.client.post(f"/api/v1/services/orders/{order.id}/reject/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'rejected')
+        self.assertEqual(order.status, "rejected")
 
     def test_cancel_by_provider(self):
         order = ServiceOrder.objects.create(
-            provider=self.provider, client=self.tenant,
-            title='X', amount=Decimal('100000'), status='draft',
+            provider=self.provider,
+            client=self.tenant,
+            title="X",
+            amount=Decimal("100000"),
+            status="draft",
         )
         self.client.force_authenticate(user=self.provider)
-        response = self.client.post(f'/api/v1/services/orders/{order.id}/cancel/')
+        response = self.client.post(f"/api/v1/services/orders/{order.id}/cancel/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'cancelled')
+        self.assertEqual(order.status, "cancelled")
 
     def test_provider_sees_only_own_orders(self):
         ServiceOrder.objects.create(
-            provider=self.provider, client=self.tenant,
-            title='X', amount=Decimal('100000'),
+            provider=self.provider,
+            client=self.tenant,
+            title="X",
+            amount=Decimal("100000"),
         )
         # Otra orden de otro provider con suscripción
         other_prov = User.objects.create_user(
-            email='other@svc.com', password='x',
-            first_name='X', last_name='Y',
-            user_type='service_provider',
+            email="other@svc.com",
+            password="x",
+            first_name="X",
+            last_name="Y",
+            user_type="service_provider",
         )
         ServiceOrder.objects.create(
-            provider=other_prov, client=self.tenant,
-            title='Y', amount=Decimal('200000'),
+            provider=other_prov,
+            client=self.tenant,
+            title="Y",
+            amount=Decimal("200000"),
         )
         self.client.force_authenticate(user=self.provider)
-        response = self.client.get('/api/v1/services/orders/')
-        data = response.data['results'] if 'results' in response.data else response.data
+        response = self.client.get("/api/v1/services/orders/")
+        data = response.data["results"] if "results" in response.data else response.data
         self.assertEqual(len(data), 1)

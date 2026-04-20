@@ -7,12 +7,12 @@ import { PropertyDetail } from '../components/properties/PropertyDetail';
 const PropertyRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<PropertyList />} />
-      <Route path="/new" element={<PropertyFormPage />} />
-      <Route path="/:id" element={<PropertyDetail />} />
-      <Route path="/:id/edit" element={<PropertyFormPage />} />
+      <Route path='/' element={<PropertyList />} />
+      <Route path='/new' element={<PropertyFormPage />} />
+      <Route path='/:id' element={<PropertyDetail />} />
+      <Route path='/:id/edit' element={<PropertyFormPage />} />
     </Routes>
   );
 };
 
-export default PropertyRoutes; 
+export default PropertyRoutes;

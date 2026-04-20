@@ -37,7 +37,7 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
   showLabel = true,
 }) => {
   const { user } = useAuth();
-  const { myStatus, setMyStatus, isConnected } = useOptimizedUserStatus();
+  const { myStatus, setMyStatus } = useOptimizedUserStatus();
   const [localStatus, setLocalStatus] = useState<UserStatus>('online');
 
   // Sync with optimized user status
@@ -53,7 +53,6 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
 
     // Update through optimized user status system
     setMyStatus({ status: newStatus } as any);
-    
   };
 
   const getStatusIcon = (status: UserStatus) => {
@@ -91,13 +90,13 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
 
   if (compact) {
     return (
-      <Box display="flex" alignItems="center" gap={1}>
+      <Box display='flex' alignItems='center' gap={1}>
         <Chip
           icon={getStatusIcon(localStatus)}
           label={getStatusLabel(localStatus)}
           color={getStatusColor(localStatus) as any}
-          size="small"
-          variant="outlined"
+          size='small'
+          variant='outlined'
         />
       </Box>
     );
@@ -105,46 +104,51 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
 
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-      <Box display="flex" alignItems="center" gap={2} mb={2}>
+      <Box display='flex' alignItems='center' gap={2} mb={2}>
         <Avatar src={user?.avatar} sx={{ width: 40, height: 40 }}>
           {user?.first_name?.charAt(0) || 'U'}
         </Avatar>
         <Box>
-          <Typography variant="subtitle1" fontWeight={600}>
+          <Typography variant='subtitle1' fontWeight={600}>
             {user?.first_name} {user?.last_name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {user?.user_type === 'landlord' ? 'Arrendador' : 
-             user?.user_type === 'tenant' ? 'Arrendatario' : 'Prestador de Servicios'}
+          <Typography variant='body2' color='text.secondary'>
+            {user?.user_type === 'landlord'
+              ? 'Arrendador'
+              : user?.user_type === 'tenant'
+                ? 'Arrendatario'
+                : 'Prestador de Servicios'}
           </Typography>
         </Box>
       </Box>
 
-      <FormControl fullWidth size="small">
+      <FormControl fullWidth size='small'>
         {showLabel && (
-          <InputLabel id="user-status-select-label">Estado de visibilidad</InputLabel>
+          <InputLabel id='user-status-select-label'>
+            Estado de visibilidad
+          </InputLabel>
         )}
         <Select
-          labelId="user-status-select-label"
+          labelId='user-status-select-label'
           value={localStatus}
           onChange={handleStatusChange}
           label={showLabel ? 'Estado de visibilidad' : undefined}
           startAdornment={getStatusIcon(localStatus)}
         >
-          <MenuItem value="online">
-            <Box display="flex" alignItems="center" gap={1}>
+          <MenuItem value='online'>
+            <Box display='flex' alignItems='center' gap={1}>
               <OnlineIcon sx={{ color: vhColors.success, fontSize: 16 }} />
               En línea
             </Box>
           </MenuItem>
-          <MenuItem value="busy">
-            <Box display="flex" alignItems="center" gap={1}>
+          <MenuItem value='busy'>
+            <Box display='flex' alignItems='center' gap={1}>
               <BusyIcon sx={{ color: vhColors.warning, fontSize: 16 }} />
               Ocupado
             </Box>
           </MenuItem>
-          <MenuItem value="offline">
-            <Box display="flex" alignItems="center" gap={1}>
+          <MenuItem value='offline'>
+            <Box display='flex' alignItems='center' gap={1}>
               <OfflineIcon sx={{ color: '#9e9e9e', fontSize: 16 }} />
               Desconectado
             </Box>
@@ -152,7 +156,11 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
         </Select>
       </FormControl>
 
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        sx={{ mt: 1, display: 'block' }}
+      >
         Tu estado será visible para otros usuarios en la plataforma
       </Typography>
     </Paper>

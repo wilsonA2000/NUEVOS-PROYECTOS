@@ -17,7 +17,13 @@ jest.mock('react-router-dom', () => ({
 
 // Mock useAuth hook
 const mockUseAuth = {
-  user: { id: 'user-1', user_type: 'landlord', first_name: 'Admin', last_name: 'Test', email: 'admin@test.com' },
+  user: {
+    id: 'user-1',
+    user_type: 'landlord',
+    first_name: 'Admin',
+    last_name: 'Test',
+    email: 'admin@test.com',
+  },
   isAuthenticated: true,
   isLoading: false,
 };
@@ -60,7 +66,11 @@ jest.mock('../../../contexts/SnackbarContext', () => ({
 // Mock TenantContractsDashboard
 jest.mock('../TenantContractsDashboard', () => {
   return function MockTenantDashboard() {
-    return React.createElement('div', { 'data-testid': 'tenant-dashboard' }, 'Tenant Dashboard');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'tenant-dashboard' },
+      'Tenant Dashboard'
+    );
   };
 });
 
@@ -77,9 +87,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(ContractList),
-      ),
-    ),
+        React.createElement(ContractList)
+      )
+    )
   );
 };
 
@@ -87,7 +97,11 @@ const activeContract = {
   id: 'c-001',
   status: 'active',
   property: { title: 'Casa Norte', address: 'Calle 100 #20-30' },
-  secondary_party: { first_name: 'Maria', last_name: 'Lopez', email: 'maria@test.com' },
+  secondary_party: {
+    first_name: 'Maria',
+    last_name: 'Lopez',
+    email: 'maria@test.com',
+  },
   start_date: '2025-01-01',
   monthly_rent: 2000000,
 };
@@ -96,7 +110,11 @@ const expiredContract = {
   id: 'c-002',
   status: 'expired',
   property: { title: 'Apto Sur', address: 'Carrera 7 #45-10' },
-  secondary_party: { first_name: 'Pedro', last_name: 'Garcia', email: 'pedro@test.com' },
+  secondary_party: {
+    first_name: 'Pedro',
+    last_name: 'Garcia',
+    email: 'pedro@test.com',
+  },
   start_date: '2024-01-01',
   monthly_rent: 1200000,
 };
@@ -104,7 +122,13 @@ const expiredContract = {
 describe('ContractList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuth.user = { id: 'user-1', user_type: 'landlord', first_name: 'Admin', last_name: 'Test', email: 'admin@test.com' };
+    mockUseAuth.user = {
+      id: 'user-1',
+      user_type: 'landlord',
+      first_name: 'Admin',
+      last_name: 'Test',
+      email: 'admin@test.com',
+    };
     mockUseAuth.isAuthenticated = true;
     mockUseAuth.isLoading = false;
     mockUseContracts.contracts = [];
@@ -144,14 +168,18 @@ describe('ContractList', () => {
     mockUseContracts.error = new Error('Server error');
     renderComponent();
 
-    expect(screen.getByText(/Error al cargar los contratos/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Error al cargar los contratos/i)
+    ).toBeInTheDocument();
   });
 
   it('should show empty state when no contracts match final statuses', () => {
     mockUseContracts.contracts = [{ id: 'c-draft', status: 'draft' }];
     renderComponent();
 
-    expect(screen.getByText(/No tienes contratos activos o finalizados/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No tienes contratos activos o finalizados/i)
+    ).toBeInTheDocument();
   });
 
   it('should render active contracts as cards', () => {
@@ -181,6 +209,8 @@ describe('ContractList', () => {
     mockUseContracts.contracts = [];
     renderComponent();
 
-    expect(screen.getByText(/No hay contratos disponibles/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No hay contratos disponibles/i)
+    ).toBeInTheDocument();
   });
 });

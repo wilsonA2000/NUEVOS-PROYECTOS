@@ -4,13 +4,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Alert,
-  Paper,
-} from '@mui/material';
+import { Box, Typography, Button, Alert, Paper } from '@mui/material';
 import {
   Home as HomeIcon,
   Refresh as RefreshIcon,
@@ -43,22 +37,30 @@ const PropertiesFallback: React.FC = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 600, mx: 'auto', mt: 4 }}>
       <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity='error' sx={{ mb: 3 }}>
           Error en el módulo de Propiedades
         </Alert>
 
-        <Typography variant="h5" gutterBottom>
+        <Typography variant='h5' gutterBottom>
           No pudimos cargar las propiedades
         </Typography>
 
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Ha ocurrido un problema al cargar la información de las propiedades. 
+        <Typography variant='body1' color='text.secondary' paragraph>
+          Ha ocurrido un problema al cargar la información de las propiedades.
           Esto puede deberse a un problema temporal de conexión o del servidor.
         </Typography>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            mt: 3,
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <Button
-            variant="contained"
+            variant='contained'
             startIcon={<RefreshIcon />}
             onClick={handleRetry}
           >
@@ -67,7 +69,7 @@ const PropertiesFallback: React.FC = () => {
 
           {user?.user_type === 'landlord' && (
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<AddIcon />}
               onClick={handleCreateProperty}
             >
@@ -76,7 +78,7 @@ const PropertiesFallback: React.FC = () => {
           )}
 
           <Button
-            variant="text"
+            variant='text'
             startIcon={<HomeIcon />}
             onClick={handleGoToDashboard}
           >
@@ -84,7 +86,11 @@ const PropertiesFallback: React.FC = () => {
           </Button>
         </Box>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          sx={{ mt: 2, display: 'block' }}
+        >
           Si el problema persiste, contacta al soporte técnico
         </Typography>
       </Paper>
@@ -92,10 +98,12 @@ const PropertiesFallback: React.FC = () => {
   );
 };
 
-const PropertiesErrorBoundary: React.FC<PropertiesErrorBoundaryProps> = ({ children }) => {
+const PropertiesErrorBoundary: React.FC<PropertiesErrorBoundaryProps> = ({
+  children,
+}) => {
   return (
     <ErrorBoundary
-      module="Properties"
+      module='Properties'
       fallback={<PropertiesFallback />}
       onError={(error, errorInfo) => {
         // Properties-specific error handling

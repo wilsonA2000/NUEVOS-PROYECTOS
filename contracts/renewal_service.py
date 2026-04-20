@@ -58,15 +58,15 @@ class RenewalAlertService:
 
         legacy = Contract.objects.filter(
             end_date=target_date,
-            status__in=['active', 'published'],
-        ).select_related('primary_party', 'secondary_party', 'property')
+            status__in=["active", "published"],
+        ).select_related("primary_party", "secondary_party", "property")
 
         landlord = LandlordControlledContract.objects.filter(
             end_date=target_date,
-            current_state='ACTIVE',
-        ).select_related('landlord', 'tenant', 'property')
+            current_state="ACTIVE",
+        ).select_related("landlord", "tenant", "property")
 
-        return {'legacy': legacy, 'landlord': landlord}
+        return {"legacy": legacy, "landlord": landlord}
 
     @classmethod
     def check_expiring_contracts(cls) -> Dict[int, Dict[str, int]]:
@@ -80,14 +80,16 @@ class RenewalAlertService:
         for days in ALERT_THRESHOLDS:
             qs = cls._get_expiring_contracts(days)
             counts = {
-                'legacy': qs['legacy'].count(),
-                'landlord': qs['landlord'].count(),
+                "legacy": qs["legacy"].count(),
+                "landlord": qs["landlord"].count(),
             }
             results[days] = counts
-            if counts['legacy'] or counts['landlord']:
+            if counts["legacy"] or counts["landlord"]:
                 logger.info(
                     "Contratos venciendo en %d días: legacy=%d, landlord=%d",
-                    days, counts['legacy'], counts['landlord'],
+                    days,
+                    counts["legacy"],
+                    counts["landlord"],
                 )
         return results
 
@@ -111,30 +113,30 @@ class RenewalAlertService:
             priority = cls._priority_for_days(days)
 
             # --- Legacy contracts ---
-            for contract in qs['legacy']:
+            for contract in qs["legacy"]:
                 cls._notify_user(
                     user=contract.primary_party,
                     contract_ref=contract,
                     days=days,
-                    role='arrendador',
+                    role="arrendador",
                     priority=priority,
                 )
                 cls._notify_user(
                     user=contract.secondary_party,
                     contract_ref=contract,
                     days=days,
-                    role='arrendatario',
+                    role="arrendatario",
                     priority=priority,
                 )
                 total_sent += 2
 
             # --- Landlord-controlled contracts ---
-            for contract in qs['landlord']:
+            for contract in qs["landlord"]:
                 cls._notify_user(
                     user=contract.landlord,
                     contract_ref=contract,
                     days=days,
-                    role='arrendador',
+                    role="arrendador",
                     priority=priority,
                 )
                 if contract.tenant:
@@ -142,7 +144,7 @@ class RenewalAlertService:
                         user=contract.tenant,
                         contract_ref=contract,
                         days=days,
-                        role='arrendatario',
+                        role="arrendatario",
                         priority=priority,
                     )
                     total_sent += 2
@@ -155,10 +157,10 @@ class RenewalAlertService:
     @staticmethod
     def _priority_for_days(days: int) -> str:
         if days <= 15:
-            return 'urgent'
+            return "urgent"
         if days <= 30:
-            return 'high'
-        return 'normal'
+            return "high"
+        return "normal"
 
     @staticmethod
     def _notify_user(user, contract_ref, days: int, role: str, priority: str) -> None:
@@ -171,12 +173,12 @@ class RenewalAlertService:
         try:
             NotificationService.create_notification(
                 user=user,
-                notification_type='contract',
+                notification_type="contract",
                 title=title,
                 message=message,
                 priority=priority,
-                action_url=f'/contracts/{contract_ref.pk}/',
-                action_label='Ver contrato',
+                action_url=f"/contracts/{contract_ref.pk}/",
+                action_label="Ver contrato",
                 related_object=contract_ref,
                 send_email=(days <= 30),
                 send_push=True,
@@ -184,7 +186,8 @@ class RenewalAlertService:
         except Exception:
             logger.exception(
                 "Error enviando alerta de renovación a usuario %s para contrato %s",
-                user.pk, contract_ref.pk,
+                user.pk,
+                contract_ref.pk,
             )
 
     # ------------------------------------------------------------------
@@ -227,7 +230,7 @@ class RenewalAlertService:
         from contracts.dane_ipc_service import DaneIPCService
 
         current_rent = Decimal(str(current_rent))
-        ipc_source = 'manual'
+        ipc_source = "manual"
 
         if ipc_rate is not None:
             ipc_rate = Decimal(str(ipc_rate))
@@ -236,30 +239,28 @@ class RenewalAlertService:
                 ipc_rate = DaneIPCService.get_ipc_rate_for_year(year)
             else:
                 ipc_rate = DaneIPCService.get_current_ipc_rate()
-            ipc_source = 'dane'
+            ipc_source = "dane"
             logger.info("IPC obtenido del DANE: %s%%", ipc_rate)
         else:
-            raise ValueError(
-                "Debe proporcionar ipc_rate o activar use_dane=True."
-            )
+            raise ValueError("Debe proporcionar ipc_rate o activar use_dane=True.")
 
         if current_rent < 0:
             raise ValueError("El canon actual no puede ser negativo.")
         if ipc_rate < 0:
             raise ValueError("La tasa IPC no puede ser negativa.")
 
-        max_increment = (
-            current_rent * ipc_rate / Decimal('100')
-        ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        max_increment = (current_rent * ipc_rate / Decimal("100")).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
 
         new_rent = current_rent + max_increment
 
         return {
-            'current_rent': current_rent,
-            'ipc_rate': ipc_rate,
-            'ipc_source': ipc_source,
-            'max_increment': max_increment,
-            'new_rent': new_rent,
+            "current_rent": current_rent,
+            "ipc_rate": ipc_rate,
+            "ipc_source": ipc_source,
+            "max_increment": max_increment,
+            "new_rent": new_rent,
         }
 
     # ------------------------------------------------------------------
@@ -271,7 +272,7 @@ class RenewalAlertService:
         cls,
         contract_id: str,
         new_terms: Optional[Dict[str, Any]] = None,
-    ) -> 'LandlordControlledContract':
+    ) -> "LandlordControlledContract":
         """
         Crea un borrador de contrato de renovación basado en uno existente.
 
@@ -339,18 +340,18 @@ class RenewalAlertService:
     @classmethod
     def _renew_landlord_contract(
         cls,
-        source: 'LandlordControlledContract',
+        source: "LandlordControlledContract",
         new_terms: Dict[str, Any],
-    ) -> 'LandlordControlledContract':
+    ) -> "LandlordControlledContract":
         from contracts.landlord_contract_models import LandlordControlledContract
 
         new_start, new_end = cls._calculate_new_dates(
-            source, new_terms.get('duration_months')
+            source, new_terms.get("duration_months")
         )
 
         economic = dict(source.economic_terms)
-        if 'monthly_rent' in new_terms:
-            economic['monthly_rent'] = str(new_terms['monthly_rent'])
+        if "monthly_rent" in new_terms:
+            economic["monthly_rent"] = str(new_terms["monthly_rent"])
 
         renewal = LandlordControlledContract(
             landlord=source.landlord,
@@ -359,7 +360,7 @@ class RenewalAlertService:
             contract_type=source.contract_type,
             title=f"Renovación: {source.title}",
             description=f"Renovación del contrato {source.pk}",
-            current_state='DRAFT',
+            current_state="DRAFT",
             landlord_data=source.landlord_data,
             property_data=source.property_data,
             economic_terms=economic,
@@ -378,16 +379,16 @@ class RenewalAlertService:
     @classmethod
     def _renew_legacy_contract(
         cls,
-        source: 'Contract',
+        source: "Contract",
         new_terms: Dict[str, Any],
-    ) -> 'LandlordControlledContract':
+    ) -> "LandlordControlledContract":
         from contracts.landlord_contract_models import LandlordControlledContract
 
         new_start, new_end = cls._calculate_new_dates(
-            source, new_terms.get('duration_months')
+            source, new_terms.get("duration_months")
         )
 
-        monthly_rent = new_terms.get('monthly_rent', source.monthly_rent)
+        monthly_rent = new_terms.get("monthly_rent", source.monthly_rent)
 
         renewal = LandlordControlledContract(
             landlord=source.primary_party,
@@ -396,15 +397,16 @@ class RenewalAlertService:
             contract_type=source.contract_type,
             title=f"Renovación: {source.title}",
             description=f"Renovación del contrato legacy {source.pk}",
-            current_state='DRAFT',
-            economic_terms={'monthly_rent': str(monthly_rent) if monthly_rent else ''},
+            current_state="DRAFT",
+            economic_terms={"monthly_rent": str(monthly_rent) if monthly_rent else ""},
             start_date=new_start,
             end_date=new_end,
         )
         renewal.save()
         logger.info(
             "Borrador de renovación (legacy) creado: %s (origen: %s)",
-            renewal.pk, source.pk,
+            renewal.pk,
+            source.pk,
         )
         return renewal
 
@@ -425,9 +427,9 @@ class RenewalAlertService:
         expiring = cls.check_expiring_contracts()
         alerts_sent = cls.send_renewal_alerts()
         summary = {
-            'expiring_contracts': expiring,
-            'alerts_sent': alerts_sent,
-            'timestamp': timezone.now().isoformat(),
+            "expiring_contracts": expiring,
+            "alerts_sent": alerts_sent,
+            "timestamp": timezone.now().isoformat(),
         }
         logger.info("Verificación completada: %s", summary)
         return summary

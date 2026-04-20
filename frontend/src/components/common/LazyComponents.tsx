@@ -7,13 +7,16 @@ import React, { Suspense, ComponentType } from 'react';
 import { CircularProgress, Box, Skeleton } from '@mui/material';
 
 // Componente de loading universal
-export const LazyLoadingSpinner: React.FC<{ variant?: string; message?: string }> = ({ variant, message }) => (
+export const LazyLoadingSpinner: React.FC<{
+  variant?: string;
+  message?: string;
+}> = ({ message }) => (
   <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    minHeight="400px"
-    flexDirection="column"
+    display='flex'
+    justifyContent='center'
+    alignItems='center'
+    minHeight='400px'
+    flexDirection='column'
     gap={2}
   >
     <CircularProgress size={40} />
@@ -32,8 +35,13 @@ export const SkeletonLoader: React.FC<{
   if (type === 'dashboard') {
     return (
       <Box sx={{ p: 3 }}>
-        <Skeleton variant="rectangular" height={200} animation={animation} sx={{ mb: 2 }} />
-        <Skeleton variant="rectangular" height={300} animation={animation} />
+        <Skeleton
+          variant='rectangular'
+          height={200}
+          animation={animation}
+          sx={{ mb: 2 }}
+        />
+        <Skeleton variant='rectangular' height={300} animation={animation} />
       </Box>
     );
   }
@@ -74,35 +82,77 @@ export const withLazyLoading = <P extends object>(
 };
 
 // PÁGINAS PRINCIPALES - Lazy loaded (solo archivos que existen)
-export const LazyLandingPage = React.lazy(() => import('../../pages/LandingPage'));
-export const LazyNewDashboard = React.lazy(() => import('../../pages/dashboard/NewDashboard'));
-export const LazyProfile = React.lazy(() => import('../../pages/profile/Profile'));
+export const LazyLandingPage = React.lazy(
+  () => import('../../pages/LandingPage'),
+);
+export const LazyNewDashboard = React.lazy(
+  () => import('../../pages/dashboard/NewDashboard'),
+);
+export const LazyProfile = React.lazy(
+  () => import('../../pages/profile/Profile'),
+);
 export const LazyAboutPage = React.lazy(() => import('../../pages/AboutPage'));
-export const LazyContactPage = React.lazy(() => import('../../pages/ContactPage'));
-export const LazyServicesOverviewPage = React.lazy(() => import('../../pages/ServicesOverviewPage'));
+export const LazyContactPage = React.lazy(
+  () => import('../../pages/ContactPage'),
+);
+export const LazyServicesOverviewPage = React.lazy(
+  () => import('../../pages/ServicesOverviewPage'),
+);
 export const LazyNotFound = React.lazy(() => import('../../pages/NotFound'));
 
 // AUTENTICACIÓN - Lazy loaded
-export const LazyLogin = React.lazy(() => import('../../pages/auth/Login').then(m => ({ default: m.Login })));
-export const LazyForgotPassword = React.lazy(() => import('../../pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
-export const LazyResetPassword = React.lazy(() => import('../../pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
-export const LazyRegisterWithCode = React.lazy(() => import('../../pages/auth/RegisterWithCode').then(m => ({ default: m.RegisterWithCode })));
-export const LazyEmailVerification = React.lazy(() => import('../../pages/auth/EmailVerification').then(m => ({ default: m.EmailVerification })));
+export const LazyLogin = React.lazy(() =>
+  import('../../pages/auth/Login').then(m => ({ default: m.Login })),
+);
+export const LazyForgotPassword = React.lazy(() =>
+  import('../../pages/auth/ForgotPassword').then(m => ({
+    default: m.ForgotPassword,
+  })),
+);
+export const LazyResetPassword = React.lazy(() =>
+  import('../../pages/auth/ResetPassword').then(m => ({
+    default: m.ResetPassword,
+  })),
+);
+export const LazyRegisterWithCode = React.lazy(() =>
+  import('../../pages/auth/RegisterWithCode').then(m => ({
+    default: m.RegisterWithCode,
+  })),
+);
+export const LazyEmailVerification = React.lazy(() =>
+  import('../../pages/auth/EmailVerification').then(m => ({
+    default: m.EmailVerification,
+  })),
+);
 
 // PROPIEDADES - Lazy loaded
-export const LazyPropertyList = React.lazy(() => import('../../pages/properties/PropertyList'));
-export const LazyPropertyFormPage = React.lazy(() => import('../../pages/properties/PropertyFormPage'));
+export const LazyPropertyList = React.lazy(
+  () => import('../../pages/properties/PropertyList'),
+);
+export const LazyPropertyFormPage = React.lazy(
+  () => import('../../pages/properties/PropertyFormPage'),
+);
 
 // CONTRATOS - Lazy loaded
-export const LazyBiometricAuthenticationPage = React.lazy(() => import('../../pages/contracts/BiometricAuthenticationPage'));
-export const LazyTenantInvitationLanding = React.lazy(() => import('../../pages/contracts/TenantInvitationLanding'));
+export const LazyBiometricAuthenticationPage = React.lazy(
+  () => import('../../pages/contracts/BiometricAuthenticationPage'),
+);
+export const LazyTenantInvitationLanding = React.lazy(
+  () => import('../../pages/contracts/TenantInvitationLanding'),
+);
 
 // MENSAJES - Lazy loaded
-export const LazyMessagesMain = React.lazy(() => import('../../pages/messages/MessagesMain'));
+export const LazyMessagesMain = React.lazy(
+  () => import('../../pages/messages/MessagesMain'),
+);
 export const LazyInbox = React.lazy(() => import('../../pages/messages/Inbox'));
-export const LazyCompose = React.lazy(() => import('../../pages/messages/Compose'));
+export const LazyCompose = React.lazy(
+  () => import('../../pages/messages/Compose'),
+);
 // SERVICIOS - Lazy loaded
-export const LazyServicesPage = React.lazy(() => import('../../pages/services/ServicesPage'));
+export const LazyServicesPage = React.lazy(
+  () => import('../../pages/services/ServicesPage'),
+);
 
 // Componentes con Suspense pre-configurado
 export const LandingPage = withLazyLoading(LazyLandingPage);
@@ -122,8 +172,12 @@ export const EmailVerification = withLazyLoading(LazyEmailVerification);
 export const PropertyList = withLazyLoading(LazyPropertyList);
 export const PropertyFormPage = withLazyLoading(LazyPropertyFormPage);
 
-export const BiometricAuthenticationPage = withLazyLoading(LazyBiometricAuthenticationPage);
-export const TenantInvitationLanding = withLazyLoading(LazyTenantInvitationLanding);
+export const BiometricAuthenticationPage = withLazyLoading(
+  LazyBiometricAuthenticationPage,
+);
+export const TenantInvitationLanding = withLazyLoading(
+  LazyTenantInvitationLanding,
+);
 
 export const MessagesMain = withLazyLoading(LazyMessagesMain);
 export const Inbox = withLazyLoading(LazyInbox);
@@ -133,11 +187,11 @@ export const ServicesPage = withLazyLoading(LazyServicesPage);
 // Charts con loading especializado
 const ChartLoadingSpinner = () => (
   <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    height="300px"
-    flexDirection="column"
+    display='flex'
+    justifyContent='center'
+    alignItems='center'
+    height='300px'
+    flexDirection='column'
     gap={1}
   >
     <CircularProgress size={32} />
@@ -150,11 +204,11 @@ const ChartLoadingSpinner = () => (
 // Maps con loading especializado
 const MapLoadingSpinner = () => (
   <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    height="400px"
-    flexDirection="column"
+    display='flex'
+    justifyContent='center'
+    alignItems='center'
+    height='400px'
+    flexDirection='column'
     gap={1}
     sx={{ backgroundColor: 'grey.100', borderRadius: 1 }}
   >
@@ -174,7 +228,9 @@ export const preloadComponent = (componentLoader: () => Promise<unknown>) => {
 // Pre-cargar componentes críticos en idle time
 export const preloadCriticalComponents = () => {
   if ('requestIdleCallback' in window) {
-    (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(() => {
+    (
+      window as Window & { requestIdleCallback: (cb: () => void) => void }
+    ).requestIdleCallback(() => {
       preloadComponent(() => import('../../pages/dashboard/NewDashboard'));
       preloadComponent(() => import('../../pages/properties/PropertyList'));
     });

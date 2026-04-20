@@ -13,11 +13,11 @@ class ServiceImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceImage
-        fields = ['id', 'image', 'image_url', 'alt_text', 'is_main', 'order']
+        fields = ["id", "image", "image_url", "alt_text", "is_main", "order"]
 
     def get_image_url(self, obj):
         if obj.image:
-            request = self.context.get('request')
+            request = self.context.get("request")
             if request:
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
@@ -30,8 +30,16 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceCategory
         fields = [
-            'id', 'name', 'slug', 'description', 'icon_name', 'color',
-            'order', 'is_featured', 'services_count', 'created_at'
+            "id",
+            "name",
+            "slug",
+            "description",
+            "icon_name",
+            "color",
+            "order",
+            "is_featured",
+            "services_count",
+            "created_at",
         ]
 
     def get_services_count(self, obj):
@@ -40,22 +48,46 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
 
 class ServiceListSerializer(serializers.ModelSerializer):
     """Serializer ligero para listas de servicios."""
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    category_color = serializers.CharField(source='category.color', read_only=True)
-    provider_name = serializers.CharField(source='provider.get_full_name', read_only=True, default='')
+
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    category_color = serializers.CharField(source="category.color", read_only=True)
+    provider_name = serializers.CharField(
+        source="provider.get_full_name", read_only=True, default=""
+    )
     main_image = serializers.SerializerMethodField()
     price_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
         fields = [
-            'id', 'name', 'slug', 'short_description', 'category', 'category_name',
-            'category_color', 'pricing_type', 'price_display', 'difficulty',
-            'estimated_duration', 'popularity_score', 'is_featured',
-            'is_most_requested', 'main_image', 'views_count', 'requests_count',
-            'provider', 'provider_name',
+            "id",
+            "name",
+            "slug",
+            "short_description",
+            "category",
+            "category_name",
+            "category_color",
+            "pricing_type",
+            "price_display",
+            "difficulty",
+            "estimated_duration",
+            "popularity_score",
+            "is_featured",
+            "is_most_requested",
+            "main_image",
+            "views_count",
+            "requests_count",
+            "provider",
+            "provider_name",
         ]
-        read_only_fields = ['id', 'slug', 'provider', 'popularity_score', 'views_count', 'requests_count']
+        read_only_fields = [
+            "id",
+            "slug",
+            "provider",
+            "popularity_score",
+            "views_count",
+            "requests_count",
+        ]
 
     def get_main_image(self, obj):
         main_image = obj.images.filter(is_main=True).first()
@@ -69,24 +101,57 @@ class ServiceListSerializer(serializers.ModelSerializer):
 
 class ServiceDetailSerializer(serializers.ModelSerializer):
     """Serializer completo para detalles de servicios."""
+
     category = ServiceCategorySerializer(read_only=True)
     images = ServiceImageSerializer(many=True, read_only=True)
     price_display = serializers.SerializerMethodField()
-    provider_name = serializers.CharField(source='provider.get_full_name', read_only=True, default='')
-    provider_email = serializers.EmailField(source='provider.email', read_only=True, default='')
+    provider_name = serializers.CharField(
+        source="provider.get_full_name", read_only=True, default=""
+    )
+    provider_email = serializers.EmailField(
+        source="provider.email", read_only=True, default=""
+    )
 
     class Meta:
         model = Service
         fields = [
-            'id', 'name', 'slug', 'short_description', 'full_description',
-            'category', 'pricing_type', 'base_price', 'price_range_min',
-            'price_range_max', 'price_display', 'difficulty', 'estimated_duration',
-            'requirements', 'provider', 'provider_name', 'provider_email',
-            'provider_info', 'contact_email', 'contact_phone',
-            'popularity_score', 'views_count', 'requests_count', 'is_featured',
-            'is_most_requested', 'images', 'created_at', 'updated_at'
+            "id",
+            "name",
+            "slug",
+            "short_description",
+            "full_description",
+            "category",
+            "pricing_type",
+            "base_price",
+            "price_range_min",
+            "price_range_max",
+            "price_display",
+            "difficulty",
+            "estimated_duration",
+            "requirements",
+            "provider",
+            "provider_name",
+            "provider_email",
+            "provider_info",
+            "contact_email",
+            "contact_phone",
+            "popularity_score",
+            "views_count",
+            "requests_count",
+            "is_featured",
+            "is_most_requested",
+            "images",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'slug', 'provider', 'popularity_score', 'views_count', 'requests_count']
+        read_only_fields = [
+            "id",
+            "slug",
+            "provider",
+            "popularity_score",
+            "views_count",
+            "requests_count",
+        ]
 
     def get_price_display(self, obj):
         return obj.get_price_display()
@@ -96,21 +161,31 @@ class CreateServiceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
         fields = [
-            'service', 'requester_name', 'requester_email', 'requester_phone',
-            'message', 'preferred_date', 'budget_range',
+            "service",
+            "requester_name",
+            "requester_email",
+            "requester_phone",
+            "message",
+            "preferred_date",
+            "budget_range",
             # 1.9.3: FKs opcionales para trazabilidad.
-            'property', 'contract',
+            "property",
+            "contract",
         ]
         extra_kwargs = {
-            'property': {'required': False, 'allow_null': True},
-            'contract': {'required': False, 'allow_null': True},
+            "property": {"required": False, "allow_null": True},
+            "contract": {"required": False, "allow_null": True},
         }
 
     def create(self, validated_data):
         # 1.9.3: auto-asignar requester si hay usuario autenticado.
-        request = self.context.get('request') if hasattr(self, 'context') else None
-        if request and request.user.is_authenticated and not validated_data.get('requester'):
-            validated_data['requester'] = request.user
+        request = self.context.get("request") if hasattr(self, "context") else None
+        if (
+            request
+            and request.user.is_authenticated
+            and not validated_data.get("requester")
+        ):
+            validated_data["requester"] = request.user
         service_request = super().create(validated_data)
         # Incrementar contador de solicitudes del servicio
         service_request.service.increment_requests()
@@ -118,31 +193,47 @@ class CreateServiceRequestSerializer(serializers.ModelSerializer):
 
 
 class ServiceRequestSerializer(serializers.ModelSerializer):
-    service_name = serializers.CharField(source='service.name', read_only=True)
-    category_name = serializers.CharField(source='service.category.name', read_only=True)
+    service_name = serializers.CharField(source="service.name", read_only=True)
+    category_name = serializers.CharField(
+        source="service.category.name", read_only=True
+    )
     # 1.9.3: nombres legibles de los FKs relacionales.
     requester_display = serializers.CharField(
-        source='requester.get_full_name', read_only=True, default=''
+        source="requester.get_full_name", read_only=True, default=""
     )
     property_title = serializers.CharField(
-        source='property.title', read_only=True, default=''
+        source="property.title", read_only=True, default=""
     )
 
     class Meta:
         model = ServiceRequest
         fields = [
-            'id', 'service', 'service_name', 'category_name',
-            'requester', 'requester_display',
-            'property', 'property_title', 'contract',
-            'requester_name', 'requester_email', 'requester_phone',
-            'message', 'preferred_date', 'budget_range',
-            'status', 'admin_notes', 'created_at', 'updated_at',
+            "id",
+            "service",
+            "service_name",
+            "category_name",
+            "requester",
+            "requester_display",
+            "property",
+            "property_title",
+            "contract",
+            "requester_name",
+            "requester_email",
+            "requester_phone",
+            "message",
+            "preferred_date",
+            "budget_range",
+            "status",
+            "admin_notes",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['admin_notes', 'status']
+        read_only_fields = ["admin_notes", "status"]
 
 
 class ServiceStatsSerializer(serializers.Serializer):
     """Serializer para estadísticas de servicios."""
+
     total_services = serializers.IntegerField()
     total_categories = serializers.IntegerField()
     featured_services = serializers.IntegerField()
@@ -154,36 +245,70 @@ class ServiceStatsSerializer(serializers.Serializer):
 
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
-    effective_price = serializers.DecimalField(max_digits=10, decimal_places=0, read_only=True)
-    billing_cycle_display = serializers.CharField(source='get_billing_cycle_display', read_only=True)
+    effective_price = serializers.DecimalField(
+        max_digits=10, decimal_places=0, read_only=True
+    )
+    billing_cycle_display = serializers.CharField(
+        source="get_billing_cycle_display", read_only=True
+    )
 
     class Meta:
         model = SubscriptionPlan
         fields = [
-            'id', 'name', 'slug', 'description', 'billing_cycle', 'billing_cycle_display',
-            'price', 'discount_percentage', 'effective_price',
-            'max_active_services', 'max_monthly_requests',
-            'featured_listing', 'priority_in_search', 'verified_badge',
-            'access_to_analytics', 'direct_messaging', 'payment_gateway_access',
-            'is_active', 'is_recommended', 'sort_order',
+            "id",
+            "name",
+            "slug",
+            "description",
+            "billing_cycle",
+            "billing_cycle_display",
+            "price",
+            "discount_percentage",
+            "effective_price",
+            "max_active_services",
+            "max_monthly_requests",
+            "featured_listing",
+            "priority_in_search",
+            "verified_badge",
+            "access_to_analytics",
+            "direct_messaging",
+            "payment_gateway_access",
+            "is_active",
+            "is_recommended",
+            "sort_order",
         ]
 
 
 class SubscriptionBillingHistorySerializer(serializers.ModelSerializer):
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = SubscriptionBillingHistory
-        fields = ['id', 'amount', 'billing_date', 'payment_method', 'transaction_ref', 'status', 'status_display', 'notes', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = [
+            "id",
+            "amount",
+            "billing_date",
+            "payment_method",
+            "transaction_ref",
+            "status",
+            "status_display",
+            "notes",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
 
 
 class ServiceSubscriptionSerializer(serializers.ModelSerializer):
-    plan_name = serializers.CharField(source='plan.name', read_only=True)
-    plan_price = serializers.DecimalField(source='plan.price', max_digits=10, decimal_places=0, read_only=True)
-    provider_name = serializers.CharField(source='service_provider.get_full_name', read_only=True)
-    provider_email = serializers.EmailField(source='service_provider.email', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    plan_name = serializers.CharField(source="plan.name", read_only=True)
+    plan_price = serializers.DecimalField(
+        source="plan.price", max_digits=10, decimal_places=0, read_only=True
+    )
+    provider_name = serializers.CharField(
+        source="service_provider.get_full_name", read_only=True
+    )
+    provider_email = serializers.EmailField(
+        source="service_provider.email", read_only=True
+    )
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
     is_valid = serializers.BooleanField(read_only=True)
     can_publish_service = serializers.BooleanField(read_only=True)
     can_receive_requests = serializers.BooleanField(read_only=True)
@@ -192,57 +317,112 @@ class ServiceSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceSubscription
         fields = [
-            'id', 'service_provider', 'provider_name', 'provider_email',
-            'plan', 'plan_name', 'plan_price',
-            'status', 'status_display',
-            'start_date', 'end_date', 'trial_end_date', 'next_billing_date',
-            'auto_renew', 'cancelled_at',
-            'services_published', 'requests_this_month',
-            'is_valid', 'can_publish_service', 'can_receive_requests',
-            'billing_history',
-            'created_at', 'updated_at',
+            "id",
+            "service_provider",
+            "provider_name",
+            "provider_email",
+            "plan",
+            "plan_name",
+            "plan_price",
+            "status",
+            "status_display",
+            "start_date",
+            "end_date",
+            "trial_end_date",
+            "next_billing_date",
+            "auto_renew",
+            "cancelled_at",
+            "services_published",
+            "requests_this_month",
+            "is_valid",
+            "can_publish_service",
+            "can_receive_requests",
+            "billing_history",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'services_published', 'requests_this_month', 'created_at', 'updated_at']
+        read_only_fields = [
+            "id",
+            "services_published",
+            "requests_this_month",
+            "created_at",
+            "updated_at",
+        ]
 
 
 # T2.2 · ServiceOrder + ServicePayment serializers
 
+
 class ServicePaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServicePayment
-        fields = ['id', 'order', 'amount_paid', 'gateway', 'transaction', 'paid_at', 'notes']
-        read_only_fields = ['id', 'paid_at', 'transaction']
+        fields = [
+            "id",
+            "order",
+            "amount_paid",
+            "gateway",
+            "transaction",
+            "paid_at",
+            "notes",
+        ]
+        read_only_fields = ["id", "paid_at", "transaction"]
 
 
 class ServiceOrderSerializer(serializers.ModelSerializer):
     """Serializer principal de ServiceOrder con campos derivados."""
 
     provider = serializers.PrimaryKeyRelatedField(read_only=True)
-    provider_email = serializers.CharField(source='provider.email', read_only=True)
-    client_email = serializers.CharField(source='client.email', read_only=True)
+    provider_email = serializers.CharField(source="provider.email", read_only=True)
+    client_email = serializers.CharField(source="client.email", read_only=True)
     provider_name = serializers.SerializerMethodField()
     client_name = serializers.SerializerMethodField()
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
     payment_order_number = serializers.CharField(
-        source='payment_order.order_number', read_only=True, default=None,
+        source="payment_order.order_number",
+        read_only=True,
+        default=None,
     )
     payments = ServicePaymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = ServiceOrder
         fields = [
-            'id', 'provider', 'provider_email', 'provider_name',
-            'client', 'client_email', 'client_name',
-            'service', 'title', 'description', 'amount', 'due_date',
-            'status', 'status_display',
-            'payment_order', 'payment_order_number', 'payments',
-            'sent_at', 'accepted_at', 'paid_at', 'cancelled_at',
-            'notes', 'created_at', 'updated_at',
+            "id",
+            "provider",
+            "provider_email",
+            "provider_name",
+            "client",
+            "client_email",
+            "client_name",
+            "service",
+            "title",
+            "description",
+            "amount",
+            "due_date",
+            "status",
+            "status_display",
+            "payment_order",
+            "payment_order_number",
+            "payments",
+            "sent_at",
+            "accepted_at",
+            "paid_at",
+            "cancelled_at",
+            "notes",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = [
-            'id', 'provider', 'payment_order', 'payment_order_number',
-            'sent_at', 'accepted_at', 'paid_at', 'cancelled_at',
-            'created_at', 'updated_at',
+            "id",
+            "provider",
+            "payment_order",
+            "payment_order_number",
+            "sent_at",
+            "accepted_at",
+            "paid_at",
+            "cancelled_at",
+            "created_at",
+            "updated_at",
         ]
 
     def get_provider_name(self, obj):

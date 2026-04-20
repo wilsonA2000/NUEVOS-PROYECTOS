@@ -2,23 +2,23 @@
 
 (async () => {
   console.log('🚀 Test rápido de VeriHome');
-  
+
   // Verificar si hay token
   const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-  
+
   if (!token) {
     console.log('❌ No hay token de autenticación. Por favor inicia sesión primero.');
     return;
   }
-  
+
   console.log('✅ Token encontrado');
-  
+
   // Test 1: Obtener propiedades
   try {
     const response = await fetch('http://localhost:8000/api/properties/', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       console.log('📋 Propiedades encontradas:', data.results?.length || data.length || 0);
@@ -28,7 +28,7 @@
   } catch (error) {
     console.log('❌ Error de conexión:', error.message);
   }
-  
+
   // Test 2: Crear propiedad de prueba
   const testProperty = {
     title: 'Test Property ' + Date.now(),
@@ -46,7 +46,7 @@
     latitude: 4.7110,
     longitude: -74.0721
   };
-  
+
   try {
     const response = await fetch('http://localhost:8000/api/properties/', {
       method: 'POST',
@@ -56,16 +56,16 @@
       },
       body: JSON.stringify(testProperty)
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Propiedad creada:', data.id);
-      
+
       // Verificar que aparece en el listado
       const listResponse = await fetch('http://localhost:8000/api/properties/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (listResponse.ok) {
         const listData = await listResponse.json();
         const found = listData.results?.some(p => p.id === data.id) || listData.some(p => p.id === data.id);
@@ -78,4 +78,4 @@
   } catch (error) {
     console.log('❌ Error de conexión:', error.message);
   }
-})(); 
+})();

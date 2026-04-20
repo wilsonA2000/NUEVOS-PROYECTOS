@@ -3,12 +3,13 @@
 Script para limpiar completamente todos los flujos contractuales y de solicitudes.
 Resetea la base de datos a estado limpio para pruebas manuales desde cero.
 """
+
 import os
 import sys
 import django
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from contracts.models import Contract
@@ -17,6 +18,7 @@ from django.contrib.auth import get_user_model
 from properties.models import Property
 
 User = get_user_model()
+
 
 def clean_all_processes():
     """Limpia todos los procesos contractuales y de matching."""
@@ -42,7 +44,9 @@ def clean_all_processes():
         print("✅ No hay solicitudes de match para eliminar")
 
     # 3. Resetear propiedades (marcar como disponibles)
-    properties_updated = Property.objects.exclude(status='available').update(status='available')
+    properties_updated = Property.objects.exclude(status="available").update(
+        status="available"
+    )
     print(f"✅ Reseteadas {properties_updated} propiedades a disponibles")
 
     # 4. Mostrar estado final
@@ -51,16 +55,20 @@ def clean_all_processes():
     print("=" * 80)
     print(f"Contratos: {Contract.objects.count()}")
     print(f"Solicitudes de Match: {MatchRequest.objects.count()}")
-    print(f"Propiedades disponibles: {Property.objects.filter(status='available').count()}")
-    print(f"Propiedades ocupadas: {Property.objects.exclude(status='available').count()}")
+    print(
+        f"Propiedades disponibles: {Property.objects.filter(status='available').count()}"
+    )
+    print(
+        f"Propiedades ocupadas: {Property.objects.exclude(status='available').count()}"
+    )
 
     # 5. Mostrar usuarios disponibles para pruebas
     print("\n" + "=" * 80)
     print("👥 USUARIOS DISPONIBLES PARA PRUEBAS")
     print("=" * 80)
 
-    landlords = User.objects.filter(user_type='landlord')
-    tenants = User.objects.filter(user_type='tenant')
+    landlords = User.objects.filter(user_type="landlord")
+    tenants = User.objects.filter(user_type="tenant")
 
     print("🏢 ARRENDADORES:")
     for landlord in landlords:
@@ -75,7 +83,9 @@ def clean_all_processes():
     print("🏘️ PROPIEDADES DISPONIBLES")
     print("=" * 80)
 
-    properties = Property.objects.filter(status='available')[:5]  # Mostrar las primeras 5
+    properties = Property.objects.filter(status="available")[
+        :5
+    ]  # Mostrar las primeras 5
     for prop in properties:
         print(f"  - ID: {prop.id}")
         print(f"    Título: {prop.title}")
@@ -84,8 +94,8 @@ def clean_all_processes():
         print(f"    Propietario: {prop.landlord.email}")
         print()
 
-    if Property.objects.filter(status='available').count() > 5:
-        total = Property.objects.filter(status='available').count()
+    if Property.objects.filter(status="available").count() > 5:
+        total = Property.objects.filter(status="available").count()
         print(f"  ... y {total - 5} propiedades más")
 
     print("\n" + "=" * 80)
@@ -98,6 +108,7 @@ def clean_all_processes():
     print("3. Arrendador revisa y aprueba solicitud")
     print("4. Sistema genera contrato automáticamente")
     print("5. Flujo biométrico secuencial: Tenant → Garante → Landlord")
+
 
 if __name__ == "__main__":
     try:

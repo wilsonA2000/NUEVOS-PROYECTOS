@@ -14,15 +14,15 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Navigate: ({ to, state, replace }: any) => {
     mockNavigate(to, state, replace);
-    return <div data-testid="navigate-component">Navigate to {to}</div>;
+    return <div data-testid='navigate-component'>Navigate to {to}</div>;
   },
   useLocation: () => ({
     pathname: '/dashboard',
     search: '',
     hash: '',
     state: null,
-    key: 'default'
-  })
+    key: 'default',
+  }),
 }));
 
 describe('ProtectedRoute', () => {
@@ -30,7 +30,9 @@ describe('ProtectedRoute', () => {
     jest.clearAllMocks();
   });
 
-  const TestChild = () => <div data-testid="protected-content">Protected Content</div>;
+  const TestChild = () => (
+    <div data-testid='protected-content'>Protected Content</div>
+  );
 
   it('should render loading state when authentication is loading', () => {
     mockUseAuth.mockReturnValue({
@@ -39,7 +41,7 @@ describe('ProtectedRoute', () => {
       isLoading: true,
       login: jest.fn(),
       logout: jest.fn(),
-      refreshToken: jest.fn()
+      refreshToken: jest.fn(),
     });
 
     render(
@@ -62,7 +64,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       login: jest.fn(),
       logout: jest.fn(),
-      refreshToken: jest.fn()
+      refreshToken: jest.fn(),
     });
 
     render(
@@ -89,13 +91,13 @@ describe('ProtectedRoute', () => {
         first_name: 'Test',
         last_name: 'User',
         role: 'landlord',
-        is_verified: true
+        is_verified: true,
       },
       isAuthenticated: true,
       isLoading: false,
       login: jest.fn(),
       logout: jest.fn(),
-      refreshToken: jest.fn()
+      refreshToken: jest.fn(),
     });
 
     render(
@@ -118,7 +120,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       login: jest.fn(),
       logout: jest.fn(),
-      refreshToken: jest.fn()
+      refreshToken: jest.fn(),
     });
 
     render(

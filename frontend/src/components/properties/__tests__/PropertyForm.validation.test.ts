@@ -6,33 +6,41 @@ const FILE_VALIDATION = {
     maxSize: 5 * 1024 * 1024, // 5MB
     maxCount: 10,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp']
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
   },
   videos: {
     maxSize: 50 * 1024 * 1024, // 50MB
     allowedTypes: ['video/mp4', 'video/webm', 'video/quicktime'],
-    allowedExtensions: ['.mp4', '.webm', '.mov']
-  }
+    allowedExtensions: ['.mp4', '.webm', '.mov'],
+  },
 };
 
-const validateImageFiles = (files: File[]): { valid: File[], errors: string[] } => {
+const validateImageFiles = (
+  files: File[]
+): { valid: File[]; errors: string[] } => {
   const errors: string[] = [];
   const valid: File[] = [];
 
   if (files.length > FILE_VALIDATION.images.maxCount) {
-    errors.push(`Máximo ${FILE_VALIDATION.images.maxCount} imágenes permitidas`);
+    errors.push(
+      `Máximo ${FILE_VALIDATION.images.maxCount} imágenes permitidas`
+    );
     return { valid: files.slice(0, FILE_VALIDATION.images.maxCount), errors };
   }
 
   files.forEach((file, index) => {
     // Validar tipo MIME
     if (!FILE_VALIDATION.images.allowedTypes.includes(file.type)) {
-      errors.push(`Archivo ${index + 1}: Tipo no permitido. Use JPG, PNG o WebP`);
+      errors.push(
+        `Archivo ${index + 1}: Tipo no permitido. Use JPG, PNG o WebP`
+      );
       return;
     }
 
     // Validar extensión
-    const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    const extension = file.name
+      .toLowerCase()
+      .substring(file.name.lastIndexOf('.'));
     if (!FILE_VALIDATION.images.allowedExtensions.includes(extension)) {
       errors.push(`Archivo ${index + 1}: Extensión no permitida`);
       return;
@@ -51,14 +59,19 @@ const validateImageFiles = (files: File[]): { valid: File[], errors: string[] } 
   return { valid, errors };
 };
 
-const validateVideoFile = (file: File): { valid: boolean, error?: string } => {
+const validateVideoFile = (file: File): { valid: boolean; error?: string } => {
   // Validar tipo MIME
   if (!FILE_VALIDATION.videos.allowedTypes.includes(file.type)) {
-    return { valid: false, error: 'Tipo de video no permitido. Use MP4, WebM o MOV' };
+    return {
+      valid: false,
+      error: 'Tipo de video no permitido. Use MP4, WebM o MOV',
+    };
   }
 
   // Validar extensión
-  const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+  const extension = file.name
+    .toLowerCase()
+    .substring(file.name.lastIndexOf('.'));
   if (!FILE_VALIDATION.videos.allowedExtensions.includes(extension)) {
     return { valid: false, error: 'Extensión de video no permitida' };
   }
@@ -76,13 +89,13 @@ const validateVideoFile = (file: File): { valid: boolean, error?: string } => {
 const createMockFile = (name: string, type: string, size: number): File => {
   const blob = new Blob(['mock file content'], { type });
   const file = new File([blob], name, { type });
-  
+
   // Mock the size property
   Object.defineProperty(file, 'size', {
     value: size,
-    writable: false
+    writable: false,
   });
-  
+
   return file;
 };
 
@@ -141,7 +154,7 @@ describe('PropertyForm File Validation', () => {
     });
 
     it('should limit the number of files to maximum count', () => {
-      const tooManyFiles = Array.from({ length: 12 }, (_, i) => 
+      const tooManyFiles = Array.from({ length: 12 }, (_, i) =>
         createMockFile(`test${i}.jpg`, 'image/jpeg', 1024 * 1024)
       );
 
@@ -185,17 +198,27 @@ describe('PropertyForm File Validation', () => {
     });
 
     it('should reject files with invalid MIME types', () => {
-      const invalidFile = createMockFile('test.avi', 'video/avi', 10 * 1024 * 1024);
-      
+      const invalidFile = createMockFile(
+        'test.avi',
+        'video/avi',
+        10 * 1024 * 1024
+      );
+
       const result = validateVideoFile(invalidFile);
 
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Tipo de video no permitido. Use MP4, WebM o MOV');
+      expect(result.error).toBe(
+        'Tipo de video no permitido. Use MP4, WebM o MOV'
+      );
     });
 
     it('should reject files with invalid extensions', () => {
-      const invalidFile = createMockFile('test.avi', 'video/mp4', 10 * 1024 * 1024);
-      
+      const invalidFile = createMockFile(
+        'test.avi',
+        'video/mp4',
+        10 * 1024 * 1024
+      );
+
       const result = validateVideoFile(invalidFile);
 
       expect(result.valid).toBe(false);
@@ -203,8 +226,12 @@ describe('PropertyForm File Validation', () => {
     });
 
     it('should reject files that are too large', () => {
-      const largeFile = createMockFile('test.mp4', 'video/mp4', 60 * 1024 * 1024); // 60MB > 50MB limit
-      
+      const largeFile = createMockFile(
+        'test.mp4',
+        'video/mp4',
+        60 * 1024 * 1024
+      ); // 60MB > 50MB limit
+
       const result = validateVideoFile(largeFile);
 
       expect(result.valid).toBe(false);
@@ -212,8 +239,12 @@ describe('PropertyForm File Validation', () => {
     });
 
     it('should accept files at the size limit', () => {
-      const maxSizeFile = createMockFile('test.mp4', 'video/mp4', 50 * 1024 * 1024); // Exactly 50MB
-      
+      const maxSizeFile = createMockFile(
+        'test.mp4',
+        'video/mp4',
+        50 * 1024 * 1024
+      ); // Exactly 50MB
+
       const result = validateVideoFile(maxSizeFile);
 
       expect(result.valid).toBe(true);
@@ -226,20 +257,30 @@ describe('PropertyForm File Validation', () => {
       expect(FILE_VALIDATION.images.maxSize).toBe(5 * 1024 * 1024);
       expect(FILE_VALIDATION.images.maxCount).toBe(10);
       expect(FILE_VALIDATION.images.allowedTypes).toEqual([
-        'image/jpeg', 'image/jpg', 'image/png', 'image/webp'
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
       ]);
       expect(FILE_VALIDATION.images.allowedExtensions).toEqual([
-        '.jpg', '.jpeg', '.png', '.webp'
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.webp',
       ]);
     });
 
     it('should have correct video validation settings', () => {
       expect(FILE_VALIDATION.videos.maxSize).toBe(50 * 1024 * 1024);
       expect(FILE_VALIDATION.videos.allowedTypes).toEqual([
-        'video/mp4', 'video/webm', 'video/quicktime'
+        'video/mp4',
+        'video/webm',
+        'video/quicktime',
       ]);
       expect(FILE_VALIDATION.videos.allowedExtensions).toEqual([
-        '.mp4', '.webm', '.mov'
+        '.mp4',
+        '.webm',
+        '.mov',
       ]);
     });
   });

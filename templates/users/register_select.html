@@ -28,7 +28,7 @@
                 <p class="text-gray-600 mb-6">
                     Soy propietario de inmuebles y quiero rentarlos de manera segura y eficiente.
                 </p>
-                
+
                 <!-- Características -->
                 <ul class="text-sm text-gray-500 mb-8 space-y-2">
                     <li class="flex items-center">
@@ -56,8 +56,8 @@
                         Verificación completa
                     </li>
                 </ul>
-                
-                <a href="{% url 'users:register_landlord' %}" 
+
+                <a href="{% url 'users:register_landlord' %}"
                    class="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
                     Registrarme como Arrendador
                 </a>
@@ -74,7 +74,7 @@
                 <p class="text-gray-600 mb-6">
                     Busco el hogar perfecto para rentar con todas las garantías y comodidades.
                 </p>
-                
+
                 <!-- Características -->
                 <ul class="text-sm text-gray-500 mb-8 space-y-2">
                     <li class="flex items-center">
@@ -102,8 +102,8 @@
                         Comunicación directa
                     </li>
                 </ul>
-                
-                <a href="{% url 'users:register_tenant' %}" 
+
+                <a href="{% url 'users:register_tenant' %}"
                    class="block w-full bg-secondary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-secondary-700 transition-colors duration-200">
                     Registrarme como Arrendatario
                 </a>
@@ -120,7 +120,7 @@
                 <p class="text-gray-600 mb-6">
                     Ofrezco servicios profesionales inmobiliarios como plomería, electricidad, limpieza, etc.
                 </p>
-                
+
                 <!-- Características -->
                 <ul class="text-sm text-gray-500 mb-8 space-y-2">
                     <li class="flex items-center">
@@ -148,8 +148,8 @@
                         Calificaciones y reseñas
                     </li>
                 </ul>
-                
-                <a href="{% url 'users:register_service_provider' %}" 
+
+                <a href="{% url 'users:register_service_provider' %}"
                    class="block w-full bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-accent-700 transition-colors duration-200">
                     Registrarme como Prestador
                 </a>
@@ -161,7 +161,7 @@
             <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">
                 Beneficios para todos los usuarios
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="text-center">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -172,7 +172,7 @@
                     <h3 class="font-semibold text-gray-900 mb-2">Verificación KYC</h3>
                     <p class="text-sm text-gray-600">Proceso riguroso de verificación de identidad</p>
                 </div>
-                
+
                 <div class="text-center">
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@
                     <h3 class="font-semibold text-gray-900 mb-2">Pagos Seguros</h3>
                     <p class="text-sm text-gray-600">Sistema de escrow y pasarela segura</p>
                 </div>
-                
+
                 <div class="text-center">
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@
                     <h3 class="font-semibold text-gray-900 mb-2">Mensajería Integrada</h3>
                     <p class="text-sm text-gray-600">Comunicación directa y segura</p>
                 </div>
-                
+
                 <div class="text-center">
                     <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +208,7 @@
         <!-- CTA para iniciar sesión -->
         <div class="text-center">
             <p class="text-gray-600 mb-4">¿Ya tienes una cuenta?</p>
-            <a href="{% url 'account_login' %}" 
+            <a href="{% url 'account_login' %}"
                class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors duration-200">
                 Iniciar Sesión
             </a>
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
-        
+
         setTimeout(() => {
             card.style.transition = 'all 0.6s ease';
             card.style.opacity = '1';

@@ -10,15 +10,12 @@ import {
   Typography,
   Dialog,
   DialogContent,
-  Fade,
   Zoom,
   useMediaQuery,
   useTheme,
-  Stack,
   Chip,
   Backdrop,
   ButtonBase,
-  CircularProgress,
   Skeleton,
 } from '@mui/material';
 import {
@@ -77,7 +74,7 @@ const MainImageContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.grey[100],
   cursor: 'pointer',
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  
+
   '&:hover': {
     transform: 'scale(1.02)',
     boxShadow: `0 20px 40px ${theme.palette.common.black}30`,
@@ -97,7 +94,7 @@ const MainImageContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-const MainImage = styled('img')(({ theme }) => ({
+const MainImage = styled('img')(() => ({
   width: '100%',
   height: '100%',
   objectFit: 'cover',
@@ -111,7 +108,8 @@ const ImageOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.6) 100%)',
+  background:
+    'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.6) 100%)',
   opacity: 0,
   transition: 'opacity 0.3s ease',
   display: 'flex',
@@ -146,7 +144,7 @@ const ThumbnailContainer = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(2),
   scrollbarWidth: 'thin',
   scrollbarColor: `${theme.palette.primary.main} ${theme.palette.grey[200]}`,
-  
+
   '&::-webkit-scrollbar': {
     height: 8,
   },
@@ -164,7 +162,7 @@ const ThumbnailContainer = styled(Box)(({ theme }) => ({
 }));
 
 const ThumbnailCard = styled(ButtonBase, {
-  shouldForwardProp: (prop) => prop !== 'isActive',
+  shouldForwardProp: prop => prop !== 'isActive',
 })<{ isActive: boolean }>(({ theme, isActive }) => ({
   position: 'relative',
   width: 80,
@@ -175,7 +173,7 @@ const ThumbnailCard = styled(ButtonBase, {
   border: `3px solid ${isActive ? theme.palette.primary.main : 'transparent'}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   animation: `${fadeInUp} 0.4s ease-out`,
-  
+
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: `0 8px 24px ${theme.palette.common.black}25`,
@@ -212,7 +210,7 @@ const LightboxImage = styled('img')<{ zoom: number }>(({ zoom }) => ({
   transform: `scale(${zoom})`,
   transition: 'transform 0.3s ease',
   cursor: zoom > 1 ? 'grab' : 'zoom-in',
-  
+
   '&:active': {
     cursor: zoom > 1 ? 'grabbing' : 'zoom-in',
   },
@@ -237,7 +235,7 @@ const NavigationButton = styled(IconButton)(({ theme }) => ({
   height: 56,
   zIndex: 1,
   transition: 'all 0.3s ease',
-  
+
   '&:hover': {
     backgroundColor: theme.palette.common.white,
     transform: 'translateY(-50%) scale(1.1)',
@@ -266,7 +264,7 @@ const ControlButton = styled(IconButton)(({ theme }) => ({
   backgroundColor: 'rgba(255,255,255,0.9)',
   color: theme.palette.common.black,
   margin: theme.spacing(0.5),
-  
+
   '&:hover': {
     backgroundColor: theme.palette.common.white,
   },
@@ -290,7 +288,7 @@ interface ModernImageGalleryProps {
 
 export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
   images = [],
-  title,
+
   initialIndex = 0,
   onImageChange,
   className,
@@ -326,22 +324,26 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
 
   const goToPrevious = useCallback(() => {
     if (sortedImages.length > 1) {
-      const prevIndex = currentIndex === 0 ? sortedImages.length - 1 : currentIndex - 1;
+      const prevIndex =
+        currentIndex === 0 ? sortedImages.length - 1 : currentIndex - 1;
       setCurrentIndex(prevIndex);
       onImageChange?.(prevIndex);
     }
   }, [currentIndex, sortedImages.length, onImageChange]);
 
-  const goToImage = useCallback((index: number) => {
-    setCurrentIndex(index);
-    onImageChange?.(index);
-  }, [onImageChange]);
+  const goToImage = useCallback(
+    (index: number) => {
+      setCurrentIndex(index);
+      onImageChange?.(index);
+    },
+    [onImageChange],
+  );
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!lightboxOpen) return;
-      
+
       switch (e.key) {
         case 'ArrowLeft':
           goToPrevious();
@@ -421,7 +423,7 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
         }}
       >
         <PhotoIcon sx={{ fontSize: 64, color: 'grey.400' }} />
-        <Typography color="text.secondary">
+        <Typography color='text.secondary'>
           No hay imágenes disponibles
         </Typography>
       </Box>
@@ -434,13 +436,13 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
       <MainImageContainer onClick={() => setLightboxOpen(true)}>
         {imageLoading && (
           <Skeleton
-            variant="rectangular"
-            width="100%"
-            height="100%"
-            animation="wave"
+            variant='rectangular'
+            width='100%'
+            height='100%'
+            animation='wave'
           />
         )}
-        
+
         {imageError ? (
           <Box
             sx={{
@@ -468,13 +470,17 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
             style={{ display: imageLoading ? 'none' : 'block' }}
           />
         )}
-        
+
         {/* Image Overlay */}
-        <ImageOverlay className="image-overlay">
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+        <ImageOverlay className='image-overlay'>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='flex-start'
+          >
             <Chip
               label={`${currentIndex + 1} de ${sortedImages.length}`}
-              size="small"
+              size='small'
               sx={{
                 backgroundColor: 'rgba(0,0,0,0.7)',
                 color: 'white',
@@ -483,8 +489,8 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
             />
             {currentImage?.is_main && (
               <Chip
-                label="Principal"
-                size="small"
+                label='Principal'
+                size='small'
                 sx={{
                   backgroundColor: theme.palette.warning.main,
                   color: theme.palette.warning.contrastText,
@@ -493,11 +499,11 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
               />
             )}
           </Box>
-          
+
           <Box>
             {currentImage?.caption && (
               <Typography
-                variant="body2"
+                variant='body2'
                 sx={{
                   color: 'white',
                   textShadow: '0 1px 3px rgba(0,0,0,0.5)',
@@ -509,33 +515,33 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
             )}
           </Box>
         </ImageOverlay>
-        
+
         {/* Zoom Indicator */}
-        <ZoomIndicator className="zoom-indicator">
+        <ZoomIndicator className='zoom-indicator'>
           <ZoomInIcon sx={{ color: 'text.secondary' }} />
         </ZoomIndicator>
-        
+
         {/* Navigation Arrows */}
         {sortedImages.length > 1 && (
           <>
             <NavigationButton
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 goToPrevious();
               }}
               sx={{ left: 16 }}
-              size="large"
+              size='large'
             >
               <PrevIcon />
             </NavigationButton>
-            
+
             <NavigationButton
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 goToNext();
               }}
               sx={{ right: 16 }}
-              size="large"
+              size='large'
             >
               <NextIcon />
             </NavigationButton>
@@ -558,7 +564,7 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
               <img
                 src={image.image_url || image.image}
                 alt={image.caption || `Thumbnail ${index + 1}`}
-                loading="lazy"
+                loading='lazy'
               />
             </ThumbnailCard>
           ))}
@@ -592,22 +598,22 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
               >
                 <ZoomInIcon />
               </ControlButton>
-              
+
               <ControlButton
                 onClick={() => setZoom(prev => Math.max(prev - 0.5, 0.5))}
                 disabled={zoom <= 0.5}
               >
                 <ZoomOutIcon />
               </ControlButton>
-              
+
               <ControlButton onClick={downloadImage}>
                 <DownloadIcon />
               </ControlButton>
-              
+
               <ControlButton onClick={toggleFullscreen}>
                 {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </ControlButton>
-              
+
               <ControlButton
                 onClick={() => setLightboxOpen(false)}
                 sx={{
@@ -639,15 +645,15 @@ export const ModernImageGallery: React.FC<ModernImageGalleryProps> = ({
                 <NavigationButton
                   onClick={goToPrevious}
                   sx={{ left: 24 }}
-                  size="large"
+                  size='large'
                 >
                   <PrevIcon />
                 </NavigationButton>
-                
+
                 <NavigationButton
                   onClick={goToNext}
                   sx={{ right: 24 }}
-                  size="large"
+                  size='large'
                 >
                   <NextIcon />
                 </NavigationButton>

@@ -21,12 +21,12 @@ const LanguageSelector: React.FC = () => {
   const currentLanguage = i18n.language?.startsWith('es') ? 'es' : 'en';
 
   return (
-    <FormControl size="small" sx={{ minWidth: 80 }}>
+    <FormControl size='small' sx={{ minWidth: 80 }}>
       <Select
         value={currentLanguage}
         onChange={handleChange}
         displayEmpty
-        variant="outlined"
+        variant='outlined'
         sx={{
           '& .MuiSelect-select': {
             display: 'flex',
@@ -44,27 +44,27 @@ const LanguageSelector: React.FC = () => {
           color: 'inherit',
           fontSize: '0.875rem',
         }}
-        renderValue={(value) => (
+        renderValue={value => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <LanguageIcon fontSize="small" />
-            <Typography variant="body2" component="span">
+            <LanguageIcon fontSize='small' />
+            <Typography variant='body2' component='span'>
               {value === 'es' ? 'ES' : 'EN'}
             </Typography>
           </Box>
         )}
       >
-        <MenuItem value="es">
+        <MenuItem value='es'>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2">ES</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2'>ES</Typography>
+            <Typography variant='body2' color='text.secondary'>
               Espa&ntilde;ol
             </Typography>
           </Box>
         </MenuItem>
-        <MenuItem value="en">
+        <MenuItem value='en'>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2">EN</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2'>EN</Typography>
+            <Typography variant='body2' color='text.secondary'>
               English
             </Typography>
           </Box>

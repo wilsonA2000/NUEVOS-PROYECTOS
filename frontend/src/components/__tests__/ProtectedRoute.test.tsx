@@ -18,9 +18,9 @@ describe('ProtectedRoute', () => {
     return render(
       <MemoryRouter initialEntries={[route]}>
         <Routes>
-          <Route path="/" element={<div>Landing Page</div>} />
+          <Route path='/' element={<div>Landing Page</div>} />
           <Route
-            path="/dashboard"
+            path='/dashboard'
             element={
               <ProtectedRoute>
                 <MockChild />

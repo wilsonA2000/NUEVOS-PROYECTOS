@@ -21,7 +21,6 @@ import {
   IconButton,
   Badge,
   Alert,
-  LinearProgress,
   Tooltip,
   Menu,
   MenuItem,
@@ -81,10 +80,10 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
-  
+
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`contracts-tabpanel-${index}`}
       aria-labelledby={`contracts-tab-${index}`}
@@ -97,25 +96,30 @@ function TabPanel(props: TabPanelProps) {
 
 const ContractsDashboard: React.FC = () => {
   const { user } = useAuth();
-  
+
   // Estados principales
   const [loading, setLoading] = useState(true);
-  const [contracts, setContracts] = useState<LandlordControlledContractData[]>([]);
+  const [contracts, setContracts] = useState<LandlordControlledContractData[]>(
+    [],
+  );
   const [statistics, setStatistics] = useState<ContractStatistics | null>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [error, setError] = useState<string>('');
-  
+
   // Estados de filtrado y búsqueda
   const [filters, setFilters] = useState<ContractFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Estados del menú de acciones
-  const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(
+    null,
+  );
   const [selectedContractId, setSelectedContractId] = useState<string>('');
-  
+
   // Estados de diálogos
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [selectedContract, setSelectedContract] = useState<LandlordControlledContractData | null>(null);
+  const [selectedContract, setSelectedContract] =
+    useState<LandlordControlledContractData | null>(null);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSending, setInviteSending] = useState(false);
@@ -128,16 +132,18 @@ const ContractsDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const [contractsResponse, statsResponse] = await Promise.all([
         LandlordContractService.getContracts(filters),
         LandlordContractService.getContractStatistics(),
       ]);
-      
+
       setContracts(contractsResponse.contracts);
       setStatistics(statsResponse);
     } catch (err: any) {
-      setError(`Error al cargar el dashboard: ${  err.message || 'Error desconocido'}`);
+      setError(
+        `Error al cargar el dashboard: ${err.message || 'Error desconocido'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -151,7 +157,17 @@ const ContractsDashboard: React.FC = () => {
   const contractsByState = useMemo(() => {
     return {
       active: contracts.filter(c => c.current_state === 'PUBLISHED'),
-      pending: contracts.filter(c => ['DRAFT', 'TENANT_INVITED', 'TENANT_REVIEWING', 'LANDLORD_REVIEWING', 'OBJECTIONS_PENDING', 'BOTH_REVIEWING', 'READY_TO_SIGN'].includes(c.current_state)),
+      pending: contracts.filter(c =>
+        [
+          'DRAFT',
+          'TENANT_INVITED',
+          'TENANT_REVIEWING',
+          'LANDLORD_REVIEWING',
+          'OBJECTIONS_PENDING',
+          'BOTH_REVIEWING',
+          'READY_TO_SIGN',
+        ].includes(c.current_state),
+      ),
       completed: contracts.filter(c => c.current_state === 'FULLY_SIGNED'),
       all: contracts,
     };
@@ -159,14 +175,32 @@ const ContractsDashboard: React.FC = () => {
 
   // Configuración de pestañas
   const tabs = [
-    { label: 'Todos', count: contractsByState.all.length, icon: <ContractIcon /> },
-    { label: 'Activos', count: contractsByState.active.length, icon: <CompleteIcon /> },
-    { label: 'Pendientes', count: contractsByState.pending.length, icon: <ScheduleIcon /> },
-    { label: 'Completados', count: contractsByState.completed.length, icon: <CheckCircle /> },
+    {
+      label: 'Todos',
+      count: contractsByState.all.length,
+      icon: <ContractIcon />,
+    },
+    {
+      label: 'Activos',
+      count: contractsByState.active.length,
+      icon: <CompleteIcon />,
+    },
+    {
+      label: 'Pendientes',
+      count: contractsByState.pending.length,
+      icon: <ScheduleIcon />,
+    },
+    {
+      label: 'Completados',
+      count: contractsByState.completed.length,
+      icon: <CheckCircle />,
+    },
   ];
 
   // Función para obtener el color del estado
-  const getStateColor = (state: ContractWorkflowState): 'success' | 'warning' | 'error' | 'info' | 'default' => {
+  const getStateColor = (
+    state: ContractWorkflowState,
+  ): 'success' | 'warning' | 'error' | 'info' | 'default' => {
     switch (state) {
       case 'PUBLISHED':
         return 'success';
@@ -190,27 +224,29 @@ const ContractsDashboard: React.FC = () => {
   // Función para obtener el texto del estado
   const getStateText = (state: ContractWorkflowState): string => {
     const stateTexts: Record<ContractWorkflowState, string> = {
-      'PENDING_ADMIN_REVIEW': 'En Revisión Jurídica',
-      'RE_PENDING_ADMIN': 'Re-Revisión Jurídica',
-      'DRAFT': 'Borrador',
-      'LANDLORD_COMPLETING': 'Completando Datos',
-      'TENANT_INVITED': 'Arrendatario Invitado',
-      'TENANT_REVIEWING': 'Revisión Arrendatario',
-      'LANDLORD_REVIEWING': 'Revisión Arrendador',
-      'OBJECTIONS_PENDING': 'Objeciones Pendientes',
-      'BOTH_REVIEWING': 'Revisión Conjunta',
-      'READY_TO_SIGN': 'Listo para Firmar',
-      'FULLY_SIGNED': 'Completamente Firmado',
-      'PUBLISHED': 'Publicado (Activo)',
-      'EXPIRED': 'Expirado',
-      'TERMINATED': 'Terminado',
-      'CANCELLED': 'Cancelado',
+      PENDING_ADMIN_REVIEW: 'En Revisión Jurídica',
+      RE_PENDING_ADMIN: 'Re-Revisión Jurídica',
+      DRAFT: 'Borrador',
+      LANDLORD_COMPLETING: 'Completando Datos',
+      TENANT_INVITED: 'Arrendatario Invitado',
+      TENANT_REVIEWING: 'Revisión Arrendatario',
+      LANDLORD_REVIEWING: 'Revisión Arrendador',
+      OBJECTIONS_PENDING: 'Objeciones Pendientes',
+      BOTH_REVIEWING: 'Revisión Conjunta',
+      READY_TO_SIGN: 'Listo para Firmar',
+      FULLY_SIGNED: 'Completamente Firmado',
+      PUBLISHED: 'Publicado (Activo)',
+      EXPIRED: 'Expirado',
+      TERMINATED: 'Terminado',
+      CANCELLED: 'Cancelado',
     };
     return stateTexts[state] || state;
   };
 
   // Función para calcular días hasta expiración
-  const getDaysUntilExpiration = (contract: LandlordControlledContractData): number | null => {
+  const getDaysUntilExpiration = (
+    contract: LandlordControlledContractData,
+  ): number | null => {
     if (!contract.end_date) return null;
     return differenceInDays(parseISO(contract.end_date), new Date());
   };
@@ -218,32 +254,56 @@ const ContractsDashboard: React.FC = () => {
   // Función para determinar las acciones disponibles según el rol y estado
   const getAvailableActions = (contract: LandlordControlledContractData) => {
     const actions = [];
-    
+
     // Acciones comunes
     actions.push({ id: 'view', label: 'Ver Detalles', icon: <ViewIcon /> });
-    
+
     if (isLandlord) {
       // Acciones específicas del arrendador
       switch (contract.current_state) {
         case 'DRAFT':
           actions.push({ id: 'edit', label: 'Editar', icon: <EditIcon /> });
-          actions.push({ id: 'invite', label: 'Invitar Arrendatario', icon: <SendIcon /> });
+          actions.push({
+            id: 'invite',
+            label: 'Invitar Arrendatario',
+            icon: <SendIcon />,
+          });
           break;
         case 'TENANT_INVITED':
-          actions.push({ id: 'resend', label: 'Reenviar Invitación', icon: <EmailIcon /> });
+          actions.push({
+            id: 'resend',
+            label: 'Reenviar Invitación',
+            icon: <EmailIcon />,
+          });
           break;
         case 'LANDLORD_REVIEWING':
-          actions.push({ id: 'review', label: 'Revisar Datos', icon: <ViewIcon /> });
-          actions.push({ id: 'approve', label: 'Aprobar', icon: <CompleteIcon /> });
+          actions.push({
+            id: 'review',
+            label: 'Revisar Datos',
+            icon: <ViewIcon />,
+          });
+          actions.push({
+            id: 'approve',
+            label: 'Aprobar',
+            icon: <CompleteIcon />,
+          });
           break;
         case 'READY_TO_SIGN':
           if (!contract.landlord_signed) {
-            actions.push({ id: 'sign', label: 'Firmar Contrato', icon: <SignIcon /> });
+            actions.push({
+              id: 'sign',
+              label: 'Firmar Contrato',
+              icon: <SignIcon />,
+            });
           }
           break;
         case 'FULLY_SIGNED':
           if (!contract.published) {
-            actions.push({ id: 'publish', label: 'Publicar Contrato', icon: <TrendingIcon /> });
+            actions.push({
+              id: 'publish',
+              label: 'Publicar Contrato',
+              icon: <TrendingIcon />,
+            });
           }
           break;
       }
@@ -251,32 +311,51 @@ const ContractsDashboard: React.FC = () => {
       // Acciones específicas del arrendatario
       switch (contract.current_state) {
         case 'TENANT_INVITED':
-          actions.push({ id: 'accept', label: 'Aceptar Invitación', icon: <CompleteIcon /> });
+          actions.push({
+            id: 'accept',
+            label: 'Aceptar Invitación',
+            icon: <CompleteIcon />,
+          });
           break;
         case 'TENANT_REVIEWING':
-          actions.push({ id: 'complete_data', label: 'Completar Datos', icon: <PersonIcon /> });
-          actions.push({ id: 'object', label: 'Presentar Objeciones', icon: <WarningIcon /> });
+          actions.push({
+            id: 'complete_data',
+            label: 'Completar Datos',
+            icon: <PersonIcon />,
+          });
+          actions.push({
+            id: 'object',
+            label: 'Presentar Objeciones',
+            icon: <WarningIcon />,
+          });
           break;
         case 'READY_TO_SIGN':
           if (!contract.tenant_signed) {
-            actions.push({ id: 'sign', label: 'Firmar Contrato', icon: <SignIcon /> });
+            actions.push({
+              id: 'sign',
+              label: 'Firmar Contrato',
+              icon: <SignIcon />,
+            });
           }
           break;
       }
     }
-    
+
     return actions;
   };
 
   // Manejo de acciones
-  const handleActionClick = (event: React.MouseEvent<HTMLElement>, contractId: string) => {
+  const handleActionClick = (
+    event: React.MouseEvent<HTMLElement>,
+    contractId: string,
+  ) => {
     setActionMenuAnchor(event.currentTarget);
     setSelectedContractId(contractId);
   };
 
   const handleActionSelect = async (actionId: string) => {
     setActionMenuAnchor(null);
-    
+
     const contract = contracts.find(c => c.id === selectedContractId);
     if (!contract) return;
 
@@ -300,17 +379,23 @@ const ContractsDashboard: React.FC = () => {
           window.location.href = `/contracts/sign/${contract.id}`;
           break;
         case 'approve':
-          await LandlordContractService.approveContract({ contract_id: contract.id! });
+          await LandlordContractService.approveContract({
+            contract_id: contract.id!,
+          });
           await loadDashboardData();
           break;
         case 'publish':
-          await LandlordContractService.publishContract({ contract_id: contract.id! });
+          await LandlordContractService.publishContract({
+            contract_id: contract.id!,
+          });
           await loadDashboardData();
           break;
         default:
       }
     } catch (err: any) {
-      setError(`Error al ejecutar acción: ${  err.message || 'Error desconocido'}`);
+      setError(
+        `Error al ejecutar acción: ${err.message || 'Error desconocido'}`,
+      );
     }
   };
 
@@ -321,35 +406,45 @@ const ContractsDashboard: React.FC = () => {
   // Función para renderizar una tarjeta de contrato
   const renderContractCard = (contract: LandlordControlledContractData) => {
     const daysUntilExpiration = getDaysUntilExpiration(contract);
-    const isExpiringSoon = daysUntilExpiration !== null && daysUntilExpiration <= 30;
+    const isExpiringSoon =
+      daysUntilExpiration !== null && daysUntilExpiration <= 30;
     const availableActions = getAvailableActions(contract);
 
     return (
-      <Card key={contract.id} elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Card
+        key={contract.id}
+        elevation={2}
+        sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      >
         <CardContent sx={{ flexGrow: 1 }}>
           {/* Header con estado y acciones */}
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='flex-start'
+            sx={{ mb: 2 }}
+          >
             <Box>
               <Chip
                 label={getStateText(contract.current_state)}
                 color={getStateColor(contract.current_state)}
-                size="small"
+                size='small'
                 sx={{ mb: 1 }}
               />
               {isExpiringSoon && (
                 <Chip
                   label={`Expira en ${daysUntilExpiration} días`}
-                  color="warning"
-                  size="small"
+                  color='warning'
+                  size='small'
                   icon={<WarningIcon />}
                   sx={{ ml: 1, mb: 1 }}
                 />
               )}
             </Box>
-            
+
             <IconButton
-              size="small"
-              onClick={(e) => handleActionClick(e, contract.id!)}
+              size='small'
+              onClick={e => handleActionClick(e, contract.id!)}
               disabled={availableActions.length === 0}
             >
               <MoreIcon />
@@ -357,16 +452,28 @@ const ContractsDashboard: React.FC = () => {
           </Box>
 
           {/* Información de la propiedad */}
-          <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, mr: 1, fontSize: 14 }}>
+          <Typography
+            variant='h6'
+            sx={{ mb: 1, display: 'flex', alignItems: 'center' }}
+          >
+            <Avatar
+              sx={{
+                bgcolor: 'primary.main',
+                width: 32,
+                height: 32,
+                mr: 1,
+                fontSize: 14,
+              }}
+            >
               {''}
             </Avatar>
             {contract.property_address}
           </Typography>
 
           {/* Información del contrato */}
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            <strong>Contrato:</strong> {contract.contract_number || `#${contract.id?.slice(0, 8)}`}
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+            <strong>Contrato:</strong>{' '}
+            {contract.contract_number || `#${contract.id?.slice(0, 8)}`}
           </Typography>
 
           {/* Información de las partes */}
@@ -374,47 +481,66 @@ const ContractsDashboard: React.FC = () => {
             {isLandlord ? (
               // Vista del arrendador - mostrar información del arrendatario
               contract.tenant_data ? (
-                <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
-                  <Avatar sx={{ bgcolor: 'secondary.main', width: 24, height: 24, mr: 1, fontSize: 12 }}>
+                <Box display='flex' alignItems='center' sx={{ mb: 1 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'secondary.main',
+                      width: 24,
+                      height: 24,
+                      mr: 1,
+                      fontSize: 12,
+                    }}
+                  >
                     <TenantIcon />
                   </Avatar>
-                  <Typography variant="body2">
-                    <strong>Arrendatario:</strong> {contract.tenant_data.full_name}
+                  <Typography variant='body2'>
+                    <strong>Arrendatario:</strong>{' '}
+                    {contract.tenant_data.full_name}
                   </Typography>
                 </Box>
               ) : (
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Arrendatario:</strong> {contract.tenant_email || 'Pendiente de invitación'}
+                <Typography variant='body2' color='text.secondary'>
+                  <strong>Arrendatario:</strong>{' '}
+                  {contract.tenant_email || 'Pendiente de invitación'}
                 </Typography>
               )
             ) : (
               // Vista del arrendatario - mostrar información del arrendador
-              <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
-                <Avatar sx={{ bgcolor: 'primary.main', width: 24, height: 24, mr: 1, fontSize: 12 }}>
+              <Box display='flex' alignItems='center' sx={{ mb: 1 }}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'primary.main',
+                    width: 24,
+                    height: 24,
+                    mr: 1,
+                    fontSize: 12,
+                  }}
+                >
                   <LandlordIcon />
                 </Avatar>
-                <Typography variant="body2">
-                  <strong>Arrendador:</strong> {contract.landlord_data.full_name}
+                <Typography variant='body2'>
+                  <strong>Arrendador:</strong>{' '}
+                  {contract.landlord_data.full_name}
                 </Typography>
               </Box>
             )}
           </Box>
 
           {/* Información económica */}
-          <Box display="flex" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box display='flex' justifyContent='space-between' sx={{ mb: 2 }}>
             <Box>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='caption' color='text.secondary'>
                 Canon Mensual
               </Typography>
-              <Typography variant="h6" color="success.main">
+              <Typography variant='h6' color='success.main'>
                 ${contract.monthly_rent.toLocaleString('es-CO')}
               </Typography>
             </Box>
-            <Box textAlign="right">
-              <Typography variant="caption" color="text.secondary">
+            <Box textAlign='right'>
+              <Typography variant='caption' color='text.secondary'>
                 Duración
               </Typography>
-              <Typography variant="body1">
+              <Typography variant='body1'>
                 {contract.contract_duration_months} meses
               </Typography>
             </Box>
@@ -422,23 +548,25 @@ const ContractsDashboard: React.FC = () => {
 
           {/* Fechas importantes */}
           {contract.start_date && (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
               <CalendarIcon sx={{ fontSize: 14, mr: 0.5 }} />
-              <strong>Inicio:</strong> {format(parseISO(contract.start_date), 'PPP', { locale: es })}
+              <strong>Inicio:</strong>{' '}
+              {format(parseISO(contract.start_date), 'PPP', { locale: es })}
             </Typography>
           )}
 
           {contract.end_date && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               <CalendarIcon sx={{ fontSize: 14, mr: 0.5 }} />
-              <strong>Finalización:</strong> {format(parseISO(contract.end_date), 'PPP', { locale: es })}
+              <strong>Finalización:</strong>{' '}
+              {format(parseISO(contract.end_date), 'PPP', { locale: es })}
             </Typography>
           )}
         </CardContent>
 
         <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
           <Button
-            size="small"
+            size='small'
             startIcon={<ViewIcon />}
             onClick={() => {
               setSelectedContract(contract);
@@ -447,12 +575,12 @@ const ContractsDashboard: React.FC = () => {
           >
             Ver Detalles
           </Button>
-          
+
           {availableActions.length > 1 && (
             <Button
-              size="small"
-              color="primary"
-              onClick={(e) => handleActionClick(e, contract.id!)}
+              size='small'
+              color='primary'
+              onClick={e => handleActionClick(e, contract.id!)}
             >
               Acciones ({availableActions.length})
             </Button>
@@ -499,12 +627,16 @@ const ContractsDashboard: React.FC = () => {
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='space-between'
+                >
                   <Box>
-                    <Typography variant="h4" color={`${stat.color}.main`}>
+                    <Typography variant='h4' color={`${stat.color}.main`}>
                       {stat.value}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant='body2' color='text.secondary'>
                       {stat.title}
                     </Typography>
                   </Box>
@@ -523,39 +655,51 @@ const ContractsDashboard: React.FC = () => {
   // Función para obtener los contratos de la pestaña actual
   const getCurrentTabContracts = (): LandlordControlledContractData[] => {
     switch (selectedTab) {
-      case 0: return contractsByState.all;
-      case 1: return contractsByState.active;
-      case 2: return contractsByState.pending;
-      case 3: return contractsByState.completed;
-      default: return contractsByState.all;
+      case 0:
+        return contractsByState.all;
+      case 1:
+        return contractsByState.active;
+      case 2:
+        return contractsByState.pending;
+      case 3:
+        return contractsByState.completed;
+      default:
+        return contractsByState.all;
     }
   };
 
   if (loading) {
-    return <LoadingSpinner message="Cargando dashboard de contratos..." />;
+    return <LoadingSpinner message='Cargando dashboard de contratos...' />;
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth='xl'>
       <Box py={3}>
         {/* Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          sx={{ mb: 3 }}
+        >
           <Box>
-            <Typography variant="h4" sx={{ mb: 1 }}>
-              {isLandlord ? 'Dashboard de Arrendador' : 'Dashboard de Arrendatario'}
+            <Typography variant='h4' sx={{ mb: 1 }}>
+              {isLandlord
+                ? 'Dashboard de Arrendador'
+                : 'Dashboard de Arrendatario'}
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant='body1' color='text.secondary'>
               Gestiona todos tus contratos de arrendamiento en un solo lugar
             </Typography>
           </Box>
-          
-          <Box display="flex" gap={1}>
-            <Tooltip title="Actualizar datos">
+
+          <Box display='flex' gap={1}>
+            <Tooltip title='Actualizar datos'>
               <IconButton onClick={loadDashboardData} disabled={loading}>
                 <TrendingIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Ver estadísticas">
+            <Tooltip title='Ver estadísticas'>
               <IconButton>
                 <StatsIcon />
               </IconButton>
@@ -565,7 +709,7 @@ const ContractsDashboard: React.FC = () => {
 
         {/* Error Alert */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+          <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError('')}>
             {error}
           </Alert>
         )}
@@ -575,15 +719,19 @@ const ContractsDashboard: React.FC = () => {
 
         {/* Pestañas */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={selectedTab} onChange={handleTabChange} aria-label="contract tabs">
+          <Tabs
+            value={selectedTab}
+            onChange={handleTabChange}
+            aria-label='contract tabs'
+          >
             {tabs.map((tab, index) => (
               <Tab
                 key={index}
                 label={
-                  <Box display="flex" alignItems="center" gap={1}>
+                  <Box display='flex' alignItems='center' gap={1}>
                     {tab.icon}
                     {tab.label}
-                    <Badge badgeContent={tab.count} color="primary" />
+                    <Badge badgeContent={tab.count} color='primary' />
                   </Box>
                 }
               />
@@ -594,24 +742,33 @@ const ContractsDashboard: React.FC = () => {
         {/* Contenido de las pestañas */}
         <TabPanel value={selectedTab} index={selectedTab}>
           {getCurrentTabContracts().length === 0 ? (
-            <Box textAlign="center" py={8}>
-              <Avatar sx={{ bgcolor: 'grey.100', width: 80, height: 80, mx: 'auto', mb: 2 }}>
+            <Box textAlign='center' py={8}>
+              <Avatar
+                sx={{
+                  bgcolor: 'grey.100',
+                  width: 80,
+                  height: 80,
+                  mx: 'auto',
+                  mb: 2,
+                }}
+              >
                 <ContractIcon sx={{ fontSize: 40, color: 'grey.400' }} />
               </Avatar>
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+              <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
                 No hay contratos en esta categoría
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {isLandlord 
+              <Typography variant='body2' color='text.secondary'>
+                {isLandlord
                   ? 'Crea tu primer contrato para comenzar a gestionar tus arriendos'
-                  : 'Aún no tienes contratos en esta categoría'
-                }
+                  : 'Aún no tienes contratos en esta categoría'}
               </Typography>
               {isLandlord && selectedTab === 0 && (
                 <Button
-                  variant="contained"
+                  variant='contained'
                   sx={{ mt: 2 }}
-                  onClick={() => window.location.href = '/contracts/landlord/create'}
+                  onClick={() =>
+                    (window.location.href = '/contracts/landlord/create')
+                  }
                 >
                   Crear Primer Contrato
                 </Button>
@@ -634,38 +791,38 @@ const ContractsDashboard: React.FC = () => {
           open={Boolean(actionMenuAnchor)}
           onClose={() => setActionMenuAnchor(null)}
         >
-          {selectedContractId && 
-            getAvailableActions(contracts.find(c => c.id === selectedContractId)!).map((action) => (
-              <MenuItem key={action.id} onClick={() => handleActionSelect(action.id)}>
-                <ListItemIcon>
-                  {action.icon}
-                </ListItemIcon>
+          {selectedContractId &&
+            getAvailableActions(
+              contracts.find(c => c.id === selectedContractId)!,
+            ).map(action => (
+              <MenuItem
+                key={action.id}
+                onClick={() => handleActionSelect(action.id)}
+              >
+                <ListItemIcon>{action.icon}</ListItemIcon>
                 <ListItemText>{action.label}</ListItemText>
               </MenuItem>
-            ))
-          }
+            ))}
         </Menu>
 
         {/* Diálogo de vista detallada */}
         <Dialog
           open={viewDialogOpen}
           onClose={() => setViewDialogOpen(false)}
-          maxWidth="md"
+          maxWidth='md'
           fullWidth
         >
-          <DialogTitle>
-            Detalles del Contrato
-          </DialogTitle>
+          <DialogTitle>Detalles del Contrato</DialogTitle>
           <DialogContent>
             {selectedContract && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 2 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
                   {selectedContract.property_address}
                 </Typography>
-                
+
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">
+                    <Typography variant='subtitle2' color='text.secondary'>
                       Estado Actual
                     </Typography>
                     <Chip
@@ -674,29 +831,36 @@ const ContractsDashboard: React.FC = () => {
                       sx={{ mb: 2 }}
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">
+                    <Typography variant='subtitle2' color='text.secondary'>
                       Canon Mensual
                     </Typography>
-                    <Typography variant="h6" color="success.main">
+                    <Typography variant='h6' color='success.main'>
                       ${selectedContract.monthly_rent.toLocaleString('es-CO')}
                     </Typography>
                   </Grid>
-                  
+
                   {selectedContract.tenant_data && (
                     <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      <Typography
+                        variant='subtitle2'
+                        color='text.secondary'
+                        sx={{ mb: 1 }}
+                      >
                         Información del Arrendatario
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Nombre:</strong> {selectedContract.tenant_data.full_name}
+                      <Typography variant='body2'>
+                        <strong>Nombre:</strong>{' '}
+                        {selectedContract.tenant_data.full_name}
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Email:</strong> {selectedContract.tenant_data.email}
+                      <Typography variant='body2'>
+                        <strong>Email:</strong>{' '}
+                        {selectedContract.tenant_data.email}
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Teléfono:</strong> {selectedContract.tenant_data.phone}
+                      <Typography variant='body2'>
+                        <strong>Teléfono:</strong>{' '}
+                        {selectedContract.tenant_data.phone}
                       </Typography>
                     </Grid>
                   )}
@@ -705,9 +869,7 @@ const ContractsDashboard: React.FC = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setViewDialogOpen(false)}>
-              Cerrar
-            </Button>
+            <Button onClick={() => setViewDialogOpen(false)}>Cerrar</Button>
           </DialogActions>
         </Dialog>
 
@@ -715,43 +877,49 @@ const ContractsDashboard: React.FC = () => {
         <Dialog
           open={inviteDialogOpen}
           onClose={() => setInviteDialogOpen(false)}
-          maxWidth="sm"
+          maxWidth='sm'
           fullWidth
         >
           <DialogTitle>Invitar Arrendatario</DialogTitle>
           <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Ingresa el correo electrónico del arrendatario para enviarle una invitación a revisar el contrato.
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              Ingresa el correo electrónico del arrendatario para enviarle una
+              invitación a revisar el contrato.
             </Typography>
             <TextField
               fullWidth
-              label="Correo electrónico del arrendatario"
-              type="email"
+              label='Correo electrónico del arrendatario'
+              type='email'
               value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="arrendatario@email.com"
+              onChange={e => setInviteEmail(e.target.value)}
+              placeholder='arrendatario@email.com'
               autoFocus
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setInviteDialogOpen(false)}>
-              Cancelar
-            </Button>
+            <Button onClick={() => setInviteDialogOpen(false)}>Cancelar</Button>
             <Button
-              variant="contained"
+              variant='contained'
               disabled={!inviteEmail || inviteSending}
-              startIcon={inviteSending ? <CircularProgress size={16} /> : <SendIcon />}
+              startIcon={
+                inviteSending ? <CircularProgress size={16} /> : <SendIcon />
+              }
               onClick={async () => {
                 try {
                   setInviteSending(true);
-                  await api.post(`/landlord/contracts/${selectedContractId}/invite-tenant/`, {
-                    tenant_email: inviteEmail,
-                  });
+                  await api.post(
+                    `/landlord/contracts/${selectedContractId}/invite-tenant/`,
+                    {
+                      tenant_email: inviteEmail,
+                    },
+                  );
                   setInviteDialogOpen(false);
                   setInviteEmail('');
                   await loadDashboardData();
                 } catch (err: any) {
-                  setError(`Error al enviar invitación: ${err.message || 'Error desconocido'}`);
+                  setError(
+                    `Error al enviar invitación: ${err.message || 'Error desconocido'}`,
+                  );
                 } finally {
                   setInviteSending(false);
                 }

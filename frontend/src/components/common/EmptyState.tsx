@@ -20,7 +20,12 @@ export interface EmptyStateProps {
   action?: React.ReactNode;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message, action }) => (
+const EmptyState: React.FC<EmptyStateProps> = ({
+  icon,
+  title,
+  message,
+  action,
+}) => (
   <Box
     sx={{
       textAlign: 'center',
@@ -31,7 +36,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message, action })
       background: vh.gradients.surface,
     }}
   >
-    <Stack spacing={2} alignItems="center">
+    <Stack spacing={2} alignItems='center'>
       <Avatar
         sx={{
           width: 72,
@@ -43,11 +48,15 @@ const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message, action })
       >
         {icon}
       </Avatar>
-      <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
+      <Typography variant='h6' color='text.primary' sx={{ fontWeight: 600 }}>
         {title}
       </Typography>
       {message && (
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
+        <Typography
+          variant='body2'
+          color='text.secondary'
+          sx={{ maxWidth: 420 }}
+        >
           {message}
         </Typography>
       )}

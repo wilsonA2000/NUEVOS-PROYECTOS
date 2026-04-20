@@ -7,9 +7,7 @@ import {
   Select,
   MenuItem,
   Stack,
-  Box,
   CircularProgress,
-  Typography,
 } from '@mui/material';
 import { EventAvailable as EventAvailableIcon } from '@mui/icons-material';
 import DialogShell from '../common/DialogShell';
@@ -17,7 +15,11 @@ import DialogShell from '../common/DialogShell';
 interface VisitScheduleModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (data: { date: string; time: string; notes: string }) => Promise<void>;
+  onConfirm: (data: {
+    date: string;
+    time: string;
+    notes: string;
+  }) => Promise<void>;
   candidateName: string;
   propertyTitle: string;
 }
@@ -66,17 +68,29 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
     }
   }, [loading, onClose]);
 
-  const hourOptions = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
+  const hourOptions = [
+    '08',
+    '09',
+    '10',
+    '11',
+    '12',
+    '13',
+    '14',
+    '15',
+    '16',
+    '17',
+    '18',
+  ];
   const isFormValid = visitDate && visitHour;
 
   return (
     <DialogShell
       open={open}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth='sm'
       fullWidth
       icon={<EventAvailableIcon />}
-      title="Programar Visita"
+      title='Programar Visita'
       subtitle={`${candidateName} · ${propertyTitle}`}
       hideCloseButton={loading}
       PaperProps={{ sx: { minHeight: '400px' } }}
@@ -86,10 +100,14 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
             Cancelar
           </Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={handleConfirm}
             disabled={!isFormValid || loading}
-            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
+            startIcon={
+              loading ? (
+                <CircularProgress size={16} color='inherit' />
+              ) : undefined
+            }
           >
             {loading ? 'Programando...' : 'Programar Visita'}
           </Button>
@@ -98,13 +116,13 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
     >
       <Stack spacing={3}>
         <TextField
-          label="Fecha de Visita"
-          type="date"
+          label='Fecha de Visita'
+          type='date'
           value={visitDate}
-          onChange={(e) => setVisitDate(e.target.value)}
+          onChange={e => setVisitDate(e.target.value)}
           fullWidth
           InputLabelProps={{ shrink: true }}
-          helperText="Selecciona la fecha para la visita"
+          helperText='Selecciona la fecha para la visita'
           inputProps={{
             min: new Date().toISOString().split('T')[0],
           }}
@@ -115,10 +133,10 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
           <InputLabel>Hora de Visita</InputLabel>
           <Select
             value={visitHour}
-            onChange={(e) => setVisitHour(e.target.value)}
-            label="Hora de Visita"
+            onChange={e => setVisitHour(e.target.value)}
+            label='Hora de Visita'
           >
-            {hourOptions.map((hour) => (
+            {hourOptions.map(hour => (
               <MenuItem key={hour} value={hour}>
                 {hour}:00 {parseInt(hour) >= 12 ? 'PM' : 'AM'}
               </MenuItem>
@@ -127,14 +145,14 @@ const VisitScheduleModal: React.FC<VisitScheduleModalProps> = ({
         </FormControl>
 
         <TextField
-          label="Notas (opcional)"
+          label='Notas (opcional)'
           multiline
           rows={4}
           value={visitNotes}
-          onChange={(e) => setVisitNotes(e.target.value)}
+          onChange={e => setVisitNotes(e.target.value)}
           fullWidth
-          placeholder="Agrega notas sobre la visita programada..."
-          helperText="Información adicional sobre la visita"
+          placeholder='Agrega notas sobre la visita programada...'
+          helperText='Información adicional sobre la visita'
           inputProps={{ maxLength: 500 }}
           disabled={loading}
         />

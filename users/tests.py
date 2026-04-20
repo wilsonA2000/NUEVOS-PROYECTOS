@@ -23,9 +23,15 @@ User = get_user_model()
 # Factory helpers
 # ---------------------------------------------------------------------------
 
-def _make_user(email='testuser@verihome.co', password='SecurePass123!',
-               first_name='Carlos', last_name='Lopez',
-               user_type='tenant', **kwargs):
+
+def _make_user(
+    email="testuser@verihome.co",
+    password="SecurePass123!",
+    first_name="Carlos",
+    last_name="Lopez",
+    user_type="tenant",
+    **kwargs,
+):
     """Create and return a User instance."""
     return User.objects.create_user(
         email=email,
@@ -37,21 +43,23 @@ def _make_user(email='testuser@verihome.co', password='SecurePass123!',
     )
 
 
-def _make_verified_user(email='verified@verihome.co', **kwargs):
+def _make_verified_user(email="verified@verihome.co", **kwargs):
     """Create a user with a verified EmailAddress (required for login)."""
     from allauth.account.models import EmailAddress
 
     user = _make_user(email=email, **kwargs)
-    EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=True)
+    EmailAddress.objects.create(
+        user=user, email=user.email, primary=True, verified=True
+    )
     return user
 
 
-def _make_interview_code(user_type='tenant', **kwargs):
+def _make_interview_code(user_type="tenant", **kwargs):
     """Create and return an InterviewCode instance."""
     defaults = {
-        'user_type': user_type,
-        'valid_from': timezone.now(),
-        'valid_until': timezone.now() + timedelta(days=7),
+        "user_type": user_type,
+        "valid_from": timezone.now(),
+        "valid_until": timezone.now() + timedelta(days=7),
     }
     defaults.update(kwargs)
     return InterviewCode.objects.create(**defaults)
@@ -61,36 +69,37 @@ def _make_interview_code(user_type='tenant', **kwargs):
 # User Model Tests
 # ===========================================================================
 
+
 class UserModelTests(TestCase):
     """Tests for the custom User model and UserManager."""
 
     def test_create_user(self):
         """Creating a user with required fields succeeds."""
         user = _make_user()
-        self.assertEqual(user.email, 'testuser@verihome.co')
-        self.assertEqual(user.first_name, 'Carlos')
-        self.assertEqual(user.last_name, 'Lopez')
-        self.assertEqual(user.user_type, 'tenant')
-        self.assertTrue(user.check_password('SecurePass123!'))
+        self.assertEqual(user.email, "testuser@verihome.co")
+        self.assertEqual(user.first_name, "Carlos")
+        self.assertEqual(user.last_name, "Lopez")
+        self.assertEqual(user.user_type, "tenant")
+        self.assertTrue(user.check_password("SecurePass123!"))
 
     def test_create_user_no_email_raises(self):
         """Creating a user without an email raises ValueError."""
         with self.assertRaises(ValueError):
             User.objects.create_user(
-                email='',
-                password='SecurePass123!',
-                first_name='A',
-                last_name='B',
-                user_type='tenant',
+                email="",
+                password="SecurePass123!",
+                first_name="A",
+                last_name="B",
+                user_type="tenant",
             )
 
     def test_create_superuser(self):
         """create_superuser sets is_staff and is_superuser True."""
         su = User.objects.create_superuser(
-            email='admin@verihome.co',
-            password='AdminPass123!',
-            first_name='Admin',
-            last_name='User',
+            email="admin@verihome.co",
+            password="AdminPass123!",
+            first_name="Admin",
+            last_name="User",
         )
         self.assertTrue(su.is_staff)
         self.assertTrue(su.is_superuser)
@@ -99,29 +108,30 @@ class UserModelTests(TestCase):
         """Superuser must have is_staff=True and is_superuser=True."""
         with self.assertRaises(ValueError):
             User.objects.create_superuser(
-                email='bad_admin@verihome.co',
-                password='AdminPass123!',
-                first_name='Bad',
-                last_name='Admin',
+                email="bad_admin@verihome.co",
+                password="AdminPass123!",
+                first_name="Bad",
+                last_name="Admin",
                 is_staff=False,
             )
 
     def test_uuid_primary_key(self):
         """User primary key is a UUID."""
         import uuid
+
         user = _make_user()
         self.assertIsInstance(user.pk, uuid.UUID)
 
     def test_email_is_unique(self):
         """Two users with the same email cannot be created."""
-        _make_user(email='dup@verihome.co')
+        _make_user(email="dup@verihome.co")
         with self.assertRaises(Exception):
-            _make_user(email='dup@verihome.co')
+            _make_user(email="dup@verihome.co")
 
     def test_default_user_type(self):
         """user_type can be blank string but normally is set explicitly."""
-        user = _make_user(user_type='landlord')
-        self.assertEqual(user.user_type, 'landlord')
+        user = _make_user(user_type="landlord")
+        self.assertEqual(user.user_type, "landlord")
 
     def test_default_is_verified_false(self):
         """New users are not verified by default."""
@@ -136,7 +146,7 @@ class UserModelTests(TestCase):
     def test_default_status_mode_offline(self):
         """Default status_mode is 'offline'."""
         user = _make_user()
-        self.assertEqual(user.status_mode, 'offline')
+        self.assertEqual(user.status_mode, "offline")
 
     def test_verification_date_set_on_verify(self):
         """Setting is_verified=True and saving populates verification_date."""
@@ -151,87 +161,88 @@ class UserModelTests(TestCase):
 
     def test_str_representation(self):
         """__str__ returns full name with user type display."""
-        user = _make_user(first_name='Maria', last_name='Garcia', user_type='tenant')
+        user = _make_user(first_name="Maria", last_name="Garcia", user_type="tenant")
         result = str(user)
-        self.assertIn('Maria', result)
-        self.assertIn('Garcia', result)
+        self.assertIn("Maria", result)
+        self.assertIn("Garcia", result)
 
 
 # ===========================================================================
 # Profile Model Tests
 # ===========================================================================
 
+
 class ProfileModelTests(TestCase):
     """Tests for LandlordProfile, TenantProfile, and ServiceProviderProfile."""
 
     def test_create_landlord_profile(self):
         """LandlordProfile is auto-created by signal and can be updated."""
-        user = _make_user(email='landlord@verihome.co', user_type='landlord')
+        user = _make_user(email="landlord@verihome.co", user_type="landlord")
         # Signal auto-creates the profile; update it with specific values
         profile = user.landlord_profile
-        profile.company_name = 'Inmobiliaria Test'
+        profile.company_name = "Inmobiliaria Test"
         profile.total_properties = 5
         profile.years_experience = 10
         profile.save()
         profile.refresh_from_db()
         self.assertEqual(profile.user, user)
-        self.assertEqual(profile.company_name, 'Inmobiliaria Test')
+        self.assertEqual(profile.company_name, "Inmobiliaria Test")
         self.assertEqual(profile.total_properties, 5)
 
     def test_create_tenant_profile(self):
         """TenantProfile is auto-created by signal and can be updated."""
-        user = _make_user(email='tenant@verihome.co', user_type='tenant')
+        user = _make_user(email="tenant@verihome.co", user_type="tenant")
         profile = user.tenant_profile
-        profile.monthly_income = Decimal('3500000.00')
-        profile.employment_status = 'employed'
+        profile.monthly_income = Decimal("3500000.00")
+        profile.employment_status = "employed"
         profile.save()
         profile.refresh_from_db()
         self.assertEqual(profile.user, user)
-        self.assertEqual(profile.monthly_income, Decimal('3500000.00'))
+        self.assertEqual(profile.monthly_income, Decimal("3500000.00"))
 
     def test_create_service_provider_profile(self):
         """ServiceProviderProfile is auto-created by signal and can be updated."""
-        user = _make_user(email='sp@verihome.co', user_type='service_provider')
+        user = _make_user(email="sp@verihome.co", user_type="service_provider")
         profile = user.service_provider_profile
-        profile.company_name = 'Plomeria Express'
-        profile.service_types = ['plumbing', 'electrical']
+        profile.company_name = "Plomeria Express"
+        profile.service_types = ["plumbing", "electrical"]
         profile.years_experience = 8
-        profile.hourly_rate = Decimal('45000.00')
+        profile.hourly_rate = Decimal("45000.00")
         profile.save()
         profile.refresh_from_db()
         self.assertEqual(profile.user, user)
-        self.assertEqual(profile.service_types, ['plumbing', 'electrical'])
+        self.assertEqual(profile.service_types, ["plumbing", "electrical"])
 
     def test_landlord_profile_defaults(self):
         """Auto-created LandlordProfile has correct default values."""
-        user = _make_user(email='l_defaults@verihome.co', user_type='landlord')
+        user = _make_user(email="l_defaults@verihome.co", user_type="landlord")
         profile = user.landlord_profile
         self.assertEqual(profile.total_properties, 0)
         self.assertEqual(profile.property_types, [])
-        self.assertEqual(profile.country, 'Colombia')
+        self.assertEqual(profile.country, "Colombia")
 
     def test_tenant_profile_defaults(self):
         """Auto-created TenantProfile has correct default values."""
-        user = _make_user(email='t_defaults@verihome.co', user_type='tenant')
+        user = _make_user(email="t_defaults@verihome.co", user_type="tenant")
         profile = user.tenant_profile
         self.assertFalse(profile.has_pets)
         self.assertFalse(profile.smokes)
         self.assertFalse(profile.has_children)
         self.assertEqual(profile.children_count, 0)
-        self.assertEqual(profile.currency, 'COP')
+        self.assertEqual(profile.currency, "COP")
         self.assertEqual(profile.preferred_property_types, [])
         self.assertEqual(profile.preferred_locations, [])
 
     def test_service_provider_profile_defaults(self):
         """Auto-created ServiceProviderProfile has correct default values."""
-        user = _make_user(email='sp_defaults@verihome.co', user_type='service_provider')
+        user = _make_user(email="sp_defaults@verihome.co", user_type="service_provider")
         profile = user.service_provider_profile
         self.assertEqual(profile.years_experience, 0)
         self.assertEqual(profile.max_distance_km, 50)
         self.assertTrue(profile.has_own_tools)
         self.assertTrue(profile.has_vehicle)
         self.assertFalse(profile.accepts_emergency_calls)
-        self.assertEqual(profile.emergency_rate_multiplier, Decimal('1.5'))
+        self.assertEqual(profile.emergency_rate_multiplier, Decimal("1.5"))
         self.assertTrue(profile.available_monday)
         self.assertFalse(profile.available_saturday)
         self.assertFalse(profile.available_sunday)
@@ -243,6 +254,7 @@ class ProfileModelTests(TestCase):
 # InterviewCode Model Tests
 # ===========================================================================
 
+
 class InterviewCodeModelTests(TestCase):
     """Tests for the InterviewCode model."""
 
@@ -251,12 +263,12 @@ class InterviewCodeModelTests(TestCase):
         code = _make_interview_code()
         self.assertIsNotNone(code.pk)
         self.assertTrue(len(code.code) > 0)
-        self.assertEqual(code.user_type, 'tenant')
+        self.assertEqual(code.user_type, "tenant")
 
     def test_code_auto_generated(self):
         """Code field is auto-populated on save when left blank."""
         code = InterviewCode(
-            user_type='landlord',
+            user_type="landlord",
             valid_from=timezone.now(),
             valid_until=timezone.now() + timedelta(days=7),
         )
@@ -279,7 +291,7 @@ class InterviewCodeModelTests(TestCase):
     def test_use_code(self):
         """use_code increments current_uses and associates user."""
         code = _make_interview_code()
-        user = _make_user(email='codeuser@verihome.co')
+        user = _make_user(email="codeuser@verihome.co")
 
         code.use_code(user)
         code.refresh_from_db()
@@ -294,12 +306,13 @@ class InterviewCodeModelTests(TestCase):
 # UserSettings Model Tests
 # ===========================================================================
 
+
 class UserSettingsModelTests(TestCase):
     """Tests for the UserSettings model."""
 
     def test_create_settings(self):
         """UserSettings is auto-created by signal when a user is created."""
-        user = _make_user(email='settings@verihome.co')
+        user = _make_user(email="settings@verihome.co")
         # Signal auto-creates UserSettings
         settings = user.settings
         self.assertEqual(settings.user, user)
@@ -307,17 +320,17 @@ class UserSettingsModelTests(TestCase):
 
     def test_default_values(self):
         """Auto-created UserSettings has the expected default values."""
-        user = _make_user(email='defaults@verihome.co')
+        user = _make_user(email="defaults@verihome.co")
         settings = user.settings
 
         self.assertTrue(settings.email_notifications)
         self.assertTrue(settings.push_notifications)
         self.assertFalse(settings.sms_notifications)
-        self.assertEqual(settings.language, 'es')
-        self.assertEqual(settings.theme, 'light')
-        self.assertEqual(settings.currency, 'COP')
-        self.assertEqual(settings.timezone, 'America/Bogota')
-        self.assertEqual(settings.profile_visibility, 'registered')
+        self.assertEqual(settings.language, "es")
+        self.assertEqual(settings.theme, "light")
+        self.assertEqual(settings.currency, "COP")
+        self.assertEqual(settings.timezone, "America/Bogota")
+        self.assertEqual(settings.profile_visibility, "registered")
         self.assertFalse(settings.show_contact_info)
         self.assertTrue(settings.allow_messages)
         self.assertFalse(settings.two_factor_enabled)
@@ -329,17 +342,19 @@ class UserSettingsModelTests(TestCase):
 # API Tests
 # ===========================================================================
 
+
 @override_settings(
-    ACCOUNT_EMAIL_VERIFICATION='none',
-    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    ACCOUNT_EMAIL_VERIFICATION="none",
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
 )
 class UserAPITests(APITestCase):
     """Tests for user-related API endpoints."""
 
-    BASE_URL = '/api/v1/users/'
+    BASE_URL = "/api/v1/users/"
 
-    def _make_auth_user(self, email='apiuser@verihome.co', password='ApiPass123!',
-                        user_type='tenant'):
+    def _make_auth_user(
+        self, email="apiuser@verihome.co", password="ApiPass123!", user_type="tenant"
+    ):
         """Create a verified user and force-authenticate the test client."""
         user = _make_verified_user(email=email, password=password, user_type=user_type)
         self.client.force_authenticate(user=user)
@@ -352,35 +367,42 @@ class UserAPITests(APITestCase):
     def test_register_user(self):
         """POST /api/v1/users/auth/register/ creates a new user."""
         data = {
-            'email': 'newuser@verihome.co',
-            'password': 'StrongPass123!',
-            'password2': 'StrongPass123!',
-            'first_name': 'Nuevo',
-            'last_name': 'Usuario',
-            'user_type': 'tenant',
+            "email": "newuser@verihome.co",
+            "password": "StrongPass123!",
+            "password2": "StrongPass123!",
+            "first_name": "Nuevo",
+            "last_name": "Usuario",
+            "user_type": "tenant",
         }
-        response = self.client.post(f'{self.BASE_URL}auth/register/', data, format='json')
+        response = self.client.post(
+            f"{self.BASE_URL}auth/register/", data, format="json"
+        )
         # The view returns 201 on success or 500 if email sending fails (test env)
-        self.assertIn(response.status_code, [
-            status.HTTP_201_CREATED,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_201_CREATED,
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+            ],
+        )
         # User should exist regardless of email sending outcome
-        self.assertTrue(User.objects.filter(email='newuser@verihome.co').exists())
+        self.assertTrue(User.objects.filter(email="newuser@verihome.co").exists())
 
     def test_register_user_password_mismatch(self):
         """Registration fails when passwords do not match."""
         data = {
-            'email': 'mismatch@verihome.co',
-            'password': 'StrongPass123!',
-            'password2': 'DifferentPass456!',
-            'first_name': 'Bad',
-            'last_name': 'Passwords',
-            'user_type': 'tenant',
+            "email": "mismatch@verihome.co",
+            "password": "StrongPass123!",
+            "password2": "DifferentPass456!",
+            "first_name": "Bad",
+            "last_name": "Passwords",
+            "user_type": "tenant",
         }
-        response = self.client.post(f'{self.BASE_URL}auth/register/', data, format='json')
+        response = self.client.post(
+            f"{self.BASE_URL}auth/register/", data, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(User.objects.filter(email='mismatch@verihome.co').exists())
+        self.assertFalse(User.objects.filter(email="mismatch@verihome.co").exists())
 
     # ------------------------------------------------------------------
     # Login
@@ -388,15 +410,15 @@ class UserAPITests(APITestCase):
 
     def test_login_success(self):
         """POST /api/v1/users/auth/login/ returns access and refresh tokens."""
-        _make_verified_user(email='login@verihome.co', password='LoginPass123!')
+        _make_verified_user(email="login@verihome.co", password="LoginPass123!")
         data = {
-            'email': 'login@verihome.co',
-            'password': 'LoginPass123!',
+            "email": "login@verihome.co",
+            "password": "LoginPass123!",
         }
-        response = self.client.post(f'{self.BASE_URL}auth/login/', data, format='json')
+        response = self.client.post(f"{self.BASE_URL}auth/login/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
 
     # ------------------------------------------------------------------
     # Profile (auth/me/)
@@ -405,21 +427,23 @@ class UserAPITests(APITestCase):
     def test_get_profile_authenticated(self):
         """GET /api/v1/users/auth/me/ returns user data when authenticated."""
         user = self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}auth/me/')
+        response = self.client.get(f"{self.BASE_URL}auth/me/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['email'], user.email)
+        self.assertEqual(response.data["email"], user.email)
 
     def test_get_profile_unauthenticated_401(self):
         """GET /api/v1/users/auth/me/ returns 401 for unauthenticated requests."""
-        response = self.client.get(f'{self.BASE_URL}auth/me/')
+        response = self.client.get(f"{self.BASE_URL}auth/me/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_profile(self):
         """PATCH /api/v1/users/auth/me/ updates user fields."""
         self._make_auth_user()
-        data = {'first_name': 'NuevoNombre', 'city': 'Bucaramanga'}
-        response = self.client.patch(f'{self.BASE_URL}auth/me/', data, format='json')
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED])
+        data = {"first_name": "NuevoNombre", "city": "Bucaramanga"}
+        response = self.client.patch(f"{self.BASE_URL}auth/me/", data, format="json")
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        )
 
     # ------------------------------------------------------------------
     # Search
@@ -428,14 +452,14 @@ class UserAPITests(APITestCase):
     def test_search_users_endpoint_exists(self):
         """GET /api/v1/users/search/?q= is routed and requires authentication."""
         # Unauthenticated request should return 401
-        response = self.client.get(f'{self.BASE_URL}search/', {'q': 'test'})
+        response = self.client.get(f"{self.BASE_URL}search/", {"q": "test"})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_search_users_authenticated(self):
         """GET /api/v1/users/search/?q= responds 200 cuando está autenticado."""
-        self._make_auth_user(email='searchable@verihome.co')
-        _make_user(email='other@verihome.co', first_name='Juanito', last_name='Perez')
-        response = self.client.get(f'{self.BASE_URL}search/', {'q': 'Juanito'})
+        self._make_auth_user(email="searchable@verihome.co")
+        _make_user(email="other@verihome.co", first_name="Juanito", last_name="Perez")
+        response = self.client.get(f"{self.BASE_URL}search/", {"q": "Juanito"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     # ------------------------------------------------------------------
@@ -444,59 +468,71 @@ class UserAPITests(APITestCase):
 
     def test_notifications_list_authenticated(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}notifications/')
+        response = self.client.get(f"{self.BASE_URL}notifications/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_notifications_unauthenticated_401(self):
-        response = self.client.get(f'{self.BASE_URL}notifications/')
+        response = self.client.get(f"{self.BASE_URL}notifications/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_activity_logs_stats_authenticated(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}activity-logs/stats/')
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT])
+        response = self.client.get(f"{self.BASE_URL}activity-logs/stats/")
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
+        )
 
     def test_activity_types_endpoint(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}activity-logs/types/')
+        response = self.client.get(f"{self.BASE_URL}activity-logs/types/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_public_profile_view(self):
-        target = _make_user(email='target@verihome.co')
-        self._make_auth_user(email='viewer@verihome.co')
-        response = self.client.get(f'{self.BASE_URL}{target.id}/profile/')
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
-        ])
+        target = _make_user(email="target@verihome.co")
+        self._make_auth_user(email="viewer@verihome.co")
+        response = self.client.get(f"{self.BASE_URL}{target.id}/profile/")
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_404_NOT_FOUND,
+            ],
+        )
 
     def test_public_resume_view_landlord_sees_tenant(self):
         """Landlord autenticado puede ver hoja de vida de tenant.
         Si el tenant no tiene UserResume aún, retorna 404."""
-        tenant = _make_user(email='resume-target@verihome.co', user_type='tenant')
-        self._make_auth_user(email='landlord-viewer@verihome.co', user_type='landlord')
-        response = self.client.get(f'{self.BASE_URL}{tenant.id}/resume/')
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
-        ])
+        tenant = _make_user(email="resume-target@verihome.co", user_type="tenant")
+        self._make_auth_user(email="landlord-viewer@verihome.co", user_type="landlord")
+        response = self.client.get(f"{self.BASE_URL}{tenant.id}/resume/")
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_404_NOT_FOUND,
+            ],
+        )
 
     def test_public_resume_view_tenant_forbidden(self):
         """Tenant no puede ver hoja de vida (solo landlords)."""
-        tenant = _make_user(email='resume-target2@verihome.co', user_type='tenant')
-        self._make_auth_user(email='tenant-viewer@verihome.co', user_type='tenant')
-        response = self.client.get(f'{self.BASE_URL}{tenant.id}/resume/')
+        tenant = _make_user(email="resume-target2@verihome.co", user_type="tenant")
+        self._make_auth_user(email="tenant-viewer@verihome.co", user_type="tenant")
+        response = self.client.get(f"{self.BASE_URL}{tenant.id}/resume/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_settings_get(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}settings/')
+        response = self.client.get(f"{self.BASE_URL}settings/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_resume_get(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}resume/')
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])
+        response = self.client.get(f"{self.BASE_URL}resume/")
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+        )
 
     def test_dashboard_stats(self):
         self._make_auth_user()
-        response = self.client.get(f'{self.BASE_URL}dashboard/')
+        response = self.client.get(f"{self.BASE_URL}dashboard/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -28,7 +28,11 @@ jest.mock('../../../hooks/useAdminAuth', () => ({
 // Mock LoadingSpinner
 jest.mock('../../../components/common/LoadingSpinner', () => {
   return function MockLoadingSpinner(props: any) {
-    return React.createElement('div', { 'data-testid': 'loading-spinner' }, props.message || 'Loading...');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'loading-spinner' },
+      props.message || 'Loading...'
+    );
   };
 });
 
@@ -40,8 +44,16 @@ jest.mock('../../../components/admin/ContractApprovalModal', () => {
       'div',
       { 'data-testid': 'approval-modal' },
       React.createElement('span', null, `Aprobar: ${props.contractTitle}`),
-      React.createElement('button', { onClick: () => props.onConfirm({ notes: 'Aprobado' }) }, 'Confirmar Aprobacion'),
-      React.createElement('button', { onClick: props.onClose }, 'Cancelar Aprobacion'),
+      React.createElement(
+        'button',
+        { onClick: () => props.onConfirm({ notes: 'Aprobado' }) },
+        'Confirmar Aprobacion'
+      ),
+      React.createElement(
+        'button',
+        { onClick: props.onClose },
+        'Cancelar Aprobacion'
+      )
     );
   };
 });
@@ -56,10 +68,20 @@ jest.mock('../../../components/admin/ContractRejectionModal', () => {
       React.createElement('span', null, `Rechazar: ${props.contractTitle}`),
       React.createElement(
         'button',
-        { onClick: () => props.onConfirm({ notes: 'Rechazado', requires_resubmission: true }) },
-        'Confirmar Rechazo',
+        {
+          onClick: () =>
+            props.onConfirm({
+              notes: 'Rechazado',
+              requires_resubmission: true,
+            }),
+        },
+        'Confirmar Rechazo'
       ),
-      React.createElement('button', { onClick: props.onClose }, 'Cancelar Rechazo'),
+      React.createElement(
+        'button',
+        { onClick: props.onClose },
+        'Cancelar Rechazo'
+      )
     );
   };
 });
@@ -68,7 +90,9 @@ import { AdminService } from '../../../services/adminService';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 
 const mockedAdminService = AdminService as jest.Mocked<typeof AdminService>;
-const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<typeof useAdminAuth>;
+const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<
+  typeof useAdminAuth
+>;
 
 const theme = createTheme();
 
@@ -140,7 +164,10 @@ const mockAdminPermissions = {
   canAccessSecurityPanel: false,
 };
 
-const renderComponent = (contractId = 'contract-abc-123', searchParams = '') => {
+const renderComponent = (
+  contractId = 'contract-abc-123',
+  searchParams = ''
+) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -150,7 +177,11 @@ const renderComponent = (contractId = 'contract-abc-123', searchParams = '') => 
   return render(
     React.createElement(
       MemoryRouter,
-      { initialEntries: [`/app/admin/contracts/${contractId}/review${searchParams}`] },
+      {
+        initialEntries: [
+          `/app/admin/contracts/${contractId}/review${searchParams}`,
+        ],
+      },
       React.createElement(
         QueryClientProvider,
         { client: queryClient },
@@ -163,11 +194,11 @@ const renderComponent = (contractId = 'contract-abc-123', searchParams = '') => 
             React.createElement(Route, {
               path: '/app/admin/contracts/:contractId/review',
               element: React.createElement(AdminContractReview),
-            }),
-          ),
-        ),
-      ),
-    ),
+            })
+          )
+        )
+      )
+    )
   );
 };
 
@@ -184,7 +215,9 @@ describe('AdminContractReview', () => {
       redirectIfNotAdmin: jest.fn(),
       adminPermissions: mockAdminPermissions,
     });
-    mockedAdminService.getContractForReview.mockResolvedValue(mockContract as any);
+    mockedAdminService.getContractForReview.mockResolvedValue(
+      mockContract as any
+    );
     mockedAdminService.approveContract.mockResolvedValue({
       success: true,
       message: 'Contrato aprobado',
@@ -199,13 +232,15 @@ describe('AdminContractReview', () => {
 
   it('should show loading spinner while fetching contract data', () => {
     mockedAdminService.getContractForReview.mockImplementation(
-      () => new Promise(() => {}), // Never resolves
+      () => new Promise(() => {}) // Never resolves
     );
 
     renderComponent();
 
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-    expect(screen.getByText(/Cargando detalles del contrato/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Cargando detalles del contrato/i)
+    ).toBeInTheDocument();
   });
 
   it('should display contract details after loading', async () => {
@@ -232,7 +267,9 @@ describe('AdminContractReview', () => {
       expect(screen.getByText('Apartamento Centro Bogota')).toBeInTheDocument();
     });
 
-    const approveButton = screen.getByRole('button', { name: /Aprobar Contrato/i });
+    const approveButton = screen.getByRole('button', {
+      name: /Aprobar Contrato/i,
+    });
     expect(approveButton).toBeInTheDocument();
     expect(approveButton).not.toBeDisabled();
 
@@ -240,7 +277,9 @@ describe('AdminContractReview', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('approval-modal')).toBeInTheDocument();
-      expect(screen.getByText(/Aprobar: Apartamento Centro Bogota/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Aprobar: Apartamento Centro Bogota/)
+      ).toBeInTheDocument();
     });
   });
 
@@ -259,7 +298,9 @@ describe('AdminContractReview', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('rejection-modal')).toBeInTheDocument();
-      expect(screen.getByText(/Rechazar: Apartamento Centro Bogota/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Rechazar: Apartamento Centro Bogota/)
+      ).toBeInTheDocument();
     });
   });
 
@@ -292,7 +333,9 @@ describe('AdminContractReview', () => {
 
     // Landlord info
     expect(screen.getByText('Carlos Gomez')).toBeInTheDocument();
-    expect(screen.getAllByText('carlos@example.com').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText('carlos@example.com').length
+    ).toBeGreaterThanOrEqual(1);
 
     // Tenant info
     expect(screen.getByText('Maria Lopez')).toBeInTheDocument();
@@ -342,18 +385,24 @@ describe('AdminContractReview', () => {
   });
 
   it('should display error state when contract is not found', async () => {
-    mockedAdminService.getContractForReview.mockRejectedValue(new Error('No encontrado'));
+    mockedAdminService.getContractForReview.mockRejectedValue(
+      new Error('No encontrado')
+    );
 
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Error al cargar el contrato/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Error al cargar el contrato/i)
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByText(/No encontrado/i)).toBeInTheDocument();
 
     // Back button present
-    const backButton = screen.getByRole('button', { name: /Volver a la lista/i });
+    const backButton = screen.getByRole('button', {
+      name: /Volver a la lista/i,
+    });
     expect(backButton).toBeInTheDocument();
   });
 
@@ -388,7 +437,7 @@ describe('AdminContractReview', () => {
     });
 
     expect(
-      screen.getByText(/lleva m\u00e1s de 7 d\u00edas pendiente/i),
+      screen.getByText(/lleva m\u00e1s de 7 d\u00edas pendiente/i)
     ).toBeInTheDocument();
   });
 

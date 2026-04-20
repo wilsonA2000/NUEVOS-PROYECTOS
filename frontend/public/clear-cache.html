@@ -84,7 +84,7 @@
 <body>
     <div class="container">
         <h1>🧹 Limpieza de Cache - VeriHome</h1>
-        
+
         <div class="warning">
             ⚠️ <strong>Importante:</strong> Los cambios requieren limpiar el cache del navegador
         </div>
@@ -97,11 +97,11 @@
         </div>
 
         <h3>Opciones de limpieza:</h3>
-        
+
         <button onclick="clearAll()">
             🚀 Limpiar Todo el Cache
         </button>
-        
+
         <button onclick="hardReload()">
             🔄 Forzar Recarga Completa
         </button>
@@ -121,13 +121,13 @@
             const status = document.getElementById('status');
             status.style.display = 'block';
             status.innerHTML = '⏳ Limpiando cache...';
-            
+
             // Clear localStorage
             localStorage.clear();
-            
+
             // Clear sessionStorage
             sessionStorage.clear();
-            
+
             // Clear service worker caches
             if ('caches' in window) {
                 caches.keys().then(names => {
@@ -136,7 +136,7 @@
                     });
                 });
             }
-            
+
             // Unregister service workers
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -145,7 +145,7 @@
                     });
                 });
             }
-            
+
             setTimeout(() => {
                 status.innerHTML = '✅ Cache limpiado! Redirigiendo a la aplicación...';
                 setTimeout(() => {
@@ -153,12 +153,12 @@
                 }, 2000);
             }, 1000);
         }
-        
+
         function hardReload() {
             const status = document.getElementById('status');
             status.style.display = 'block';
             status.innerHTML = '🔄 Recargando con cache limpio...';
-            
+
             // Force reload with cache bypass
             setTimeout(() => {
                 window.location.href = 'http://localhost:5173?cacheBust=' + Date.now();

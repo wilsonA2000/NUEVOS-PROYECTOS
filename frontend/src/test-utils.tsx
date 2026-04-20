@@ -12,21 +12,21 @@ const queryClient = new QueryClient({
 
 export function renderWithClient(ui: React.ReactElement) {
   const { rerender, ...result } = render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
   );
   return {
     ...result,
     rerender: (rerenderUi: React.ReactElement) =>
       rerender(
-        <QueryClientProvider client={queryClient}>{rerenderUi}</QueryClientProvider>,
+        <QueryClientProvider client={queryClient}>
+          {rerenderUi}
+        </QueryClientProvider>
       ),
   };
 }
 
 export function createWrapper() {
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-} 
+}

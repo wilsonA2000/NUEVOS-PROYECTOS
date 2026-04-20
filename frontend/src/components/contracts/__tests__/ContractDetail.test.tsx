@@ -45,9 +45,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(ContractDetail),
-      ),
-    ),
+        React.createElement(ContractDetail)
+      )
+    )
   );
 };
 
@@ -55,7 +55,11 @@ const sampleContract = {
   id: 'contract-001',
   status: 'active',
   property: { title: 'Apartamento Centro', address: 'Calle 45 #12-34' },
-  secondary_party: { first_name: 'Juan', last_name: 'Perez', email: 'juan@test.com' },
+  secondary_party: {
+    first_name: 'Juan',
+    last_name: 'Perez',
+    email: 'juan@test.com',
+  },
   start_date: '2025-01-01',
   end_date: '2026-01-01',
   monthly_rent: 1500000,
@@ -83,7 +87,9 @@ describe('ContractDetail', () => {
     mockUseContracts.error = new Error('Network error');
     renderComponent();
 
-    expect(screen.getByText(/Error al cargar el contrato/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Error al cargar el contrato/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Network error/i)).toBeInTheDocument();
   });
 
@@ -120,7 +126,9 @@ describe('ContractDetail', () => {
     mockUseContracts.contracts = [sampleContract];
     renderComponent();
 
-    expect(screen.getByText('Contrato de arrendamiento estándar')).toBeInTheDocument();
+    expect(
+      screen.getByText('Contrato de arrendamiento estándar')
+    ).toBeInTheDocument();
   });
 
   it('should navigate back when Volver button is clicked', () => {
@@ -140,7 +148,9 @@ describe('ContractDetail', () => {
     const editButton = screen.getByText('Editar');
     fireEvent.click(editButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/app/contracts/contract-001/edit');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/app/contracts/contract-001/edit'
+    );
   });
 
   it('should call viewContractPDF when PDF button is clicked', () => {

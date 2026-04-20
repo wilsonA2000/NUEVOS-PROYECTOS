@@ -18,7 +18,7 @@ export const usePollingNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isVisible = useRef(true);
 
@@ -29,7 +29,8 @@ export const usePollingNotifications = () => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const fetchNotifications = async () => {
@@ -39,10 +40,10 @@ export const usePollingNotifications = () => {
       setIsLoading(true);
       // Since we don't have a notifications API yet, we'll mock it
       // In real implementation, this would call: api.get('/notifications/')
-      
+
       // Mock notifications for demonstration
       const mockNotifications: Notification[] = [];
-      
+
       setNotifications(mockNotifications);
       setUnreadCount(mockNotifications.filter(n => !n.is_read).length);
     } catch (error) {
@@ -80,12 +81,8 @@ export const usePollingNotifications = () => {
   }, [isAuthenticated]);
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId 
-          ? { ...n, is_read: true }
-          : n,
-      ),
+    setNotifications(prev =>
+      prev.map(n => (n.id === notificationId ? { ...n, is_read: true } : n)),
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
   };

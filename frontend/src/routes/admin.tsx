@@ -23,16 +23,28 @@ import AdminProtectedRoute from '../components/auth/AdminProtectedRoute';
 
 // Lazy load admin pages para mejor performance
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
-const AdminContractsList = lazy(() => import('../pages/admin/AdminContractsList'));
-const AdminContractReview = lazy(() => import('../pages/admin/AdminContractReview'));
-const AdminAuditDashboard = lazy(() => import('../pages/admin/AdminAuditDashboard'));
-const AdminSecurityPanel = lazy(() => import('../pages/admin/AdminSecurityPanel'));
+const AdminContractsList = lazy(
+  () => import('../pages/admin/AdminContractsList'),
+);
+const AdminContractReview = lazy(
+  () => import('../pages/admin/AdminContractReview'),
+);
+const AdminAuditDashboard = lazy(
+  () => import('../pages/admin/AdminAuditDashboard'),
+);
+const AdminSecurityPanel = lazy(
+  () => import('../pages/admin/AdminSecurityPanel'),
+);
 const AdminLogsViewer = lazy(() => import('../pages/admin/AdminLogsViewer'));
 const AdminAuditLog = lazy(() => import('../pages/admin/AdminAuditLog'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 const AdminMaintenance = lazy(() => import('../pages/admin/AdminMaintenance'));
-const AdminVerificationDashboard = lazy(() => import('../pages/admin/AdminVerificationDashboard'));
-const AdminTicketsDashboard = lazy(() => import('../pages/admin/AdminTicketsDashboard'));
+const AdminVerificationDashboard = lazy(
+  () => import('../pages/admin/AdminVerificationDashboard'),
+);
+const AdminTicketsDashboard = lazy(
+  () => import('../pages/admin/AdminTicketsDashboard'),
+);
 
 /**
  * Loading fallback para lazy components
@@ -48,7 +60,7 @@ const AdminLoadingFallback: React.FC = () => (
     }}
   >
     <CircularProgress size={40} />
-    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+    <Typography variant='body2' color='text.secondary' sx={{ mt: 2 }}>
       Cargando módulo de administración...
     </Typography>
   </Box>
@@ -66,35 +78,38 @@ const AdminRoutes: React.FC = () => {
           <Route index element={<AdminDashboard />} />
 
           {/* Contratos */}
-          <Route path="contracts" element={<AdminContractsList />} />
-          <Route path="contracts/:contractId" element={<AdminContractReview />} />
+          <Route path='contracts' element={<AdminContractsList />} />
+          <Route
+            path='contracts/:contractId'
+            element={<AdminContractReview />}
+          />
 
           {/* Auditoría y reportes */}
-          <Route path="audit" element={<AdminAuditDashboard />} />
+          <Route path='audit' element={<AdminAuditDashboard />} />
 
           {/* Seguridad */}
-          <Route path="security" element={<AdminSecurityPanel />} />
+          <Route path='security' element={<AdminSecurityPanel />} />
 
           {/* Logs */}
-          <Route path="logs" element={<AdminLogsViewer />} />
+          <Route path='logs' element={<AdminLogsViewer />} />
 
           {/* Audit trail global (ADM-001 · Fase 1.9.7) */}
-          <Route path="audit-logs" element={<AdminAuditLog />} />
+          <Route path='audit-logs' element={<AdminAuditLog />} />
 
           {/* Configuración */}
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path='settings' element={<AdminSettings />} />
 
           {/* Mantenimiento */}
-          <Route path="maintenance" element={<AdminMaintenance />} />
+          <Route path='maintenance' element={<AdminMaintenance />} />
 
           {/* Verificación */}
-          <Route path="verification" element={<AdminVerificationDashboard />} />
+          <Route path='verification' element={<AdminVerificationDashboard />} />
 
           {/* Tickets */}
-          <Route path="tickets" element={<AdminTicketsDashboard />} />
+          <Route path='tickets' element={<AdminTicketsDashboard />} />
 
           {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/app/admin" replace />} />
+          <Route path='*' element={<Navigate to='/app/admin' replace />} />
         </Routes>
       </Suspense>
     </AdminProtectedRoute>

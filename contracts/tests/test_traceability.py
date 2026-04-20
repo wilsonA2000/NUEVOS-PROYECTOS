@@ -12,6 +12,7 @@ fases 1.9.1–1.9.7 trabajan de forma coordinada:
   anónima vs autenticada respeta los FKs (1.9.3), y MessageThread +
   Rating.service_order (1.9.4, 1.9.6) completan la traza.
 """
+
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -42,20 +43,26 @@ class FullTraceabilityTests(TestCase):
 
     def setUp(self):
         self.landlord = User.objects.create_user(
-            email='land_trace@test.com', password='pass12345',
-            first_name='Land', last_name='Lord', user_type='landlord',
+            email="land_trace@test.com",
+            password="pass12345",
+            first_name="Land",
+            last_name="Lord",
+            user_type="landlord",
         )
         self.tenant = User.objects.create_user(
-            email='ten_trace@test.com', password='pass12345',
-            first_name='Ten', last_name='Ant', user_type='tenant',
+            email="ten_trace@test.com",
+            password="pass12345",
+            first_name="Ten",
+            last_name="Ant",
+            user_type="tenant",
         )
         self.property = Property.objects.create(
             landlord=self.landlord,
-            title='Apt trace',
-            address='Calle 1 #2-3',
-            city='Bogotá',
-            property_type='apartment',
-            listing_type='rent',
+            title="Apt trace",
+            address="Calle 1 #2-3",
+            city="Bogotá",
+            property_type="apartment",
+            listing_type="rent",
             total_area=50,
         )
 
@@ -65,29 +72,31 @@ class FullTraceabilityTests(TestCase):
             landlord=self.landlord,
             tenant=self.tenant,
             property=self.property,
-            title='Contrato trace',
-            current_state='DRAFT',
-            economic_terms={'monthly_rent': '1000000'},
+            title="Contrato trace",
+            current_state="DRAFT",
+            economic_terms={"monthly_rent": "1000000"},
         )
 
         # Signal de creación + 3 transiciones → 4 filas.
         lcc._updated_by = self.landlord
-        lcc.current_state = 'TENANT_INVITED'
+        lcc.current_state = "TENANT_INVITED"
         lcc.save()
         lcc._updated_by = self.tenant
-        lcc.current_state = 'TENANT_REVIEWING'
+        lcc.current_state = "TENANT_REVIEWING"
         lcc.save()
         lcc._updated_by = self.tenant
-        lcc.current_state = 'TENANT_DATA_PENDING'
+        lcc.current_state = "TENANT_DATA_PENDING"
         lcc.save()
 
-        history = ContractWorkflowHistory.objects.filter(contract=lcc).order_by('timestamp')
+        history = ContractWorkflowHistory.objects.filter(contract=lcc).order_by(
+            "timestamp"
+        )
         self.assertEqual(history.count(), 4)  # CREATE + 3 STATE_CHANGE
         state_changes = [(h.old_state, h.new_state) for h in history]
         # La primera fila es del CREATE (old='' o similar).
-        self.assertEqual(state_changes[1], ('DRAFT', 'TENANT_INVITED'))
-        self.assertEqual(state_changes[2], ('TENANT_INVITED', 'TENANT_REVIEWING'))
-        self.assertEqual(state_changes[3], ('TENANT_REVIEWING', 'TENANT_DATA_PENDING'))
+        self.assertEqual(state_changes[1], ("DRAFT", "TENANT_INVITED"))
+        self.assertEqual(state_changes[2], ("TENANT_INVITED", "TENANT_REVIEWING"))
+        self.assertEqual(state_changes[3], ("TENANT_REVIEWING", "TENANT_DATA_PENDING"))
 
         # Atribución: las filas con _updated_by quedan con performed_by asignado.
         attributed = history.exclude(performed_by__isnull=True)
@@ -98,15 +107,15 @@ class FullTraceabilityTests(TestCase):
             id=lcc.id,
             primary_party=self.landlord,
             secondary_party=self.tenant,
-            monthly_rent=Decimal('1000000'),
-            security_deposit=Decimal('1000000'),
+            monthly_rent=Decimal("1000000"),
+            security_deposit=Decimal("1000000"),
             start_date=timezone.now().date(),
             end_date=timezone.now().date() + timezone.timedelta(days=365),
         )
         rating = Rating.objects.create(
             reviewer=self.tenant,
             reviewee=self.landlord,
-            rating_type='tenant_to_landlord',
+            rating_type="tenant_to_landlord",
             overall_rating=9,
             contract=legacy_contract,
         )
@@ -119,22 +128,28 @@ class ServiceTraceabilityTests(TestCase):
 
     def setUp(self):
         self.provider = User.objects.create_user(
-            email='prov_trace@test.com', password='pass12345',
-            first_name='Pro', last_name='V', user_type='service_provider',
+            email="prov_trace@test.com",
+            password="pass12345",
+            first_name="Pro",
+            last_name="V",
+            user_type="service_provider",
         )
         self.client_user = User.objects.create_user(
-            email='cli_trace@test.com', password='pass12345',
-            first_name='Cli', last_name='Ent', user_type='tenant',
+            email="cli_trace@test.com",
+            password="pass12345",
+            first_name="Cli",
+            last_name="Ent",
+            user_type="tenant",
         )
         self.category = ServiceCategory.objects.create(
-            name='Mantenimiento trace',
+            name="Mantenimiento trace",
         )
         self.service = Service.objects.create(
             category=self.category,
-            name='Plomería trace',
-            short_description='x',
-            full_description='y',
-            base_price=Decimal('100000'),
+            name="Plomería trace",
+            short_description="x",
+            full_description="y",
+            base_price=Decimal("100000"),
         )
 
     def test_service_traceability(self):
@@ -143,10 +158,10 @@ class ServiceTraceabilityTests(TestCase):
         sreq = ServiceRequest.objects.create(
             service=self.service,
             requester=self.client_user,
-            requester_name='Cli Ent',
+            requester_name="Cli Ent",
             requester_email=self.client_user.email,
-            requester_phone='3001112222',
-            message='Necesito reparar una fuga',
+            requester_phone="3001112222",
+            message="Necesito reparar una fuga",
         )
         self.assertEqual(sreq.requester_id, self.client_user.id)
 
@@ -154,30 +169,30 @@ class ServiceTraceabilityTests(TestCase):
         order = ServiceOrder.objects.create(
             provider=self.provider,
             client=self.client_user,
-            title='Trace order',
-            amount=Decimal('250000'),
-            status='draft',
+            title="Trace order",
+            amount=Decimal("250000"),
+            status="draft",
         )
-        order.status = 'sent'
+        order.status = "sent"
         order.save()
-        order.status = 'accepted'
+        order.status = "accepted"
         order.save()
-        order.status = 'paid'
+        order.status = "paid"
         order.save()
 
-        entries = ServiceOrderHistory.objects.filter(order=order).order_by('timestamp')
+        entries = ServiceOrderHistory.objects.filter(order=order).order_by("timestamp")
         # CREATE + SEND + ACCEPT + PAY
         self.assertEqual(entries.count(), 4)
         self.assertEqual(
             [e.action_type for e in entries],
-            ['CREATE', 'SEND', 'ACCEPT', 'PAY'],
+            ["CREATE", "SEND", "ACCEPT", "PAY"],
         )
-        self.assertIn(entries.last().metadata.get('amount'), ('250000.00', '250000'))
+        self.assertIn(entries.last().metadata.get("amount"), ("250000.00", "250000"))
 
         # 1.9.6: MessageThread vinculado a la orden.
         thread = MessageThread.objects.create(
-            subject='Soporte de la orden',
-            thread_type='service',
+            subject="Soporte de la orden",
+            thread_type="service",
             created_by=self.client_user,
             service_order=order,
         )
@@ -187,7 +202,7 @@ class ServiceTraceabilityTests(TestCase):
         rating = Rating.objects.create(
             reviewer=self.client_user,
             reviewee=self.provider,
-            rating_type='client_to_service_provider',
+            rating_type="client_to_service_provider",
             overall_rating=10,
             service_order=order,
         )
@@ -196,11 +211,12 @@ class ServiceTraceabilityTests(TestCase):
 
         # La unicidad parcial impide una segunda fila sobre la misma orden.
         from django.db import IntegrityError
+
         with self.assertRaises(IntegrityError):
             Rating.objects.create(
                 reviewer=self.client_user,
                 reviewee=self.provider,
-                rating_type='client_to_service_provider',
+                rating_type="client_to_service_provider",
                 overall_rating=8,
                 service_order=order,
             )

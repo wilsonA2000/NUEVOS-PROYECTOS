@@ -52,7 +52,16 @@ i18n
     resources,
     fallbackLng: 'es',
     defaultNS: 'common',
-    ns: ['common', 'navigation', 'auth', 'contracts', 'properties', 'payments', 'maintenance', 'dashboard'],
+    ns: [
+      'common',
+      'navigation',
+      'auth',
+      'contracts',
+      'properties',
+      'payments',
+      'maintenance',
+      'dashboard',
+    ],
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       lookupLocalStorage: 'i18nextLng',

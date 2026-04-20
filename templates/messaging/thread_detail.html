@@ -16,7 +16,7 @@
                     </a>
                     <h1 class="text-2xl font-bold text-gray-900">{{ thread.subject }}</h1>
                 </div>
-                
+
                 <div class="flex items-center space-x-2">
                     <!-- Acciones del hilo -->
                     <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Archivar">
@@ -64,7 +64,7 @@
                     <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {{ message.sender.get_initials }}
                     </div>
-                    
+
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
@@ -75,7 +75,7 @@
                                     {{ message.created_at|date:"d/m/Y H:i" }}
                                 </span>
                             </div>
-                            
+
                             {% if message.sender == request.user %}
                             <div class="flex items-center space-x-2">
                                 <button class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Editar">
@@ -91,7 +91,7 @@
                             </div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mt-2 text-sm text-gray-700 whitespace-pre-wrap">
                             {{ message.content }}
                         </div>
@@ -115,4 +115,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

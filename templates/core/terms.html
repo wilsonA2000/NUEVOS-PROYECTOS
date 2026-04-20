@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Barra de progreso
     const progressBar = document.getElementById('progress-bar');
     const totalHeight = document.body.scrollHeight - window.innerHeight;
-    
+
     window.addEventListener('scroll', () => {
         const progress = (window.pageYOffset / totalHeight) * 100;
         progressBar.style.width = progress + '%';
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Actualizar botones prev/next
         prevButton.style.visibility = currentSectionIndex === 0 ? 'hidden' : 'visible';
         nextButton.style.visibility = currentSectionIndex === sections.length - 1 ? 'hidden' : 'visible';
-        
+
         // Actualizar enlaces de navegación
         navLinks.forEach((link, index) => {
             if (index === currentSectionIndex) {
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const content = document.querySelector('.prose');
     content.style.opacity = '0';
     content.style.transform = 'translateY(20px)';
-    
+
     setTimeout(() => {
         content.style.transition = 'all 0.6s ease';
         content.style.opacity = '1';

@@ -8,11 +8,11 @@ const mockPerformance = {
   mark: jest.fn(),
   measure: jest.fn(),
   getEntriesByType: jest.fn(() => []),
-  getEntriesByName: jest.fn(() => [])
+  getEntriesByName: jest.fn(() => []),
 };
 
 Object.defineProperty(global, 'performance', {
-  value: mockPerformance
+  value: mockPerformance,
 });
 
 // Mock API calls for performance testing
@@ -29,7 +29,7 @@ describe('Performance Tests', () => {
     it('should track API call performance', async () => {
       const startTime = 1000;
       const endTime = 1500;
-      
+
       mockPerformance.now
         .mockReturnValueOnce(startTime)
         .mockReturnValueOnce(endTime);
@@ -38,12 +38,12 @@ describe('Performance Tests', () => {
         data: { test: 'data' },
         status: 200,
         config: {
-          metadata: { startTime, requestId: 'test-request' }
-        }
+          metadata: { startTime, requestId: 'test-request' },
+        },
       });
 
       const response = await mockedApi.get('/test-endpoint');
-      
+
       expect(response.status).toBe(200);
       // Performance should be measured (endTime - startTime = 500ms)
       const duration = endTime - startTime;
@@ -58,8 +58,11 @@ describe('Performance Tests', () => {
               data: { result: 'success' },
               status: 200,
               config: {
-                metadata: { startTime: performance.now() - 3000, requestId: 'slow-request' }
-              }
+                metadata: {
+                  startTime: performance.now() - 3000,
+                  requestId: 'slow-request',
+                },
+              },
             });
           }, 100); // Simulate network delay
         });
@@ -72,7 +75,7 @@ describe('Performance Tests', () => {
       const endTime = performance.now();
 
       const duration = endTime - startTime;
-      
+
       // Should detect calls slower than 2 seconds
       if (duration > 2000) {
         console.warn(`Slow API call detected: ${duration}ms`);
@@ -86,19 +89,19 @@ describe('Performance Tests', () => {
         data: { id: i, name: `Item ${i}` },
         status: 200,
         config: {
-          metadata: { startTime: performance.now(), requestId: `request-${i}` }
-        }
+          metadata: { startTime: performance.now(), requestId: `request-${i}` },
+        },
       }));
 
-      mockedApi.get.mockImplementation((url) => {
+      mockedApi.get.mockImplementation(url => {
         const index = parseInt(url.split('/').pop() || '0');
         return Promise.resolve(mockResponses[index]);
       });
 
       const startTime = performance.now();
-      
+
       // Simulate concurrent API calls
-      const promises = Array.from({ length: 10 }, (_, i) => 
+      const promises = Array.from({ length: 10 }, (_, i) =>
         mockedApi.get(`/items/${i}`)
       );
 
@@ -114,10 +117,10 @@ describe('Performance Tests', () => {
     it('should measure component mount time', () => {
       const componentName = 'PropertyList';
       const startTime = performance.now();
-      
+
       // Simulate component mounting
       mockPerformance.mark(`${componentName}-mount-start`);
-      
+
       // Simulate rendering work
       const renderWork = () => {
         let sum = 0;
@@ -126,14 +129,14 @@ describe('Performance Tests', () => {
         }
         return sum;
       };
-      
+
       renderWork();
-      
+
       const endTime = performance.now();
       mockPerformance.mark(`${componentName}-mount-end`);
-      
+
       const renderTime = endTime - startTime;
-      
+
       // Component should render within 100ms
       expect(renderTime).toBeLessThan(100);
     });
@@ -142,23 +145,27 @@ describe('Performance Tests', () => {
       const heavyComponents = [
         { name: 'DataGrid', renderTime: 150 },
         { name: 'Chart', renderTime: 200 },
-        { name: 'Map', renderTime: 300 }
+        { name: 'Map', renderTime: 300 },
       ];
 
-      const slowComponents = heavyComponents.filter(comp => comp.renderTime > 100);
-      
+      const slowComponents = heavyComponents.filter(
+        comp => comp.renderTime > 100
+      );
+
       expect(slowComponents).toHaveLength(3);
-      
+
       // Log performance warnings
       slowComponents.forEach(comp => {
-        console.warn(`Heavy component detected: ${comp.name} (${comp.renderTime}ms)`);
+        console.warn(
+          `Heavy component detected: ${comp.name} (${comp.renderTime}ms)`
+        );
       });
     });
 
     it('should track re-render frequency', () => {
       const componentName = 'PropertyCard';
       let renderCount = 0;
-      
+
       // Simulate multiple re-renders
       const simulateReRender = () => {
         renderCount++;
@@ -172,9 +179,11 @@ describe('Performance Tests', () => {
 
       // Should not exceed reasonable re-render count
       expect(renderCount).toBeLessThanOrEqual(10);
-      
+
       if (renderCount > 3) {
-        console.warn(`Excessive re-renders detected for ${componentName}: ${renderCount}`);
+        console.warn(
+          `Excessive re-renders detected for ${componentName}: ${renderCount}`
+        );
       }
     });
   });
@@ -182,11 +191,13 @@ describe('Performance Tests', () => {
   describe('Memory Usage', () => {
     it('should detect memory leaks in event listeners', () => {
       const listeners: Array<() => void> = [];
-      
+
       // Simulate adding event listeners
       const addEventListeners = () => {
         for (let i = 0; i < 10; i++) {
-          const listener = () => { /* noop */ };
+          const listener = () => {
+            /* noop */
+          };
           listeners.push(listener);
           // In real scenario, these would be added to DOM elements
         }
@@ -211,7 +222,7 @@ describe('Performance Tests', () => {
         title: `Property ${i}`,
         description: 'A'.repeat(500), // 500 character description
         images: Array.from({ length: 5 }, (_, j) => `image-${i}-${j}.jpg`),
-        amenities: Array.from({ length: 10 }, (_, k) => `amenity-${k}`)
+        amenities: Array.from({ length: 10 }, (_, k) => `amenity-${k}`),
       }));
 
       const datasetSize = JSON.stringify(largeDataset).length;
@@ -219,9 +230,11 @@ describe('Performance Tests', () => {
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
       expect(datasetSize).toBeLessThan(maxSizeInBytes);
-      
+
       if (datasetSize > maxSizeInBytes / 2) {
-        console.warn(`Large dataset detected: ${(datasetSize / 1024 / 1024).toFixed(2)}MB`);
+        console.warn(
+          `Large dataset detected: ${(datasetSize / 1024 / 1024).toFixed(2)}MB`
+        );
       }
     });
   });
@@ -232,18 +245,24 @@ describe('Performance Tests', () => {
       const criticalResources = [
         { name: 'main.js', size: 500000 }, // 500KB
         { name: 'vendor.js', size: 800000 }, // 800KB
-        { name: 'styles.css', size: 50000 } // 50KB
+        { name: 'styles.css', size: 50000 }, // 50KB
       ];
 
-      const totalSize = criticalResources.reduce((sum, resource) => sum + resource.size, 0);
+      const totalSize = criticalResources.reduce(
+        (sum, resource) => sum + resource.size,
+        0
+      );
       const maxBundleSize = 1.5 * 1024 * 1024; // 1.5MB limit
 
       expect(totalSize).toBeLessThan(maxBundleSize);
 
       // Check individual resource sizes
       criticalResources.forEach(resource => {
-        if (resource.size > 1024 * 1024) { // 1MB
-          console.warn(`Large resource: ${resource.name} (${(resource.size / 1024 / 1024).toFixed(2)}MB)`);
+        if (resource.size > 1024 * 1024) {
+          // 1MB
+          console.warn(
+            `Large resource: ${resource.name} (${(resource.size / 1024 / 1024).toFixed(2)}MB)`
+          );
         }
       });
     });
@@ -254,7 +273,7 @@ describe('Performance Tests', () => {
         { route: '/', chunk: 'home.js', size: 100000 },
         { route: '/properties', chunk: 'properties.js', size: 200000 },
         { route: '/contracts', chunk: 'contracts.js', size: 150000 },
-        { route: '/dashboard', chunk: 'dashboard.js', size: 180000 }
+        { route: '/dashboard', chunk: 'dashboard.js', size: 180000 },
       ];
 
       // Each route chunk should be reasonably sized
@@ -263,7 +282,10 @@ describe('Performance Tests', () => {
       });
 
       // Total split chunks should be manageable
-      const totalChunkSize = routeChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+      const totalChunkSize = routeChunks.reduce(
+        (sum, chunk) => sum + chunk.size,
+        0
+      );
       expect(totalChunkSize).toBeLessThan(1024 * 1024); // 1MB total
     });
   });
@@ -275,32 +297,35 @@ describe('Performance Tests', () => {
         minPrice: 500,
         maxPrice: 1500,
         bedrooms: 2,
-        propertyType: 'apartment'
+        propertyType: 'apartment',
       };
 
       const mockSearchResults = Array.from({ length: 50 }, (_, i) => ({
         id: i,
         title: `Property ${i}`,
-        price: 1000 + (i * 10),
-        city: 'Madrid'
+        price: 1000 + i * 10,
+        city: 'Madrid',
       }));
 
       mockedApi.get.mockResolvedValueOnce({
         data: mockSearchResults,
         status: 200,
         config: {
-          metadata: { startTime: performance.now() - 200, requestId: 'search-request' }
-        }
+          metadata: {
+            startTime: performance.now() - 200,
+            requestId: 'search-request',
+          },
+        },
       });
 
       const startTime = performance.now();
       const response = await mockedApi.get('/properties/search/', {
-        params: searchCriteria
+        params: searchCriteria,
       });
       const endTime = performance.now();
 
       const queryTime = endTime - startTime;
-      
+
       expect(response.data).toHaveLength(50);
       expect(queryTime).toBeLessThan(500); // Search should complete within 500ms
     });
@@ -308,11 +333,11 @@ describe('Performance Tests', () => {
     it('should handle pagination efficiently', async () => {
       const pageSize = 20;
       const totalPages = 5;
-      
+
       for (let page = 1; page <= totalPages; page++) {
         const mockPageData = Array.from({ length: pageSize }, (_, i) => ({
           id: (page - 1) * pageSize + i,
-          title: `Property ${(page - 1) * pageSize + i}`
+          title: `Property ${(page - 1) * pageSize + i}`,
         }));
 
         mockedApi.get.mockResolvedValueOnce({
@@ -320,12 +345,15 @@ describe('Performance Tests', () => {
             results: mockPageData,
             count: totalPages * pageSize,
             next: page < totalPages ? `/properties/?page=${page + 1}` : null,
-            previous: page > 1 ? `/properties/?page=${page - 1}` : null
+            previous: page > 1 ? `/properties/?page=${page - 1}` : null,
           },
           status: 200,
           config: {
-            metadata: { startTime: performance.now() - 100, requestId: `page-${page}` }
-          }
+            metadata: {
+              startTime: performance.now() - 100,
+              requestId: `page-${page}`,
+            },
+          },
         });
 
         const startTime = performance.now();
@@ -342,23 +370,23 @@ describe('Performance Tests', () => {
     it('should handle WebSocket message frequency', () => {
       const messages: any[] = [];
       const maxMessagesPerSecond = 10;
-      
+
       // Simulate WebSocket messages
       const simulateMessages = () => {
         for (let i = 0; i < 15; i++) {
           messages.push({
             id: i,
             type: 'notification',
-            timestamp: Date.now() + (i * 100)
+            timestamp: Date.now() + i * 100,
           });
         }
       };
 
       simulateMessages();
-      
+
       // Should throttle messages if too frequent
-      const throttledMessages = messages.filter((_, index) => 
-        index < maxMessagesPerSecond
+      const throttledMessages = messages.filter(
+        (_, index) => index < maxMessagesPerSecond
       );
 
       expect(throttledMessages).toHaveLength(maxMessagesPerSecond);
@@ -368,7 +396,7 @@ describe('Performance Tests', () => {
       const notifications = [
         { id: 1, type: 'message', priority: 'high', deliveryTime: 50 },
         { id: 2, type: 'payment', priority: 'medium', deliveryTime: 100 },
-        { id: 3, type: 'reminder', priority: 'low', deliveryTime: 200 }
+        { id: 3, type: 'reminder', priority: 'low', deliveryTime: 200 },
       ];
 
       notifications.forEach(notification => {
@@ -390,18 +418,18 @@ describe('Performance Tests', () => {
           total: 100,
           average: 250,
           slowest: 1200,
-          fastest: 50
+          fastest: 50,
         },
         componentRenders: {
           total: 50,
           average: 45,
           slowest: 150,
-          fastest: 10
+          fastest: 10,
         },
         memoryUsage: {
           current: 25 * 1024 * 1024, // 25MB
-          peak: 45 * 1024 * 1024     // 45MB
-        }
+          peak: 45 * 1024 * 1024, // 45MB
+        },
       };
 
       // API performance checks
@@ -424,20 +452,20 @@ describe('Performance Tests', () => {
           loadTime: 2500,
           renderTime: 150,
           apiResponseTime: 300,
-          bundleSize: 1.2 * 1024 * 1024
+          bundleSize: 1.2 * 1024 * 1024,
         },
-        recommendations: [] as string[]
+        recommendations: [] as string[],
       };
 
       // Generate recommendations based on metrics
       if (performanceReport.metrics.loadTime > 3000) {
         performanceReport.recommendations.push('Optimize initial load time');
       }
-      
+
       if (performanceReport.metrics.renderTime > 100) {
         performanceReport.recommendations.push('Optimize component rendering');
       }
-      
+
       if (performanceReport.metrics.apiResponseTime > 500) {
         performanceReport.recommendations.push('Optimize API response times');
       }
@@ -446,7 +474,9 @@ describe('Performance Tests', () => {
         performanceReport.recommendations.push('Reduce bundle size');
       }
 
-      expect(performanceReport.recommendations).toContain('Optimize component rendering');
+      expect(performanceReport.recommendations).toContain(
+        'Optimize component rendering'
+      );
       expect(performanceReport.timestamp).toBeDefined();
     });
   });

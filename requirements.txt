@@ -93,4 +93,4 @@ qrcode==7.4.2
 # SISTEMA CONTROL MOLECULAR - Editor Rico y Versionado
 # =============================================================================
 django-ckeditor==6.7.0
-django-simple-history==3.4.0 
+django-simple-history==3.4.0

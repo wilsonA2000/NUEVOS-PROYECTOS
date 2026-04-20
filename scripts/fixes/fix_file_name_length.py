@@ -12,6 +12,7 @@ django.setup()
 
 from django.db import connection
 
+
 def fix_file_field_length():
     """Increase the max_length for document_file field"""
     with connection.cursor() as cursor:
@@ -43,7 +44,10 @@ def fix_file_field_length():
         except Exception as e:
             print(f"Error: {e}")
             print("\n⚠️ Alternative: Create a migration manually:")
-            print("python manage.py makemigrations requests --empty -n increase_file_field_length")
+            print(
+                "python manage.py makemigrations requests --empty -n increase_file_field_length"
+            )
+
 
 if __name__ == "__main__":
     fix_file_field_length()

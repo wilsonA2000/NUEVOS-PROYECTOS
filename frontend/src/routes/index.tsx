@@ -12,9 +12,9 @@ import AdminRoutes from './admin';
 import { PaymentList } from '../components/payments/PaymentList';
 import { PaymentForm } from '../components/payments/PaymentForm';
 import { PaymentDetail } from '../components/payments/PaymentDetail';
-import { MessageList } from '../components/messages/MessageList';
+
 import { MessageForm } from '../components/messages/MessageForm';
-import { MessageDetail } from '../components/messages/MessageDetail';
+
 import { EmailVerification } from '../pages/auth/EmailVerification';
 import { ResendVerification } from '../pages/auth/ResendVerification';
 import { ReplyForm } from '../components/messages/ReplyForm';
@@ -24,7 +24,7 @@ import { RatingDetail } from '../components/ratings/RatingDetail';
 import Settings from '../pages/settings/Settings';
 import Resume from '../pages/Resume';
 import ResumeEdit from '../pages/ResumeEdit';
-import ServicesPage from '../pages/services/ServicesPage';
+
 import ServiceRequestsPage from '../pages/services/ServiceRequestsPage';
 import MessengerMain from '../pages/messages/MessengerMain';
 import { useAuth } from '../hooks/useAuth';
@@ -48,144 +48,187 @@ import TenantInvitationLanding from '../pages/contracts/TenantInvitationLanding'
 import SubscriptionPlans from '../pages/subscriptions/SubscriptionPlans';
 
 export const AppRoutes: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-const { isAuthenticated, isLoading } = useAuth();
-
-// Si está cargando, mostrar loading
+  // Si está cargando, mostrar loading
   if (isLoading) {
-
-return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <h2>Cargando...</h2>
       </div>
     );
   }
 
-// Si no está autenticado, mostrar solo rutas públicas
+  // Si no está autenticado, mostrar solo rutas públicas
   if (!isAuthenticated) {
-
-return (
+    return (
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterWithCode />} />
-        <Route path="/email-verification" element={<EmailVerification />} />
-        <Route path="/resend-verification" element={<ResendVerification />} />
-        <Route path="/confirm-email/:key" element={<ConfirmEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/properties" element={<PropertyList />} />
-        <Route path="/services" element={<ServicesOverviewPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/help" element={<SupportPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/security" element={<SecurityPage />} />
-        <Route path="/blog" element={<CommunityPage />} />
-        <Route path="/events" element={<CommunityPage />} />
-        <Route path="/partners" element={<CommunityPage />} />
-        <Route path="/careers" element={<CommunityPage />} />
+        <Route path='/' element={<LandingPage />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<RegisterWithCode />} />
+        <Route path='/email-verification' element={<EmailVerification />} />
+        <Route path='/resend-verification' element={<ResendVerification />} />
+        <Route path='/confirm-email/:key' element={<ConfirmEmail />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route path='/properties' element={<PropertyList />} />
+        <Route path='/services' element={<ServicesOverviewPage />} />
+        <Route path='/about' element={<AboutPage />} />
+        <Route path='/contact' element={<ContactPage />} />
+        <Route path='/help' element={<SupportPage />} />
+        <Route path='/terms' element={<TermsPage />} />
+        <Route path='/privacy' element={<PrivacyPage />} />
+        <Route path='/security' element={<SecurityPage />} />
+        <Route path='/blog' element={<CommunityPage />} />
+        <Route path='/events' element={<CommunityPage />} />
+        <Route path='/partners' element={<CommunityPage />} />
+        <Route path='/careers' element={<CommunityPage />} />
         {/* 🔥 NUEVA RUTA: Invitación de arrendatario */}
-        <Route path="/tenant/invitation/:token" element={<TenantInvitationLanding />} />
+        <Route
+          path='/tenant/invitation/:token'
+          element={<TenantInvitationLanding />}
+        />
         {/* Redirigir cualquier otra ruta a la landing */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>
     );
   }
-  
+
   // Si está autenticado, mostrar rutas protegidas
 
-return (
+  return (
     <Routes>
       {/* Redirigir usuarios autenticados desde rutas públicas */}
-      <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/login" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/register" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/forgot-password" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/reset-password" element={<Navigate to="/app/dashboard" replace />} />
-      
+      <Route path='/' element={<Navigate to='/app/dashboard' replace />} />
+      <Route path='/login' element={<Navigate to='/app/dashboard' replace />} />
+      <Route
+        path='/register'
+        element={<Navigate to='/app/dashboard' replace />}
+      />
+      <Route
+        path='/forgot-password'
+        element={<Navigate to='/app/dashboard' replace />}
+      />
+      <Route
+        path='/reset-password'
+        element={<Navigate to='/app/dashboard' replace />}
+      />
+
       {/* Rutas protegidas - App principal */}
       <Route
-        path="/app"
+        path='/app'
         element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/app/dashboard" replace />} />
+        <Route index element={<Navigate to='/app/dashboard' replace />} />
         {/* Dashboard Route */}
-        <Route path="dashboard" element={<NewDashboard />} />
+        <Route path='dashboard' element={<NewDashboard />} />
         {/* Properties Routes */}
-        <Route path="properties">
+        <Route path='properties'>
           <Route index element={<PropertyList />} />
-          <Route path="new" element={<PropertyFormPage />} />
-          <Route path=":id" element={<PropertyDetail />} />
-          <Route path=":id/edit" element={<PropertyFormPage />} />
+          <Route path='new' element={<PropertyFormPage />} />
+          <Route path=':id' element={<PropertyDetail />} />
+          <Route path=':id/edit' element={<PropertyFormPage />} />
         </Route>
         {/* Contracts Routes */}
-        <Route path="contracts/*" element={<ContractRoutes />} />
-        <Route path="contracts/signing-demo" element={<ContractSigningDemo />} />
+        <Route path='contracts/*' element={<ContractRoutes />} />
+        <Route
+          path='contracts/signing-demo'
+          element={<ContractSigningDemo />}
+        />
         {/* Payments Routes */}
-        <Route path="payments">
+        <Route path='payments'>
           <Route index element={<PaymentList />} />
-          <Route path="new" element={<PaymentForm />} />
-          <Route path=":id" element={<PaymentDetail />} />
-          <Route path=":id/edit" element={<PaymentForm />} />
+          <Route path='new' element={<PaymentForm />} />
+          <Route path=':id' element={<PaymentDetail />} />
+          <Route path=':id/edit' element={<PaymentForm />} />
         </Route>
         {/* Messages Routes */}
-        <Route path="messages">
+        <Route path='messages'>
           <Route index element={<MessengerMain />} />
-          <Route path="new" element={<MessageForm />} />
+          <Route path='new' element={<MessageForm />} />
           {/* <Route path=":id" element={<MessageDetail />} /> */}
-          <Route path="reply" element={<ReplyForm />} />
+          <Route path='reply' element={<ReplyForm />} />
         </Route>
         {/* Ratings Routes */}
-        <Route path="ratings">
+        <Route path='ratings'>
           <Route index element={<RatingList />} />
-          <Route path="new" element={<RatingForm targetType="property" targetId="" />} />
-          <Route path=":id" element={<RatingDetail />} />
+          <Route
+            path='new'
+            element={<RatingForm targetType='property' targetId='' />}
+          />
+          <Route path=':id' element={<RatingDetail />} />
         </Route>
         {/* Requests Routes */}
-        <Route path="requests">
+        <Route path='requests'>
           <Route index element={<RequestsPage />} />
         </Route>
         {/* Profile Route */}
-        <Route path="profile" element={<Profile />} />
+        <Route path='profile' element={<Profile />} />
         {/* Settings Route */}
-        <Route path="settings" element={<Settings />} />
+        <Route path='settings' element={<Settings />} />
         {/* Resume Routes */}
-        <Route path="resume" element={<Resume />} />
-        <Route path="resume/edit" element={<ResumeEdit />} />
+        <Route path='resume' element={<Resume />} />
+        <Route path='resume/edit' element={<ResumeEdit />} />
         {/* Services Routes */}
-        <Route path="services" element={<ServicesOverviewPage />} />
-        <Route path="service-requests" element={<ServiceRequestsPage />} />
-        <Route path="help" element={<SupportPage />} />
-        <Route path="blog" element={<CommunityPage />} />
-        <Route path="events" element={<CommunityPage />} />
-        <Route path="partners" element={<CommunityPage />} />
-        <Route path="careers" element={<CommunityPage />} />
+        <Route path='services' element={<ServicesOverviewPage />} />
+        <Route path='service-requests' element={<ServiceRequestsPage />} />
+        <Route path='help' element={<SupportPage />} />
+        <Route path='blog' element={<CommunityPage />} />
+        <Route path='events' element={<CommunityPage />} />
+        <Route path='partners' element={<CommunityPage />} />
+        <Route path='careers' element={<CommunityPage />} />
         {/* Subscriptions */}
-        <Route path="subscriptions" element={<SubscriptionPlans />} />
+        <Route path='subscriptions' element={<SubscriptionPlans />} />
         {/* Admin Routes - Dashboard de Administración Legal */}
-        <Route path="admin/*" element={<AdminRoutes />} />
+        <Route path='admin/*' element={<AdminRoutes />} />
         {/* Catch all route para rutas protegidas */}
-        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path='*' element={<Navigate to='/app/dashboard' replace />} />
       </Route>
 
       {/* Redirecciones para rutas legacy */}
-      <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/properties" element={<Navigate to="/app/properties" replace />} />
-      <Route path="/contracts" element={<Navigate to="/app/contracts" replace />} />
-      <Route path="/payments" element={<Navigate to="/app/payments" replace />} />
-      <Route path="/messages" element={<Navigate to="/app/messages" replace />} />
-      <Route path="/ratings" element={<Navigate to="/app/ratings" replace />} />
-      <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-      <Route path="/services" element={<Navigate to="/app/services" replace />} />
+      <Route
+        path='/dashboard'
+        element={<Navigate to='/app/dashboard' replace />}
+      />
+      <Route
+        path='/properties'
+        element={<Navigate to='/app/properties' replace />}
+      />
+      <Route
+        path='/contracts'
+        element={<Navigate to='/app/contracts' replace />}
+      />
+      <Route
+        path='/payments'
+        element={<Navigate to='/app/payments' replace />}
+      />
+      <Route
+        path='/messages'
+        element={<Navigate to='/app/messages' replace />}
+      />
+      <Route path='/ratings' element={<Navigate to='/app/ratings' replace />} />
+      <Route
+        path='/settings'
+        element={<Navigate to='/app/settings' replace />}
+      />
+      <Route
+        path='/services'
+        element={<Navigate to='/app/services' replace />}
+      />
 
       {/* Catch all route para usuarios autenticados */}
-      <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path='*' element={<Navigate to='/app/dashboard' replace />} />
     </Routes>
   );
-}; 
+};

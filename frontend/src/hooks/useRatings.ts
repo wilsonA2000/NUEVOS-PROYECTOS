@@ -6,7 +6,11 @@ export const useRatings = () => {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
-  const { data: ratings, isLoading, error } = useQuery({
+  const {
+    data: ratings,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['ratings'],
     queryFn: ratingService.getRatings,
     retry: 3,
@@ -19,8 +23,7 @@ export const useRatings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
-    onError: (error) => {
-    },
+    onError: error => {},
   });
 
   const updateRating = useMutation({
@@ -29,8 +32,7 @@ export const useRatings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
-    onError: (error) => {
-    },
+    onError: error => {},
   });
 
   const deleteRating = useMutation({
@@ -38,8 +40,7 @@ export const useRatings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ratings'] });
     },
-    onError: (error) => {
-    },
+    onError: error => {},
   });
 
   return {
@@ -50,4 +51,4 @@ export const useRatings = () => {
     updateRating,
     deleteRating,
   };
-}; 
+};

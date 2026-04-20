@@ -11,77 +11,83 @@ import { useAuth } from '../hooks/useAuth';
 import { Alert, Box } from '@mui/material';
 
 // Componente de protección para rutas exclusivas de landlord
-const LandlordOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const LandlordOnlyRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
-  
+
   if (user?.user_type !== 'landlord') {
     return (
       <Box p={3}>
-        <Alert severity="warning">
-          Solo los arrendadores pueden acceder a esta función. 
-          Como arrendatario, puedes revisar los contratos que te han enviado desde el módulo de contratos.
+        <Alert severity='warning'>
+          Solo los arrendadores pueden acceder a esta función. Como
+          arrendatario, puedes revisar los contratos que te han enviado desde el
+          módulo de contratos.
         </Alert>
       </Box>
     );
   }
-  
+
   return <>{children}</>;
 };
 
 // Componente de protección para rutas exclusivas de tenant
-const TenantOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const TenantOnlyRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
-  
+
   if (user?.user_type !== 'tenant') {
     return (
       <Box p={3}>
-        <Alert severity="warning">
-          Esta función es exclusiva para inquilinos y candidatos. 
-          Los arrendadores pueden gestionar sus procesos desde "Candidatos Aprobados".
+        <Alert severity='warning'>
+          Esta función es exclusiva para inquilinos y candidatos. Los
+          arrendadores pueden gestionar sus procesos desde "Candidatos
+          Aprobados".
         </Alert>
       </Box>
     );
   }
-  
+
   return <>{children}</>;
 };
 
 const ContractRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<ContractList />} />
+      <Route path='/' element={<ContractList />} />
       {/* Legacy route: consolidated into Solicitudes > Aceptadas */}
       <Route
-        path="/matched-candidates"
-        element={<Navigate to="/app/matches?tab=accepted" replace />}
+        path='/matched-candidates'
+        element={<Navigate to='/app/matches?tab=accepted' replace />}
       />
-      <Route 
-        path="/my-processes" 
+      <Route
+        path='/my-processes'
         element={
           <TenantOnlyRoute>
             <TenantContractView />
           </TenantOnlyRoute>
-        } 
-      />
-      <Route 
-        path="/new" 
-        element={
-          <LandlordOnlyRoute>
-            <ContractForm />
-          </LandlordOnlyRoute>
-        } 
-      />
-      <Route path="/:id" element={<ContractDetail />} />
-      <Route 
-        path="/:id/edit" 
-        element={
-          <LandlordOnlyRoute>
-            <ContractForm />
-          </LandlordOnlyRoute>
-        } 
+        }
       />
       <Route
-        path="/renewal"
+        path='/new'
+        element={
+          <LandlordOnlyRoute>
+            <ContractForm />
+          </LandlordOnlyRoute>
+        }
+      />
+      <Route path='/:id' element={<ContractDetail />} />
+      <Route
+        path='/:id/edit'
+        element={
+          <LandlordOnlyRoute>
+            <ContractForm />
+          </LandlordOnlyRoute>
+        }
+      />
+      <Route
+        path='/renewal'
         element={
           <LandlordOnlyRoute>
             <ContractRenewalWizard />
@@ -89,7 +95,7 @@ const ContractRoutes: React.FC = () => {
         }
       />
       <Route
-        path="/:id/renewal"
+        path='/:id/renewal'
         element={
           <LandlordOnlyRoute>
             <ContractRenewalWizard />
@@ -97,15 +103,12 @@ const ContractRoutes: React.FC = () => {
         }
       />
       <Route
-        path="/:id/authenticate"
+        path='/:id/authenticate'
         element={<BiometricAuthenticationPage />}
       />
-      <Route 
-        path="/:id/sign" 
-        element={<DigitalSignaturePage />} 
-      />
+      <Route path='/:id/sign' element={<DigitalSignaturePage />} />
     </Routes>
   );
 };
 
-export default ContractRoutes; 
+export default ContractRoutes;

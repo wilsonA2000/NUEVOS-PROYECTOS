@@ -86,7 +86,9 @@ const formatDate = (iso: string | null | undefined): string => {
   if (!iso) return '—';
   try {
     return new Date(iso).toLocaleDateString('es-CO', {
-      day: '2-digit', month: 'short', year: 'numeric',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   } catch {
     return iso;
@@ -94,44 +96,55 @@ const formatDate = (iso: string | null | undefined): string => {
 };
 
 const PaymentOrderList: React.FC<PaymentOrderListProps> = ({
-  orders, currentUserId, onPay, onView,
+  orders,
+  currentUserId,
+  onPay,
+  onView,
   emptyMessage = 'No hay órdenes de pago en esta categoría.',
 }) => {
   if (!orders || orders.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
-        <Typography variant="body1">{emptyMessage}</Typography>
+        <Typography variant='body1'>{emptyMessage}</Typography>
       </Box>
     );
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table size="small">
+    <TableContainer component={Paper} variant='outlined'>
+      <Table size='small'>
         <TableHead>
           <TableRow>
             <TableCell>Consecutivo</TableCell>
             <TableCell>Tipo</TableCell>
             <TableCell>Pagador</TableCell>
             <TableCell>Beneficiario</TableCell>
-            <TableCell align="right">Monto</TableCell>
-            <TableCell align="right">Intereses</TableCell>
-            <TableCell align="right">Saldo</TableCell>
+            <TableCell align='right'>Monto</TableCell>
+            <TableCell align='right'>Intereses</TableCell>
+            <TableCell align='right'>Saldo</TableCell>
             <TableCell>Vence</TableCell>
             <TableCell>Estado</TableCell>
-            <TableCell align="right">Acciones</TableCell>
+            <TableCell align='right'>Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {orders.map((o) => {
+          {orders.map(o => {
             const isPayer = o.payer === currentUserId;
-            const canPay = isPayer && (o.status === 'pending' || o.status === 'overdue' || o.status === 'partial');
+            const canPay =
+              isPayer &&
+              (o.status === 'pending' ||
+                o.status === 'overdue' ||
+                o.status === 'partial');
             return (
-              <TableRow key={o.id} hover sx={{ cursor: onView ? 'pointer' : 'default' }}>
+              <TableRow
+                key={o.id}
+                hover
+                sx={{ cursor: onView ? 'pointer' : 'default' }}
+              >
                 <TableCell>
-                  <Tooltip title={o.description || ''} placement="top">
+                  <Tooltip title={o.description || ''} placement='top'>
                     <Typography
-                      variant="body2"
+                      variant='body2'
                       onClick={() => onView?.(o)}
                       sx={{ fontWeight: 600, fontFamily: 'monospace' }}
                     >
@@ -141,33 +154,44 @@ const PaymentOrderList: React.FC<PaymentOrderListProps> = ({
                 </TableCell>
                 <TableCell>{o.order_type_display}</TableCell>
                 <TableCell>
-                  <Typography variant="body2" noWrap>
+                  <Typography variant='body2' noWrap>
                     {o.payer_name}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" noWrap>
+                  <Typography variant='body2' noWrap>
                     {o.payee_name}
                   </Typography>
                 </TableCell>
-                <TableCell align="right">{formatCOP(o.amount)}</TableCell>
-                <TableCell align="right" sx={{ color: parseFloat(o.interest_amount) > 0 ? 'error.main' : 'text.secondary' }}>
+                <TableCell align='right'>{formatCOP(o.amount)}</TableCell>
+                <TableCell
+                  align='right'
+                  sx={{
+                    color:
+                      parseFloat(o.interest_amount) > 0
+                        ? 'error.main'
+                        : 'text.secondary',
+                  }}
+                >
                   {formatCOP(o.interest_amount)}
                 </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>
+                <TableCell align='right' sx={{ fontWeight: 600 }}>
                   {formatCOP(o.balance)}
                 </TableCell>
                 <TableCell>{formatDate(o.date_due)}</TableCell>
                 <TableCell>
-                  <StatusChip kind={statusToKind(o.status)} label={o.status_display} />
+                  <StatusChip
+                    kind={statusToKind(o.status)}
+                    label={o.status_display}
+                  />
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align='right'>
                   {canPay && onPay && (
                     <Button
-                      size="small"
-                      variant="contained"
+                      size='small'
+                      variant='contained'
                       startIcon={<PayIcon />}
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         onPay(o);
                       }}

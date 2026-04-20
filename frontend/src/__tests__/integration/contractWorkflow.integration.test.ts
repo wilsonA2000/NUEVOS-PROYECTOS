@@ -24,7 +24,7 @@ import {
   createMockSignatureData,
   createMockStatistics,
   createTestDates,
-  cleanupMocks
+  cleanupMocks,
 } from '../../test-utils/contractTestUtils';
 
 // Cast to jest.Mock for typing
@@ -36,20 +36,20 @@ const mockPatch = api.patch as jest.Mock;
 const mockLandlordUser = createMockUser('landlord', {
   id: 'landlord-123',
   email: 'landlord@test.com',
-  full_name: 'Juan Carlos Pérez'
+  full_name: 'Juan Carlos Pérez',
 });
 
 const mockTenantUser = createMockUser('tenant', {
   id: 'tenant-456',
   email: 'tenant@test.com',
-  full_name: 'Ana María González'
+  full_name: 'Ana María González',
 });
 
 const mockTenantData = createMockTenantData({
   full_name: 'Ana María González',
   email: 'tenant@test.com',
   phone: '+57 301 987 6543',
-  monthly_income: 5000000
+  monthly_income: 5000000,
 });
 
 // Estados del contrato para el flujo completo
@@ -57,22 +57,22 @@ const createContractStates = (baseId: string) => ({
   draft: createMockContract('DRAFT', { id: baseId }),
   tenantInvited: createMockContract('TENANT_INVITED', {
     id: baseId,
-    tenant_email: 'tenant@test.com'
+    tenant_email: 'tenant@test.com',
   }),
   tenantReviewing: createMockContract('TENANT_REVIEWING', {
     id: baseId,
-    tenant_data: mockTenantData
+    tenant_data: mockTenantData,
   }),
   landlordReviewing: createMockContract('LANDLORD_REVIEWING', {
     id: baseId,
     tenant_data: mockTenantData,
-    tenant_approved: true
+    tenant_approved: true,
   }),
   readyToSign: createMockContract('READY_TO_SIGN', {
     id: baseId,
     tenant_data: mockTenantData,
     landlord_approved: true,
-    tenant_approved: true
+    tenant_approved: true,
   }),
   fullySigned: createMockContract('FULLY_SIGNED', {
     id: baseId,
@@ -80,7 +80,7 @@ const createContractStates = (baseId: string) => ({
     landlord_approved: true,
     tenant_approved: true,
     landlord_signed: true,
-    tenant_signed: true
+    tenant_signed: true,
   }),
   published: createMockContract('PUBLISHED', {
     id: baseId,
@@ -90,8 +90,8 @@ const createContractStates = (baseId: string) => ({
     landlord_signed: true,
     tenant_signed: true,
     published: true,
-    published_at: new Date().toISOString()
-  })
+    published_at: new Date().toISOString(),
+  }),
 });
 
 describe('Contract Workflow Integration Tests', () => {
@@ -146,9 +146,10 @@ describe('Contract Workflow Integration Tests', () => {
       // Approve contract as landlord
       mockPost.mockResolvedValueOnce({ data: contractStates.readyToSign });
 
-      const approvedContract = await LandlordContractService.approveLandlordContract({
-        contract_id: baseContractId,
-      });
+      const approvedContract =
+        await LandlordContractService.approveLandlordContract({
+          contract_id: baseContractId,
+        });
 
       expect(approvedContract.current_state).toBe('READY_TO_SIGN');
       expect(approvedContract.landlord_approved).toBe(true);
@@ -160,10 +161,12 @@ describe('Contract Workflow Integration Tests', () => {
 
       mockPost.mockResolvedValueOnce({ data: contractStates.fullySigned });
 
-      const signedContract = await LandlordContractService.signLandlordContract({
-        contract_id: baseContractId,
-        signature_data: signatureData.signature_image,
-      });
+      const signedContract = await LandlordContractService.signLandlordContract(
+        {
+          contract_id: baseContractId,
+          signature_data: signatureData.signature_image,
+        }
+      );
 
       expect(signedContract.current_state).toBe('FULLY_SIGNED');
       expect(signedContract.landlord_signed).toBe(true);
@@ -184,7 +187,9 @@ describe('Contract Workflow Integration Tests', () => {
     it('should complete end-to-end workflow from draft to published', async () => {
       // 1. Create
       mockPost.mockResolvedValueOnce({ data: contractStates.draft });
-      const created = await LandlordContractService.createContract({ monthly_rent: 2500000 });
+      const created = await LandlordContractService.createContract({
+        monthly_rent: 2500000,
+      });
       expect(created.current_state).toBe('DRAFT');
 
       // 2. Invite tenant
@@ -237,7 +242,10 @@ describe('Contract Workflow Integration Tests', () => {
 
     it('should complete tenant data submission', async () => {
       mockPost.mockResolvedValueOnce({
-        data: { ...contractStates.tenantReviewing, current_state: 'LANDLORD_REVIEWING' }
+        data: {
+          ...contractStates.tenantReviewing,
+          current_state: 'LANDLORD_REVIEWING',
+        },
       });
 
       const result = await LandlordContractService.completeTenantData({
@@ -275,10 +283,11 @@ describe('Contract Workflow Integration Tests', () => {
           ...objectionData,
           status: 'PENDING',
           created_at: new Date().toISOString(),
-        }
+        },
       });
 
-      const objection = await LandlordContractService.submitObjection(objectionData);
+      const objection =
+        await LandlordContractService.submitObjection(objectionData);
 
       expect(objection.field_name).toBe('monthly_rent');
       expect(objection.proposed_value).toBe('2200000');
@@ -306,10 +315,11 @@ describe('Contract Workflow Integration Tests', () => {
     it('should complete full biometric authentication and signing', async () => {
       // Step 1: Start biometric auth
       mockPost.mockResolvedValueOnce({
-        data: { authenticationId: 'auth-123', securityLevel: 'high' }
+        data: { authenticationId: 'auth-123', securityLevel: 'high' },
       });
 
-      const authInit = await contractService.startBiometricAuthentication(baseContractId);
+      const authInit =
+        await contractService.startBiometricAuthentication(baseContractId);
       expect(authInit.authenticationId).toBe('auth-123');
 
       // Step 2: Face capture
@@ -318,11 +328,15 @@ describe('Contract Workflow Integration Tests', () => {
           step: 'face_front',
           status: 'success',
           confidenceScore: 0.95,
-          nextStep: 'document'
-        }
+          nextStep: 'document',
+        },
       });
 
-      const faceResult = await contractService.processFaceCapture(baseContractId, 'front', 'side');
+      const faceResult = await contractService.processFaceCapture(
+        baseContractId,
+        'front',
+        'side'
+      );
       expect(faceResult.confidenceScore).toBe(0.95);
 
       // Step 3: Document verification
@@ -331,11 +345,18 @@ describe('Contract Workflow Integration Tests', () => {
           step: 'document',
           status: 'success',
           confidenceScore: 0.98,
-          extractedData: { documentNumber: '12345678', fullName: 'ANA MARIA GONZALEZ' }
-        }
+          extractedData: {
+            documentNumber: '12345678',
+            fullName: 'ANA MARIA GONZALEZ',
+          },
+        },
       });
 
-      const docResult = await contractService.processDocumentVerification(baseContractId, 'doc-img', 'CC');
+      const docResult = await contractService.processDocumentVerification(
+        baseContractId,
+        'doc-img',
+        'CC'
+      );
       expect(docResult.extractedData.fullName).toBe('ANA MARIA GONZALEZ');
 
       // Step 4: Voice verification
@@ -344,8 +365,8 @@ describe('Contract Workflow Integration Tests', () => {
           step: 'voice',
           status: 'success',
           confidenceScore: 0.89,
-          transcription: 'Acepto los términos'
-        }
+          transcription: 'Acepto los términos',
+        },
       });
 
       const voiceResult = await contractService.processVoiceVerification(
@@ -361,11 +382,12 @@ describe('Contract Workflow Integration Tests', () => {
           contract_id: baseContractId,
           biometric_verified: true,
           confidence_scores: { overall_confidence: 0.94 },
-          certificate_id: 'cert-123'
-        }
+          certificate_id: 'cert-123',
+        },
       });
 
-      const completion = await contractService.completeAuthentication(baseContractId);
+      const completion =
+        await contractService.completeAuthentication(baseContractId);
       expect(completion.biometric_verified).toBe(true);
       expect(completion.confidence_scores.overall_confidence).toBe(0.94);
 
@@ -384,7 +406,7 @@ describe('Contract Workflow Integration Tests', () => {
         contractStates.tenantInvited,
         contractStates.tenantReviewing,
         contractStates.readyToSign,
-        contractStates.published
+        contractStates.published,
       ];
 
       mockGet.mockResolvedValueOnce({
@@ -395,7 +417,7 @@ describe('Contract Workflow Integration Tests', () => {
           page_size: 10,
           has_next: false,
           has_previous: false,
-        }
+        },
       });
 
       const result = await LandlordContractService.getContracts();
@@ -433,8 +455,8 @@ describe('Contract Workflow Integration Tests', () => {
           monthly_income: 25000000,
           expiring_contracts: 2,
           recent_activities: [],
-          contract_status_breakdown: { PUBLISHED: 7, DRAFT: 3 }
-        }
+          contract_status_breakdown: { PUBLISHED: 7, DRAFT: 3 },
+        },
       });
 
       const dashboard = await LandlordContractService.getLandlordDashboard();
@@ -453,7 +475,7 @@ describe('Contract Workflow Integration Tests', () => {
     it('should handle network errors gracefully across workflow', async () => {
       mockPost.mockRejectedValueOnce({
         message: 'Network Error',
-        code: 'ERR_NETWORK'
+        code: 'ERR_NETWORK',
       });
 
       try {
@@ -472,10 +494,10 @@ describe('Contract Workflow Integration Tests', () => {
             error: 'Validation failed',
             details: {
               monthly_rent: ['Este campo es requerido'],
-              property_address: ['Este campo es requerido']
-            }
-          }
-        }
+              property_address: ['Este campo es requerido'],
+            },
+          },
+        },
       });
 
       try {
@@ -491,12 +513,14 @@ describe('Contract Workflow Integration Tests', () => {
       mockPost.mockRejectedValueOnce({
         response: {
           status: 401,
-          data: { error: 'token_expired', message: 'Token has expired' }
-        }
+          data: { error: 'token_expired', message: 'Token has expired' },
+        },
       });
 
       try {
-        await LandlordContractService.approveLandlordContract({ contract_id: baseContractId });
+        await LandlordContractService.approveLandlordContract({
+          contract_id: baseContractId,
+        });
         fail('Should have thrown');
       } catch (error: any) {
         expect(error.response.status).toBe(401);
@@ -511,13 +535,15 @@ describe('Contract Workflow Integration Tests', () => {
           data: {
             error: 'insufficient_permissions',
             required_role: 'landlord',
-            current_role: 'tenant'
-          }
-        }
+            current_role: 'tenant',
+          },
+        },
       });
 
       try {
-        await LandlordContractService.publishContract({ contract_id: baseContractId });
+        await LandlordContractService.publishContract({
+          contract_id: baseContractId,
+        });
         fail('Should have thrown');
       } catch (error: any) {
         expect(error.response.status).toBe(403);
@@ -535,7 +561,7 @@ describe('Contract Workflow Integration Tests', () => {
       const largeContractList = Array.from({ length: 100 }, (_, index) =>
         createMockContract('PUBLISHED', {
           id: `contract-${index}`,
-          property_address: `Propiedad ${index}`
+          property_address: `Propiedad ${index}`,
         })
       );
 
@@ -547,7 +573,7 @@ describe('Contract Workflow Integration Tests', () => {
           page_size: 100,
           has_next: false,
           has_previous: false,
-        }
+        },
       });
 
       const startTime = performance.now();
@@ -568,7 +594,7 @@ describe('Contract Workflow Integration Tests', () => {
           page_size: 10,
           has_next: false,
           has_previous: false,
-        }
+        },
       });
 
       const startTime = performance.now();

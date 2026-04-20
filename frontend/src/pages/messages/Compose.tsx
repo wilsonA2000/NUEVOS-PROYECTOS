@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -14,14 +14,6 @@ import {
   MenuItem,
   SelectChangeEvent,
   Chip,
-  OutlinedInput,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Alert,
-  CircularProgress,
-  Autocomplete,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -70,24 +62,21 @@ const Compose: React.FC = () => {
     try {
       const response = await api.get('/users/');
       setUsers(response.data);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const fetchProperties = async () => {
     try {
       const response = await api.get('/properties/');
       setProperties(response.data);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const fetchContracts = async () => {
     try {
       const response = await api.get('/contracts/');
       setContracts(response.data);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,8 +104,10 @@ const Compose: React.FC = () => {
       formData.append('content', content);
       formData.append('priority', 'medium');
       recipients.forEach(r => formData.append('recipients', r));
-      if (selectedProperty) formData.append('related_property', selectedProperty);
-      if (selectedContract) formData.append('related_contract', selectedContract);
+      if (selectedProperty)
+        formData.append('related_property', selectedProperty);
+      if (selectedContract)
+        formData.append('related_contract', selectedContract);
       attachedFiles.forEach(file => formData.append('attachments', file));
 
       const response = await api.post('/messages/threads/', formData, {
@@ -132,7 +123,7 @@ const Compose: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     try {
       await createThreadMutation.mutate({
         recipients,
@@ -161,20 +152,20 @@ const Compose: React.FC = () => {
         <IconButton onClick={() => navigate('/messages')} sx={{ mr: 1 }}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5">Nuevo Mensaje</Typography>
+        <Typography variant='h5'>Nuevo Mensaje</Typography>
       </Box>
 
-      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
+      <Paper component='form' onSubmit={handleSubmit} sx={{ p: 2 }}>
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel>Tipo de Conversación</InputLabel>
           <Select
             value={conversationType}
-            label="Tipo de Conversación"
+            label='Tipo de Conversación'
             onChange={handleConversationTypeChange}
           >
-            <MenuItem value="general">General</MenuItem>
-            <MenuItem value="property">Propiedad</MenuItem>
-            <MenuItem value="contract">Contrato</MenuItem>
+            <MenuItem value='general'>General</MenuItem>
+            <MenuItem value='property'>Propiedad</MenuItem>
+            <MenuItem value='contract'>Contrato</MenuItem>
           </Select>
         </FormControl>
 
@@ -183,10 +174,10 @@ const Compose: React.FC = () => {
             <InputLabel>Propiedad</InputLabel>
             <Select
               value={selectedProperty}
-              label="Propiedad"
-              onChange={(e) => setSelectedProperty(e.target.value)}
+              label='Propiedad'
+              onChange={e => setSelectedProperty(e.target.value)}
             >
-              {properties?.map((property) => (
+              {properties?.map(property => (
                 <MenuItem key={property.id} value={property.id.toString()}>
                   {property.title} - {property.address}
                 </MenuItem>
@@ -200,10 +191,10 @@ const Compose: React.FC = () => {
             <InputLabel>Contrato</InputLabel>
             <Select
               value={selectedContract}
-              label="Contrato"
-              onChange={(e) => setSelectedContract(e.target.value)}
+              label='Contrato'
+              onChange={e => setSelectedContract(e.target.value)}
             >
-              {contracts?.map((contract) => (
+              {contracts?.map(contract => (
                 <MenuItem key={contract.id} value={contract.id.toString()}>
                   {contract.property.title} - {contract.tenant.full_name}
                 </MenuItem>
@@ -217,10 +208,10 @@ const Compose: React.FC = () => {
           <Select
             multiple
             value={recipients}
-            label="Destinatarios"
-            onChange={(e) => setRecipients(e.target.value as string[])}
+            label='Destinatarios'
+            onChange={e => setRecipients(e.target.value as string[])}
           >
-            {users?.map((user) => (
+            {users?.map(user => (
               <MenuItem key={user.id} value={user.id.toString()}>
                 {user.full_name} ({user.email})
               </MenuItem>
@@ -230,9 +221,9 @@ const Compose: React.FC = () => {
 
         <TextField
           fullWidth
-          label="Asunto"
+          label='Asunto'
           value={subject}
-          onChange={(e) => setSubject(e.target.value)}
+          onChange={e => setSubject(e.target.value)}
           sx={{ mb: 2 }}
         />
 
@@ -240,26 +231,26 @@ const Compose: React.FC = () => {
           fullWidth
           multiline
           rows={4}
-          label="Mensaje"
+          label='Mensaje'
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={e => setContent(e.target.value)}
           sx={{ mb: 2 }}
         />
 
         {/* File attachments */}
         <Box sx={{ mb: 2 }}>
           <input
-            type="file"
+            type='file'
             multiple
             ref={fileInputRef}
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<AttachFileIcon />}
             onClick={() => fileInputRef.current?.click()}
-            size="small"
+            size='small'
             sx={{ mb: 1 }}
           >
             Adjuntar Archivos
@@ -271,7 +262,7 @@ const Compose: React.FC = () => {
                   key={index}
                   label={`${file.name} (${(file.size / 1024).toFixed(0)} KB)`}
                   onDelete={() => handleRemoveFile(index)}
-                  size="small"
+                  size='small'
                 />
               ))}
             </Box>
@@ -279,15 +270,12 @@ const Compose: React.FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => navigate('/messages')}
-          >
+          <Button variant='outlined' onClick={() => navigate('/messages')}>
             Cancelar
           </Button>
           <Button
-            type="submit"
-            variant="contained"
+            type='submit'
+            variant='contained'
             disabled={createThreadMutation.isPending}
           >
             Enviar
@@ -298,4 +286,4 @@ const Compose: React.FC = () => {
   );
 };
 
-export default Compose; 
+export default Compose;

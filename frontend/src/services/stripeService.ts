@@ -1,5 +1,9 @@
 import { loadStripe } from '@stripe/stripe-js/pure';
-import type { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
+import type {
+  Stripe,
+  StripeElements,
+  StripeCardElement,
+} from '@stripe/stripe-js';
 import { api } from './api';
 import { loggingService, LogLevel, LogCategory } from './loggingService';
 
@@ -67,9 +71,18 @@ class StripeService {
         throw new Error('Failed to load Stripe');
       }
 
-      loggingService.log(LogLevel.INFO, LogCategory.SYSTEM, 'Stripe initialized successfully');
+      loggingService.log(
+        LogLevel.INFO,
+        LogCategory.SYSTEM,
+        'Stripe initialized successfully',
+      );
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.SYSTEM, 'Error initializing Stripe', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.SYSTEM,
+        'Error initializing Stripe',
+        { error },
+      );
       throw error;
     }
   }
@@ -86,11 +99,24 @@ class StripeService {
    */
   async createPaymentIntent(data: PaymentIntentData): Promise<any> {
     try {
-      const response = await api.post('/payments/stripe/create-payment-intent/', data);
-      loggingService.log(LogLevel.INFO, LogCategory.API, 'Payment Intent created', { intentId: response.data.id });
+      const response = await api.post(
+        '/payments/stripe/create-payment-intent/',
+        data,
+      );
+      loggingService.log(
+        LogLevel.INFO,
+        LogCategory.API,
+        'Payment Intent created',
+        { intentId: response.data.id },
+      );
       return response.data;
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating Payment Intent', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error creating Payment Intent',
+        { error },
+      );
       throw error;
     }
   }
@@ -119,7 +145,12 @@ class StripeService {
       });
 
       if (result.error) {
-        loggingService.log(LogLevel.ERROR, LogCategory.API, 'Payment confirmation error', { error: result.error });
+        loggingService.log(
+          LogLevel.ERROR,
+          LogCategory.API,
+          'Payment confirmation error',
+          { error: result.error },
+        );
         return {
           success: false,
           error: result.error.message || 'Payment failed',
@@ -127,7 +158,12 @@ class StripeService {
       }
 
       if (result.paymentIntent?.status === 'succeeded') {
-        loggingService.log(LogLevel.INFO, LogCategory.API, 'Payment succeeded', { intentId: result.paymentIntent.id });
+        loggingService.log(
+          LogLevel.INFO,
+          LogCategory.API,
+          'Payment succeeded',
+          { intentId: result.paymentIntent.id },
+        );
         return {
           success: true,
           paymentIntent: result.paymentIntent,
@@ -147,7 +183,12 @@ class StripeService {
         error: 'Payment status unknown',
       };
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error confirming payment', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error confirming payment',
+        { error },
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Payment failed',
@@ -199,7 +240,12 @@ class StripeService {
         paymentIntent: response.data.payment_intent,
       };
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error processing payment with saved method', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error processing payment with saved method',
+        { error },
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Payment failed',
@@ -212,11 +258,24 @@ class StripeService {
    */
   async createSetupIntent(data: SetupIntentData): Promise<any> {
     try {
-      const response = await api.post('/payments/stripe/create-setup-intent/', data);
-      loggingService.log(LogLevel.INFO, LogCategory.API, 'Setup Intent created', { intentId: response.data.id });
+      const response = await api.post(
+        '/payments/stripe/create-setup-intent/',
+        data,
+      );
+      loggingService.log(
+        LogLevel.INFO,
+        LogCategory.API,
+        'Setup Intent created',
+        { intentId: response.data.id },
+      );
       return response.data;
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating Setup Intent', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error creating Setup Intent',
+        { error },
+      );
       throw error;
     }
   }
@@ -243,7 +302,12 @@ class StripeService {
       });
 
       if (result.error) {
-        loggingService.log(LogLevel.ERROR, LogCategory.API, 'Setup Intent confirmation error', { error: result.error });
+        loggingService.log(
+          LogLevel.ERROR,
+          LogCategory.API,
+          'Setup Intent confirmation error',
+          { error: result.error },
+        );
         return {
           success: false,
           error: result.error.message || 'Setup failed',
@@ -251,7 +315,12 @@ class StripeService {
       }
 
       if (result.setupIntent?.status === 'succeeded') {
-        loggingService.log(LogLevel.INFO, LogCategory.API, 'Setup Intent succeeded', { intentId: result.setupIntent.id });
+        loggingService.log(
+          LogLevel.INFO,
+          LogCategory.API,
+          'Setup Intent succeeded',
+          { intentId: result.setupIntent.id },
+        );
         return {
           success: true,
           paymentIntent: result.setupIntent,
@@ -263,7 +332,12 @@ class StripeService {
         error: 'Setup status unknown',
       };
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error confirming Setup Intent', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error confirming Setup Intent',
+        { error },
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Setup failed',
@@ -279,7 +353,12 @@ class StripeService {
       const response = await api.get('/payments/stripe/payment-methods/');
       return response.data;
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting saved payment methods', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error getting saved payment methods',
+        { error },
+      );
       throw error;
     }
   }
@@ -290,9 +369,19 @@ class StripeService {
   async removePaymentMethod(paymentMethodId: string): Promise<void> {
     try {
       await api.delete(`/payments/stripe/payment-methods/${paymentMethodId}/`);
-      loggingService.log(LogLevel.INFO, LogCategory.API, 'Payment method removed', { paymentMethodId });
+      loggingService.log(
+        LogLevel.INFO,
+        LogCategory.API,
+        'Payment method removed',
+        { paymentMethodId },
+      );
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error removing payment method', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error removing payment method',
+        { error },
+      );
       throw error;
     }
   }
@@ -311,10 +400,17 @@ class StripeService {
         amount,
         reason,
       });
-      loggingService.log(LogLevel.INFO, LogCategory.API, 'Refund created', { refundId: response.data.id });
+      loggingService.log(LogLevel.INFO, LogCategory.API, 'Refund created', {
+        refundId: response.data.id,
+      });
       return response.data;
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error creating refund', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error creating refund',
+        { error },
+      );
       throw error;
     }
   }
@@ -329,7 +425,12 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      loggingService.log(LogLevel.ERROR, LogCategory.API, 'Error getting transaction history', { error });
+      loggingService.log(
+        LogLevel.ERROR,
+        LogCategory.API,
+        'Error getting transaction history',
+        { error },
+      );
       throw error;
     }
   }
@@ -400,7 +501,8 @@ class StripeService {
   handleStripeError(error: any): string {
     const errorMessages: Record<string, string> = {
       card_declined: 'Su tarjeta fue rechazada. Intente con otra tarjeta.',
-      expired_card: 'Su tarjeta ha expirado. Verifique la fecha de vencimiento.',
+      expired_card:
+        'Su tarjeta ha expirado. Verifique la fecha de vencimiento.',
       incorrect_cvc: 'El código de seguridad es incorrecto.',
       processing_error: 'Error al procesar el pago. Intente nuevamente.',
       incorrect_number: 'El número de tarjeta es incorrecto.',
@@ -408,7 +510,11 @@ class StripeService {
       authentication_required: 'Se requiere autenticación adicional.',
     };
 
-    return errorMessages[error.code] || error.message || 'Error desconocido en el pago';
+    return (
+      errorMessages[error.code] ||
+      error.message ||
+      'Error desconocido en el pago'
+    );
   }
 }
 

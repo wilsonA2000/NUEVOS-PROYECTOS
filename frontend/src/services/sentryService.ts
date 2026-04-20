@@ -39,12 +39,15 @@ export function initSentry(): void {
     // Filter out noisy development errors
     beforeSend(event) {
       // Skip errors from browser extensions
-      if (event.exception?.values?.some(
-        (e) => e.stacktrace?.frames?.some(
-          (f) => f.filename?.includes('extensions/')
-            || f.filename?.includes('chrome-extension'),
-        ),
-      )) {
+      if (
+        event.exception?.values?.some(e =>
+          e.stacktrace?.frames?.some(
+            f =>
+              f.filename?.includes('extensions/') ||
+              f.filename?.includes('chrome-extension'),
+          ),
+        )
+      ) {
         return null;
       }
 

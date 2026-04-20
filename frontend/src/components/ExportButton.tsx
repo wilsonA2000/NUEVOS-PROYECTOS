@@ -40,7 +40,10 @@ interface ExportButtonProps {
   filename?: string;
   title?: string;
   availableFormats?: ExportFormat[];
-  onExport?: (format: ExportFormat, data: any) => Promise<Blob | string> | Blob | string;
+  onExport?: (
+    format: ExportFormat,
+    data: any
+  ) => Promise<Blob | string> | Blob | string;
   disabled?: boolean;
   variant?: 'contained' | 'outlined' | 'text';
   size?: 'small' | 'medium' | 'large';
@@ -60,7 +63,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(
+    null,
+  );
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -81,7 +86,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       label: 'Excel',
       description: 'Hoja de cálculo Excel',
       icon: <ExcelIcon />,
-      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       fileExtension: 'xlsx',
     },
     csv: {
@@ -142,12 +148,14 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       case 'csv':
         if (Array.isArray(data) && data.length > 0) {
           const headers = Object.keys(data[0]).join(',');
-          const rows = data.map(item => 
-            Object.values(item).map(value => 
-              typeof value === 'string' && value.includes(',') 
-                ? `"${value}"` 
-                : String(value),
-            ).join(','),
+          const rows = data.map(item =>
+            Object.values(item)
+              .map(value =>
+                typeof value === 'string' && value.includes(',')
+                  ? `"${value}"`
+                  : String(value),
+              )
+              .join(','),
           );
           const csvContent = [headers, ...rows].join('\n');
           return new Blob([csvContent], { type: 'text/csv' });
@@ -157,7 +165,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       case 'excel':
         // Implementación básica para Excel (requeriría librería como xlsx)
         // Excel export requires additional library (e.g., xlsx)
-        return new Blob(['Excel export not implemented'], { type: 'text/plain' });
+        return new Blob(['Excel export not implemented'], {
+          type: 'text/plain',
+        });
 
       case 'pdf':
         // Implementación básica para PDF (requeriría librería como jsPDF)
@@ -165,7 +175,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         return new Blob(['PDF export not implemented'], { type: 'text/plain' });
 
       default:
-        return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        return new Blob([JSON.stringify(data, null, 2)], {
+          type: 'application/json',
+        });
     }
   };
 
@@ -218,7 +230,6 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         message: `Exportación ${format.toUpperCase()} completada`,
         severity: 'success',
       });
-
     } catch (error) {
       setSnackbar({
         open: true,
@@ -249,7 +260,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
           onClick={() => handleExport(option.format)}
           startIcon={
             isExporting ? (
-              <CircularProgress size={16} color="inherit" />
+              <CircularProgress size={16} color='inherit' />
             ) : (
               option.icon
             )
@@ -259,11 +270,14 @@ const ExportButton: React.FC<ExportButtonProps> = ({
             color: 'var(--color-text-primary)',
             '&:hover': {
               borderColor: 'var(--color-primary)',
-              backgroundColor: variant === 'outlined' ? 'transparent' : undefined,
+              backgroundColor:
+                variant === 'outlined' ? 'transparent' : undefined,
             },
           }}
         >
-          {isExporting ? `Exportando ${option.label}...` : `Exportar ${option.label}`}
+          {isExporting
+            ? `Exportando ${option.label}...`
+            : `Exportar ${option.label}`}
         </Button>
 
         <Snackbar
@@ -289,7 +303,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         endIcon={<ArrowDownIcon />}
         startIcon={
           isExporting ? (
-            <CircularProgress size={16} color="inherit" />
+            <CircularProgress size={16} color='inherit' />
           ) : (
             <DownloadIcon />
           )
@@ -303,10 +317,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
           },
         }}
       >
-        {isExporting && exportingFormat 
+        {isExporting && exportingFormat
           ? `Exportando ${exportOptions[exportingFormat].label}...`
-          : title
-        }
+          : title}
       </Button>
 
       <Menu
@@ -326,11 +339,16 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       >
         {/* Header */}
         <Box sx={{ p: 2, borderBottom: '1px solid var(--color-border)' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+          <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 0.5 }}>
             Seleccionar Formato
           </Typography>
-          <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-            {Array.isArray(data) ? `${data.length} elementos` : 'Datos disponibles'}
+          <Typography
+            variant='caption'
+            sx={{ color: 'var(--color-text-secondary)' }}
+          >
+            {Array.isArray(data)
+              ? `${data.length} elementos`
+              : 'Datos disponibles'}
           </Typography>
         </Box>
 
@@ -354,7 +372,10 @@ const ExportButton: React.FC<ExportButtonProps> = ({
               primary={option.label}
               secondary={option.description}
               secondaryTypographyProps={{
-                sx: { fontSize: '0.75rem', color: 'var(--color-text-secondary)' },
+                sx: {
+                  fontSize: '0.75rem',
+                  color: 'var(--color-text-secondary)',
+                },
               }}
             />
           </MenuItem>
@@ -362,7 +383,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
         {/* Advanced Options */}
         <Divider sx={{ my: 1 }} />
-        
+
         <MenuItem
           onClick={() => {
             // Abrir configuración avanzada o compartir
@@ -379,9 +400,12 @@ const ExportButton: React.FC<ExportButtonProps> = ({
             <ShareIcon />
           </ListItemIcon>
           <ListItemText
-            primary="Opciones avanzadas"
+            primary='Opciones avanzadas'
             primaryTypographyProps={{
-              sx: { fontSize: '0.875rem', color: 'var(--color-text-secondary)' },
+              sx: {
+                fontSize: '0.875rem',
+                color: 'var(--color-text-secondary)',
+              },
             }}
           />
         </MenuItem>

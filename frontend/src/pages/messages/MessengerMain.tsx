@@ -3,7 +3,7 @@
  * Incluye: Solicitudes pendientes, Conversaciones activas, Chat en tiempo real
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -40,8 +40,14 @@ import { useAuth } from '../../contexts/AuthContext';
 // import { useMessages } from '../../hooks/useMessages';
 // import { useUserStatus } from '../../hooks/useUserStatus';
 import { OnlineUsersCounter } from '../../components/users/UserStatusIndicator';
-import { PendingRequestsList, PendingRequest } from '../../components/requests/PendingRequestsList';
-import { ConversationsList, Conversation } from '../../components/messages/ConversationsList';
+import {
+  PendingRequestsList,
+  PendingRequest,
+} from '../../components/requests/PendingRequestsList';
+import {
+  ConversationsList,
+  Conversation,
+} from '../../components/messages/ConversationsList';
 import { ChatWindow } from '../../components/messages/ChatWindow';
 import { ProfileSidebar } from '../../components/messages/ProfileSidebar';
 
@@ -54,11 +60,7 @@ interface TabPanelProps {
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      {...other}
-    >
+    <div role='tabpanel' hidden={value !== index} {...other}>
       {value === index && children}
     </div>
   );
@@ -66,24 +68,22 @@ function TabPanel(props: TabPanelProps) {
 
 const MessengerMain: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { 
-    isConnected, 
-    connectionStatus, 
-    unreadMessagesCount, 
+  const {
+    isConnected,
+
     onlineUsers,
-    send,
-    subscribe,
   } = useOptimizedWebSocketContext();
-  
+
   // Estado local para usuarios escribiendo
   const [typingUsers, setTypingUsers] = useState<Map<string, any>>(new Map());
-  
+
   // Hook para estado de usuarios online (placeholder)
   const onlineCount = 0;
   const totalUsersCount = 0;
-  
+
   const [activeTab, setActiveTab] = useState(0); // 0: Solicitudes, 1: Conversaciones
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
@@ -110,7 +110,8 @@ const MessengerMain: React.FC = () => {
         address: 'Calle 10 # 43-87, El Poblado',
         rent: 2800000,
       } as any,
-      message: 'Hola, me interesa mucho su propiedad. Tengo ingresos estables y excelentes referencias. ¿Podríamos coordinar una visita?',
+      message:
+        'Hola, me interesa mucho su propiedad. Tengo ingresos estables y excelentes referencias. ¿Podríamos coordinar una visita?',
       sent_at: '2024-01-15T10:30:00Z',
       is_read: false,
     },
@@ -135,7 +136,8 @@ const MessengerMain: React.FC = () => {
         description: 'Necesito reparar una fuga en la cocina',
         budget: 200000,
       } as any,
-      message: 'Soy plomero certificado con 8 años de experiencia. Puedo solucionar su problema de plomería de manera rápida y eficiente.',
+      message:
+        'Soy plomero certificado con 8 años de experiencia. Puedo solucionar su problema de plomería de manera rápida y eficiente.',
       sent_at: '2024-01-15T09:15:00Z',
       is_read: false,
     },
@@ -200,7 +202,10 @@ const MessengerMain: React.FC = () => {
     setSelectedConversation(null);
   };
 
-  const handleRequestAction = (requestId: string, action: 'accept' | 'reject') => {
+  const handleRequestAction = (
+    requestId: string,
+    action: 'accept' | 'reject',
+  ) => {
     const request = pendingRequests.find(r => r.id === requestId);
     if (!request) return;
 
@@ -215,9 +220,9 @@ const MessengerMain: React.FC = () => {
           sender_id: request.sender.id,
         },
         unread_count: 1,
-        context: request.property ?
-          { type: 'property', property: request.property } :
-          { type: 'service', service: request.service },
+        context: request.property
+          ? { type: 'property', property: request.property }
+          : { type: 'service', service: request.service },
       };
 
       setConversations(prev => [newConversation, ...prev]);
@@ -237,14 +242,12 @@ const MessengerMain: React.FC = () => {
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
     setShowProfileSidebar(false);
-    
+
     // Marcar como leída
     if (conversation.unread_count > 0) {
       setConversations(prev =>
         prev.map(conv =>
-          conv.id === conversation.id
-            ? { ...conv, unread_count: 0 }
-            : conv,
+          conv.id === conversation.id ? { ...conv, unread_count: 0 } : conv,
         ),
       );
     }
@@ -255,32 +258,42 @@ const MessengerMain: React.FC = () => {
       const count = pendingRequests.filter(r => !r.is_read).length;
       return count > 0 ? `Solicitudes (${count})` : 'Solicitudes';
     } else {
-      const count = conversations.reduce((sum, conv) => sum + conv.unread_count, 0);
+      const count = conversations.reduce(
+        (sum, conv) => sum + conv.unread_count,
+        0,
+      );
       return count > 0 ? `Conversaciones (${count})` : 'Conversaciones';
     }
   };
 
   const getUserTypeIcon = (userType: string) => {
     switch (userType) {
-      case 'landlord': return <HomeIcon fontSize="small" />;
-      case 'tenant': return <PersonIcon fontSize="small" />;
-      case 'service_provider': return <BuildIcon fontSize="small" />;
-      default: return <PersonIcon fontSize="small" />;
+      case 'landlord':
+        return <HomeIcon fontSize='small' />;
+      case 'tenant':
+        return <PersonIcon fontSize='small' />;
+      case 'service_provider':
+        return <BuildIcon fontSize='small' />;
+      default:
+        return <PersonIcon fontSize='small' />;
     }
   };
 
   const getRequestTypeColor = (type: string) => {
     switch (type) {
-      case 'property_interest': return 'primary';
-      case 'service_request': return 'secondary';
-      default: return 'default';
+      case 'property_interest':
+        return 'primary';
+      case 'service_request':
+        return 'secondary';
+      default:
+        return 'default';
     }
   };
 
   if (!isAuthenticated) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="info">
+      <Container maxWidth='md' sx={{ mt: 4, mb: 4 }}>
+        <Alert severity='info'>
           Necesitas iniciar sesión para acceder a los mensajes
         </Alert>
       </Container>
@@ -288,42 +301,62 @@ const MessengerMain: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 2, mb: 2, height: 'calc(100vh - 150px)' }}>
+    <Container
+      maxWidth='xl'
+      sx={{ mt: 2, mb: 2, height: 'calc(100vh - 150px)' }}
+    >
       <Paper sx={{ height: '100%', display: 'flex', overflow: 'hidden' }}>
-        
         {/* Sidebar izquierdo - Lista de solicitudes/conversaciones */}
-        <Box sx={{ width: 400, borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
-          
+        <Box
+          sx={{
+            width: 400,
+            borderRight: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {/* Header con tabs */}
           <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">Mensajes</Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+              }}
+            >
+              <Typography variant='h6'>Mensajes</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <OnlineUsersCounter 
-                  onlineCount={onlineCount} 
+                <OnlineUsersCounter
+                  onlineCount={onlineCount}
                   totalCount={totalUsersCount}
                   showIcon={true}
                 />
                 <Chip
-                  size="small"
+                  size='small'
                   icon={<CircleIcon />}
                   label={isConnected ? 'En línea' : 'Desconectado'}
                   color={isConnected ? 'success' : 'error'}
-                  variant="outlined"
+                  variant='outlined'
                 />
               </Box>
             </Box>
-            
-            <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-              <Tab 
-                icon={<NotificationsIcon />} 
+
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              variant='fullWidth'
+            >
+              <Tab
+                icon={<NotificationsIcon />}
                 label={getTabLabel(0)}
-                iconPosition="start"
+                iconPosition='start'
               />
-              <Tab 
-                icon={<ChatIcon />} 
+              <Tab
+                icon={<ChatIcon />}
                 label={getTabLabel(1)}
-                iconPosition="start"
+                iconPosition='start'
               />
             </Tabs>
           </Box>
@@ -332,13 +365,13 @@ const MessengerMain: React.FC = () => {
           <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
             <TextField
               fullWidth
-              size="small"
-              placeholder="Buscar..."
+              size='small'
+              placeholder='Buscar...'
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
+                  <InputAdornment position='start'>
                     <SearchIcon />
                   </InputAdornment>
                 ),
@@ -378,21 +411,26 @@ const MessengerMain: React.FC = () => {
           {selectedConversation ? (
             <>
               {/* Header del chat */}
-              <Box sx={{ 
-                p: 2, 
-                borderBottom: 1, 
-                borderColor: 'divider',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Badge
-                    overlap="circular"
+                    overlap='circular'
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     badgeContent={
-                      onlineUsers.get(selectedConversation.participants[0]!.id)?.isOnline ? (
-                        <CircleIcon sx={{ color: 'success.main', fontSize: 12 }} />
+                      onlineUsers.get(selectedConversation.participants[0]!.id)
+                        ?.isOnline ? (
+                        <CircleIcon
+                          sx={{ color: 'success.main', fontSize: 12 }}
+                        />
                       ) : null
                     }
                   >
@@ -400,31 +438,32 @@ const MessengerMain: React.FC = () => {
                       {selectedConversation.participants[0]!.name[0]}
                     </Avatar>
                   </Badge>
-                  
+
                   <Box>
-                    <Typography variant="h6">
+                    <Typography variant='h6'>
                       {selectedConversation.participants[0]!.name}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {selectedConversation.context?.property?.title || selectedConversation.context?.service?.title}
+                    <Typography variant='caption' color='text.secondary'>
+                      {selectedConversation.context?.property?.title ||
+                        selectedConversation.context?.service?.title}
                     </Typography>
                   </Box>
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <IconButton size="small">
+                  <IconButton size='small'>
                     <PhoneIcon />
                   </IconButton>
-                  <IconButton size="small">
+                  <IconButton size='small'>
                     <VideoCallIcon />
                   </IconButton>
-                  <IconButton 
-                    size="small"
+                  <IconButton
+                    size='small'
                     onClick={() => setShowProfileSidebar(!showProfileSidebar)}
                   >
                     <InfoIcon />
                   </IconButton>
-                  <IconButton size="small">
+                  <IconButton size='small'>
                     <MoreVertIcon />
                   </IconButton>
                 </Box>
@@ -435,31 +474,46 @@ const MessengerMain: React.FC = () => {
                 conversationId={selectedConversation.id}
                 recipientId={selectedConversation.participants[0]!.id}
                 recipientName={selectedConversation.participants[0]!.name}
-                contextInfo={selectedConversation.context ? {
-                  type: selectedConversation.context.type,
-                  title: selectedConversation.context.property?.title || selectedConversation.context.service?.title || '',
-                  details: selectedConversation.context.property?.address || selectedConversation.context.service?.description,
-                } : undefined}
+                contextInfo={
+                  selectedConversation.context
+                    ? {
+                        type: selectedConversation.context.type,
+                        title:
+                          selectedConversation.context.property?.title ||
+                          selectedConversation.context.service?.title ||
+                          '',
+                        details:
+                          selectedConversation.context.property?.address ||
+                          selectedConversation.context.service?.description,
+                      }
+                    : undefined
+                }
               />
             </>
           ) : (
-            <Box sx={{ 
-              flex: 1, 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center', 
-              justifyContent: 'center',
-              bgcolor: 'grey.50',
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'grey.50',
+              }}
+            >
               <ChatIcon sx={{ fontSize: 72, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant='h6' color='text.secondary' gutterBottom>
                 VeriHome Messenger
               </Typography>
-              <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ maxWidth: 400 }}>
-                {activeTab === 0 
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                textAlign='center'
+                sx={{ maxWidth: 400 }}
+              >
+                {activeTab === 0
                   ? 'Revisa las solicitudes de inquilinos y proveedores de servicios'
-                  : 'Selecciona una conversación para comenzar a chatear en tiempo real'
-                }
+                  : 'Selecciona una conversación para comenzar a chatear en tiempo real'}
               </Typography>
             </Box>
           )}
@@ -467,24 +521,33 @@ const MessengerMain: React.FC = () => {
 
         {/* Sidebar derecho - Información del perfil (opcional) */}
         {showProfileSidebar && selectedProfile && (
-          <Box sx={{ 
-            width: 320, 
-            borderLeft: 1, 
-            borderColor: 'divider',
-            bgcolor: 'background.default',
-          }}>
+          <Box
+            sx={{
+              width: 320,
+              borderLeft: 1,
+              borderColor: 'divider',
+              bgcolor: 'background.default',
+            }}
+          >
             <ProfileSidebar
               profile={selectedProfile}
-              contextInfo={selectedConversation ? {
-                type: selectedConversation.context?.type || 'property',
-                title: selectedConversation.context?.property?.title || selectedConversation.context?.service?.title || '',
-                details: selectedConversation.context,
-              } : undefined}
+              contextInfo={
+                selectedConversation
+                  ? {
+                      type: selectedConversation.context?.type || 'property',
+                      title:
+                        selectedConversation.context?.property?.title ||
+                        selectedConversation.context?.service?.title ||
+                        '',
+                      details: selectedConversation.context,
+                    }
+                  : undefined
+              }
               onClose={() => setShowProfileSidebar(false)}
-              onBlock={(userId) => {
+              onBlock={userId => {
                 // Implementar lógica de bloqueo
               }}
-              onReport={(userId) => {
+              onReport={userId => {
                 // Implementar lógica de reporte
               }}
             />

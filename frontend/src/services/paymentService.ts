@@ -55,13 +55,21 @@ export const paymentService = {
     return response.data;
   },
 
-  verifyPaymentMethod: async (id: string, verificationData: any): Promise<any> => {
-    const response = await api.post(`/payments/payment-methods/${id}/verify/`, verificationData);
+  verifyPaymentMethod: async (
+    id: string,
+    verificationData: any,
+  ): Promise<any> => {
+    const response = await api.post(
+      `/payments/payment-methods/${id}/verify/`,
+      verificationData,
+    );
     return response.data;
   },
 
   setDefaultPaymentMethod: async (id: string): Promise<any> => {
-    const response = await api.post(`/payments/payment-methods/${id}/set-default/`);
+    const response = await api.post(
+      `/payments/payment-methods/${id}/set-default/`,
+    );
     return response.data;
   },
 
@@ -95,7 +103,10 @@ export const paymentService = {
   },
 
   payInvoice: async (id: string, paymentData: any): Promise<any> => {
-    const response = await api.post(`/payments/invoices/${id}/pay/`, paymentData);
+    const response = await api.post(
+      `/payments/invoices/${id}/pay/`,
+      paymentData,
+    );
     return response.data;
   },
 
@@ -134,7 +145,10 @@ export const paymentService = {
   },
 
   releaseEscrow: async (id: string, releaseData: any): Promise<any> => {
-    const response = await api.post(`/payments/escrow/${id}/release/`, releaseData);
+    const response = await api.post(
+      `/payments/escrow/${id}/release/`,
+      releaseData,
+    );
     return response.data;
   },
 
@@ -207,7 +221,9 @@ export const paymentService = {
   },
 
   getTransactionReport: async (params?: any): Promise<any> => {
-    const response = await api.get('/payments/reports/transactions/', { params });
+    const response = await api.get('/payments/reports/transactions/', {
+      params,
+    });
     return response.data;
   },
 
@@ -236,7 +252,10 @@ export const paymentService = {
     return response.data;
   },
 
-  updatePayment: async (id: string, data: UpdatePaymentDto): Promise<Payment> => {
+  updatePayment: async (
+    id: string,
+    data: UpdatePaymentDto,
+  ): Promise<Payment> => {
     const response = await api.put(`/payments/${id}`, data);
     return response.data;
   },
@@ -261,14 +280,23 @@ export const paymentService = {
     metadata?: Record<string, string>;
     description?: string;
   }): Promise<any> => {
-    const response = await api.post('/payments/stripe/create-payment-intent/', data);
+    const response = await api.post(
+      '/payments/stripe/create-payment-intent/',
+      data,
+    );
     return response.data;
   },
 
-  confirmStripePayment: async (paymentIntentId: string, paymentMethodId?: string): Promise<any> => {
-    const response = await api.post(`/payments/stripe/confirm-payment/${paymentIntentId}/`, {
-      payment_method_id: paymentMethodId,
-    });
+  confirmStripePayment: async (
+    paymentIntentId: string,
+    paymentMethodId?: string,
+  ): Promise<any> => {
+    const response = await api.post(
+      `/payments/stripe/confirm-payment/${paymentIntentId}/`,
+      {
+        payment_method_id: paymentMethodId,
+      },
+    );
     return response.data;
   },
 
@@ -278,7 +306,10 @@ export const paymentService = {
     usage: 'off_session' | 'on_session';
     payment_method_types?: string[];
   }): Promise<any> => {
-    const response = await api.post('/payments/stripe/create-setup-intent/', data);
+    const response = await api.post(
+      '/payments/stripe/create-setup-intent/',
+      data,
+    );
     return response.data;
   },
 
@@ -290,7 +321,10 @@ export const paymentService = {
     return response.data;
   },
 
-  attachStripePaymentMethod: async (paymentMethodId: string, customerId: string): Promise<any> => {
+  attachStripePaymentMethod: async (
+    paymentMethodId: string,
+    customerId: string,
+  ): Promise<any> => {
     const response = await api.post('/payments/stripe/attach-payment-method/', {
       payment_method_id: paymentMethodId,
       customer_id: customerId,
@@ -305,11 +339,17 @@ export const paymentService = {
     return response.data;
   },
 
-  setDefaultStripePaymentMethod: async (customerId: string, paymentMethodId: string): Promise<any> => {
-    const response = await api.post('/payments/stripe/set-default-payment-method/', {
-      customer_id: customerId,
-      payment_method_id: paymentMethodId,
-    });
+  setDefaultStripePaymentMethod: async (
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<any> => {
+    const response = await api.post(
+      '/payments/stripe/set-default-payment-method/',
+      {
+        customer_id: customerId,
+        payment_method_id: paymentMethodId,
+      },
+    );
     return response.data;
   },
 
@@ -330,7 +370,10 @@ export const paymentService = {
   },
 
   updateStripeCustomer: async (customerId: string, data: any): Promise<any> => {
-    const response = await api.put(`/payments/stripe/customers/${customerId}/`, data);
+    const response = await api.put(
+      `/payments/stripe/customers/${customerId}/`,
+      data,
+    );
     return response.data;
   },
 
@@ -357,14 +400,19 @@ export const paymentService = {
     ending_before?: string;
     created?: any;
   }): Promise<any> => {
-    const response = await api.get('/payments/stripe/transactions/', { params });
+    const response = await api.get('/payments/stripe/transactions/', {
+      params,
+    });
     return response.data;
   },
 
   // ============ MÉTODOS ESPECÍFICOS DE PAYPAL ============
 
   // Configuración de PayPal
-  getPayPalConfig: async (): Promise<{ clientId: string; environment: string }> => {
+  getPayPalConfig: async (): Promise<{
+    clientId: string;
+    environment: string;
+  }> => {
     const response = await api.get('/payments/paypal/config/');
     return response.data;
   },
@@ -391,7 +439,9 @@ export const paymentService = {
   },
 
   capturePayPalOrder: async (orderId: string): Promise<any> => {
-    const response = await api.post(`/payments/paypal/capture-order/${orderId}/`);
+    const response = await api.post(
+      `/payments/paypal/capture-order/${orderId}/`,
+    );
     return response.data;
   },
 
@@ -402,24 +452,38 @@ export const paymentService = {
 
   // Suscripciones de PayPal
   createPayPalSubscriptionPlan: async (planData: any): Promise<any> => {
-    const response = await api.post('/payments/paypal/subscription-plans/', planData);
+    const response = await api.post(
+      '/payments/paypal/subscription-plans/',
+      planData,
+    );
     return response.data;
   },
 
   createPayPalSubscription: async (subscriptionData: any): Promise<any> => {
-    const response = await api.post('/payments/paypal/subscriptions/', subscriptionData);
+    const response = await api.post(
+      '/payments/paypal/subscriptions/',
+      subscriptionData,
+    );
     return response.data;
   },
 
   getPayPalSubscription: async (subscriptionId: string): Promise<any> => {
-    const response = await api.get(`/payments/paypal/subscriptions/${subscriptionId}/`);
+    const response = await api.get(
+      `/payments/paypal/subscriptions/${subscriptionId}/`,
+    );
     return response.data;
   },
 
-  cancelPayPalSubscription: async (subscriptionId: string, reason?: string): Promise<any> => {
-    const response = await api.post(`/payments/paypal/subscriptions/${subscriptionId}/cancel/`, {
-      reason: reason || 'User requested cancellation',
-    });
+  cancelPayPalSubscription: async (
+    subscriptionId: string,
+    reason?: string,
+  ): Promise<any> => {
+    const response = await api.post(
+      `/payments/paypal/subscriptions/${subscriptionId}/cancel/`,
+      {
+        reason: reason || 'User requested cancellation',
+      },
+    );
     return response.data;
   },
 
@@ -447,7 +511,9 @@ export const paymentService = {
     end_date?: string;
     limit?: number;
   }): Promise<any> => {
-    const response = await api.get('/payments/paypal/transactions/', { params });
+    const response = await api.get('/payments/paypal/transactions/', {
+      params,
+    });
     return response.data;
   },
 
@@ -458,7 +524,9 @@ export const paymentService = {
   },
 
   getPayPalPayoutDetails: async (payoutBatchId: string): Promise<any> => {
-    const response = await api.get(`/payments/paypal/payouts/${payoutBatchId}/`);
+    const response = await api.get(
+      `/payments/paypal/payouts/${payoutBatchId}/`,
+    );
     return response.data;
   },
 
@@ -470,12 +538,18 @@ export const paymentService = {
 
   // Webhooks de PayPal
   verifyPayPalWebhook: async (webhookData: any): Promise<any> => {
-    const response = await api.post('/payments/paypal/verify-webhook/', webhookData);
+    const response = await api.post(
+      '/payments/paypal/verify-webhook/',
+      webhookData,
+    );
     return response.data;
   },
 
   processPayPalWebhook: async (webhookEvent: any): Promise<any> => {
-    const response = await api.post('/payments/paypal/process-webhook/', webhookEvent);
+    const response = await api.post(
+      '/payments/paypal/process-webhook/',
+      webhookEvent,
+    );
     return response.data;
   },
 
@@ -525,12 +599,18 @@ export const paymentService = {
   },
 
   // Validación de pagos
-  validatePaymentAmount: async (amount: number, currency: string): Promise<{
+  validatePaymentAmount: async (
+    amount: number,
+    currency: string,
+  ): Promise<{
     isValid: boolean;
     errors: string[];
     formattedAmount: string;
   }> => {
-    const response = await api.post('/payments/validate-amount/', { amount, currency });
+    const response = await api.post('/payments/validate-amount/', {
+      amount,
+      currency,
+    });
     return response.data;
   },
 
@@ -559,7 +639,9 @@ export const paymentService = {
     end_date?: string;
     format?: 'json' | 'csv' | 'pdf';
   }): Promise<any> => {
-    const response = await api.get('/payments/reports/consolidated/', { params });
+    const response = await api.get('/payments/reports/consolidated/', {
+      params,
+    });
     return response.data;
   },
 
@@ -621,4 +703,4 @@ export const paymentService = {
     const response = await api.post(`/payments/orders/${id}/cancel/`);
     return response.data;
   },
-}; 
+};

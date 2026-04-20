@@ -11,13 +11,13 @@ interface CameraCaptureSimpleProps {
   onError?: (error: string) => void;
 }
 
-const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({ 
-  onCapture, 
-  onError, 
+const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
+  onCapture,
+  onError,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  
+
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasStream, setHasStream] = useState(false);
@@ -25,14 +25,14 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
   // Función simple para iniciar cámara
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: false, 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
       });
-      
+
       streamRef.current = stream;
       setHasStream(true);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
@@ -50,13 +50,13 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
   // Función para capturar imagen
   const captureImage = () => {
     if (!videoRef.current) return;
-    
+
     const canvas = document.createElement('canvas');
     const video = videoRef.current;
-    
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0);
@@ -84,28 +84,29 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant='h6' gutterBottom>
         Cámara Simple - Debug
       </Typography>
-      
+
       {/* Estado Debug */}
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <Typography variant="body2">
-          Estado: videoRef={videoRef.current ? 'OK' : 'NO'} | 
-          stream={hasStream ? 'OK' : 'NO'} | 
-          active={isActive ? 'OK' : 'NO'}
+      <Alert severity='info' sx={{ mb: 2 }}>
+        <Typography variant='body2'>
+          Estado: videoRef={videoRef.current ? 'OK' : 'NO'} | stream=
+          {hasStream ? 'OK' : 'NO'} | active={isActive ? 'OK' : 'NO'}
         </Typography>
       </Alert>
 
       {/* Error */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
       {/* Área de Video */}
-      <Paper sx={{ mb: 2, bgcolor: 'black', borderRadius: 2, overflow: 'hidden' }}>
+      <Paper
+        sx={{ mb: 2, bgcolor: 'black', borderRadius: 2, overflow: 'hidden' }}
+      >
         <video
           ref={videoRef}
           style={{
@@ -122,25 +123,17 @@ const CameraCaptureSimple: React.FC<CameraCaptureSimpleProps> = ({
 
       {/* Controles */}
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-        <Button 
-          variant="contained" 
-          onClick={startCamera}
-          disabled={isActive}
-        >
+        <Button variant='contained' onClick={startCamera} disabled={isActive}>
           Iniciar Cámara
         </Button>
-        
-        <Button 
-          variant="outlined" 
-          onClick={captureImage}
-          disabled={!isActive}
-        >
+
+        <Button variant='outlined' onClick={captureImage} disabled={!isActive}>
           Capturar
         </Button>
-        
-        <Button 
-          variant="outlined" 
-          color="error"
+
+        <Button
+          variant='outlined'
+          color='error'
           onClick={stopCamera}
           disabled={!isActive}
         >

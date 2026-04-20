@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -9,8 +9,6 @@ import {
   Chip,
   Avatar,
   IconButton,
-  Tab,
-  Tabs,
   LinearProgress,
   Alert,
   Dialog,
@@ -24,33 +22,23 @@ import {
   Divider,
   Stack,
   Paper,
-  Tooltip,
-  Fade,
   CircularProgress,
   TextField,
 } from '@mui/material';
 import {
-  Handshake,
   CheckCircle,
   Schedule,
-  Error,
   Cancel,
   Visibility,
   AttachMoney,
   Person,
   Home,
-  Email,
-  Phone,
-  Work,
   Assessment,
-  Send,
   Close,
   Message,
   TrendingUp,
-  FilterList,
   Refresh,
   Assignment,
-  Business,
   Description as DocumentIcon,
   Fingerprint as FingerprintIcon,
   VpnKey as VpnKeyIcon,
@@ -67,7 +55,7 @@ import useMatchRequests from '../../hooks/useMatchRequests';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { MatchRequest, matchingService } from '../../services/matchingService';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import EnhancedTenantDocumentUpload from '../contracts/EnhancedTenantDocumentUpload';
 import MatchedCandidatesView from '../contracts/MatchedCandidatesView';
@@ -83,7 +71,7 @@ function TabPanel(props: TabPanelProps) {
 
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`match-tabpanel-${index}`}
       aria-labelledby={`match-tab-${index}`}
@@ -95,23 +83,19 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const MatchesDashboard: React.FC = () => {
-
   const { user } = useAuth();
   const navigate = useNavigate();
   const { showSuccess, showError } = useSnackbar();
   const { confirm, ConfirmDialog } = useConfirmDialog();
-  
+
   const {
     sentRequests,
     receivedRequests,
     statistics,
-    dashboardData,
+
     isLoading,
     error,
-    markAsViewed,
-    acceptRequest,
-    rejectRequest,
-    getCompatibility,
+
     refetchMatchRequests,
     getStatusColor,
     getStatusText,
@@ -121,26 +105,32 @@ const MatchesDashboard: React.FC = () => {
     isExpired,
     isExpiringSoon,
   } = useMatchRequests();
-  
 
   const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'accepted' ? 1
-    : searchParams.get('tab') === 'rejected' ? 2
-    : searchParams.get('tab') === 'cancelled' ? 3
-    : 0;
+  const initialTab =
+    searchParams.get('tab') === 'accepted'
+      ? 1
+      : searchParams.get('tab') === 'rejected'
+        ? 2
+        : searchParams.get('tab') === 'cancelled'
+          ? 3
+          : 0;
   const [tabValue, setTabValue] = useState(initialTab);
   const [contractDialogOpen, setContractDialogOpen] = useState(false);
   const [isCreatingContract, setIsCreatingContract] = useState(false);
-  const [selectedRequestForContract, setSelectedRequestForContract] = useState<MatchRequest | null>(null);
-  const [candidateDetailsModalOpen, setCandidateDetailsModalOpen] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState<MatchRequest | null>(null);
-  
+  const [selectedRequestForContract, setSelectedRequestForContract] =
+    useState<MatchRequest | null>(null);
+  const [candidateDetailsModalOpen, setCandidateDetailsModalOpen] =
+    useState(false);
+  const [selectedCandidate, setSelectedCandidate] =
+    useState<MatchRequest | null>(null);
+
   // Auto-refresh when component receives focus (e.g., returning from visit scheduling)
   useEffect(() => {
     const handleFocus = () => {
       refetchMatchRequests();
     };
-    
+
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetchMatchRequests]);
@@ -150,19 +140,20 @@ const MatchesDashboard: React.FC = () => {
 
   // 🔥 DEBUG - Ver qué datos llegan
   // Memoize processed data to prevent unnecessary re-renders
-  const memoizedData = useMemo(() => ({
-    isLandlord,
-    isTenant,
-    sentRequests: sentRequests || [],
-    receivedRequests: receivedRequests || [],
-    statistics,
-  }), [isLandlord, isTenant, sentRequests, receivedRequests, statistics]);
+  const memoizedData = useMemo(
+    () => ({
+      isLandlord,
+      isTenant,
+      sentRequests: sentRequests || [],
+      receivedRequests: receivedRequests || [],
+      statistics,
+    }),
+    [isLandlord, isTenant, sentRequests, receivedRequests, statistics],
+  );
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-
-
 
   const handleAcceptRequest = async (requestId: string) => {
     try {
@@ -171,17 +162,22 @@ const MatchesDashboard: React.FC = () => {
       // Refrescar los datos
       refetchMatchRequests();
 
-      showSuccess('Solicitud aceptada exitosamente. El proceso de arrendamiento puede continuar.');
+      showSuccess(
+        'Solicitud aceptada exitosamente. El proceso de arrendamiento puede continuar.',
+      );
     } catch (error) {
       showError('Error al aceptar la solicitud. Por favor, intenta de nuevo.');
     }
   };
 
   const handleRejectRequest = async (requestId: string) => {
-    const confirmReject = await confirm('¿Estás seguro de que quieres rechazar esta solicitud?', {
-      title: 'Rechazar solicitud',
-      confirmColor: 'error',
-    });
+    const confirmReject = await confirm(
+      '¿Estás seguro de que quieres rechazar esta solicitud?',
+      {
+        title: 'Rechazar solicitud',
+        confirmColor: 'error',
+      },
+    );
     if (!confirmReject) return;
 
     try {
@@ -204,13 +200,16 @@ const MatchesDashboard: React.FC = () => {
   const handleCreateContract = async (request: MatchRequest) => {
     try {
       // First validate the match for contract creation
-      const response = await matchingService.validateMatchForContract(request.id);
+      const response = await matchingService.validateMatchForContract(
+        request.id,
+      );
       const validationResult = response.data;
 
       if (!validationResult.is_valid) {
-        const errorMessage = validationResult.errors && Array.isArray(validationResult.errors)
-          ? validationResult.errors.join(', ')
-          : 'Error de validación desconocido';
+        const errorMessage =
+          validationResult.errors && Array.isArray(validationResult.errors)
+            ? validationResult.errors.join(', ')
+            : 'Error de validación desconocido';
         showError(`No se puede crear el contrato: ${errorMessage}`);
         return;
       }
@@ -244,11 +243,10 @@ const MatchesDashboard: React.FC = () => {
         contractData,
       );
 
-      
       // Close dialog and navigate to contracts
       setContractDialogOpen(false);
       setSelectedRequestForContract(null);
-      
+
       // Navigate to the new contract
       if (response.data.id) {
         navigate(`/app/contracts/${response.data.id}`);
@@ -257,9 +255,10 @@ const MatchesDashboard: React.FC = () => {
       }
 
       showSuccess('Contrato creado exitosamente. Redirigiendo...');
-
     } catch (error: any) {
-      showError(`Error creando contrato: ${error.response?.data?.error || error.message}`);
+      showError(
+        `Error creando contrato: ${error.response?.data?.error || error.message}`,
+      );
     } finally {
       setIsCreatingContract(false);
     }
@@ -274,26 +273,40 @@ const MatchesDashboard: React.FC = () => {
   ) => (
     <Card elevation={2} sx={{ height: '100%' }}>
       <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Stack
+          direction='row'
+          justifyContent='space-between'
+          alignItems='flex-start'
+        >
           <Box>
-            <Typography color="textSecondary" gutterBottom variant="body2">
+            <Typography color='textSecondary' gutterBottom variant='body2'>
               {title}
             </Typography>
-            <Typography variant="h4" fontWeight={600}>
+            <Typography variant='h4' fontWeight={600}>
               {value}
             </Typography>
             {trend && (
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
-                <TrendingUp fontSize="small" color={trend > 0 ? 'success' : 'error'} />
-                <Typography variant="body2" color={trend > 0 ? 'success.main' : 'error.main'}>
-                  {trend > 0 ? '+' : ''}{trend}%
+              <Stack
+                direction='row'
+                alignItems='center'
+                spacing={1}
+                sx={{ mt: 1 }}
+              >
+                <TrendingUp
+                  fontSize='small'
+                  color={trend > 0 ? 'success' : 'error'}
+                />
+                <Typography
+                  variant='body2'
+                  color={trend > 0 ? 'success.main' : 'error.main'}
+                >
+                  {trend > 0 ? '+' : ''}
+                  {trend}%
                 </Typography>
               </Stack>
             )}
           </Box>
-          <Avatar sx={{ bgcolor: color, width: 56, height: 56 }}>
-            {icon}
-          </Avatar>
+          <Avatar sx={{ bgcolor: color, width: 56, height: 56 }}>{icon}</Avatar>
         </Stack>
       </CardContent>
     </Card>
@@ -304,83 +317,89 @@ const MatchesDashboard: React.FC = () => {
     const isExpiringSoonRequest = isExpiringSoon(request.expires_at);
 
     return (
-      <Card 
-        key={request.id} 
-        sx={{ 
-          mb: 2, 
-          border: ['pending', 'viewed'].includes(request.status) && isLandlord ? `2px solid ${vhColors.accentBlue}` : `1px solid ${vhColors.divider}`,
+      <Card
+        key={request.id}
+        sx={{
+          mb: 2,
+          border:
+            ['pending', 'viewed'].includes(request.status) && isLandlord
+              ? `2px solid ${vhColors.accentBlue}`
+              : `1px solid ${vhColors.divider}`,
           opacity: isExpiredRequest ? 0.7 : 1,
         }}
       >
         <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='flex-start'
+            sx={{ mb: 2 }}
+          >
             <Box flex={1}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                {isLandlord ? (
-                  `Solicitud de ${request.tenant_name || 'Usuario'}`
-                ) : (
-                  `Solicitud para: ${request.property_title || 'Propiedad'}`
-                )}
+              <Typography variant='h6' fontWeight={600} gutterBottom>
+                {isLandlord
+                  ? `Solicitud de ${request.tenant_name || 'Usuario'}`
+                  : `Solicitud para: ${request.property_title || 'Propiedad'}`}
               </Typography>
-              
-              <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+
+              <Stack direction='row' spacing={1} sx={{ mb: 1 }}>
                 <Chip
                   label={getStatusText(request.status)}
                   color={getStatusColor(request.status) as any}
-                  size="small"
+                  size='small'
                 />
                 <Chip
                   label={getPriorityText(request.priority)}
                   color={getPriorityColor(request.priority) as any}
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                 />
                 {isExpiringSoonRequest && (
                   <Chip
-                    label="Expira pronto"
-                    color="warning"
-                    size="small"
+                    label='Expira pronto'
+                    color='warning'
+                    size='small'
                     icon={<Schedule />}
                   />
                 )}
               </Stack>
 
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+              <Typography variant='body2' color='textSecondary' gutterBottom>
                 Match Code: <strong>{request.match_code}</strong>
               </Typography>
 
               {request.monthly_income && (
-                <Typography variant="body2" color="textSecondary">
-                  Ingresos: <strong>{formatCurrency(request.monthly_income)}</strong>
+                <Typography variant='body2' color='textSecondary'>
+                  Ingresos:{' '}
+                  <strong>{formatCurrency(request.monthly_income)}</strong>
                 </Typography>
               )}
 
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                {request.tenant_message && request.tenant_message.length > 100 
+              <Typography variant='body2' color='textSecondary' sx={{ mt: 1 }}>
+                {request.tenant_message && request.tenant_message.length > 100
                   ? `${request.tenant_message.substring(0, 100)}...`
-                  : request.tenant_message || 'Sin mensaje'
-                }
+                  : request.tenant_message || 'Sin mensaje'}
               </Typography>
             </Box>
 
-            <Box textAlign="center" sx={{ ml: 2 }}>
+            <Box textAlign='center' sx={{ ml: 2 }}>
               <Avatar sx={{ bgcolor: 'primary.main', mb: 1 }}>
                 <Person />
               </Avatar>
-              <Typography variant="caption" color="textSecondary">
-                {formatDistanceToNow(new Date(request.created_at), { 
+              <Typography variant='caption' color='textSecondary'>
+                {formatDistanceToNow(new Date(request.created_at), {
                   addSuffix: true,
-                  locale: es, 
+                  locale: es,
                 })}
               </Typography>
               {request.compatibility_score && (
                 <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant='body2' fontWeight={600}>
                     {request.compatibility_score}% match
                   </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={request.compatibility_score} 
+                  <LinearProgress
+                    variant='determinate'
+                    value={request.compatibility_score}
                     sx={{ mt: 0.5 }}
                   />
                 </Box>
@@ -392,16 +411,16 @@ const MatchesDashboard: React.FC = () => {
 
           {/* Para arrendador: solo mostrar botón de ver contratos para matches aceptados */}
           {request.status === 'accepted' && isLandlord && (
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
               <Button
-                variant="contained"
-                size="small"
+                variant='contained'
+                size='small'
                 startIcon={<Assignment />}
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   navigate('/app/contracts');
                 }}
-                color="primary"
+                color='primary'
               >
                 Ver Estado del Proceso
               </Button>
@@ -412,14 +431,20 @@ const MatchesDashboard: React.FC = () => {
           {request.status === 'accepted' && isTenant && (
             <Box sx={{ mt: 2 }}>
               {/* Estado de Solicitud Aceptada */}
-              <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1, mb: 2 }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <CheckCircle color="success" />
-                  <Typography variant="body2" color="success.dark" fontWeight={600}>
-                    ¡Solicitud Aceptada! 
+              <Box
+                sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1, mb: 2 }}
+              >
+                <Stack direction='row' alignItems='center' spacing={1}>
+                  <CheckCircle color='success' />
+                  <Typography
+                    variant='body2'
+                    color='success.dark'
+                    fontWeight={600}
+                  >
+                    ¡Solicitud Aceptada!
                   </Typography>
                 </Stack>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Tu solicitud ha sido aprobada por el arrendador.
                 </Typography>
               </Box>
@@ -428,236 +453,372 @@ const MatchesDashboard: React.FC = () => {
               {request.workflow_stage && (
                 <Box sx={{ mb: 2 }}>
                   {/* Mini Stepper */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                    {[1, 2, 3, 4, 5].map((step) => (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      mb: 1,
+                    }}
+                  >
+                    {[1, 2, 3, 4, 5].map(step => (
                       <Box
                         key={step}
                         sx={{
                           width: 16,
                           height: 16,
                           borderRadius: '50%',
-                          bgcolor: (request.workflow_stage ?? 0) >= step ? 'primary.main' : 'grey.300',
-                          border: (request.workflow_stage ?? 0) === step ? '2px solid' : 'none',
+                          bgcolor:
+                            (request.workflow_stage ?? 0) >= step
+                              ? 'primary.main'
+                              : 'grey.300',
+                          border:
+                            (request.workflow_stage ?? 0) === step
+                              ? '2px solid'
+                              : 'none',
                           borderColor: 'primary.dark',
                         }}
                       />
                     ))}
-                    <Typography variant="body2" fontWeight={600} sx={{ ml: 1 }}>
-                      Etapa {request.workflow_stage}/5 ({Math.round((request.workflow_stage / 5) * 100)}%)
+                    <Typography variant='body2' fontWeight={600} sx={{ ml: 1 }}>
+                      Etapa {request.workflow_stage}/5 (
+                      {Math.round((request.workflow_stage / 5) * 100)}%)
                     </Typography>
                   </Box>
 
                   {/* Descripción de la etapa actual */}
-                  <Box sx={{ 
-                    p: 1.5, 
-                    bgcolor: request.workflow_stage === 1 ? 'info.50' :
-                             request.workflow_stage === 2 ? 'warning.50' :
-                             request.workflow_stage === 3 ? 'primary.50' :
-                             request.workflow_stage === 4 ? 'secondary.50' : 'success.50',
-                    borderRadius: 1, 
-                    border: '1px solid', 
-                    borderColor: request.workflow_stage === 1 ? 'info.200' :
-                                request.workflow_stage === 2 ? 'warning.200' :
-                                request.workflow_stage === 3 ? 'primary.200' :
-                                request.workflow_stage === 4 ? 'secondary.200' : 'success.200',
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                      {request.workflow_stage === 1 && <Home fontSize="small" color="action" />}
-                      {request.workflow_stage === 2 && <DocumentIcon fontSize="small" color="action" />}
-                      {request.workflow_stage === 3 && <EditIcon fontSize="small" color="action" />}
-                      {request.workflow_stage === 4 && <FingerprintIcon fontSize="small" color="action" />}
-                      {request.workflow_stage === 5 && <VpnKeyIcon fontSize="small" color="action" />}
-                      <Typography variant="body2" fontWeight={600}>
-                        {request.workflow_stage === 1 && 'Programación de Visita'}
-                        {request.workflow_stage === 2 && 'Revisión de Documentos'}
-                        {request.workflow_stage === 3 && 'Creación del Contrato'}
-                        {request.workflow_stage === 4 && 'Autenticación Biométrica'}
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      bgcolor:
+                        request.workflow_stage === 1
+                          ? 'info.50'
+                          : request.workflow_stage === 2
+                            ? 'warning.50'
+                            : request.workflow_stage === 3
+                              ? 'primary.50'
+                              : request.workflow_stage === 4
+                                ? 'secondary.50'
+                                : 'success.50',
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor:
+                        request.workflow_stage === 1
+                          ? 'info.200'
+                          : request.workflow_stage === 2
+                            ? 'warning.200'
+                            : request.workflow_stage === 3
+                              ? 'primary.200'
+                              : request.workflow_stage === 4
+                                ? 'secondary.200'
+                                : 'success.200',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 0.5,
+                      }}
+                    >
+                      {request.workflow_stage === 1 && (
+                        <Home fontSize='small' color='action' />
+                      )}
+                      {request.workflow_stage === 2 && (
+                        <DocumentIcon fontSize='small' color='action' />
+                      )}
+                      {request.workflow_stage === 3 && (
+                        <EditIcon fontSize='small' color='action' />
+                      )}
+                      {request.workflow_stage === 4 && (
+                        <FingerprintIcon fontSize='small' color='action' />
+                      )}
+                      {request.workflow_stage === 5 && (
+                        <VpnKeyIcon fontSize='small' color='action' />
+                      )}
+                      <Typography variant='body2' fontWeight={600}>
+                        {request.workflow_stage === 1 &&
+                          'Programación de Visita'}
+                        {request.workflow_stage === 2 &&
+                          'Revisión de Documentos'}
+                        {request.workflow_stage === 3 &&
+                          'Creación del Contrato'}
+                        {request.workflow_stage === 4 &&
+                          'Autenticación Biométrica'}
                         {request.workflow_stage === 5 && 'Proceso Completado'}
                       </Typography>
                     </Box>
-                    
-                    <Typography variant="caption" color="text.secondary">
-                      {request.workflow_stage === 1 && (
-                        isTenant ? 'El arrendador coordinará la visita a la propiedad contigo.' 
-                        : 'Coordina la visita a la propiedad con el candidato.'
-                      )}
-                      {request.workflow_stage === 2 && (
-                        isTenant ? 'Debes subir los documentos requeridos para continuar.' 
-                        : 'El candidato está subiendo documentos para revisión.'
-                      )}
-                      {request.workflow_stage === 3 && (
-                        isTenant ? 'Los documentos fueron aprobados. Se está creando el contrato.' 
-                        : 'Documentos aprobados. Puedes crear el contrato de arrendamiento.'
-                      )}
-                      {request.workflow_stage === 4 && (
-                        isTenant ? 'Realiza la verificación biométrica para firmar el contrato.' 
-                        : 'El candidato completará la verificación biométrica.'
-                      )}
-                      {request.workflow_stage === 5 && '¡Felicitaciones! Proceso completado exitosamente.'}
+
+                    <Typography variant='caption' color='text.secondary'>
+                      {request.workflow_stage === 1 &&
+                        (isTenant
+                          ? 'El arrendador coordinará la visita a la propiedad contigo.'
+                          : 'Coordina la visita a la propiedad con el candidato.')}
+                      {request.workflow_stage === 2 &&
+                        (isTenant
+                          ? 'Debes subir los documentos requeridos para continuar.'
+                          : 'El candidato está subiendo documentos para revisión.')}
+                      {request.workflow_stage === 3 &&
+                        (isTenant
+                          ? 'Los documentos fueron aprobados. Se está creando el contrato.'
+                          : 'Documentos aprobados. Puedes crear el contrato de arrendamiento.')}
+                      {request.workflow_stage === 4 &&
+                        (isTenant
+                          ? 'Realiza la verificación biométrica para firmar el contrato.'
+                          : 'El candidato completará la verificación biométrica.')}
+                      {request.workflow_stage === 5 &&
+                        '¡Felicitaciones! Proceso completado exitosamente.'}
                     </Typography>
 
                     {/* Información específica de visita */}
-                    {request.workflow_stage === 1 && request.workflow_data?.visit_scheduled && (
-                      <Box sx={{ mt: 1, p: 1, bgcolor: 'white', borderRadius: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <Schedule fontSize="inherit" color="action" />
-                        <Typography variant="caption" fontWeight={600}>
-                          Visita: {new Date(request.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')}
-                          {' '}a las {request.workflow_data.visit_scheduled.time}
-                        </Typography>
-                        {request.workflow_data.visit_scheduled.completed && (
-                          <StatusChip kind="success" label="Visita completada" icon={<TaskAltIcon fontSize="small" />} sx={{ ml: 'auto' }} />
-                        )}
-                      </Box>
-                    )}
+                    {request.workflow_stage === 1 &&
+                      request.workflow_data?.visit_scheduled && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            p: 1,
+                            bgcolor: 'white',
+                            borderRadius: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <Schedule fontSize='inherit' color='action' />
+                          <Typography variant='caption' fontWeight={600}>
+                            Visita:{' '}
+                            {new Date(
+                              request.workflow_data.visit_scheduled.date,
+                            ).toLocaleDateString('es-CO')}{' '}
+                            a las {request.workflow_data.visit_scheduled.time}
+                          </Typography>
+                          {request.workflow_data.visit_scheduled.completed && (
+                            <StatusChip
+                              kind='success'
+                              label='Visita completada'
+                              icon={<TaskAltIcon fontSize='small' />}
+                              sx={{ ml: 'auto' }}
+                            />
+                          )}
+                        </Box>
+                      )}
 
                     {/* Acciones específicas por etapa */}
                     {request.workflow_stage === 2 && isTenant && (
                       <Box sx={{ mt: 1 }}>
-                        <StatusChip kind="pending" label="Acción requerida: subir documentos" icon={<BoltIcon fontSize="small" />} />
+                        <StatusChip
+                          kind='pending'
+                          label='Acción requerida: subir documentos'
+                          icon={<BoltIcon fontSize='small' />}
+                        />
                       </Box>
                     )}
 
                     {request.workflow_stage === 3 && !isTenant && (
                       <Box sx={{ mt: 1 }}>
-                        <StatusChip kind="inProgress" label="Puedes crear el contrato desde Contratos" icon={<BoltIcon fontSize="small" />} />
+                        <StatusChip
+                          kind='inProgress'
+                          label='Puedes crear el contrato desde Contratos'
+                          icon={<BoltIcon fontSize='small' />}
+                        />
                       </Box>
                     )}
                   </Box>
-                  
+
                   {/* Mostrar visita programada solo si existe y no está en etapa 2+ (visita completada) */}
-                  {request.workflow_data?.visit_scheduled && request.workflow_stage < 2 && (
-                    <Alert severity="info" icon={<EventAvailableIcon />} sx={{ mt: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>
-                        Visita Programada
-                      </Typography>
-                      <Typography variant="caption">
-                        Fecha: {new Date(request.workflow_data.visit_scheduled.date).toLocaleDateString()} 
-                        {' '}a las {request.workflow_data.visit_scheduled.time}
-                      </Typography>
-                      {request.workflow_data.visit_scheduled.notes && (
-                        <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                          Notas: {request.workflow_data.visit_scheduled.notes}
+                  {request.workflow_data?.visit_scheduled &&
+                    request.workflow_stage < 2 && (
+                      <Alert
+                        severity='info'
+                        icon={<EventAvailableIcon />}
+                        sx={{ mt: 1 }}
+                      >
+                        <Typography variant='body2' fontWeight={600}>
+                          Visita Programada
                         </Typography>
-                      )}
-                    </Alert>
-                  )}
-                  
+                        <Typography variant='caption'>
+                          Fecha:{' '}
+                          {new Date(
+                            request.workflow_data.visit_scheduled.date,
+                          ).toLocaleDateString()}{' '}
+                          a las {request.workflow_data.visit_scheduled.time}
+                        </Typography>
+                        {request.workflow_data.visit_scheduled.notes && (
+                          <Typography
+                            variant='caption'
+                            display='block'
+                            sx={{ mt: 0.5 }}
+                          >
+                            Notas: {request.workflow_data.visit_scheduled.notes}
+                          </Typography>
+                        )}
+                      </Alert>
+                    )}
+
                   {/* Mostrar confirmación de visita completada en etapa 2+ */}
-                  {request.workflow_data?.visit_scheduled?.completed && request.workflow_stage >= 2 && (
-                    <Alert severity="success" icon={<TaskAltIcon />} sx={{ mt: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>
-                        Visita Completada
-                      </Typography>
-                      <Typography variant="caption">
-                        La visita a la propiedad ha sido completada exitosamente.
-                      </Typography>
-                    </Alert>
-                  )}
+                  {request.workflow_data?.visit_scheduled?.completed &&
+                    request.workflow_stage >= 2 && (
+                      <Alert
+                        severity='success'
+                        icon={<TaskAltIcon />}
+                        sx={{ mt: 1 }}
+                      >
+                        <Typography variant='body2' fontWeight={600}>
+                          Visita Completada
+                        </Typography>
+                        <Typography variant='caption'>
+                          La visita a la propiedad ha sido completada
+                          exitosamente.
+                        </Typography>
+                      </Alert>
+                    )}
 
                   {/* Indicador de progreso del workflow */}
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={(request.workflow_stage || 0) * 20} 
+                  <LinearProgress
+                    variant='determinate'
+                    value={(request.workflow_stage || 0) * 20}
                     sx={{ mt: 1, height: 8, borderRadius: 1 }}
                   />
                 </Box>
               )}
 
               {/* Mostrar componente de subida de documentos si está en etapa 2 y es tenant */}
-              {isTenant && request.status === 'accepted' && request.workflow_stage === 2 && (
-                <Box sx={{ mt: 2 }}>
-                  <Alert severity="warning" icon={<DocumentIcon />} sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight={600}>
-                      Acción Requerida: Subir Documentos
-                    </Typography>
-                    <Typography variant="caption">
-                      Para continuar con el proceso, necesitas subir los documentos requeridos.
-                    </Typography>
-                  </Alert>
-                  <Box data-documents-section>
-                    <EnhancedTenantDocumentUpload
-                      processId={request.id}
-                      onDocumentUploaded={() => {
-                        // Refrescar los datos cuando se suba un documento
-                        refetchMatchRequests();
-                      }}
-                      matchRequestData={request}
-                      guaranteeType={
-                        request.workflow_data?.guarantee_type || 
-                        (request.workflow_data?.guarantees?.guarantee_type) ||
-                        'none'
-                      }
-                      codeudorName={
-                        request.workflow_data?.guarantees?.codeudor_full_name ||
-                        request.workflow_data?.codeudor_full_name ||
-                        ''
-                      }
-                    />
+              {isTenant &&
+                request.status === 'accepted' &&
+                request.workflow_stage === 2 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Alert
+                      severity='warning'
+                      icon={<DocumentIcon />}
+                      sx={{ mb: 2 }}
+                    >
+                      <Typography variant='body2' fontWeight={600}>
+                        Acción Requerida: Subir Documentos
+                      </Typography>
+                      <Typography variant='caption'>
+                        Para continuar con el proceso, necesitas subir los
+                        documentos requeridos.
+                      </Typography>
+                    </Alert>
+                    <Box data-documents-section>
+                      <EnhancedTenantDocumentUpload
+                        processId={request.id}
+                        onDocumentUploaded={() => {
+                          // Refrescar los datos cuando se suba un documento
+                          refetchMatchRequests();
+                        }}
+                        matchRequestData={request}
+                        guaranteeType={
+                          request.workflow_data?.guarantee_type ||
+                          request.workflow_data?.guarantees?.guarantee_type ||
+                          'none'
+                        }
+                        codeudorName={
+                          request.workflow_data?.guarantees
+                            ?.codeudor_full_name ||
+                          request.workflow_data?.codeudor_full_name ||
+                          ''
+                        }
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              )}
+                )}
 
               {/* Vista para el arrendador cuando el tenant está subiendo documentos */}
-              {!isTenant && request.status === 'accepted' && request.workflow_stage === 2 && (
-                <Box sx={{ mt: 2 }}>
-                  <Alert severity="info" icon={<DocumentIcon />} sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight={600}>
-                      Arrendatario Subiendo Documentos
-                    </Typography>
-                    <Typography variant="caption">
-                      El arrendatario está en proceso de subir los documentos requeridos. Podrás ver el progreso aquí.
-                    </Typography>
-                  </Alert>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Schedule fontSize="small" color="disabled" />
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                      Esperando documentos del arrendatario...
-                    </Typography>
+              {!isTenant &&
+                request.status === 'accepted' &&
+                request.workflow_stage === 2 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Alert
+                      severity='info'
+                      icon={<DocumentIcon />}
+                      sx={{ mb: 2 }}
+                    >
+                      <Typography variant='body2' fontWeight={600}>
+                        Arrendatario Subiendo Documentos
+                      </Typography>
+                      <Typography variant='caption'>
+                        El arrendatario está en proceso de subir los documentos
+                        requeridos. Podrás ver el progreso aquí.
+                      </Typography>
+                    </Alert>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Schedule fontSize='small' color='disabled' />
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        sx={{ fontStyle: 'italic' }}
+                      >
+                        Esperando documentos del arrendatario...
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              )}
+                )}
 
               {/* Mostrar información de documentos aprobados para arrendatarios en etapa 3 */}
-              {isTenant && request.status === 'accepted' && request.workflow_stage === 3 && (
-                <Box sx={{ mt: 2 }}>
-                  <Alert severity="success" icon={<TaskAltIcon />} sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight={600}>
-                      Documentos Aprobados
-                    </Typography>
-                    <Typography variant="caption">
-                      ¡Excelente! Todos tus documentos han sido revisados y aprobados por el arrendador. El proceso ha avanzado a la creación del contrato.
-                    </Typography>
-                  </Alert>
-                  <Alert severity="info" icon={<EditIcon />} sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight={600}>
-                      Etapa 3: Creación del Contrato
-                    </Typography>
-                    <Typography variant="caption">
-                      El arrendador está creando el borrador del contrato. Te notificaremos cuando esté listo para tu revisión.
-                    </Typography>
-                  </Alert>
-                </Box>
-              )}
+              {isTenant &&
+                request.status === 'accepted' &&
+                request.workflow_stage === 3 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Alert
+                      severity='success'
+                      icon={<TaskAltIcon />}
+                      sx={{ mb: 2 }}
+                    >
+                      <Typography variant='body2' fontWeight={600}>
+                        Documentos Aprobados
+                      </Typography>
+                      <Typography variant='caption'>
+                        ¡Excelente! Todos tus documentos han sido revisados y
+                        aprobados por el arrendador. El proceso ha avanzado a la
+                        creación del contrato.
+                      </Typography>
+                    </Alert>
+                    <Alert severity='info' icon={<EditIcon />} sx={{ mb: 2 }}>
+                      <Typography variant='body2' fontWeight={600}>
+                        Etapa 3: Creación del Contrato
+                      </Typography>
+                      <Typography variant='caption'>
+                        El arrendador está creando el borrador del contrato. Te
+                        notificaremos cuando esté listo para tu revisión.
+                      </Typography>
+                    </Alert>
+                  </Box>
+                )}
 
               {/* Información adicional para el arrendatario */}
               {!request.workflow_stage || request.workflow_stage < 2 ? (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  El arrendador está coordinando los siguientes pasos del proceso.
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ mt: 1, display: 'block' }}
+                >
+                  El arrendador está coordinando los siguientes pasos del
+                  proceso.
                 </Typography>
               ) : null}
             </Box>
           )}
-          
+
           {/* Botones de Aceptar/Rechazar para arrendadores con solicitudes pendientes */}
           {isLandlord && ['pending', 'viewed'].includes(request.status) && (
-            <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${vhColors.divider}` }}>
-              <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 2 }}>
+            <Box
+              sx={{ mt: 2, pt: 2, borderTop: `1px solid ${vhColors.divider}` }}
+            >
+              <Stack
+                direction='row'
+                spacing={1}
+                justifyContent='center'
+                sx={{ mb: 2 }}
+              >
                 <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
+                  variant='outlined'
+                  color='primary'
+                  size='small'
                   startIcon={<Visibility />}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleViewCandidateDetails(request);
                   }}
@@ -665,13 +826,13 @@ const MatchesDashboard: React.FC = () => {
                   Ver Detalles
                 </Button>
               </Stack>
-              <Stack direction="row" spacing={2} justifyContent="center">
+              <Stack direction='row' spacing={2} justifyContent='center'>
                 <Button
-                  variant="contained"
-                  color="success"
-                  size="small"
+                  variant='contained'
+                  color='success'
+                  size='small'
                   startIcon={<CheckCircle />}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleAcceptRequest(request.id);
                   }}
@@ -680,11 +841,11 @@ const MatchesDashboard: React.FC = () => {
                   Aceptar
                 </Button>
                 <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
+                  variant='outlined'
+                  color='error'
+                  size='small'
                   startIcon={<Close />}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleRejectRequest(request.id);
                   }}
@@ -694,7 +855,11 @@ const MatchesDashboard: React.FC = () => {
                 </Button>
               </Stack>
               {isExpiredRequest && (
-                <Typography variant="caption" color="error" sx={{ mt: 1, textAlign: 'center', display: 'block' }}>
+                <Typography
+                  variant='caption'
+                  color='error'
+                  sx={{ mt: 1, textAlign: 'center', display: 'block' }}
+                >
                   Esta solicitud ha expirado
                 </Typography>
               )}
@@ -707,7 +872,12 @@ const MatchesDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight={300}
+      >
         <CircularProgress />
       </Box>
     );
@@ -715,7 +885,7 @@ const MatchesDashboard: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 3 }}>
+      <Alert severity='error' sx={{ mb: 3 }}>
         Error cargando datos de matches: {error.message}
       </Alert>
     );
@@ -724,20 +894,24 @@ const MatchesDashboard: React.FC = () => {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack
+          direction='row'
+          justifyContent='space-between'
+          alignItems='center'
+          sx={{ mb: 3 }}
+        >
           <Box>
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant='h4' fontWeight={700}>
               {isLandlord ? 'Solicitudes Recibidas' : 'Mis Solicitudes'}
             </Typography>
-            <Typography variant="body1" color="textSecondary">
-              {isLandlord 
+            <Typography variant='body1' color='textSecondary'>
+              {isLandlord
                 ? 'Gestiona las solicitudes de match de tus propiedades'
-                : 'Seguimiento de tus solicitudes de match enviadas'
-              }
+                : 'Seguimiento de tus solicitudes de match enviadas'}
             </Typography>
           </Box>
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<Refresh />}
             onClick={() => {
               refetchMatchRequests();
@@ -782,7 +956,7 @@ const MatchesDashboard: React.FC = () => {
         <Box sx={{ display: 'flex', gap: 1 }}>
           {isLandlord ? (
             <>
-              <Button 
+              <Button
                 variant={tabValue === 0 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(0);
@@ -790,7 +964,7 @@ const MatchesDashboard: React.FC = () => {
               >
                 Pendientes
               </Button>
-              <Button 
+              <Button
                 variant={tabValue === 1 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(1);
@@ -798,7 +972,7 @@ const MatchesDashboard: React.FC = () => {
               >
                 Aceptadas
               </Button>
-              <Button 
+              <Button
                 variant={tabValue === 2 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(2);
@@ -806,7 +980,7 @@ const MatchesDashboard: React.FC = () => {
               >
                 Rechazadas
               </Button>
-              <Button 
+              <Button
                 variant={tabValue === 3 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(3);
@@ -817,7 +991,7 @@ const MatchesDashboard: React.FC = () => {
             </>
           ) : (
             <>
-              <Button 
+              <Button
                 variant={tabValue === 0 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(0);
@@ -825,7 +999,7 @@ const MatchesDashboard: React.FC = () => {
               >
                 Enviadas
               </Button>
-              <Button 
+              <Button
                 variant={tabValue === 1 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(1);
@@ -833,7 +1007,7 @@ const MatchesDashboard: React.FC = () => {
               >
                 En Proceso
               </Button>
-              <Button 
+              <Button
                 variant={tabValue === 2 ? 'contained' : 'outlined'}
                 onClick={() => {
                   setTabValue(2);
@@ -849,17 +1023,26 @@ const MatchesDashboard: React.FC = () => {
       {/* Tab Panels */}
       <TabPanel value={tabValue} index={0}>
         <Box>
-          <Typography variant="h6" gutterBottom>
-            {isLandlord ? 'Solicitudes Pendientes de Respuesta' : 'Todas las Solicitudes Enviadas'}
+          <Typography variant='h6' gutterBottom>
+            {isLandlord
+              ? 'Solicitudes Pendientes de Respuesta'
+              : 'Todas las Solicitudes Enviadas'}
           </Typography>
           {isLandlord ? (
             <>
-              {receivedRequests.filter(r => ['pending', 'viewed'].includes(r.status)).map(request => renderMatchRequestCard(request))}
-              {receivedRequests.filter(r => ['pending', 'viewed'].includes(r.status)).length === 0 && (
-                <Alert severity="info" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes pendientes de respuesta</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes de arrendatarios que requieran tu decisión (aceptar/rechazar) aparecerán aquí.
+              {receivedRequests
+                .filter(r => ['pending', 'viewed'].includes(r.status))
+                .map(request => renderMatchRequestCard(request))}
+              {receivedRequests.filter(r =>
+                ['pending', 'viewed'].includes(r.status),
+              ).length === 0 && (
+                <Alert severity='info' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No hay solicitudes pendientes de respuesta
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes de arrendatarios que requieran tu decisión
+                    (aceptar/rechazar) aparecerán aquí.
                   </Typography>
                 </Alert>
               )}
@@ -868,10 +1051,13 @@ const MatchesDashboard: React.FC = () => {
             <>
               {sentRequests.map(request => renderMatchRequestCard(request))}
               {sentRequests.length === 0 && (
-                <Alert severity="info" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No has enviado solicitudes aún</Typography>
-                  <Typography variant="body2">
-                    Cuando encuentres una propiedad que te guste, puedes enviar una solicitud al arrendador.
+                <Alert severity='info' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No has enviado solicitudes aún
+                  </Typography>
+                  <Typography variant='body2'>
+                    Cuando encuentres una propiedad que te guste, puedes enviar
+                    una solicitud al arrendador.
                   </Typography>
                 </Alert>
               )}
@@ -882,19 +1068,26 @@ const MatchesDashboard: React.FC = () => {
 
       <TabPanel value={tabValue} index={1}>
         <Box>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             {isLandlord ? 'Solicitudes Aceptadas' : 'Solicitudes en Proceso'}
           </Typography>
           {isLandlord ? (
             <MatchedCandidatesView />
           ) : (
             <>
-              {sentRequests.filter(r => ['viewed', 'pending'].includes(r.status)).map(request => renderMatchRequestCard(request))}
-              {sentRequests.filter(r => ['viewed', 'pending'].includes(r.status)).length === 0 && (
-                <Alert severity="warning" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes en proceso</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que hayas enviado y estén siendo revisadas aparecerán aquí.
+              {sentRequests
+                .filter(r => ['viewed', 'pending'].includes(r.status))
+                .map(request => renderMatchRequestCard(request))}
+              {sentRequests.filter(r =>
+                ['viewed', 'pending'].includes(r.status),
+              ).length === 0 && (
+                <Alert severity='warning' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No hay solicitudes en proceso
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes que hayas enviado y estén siendo revisadas
+                    aparecerán aquí.
                   </Typography>
                 </Alert>
               )}
@@ -905,29 +1098,42 @@ const MatchesDashboard: React.FC = () => {
 
       <TabPanel value={tabValue} index={2}>
         <Box>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             {isLandlord ? 'Solicitudes Rechazadas' : 'Solicitudes Completadas'}
           </Typography>
           {isLandlord ? (
             <>
-              {receivedRequests.filter(r => r.status === 'rejected').map(request => renderMatchRequestCard(request))}
-              {receivedRequests.filter(r => r.status === 'rejected').length === 0 && (
-                <Alert severity="error" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes rechazadas</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que rechaces aparecerán aquí como registro histórico.
+              {receivedRequests
+                .filter(r => r.status === 'rejected')
+                .map(request => renderMatchRequestCard(request))}
+              {receivedRequests.filter(r => r.status === 'rejected').length ===
+                0 && (
+                <Alert severity='error' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No hay solicitudes rechazadas
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes que rechaces aparecerán aquí como registro
+                    histórico.
                   </Typography>
                 </Alert>
               )}
             </>
           ) : (
             <>
-              {sentRequests.filter(r => ['accepted', 'rejected'].includes(r.status)).map(request => renderMatchRequestCard(request))}
-              {sentRequests.filter(r => ['accepted', 'rejected'].includes(r.status)).length === 0 && (
-                <Alert severity="info" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes completadas</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que hayan sido aceptadas o rechazadas aparecerán aquí.
+              {sentRequests
+                .filter(r => ['accepted', 'rejected'].includes(r.status))
+                .map(request => renderMatchRequestCard(request))}
+              {sentRequests.filter(r =>
+                ['accepted', 'rejected'].includes(r.status),
+              ).length === 0 && (
+                <Alert severity='info' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No hay solicitudes completadas
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes que hayan sido aceptadas o rechazadas
+                    aparecerán aquí.
                   </Typography>
                 </Alert>
               )}
@@ -938,29 +1144,41 @@ const MatchesDashboard: React.FC = () => {
 
       <TabPanel value={tabValue} index={3}>
         <Box>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             Solicitudes Canceladas
           </Typography>
           {isLandlord ? (
             <>
-              {receivedRequests.filter(r => r.status === 'cancelled').map(request => renderMatchRequestCard(request))}
-              {receivedRequests.filter(r => r.status === 'cancelled').length === 0 && (
-                <Alert severity="warning" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No hay solicitudes canceladas</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que los arrendatarios cancelen aparecerán aquí como registro.
+              {receivedRequests
+                .filter(r => r.status === 'cancelled')
+                .map(request => renderMatchRequestCard(request))}
+              {receivedRequests.filter(r => r.status === 'cancelled').length ===
+                0 && (
+                <Alert severity='warning' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No hay solicitudes canceladas
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes que los arrendatarios cancelen aparecerán
+                    aquí como registro.
                   </Typography>
                 </Alert>
               )}
             </>
           ) : (
             <>
-              {sentRequests.filter(r => r.status === 'cancelled').map(request => renderMatchRequestCard(request))}
-              {sentRequests.filter(r => r.status === 'cancelled').length === 0 && (
-                <Alert severity="warning" sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" gutterBottom>No tienes solicitudes canceladas</Typography>
-                  <Typography variant="body2">
-                    Las solicitudes que canceles aparecerán aquí como registro histórico.
+              {sentRequests
+                .filter(r => r.status === 'cancelled')
+                .map(request => renderMatchRequestCard(request))}
+              {sentRequests.filter(r => r.status === 'cancelled').length ===
+                0 && (
+                <Alert severity='warning' sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant='h6' gutterBottom>
+                    No tienes solicitudes canceladas
+                  </Typography>
+                  <Typography variant='body2'>
+                    Las solicitudes que canceles aparecerán aquí como registro
+                    histórico.
                   </Typography>
                 </Alert>
               )}
@@ -970,15 +1188,19 @@ const MatchesDashboard: React.FC = () => {
       </TabPanel>
 
       {/* Contract Creation Confirmation Dialog */}
-      <Dialog 
-        open={contractDialogOpen} 
+      <Dialog
+        open={contractDialogOpen}
         onClose={() => setContractDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='center'
+          >
+            <Typography variant='h6'>
               Crear Contrato de Arrendamiento
             </Typography>
             <IconButton onClick={() => setContractDialogOpen(false)}>
@@ -986,52 +1208,69 @@ const MatchesDashboard: React.FC = () => {
             </IconButton>
           </Stack>
         </DialogTitle>
-        
+
         <DialogContent>
           {selectedRequestForContract && (
             <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Vas a crear un contrato de arrendamiento basado en la solicitud de match aceptada.
+              <Alert severity='info' sx={{ mb: 2 }}>
+                Vas a crear un contrato de arrendamiento basado en la solicitud
+                de match aceptada.
               </Alert>
 
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant='subtitle1' gutterBottom>
                 Detalles del Contrato:
               </Typography>
 
               <List dense>
                 <ListItem>
-                  <ListItemIcon><Person /></ListItemIcon>
+                  <ListItemIcon>
+                    <Person />
+                  </ListItemIcon>
                   <ListItemText
-                    primary="Arrendatario"
+                    primary='Arrendatario'
                     secondary={
-                      typeof selectedRequestForContract.tenant === 'object' && selectedRequestForContract.tenant !== null
-                        ? (selectedRequestForContract.tenant as any).name || selectedRequestForContract.tenant_name
-                        : selectedRequestForContract.tenant || selectedRequestForContract.tenant_name
+                      typeof selectedRequestForContract.tenant === 'object' &&
+                      selectedRequestForContract.tenant !== null
+                        ? (selectedRequestForContract.tenant as any).name ||
+                          selectedRequestForContract.tenant_name
+                        : selectedRequestForContract.tenant ||
+                          selectedRequestForContract.tenant_name
                     }
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Home /></ListItemIcon>
+                  <ListItemIcon>
+                    <Home />
+                  </ListItemIcon>
                   <ListItemText
-                    primary="Propiedad"
+                    primary='Propiedad'
                     secondary={
-                      typeof selectedRequestForContract.property === 'object' && selectedRequestForContract.property !== null
-                        ? (selectedRequestForContract.property as any).title || selectedRequestForContract.property_title
-                        : selectedRequestForContract.property || selectedRequestForContract.property_title
+                      typeof selectedRequestForContract.property === 'object' &&
+                      selectedRequestForContract.property !== null
+                        ? (selectedRequestForContract.property as any).title ||
+                          selectedRequestForContract.property_title
+                        : selectedRequestForContract.property ||
+                          selectedRequestForContract.property_title
                     }
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><AttachMoney /></ListItemIcon>
-                  <ListItemText 
-                    primary="Ingresos del Arrendatario" 
-                    secondary={formatCurrency(selectedRequestForContract.monthly_income)}
+                  <ListItemIcon>
+                    <AttachMoney />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Ingresos del Arrendatario'
+                    secondary={formatCurrency(
+                      selectedRequestForContract.monthly_income,
+                    )}
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Assignment /></ListItemIcon>
-                  <ListItemText 
-                    primary="Duración del Contrato" 
+                  <ListItemIcon>
+                    <Assignment />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Duración del Contrato'
                     secondary={`${selectedRequestForContract.lease_duration_months} meses`}
                   />
                 </ListItem>
@@ -1039,24 +1278,30 @@ const MatchesDashboard: React.FC = () => {
 
               <Divider sx={{ my: 2 }} />
 
-              <Typography variant="body2" color="textSecondary">
-                El contrato se creará en estado "Borrador" y podrá ser editado antes de enviarlo para firma digital.
-                Ambas partes deberán completar el proceso de verificación biométrica antes de la firma final.
+              <Typography variant='body2' color='textSecondary'>
+                El contrato se creará en estado "Borrador" y podrá ser editado
+                antes de enviarlo para firma digital. Ambas partes deberán
+                completar el proceso de verificación biométrica antes de la
+                firma final.
               </Typography>
             </Box>
           )}
         </DialogContent>
-        
+
         <DialogActions>
-          <Button onClick={() => setContractDialogOpen(false)}>
-            Cancelar
-          </Button>
+          <Button onClick={() => setContractDialogOpen(false)}>Cancelar</Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={handleConfirmCreateContract}
             disabled={isCreatingContract}
-            startIcon={isCreatingContract ? <CircularProgress size={16} /> : <Assignment />}
-            color="success"
+            startIcon={
+              isCreatingContract ? (
+                <CircularProgress size={16} />
+              ) : (
+                <Assignment />
+              )
+            }
+            color='success'
           >
             {isCreatingContract ? 'Creando Contrato...' : 'Crear Contrato'}
           </Button>
@@ -1064,20 +1309,18 @@ const MatchesDashboard: React.FC = () => {
       </Dialog>
 
       {/* Candidate Details Modal */}
-      <Dialog 
-        open={candidateDetailsModalOpen} 
+      <Dialog
+        open={candidateDetailsModalOpen}
         onClose={() => setCandidateDetailsModalOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         <DialogTitle sx={{ pb: 2 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Person color="primary" />
+          <Stack direction='row' alignItems='center' spacing={2}>
+            <Person color='primary' />
             <Box>
-              <Typography variant="h6">
-                Detalles del Candidato
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant='h6'>Detalles del Candidato</Typography>
+              <Typography variant='caption' color='text.secondary'>
                 {selectedCandidate?.tenant_name}
               </Typography>
             </Box>
@@ -1088,50 +1331,58 @@ const MatchesDashboard: React.FC = () => {
             <Box>
               {/* Información Personal */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Person /> Información Personal
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Nombre Completo"
+                      label='Nombre Completo'
                       value={selectedCandidate.tenant_name || 'No disponible'}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Email"
+                      label='Email'
                       value={selectedCandidate.tenant_email || 'No disponible'}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Teléfono"
+                      label='Teléfono'
                       value={selectedCandidate.tenant_phone || 'No disponible'}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Fecha de Mudanza Preferida"
-                      value={selectedCandidate.preferred_move_in_date 
-                        ? new Date(selectedCandidate.preferred_move_in_date).toLocaleDateString('es-CO')
-                        : 'No especificada'}
+                      label='Fecha de Mudanza Preferida'
+                      value={
+                        selectedCandidate.preferred_move_in_date
+                          ? new Date(
+                              selectedCandidate.preferred_move_in_date,
+                            ).toLocaleDateString('es-CO')
+                          : 'No especificada'
+                      }
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                 </Grid>
@@ -1139,40 +1390,48 @@ const MatchesDashboard: React.FC = () => {
 
               {/* Información Financiera */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <AttachMoney /> Información Financiera y Laboral
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Ingresos Mensuales"
-                      value={selectedCandidate.monthly_income 
-                        ? formatCurrency(selectedCandidate.monthly_income)
-                        : 'No especificado'}
+                      label='Ingresos Mensuales'
+                      value={
+                        selectedCandidate.monthly_income
+                          ? formatCurrency(selectedCandidate.monthly_income)
+                          : 'No especificado'
+                      }
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Tipo de Empleo"
-                      value={selectedCandidate.employment_type || 'No especificado'}
+                      label='Tipo de Empleo'
+                      value={
+                        selectedCandidate.employment_type || 'No especificado'
+                      }
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      label="Duración del Contrato Solicitada"
+                      label='Duración del Contrato Solicitada'
                       value={`${selectedCandidate.lease_duration_months || 'No especificada'} meses`}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                 </Grid>
@@ -1180,77 +1439,117 @@ const MatchesDashboard: React.FC = () => {
 
               {/* Información del Hogar */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Home /> Información del Hogar
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={4}>
                     <TextField
-                      label="Número de Ocupantes"
-                      value={selectedCandidate.number_of_occupants || 'No especificado'}
+                      label='Número de Ocupantes'
+                      value={
+                        selectedCandidate.number_of_occupants ||
+                        'No especificado'
+                      }
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <TextField
-                      label="Mascotas"
+                      label='Mascotas'
                       value={selectedCandidate.has_pets ? 'Sí' : 'No'}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <TextField
-                      label="Fumador"
+                      label='Fumador'
                       value={selectedCandidate.smoking_allowed ? 'Sí' : 'No'}
                       fullWidth
                       InputProps={{ readOnly: true }}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                     />
                   </Grid>
-                  {selectedCandidate.has_pets && selectedCandidate.pet_details && (
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Detalles de Mascotas"
-                        value={selectedCandidate.pet_details}
-                        fullWidth
-                        multiline
-                        rows={2}
-                        InputProps={{ readOnly: true }}
-                        variant="outlined"
-                        size="small"
-                      />
-                    </Grid>
-                  )}
+                  {selectedCandidate.has_pets &&
+                    selectedCandidate.pet_details && (
+                      <Grid item xs={12}>
+                        <TextField
+                          label='Detalles de Mascotas'
+                          value={selectedCandidate.pet_details}
+                          fullWidth
+                          multiline
+                          rows={2}
+                          InputProps={{ readOnly: true }}
+                          variant='outlined'
+                          size='small'
+                        />
+                      </Grid>
+                    )}
                 </Grid>
               </Box>
 
               {/* Referencias y Documentos */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Assessment /> Referencias y Documentos
                 </Typography>
-                <Stack direction="row" spacing={2} flexWrap="wrap">
-                  <Chip 
-                    label="Referencias de Arrendamiento" 
-                    color={selectedCandidate.has_rental_references ? 'success' : 'default'}
-                    icon={selectedCandidate.has_rental_references ? <CheckCircle /> : <Cancel />}
+                <Stack direction='row' spacing={2} flexWrap='wrap'>
+                  <Chip
+                    label='Referencias de Arrendamiento'
+                    color={
+                      selectedCandidate.has_rental_references
+                        ? 'success'
+                        : 'default'
+                    }
+                    icon={
+                      selectedCandidate.has_rental_references ? (
+                        <CheckCircle />
+                      ) : (
+                        <Cancel />
+                      )
+                    }
                   />
-                  <Chip 
-                    label="Prueba de Empleo" 
-                    color={selectedCandidate.has_employment_proof ? 'success' : 'default'}
-                    icon={selectedCandidate.has_employment_proof ? <CheckCircle /> : <Cancel />}
+                  <Chip
+                    label='Prueba de Empleo'
+                    color={
+                      selectedCandidate.has_employment_proof
+                        ? 'success'
+                        : 'default'
+                    }
+                    icon={
+                      selectedCandidate.has_employment_proof ? (
+                        <CheckCircle />
+                      ) : (
+                        <Cancel />
+                      )
+                    }
                   />
-                  <Chip 
-                    label="Verificación Crediticia" 
-                    color={selectedCandidate.has_credit_check ? 'success' : 'default'}
-                    icon={selectedCandidate.has_credit_check ? <CheckCircle /> : <Cancel />}
+                  <Chip
+                    label='Verificación Crediticia'
+                    color={
+                      selectedCandidate.has_credit_check ? 'success' : 'default'
+                    }
+                    icon={
+                      selectedCandidate.has_credit_check ? (
+                        <CheckCircle />
+                      ) : (
+                        <Cancel />
+                      )
+                    }
                   />
                 </Stack>
               </Box>
@@ -1258,11 +1557,26 @@ const MatchesDashboard: React.FC = () => {
               {/* Mensaje del Candidato */}
               {selectedCandidate.tenant_message && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant='h6'
+                    gutterBottom
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     <Message /> Mensaje del Candidato
                   </Typography>
-                  <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
-                    <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'grey.200',
+                    }}
+                  >
+                    <Typography
+                      variant='body2'
+                      style={{ whiteSpace: 'pre-line' }}
+                    >
                       {selectedCandidate.tenant_message}
                     </Typography>
                   </Box>
@@ -1272,19 +1586,33 @@ const MatchesDashboard: React.FC = () => {
               {/* Estado del Proceso y Workflow */}
               {selectedCandidate.status === 'accepted' && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant='h6'
+                    gutterBottom
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     <Assignment /> Estado del Proceso
                   </Typography>
-                  
+
                   {/* Indicador de Etapa Actual */}
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="body1" gutterBottom>
-                      <strong>Etapa actual: {selectedCandidate.workflow_stage || 1} de 5</strong>
+                    <Typography variant='body1' gutterBottom>
+                      <strong>
+                        Etapa actual: {selectedCandidate.workflow_stage || 1} de
+                        5
+                      </strong>
                     </Typography>
-                    
+
                     {/* Stepper Visual */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      {[1, 2, 3, 4, 5].map((step) => (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                      }}
+                    >
+                      {[1, 2, 3, 4, 5].map(step => (
                         <React.Fragment key={step}>
                           <Box
                             sx={{
@@ -1296,9 +1624,18 @@ const MatchesDashboard: React.FC = () => {
                               justifyContent: 'center',
                               fontWeight: 600,
                               fontSize: '0.9rem',
-                              bgcolor: (selectedCandidate.workflow_stage || 1) >= step ? 'primary.main' : 'grey.300',
-                              color: (selectedCandidate.workflow_stage || 1) >= step ? 'white' : 'grey.600',
-                              border: (selectedCandidate.workflow_stage || 1) === step ? '3px solid' : 'none',
+                              bgcolor:
+                                (selectedCandidate.workflow_stage || 1) >= step
+                                  ? 'primary.main'
+                                  : 'grey.300',
+                              color:
+                                (selectedCandidate.workflow_stage || 1) >= step
+                                  ? 'white'
+                                  : 'grey.600',
+                              border:
+                                (selectedCandidate.workflow_stage || 1) === step
+                                  ? '3px solid'
+                                  : 'none',
                               borderColor: 'primary.light',
                             }}
                           >
@@ -1309,7 +1646,10 @@ const MatchesDashboard: React.FC = () => {
                               sx={{
                                 flex: 1,
                                 height: 4,
-                                bgcolor: (selectedCandidate.workflow_stage || 1) > step ? 'primary.main' : 'grey.300',
+                                bgcolor:
+                                  (selectedCandidate.workflow_stage || 1) > step
+                                    ? 'primary.main'
+                                    : 'grey.300',
                                 borderRadius: 2,
                               }}
                             />
@@ -1319,27 +1659,65 @@ const MatchesDashboard: React.FC = () => {
                     </Box>
 
                     {/* Descripción de la etapa actual */}
-                    <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 1, border: '1px solid', borderColor: 'primary.200' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {(selectedCandidate.workflow_stage || 1) === 1 && <Home fontSize="small" color="primary" />}
-                        {(selectedCandidate.workflow_stage || 1) === 2 && <DocumentIcon fontSize="small" color="primary" />}
-                        {(selectedCandidate.workflow_stage || 1) === 3 && <EditIcon fontSize="small" color="primary" />}
-                        {(selectedCandidate.workflow_stage || 1) === 4 && <FingerprintIcon fontSize="small" color="primary" />}
-                        {(selectedCandidate.workflow_stage || 1) === 5 && <VpnKeyIcon fontSize="small" color="primary" />}
-                        <Typography variant="body2" fontWeight={600} color="primary.dark">
-                          {(selectedCandidate.workflow_stage || 1) === 1 && 'Etapa 1: Programación de Visita'}
-                          {(selectedCandidate.workflow_stage || 1) === 2 && 'Etapa 2: Revisión de Documentos'}
-                          {(selectedCandidate.workflow_stage || 1) === 3 && 'Etapa 3: Creación del Contrato'}
-                          {(selectedCandidate.workflow_stage || 1) === 4 && 'Etapa 4: Autenticación Biométrica'}
-                          {(selectedCandidate.workflow_stage || 1) === 5 && 'Etapa 5: Entrega de Llaves'}
+                    <Box
+                      sx={{
+                        p: 2,
+                        bgcolor: 'primary.50',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'primary.200',
+                      }}
+                    >
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        {(selectedCandidate.workflow_stage || 1) === 1 && (
+                          <Home fontSize='small' color='primary' />
+                        )}
+                        {(selectedCandidate.workflow_stage || 1) === 2 && (
+                          <DocumentIcon fontSize='small' color='primary' />
+                        )}
+                        {(selectedCandidate.workflow_stage || 1) === 3 && (
+                          <EditIcon fontSize='small' color='primary' />
+                        )}
+                        {(selectedCandidate.workflow_stage || 1) === 4 && (
+                          <FingerprintIcon fontSize='small' color='primary' />
+                        )}
+                        {(selectedCandidate.workflow_stage || 1) === 5 && (
+                          <VpnKeyIcon fontSize='small' color='primary' />
+                        )}
+                        <Typography
+                          variant='body2'
+                          fontWeight={600}
+                          color='primary.dark'
+                        >
+                          {(selectedCandidate.workflow_stage || 1) === 1 &&
+                            'Etapa 1: Programación de Visita'}
+                          {(selectedCandidate.workflow_stage || 1) === 2 &&
+                            'Etapa 2: Revisión de Documentos'}
+                          {(selectedCandidate.workflow_stage || 1) === 3 &&
+                            'Etapa 3: Creación del Contrato'}
+                          {(selectedCandidate.workflow_stage || 1) === 4 &&
+                            'Etapa 4: Autenticación Biométrica'}
+                          {(selectedCandidate.workflow_stage || 1) === 5 &&
+                            'Etapa 5: Entrega de Llaves'}
                         </Typography>
                       </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                        {(selectedCandidate.workflow_stage || 1) === 1 && 'Se coordinará la visita a la propiedad con el candidato seleccionado.'}
-                        {(selectedCandidate.workflow_stage || 1) === 2 && 'El candidato debe subir los documentos requeridos para verificación.'}
-                        {(selectedCandidate.workflow_stage || 1) === 3 && 'Se está preparando el contrato de arrendamiento basado en los términos acordados.'}
-                        {(selectedCandidate.workflow_stage || 1) === 4 && 'Verificación biométrica y firma digital del contrato.'}
-                        {(selectedCandidate.workflow_stage || 1) === 5 && 'Proceso completado. Entrega de llaves y ejecución del contrato.'}
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ mt: 0.5, display: 'block' }}
+                      >
+                        {(selectedCandidate.workflow_stage || 1) === 1 &&
+                          'Se coordinará la visita a la propiedad con el candidato seleccionado.'}
+                        {(selectedCandidate.workflow_stage || 1) === 2 &&
+                          'El candidato debe subir los documentos requeridos para verificación.'}
+                        {(selectedCandidate.workflow_stage || 1) === 3 &&
+                          'Se está preparando el contrato de arrendamiento basado en los términos acordados.'}
+                        {(selectedCandidate.workflow_stage || 1) === 4 &&
+                          'Verificación biométrica y firma digital del contrato.'}
+                        {(selectedCandidate.workflow_stage || 1) === 5 &&
+                          'Proceso completado. Entrega de llaves y ejecución del contrato.'}
                       </Typography>
                     </Box>
                   </Box>
@@ -1347,61 +1725,88 @@ const MatchesDashboard: React.FC = () => {
                   {/* Información de Visita Programada */}
                   {selectedCandidate.workflow_data?.visit_scheduled && (
                     <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <EventAvailableIcon fontSize="small" color="action" />
-                        <Typography variant="body1" fontWeight={600}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 1,
+                        }}
+                      >
+                        <EventAvailableIcon fontSize='small' color='action' />
+                        <Typography variant='body1' fontWeight={600}>
                           Visita Programada
                         </Typography>
                       </Box>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={4}>
                           <TextField
-                            label="Fecha"
-                            value={selectedCandidate.workflow_data.visit_scheduled.date
-                              ? new Date(selectedCandidate.workflow_data.visit_scheduled.date).toLocaleDateString('es-CO')
-                              : 'No programada'}
+                            label='Fecha'
+                            value={
+                              selectedCandidate.workflow_data.visit_scheduled
+                                .date
+                                ? new Date(
+                                    selectedCandidate.workflow_data.visit_scheduled.date,
+                                  ).toLocaleDateString('es-CO')
+                                : 'No programada'
+                            }
                             fullWidth
                             InputProps={{ readOnly: true }}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                           />
                         </Grid>
                         <Grid item xs={12} md={4}>
                           <TextField
-                            label="Hora"
-                            value={selectedCandidate.workflow_data.visit_scheduled.time || 'No especificada'}
+                            label='Hora'
+                            value={
+                              selectedCandidate.workflow_data.visit_scheduled
+                                .time || 'No especificada'
+                            }
                             fullWidth
                             InputProps={{ readOnly: true }}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                           />
                         </Grid>
                         <Grid item xs={12} md={4}>
                           <TextField
-                            label="Estado"
-                            value={selectedCandidate.workflow_data.visit_scheduled.completed ? 'Completada' : 'Pendiente'}
+                            label='Estado'
+                            value={
+                              selectedCandidate.workflow_data.visit_scheduled
+                                .completed
+                                ? 'Completada'
+                                : 'Pendiente'
+                            }
                             fullWidth
-                            InputProps={{ 
+                            InputProps={{
                               readOnly: true,
                               style: {
-                                color: selectedCandidate.workflow_data.visit_scheduled.completed ? 'green' : 'orange',
+                                color: selectedCandidate.workflow_data
+                                  .visit_scheduled.completed
+                                  ? 'green'
+                                  : 'orange',
                               },
                             }}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                           />
                         </Grid>
-                        {selectedCandidate.workflow_data.visit_scheduled.notes && (
+                        {selectedCandidate.workflow_data.visit_scheduled
+                          .notes && (
                           <Grid item xs={12}>
                             <TextField
-                              label="Notas de la Visita"
-                              value={selectedCandidate.workflow_data.visit_scheduled.notes}
+                              label='Notas de la Visita'
+                              value={
+                                selectedCandidate.workflow_data.visit_scheduled
+                                  .notes
+                              }
                               fullWidth
                               multiline
                               rows={2}
                               InputProps={{ readOnly: true }}
-                              variant="outlined"
-                              size="small"
+                              variant='outlined'
+                              size='small'
                             />
                           </Grid>
                         )}
@@ -1411,12 +1816,22 @@ const MatchesDashboard: React.FC = () => {
 
                   {/* Barra de progreso general */}
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Progreso General: {Math.round(((selectedCandidate.workflow_stage || 1) / 5) * 100)}%
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      gutterBottom
+                    >
+                      Progreso General:{' '}
+                      {Math.round(
+                        ((selectedCandidate.workflow_stage || 1) / 5) * 100,
+                      )}
+                      %
                     </Typography>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={((selectedCandidate.workflow_stage || 1) / 5) * 100} 
+                    <LinearProgress
+                      variant='determinate'
+                      value={
+                        ((selectedCandidate.workflow_stage || 1) / 5) * 100
+                      }
                       sx={{ height: 8, borderRadius: 4 }}
                     />
                   </Box>
@@ -1426,16 +1841,20 @@ const MatchesDashboard: React.FC = () => {
               {/* Score de Compatibilidad */}
               {selectedCandidate.compatibility_score && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant='h6'
+                    gutterBottom
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     <TrendingUp /> Compatibilidad
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="h4" color="primary">
+                    <Typography variant='h4' color='primary'>
                       {selectedCandidate.compatibility_score}%
                     </Typography>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={selectedCandidate.compatibility_score} 
+                    <LinearProgress
+                      variant='determinate'
+                      value={selectedCandidate.compatibility_score}
                       sx={{ flex: 1, height: 8, borderRadius: 1 }}
                     />
                   </Box>
@@ -1448,9 +1867,9 @@ const MatchesDashboard: React.FC = () => {
           <Button onClick={() => setCandidateDetailsModalOpen(false)}>
             Cerrar
           </Button>
-          <Button 
-            variant="outlined" 
-            color="error" 
+          <Button
+            variant='outlined'
+            color='error'
             startIcon={<Close />}
             onClick={() => {
               setCandidateDetailsModalOpen(false);
@@ -1461,9 +1880,9 @@ const MatchesDashboard: React.FC = () => {
           >
             Rechazar
           </Button>
-          <Button 
-            variant="contained" 
-            color="success" 
+          <Button
+            variant='contained'
+            color='success'
             startIcon={<CheckCircle />}
             onClick={() => {
               setCandidateDetailsModalOpen(false);

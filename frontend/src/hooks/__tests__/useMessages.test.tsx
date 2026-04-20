@@ -108,7 +108,9 @@ describe('useMessages', () => {
   });
 
   it('should fetch messages successfully', async () => {
-    const { result } = renderHook(() => useMessages(), { wrapper: createTestWrapper() });
+    const { result } = renderHook(() => useMessages(), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -121,10 +123,15 @@ describe('useMessages', () => {
   it('should return messages as undefined initially', () => {
     // Use a delayed mock to ensure we can observe initial state
     mockMessageService.getMessages.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(mockMessages as any), 5000))
+      () =>
+        new Promise(resolve =>
+          setTimeout(() => resolve(mockMessages as any), 5000)
+        )
     );
 
-    const { result } = renderHook(() => useMessages(), { wrapper: createTestWrapper() });
+    const { result } = renderHook(() => useMessages(), {
+      wrapper: createTestWrapper(),
+    });
 
     // Messages should be undefined before the query resolves
     expect(result.current.messages).toBeUndefined();
@@ -136,9 +143,14 @@ describe('useMessages', () => {
       subject: 'New',
       content: 'New message',
     };
-    mockMessageService.createMessage.mockResolvedValue({ id: '3', ...newMessage } as any);
+    mockMessageService.createMessage.mockResolvedValue({
+      id: '3',
+      ...newMessage,
+    } as any);
 
-    const { result } = renderHook(() => useMessages(), { wrapper: createTestWrapper() });
+    const { result } = renderHook(() => useMessages(), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -157,7 +169,9 @@ describe('useMessages', () => {
   it('should delete a message via mutation', async () => {
     mockMessageService.deleteMessage.mockResolvedValue(undefined as any);
 
-    const { result } = renderHook(() => useMessages(), { wrapper: createTestWrapper() });
+    const { result } = renderHook(() => useMessages(), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -173,7 +187,9 @@ describe('useMessages', () => {
   });
 
   it('should expose thread and folder data', async () => {
-    const { result } = renderHook(() => useMessages(), { wrapper: createTestWrapper() });
+    const { result } = renderHook(() => useMessages(), {
+      wrapper: createTestWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

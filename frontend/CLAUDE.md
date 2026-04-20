@@ -12,7 +12,7 @@ VeriHome is a comprehensive real estate platform built with Django REST Framewor
 ### Mapbox Configuration
 ```bash
 # Environment Variables (.env)
-VITE_MAPBOX_TOKEN=pk.eyJ1Ijoid2lsc29uYXJndWVsbG8yMDI1IiwiYSI6ImNtYm1zcmg1aDE0NTkyam9rZDRkNzF5YWoifQ.FgvTtKt3AK5uxcoz8BHtmw
+VITE_MAPBOX_TOKEN=<your-mapbox-public-token>  # pk.eyJ1...  (no commitear el token real)
 VITE_DEFAULT_COUNTRY=CO
 VITE_DEFAULT_LAT=4.5709
 VITE_DEFAULT_LNG=-74.2973

@@ -26,7 +26,11 @@ jest.mock('../../../hooks/useAdminAuth', () => ({
 // Mock LoadingSpinner
 jest.mock('../../../components/common/LoadingSpinner', () => {
   return function MockLoadingSpinner(props: any) {
-    return React.createElement('div', { 'data-testid': 'loading-spinner' }, props.message || 'Loading...');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'loading-spinner' },
+      props.message || 'Loading...'
+    );
   };
 });
 
@@ -34,7 +38,9 @@ import { AdminService } from '../../../services/adminService';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 
 const mockedAdminService = AdminService as jest.Mocked<typeof AdminService>;
-const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<typeof useAdminAuth>;
+const mockedUseAdminAuth = useAdminAuth as jest.MockedFunction<
+  typeof useAdminAuth
+>;
 
 const theme = createTheme();
 
@@ -55,10 +61,10 @@ const renderComponent = () => {
         React.createElement(
           ThemeProvider,
           { theme },
-          React.createElement(AdminDashboard),
-        ),
-      ),
-    ),
+          React.createElement(AdminDashboard)
+        )
+      )
+    )
   );
 };
 
@@ -118,12 +124,14 @@ describe('AdminDashboard', () => {
       },
     });
     mockedAdminService.getContractStats.mockResolvedValue(mockStats);
-    mockedAdminService.getPendingContracts.mockResolvedValue(mockPendingContracts);
+    mockedAdminService.getPendingContracts.mockResolvedValue(
+      mockPendingContracts
+    );
   });
 
   it('should show loading spinner while fetching data', () => {
     mockedAdminService.getContractStats.mockImplementation(
-      () => new Promise(() => {}), // Never resolves
+      () => new Promise(() => {}) // Never resolves
     );
 
     renderComponent();
@@ -135,7 +143,9 @@ describe('AdminDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Dashboard de Administraci/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Dashboard de Administraci/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -180,14 +190,20 @@ describe('AdminDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Dashboard de Administraci/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Dashboard de Administraci/i)
+      ).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/contrato\(s\) llevan m/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/contrato\(s\) llevan m/i)
+    ).not.toBeInTheDocument();
   });
 
   it('should display error alert when stats fetch fails', async () => {
-    mockedAdminService.getContractStats.mockRejectedValue(new Error('Server error'));
+    mockedAdminService.getContractStats.mockRejectedValue(
+      new Error('Server error')
+    );
 
     renderComponent();
 
@@ -202,7 +218,9 @@ describe('AdminDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/No hay contratos pendientes/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No hay contratos pendientes/i)
+      ).toBeInTheDocument();
     });
   });
 });

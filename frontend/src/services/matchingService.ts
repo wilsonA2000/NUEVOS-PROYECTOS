@@ -1,6 +1,6 @@
 /**
  * Matching Service - NUEVA VERSION CORREGIDA
- * Timestamp de creación: 2025-08-31T01:33:00Z 
+ * Timestamp de creación: 2025-08-31T01:33:00Z
  * PROBLEMA RESUELTO: baseUrl undefined - import correcto de api
  */
 import api from './api';
@@ -18,7 +18,13 @@ export interface MatchRequest {
   tenant_name?: string;
   landlord: string;
   landlord_name?: string;
-  status: 'pending' | 'viewed' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+  status:
+    | 'pending'
+    | 'viewed'
+    | 'accepted'
+    | 'rejected'
+    | 'expired'
+    | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   tenant_message: string;
   tenant_phone: string;
@@ -44,7 +50,7 @@ export interface MatchRequest {
   compatibility_score?: number;
   is_expired?: boolean;
   can_follow_up?: boolean;
-  
+
   // Workflow fields for visit scheduling and process tracking
   workflow_status?: string;
   workflow_stage?: number;
@@ -169,8 +175,7 @@ export interface DashboardData {
 class MatchingServiceFixed {
   private baseUrl = '/matching';
 
-  constructor() {
-  }
+  constructor() {}
 
   // Match Requests
   async getMyMatchRequests() {
@@ -286,15 +291,29 @@ class MatchingServiceFixed {
   }
 
   async createContractFromMatch(matchId: string, contractData: any) {
-    return api.post(`${this.baseUrl}/requests/${matchId}/create-contract/`, contractData);
+    return api.post(
+      `${this.baseUrl}/requests/${matchId}/create-contract/`,
+      contractData,
+    );
   }
 
   async advanceToContractStage(matchId: string) {
-    return api.post(`${this.baseUrl}/requests/${matchId}/advance-to-contract-stage/`);
+    return api.post(
+      `${this.baseUrl}/requests/${matchId}/advance-to-contract-stage/`,
+    );
   }
 
   // Contract Status Utilities
-  getContractStatusColor(status: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
+  getContractStatusColor(
+    status: string,
+  ):
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'warning'
+    | 'info'
+    | 'success' {
     switch (status) {
       case 'DRAFT':
         return 'default';
@@ -345,7 +364,16 @@ class MatchingServiceFixed {
   }
 
   // Utility functions
-  getMatchStatusColor(status: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
+  getMatchStatusColor(
+    status: string,
+  ):
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'warning'
+    | 'info'
+    | 'success' {
     switch (status) {
       case 'pending':
         return 'warning';
@@ -379,7 +407,16 @@ class MatchingServiceFixed {
     }
   }
 
-  getPriorityColor(priority: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' {
+  getPriorityColor(
+    priority: string,
+  ):
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'warning'
+    | 'info'
+    | 'success' {
     switch (priority) {
       case 'urgent':
         return 'error';

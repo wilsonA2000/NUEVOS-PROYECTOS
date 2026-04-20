@@ -383,10 +383,15 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [generalReason, setGeneralReason] = useState('');
   const [selectedChanges, setSelectedChanges] = useState<SelectedChange[]>([]);
-  const [expandedCategory, setExpandedCategory] = useState<string | false>('Términos Económicos');
+  const [expandedCategory, setExpandedCategory] = useState<string | false>(
+    'Términos Económicos',
+  );
   const [step, setStep] = useState<'select' | 'details'>('select');
 
-  const groupedSections = useMemo(() => groupSectionsByCategory(CONTRACT_SECTIONS), []);
+  const groupedSections = useMemo(
+    () => groupSectionsByCategory(CONTRACT_SECTIONS),
+    [],
+  );
 
   /**
    * Obtiene el valor actual de una sección desde los datos del contrato
@@ -396,17 +401,35 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
 
     const mappings: Record<string, () => string> = {
       // Arrendador
-      landlord_name: () => String(contractData.landlord_data?.full_name || contractData.landlord_data?.name || ''),
-      landlord_document: () => String(contractData.landlord_data?.document_number || ''),
+      landlord_name: () =>
+        String(
+          contractData.landlord_data?.full_name ||
+            contractData.landlord_data?.name ||
+            '',
+        ),
+      landlord_document: () =>
+        String(contractData.landlord_data?.document_number || ''),
       landlord_address: () => String(contractData.landlord_data?.address || ''),
       landlord_phone: () => String(contractData.landlord_data?.phone || ''),
       landlord_email: () => String(contractData.landlord_data?.email || ''),
       // Propiedad
-      property_address: () => String(contractData.property_data?.address || contractData.property_data?.property_address || ''),
+      property_address: () =>
+        String(
+          contractData.property_data?.address ||
+            contractData.property_data?.property_address ||
+            '',
+        ),
       property_city: () => String(contractData.property_data?.city || ''),
-      property_type: () => String(contractData.property_data?.property_type || ''),
-      property_area: () => String(contractData.property_data?.area || contractData.property_data?.property_area || ''),
-      property_description: () => String(contractData.property_data?.description || ''),
+      property_type: () =>
+        String(contractData.property_data?.property_type || ''),
+      property_area: () =>
+        String(
+          contractData.property_data?.area ||
+            contractData.property_data?.property_area ||
+            '',
+        ),
+      property_description: () =>
+        String(contractData.property_data?.description || ''),
       // Económicos
       monthly_rent: () => {
         const rent = contractData.economic_terms?.monthly_rent;
@@ -416,10 +439,18 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
         const deposit = contractData.economic_terms?.security_deposit;
         return deposit ? `$${Number(deposit).toLocaleString('es-CO')} COP` : '';
       },
-      payment_method: () => String(contractData.economic_terms?.payment_method || ''),
-      payment_due_day: () => String(contractData.economic_terms?.payment_due_day || contractData.contract_terms?.payment_due_day || ''),
-      late_payment_fee: () => String(contractData.economic_terms?.late_payment_fee || ''),
-      rent_increment: () => String(contractData.economic_terms?.rent_increment_percentage || ''),
+      payment_method: () =>
+        String(contractData.economic_terms?.payment_method || ''),
+      payment_due_day: () =>
+        String(
+          contractData.economic_terms?.payment_due_day ||
+            contractData.contract_terms?.payment_due_day ||
+            '',
+        ),
+      late_payment_fee: () =>
+        String(contractData.economic_terms?.late_payment_fee || ''),
+      rent_increment: () =>
+        String(contractData.economic_terms?.rent_increment_percentage || ''),
       // Términos
       contract_duration: () => {
         const months = contractData.contract_terms?.contract_duration_months;
@@ -427,11 +458,17 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
       },
       start_date: () => String(contractData.contract_terms?.start_date || ''),
       end_date: () => String(contractData.contract_terms?.end_date || ''),
-      utilities_included: () => contractData.contract_terms?.utilities_included ? 'Sí' : 'No',
-      pets_allowed: () => contractData.contract_terms?.pets_allowed ? 'Sí' : 'No',
-      smoking_allowed: () => contractData.contract_terms?.smoking_allowed ? 'Sí' : 'No',
+      utilities_included: () =>
+        contractData.contract_terms?.utilities_included ? 'Sí' : 'No',
+      pets_allowed: () =>
+        contractData.contract_terms?.pets_allowed ? 'Sí' : 'No',
+      smoking_allowed: () =>
+        contractData.contract_terms?.smoking_allowed ? 'Sí' : 'No',
       // Garantías
-      guarantee_type: () => String(contractData.contract_terms?.guarantee_type || 'No especificado'),
+      guarantee_type: () =>
+        String(
+          contractData.contract_terms?.guarantee_type || 'No especificado',
+        ),
       guarantee_amount: () => {
         const amount = contractData.contract_terms?.guarantee_amount;
         return amount ? `$${Number(amount).toLocaleString('es-CO')} COP` : '';
@@ -445,7 +482,9 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
    * Alterna la selección de una sección
    */
   const handleToggleSection = (section: ContractSection) => {
-    const existingIndex = selectedChanges.findIndex(c => c.sectionId === section.id);
+    const existingIndex = selectedChanges.findIndex(
+      c => c.sectionId === section.id,
+    );
 
     if (existingIndex >= 0) {
       // Remover
@@ -493,17 +532,23 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
    */
   const validateForm = (): boolean => {
     if (selectedChanges.length === 0) {
-      setError('Debe seleccionar al menos una sección del contrato para modificar');
+      setError(
+        'Debe seleccionar al menos una sección del contrato para modificar',
+      );
       return false;
     }
 
     for (const change of selectedChanges) {
       if (!change.requestedValue.trim()) {
-        setError(`Debe especificar el valor solicitado para: ${change.sectionLabel}`);
+        setError(
+          `Debe especificar el valor solicitado para: ${change.sectionLabel}`,
+        );
         return false;
       }
       if (!change.reason.trim()) {
-        setError(`Debe proporcionar una razón para el cambio en: ${change.sectionLabel}`);
+        setError(
+          `Debe proporcionar una razón para el cambio en: ${change.sectionLabel}`,
+        );
         return false;
       }
     }
@@ -553,11 +598,16 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
 
       handleClose();
     } catch (err: unknown) {
-      const errorObj = err as { response?: { data?: { detail?: string; message?: string; contract?: string[] } } };
+      const errorObj = err as {
+        response?: {
+          data?: { detail?: string; message?: string; contract?: string[] };
+        };
+      };
       const errorMessage =
         errorObj.response?.data?.detail ||
         errorObj.response?.data?.message ||
-        (errorObj.response?.data?.contract && errorObj.response?.data?.contract[0]) ||
+        (errorObj.response?.data?.contract &&
+          errorObj.response?.data?.contract[0]) ||
         'Error al crear la solicitud de modificación';
       setError(errorMessage);
     } finally {
@@ -605,7 +655,7 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
       'Términos Económicos': <MoneyIcon />,
       'Términos del Contrato': <ScheduleIcon />,
       'Cláusulas del Contrato': <GavelIcon />,
-      'Garantías': <SecurityIcon />,
+      Garantías: <SecurityIcon />,
       'Sección de Firmas': <AssignmentIcon />,
     };
     return iconMap[category] || <DescriptionIcon />;
@@ -615,7 +665,7 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth='md'
       fullWidth
       PaperProps={{
         sx: {
@@ -635,15 +685,20 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
         }}
       >
         <EditIcon />
-        <Typography variant="h6" component="span" sx={{ flexGrow: 1 }}>
+        <Typography variant='h6' component='span' sx={{ flexGrow: 1 }}>
           Solicitar Modificación al Contrato
         </Typography>
         <Chip
           label={step === 'select' ? 'Paso 1: Selección' : 'Paso 2: Detalles'}
-          size="small"
+          size='small'
           sx={{ bgcolor: alpha('#fff', 0.2), color: 'white' }}
         />
-        <IconButton edge="end" onClick={handleClose} disabled={loading} sx={{ color: 'white' }}>
+        <IconButton
+          edge='end'
+          onClick={handleClose}
+          disabled={loading}
+          sx={{ color: 'white' }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -654,7 +709,7 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
       <DialogContent sx={{ pt: 3 }}>
         {/* Error Alert */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
@@ -662,10 +717,11 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
         {step === 'select' ? (
           /* PASO 1: Selección de secciones */
           <>
-            <Alert severity="info" sx={{ mb: 3 }} icon={<InfoIcon />}>
-              <Typography variant="body2">
-                <strong>Paso 1:</strong> Seleccione las secciones del contrato que desea modificar.
-                Puede seleccionar múltiples secciones. Tiene un máximo de 2 ciclos de revisión.
+            <Alert severity='info' sx={{ mb: 3 }} icon={<InfoIcon />}>
+              <Typography variant='body2'>
+                <strong>Paso 1:</strong> Seleccione las secciones del contrato
+                que desea modificar. Puede seleccionar múltiples secciones.
+                Tiene un máximo de 2 ciclos de revisión.
               </Typography>
             </Alert>
 
@@ -679,19 +735,25 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                   border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
                 }}
               >
-                <Typography variant="subtitle2" color="success.main" gutterBottom>
-                  <CheckCircleIcon sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }} />
+                <Typography
+                  variant='subtitle2'
+                  color='success.main'
+                  gutterBottom
+                >
+                  <CheckCircleIcon
+                    sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }}
+                  />
                   {selectedChanges.length} sección(es) seleccionada(s)
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
                   {selectedChanges.map(change => (
                     <Chip
                       key={change.sectionId}
                       label={change.sectionLabel}
-                      size="small"
+                      size='small'
                       onDelete={() => handleRemoveChange(change.sectionId)}
-                      color="success"
-                      variant="outlined"
+                      color='success'
+                      variant='outlined'
                     />
                   ))}
                 </Stack>
@@ -703,32 +765,44 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                 <Accordion
                   key={category}
                   expanded={expandedCategory === category}
-                  onChange={(_, isExpanded) => setExpandedCategory(isExpanded ? category : false)}
+                  onChange={(_, isExpanded) =>
+                    setExpandedCategory(isExpanded ? category : false)
+                  }
                   sx={{ mb: 1 }}
                 >
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     sx={{
                       bgcolor: alpha(theme.palette.primary.main, 0.05),
-                      '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) },
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {getCategoryIcon(category)}
-                      <Typography variant="subtitle1" fontWeight="bold">
+                      <Typography variant='subtitle1' fontWeight='bold'>
                         {category}
                       </Typography>
                       <Chip
                         label={`${sections.filter(s => selectedChanges.some(c => c.sectionId === s.id)).length}/${sections.length}`}
-                        size="small"
-                        color={sections.some(s => selectedChanges.some(c => c.sectionId === s.id)) ? 'primary' : 'default'}
+                        size='small'
+                        color={
+                          sections.some(s =>
+                            selectedChanges.some(c => c.sectionId === s.id),
+                          )
+                            ? 'primary'
+                            : 'default'
+                        }
                       />
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 0 }}>
                     <List dense>
                       {sections.map(section => {
-                        const isSelected = selectedChanges.some(c => c.sectionId === section.id);
+                        const isSelected = selectedChanges.some(
+                          c => c.sectionId === section.id,
+                        );
                         const currentVal = getCurrentValue(section.id);
 
                         return (
@@ -739,8 +813,8 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                               currentVal && (
                                 <Tooltip title={`Valor actual: ${currentVal}`}>
                                   <Typography
-                                    variant="caption"
-                                    color="text.secondary"
+                                    variant='caption'
+                                    color='text.secondary'
                                     sx={{
                                       maxWidth: 150,
                                       overflow: 'hidden',
@@ -758,16 +832,18 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                             <ListItemButton
                               onClick={() => handleToggleSection(section)}
                               sx={{
-                                bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                                bgcolor: isSelected
+                                  ? alpha(theme.palette.primary.main, 0.1)
+                                  : 'transparent',
                               }}
                             >
                               <ListItemIcon>
                                 <Checkbox
-                                  edge="start"
+                                  edge='start'
                                   checked={isSelected}
                                   tabIndex={-1}
                                   disableRipple
-                                  color="primary"
+                                  color='primary'
                                 />
                               </ListItemIcon>
                               <ListItemText
@@ -790,35 +866,45 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
         ) : (
           /* PASO 2: Detalles de los cambios */
           <>
-            <Alert severity="info" sx={{ mb: 3 }} icon={<InfoIcon />}>
-              <Typography variant="body2">
-                <strong>Paso 2:</strong> Complete los detalles de cada cambio solicitado.
-                Sea específico en lo que desea modificar y la razón.
+            <Alert severity='info' sx={{ mb: 3 }} icon={<InfoIcon />}>
+              <Typography variant='body2'>
+                <strong>Paso 2:</strong> Complete los detalles de cada cambio
+                solicitado. Sea específico en lo que desea modificar y la razón.
               </Typography>
             </Alert>
 
             <Stack spacing={3}>
               {/* Cambios Seleccionados */}
               {selectedChanges.map((change, index) => (
-                <Paper key={change.sectionId} elevation={2} sx={{ p: 2, position: 'relative' }}>
+                <Paper
+                  key={change.sectionId}
+                  elevation={2}
+                  sx={{ p: 2, position: 'relative' }}
+                >
                   {/* Header del cambio */}
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Chip
-                      icon={getCategoryIcon(change.category) as React.ReactElement}
+                      icon={
+                        getCategoryIcon(change.category) as React.ReactElement
+                      }
                       label={`${index + 1}. ${change.sectionLabel}`}
-                      color="primary"
+                      color='primary'
                       sx={{ mr: 1 }}
                     />
-                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      sx={{ flexGrow: 1 }}
+                    >
                       {change.category}
                     </Typography>
                     <IconButton
-                      size="small"
+                      size='small'
                       onClick={() => handleRemoveChange(change.sectionId)}
                       disabled={loading}
-                      color="error"
+                      color='error'
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIcon fontSize='small' />
                     </IconButton>
                   </Box>
 
@@ -827,24 +913,30 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                     {change.currentValue && (
                       <TextField
                         fullWidth
-                        label="Valor Actual en el Contrato"
+                        label='Valor Actual en el Contrato'
                         value={change.currentValue}
                         disabled
-                        size="small"
+                        size='small'
                         InputProps={{
                           readOnly: true,
                         }}
-                        helperText="Este es el valor actual que aparece en el borrador"
+                        helperText='Este es el valor actual que aparece en el borrador'
                       />
                     )}
 
                     {/* Valor solicitado */}
                     <TextField
                       fullWidth
-                      label="Valor Solicitado (Nuevo)"
-                      placeholder="Escriba el nuevo valor que desea..."
+                      label='Valor Solicitado (Nuevo)'
+                      placeholder='Escriba el nuevo valor que desea...'
                       value={change.requestedValue}
-                      onChange={e => handleUpdateChange(change.sectionId, 'requestedValue', e.target.value)}
+                      onChange={e =>
+                        handleUpdateChange(
+                          change.sectionId,
+                          'requestedValue',
+                          e.target.value,
+                        )
+                      }
                       disabled={loading}
                       required
                       multiline={change.sectionId.startsWith('clause_')}
@@ -856,10 +948,16 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
                       fullWidth
                       multiline
                       rows={2}
-                      label="Razón del Cambio"
-                      placeholder="Explique por qué solicita este cambio..."
+                      label='Razón del Cambio'
+                      placeholder='Explique por qué solicita este cambio...'
                       value={change.reason}
-                      onChange={e => handleUpdateChange(change.sectionId, 'reason', e.target.value)}
+                      onChange={e =>
+                        handleUpdateChange(
+                          change.sectionId,
+                          'reason',
+                          e.target.value,
+                        )
+                      }
                       disabled={loading}
                       required
                     />
@@ -869,21 +967,25 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
 
               {/* Justificación General */}
               <Box>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <DescriptionIcon color="primary" />
+                <Typography
+                  variant='subtitle1'
+                  fontWeight='bold'
+                  sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <DescriptionIcon color='primary' />
                   Justificación General
                 </Typography>
                 <TextField
                   fullWidth
                   multiline
                   rows={4}
-                  label="Resumen General de su Solicitud"
-                  placeholder="Explique de manera general por qué solicita estas modificaciones al contrato. Este mensaje lo verá el arrendador..."
+                  label='Resumen General de su Solicitud'
+                  placeholder='Explique de manera general por qué solicita estas modificaciones al contrato. Este mensaje lo verá el arrendador...'
                   value={generalReason}
                   onChange={e => setGeneralReason(e.target.value)}
                   disabled={loading}
                   required
-                  helperText="Sea claro y respetuoso en su justificación. El arrendador evaluará su solicitud."
+                  helperText='Sea claro y respetuoso en su justificación. El arrendador evaluará su solicitud.'
                 />
               </Box>
             </Stack>
@@ -901,7 +1003,7 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
               Cancelar
             </Button>
             <Button
-              variant="contained"
+              variant='contained'
               onClick={handleContinue}
               disabled={selectedChanges.length === 0}
               endIcon={<EditIcon />}
@@ -918,12 +1020,12 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
               Cancelar
             </Button>
             <LoadingButton
-              variant="contained"
+              variant='contained'
               onClick={handleSubmit}
               loading={loading}
-              loadingPosition="start"
+              loadingPosition='start'
               startIcon={<EditIcon />}
-              color="primary"
+              color='primary'
             >
               Enviar Solicitud de Modificación
             </LoadingButton>

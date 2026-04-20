@@ -34,7 +34,8 @@ _TEST_CACHES = {
 }
 
 from .models import (
-    Property, PropertyAmenity,
+    Property,
+    PropertyAmenity,
     PropertyFavorite,
 )
 
@@ -46,6 +47,7 @@ User = get_user_model()
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _tiny_gif():
     """Return a minimal valid GIF suitable for ImageField tests."""
@@ -289,25 +291,33 @@ class PropertyCreateAPITests(APITestCase):
     def test_landlord_can_create_property(self):
         """A landlord can create a property."""
         self.client.force_authenticate(user=self.landlord)
-        resp = self.client.post("/api/v1/properties/", PROPERTY_CREATE_DATA, format="json")
+        resp = self.client.post(
+            "/api/v1/properties/", PROPERTY_CREATE_DATA, format="json"
+        )
         self.assertIn(resp.status_code, [200, 201])
         self.assertEqual(Property.objects.count(), 1)
 
     def test_tenant_cannot_create_property(self):
         """A tenant is forbidden from creating a property."""
         self.client.force_authenticate(user=self.tenant)
-        resp = self.client.post("/api/v1/properties/", PROPERTY_CREATE_DATA, format="json")
+        resp = self.client.post(
+            "/api/v1/properties/", PROPERTY_CREATE_DATA, format="json"
+        )
         self.assertEqual(resp.status_code, 403)
 
     def test_unauthenticated_cannot_create(self):
         """Unauthenticated user cannot create."""
-        resp = self.client.post("/api/v1/properties/", PROPERTY_CREATE_DATA, format="json")
+        resp = self.client.post(
+            "/api/v1/properties/", PROPERTY_CREATE_DATA, format="json"
+        )
         self.assertIn(resp.status_code, [401, 403])
 
     def test_create_missing_required_fields(self):
         """Creating without required fields returns 400."""
         self.client.force_authenticate(user=self.landlord)
-        resp = self.client.post("/api/v1/properties/", {"title": "Solo titulo"}, format="json")
+        resp = self.client.post(
+            "/api/v1/properties/", {"title": "Solo titulo"}, format="json"
+        )
         self.assertEqual(resp.status_code, 400)
 
 
@@ -402,7 +412,9 @@ class PropertyDeleteAPITests(APITestCase):
         self.client.force_authenticate(user=self.landlord)
         resp = self.client.delete(f"/api/v1/properties/{self.prop.id}/")
         self.assertIn(resp.status_code, [200, 204])
-        self.assertFalse(Property.objects.filter(id=self.prop.id, is_active=True).exists())
+        self.assertFalse(
+            Property.objects.filter(id=self.prop.id, is_active=True).exists()
+        )
 
     def test_tenant_cannot_delete(self):
         """Tenant cannot delete a property."""
@@ -427,9 +439,29 @@ class PropertySearchFilterAPITests(APITestCase):
         self.client = APIClient()
 
         # Create several properties for filtering
-        _create_property(self.landlord, title="Apto Bogota", city="Bogota", property_type="apartment", rent_price=Decimal("1200000"))
-        _create_property(self.landlord, title="Casa Medellin", city="Medellin", property_type="house", rent_price=Decimal("3000000"), bedrooms=5)
-        _create_property(self.landlord, title="Estudio Cali", city="Cali", property_type="studio", rent_price=Decimal("800000"), bedrooms=1)
+        _create_property(
+            self.landlord,
+            title="Apto Bogota",
+            city="Bogota",
+            property_type="apartment",
+            rent_price=Decimal("1200000"),
+        )
+        _create_property(
+            self.landlord,
+            title="Casa Medellin",
+            city="Medellin",
+            property_type="house",
+            rent_price=Decimal("3000000"),
+            bedrooms=5,
+        )
+        _create_property(
+            self.landlord,
+            title="Estudio Cali",
+            city="Cali",
+            property_type="studio",
+            rent_price=Decimal("800000"),
+            bedrooms=1,
+        )
 
     def test_filter_by_property_type(self):
         """Filter by property_type returns matching results."""
@@ -465,7 +497,9 @@ class PropertySearchFilterAPITests(APITestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.data.get("results", resp.data)
         if len(data) >= 2:
-            prices = [Decimal(str(p["rent_price"])) for p in data if p.get("rent_price")]
+            prices = [
+                Decimal(str(p["rent_price"])) for p in data if p.get("rent_price")
+            ]
             self.assertEqual(prices, sorted(prices))
 
 
@@ -485,7 +519,11 @@ class ToggleFavoriteAPITests(APITestCase):
         resp = self.client.post(f"/api/v1/properties/{self.prop.id}/toggle-favorite/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data["action"], "added")
-        self.assertTrue(PropertyFavorite.objects.filter(user=self.tenant, property=self.prop).exists())
+        self.assertTrue(
+            PropertyFavorite.objects.filter(
+                user=self.tenant, property=self.prop
+            ).exists()
+        )
 
     def test_remove_favorite(self):
         """POST again removes property from favorites."""
@@ -494,7 +532,11 @@ class ToggleFavoriteAPITests(APITestCase):
         resp = self.client.post(f"/api/v1/properties/{self.prop.id}/toggle-favorite/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data["action"], "removed")
-        self.assertFalse(PropertyFavorite.objects.filter(user=self.tenant, property=self.prop).exists())
+        self.assertFalse(
+            PropertyFavorite.objects.filter(
+                user=self.tenant, property=self.prop
+            ).exists()
+        )
 
     def test_toggle_nonexistent_property(self):
         """Toggle favorite on nonexistent property returns 404."""

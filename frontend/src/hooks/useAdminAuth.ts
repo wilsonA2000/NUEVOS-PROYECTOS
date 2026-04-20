@@ -57,7 +57,7 @@ export const useAdminAuth = (): UseAdminAuthReturn => {
   // Verificar permisos cuando el usuario cambia
   useEffect(() => {
     if (authLoading) {
-      setState((prev) => ({ ...prev, isLoading: true }));
+      setState(prev => ({ ...prev, isLoading: true }));
       return;
     }
 
@@ -82,9 +82,10 @@ export const useAdminAuth = (): UseAdminAuthReturn => {
       isStaff,
       isSuperuser,
       isLoading: false,
-      error: isAdmin ? null : 'Acceso denegado: Se requieren permisos de administrador',
+      error: isAdmin
+        ? null
+        : 'Acceso denegado: Se requieren permisos de administrador',
     });
-
   }, [user, isAuthenticated, authLoading]);
 
   /**

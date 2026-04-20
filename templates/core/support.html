@@ -6,11 +6,11 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-5xl mx-auto">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Centro de Soporte</h1>
-        
+
         <!-- Sección de ayuda rápida -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">¿Cómo podemos ayudarte?</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <a href="{% url 'core:faq' %}" class="block p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors duration-200">
                     <div class="flex items-center mb-2">
@@ -21,7 +21,7 @@
                     </div>
                     <p class="text-sm text-blue-600">Encuentra respuestas a las preguntas más comunes.</p>
                 </a>
-                
+
                 <a href="{% url 'core:create_ticket' %}" class="block p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors duration-200">
                     <div class="flex items-center mb-2">
                         <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@
                     </div>
                     <p class="text-sm text-green-600">Reporta un problema o solicita ayuda personalizada.</p>
                 </a>
-                
+
                 <a href="{% url 'core:contact' %}" class="block p-4 bg-purple-50 rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors duration-200">
                     <div class="flex items-center mb-2">
                         <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +43,7 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- Mis tickets de soporte -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
@@ -52,7 +52,7 @@
                     Nuevo Ticket
                 </a>
             </div>
-            
+
             {% if tickets %}
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -73,7 +73,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.subject }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.get_category_display }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     {% if ticket.status == 'open' %}bg-green-100 text-green-800
                                     {% elif ticket.status == 'in_progress' %}bg-blue-100 text-blue-800
                                     {% elif ticket.status == 'resolved' %}bg-gray-100 text-gray-800
@@ -99,11 +99,11 @@
             </div>
             {% endif %}
         </div>
-        
+
         <!-- Recursos de ayuda -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Recursos de Ayuda</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <a href="{% url 'core:faq' %}" class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                     <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -116,7 +116,7 @@
                         <p class="text-xs text-gray-500">Aprende a usar todas las funciones de VeriHome.</p>
                     </div>
                 </a>
-                
+
                 <a href="{% url 'core:faq' %}" class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                     <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
                         <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +128,7 @@
                         <p class="text-xs text-gray-500">Aprende visualmente con nuestros tutoriales.</p>
                     </div>
                 </a>
-                
+
                 <a href="{% url 'core:terms' %}" class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                     <div class="flex-shrink-0 h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center">
                         <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +140,7 @@
                         <p class="text-xs text-gray-500">Consulta nuestros términos de servicio.</p>
                     </div>
                 </a>
-                
+
                 <a href="{% url 'core:privacy' %}" class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                     <div class="flex-shrink-0 h-10 w-10 bg-red-100 rounded-full flex items-center justify-center">
                         <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

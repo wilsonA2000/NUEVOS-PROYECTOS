@@ -8,91 +8,101 @@ from contracts.models import ContractTemplate
 
 
 class Command(BaseCommand):
-    help = 'Crea plantillas de contratos por defecto del sistema'
-    
+    help = "Crea plantillas de contratos por defecto del sistema"
+
     def add_arguments(self, parser):
         parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Sobrescribir plantillas existentes'
+            "--force", action="store_true", help="Sobrescribir plantillas existentes"
         )
         parser.add_argument(
-            '--template-type',
+            "--template-type",
             type=str,
-            help='Crear solo plantillas de un tipo específico'
+            help="Crear solo plantillas de un tipo específico",
         )
-    
+
     def handle(self, *args, **options):
-        force = options.get('force', False)
-        template_type_filter = options.get('template_type')
-        
-        self.stdout.write('Creando plantillas de contratos por defecto...')
-        
+        force = options.get("force", False)
+        template_type_filter = options.get("template_type")
+
+        self.stdout.write("Creando plantillas de contratos por defecto...")
+
         templates_data = self._get_templates_data()
         created_count = 0
         updated_count = 0
         skipped_count = 0
-        
+
         for template_data in templates_data:
             # Filtrar por tipo si se especifica
-            if template_type_filter and template_data['template_type'] != template_type_filter:
+            if (
+                template_type_filter
+                and template_data["template_type"] != template_type_filter
+            ):
                 continue
-            
+
             try:
                 template, created = ContractTemplate.objects.get_or_create(
-                    name=template_data['name'],
-                    template_type=template_data['template_type'],
-                    defaults=template_data
+                    name=template_data["name"],
+                    template_type=template_data["template_type"],
+                    defaults=template_data,
                 )
-                
+
                 if created:
                     created_count += 1
                     self.stdout.write(
-                        self.style.SUCCESS(f'[OK] Creada: {template.name}')
+                        self.style.SUCCESS(f"[OK] Creada: {template.name}")
                     )
                 elif force:
                     # Actualizar plantilla existente
                     for key, value in template_data.items():
-                        if key not in ['name', 'template_type']:  # No cambiar identificadores
+                        if key not in [
+                            "name",
+                            "template_type",
+                        ]:  # No cambiar identificadores
                             setattr(template, key, value)
                     template.save()
                     updated_count += 1
                     self.stdout.write(
-                        self.style.WARNING(f'[UPDATE] Actualizada: {template.name}')
+                        self.style.WARNING(f"[UPDATE] Actualizada: {template.name}")
                     )
                 else:
                     skipped_count += 1
                     self.stdout.write(
-                        self.style.HTTP_INFO(f'[SKIP] Omitida (ya existe): {template.name}')
+                        self.style.HTTP_INFO(
+                            f"[SKIP] Omitida (ya existe): {template.name}"
+                        )
                     )
-                    
+
             except Exception as e:
                 self.stdout.write(
-                    self.style.ERROR(f'[ERROR] Error creando {template_data["name"]}: {str(e)}')
+                    self.style.ERROR(
+                        f'[ERROR] Error creando {template_data["name"]}: {str(e)}'
+                    )
                 )
-        
+
         # Mostrar resumen
-        self.stdout.write('\\n' + '='*50)
-        self.stdout.write(self.style.SUCCESS('RESUMEN DE CREACIÓN DE PLANTILLAS'))
-        self.stdout.write('='*50)
-        self.stdout.write(f'Plantillas creadas: {created_count}')
-        self.stdout.write(f'Plantillas actualizadas: {updated_count}')
-        self.stdout.write(f'Plantillas omitidas: {skipped_count}')
-        self.stdout.write(f'Total procesadas: {created_count + updated_count + skipped_count}')
-        
+        self.stdout.write("\\n" + "=" * 50)
+        self.stdout.write(self.style.SUCCESS("RESUMEN DE CREACIÓN DE PLANTILLAS"))
+        self.stdout.write("=" * 50)
+        self.stdout.write(f"Plantillas creadas: {created_count}")
+        self.stdout.write(f"Plantillas actualizadas: {updated_count}")
+        self.stdout.write(f"Plantillas omitidas: {skipped_count}")
+        self.stdout.write(
+            f"Total procesadas: {created_count + updated_count + skipped_count}"
+        )
+
         if created_count > 0 or updated_count > 0:
             self.stdout.write(
-                self.style.SUCCESS('\\n[OK] Proceso completado exitosamente')
+                self.style.SUCCESS("\\n[OK] Proceso completado exitosamente")
             )
-    
+
     def _get_templates_data(self):
         """Devuelve los datos de todas las plantillas por defecto."""
         return [
             # Plantilla de Arrendamiento de Vivienda Urbana
             {
-                'name': 'Contrato de Arrendamiento de Vivienda Urbana',
-                'template_type': 'rental_urban',
-                'content': '''CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA
+                "name": "Contrato de Arrendamiento de Vivienda Urbana",
+                "template_type": "rental_urban",
+                "content": """CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA
 
 Entre los suscritos a saber: {{ primary_party.get_full_name }}, mayor de edad, identificado(a) con {{ primary_party.profile.identification_type }} número {{ primary_party.profile.identification_number }}, quien en adelante se denominará EL ARRENDADOR, y {{ secondary_party.get_full_name }}, mayor de edad, identificado(a) con {{ secondary_party.profile.identification_type }} número {{ secondary_party.profile.identification_number }}, quien en adelante se denominará EL ARRENDATARIO, hemos convenido celebrar el presente contrato de arrendamiento que se regirá por las siguientes cláusulas:
 
@@ -129,21 +139,28 @@ Para constancia se firma en {{ city_name }} el {{ contract_date }}.
 _________________________                    _________________________
 {{ primary_party.get_full_name }}           {{ secondary_party.get_full_name }}
 ARRENDADOR                                   ARRENDATARIO
-C.C. {{ primary_party.profile.identification_number }}    C.C. {{ secondary_party.profile.identification_number }}''',
-                'variables': [
-                    'primary_party', 'secondary_party', 'property', 'start_date', 
-                    'end_date', 'monthly_rent', 'security_deposit', 'contract_duration_months',
-                    'late_fee_percentage', 'city_name', 'contract_date'
+C.C. {{ primary_party.profile.identification_number }}    C.C. {{ secondary_party.profile.identification_number }}""",
+                "variables": [
+                    "primary_party",
+                    "secondary_party",
+                    "property",
+                    "start_date",
+                    "end_date",
+                    "monthly_rent",
+                    "security_deposit",
+                    "contract_duration_months",
+                    "late_fee_percentage",
+                    "city_name",
+                    "contract_date",
                 ],
-                'is_default': True,
-                'is_active': True
+                "is_default": True,
+                "is_active": True,
             },
-            
             # Plantilla de Arrendamiento de Local Comercial
             {
-                'name': 'Contrato de Arrendamiento de Local Comercial',
-                'template_type': 'rental_commercial',
-                'content': '''CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL
+                "name": "Contrato de Arrendamiento de Local Comercial",
+                "template_type": "rental_commercial",
+                "content": """CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL
 
 Entre {{ primary_party.get_full_name }}, identificado(a) con {{ primary_party.profile.identification_type }} número {{ primary_party.profile.identification_number }}, quien actúa en calidad de ARRENDADOR, y {{ secondary_party.get_full_name }}, identificado(a) con {{ secondary_party.profile.identification_type }} número {{ secondary_party.profile.identification_number }}, quien actúa en calidad de ARRENDATARIO, se celebra el presente contrato comercial de arrendamiento:
 
@@ -166,21 +183,29 @@ OCTAVO. SUBARRIENDO: Queda prohibido el subarriendo total o parcial sin autoriza
 En constancia se firma en {{ city_name }} a los {{ contract_date }}.
 
 _________________________                    _________________________
-ARRENDADOR                                   ARRENDATARIO''',
-                'variables': [
-                    'primary_party', 'secondary_party', 'property', 'start_date',
-                    'end_date', 'monthly_rent', 'security_deposit', 'contract_duration_months',
-                    'commercial_activity', 'guarantee_type', 'city_name', 'contract_date'
+ARRENDADOR                                   ARRENDATARIO""",
+                "variables": [
+                    "primary_party",
+                    "secondary_party",
+                    "property",
+                    "start_date",
+                    "end_date",
+                    "monthly_rent",
+                    "security_deposit",
+                    "contract_duration_months",
+                    "commercial_activity",
+                    "guarantee_type",
+                    "city_name",
+                    "contract_date",
                 ],
-                'is_default': True,
-                'is_active': True
+                "is_default": True,
+                "is_active": True,
             },
-            
             # Plantilla de Arrendamiento de Habitación
             {
-                'name': 'Contrato de Arrendamiento de Habitación',
-                'template_type': 'rental_room',
-                'content': '''CONTRATO DE ARRENDAMIENTO DE HABITACIÓN
+                "name": "Contrato de Arrendamiento de Habitación",
+                "template_type": "rental_room",
+                "content": """CONTRATO DE ARRENDAMIENTO DE HABITACIÓN
 
 Entre {{ primary_party.get_full_name }} (ARRENDADOR) y {{ secondary_party.get_full_name }} (ARRENDATARIO), se acuerda el arrendamiento de una habitación con las siguientes condiciones:
 
@@ -206,23 +231,36 @@ OCTAVA. ENTREGA: La habitación se entrega amoblada con {{ furniture_included }}
 Firmado en {{ city_name }} el {{ contract_date }}.
 
 _________________________                    _________________________
-ARRENDADOR                                   ARRENDATARIO''',
-                'variables': [
-                    'primary_party', 'secondary_party', 'property', 'room_number',
-                    'start_date', 'end_date', 'monthly_rent', 'security_deposit',
-                    'contract_duration_months', 'included_areas', 'utilities_included',
-                    'common_areas', 'quiet_hours', 'visitor_policy', 'pet_policy',
-                    'utility_arrangement', 'furniture_included', 'city_name', 'contract_date'
+ARRENDADOR                                   ARRENDATARIO""",
+                "variables": [
+                    "primary_party",
+                    "secondary_party",
+                    "property",
+                    "room_number",
+                    "start_date",
+                    "end_date",
+                    "monthly_rent",
+                    "security_deposit",
+                    "contract_duration_months",
+                    "included_areas",
+                    "utilities_included",
+                    "common_areas",
+                    "quiet_hours",
+                    "visitor_policy",
+                    "pet_policy",
+                    "utility_arrangement",
+                    "furniture_included",
+                    "city_name",
+                    "contract_date",
                 ],
-                'is_default': True,
-                'is_active': True
+                "is_default": True,
+                "is_active": True,
             },
-            
             # Plantilla de Arrendamiento Rural
             {
-                'name': 'Contrato de Arrendamiento de Terreno Rural',
-                'template_type': 'rental_rural',
-                'content': '''CONTRATO DE ARRENDAMIENTO DE TERRENO RURAL
+                "name": "Contrato de Arrendamiento de Terreno Rural",
+                "template_type": "rental_rural",
+                "content": """CONTRATO DE ARRENDAMIENTO DE TERRENO RURAL
 
 {{ primary_party.get_full_name }} (ARRENDADOR) arrienda a {{ secondary_party.get_full_name }} (ARRENDATARIO) el terreno rural ubicado en {{ property.address }}, {{ property.city }}.
 
@@ -249,23 +287,33 @@ ACCESO: {{ access_rights }}
 Firmado en {{ city_name }}, {{ contract_date }}.
 
 _________________________                    _________________________
-ARRENDADOR                                   ARRENDATARIO''',
-                'variables': [
-                    'primary_party', 'secondary_party', 'property', 'start_date',
-                    'end_date', 'monthly_rent', 'contract_duration_months',
-                    'property_boundaries', 'land_use', 'available_services',
-                    'agricultural_use', 'improvements_policy', 'water_rights',
-                    'access_rights', 'city_name', 'contract_date'
+ARRENDADOR                                   ARRENDATARIO""",
+                "variables": [
+                    "primary_party",
+                    "secondary_party",
+                    "property",
+                    "start_date",
+                    "end_date",
+                    "monthly_rent",
+                    "contract_duration_months",
+                    "property_boundaries",
+                    "land_use",
+                    "available_services",
+                    "agricultural_use",
+                    "improvements_policy",
+                    "water_rights",
+                    "access_rights",
+                    "city_name",
+                    "contract_date",
                 ],
-                'is_default': True,
-                'is_active': True
+                "is_default": True,
+                "is_active": True,
             },
-            
             # Plantilla de Prestación de Servicios
             {
-                'name': 'Contrato de Prestación de Servicios Inmobiliarios',
-                'template_type': 'service_provider',
-                'content': '''CONTRATO DE PRESTACIÓN DE SERVICIOS INMOBILIARIOS
+                "name": "Contrato de Prestación de Servicios Inmobiliarios",
+                "template_type": "service_provider",
+                "content": """CONTRATO DE PRESTACIÓN DE SERVICIOS INMOBILIARIOS
 
 Entre {{ primary_party.get_full_name }} (CONTRATANTE) y {{ secondary_party.get_full_name }} (PRESTADOR DE SERVICIOS), se acuerda la prestación de servicios inmobiliarios:
 
@@ -293,15 +341,23 @@ TERMINACIÓN: {{ termination_conditions }}
 Firmado en {{ city_name }}, {{ contract_date }}.
 
 _________________________                    _________________________
-CONTRATANTE                                  PRESTADOR DE SERVICIOS''',
-                'variables': [
-                    'primary_party', 'secondary_party', 'service_description',
-                    'service_scope', 'service_obligations', 'client_obligations',
-                    'service_amount', 'payment_terms', 'service_duration',
-                    'confidentiality_clause', 'termination_conditions',
-                    'city_name', 'contract_date'
+CONTRATANTE                                  PRESTADOR DE SERVICIOS""",
+                "variables": [
+                    "primary_party",
+                    "secondary_party",
+                    "service_description",
+                    "service_scope",
+                    "service_obligations",
+                    "client_obligations",
+                    "service_amount",
+                    "payment_terms",
+                    "service_duration",
+                    "confidentiality_clause",
+                    "termination_conditions",
+                    "city_name",
+                    "contract_date",
                 ],
-                'is_default': True,
-                'is_active': True
-            }
+                "is_default": True,
+                "is_active": True,
+            },
         ]

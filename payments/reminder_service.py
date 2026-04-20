@@ -11,7 +11,7 @@ from django.conf import settings
 
 from .models import Transaction
 
-logger = logging.getLogger('payments')
+logger = logging.getLogger("payments")
 
 
 def get_upcoming_payments(days_ahead=5):
@@ -28,13 +28,15 @@ def get_upcoming_payments(days_ahead=5):
     today = timezone.now().date()
     future_date = today + timedelta(days=days_ahead)
 
-    return Transaction.objects.filter(
-        status='pending',
-        due_date__gte=today,
-        due_date__lte=future_date,
-    ).select_related(
-        'payer', 'payee', 'contract', 'property'
-    ).order_by('due_date')
+    return (
+        Transaction.objects.filter(
+            status="pending",
+            due_date__gte=today,
+            due_date__lte=future_date,
+        )
+        .select_related("payer", "payee", "contract", "property")
+        .order_by("due_date")
+    )
 
 
 def get_overdue_payments():
@@ -46,12 +48,14 @@ def get_overdue_payments():
     """
     today = timezone.now().date()
 
-    return Transaction.objects.filter(
-        status='pending',
-        due_date__lt=today,
-    ).select_related(
-        'payer', 'payee', 'contract', 'property'
-    ).order_by('due_date')
+    return (
+        Transaction.objects.filter(
+            status="pending",
+            due_date__lt=today,
+        )
+        .select_related("payer", "payee", "contract", "property")
+        .order_by("due_date")
+    )
 
 
 def send_payment_reminder(payment, reminder_type):
@@ -77,13 +81,15 @@ def send_payment_reminder(payment, reminder_type):
 
     # Construir información contextual
     amount_display = f"${payment.amount:,.2f} {payment.currency}"
-    due_date_display = payment.due_date.strftime('%d/%m/%Y') if payment.due_date else 'No definida'
+    due_date_display = (
+        payment.due_date.strftime("%d/%m/%Y") if payment.due_date else "No definida"
+    )
 
-    contract_ref = 'N/A'
+    contract_ref = "N/A"
     if payment.contract:
         contract_ref = payment.contract.title or f"Contrato #{payment.contract.id}"
 
-    property_address = 'N/A'
+    property_address = "N/A"
     if payment.property:
         property_address = payment.property.address or payment.property.title
 
@@ -120,8 +126,13 @@ def send_payment_reminder(payment, reminder_type):
 
 
 def _build_reminder_content(
-    reminder_type, payer_name, amount, due_date,
-    contract_ref, property_address, transaction_number
+    reminder_type,
+    payer_name,
+    amount,
+    due_date,
+    contract_ref,
+    property_address,
+    transaction_number,
 ):
     """
     Construye el asunto y cuerpo del email según el tipo de recordatorio.
@@ -136,8 +147,10 @@ def _build_reminder_content(
         "Para cualquier consulta, responda a este correo o visite nuestra plataforma."
     )
 
-    if reminder_type == 'upcoming':
-        subject = f"[VeriHome] Recordatorio: Pago próximo a vencer - {transaction_number}"
+    if reminder_type == "upcoming":
+        subject = (
+            f"[VeriHome] Recordatorio: Pago próximo a vencer - {transaction_number}"
+        )
         body = (
             f"Estimado/a {payer_name},\n\n"
             f"Le recordamos que tiene un pago próximo a vencer:\n\n"
@@ -151,7 +164,7 @@ def _build_reminder_content(
             f"{base_footer}"
         )
 
-    elif reminder_type == 'due_today':
+    elif reminder_type == "due_today":
         subject = f"[VeriHome] Pago vence HOY - {transaction_number}"
         body = (
             f"Estimado/a {payer_name},\n\n"
@@ -165,7 +178,7 @@ def _build_reminder_content(
             f"{base_footer}"
         )
 
-    elif reminder_type == 'overdue_3_days':
+    elif reminder_type == "overdue_3_days":
         subject = f"[VeriHome] AVISO: Pago vencido hace 3 días - {transaction_number}"
         body = (
             f"Estimado/a {payer_name},\n\n"
@@ -180,7 +193,7 @@ def _build_reminder_content(
             f"{base_footer}"
         )
 
-    elif reminder_type == 'overdue_7_days':
+    elif reminder_type == "overdue_7_days":
         subject = f"[VeriHome] URGENTE: Pago vencido hace 7 días - {transaction_number}"
         body = (
             f"Estimado/a {payer_name},\n\n"
@@ -225,59 +238,59 @@ def process_all_reminders():
     """
     today = timezone.now().date()
     stats = {
-        'upcoming': 0,
-        'due_today': 0,
-        'overdue_3_days': 0,
-        'overdue_7_days': 0,
-        'errors': 0,
+        "upcoming": 0,
+        "due_today": 0,
+        "overdue_3_days": 0,
+        "overdue_7_days": 0,
+        "errors": 0,
     }
 
     # 1. Pagos próximos a vencer (5 días antes)
     upcoming = get_upcoming_payments(days_ahead=5)
     for payment in upcoming:
         if payment.due_date != today:  # Los de hoy se manejan aparte
-            if send_payment_reminder(payment, 'upcoming'):
-                stats['upcoming'] += 1
+            if send_payment_reminder(payment, "upcoming"):
+                stats["upcoming"] += 1
             else:
-                stats['errors'] += 1
+                stats["errors"] += 1
 
     # 2. Pagos que vencen hoy
     due_today = Transaction.objects.filter(
-        status='pending',
+        status="pending",
         due_date=today,
-    ).select_related('payer', 'payee', 'contract', 'property')
+    ).select_related("payer", "payee", "contract", "property")
 
     for payment in due_today:
-        if send_payment_reminder(payment, 'due_today'):
-            stats['due_today'] += 1
+        if send_payment_reminder(payment, "due_today"):
+            stats["due_today"] += 1
         else:
-            stats['errors'] += 1
+            stats["errors"] += 1
 
     # 3. Pagos vencidos hace 3 días
     three_days_ago = today - timedelta(days=3)
     overdue_3 = Transaction.objects.filter(
-        status='pending',
+        status="pending",
         due_date=three_days_ago,
-    ).select_related('payer', 'payee', 'contract', 'property')
+    ).select_related("payer", "payee", "contract", "property")
 
     for payment in overdue_3:
-        if send_payment_reminder(payment, 'overdue_3_days'):
-            stats['overdue_3_days'] += 1
+        if send_payment_reminder(payment, "overdue_3_days"):
+            stats["overdue_3_days"] += 1
         else:
-            stats['errors'] += 1
+            stats["errors"] += 1
 
     # 4. Pagos vencidos hace 7 días
     seven_days_ago = today - timedelta(days=7)
     overdue_7 = Transaction.objects.filter(
-        status='pending',
+        status="pending",
         due_date=seven_days_ago,
-    ).select_related('payer', 'payee', 'contract', 'property')
+    ).select_related("payer", "payee", "contract", "property")
 
     for payment in overdue_7:
-        if send_payment_reminder(payment, 'overdue_7_days'):
-            stats['overdue_7_days'] += 1
+        if send_payment_reminder(payment, "overdue_7_days"):
+            stats["overdue_7_days"] += 1
         else:
-            stats['errors'] += 1
+            stats["errors"] += 1
 
     logger.info(
         f"Recordatorios procesados: "
@@ -291,7 +304,8 @@ def process_all_reminders():
 
 # T3.3 · Notificaciones de PaymentOrder con consecutivo
 
-def send_payment_order_reminder(order, reminder_type='upcoming'):
+
+def send_payment_order_reminder(order, reminder_type="upcoming"):
     """Envía email de recordatorio para una PaymentOrder específica.
 
     A diferencia de send_payment_reminder (basado en RentPaymentSchedule),
@@ -306,23 +320,23 @@ def send_payment_order_reminder(order, reminder_type='upcoming'):
     """
     payer = order.payer
     if not payer or not payer.email:
-        logger.info(f'Order {order.order_number} sin payer.email; skip')
+        logger.info(f"Order {order.order_number} sin payer.email; skip")
         return False
 
     payer_name = payer.get_full_name() or payer.email
-    amount_str = f'${order.total_amount:,.0f}'
+    amount_str = f"${order.total_amount:,.0f}"
     has_interest = order.interest_amount and order.interest_amount > 0
-    interest_str = f'${order.interest_amount:,.0f}' if has_interest else None
+    interest_str = f"${order.interest_amount:,.0f}" if has_interest else None
 
     base_footer = (
-        '\n\n---\n'
-        f'Consecutivo auditable: {order.order_number}\n'
-        'Si ya realizó este pago, por favor ignore este mensaje.\n'
-        'VeriHome — Plataforma inmobiliaria.'
+        "\n\n---\n"
+        f"Consecutivo auditable: {order.order_number}\n"
+        "Si ya realizó este pago, por favor ignore este mensaje.\n"
+        "VeriHome — Plataforma inmobiliaria."
     )
 
-    if reminder_type == 'upcoming':
-        subject = f'[VeriHome] Recordatorio de pago próximo — {order.order_number}'
+    if reminder_type == "upcoming":
+        subject = f"[VeriHome] Recordatorio de pago próximo — {order.order_number}"
         body = (
             f'Estimado/a {payer_name},\n\n'
             f'Su orden de pago {order.order_number} vence el '
@@ -334,8 +348,8 @@ def send_payment_order_reminder(order, reminder_type='upcoming'):
             f'recargos por mora según la tasa legal vigente.'
             f'{base_footer}'
         )
-    elif reminder_type == 'overdue':
-        subject = f'[VeriHome] Pago VENCIDO — {order.order_number}'
+    elif reminder_type == "overdue":
+        subject = f"[VeriHome] Pago VENCIDO — {order.order_number}"
         body = (
             f'Estimado/a {payer_name},\n\n'
             f'Su orden de pago {order.order_number} está VENCIDA desde '
@@ -343,16 +357,16 @@ def send_payment_order_reminder(order, reminder_type='upcoming'):
             f'  - Monto base: ${order.amount:,.0f}\n'
         )
         if has_interest:
-            body += f'  - Intereses moratorios acumulados: {interest_str}\n'
+            body += f"  - Intereses moratorios acumulados: {interest_str}\n"
         body += (
-            f'  - Total a pagar: {amount_str}\n\n'
-            f'Se aplican intereses diarios según la tasa legal colombiana '
-            f'vigente. Realice el pago a la mayor brevedad para evitar '
-            f'que el saldo siga incrementando.'
-            f'{base_footer}'
+            f"  - Total a pagar: {amount_str}\n\n"
+            f"Se aplican intereses diarios según la tasa legal colombiana "
+            f"vigente. Realice el pago a la mayor brevedad para evitar "
+            f"que el saldo siga incrementando."
+            f"{base_footer}"
         )
-    elif reminder_type == 'late_fee':
-        subject = f'[VeriHome] Intereses moratorios aplicados — {order.order_number}'
+    elif reminder_type == "late_fee":
+        subject = f"[VeriHome] Intereses moratorios aplicados — {order.order_number}"
         body = (
             f'Estimado/a {payer_name},\n\n'
             f'Le informamos que se han aplicado intereses moratorios a su '
@@ -367,30 +381,34 @@ def send_payment_order_reminder(order, reminder_type='upcoming'):
             f'{base_footer}'
         )
     else:
-        subject = f'[VeriHome] Notificación — {order.order_number}'
+        subject = f"[VeriHome] Notificación — {order.order_number}"
         body = (
-            f'Estimado/a {payer_name},\n\n'
-            f'Tiene una orden de pago pendiente: {order.order_number} '
-            f'por {amount_str}.'
-            f'{base_footer}'
+            f"Estimado/a {payer_name},\n\n"
+            f"Tiene una orden de pago pendiente: {order.order_number} "
+            f"por {amount_str}."
+            f"{base_footer}"
         )
 
     try:
         send_mail(
             subject=subject,
             message=body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@verihome.co'),
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@verihome.co"),
             recipient_list=[payer.email],
             fail_silently=False,
         )
         order.add_audit_event(
-            f'reminder_sent_{reminder_type}',
-            f'Email enviado a {payer.email}',
+            f"reminder_sent_{reminder_type}",
+            f"Email enviado a {payer.email}",
         )
-        logger.info(f'PaymentOrder reminder ({reminder_type}) sent for {order.order_number}')
+        logger.info(
+            f"PaymentOrder reminder ({reminder_type}) sent for {order.order_number}"
+        )
         return True
     except Exception as e:
-        logger.error(f'Failed to send PaymentOrder reminder for {order.order_number}: {e}')
+        logger.error(
+            f"Failed to send PaymentOrder reminder for {order.order_number}: {e}"
+        )
         return False
 
 
@@ -407,18 +425,19 @@ def escalate_severely_overdue():
     cutoff_date = today - timedelta(days=15)
 
     severely_overdue = Transaction.objects.filter(
-        status='pending',
+        status="pending",
         due_date__lte=cutoff_date,
-    ).select_related('payer', 'payee', 'contract', 'property')
+    ).select_related("payer", "payee", "contract", "property")
 
-    stats = {'escalated': 0, 'errors': 0}
+    stats = {"escalated": 0, "errors": 0}
 
     for payment in severely_overdue:
         # Verificar si ya fue escalado esta semana
         metadata = payment.metadata or {}
-        last_escalation = metadata.get('last_escalation_date')
+        last_escalation = metadata.get("last_escalation_date")
         if last_escalation:
             from datetime import date
+
             try:
                 last_date = date.fromisoformat(last_escalation)
                 if (today - last_date).days < 7:
@@ -431,13 +450,13 @@ def escalate_severely_overdue():
         payee = payment.payee
 
         amount_display = f"${payment.amount:,.2f} {payment.currency}"
-        due_date_display = payment.due_date.strftime('%d/%m/%Y')
+        due_date_display = payment.due_date.strftime("%d/%m/%Y")
 
-        contract_ref = 'N/A'
+        contract_ref = "N/A"
         if payment.contract:
             contract_ref = payment.contract.title or f"Contrato #{payment.contract.id}"
 
-        property_address = 'N/A'
+        property_address = "N/A"
         if payment.property:
             property_address = payment.property.address or payment.property.title
 
@@ -467,7 +486,7 @@ def escalate_severely_overdue():
                 )
             except Exception as e:
                 logger.error(f"Error enviando escalamiento a payee {payee.email}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         # Notificar al arrendatario (payer) con tono más urgente
         if payer.email:
@@ -497,15 +516,15 @@ def escalate_severely_overdue():
                 )
             except Exception as e:
                 logger.error(f"Error enviando escalamiento a payer {payer.email}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         # Registrar escalamiento en metadata
-        metadata['last_escalation_date'] = today.isoformat()
-        metadata['escalation_count'] = metadata.get('escalation_count', 0) + 1
+        metadata["last_escalation_date"] = today.isoformat()
+        metadata["escalation_count"] = metadata.get("escalation_count", 0) + 1
         payment.metadata = metadata
-        payment.save(update_fields=['metadata'])
+        payment.save(update_fields=["metadata"])
 
-        stats['escalated'] += 1
+        stats["escalated"] += 1
         logger.info(
             f"Pago {payment.transaction_number} escalado "
             f"({days_overdue} días vencido, escalamiento #{metadata['escalation_count']})"

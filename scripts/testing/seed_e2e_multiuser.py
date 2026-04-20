@@ -10,14 +10,15 @@ Modos (CLI arg):
 
 Imprime JSON en stdout con IDs; logs a stderr.
 """
+
 import json
 import os
 import sys
 from decimal import Decimal
 from datetime import timedelta
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 
 import django  # noqa: E402
 
@@ -31,31 +32,31 @@ from matching.models import MatchRequest  # noqa: E402
 
 User = get_user_model()
 
-LANDLORD_EMAIL = 'admin@verihome.com'
-TENANT_EMAIL = 'letefon100@gmail.com'
-GUARANTOR_EMAIL = 'guarantor.e2e@verihome.com'
+LANDLORD_EMAIL = "admin@verihome.com"
+TENANT_EMAIL = "letefon100@gmail.com"
+GUARANTOR_EMAIL = "guarantor.e2e@verihome.com"
 # 2026-04-18: actores adicionales para tests moleculares Fase A-F
-ADMIN_EMAIL = 'abogado.e2e@verihome.com'
-SERVICE_PROVIDER_EMAIL = 'prestador.e2e@verihome.com'
-VERIFICATION_AGENT_EMAIL = 'agente.e2e@verihome.com'
-PASSWORD = 'admin123'
-PROPERTY_TITLE = 'E2E Test Property - Playwright'
+ADMIN_EMAIL = "abogado.e2e@verihome.com"
+SERVICE_PROVIDER_EMAIL = "prestador.e2e@verihome.com"
+VERIFICATION_AGENT_EMAIL = "agente.e2e@verihome.com"
+PASSWORD = "admin123"
+PROPERTY_TITLE = "E2E Test Property - Playwright"
 
 
 def log(msg):
-    print(f'[seed] {msg}', file=sys.stderr)
+    print(f"[seed] {msg}", file=sys.stderr)
 
 
 def ensure_user(email, user_type, first_name, last_name, is_staff=False):
     user, created = User.objects.get_or_create(
         email=email,
         defaults={
-            'first_name': first_name,
-            'last_name': last_name,
-            'user_type': user_type,
-            'is_verified': True,
-            'is_active': True,
-            'is_staff': is_staff,
+            "first_name": first_name,
+            "last_name": last_name,
+            "user_type": user_type,
+            "is_verified": True,
+            "is_active": True,
+            "is_staff": is_staff,
         },
     )
     user.set_password(PASSWORD)
@@ -74,15 +75,16 @@ def ensure_user(email, user_type, first_name, last_name, is_staff=False):
     # no sólo user.is_verified. Crear/actualizar la entrada.
     try:
         from allauth.account.models import EmailAddress  # noqa: WPS433
+
         EmailAddress.objects.update_or_create(
             user=user,
             email=email,
-            defaults={'primary': True, 'verified': True},
+            defaults={"primary": True, "verified": True},
         )
     except Exception as exc:  # pragma: no cover
         log(f"warn: EmailAddress create failed for {email}: {exc}")
 
-    suffix = ' [staff]' if is_staff else ''
+    suffix = " [staff]" if is_staff else ""
     log(f"user {'created' if created else 'ensured'}: {email} ({user_type}){suffix}")
     return user
 
@@ -92,26 +94,26 @@ def ensure_property(landlord):
         landlord=landlord,
         title=PROPERTY_TITLE,
         defaults={
-            'description': 'Propiedad creada automaticamente para tests E2E.',
-            'property_type': 'apartment',
-            'listing_type': 'rent',
-            'status': 'available',
-            'address': 'Carrera 27 #42-01',
-            'city': 'Bucaramanga',
-            'state': 'Santander',
-            'country': 'Colombia',
-            'postal_code': '680001',
-            'bedrooms': 2,
-            'bathrooms': 1,
-            'total_area': Decimal('65.00'),
-            'rent_price': Decimal('1500000.00'),
-            'is_active': True,
+            "description": "Propiedad creada automaticamente para tests E2E.",
+            "property_type": "apartment",
+            "listing_type": "rent",
+            "status": "available",
+            "address": "Carrera 27 #42-01",
+            "city": "Bucaramanga",
+            "state": "Santander",
+            "country": "Colombia",
+            "postal_code": "680001",
+            "bedrooms": 2,
+            "bathrooms": 1,
+            "total_area": Decimal("65.00"),
+            "rent_price": Decimal("1500000.00"),
+            "is_active": True,
         },
     )
     if not created:
-        prop.status = 'available'
+        prop.status = "available"
         prop.is_active = True
-        prop.save(update_fields=['status', 'is_active'])
+        prop.save(update_fields=["status", "is_active"])
     log(f"property {'created' if created else 'ensured'}: {prop.id}")
     return prop
 
@@ -135,11 +137,15 @@ def reset_match_and_contracts(landlord, tenant, prop):
         ).delete()
         log(f"deleted prior LandlordControlledContracts: {deleted_lcc[0]}")
     except Exception as exc:
-        log(f"warn: could not clean LandlordControlledContract/CodeudorAuthToken: {exc}")
+        log(
+            f"warn: could not clean LandlordControlledContract/CodeudorAuthToken: {exc}"
+        )
     try:
         from contracts.models import Contract
 
-        deleted_c = Contract.objects.filter(primary_party=landlord, secondary_party=tenant).delete()
+        deleted_c = Contract.objects.filter(
+            primary_party=landlord, secondary_party=tenant
+        ).delete()
         log(f"deleted prior legacy Contracts: {deleted_c[0]}")
     except Exception as exc:
         log(f"warn: could not clean legacy Contract: {exc}")
@@ -150,13 +156,13 @@ def create_match_request(landlord, tenant, prop, has_guarantor=False):
         tenant=tenant,
         property=prop,
         landlord=landlord,
-        status='accepted',
-        tenant_message='Solicitud creada por seed E2E',
-        landlord_response='Aceptada por seed E2E',
-        monthly_income=Decimal('3000000.00'),
-        employment_type='employed',
+        status="accepted",
+        tenant_message="Solicitud creada por seed E2E",
+        landlord_response="Aceptada por seed E2E",
+        monthly_income=Decimal("3000000.00"),
+        employment_type="employed",
         workflow_stage=4,
-        workflow_status='pending_tenant_biometric',
+        workflow_status="pending_tenant_biometric",
         has_contract=True,
         contract_generated_at=timezone.now(),
     )
@@ -173,30 +179,30 @@ def create_contract_ready_for_signing(landlord, tenant, prop, match_request):
 
     contract = Contract.objects.create(
         match_request=match_request,
-        contract_type='rental_urban',
-        title=f'Contrato E2E Test - {prop.title}',
-        description='Generado por seed_e2e_multiuser.py',
-        content='Contrato de arrendamiento para test E2E.',
+        contract_type="rental_urban",
+        title=f"Contrato E2E Test - {prop.title}",
+        description="Generado por seed_e2e_multiuser.py",
+        content="Contrato de arrendamiento para test E2E.",
         primary_party=landlord,
         secondary_party=tenant,
         property=prop,  # requerido para que recompute_workflow_status encuentre MatchRequest
         start_date=start_date,
         end_date=end_date,
-        monthly_rent=prop.rent_price or Decimal('1500000.00'),
-        security_deposit=prop.rent_price or Decimal('1500000.00'),
-        status='ready_for_authentication',
-        variables_data={'seed': 'e2e_multiuser'},
+        monthly_rent=prop.rent_price or Decimal("1500000.00"),
+        security_deposit=prop.rent_price or Decimal("1500000.00"),
+        status="ready_for_authentication",
+        variables_data={"seed": "e2e_multiuser"},
     )
     log(f"Contract (legacy) created: {contract.id} (status={contract.status})")
 
     try:
         match_request.workflow_data = match_request.workflow_data or {}
-        match_request.workflow_data['contract_created'] = {
-            'contract_id': str(contract.id),
-            'created_at': timezone.now().isoformat(),
-            'status': contract.status,
+        match_request.workflow_data["contract_created"] = {
+            "contract_id": str(contract.id),
+            "created_at": timezone.now().isoformat(),
+            "status": contract.status,
         }
-        match_request.save(update_fields=['workflow_data'])
+        match_request.save(update_fields=["workflow_data"])
     except Exception as exc:
         log(f"warn: no se pudo actualizar workflow_data: {exc}")
 
@@ -211,31 +217,33 @@ def create_landlord_controlled_contract(landlord, tenant, prop, contract):
         lcc, created = LandlordControlledContract.objects.get_or_create(
             id=contract.id,
             defaults={
-                'contract_number': contract.contract_number,
-                'landlord': landlord,
-                'tenant': tenant,
-                'property': prop,
-                'contract_type': 'rental_urban',
-                'title': contract.title,
-                'description': contract.description or '',
-                'current_state': 'PUBLISHED',
-                'start_date': contract.start_date,
-                'end_date': contract.end_date,
-                'economic_terms': {
-                    'monthly_rent': float(contract.monthly_rent),
-                    'security_deposit': float(contract.security_deposit or 0),
+                "contract_number": contract.contract_number,
+                "landlord": landlord,
+                "tenant": tenant,
+                "property": prop,
+                "contract_type": "rental_urban",
+                "title": contract.title,
+                "description": contract.description or "",
+                "current_state": "PUBLISHED",
+                "start_date": contract.start_date,
+                "end_date": contract.end_date,
+                "economic_terms": {
+                    "monthly_rent": float(contract.monthly_rent),
+                    "security_deposit": float(contract.security_deposit or 0),
                 },
-                'contract_terms': {'duration_months': 12},
-                'property_data': {
-                    'address': prop.address,
-                    'city': prop.city,
-                    'title': prop.title,
+                "contract_terms": {"duration_months": 12},
+                "property_data": {
+                    "address": prop.address,
+                    "city": prop.city,
+                    "title": prop.title,
                 },
-                'landlord_approved': True,
-                'tenant_approved': True,
+                "landlord_approved": True,
+                "tenant_approved": True,
             },
         )
-        log(f"LandlordControlledContract {'created' if created else 'ensured'}: {lcc.id}")
+        log(
+            f"LandlordControlledContract {'created' if created else 'ensured'}: {lcc.id}"
+        )
         return lcc
     except Exception as exc:
         log(f"warn: LandlordControlledContract creation failed: {exc}")
@@ -254,13 +262,13 @@ def create_codeudor_token(landlord, guarantor, landlord_contract):
 
         guarantee, _ = LandlordContractGuarantee.objects.get_or_create(
             contract=landlord_contract,
-            guarantee_type='CO_SIGNER',
+            guarantee_type="CO_SIGNER",
             defaults={
-                'title': 'Codeudor Solidario E2E',
-                'description': 'Garante para test E2E',
-                'amount': Decimal('1500000.00'),
-                'status': 'ACTIVE',
-                'created_by': landlord,
+                "title": "Codeudor Solidario E2E",
+                "description": "Garante para test E2E",
+                "amount": Decimal("1500000.00"),
+                "status": "ACTIVE",
+                "created_by": landlord,
             },
         )
 
@@ -272,15 +280,15 @@ def create_codeudor_token(landlord, guarantor, landlord_contract):
             token_hash=token_hash,
             contract=landlord_contract,
             guarantee=guarantee,
-            codeudor_name=f'{guarantor.first_name} {guarantor.last_name}',
+            codeudor_name=f"{guarantor.first_name} {guarantor.last_name}",
             codeudor_email=guarantor.email,
-            codeudor_document_type='CC',
-            codeudor_document_number='9876543210',
-            codeudor_type='codeudor_salario',
-            status='sent',
+            codeudor_document_type="CC",
+            codeudor_document_number="9876543210",
+            codeudor_type="codeudor_salario",
+            status="sent",
             expires_at=timezone.now() + timedelta(days=7),
             created_by=landlord,
-            personal_message='Token E2E test',
+            personal_message="Token E2E test",
         )
         log(f"CodeudorAuthToken created: {auth_token.id} (token={token_raw[:16]}...)")
         return auth_token
@@ -290,46 +298,46 @@ def create_codeudor_token(landlord, guarantor, landlord_contract):
 
 
 def main():
-    mode = sys.argv[1] if len(sys.argv) > 1 else 'ready_for_bio'
+    mode = sys.argv[1] if len(sys.argv) > 1 else "ready_for_bio"
     log(f"mode: {mode}")
 
-    landlord = ensure_user(LANDLORD_EMAIL, 'landlord', 'Admin', 'VeriHome')
-    tenant = ensure_user(TENANT_EMAIL, 'tenant', 'Leidy', 'Tenant')
-    guarantor = ensure_user(GUARANTOR_EMAIL, 'tenant', 'Garante', 'Solidario')
-    admin = ensure_user(ADMIN_EMAIL, 'landlord', 'Abogado', 'VeriHome', is_staff=True)
+    landlord = ensure_user(LANDLORD_EMAIL, "landlord", "Admin", "VeriHome")
+    tenant = ensure_user(TENANT_EMAIL, "tenant", "Leidy", "Tenant")
+    guarantor = ensure_user(GUARANTOR_EMAIL, "tenant", "Garante", "Solidario")
+    admin = ensure_user(ADMIN_EMAIL, "landlord", "Abogado", "VeriHome", is_staff=True)
     service_provider = ensure_user(
-        SERVICE_PROVIDER_EMAIL, 'service_provider', 'Prestador', 'E2E'
+        SERVICE_PROVIDER_EMAIL, "service_provider", "Prestador", "E2E"
     )
     verification_agent = ensure_user(
-        VERIFICATION_AGENT_EMAIL, 'landlord', 'Agente', 'Verificacion', is_staff=True
+        VERIFICATION_AGENT_EMAIL, "landlord", "Agente", "Verificacion", is_staff=True
     )
 
     result = {
-        'mode': mode,
-        'landlord_id': str(landlord.id),
-        'tenant_id': str(tenant.id),
-        'guarantor_id': str(guarantor.id),
-        'admin_id': str(admin.id),
-        'service_provider_id': str(service_provider.id),
-        'verification_agent_id': str(verification_agent.id),
-        'landlord_email': LANDLORD_EMAIL,
-        'tenant_email': TENANT_EMAIL,
-        'guarantor_email': GUARANTOR_EMAIL,
-        'admin_email': ADMIN_EMAIL,
-        'service_provider_email': SERVICE_PROVIDER_EMAIL,
-        'verification_agent_email': VERIFICATION_AGENT_EMAIL,
-        'password': PASSWORD,
-        'timestamp': timezone.now().isoformat(),
+        "mode": mode,
+        "landlord_id": str(landlord.id),
+        "tenant_id": str(tenant.id),
+        "guarantor_id": str(guarantor.id),
+        "admin_id": str(admin.id),
+        "service_provider_id": str(service_provider.id),
+        "verification_agent_id": str(verification_agent.id),
+        "landlord_email": LANDLORD_EMAIL,
+        "tenant_email": TENANT_EMAIL,
+        "guarantor_email": GUARANTOR_EMAIL,
+        "admin_email": ADMIN_EMAIL,
+        "service_provider_email": SERVICE_PROVIDER_EMAIL,
+        "verification_agent_email": VERIFICATION_AGENT_EMAIL,
+        "password": PASSWORD,
+        "timestamp": timezone.now().isoformat(),
     }
 
-    if mode == 'minimal':
+    if mode == "minimal":
         print(json.dumps(result, indent=2))
         return
 
     prop = ensure_property(landlord)
-    result['property_id'] = str(prop.id)
+    result["property_id"] = str(prop.id)
 
-    if mode == 'property_ready':
+    if mode == "property_ready":
         # Solo limpiar artefactos previos para dejar propiedad disponible
         reset_match_and_contracts(landlord, tenant, prop)
         print(json.dumps(result, indent=2))
@@ -338,47 +346,48 @@ def main():
     reset_match_and_contracts(landlord, tenant, prop)
     mr = create_match_request(landlord, tenant, prop)
     contract = create_contract_ready_for_signing(landlord, tenant, prop, mr)
-    result['match_request_id'] = str(mr.id)
-    result['contract_id'] = str(contract.id)
+    result["match_request_id"] = str(mr.id)
+    result["contract_id"] = str(contract.id)
 
-    if mode == 'ready_for_bio_guarantor':
+    if mode == "ready_for_bio_guarantor":
         lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
         if lcc:
             token = create_codeudor_token(landlord, guarantor, lcc)
             if token:
-                result['codeudor_token'] = token.token
-                result['codeudor_token_id'] = str(token.id)
+                result["codeudor_token"] = token.token
+                result["codeudor_token_id"] = str(token.id)
 
-    if mode == 'admin_review':
+    if mode == "admin_review":
         # Crea LCC en PENDING_ADMIN_REVIEW para el flujo de revisión jurídica
         lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
         if lcc:
-            lcc.current_state = 'PENDING_ADMIN_REVIEW'
-            lcc.save(update_fields=['current_state'])
-            result['lcc_id'] = str(lcc.id)
+            lcc.current_state = "PENDING_ADMIN_REVIEW"
+            lcc.save(update_fields=["current_state"])
+            result["lcc_id"] = str(lcc.id)
             log(f"LCC set to PENDING_ADMIN_REVIEW: {lcc.id}")
 
-    if mode == 'tenant_reviewing':
+    if mode == "tenant_reviewing":
         # LCC en TENANT_REVIEWING para testar devolución circular / objeciones
         lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
         if lcc:
-            lcc.current_state = 'TENANT_REVIEWING'
+            lcc.current_state = "TENANT_REVIEWING"
             lcc.review_cycle_count = 0
-            lcc.save(update_fields=['current_state', 'review_cycle_count'])
-            result['lcc_id'] = str(lcc.id)
+            lcc.save(update_fields=["current_state", "review_cycle_count"])
+            result["lcc_id"] = str(lcc.id)
             log(f"LCC set to TENANT_REVIEWING: {lcc.id}")
 
-    if mode == 'property_search_ready':
+    if mode == "property_search_ready":
         # 4 propiedades en 3 ciudades y rangos de precio distintos para
         # ejercitar los filtros de la API (Fase I2).
         from properties.models import Property
-        Property.objects.filter(title__startswith='E2E Search Property').delete()
+
+        Property.objects.filter(title__startswith="E2E Search Property").delete()
 
         fixtures = [
-            ('E2E Search Property · Chapinero', 'Bogotá', Decimal('1500000')),
-            ('E2E Search Property · Cedritos', 'Bogotá', Decimal('2800000')),
-            ('E2E Search Property · El Poblado', 'Medellín', Decimal('900000')),
-            ('E2E Search Property · Ciudad Jardín', 'Cali', Decimal('1200000')),
+            ("E2E Search Property · Chapinero", "Bogotá", Decimal("1500000")),
+            ("E2E Search Property · Cedritos", "Bogotá", Decimal("2800000")),
+            ("E2E Search Property · El Poblado", "Medellín", Decimal("900000")),
+            ("E2E Search Property · Ciudad Jardín", "Cali", Decimal("1200000")),
         ]
         created_ids = []
         for title, city, price in fixtures:
@@ -386,76 +395,79 @@ def main():
                 landlord=landlord,
                 title=title,
                 defaults={
-                    'description': f'Seed E2E search · {city}',
-                    'property_type': 'apartment',
-                    'listing_type': 'rent',
-                    'status': 'available',
-                    'address': f'Carrera X #{len(created_ids)+1}-00',
-                    'city': city,
-                    'state': 'Colombia',
-                    'total_area': Decimal('60.00'),
-                    'rent_price': price,
-                    'is_active': True,
-                    'bedrooms': 2,
-                    'bathrooms': 1,
+                    "description": f"Seed E2E search · {city}",
+                    "property_type": "apartment",
+                    "listing_type": "rent",
+                    "status": "available",
+                    "address": f"Carrera X #{len(created_ids)+1}-00",
+                    "city": city,
+                    "state": "Colombia",
+                    "total_area": Decimal("60.00"),
+                    "rent_price": price,
+                    "is_active": True,
+                    "bedrooms": 2,
+                    "bathrooms": 1,
                 },
             )
             created_ids.append(str(p.id))
-        result['property_search_ids'] = created_ids
+        result["property_search_ids"] = created_ids
         log(f"property_search_ready: created {len(created_ids)} properties")
 
-    if mode == 'ticket_ready':
+    if mode == "ticket_ready":
         # Un SupportTicket abierto del tenant, listo para el flujo de
         # asignación + respuesta + resolución (Fase H2).
         from core.models import SupportTicket
+
         SupportTicket.objects.filter(
-            subject__startswith='E2E · ',
+            subject__startswith="E2E · ",
         ).delete()
         ticket = SupportTicket.objects.create(
-            subject='E2E · Error al generar PDF del contrato',
-            description='Al descargar el PDF aparece un 500 intermitente.',
-            category='technical',
-            priority='high',
+            subject="E2E · Error al generar PDF del contrato",
+            description="Al descargar el PDF aparece un 500 intermitente.",
+            category="technical",
+            priority="high",
             created_by=tenant,
-            status='open',
+            status="open",
         )
-        result['ticket_id'] = str(ticket.id)
+        result["ticket_id"] = str(ticket.id)
         log(f"SupportTicket seeded: {ticket.id}")
 
-    if mode == 'interview_code_ready':
+    if mode == "interview_code_ready":
         # Crea dos InterviewCodes: uno válido, uno expirado.
         from users.models.interview import InterviewCode
 
         InterviewCode.objects.filter(
-            code__in=['E2EVALID', 'E2EEXPIR'],
+            code__in=["E2EVALID", "E2EEXPIR"],
         ).delete()
 
         ts = int(timezone.now().timestamp())
         valid_code = InterviewCode.objects.create(
-            code='E2EVALID',
-            user_type='tenant',
-            email=f'nuevo.tenant.{ts}@e2e.local',
+            code="E2EVALID",
+            user_type="tenant",
+            email=f"nuevo.tenant.{ts}@e2e.local",
             valid_from=timezone.now() - timedelta(hours=1),
             valid_until=timezone.now() + timedelta(days=7),
             created_by=admin,
             max_uses=1,
         )
         expired_code = InterviewCode.objects.create(
-            code='E2EEXPIR',
-            user_type='tenant',
-            email=f'expirado.{ts}@e2e.local',
+            code="E2EEXPIR",
+            user_type="tenant",
+            email=f"expirado.{ts}@e2e.local",
             valid_from=timezone.now() - timedelta(days=14),
             valid_until=timezone.now() - timedelta(days=1),
             created_by=admin,
             max_uses=1,
         )
-        result['interview_code_valid'] = valid_code.code
-        result['interview_code_expired'] = expired_code.code
-        result['interview_email_valid'] = valid_code.email
-        result['interview_email_expired'] = expired_code.email
-        log(f"Interview codes seeded: valid={valid_code.code}, expired={expired_code.code}")
+        result["interview_code_valid"] = valid_code.code
+        result["interview_code_expired"] = expired_code.code
+        result["interview_email_valid"] = valid_code.email
+        result["interview_email_expired"] = expired_code.email
+        log(
+            f"Interview codes seeded: valid={valid_code.code}, expired={expired_code.code}"
+        )
 
-    if mode == 'rent_paid':
+    if mode == "rent_paid":
         # contract_active + una transacción confirmada + reconciliación.
         # Simula que el webhook de la pasarela marcó una PaymentOrder
         # como paid, disparando el reconcile y la factura DIAN.
@@ -463,45 +475,55 @@ def main():
         if lcc:
             from datetime import date as _date
             from dateutil.relativedelta import relativedelta
+
             lcc.start_date = _date.today()
             lcc.end_date = lcc.start_date + relativedelta(months=3)
             lcc.economic_terms = {
-                'monthly_rent': '1500000',
-                'security_deposit': '1500000',
+                "monthly_rent": "1500000",
+                "security_deposit": "1500000",
             }
-            lcc.save(update_fields=['start_date', 'end_date', 'economic_terms'])
+            lcc.save(update_fields=["start_date", "end_date", "economic_terms"])
             lcc._updated_by = landlord
-            lcc.current_state = 'ACTIVE'
-            lcc.save(update_fields=['current_state'])
-            result['lcc_id'] = str(lcc.id)
+            lcc.current_state = "ACTIVE"
+            lcc.save(update_fields=["current_state"])
+            result["lcc_id"] = str(lcc.id)
 
             from payments.models import PaymentOrder, Transaction
             from payments.reconciliation_service import reconcile_payment
 
-            po = PaymentOrder.objects.filter(
-                payer=tenant, payee=landlord, order_type='rent',
-                status='pending', rent_schedule__isnull=False,
-            ).order_by('date_due', 'created_at').first()
-            result['payment_order_id'] = str(po.id) if po else None
+            po = (
+                PaymentOrder.objects.filter(
+                    payer=tenant,
+                    payee=landlord,
+                    order_type="rent",
+                    status="pending",
+                    rent_schedule__isnull=False,
+                )
+                .order_by("date_due", "created_at")
+                .first()
+            )
+            result["payment_order_id"] = str(po.id) if po else None
             log(f"Seed picked PaymentOrder {po.id if po else None}")
 
             # Crear Transaction directa con type='rent_payment'.
             tx = Transaction.objects.create(
-                transaction_type='rent_payment',
-                amount=po.total_amount if po else Decimal('1500000'),
-                currency='COP',
+                transaction_type="rent_payment",
+                amount=po.total_amount if po else Decimal("1500000"),
+                currency="COP",
                 payer=tenant,
                 payee=landlord,
                 contract=contract,
-                status='completed',
+                status="completed",
                 processed_at=timezone.now(),
-                description='Seed E2E: pago canon simulado webhook',
+                description="Seed E2E: pago canon simulado webhook",
             )
-            result['transaction_id'] = str(tx.id)
+            result["transaction_id"] = str(tx.id)
 
             from payments.models import RentPaymentSchedule
+
             sched_count = RentPaymentSchedule.objects.filter(
-                contract=contract, is_active=True).count()
+                contract=contract, is_active=True
+            ).count()
             log(f"RentPaymentSchedule count for contract {contract.id}: {sched_count}")
             try:
                 ok = reconcile_payment(tx)
@@ -510,20 +532,27 @@ def main():
                 log(f"warn: reconcile_payment failed: {exc}")
 
             # Verificar cuál PO quedó paid después del reconcile
-            paid_po = PaymentOrder.objects.filter(
-                payer=tenant, payee=landlord, order_type='rent', status='paid',
-            ).order_by('-paid_at').first()
+            paid_po = (
+                PaymentOrder.objects.filter(
+                    payer=tenant,
+                    payee=landlord,
+                    order_type="rent",
+                    status="paid",
+                )
+                .order_by("-paid_at")
+                .first()
+            )
             if paid_po:
                 log(f"Reconcile pagó PaymentOrder {paid_po.id}")
                 # Usar la orden efectivamente pagada como referencia del test
-                result['payment_order_id'] = str(paid_po.id)
-                result['payment_order_status_after'] = paid_po.status
+                result["payment_order_id"] = str(paid_po.id)
+                result["payment_order_status_after"] = paid_po.status
             elif po:
                 po.refresh_from_db()
-                result['payment_order_status_after'] = po.status
+                result["payment_order_status_after"] = po.status
                 log(f"PaymentOrder {po.id} status after reconcile: {po.status}")
 
-    if mode == 'contract_active':
+    if mode == "contract_active":
         # Crea LCC en ACTIVE. El signal genera automáticamente
         # RentPaymentSchedule + PaymentInstallments + PaymentOrders.
         lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
@@ -531,120 +560,132 @@ def main():
             # set start/end dates para que el signal tenga fechas
             from datetime import date as _date
             from dateutil.relativedelta import relativedelta
+
             lcc.start_date = _date.today()
             lcc.end_date = lcc.start_date + relativedelta(months=6)
             lcc.economic_terms = {
-                'monthly_rent': '1500000',
-                'security_deposit': '1500000',
+                "monthly_rent": "1500000",
+                "security_deposit": "1500000",
             }
-            lcc.save(update_fields=['start_date', 'end_date', 'economic_terms'])
+            lcc.save(update_fields=["start_date", "end_date", "economic_terms"])
             lcc._updated_by = landlord
-            lcc.current_state = 'ACTIVE'
-            lcc.save(update_fields=['current_state'])
-            result['lcc_id'] = str(lcc.id)
+            lcc.current_state = "ACTIVE"
+            lcc.save(update_fields=["current_state"])
+            result["lcc_id"] = str(lcc.id)
 
             # Contar PaymentOrders generadas por el signal
             try:
                 from payments.models import PaymentOrder
+
                 po_count = PaymentOrder.objects.filter(
-                    payer=tenant, payee=landlord, order_type='rent',
+                    payer=tenant,
+                    payee=landlord,
+                    order_type="rent",
                 ).count()
-                result['payment_orders_count'] = po_count
-                log(f"LCC set to ACTIVE: {lcc.id} · generadas {po_count} PaymentOrders rent")
+                result["payment_orders_count"] = po_count
+                log(
+                    f"LCC set to ACTIVE: {lcc.id} · generadas {po_count} PaymentOrders rent"
+                )
             except Exception as exc:
                 log(f"warn: no se pudo contar PaymentOrders: {exc}")
 
-    if mode == 'verification_ready':
+    if mode == "verification_ready":
         from verification.models import VerificationAgent, VerificationVisit
 
         agent_profile, _ = VerificationAgent.objects.get_or_create(
             user=verification_agent,
             defaults={
-                'specialization': 'both',
-                'is_available': True,
-                'max_weekly_visits': 20,
-                'service_areas': ['Cabecera', 'San Francisco'],
+                "specialization": "both",
+                "is_available": True,
+                "max_weekly_visits": 20,
+                "service_areas": ["Cabecera", "San Francisco"],
             },
         )
         agent_profile.is_available = True
-        agent_profile.save(update_fields=['is_available'])
+        agent_profile.save(update_fields=["is_available"])
 
         # Visita pendiente de asignación (para Fase C test)
         visit = VerificationVisit.objects.create(
-            visit_type='tenant',
+            visit_type="tenant",
             target_user=tenant,
-            status='pending',
-            visit_address='Calle 34 #27-18',
-            visit_city='Bucaramanga',
+            status="pending",
+            visit_address="Calle 34 #27-18",
+            visit_city="Bucaramanga",
             scheduled_date=timezone.now().date() + timedelta(days=3),
-            scheduled_time='10:00',
+            scheduled_time="10:00",
         )
         # visit_number se genera en save, asegurar que esté
         if not visit.visit_number:
             from uuid import uuid4
-            visit.visit_number = f'VV-E2E-{str(uuid4())[:6].upper()}'
-            visit.save(update_fields=['visit_number'])
-        result['agent_profile_id'] = str(agent_profile.id)
-        result['visit_id'] = str(visit.id)
-        log(f"VerificationAgent profile ready: {agent_profile.agent_code} · visit {visit.visit_number}")
 
-    if mode == 'service_order_ready':
+            visit.visit_number = f"VV-E2E-{str(uuid4())[:6].upper()}"
+            visit.save(update_fields=["visit_number"])
+        result["agent_profile_id"] = str(agent_profile.id)
+        result["visit_id"] = str(visit.id)
+        log(
+            f"VerificationAgent profile ready: {agent_profile.agent_code} · visit {visit.visit_number}"
+        )
+
+    if mode == "service_order_ready":
         # Prestador con suscripción activa, listo para emitir órdenes a clientes.
         from services.models import (
-            ServiceCategory, Service, ServiceSubscription, SubscriptionPlan,
+            ServiceCategory,
+            Service,
+            ServiceSubscription,
+            SubscriptionPlan,
         )
 
         plan, _ = SubscriptionPlan.objects.get_or_create(
-            slug='plan-e2e-basico',
+            slug="plan-e2e-basico",
             defaults={
-                'name': 'Plan E2E básico',
-                'description': 'Seed para tests E2E',
-                'billing_cycle': 'monthly',
-                'price': Decimal('50000'),
-                'max_active_services': 5,
-                'max_monthly_requests': 50,
-                'is_active': True,
+                "name": "Plan E2E básico",
+                "description": "Seed para tests E2E",
+                "billing_cycle": "monthly",
+                "price": Decimal("50000"),
+                "max_active_services": 5,
+                "max_monthly_requests": 50,
+                "is_active": True,
             },
         )
         ServiceSubscription.objects.update_or_create(
             service_provider=service_provider,
             defaults={
-                'plan': plan,
-                'status': 'active',
-                'start_date': timezone.now() - timedelta(days=1),
-                'end_date': timezone.now() + timedelta(days=365),
-                'auto_renew': True,
+                "plan": plan,
+                "status": "active",
+                "start_date": timezone.now() - timedelta(days=1),
+                "end_date": timezone.now() + timedelta(days=365),
+                "auto_renew": True,
             },
         )
         category, _ = ServiceCategory.objects.get_or_create(
-            slug='e2e-plumbing',
+            slug="e2e-plumbing",
             defaults={
-                'name': 'E2E · Plomería',
-                'description': 'Seed de servicios para tests',
-                'is_active': True,
+                "name": "E2E · Plomería",
+                "description": "Seed de servicios para tests",
+                "is_active": True,
             },
         )
         service, _ = Service.objects.get_or_create(
-            slug='e2e-reparacion-grifo',
+            slug="e2e-reparacion-grifo",
             defaults={
-                'category': category,
-                'name': 'E2E · Reparación de grifo',
-                'short_description': 'Servicio seed',
-                'full_description': 'Reparación estándar de grifo',
-                'pricing_type': 'fixed',
-                'base_price': Decimal('150000'),
-                'difficulty': 'easy',
-                'estimated_duration': '1h',
-                'is_active': True,
-                'provider': service_provider,
+                "category": category,
+                "name": "E2E · Reparación de grifo",
+                "short_description": "Servicio seed",
+                "full_description": "Reparación estándar de grifo",
+                "pricing_type": "fixed",
+                "base_price": Decimal("150000"),
+                "difficulty": "easy",
+                "estimated_duration": "1h",
+                "is_active": True,
+                "provider": service_provider,
             },
         )
-        result['service_id'] = str(service.id)
-        result['subscription_plan_id'] = str(plan.id)
+        result["service_id"] = str(service.id)
+        result["subscription_plan_id"] = str(plan.id)
         log(f"ServiceSubscription activa para prestador: {service_provider.email}")
 
     print(json.dumps(result, indent=2))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

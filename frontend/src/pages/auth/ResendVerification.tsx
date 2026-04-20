@@ -33,14 +33,22 @@ export const ResendVerification: React.FC = () => {
 
     try {
       await api.post('/users/auth/resend-confirmation/', { email });
-      setMessage(`📧 Email de verificación reenviado exitosamente a ${email}.\n\n• Revisa tu bandeja de entrada\n• No olvides revisar la carpeta de spam\n• El enlace expira en 24 horas`);
+      setMessage(
+        `📧 Email de verificación reenviado exitosamente a ${email}.\n\n• Revisa tu bandeja de entrada\n• No olvides revisar la carpeta de spam\n• El enlace expira en 24 horas`,
+      );
     } catch (err: any) {
       if (err.response?.status === 400) {
-        setError('Email inválido o ya verificado. Verifica el email ingresado.');
+        setError(
+          'Email inválido o ya verificado. Verifica el email ingresado.',
+        );
       } else if (err.response?.status === 404) {
-        setError(`No encontramos una cuenta con el email ${email}.\n\n¿Necesitas registrarte?`);
+        setError(
+          `No encontramos una cuenta con el email ${email}.\n\n¿Necesitas registrarte?`,
+        );
       } else if (err.response?.status === 429) {
-        setError('Demasiados intentos. Espera un momento antes de solicitar otro email.');
+        setError(
+          'Demasiados intentos. Espera un momento antes de solicitar otro email.',
+        );
       } else {
         setError('Error al reenviar el email. Intenta nuevamente más tarde.');
       }
@@ -85,24 +93,37 @@ export const ResendVerification: React.FC = () => {
           filter: 'blur(1px)',
         }}
       />
-      
+
       {/* Cuadro de reenvío */}
-      <Card sx={{ maxWidth: 500, width: '100%', zIndex: 1, boxShadow: 6, backdropFilter: 'blur(0.5px)' }}>
+      <Card
+        sx={{
+          maxWidth: 500,
+          width: '100%',
+          zIndex: 1,
+          boxShadow: 6,
+          backdropFilter: 'blur(0.5px)',
+        }}
+      >
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <EmailIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
-            <Typography variant="h4" align="center">
+            <Typography variant='h4' align='center'>
               Reenviar Verificación
             </Typography>
           </Box>
-          
-          <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
+
+          <Typography
+            variant='body1'
+            align='center'
+            color='text.secondary'
+            sx={{ mb: 3 }}
+          >
             Ingresa tu email para recibir un nuevo enlace de verificación
           </Typography>
 
           {message && (
-            <Alert 
-              severity="success" 
+            <Alert
+              severity='success'
               sx={{ mb: 3, whiteSpace: 'pre-line' }}
               icon={<CheckCircleIcon />}
             >
@@ -111,7 +132,7 @@ export const ResendVerification: React.FC = () => {
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3, whiteSpace: 'pre-line' }}>
+            <Alert severity='error' sx={{ mb: 3, whiteSpace: 'pre-line' }}>
               {error}
             </Alert>
           )}
@@ -119,49 +140,62 @@ export const ResendVerification: React.FC = () => {
           <form onSubmit={handleSubmit} noValidate>
             <TextField
               fullWidth
-              label="Email"
-              name="email"
-              type="email"
+              label='Email'
+              name='email'
+              type='email'
               value={email}
               onChange={handleChange}
-              margin="normal"
+              margin='normal'
               required
               error={!!error}
-              autoComplete="email"
+              autoComplete='email'
               autoFocus
-              placeholder="usuario@ejemplo.com"
+              placeholder='usuario@ejemplo.com'
               disabled={isLoading}
             />
 
             <Button
-              type="submit"
-              variant="contained"
+              type='submit'
+              variant='contained'
               fullWidth
-              size="large"
+              size='large'
               sx={{ mt: 3, mb: 2 }}
               disabled={isLoading || !email.trim()}
-              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <EmailIcon />}
+              startIcon={
+                isLoading ? (
+                  <CircularProgress size={20} color='inherit' />
+                ) : (
+                  <EmailIcon />
+                )
+              }
             >
               {isLoading ? 'Enviando...' : 'Reenviar Email de Verificación'}
             </Button>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mt: 3,
+              }}
+            >
               <Button
                 component={RouterLink}
-                to="/login"
-                variant="outlined"
+                to='/login'
+                variant='outlined'
                 startIcon={<ArrowBackIcon />}
                 disabled={isLoading}
               >
                 Volver al Login
               </Button>
-              
+
               {message && (
                 <Button
                   component={RouterLink}
-                  to="/login"
-                  variant="contained"
-                  color="success"
+                  to='/login'
+                  variant='contained'
+                  color='success'
                 >
                   Ir al Login
                 </Button>
@@ -170,11 +204,13 @@ export const ResendVerification: React.FC = () => {
           </form>
 
           <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-            <Typography variant="body2" color="text.secondary" align="center">
-              💡 <strong>Consejos:</strong><br/>
-              • Revisa todas las carpetas de tu email<br/>
-              • El email puede tardar unos minutos en llegar<br/>
-              • Si no llega, verifica que el email sea correcto
+            <Typography variant='body2' color='text.secondary' align='center'>
+              💡 <strong>Consejos:</strong>
+              <br />
+              • Revisa todas las carpetas de tu email
+              <br />
+              • El email puede tardar unos minutos en llegar
+              <br />• Si no llega, verifica que el email sea correcto
             </Typography>
           </Box>
         </CardContent>

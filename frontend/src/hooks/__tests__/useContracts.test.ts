@@ -7,7 +7,9 @@ import { useAuth } from '../useAuth';
 
 // Mock contract service
 jest.mock('../../services/contractService');
-const mockContractService = contractService as jest.Mocked<typeof contractService>;
+const mockContractService = contractService as jest.Mocked<
+  typeof contractService
+>;
 
 // Mock useAuth hook
 jest.mock('../useAuth');
@@ -23,11 +25,7 @@ const createWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useContracts Hook', () => {
@@ -70,7 +68,14 @@ describe('useContracts Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
-      user: { id: 1, email: 'test@example.com', first_name: 'Test', last_name: 'User', role: 'landlord', is_verified: true },
+      user: {
+        id: 1,
+        email: 'test@example.com',
+        first_name: 'Test',
+        last_name: 'User',
+        role: 'landlord',
+        is_verified: true,
+      },
       isAuthenticated: true,
       isLoading: false,
       login: jest.fn() as any,
@@ -129,7 +134,11 @@ describe('useContracts Hook', () => {
   });
 
   it('should handle contract creation via mutation', async () => {
-    const newContract = { ...mockContracts[0], id: 'contract-3', title: 'New Contract' };
+    const newContract = {
+      ...mockContracts[0],
+      id: 'contract-3',
+      title: 'New Contract',
+    };
     mockContractService.createContract.mockResolvedValue(newContract as any);
 
     const { result } = renderHook(() => useContracts(), {
@@ -150,7 +159,9 @@ describe('useContracts Hook', () => {
     });
 
     expect(mockContractService.createContract).toHaveBeenCalled();
-    expect(mockContractService.createContract.mock.calls[0][0]).toEqual(createData);
+    expect(mockContractService.createContract.mock.calls[0][0]).toEqual(
+      createData
+    );
     await waitFor(() => {
       expect(result.current.createContract.isSuccess).toBe(true);
     });
@@ -158,7 +169,9 @@ describe('useContracts Hook', () => {
 
   it('should handle contract update via mutation', async () => {
     const updatedContract = { ...mockContracts[0], title: 'Updated Title' };
-    mockContractService.updateContract.mockResolvedValue(updatedContract as any);
+    mockContractService.updateContract.mockResolvedValue(
+      updatedContract as any
+    );
 
     const { result } = renderHook(() => useContracts(), {
       wrapper: createWrapper(),
@@ -171,7 +184,10 @@ describe('useContracts Hook', () => {
       });
     });
 
-    expect(mockContractService.updateContract).toHaveBeenCalledWith('contract-1', { title: 'Updated Title' });
+    expect(mockContractService.updateContract).toHaveBeenCalledWith(
+      'contract-1',
+      { title: 'Updated Title' }
+    );
     await waitFor(() => {
       expect(result.current.updateContract.isSuccess).toBe(true);
     });
@@ -189,14 +205,18 @@ describe('useContracts Hook', () => {
     });
 
     expect(mockContractService.deleteContract).toHaveBeenCalled();
-    expect(mockContractService.deleteContract.mock.calls[0][0]).toBe('contract-1');
+    expect(mockContractService.deleteContract.mock.calls[0][0]).toBe(
+      'contract-1'
+    );
     await waitFor(() => {
       expect(result.current.deleteContract.isSuccess).toBe(true);
     });
   });
 
   it('should handle sign contract mutation', async () => {
-    mockContractService.signContract.mockResolvedValue({ success: true } as any);
+    mockContractService.signContract.mockResolvedValue({
+      success: true,
+    } as any);
 
     const { result } = renderHook(() => useContracts(), {
       wrapper: createWrapper(),
@@ -214,14 +234,19 @@ describe('useContracts Hook', () => {
       });
     });
 
-    expect(mockContractService.signContract).toHaveBeenCalledWith('contract-1', signatureData);
+    expect(mockContractService.signContract).toHaveBeenCalledWith(
+      'contract-1',
+      signatureData
+    );
     await waitFor(() => {
       expect(result.current.signContract.isSuccess).toBe(true);
     });
   });
 
   it('should handle activate contract mutation', async () => {
-    mockContractService.activateContract.mockResolvedValue({ status: 'active' } as any);
+    mockContractService.activateContract.mockResolvedValue({
+      status: 'active',
+    } as any);
 
     const { result } = renderHook(() => useContracts(), {
       wrapper: createWrapper(),
@@ -233,7 +258,9 @@ describe('useContracts Hook', () => {
 
     // activateContract is passed directly as mutationFn, so react-query may pass extra args
     expect(mockContractService.activateContract).toHaveBeenCalled();
-    expect(mockContractService.activateContract.mock.calls[0][0]).toBe('contract-1');
+    expect(mockContractService.activateContract.mock.calls[0][0]).toBe(
+      'contract-1'
+    );
     await waitFor(() => {
       expect(result.current.activateContract.isSuccess).toBe(true);
     });
@@ -249,14 +276,19 @@ describe('useContracts Hook', () => {
 
     // The source hook has retry: 2 with retryDelay: 1000, so we need to wait longer
     // for all retries to exhaust before the error state is set.
-    await waitFor(() => {
-      expect(result.current.contracts).toBeUndefined();
-      expect(result.current.isLoading).toBe(false);
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(result.current.contracts).toBeUndefined();
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 10000 }
+    );
   });
 
   it('should handle contract creation error', async () => {
-    mockContractService.createContract.mockRejectedValue(new Error('Creation failed'));
+    mockContractService.createContract.mockRejectedValue(
+      new Error('Creation failed')
+    );
 
     const { result } = renderHook(() => useContracts(), {
       wrapper: createWrapper(),

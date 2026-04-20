@@ -56,7 +56,10 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 
-import { AdminService, AdminContractSummary } from '../../services/adminService';
+import {
+  AdminService,
+  AdminContractSummary,
+} from '../../services/adminService';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -83,7 +86,12 @@ const headCells: HeadCell[] = [
   { id: 'landlord_name', label: 'Arrendador', numeric: false, sortable: true },
   { id: 'tenant_name', label: 'Arrendatario', numeric: false, sortable: true },
   { id: 'current_state', label: 'Estado', numeric: false, sortable: true },
-  { id: 'days_pending', label: 'Días Pendiente', numeric: true, sortable: true },
+  {
+    id: 'days_pending',
+    label: 'Días Pendiente',
+    numeric: true,
+    sortable: true,
+  },
   { id: 'review_cycle_count', label: 'Ciclo', numeric: true, sortable: true },
   { id: 'monthly_rent', label: 'Canon', numeric: true, sortable: true },
   { id: 'created_at', label: 'Creado', numeric: false, sortable: true },
@@ -106,9 +114,9 @@ const getUrgencyColor = (days: number): 'default' | 'warning' | 'error' => {
  * Obtener icono de urgencia
  */
 const getUrgencyIcon = (days: number) => {
-  if (days >= 7) return <ErrorIcon fontSize="small" />;
-  if (days >= 3) return <WarningIcon fontSize="small" />;
-  return <ScheduleIcon fontSize="small" />;
+  if (days >= 7) return <ErrorIcon fontSize='small' />;
+  if (days >= 3) return <WarningIcon fontSize='small' />;
+  return <ScheduleIcon fontSize='small' />;
 };
 
 /**
@@ -210,7 +218,7 @@ const AdminContractsList: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        (c) =>
+        c =>
           (c.property_title ?? '').toLowerCase().includes(term) ||
           c.landlord_name.toLowerCase().includes(term) ||
           (c.tenant_name ?? '').toLowerCase().includes(term) ||
@@ -220,7 +228,7 @@ const AdminContractsList: React.FC = () => {
 
     // Apply state filter
     if (stateFilter !== 'all') {
-      filtered = filtered.filter((c) => c.current_state === stateFilter);
+      filtered = filtered.filter(c => c.current_state === stateFilter);
     }
 
     // Sort
@@ -238,7 +246,9 @@ const AdminContractsList: React.FC = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -254,14 +264,14 @@ const AdminContractsList: React.FC = () => {
 
   // Loading state
   if (authLoading) {
-    return <LoadingSpinner message="Verificando permisos..." />;
+    return <LoadingSpinner message='Verificando permisos...' />;
   }
 
   // Access denied
   if (!isAdmin) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           Acceso denegado. Se requieren permisos de administrador.
         </Alert>
       </Box>
@@ -272,7 +282,10 @@ const AdminContractsList: React.FC = () => {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error" action={<Button onClick={() => refetch()}>Reintentar</Button>}>
+        <Alert
+          severity='error'
+          action={<Button onClick={() => refetch()}>Reintentar</Button>}
+        >
           Error al cargar contratos: {(error as Error).message}
         </Alert>
       </Box>
@@ -288,17 +301,22 @@ const AdminContractsList: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+      <Stack
+        direction='row'
+        justifyContent='space-between'
+        alignItems='center'
+        mb={3}
+      >
         <Box>
-          <Typography variant="h4" fontWeight="bold">
+          <Typography variant='h4' fontWeight='bold'>
             Contratos Pendientes
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             {stats?.pending_review || 0} contratos requieren revisión
           </Typography>
         </Box>
         <Button
-          variant="outlined"
+          variant='outlined'
           startIcon={<RefreshIcon />}
           onClick={() => refetch()}
           disabled={isLoading}
@@ -309,36 +327,36 @@ const AdminContractsList: React.FC = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <Stack direction="row" spacing={2} mb={3} flexWrap="wrap" useFlexGap>
+        <Stack direction='row' spacing={2} mb={3} flexWrap='wrap' useFlexGap>
           <Paper sx={{ p: 2, minWidth: 150 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Pendientes
             </Typography>
-            <Typography variant="h4" color="primary.main">
+            <Typography variant='h4' color='primary.main'>
               {stats.pending_review}
             </Typography>
           </Paper>
           <Paper sx={{ p: 2, minWidth: 150 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Urgentes (&gt;7 días)
             </Typography>
-            <Typography variant="h4" color="error.main">
+            <Typography variant='h4' color='error.main'>
               {stats.urgent_contracts}
             </Typography>
           </Paper>
           <Paper sx={{ p: 2, minWidth: 150 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Aprobados Hoy
             </Typography>
-            <Typography variant="h4" color="success.main">
+            <Typography variant='h4' color='success.main'>
               {stats.approved_today}
             </Typography>
           </Paper>
           <Paper sx={{ p: 2, minWidth: 150 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Rechazados Hoy
             </Typography>
-            <Typography variant="h4" color="warning.main">
+            <Typography variant='h4' color='warning.main'>
               {stats.rejected_today}
             </Typography>
           </Paper>
@@ -347,38 +365,50 @@ const AdminContractsList: React.FC = () => {
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems='center'
+        >
           <TextField
-            size="small"
-            placeholder="Buscar por propiedad, arrendador, inquilino..."
+            size='small'
+            placeholder='Buscar por propiedad, arrendador, inquilino...'
             value={searchTerm}
-            onChange={(e) => {
+            onChange={e => {
               setSearchTerm(e.target.value);
               setPage(0);
             }}
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position='start'>
                   <SearchIcon />
                 </InputAdornment>
               ),
             }}
             sx={{ minWidth: 300 }}
           />
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          <FormControl size='small' sx={{ minWidth: 200 }}>
             <InputLabel>Estado</InputLabel>
             <Select
               value={stateFilter}
-              label="Estado"
+              label='Estado'
               onChange={handleStateFilterChange}
-              startAdornment={<FilterIcon sx={{ mr: 1, color: 'action.active' }} />}
+              startAdornment={
+                <FilterIcon sx={{ mr: 1, color: 'action.active' }} />
+              }
             >
-              <MenuItem value="all">Todos los estados</MenuItem>
-              <MenuItem value="PENDING_ADMIN_REVIEW">Pendiente Revisión</MenuItem>
-              <MenuItem value="RE_PENDING_ADMIN">Re-Revisión (Ciclo)</MenuItem>
+              <MenuItem value='all'>Todos los estados</MenuItem>
+              <MenuItem value='PENDING_ADMIN_REVIEW'>
+                Pendiente Revisión
+              </MenuItem>
+              <MenuItem value='RE_PENDING_ADMIN'>Re-Revisión (Ciclo)</MenuItem>
             </Select>
           </FormControl>
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ ml: 'auto' }}
+          >
             {filteredContracts.length} contratos encontrados
           </Typography>
         </Stack>
@@ -392,13 +422,21 @@ const AdminContractsList: React.FC = () => {
           </Box>
         ) : filteredContracts.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Avatar sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: 'success.light' }}>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mx: 'auto',
+                mb: 2,
+                bgcolor: 'success.light',
+              }}
+            >
               <CheckCircleOutlineIcon sx={{ fontSize: 40 }} />
             </Avatar>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               No hay contratos pendientes
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Todos los contratos han sido revisados
             </Typography>
           </Box>
@@ -407,7 +445,7 @@ const AdminContractsList: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  {headCells.map((headCell) => (
+                  {headCells.map(headCell => (
                     <TableCell
                       key={headCell.id}
                       align={headCell.numeric ? 'right' : 'left'}
@@ -426,11 +464,11 @@ const AdminContractsList: React.FC = () => {
                       )}
                     </TableCell>
                   ))}
-                  <TableCell align="center">Acciones</TableCell>
+                  <TableCell align='center'>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {paginatedContracts.map((contract) => (
+                {paginatedContracts.map(contract => (
                   <TableRow
                     key={contract.id}
                     hover
@@ -443,97 +481,129 @@ const AdminContractsList: React.FC = () => {
                   >
                     <TableCell>
                       <Box>
-                        <Typography variant="body2" fontWeight="medium">
+                        <Typography variant='body2' fontWeight='medium'>
                           {contract.property_title}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='caption' color='text.secondary'>
                           {contract.property_address}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography variant="body2">{contract.landlord_name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='body2'>
+                          {contract.landlord_name}
+                        </Typography>
+                        <Typography variant='caption' color='text.secondary'>
                           {contract.landlord_email}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box>
-                        <Typography variant="body2">{contract.tenant_name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant='body2'>
+                          {contract.tenant_name}
+                        </Typography>
+                        <Typography variant='caption' color='text.secondary'>
                           {contract.tenant_email}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Chip
-                        size="small"
+                        size='small'
                         label={formatState(contract.current_state ?? '')}
-                        color={contract.current_state === 'RE_PENDING_ADMIN' ? 'secondary' : 'primary'}
-                        icon={contract.current_state === 'RE_PENDING_ADMIN' ? <CycleIcon /> : undefined}
+                        color={
+                          contract.current_state === 'RE_PENDING_ADMIN'
+                            ? 'secondary'
+                            : 'primary'
+                        }
+                        icon={
+                          contract.current_state === 'RE_PENDING_ADMIN' ? (
+                            <CycleIcon />
+                          ) : undefined
+                        }
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align='right'>
                       <Chip
-                        size="small"
+                        size='small'
                         icon={getUrgencyIcon(contract.days_pending)}
                         label={`${contract.days_pending} días`}
                         color={getUrgencyColor(contract.days_pending)}
-                        variant={contract.days_pending >= 7 ? 'filled' : 'outlined'}
+                        variant={
+                          contract.days_pending >= 7 ? 'filled' : 'outlined'
+                        }
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align='right'>
                       {(contract.review_cycle_count ?? 0) > 1 ? (
-                        <Tooltip title={`Ciclo de revisión #${contract.review_cycle_count}`}>
+                        <Tooltip
+                          title={`Ciclo de revisión #${contract.review_cycle_count}`}
+                        >
                           <Chip
-                            size="small"
+                            size='small'
                             icon={<CycleIcon />}
                             label={`#${contract.review_cycle_count}`}
-                            color="info"
+                            color='info'
                           />
                         </Tooltip>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant='body2' color='text.secondary'>
                           1
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">{formatCurrency(contract.monthly_rent)}</Typography>
+                    <TableCell align='right'>
+                      <Typography variant='body2'>
+                        {formatCurrency(contract.monthly_rent)}
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2">{formatDate(contract.created_at)}</Typography>
+                      <Typography variant='body2'>
+                        {formatDate(contract.created_at)}
+                      </Typography>
                     </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <Tooltip title="Ver detalle">
+                    <TableCell align='center'>
+                      <Stack
+                        direction='row'
+                        spacing={0.5}
+                        justifyContent='center'
+                      >
+                        <Tooltip title='Ver detalle'>
                           <IconButton
-                            size="small"
-                            color="primary"
+                            size='small'
+                            color='primary'
                             onClick={() => handleViewContract(contract.id)}
                           >
                             <ViewIcon />
                           </IconButton>
                         </Tooltip>
                         {adminPermissions.canApproveContracts && (
-                          <Tooltip title="Aprobar">
+                          <Tooltip title='Aprobar'>
                             <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() => navigate(`/app/admin/contracts/${contract.id}?action=approve`)}
+                              size='small'
+                              color='success'
+                              onClick={() =>
+                                navigate(
+                                  `/app/admin/contracts/${contract.id}?action=approve`,
+                                )
+                              }
                             >
                               <ApproveIcon />
                             </IconButton>
                           </Tooltip>
                         )}
                         {adminPermissions.canRejectContracts && (
-                          <Tooltip title="Rechazar">
+                          <Tooltip title='Rechazar'>
                             <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => navigate(`/app/admin/contracts/${contract.id}?action=reject`)}
+                              size='small'
+                              color='error'
+                              onClick={() =>
+                                navigate(
+                                  `/app/admin/contracts/${contract.id}?action=reject`,
+                                )
+                              }
                             >
                               <RejectIcon />
                             </IconButton>
@@ -547,13 +617,13 @@ const AdminContractsList: React.FC = () => {
             </Table>
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, 50]}
-              component="div"
+              component='div'
               count={filteredContracts.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage="Filas por página"
+              labelRowsPerPage='Filas por página'
               labelDisplayedRows={({ from, to, count }) =>
                 `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
               }

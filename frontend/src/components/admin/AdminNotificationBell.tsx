@@ -12,13 +12,22 @@ interface AdminNotificationBellProps {
   onClick: () => void;
 }
 
-const AdminNotificationBell: React.FC<AdminNotificationBellProps> = ({ unreadCount, onClick }) => {
+const AdminNotificationBell: React.FC<AdminNotificationBellProps> = ({
+  unreadCount,
+  onClick,
+}) => {
   return (
-    <Tooltip title={unreadCount > 0 ? `${unreadCount} notificaciones sin leer` : 'Sin notificaciones nuevas'}>
-      <IconButton color="inherit" onClick={onClick} size="large">
+    <Tooltip
+      title={
+        unreadCount > 0
+          ? `${unreadCount} notificaciones sin leer`
+          : 'Sin notificaciones nuevas'
+      }
+    >
+      <IconButton color='inherit' onClick={onClick} size='large'>
         <Badge
           badgeContent={unreadCount}
-          color="error"
+          color='error'
           max={99}
           sx={{
             '& .MuiBadge-badge': {

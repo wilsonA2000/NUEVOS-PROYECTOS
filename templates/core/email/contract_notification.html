@@ -173,9 +173,9 @@
             <div class="notification-type {% if notification.priority == 'urgent' %}priority-urgent{% elif notification.priority == 'high' %}priority-high{% endif %}">
                 Contrato
             </div>
-            
+
             <h1 class="title">{{ title }}</h1>
-            
+
             <p class="message">
                 Hola {{ user_name }},<br><br>
                 {{ message }}
@@ -202,7 +202,7 @@
                 {% endif %}
             </div>
             {% endif %}
-            
+
             {% if action_url %}
             <div style="text-align: center; margin: 30px 0;">
                 <a href="{{ action_url }}" class="action-button">
@@ -210,7 +210,7 @@
                 </a>
             </div>
             {% endif %}
-            
+
             <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
                 <strong>💡 Consejos importantes:</strong><br>
                 • Revisa cuidadosamente todos los términos antes de firmar<br>
@@ -225,13 +225,13 @@
             <p class="footer-text">
                 Este email fue enviado desde {{ platform_name }}
             </p>
-            
+
             <div class="footer-links">
                 <a href="{{ base_url }}/app/contracts">Mis Contratos</a>
                 <a href="{{ base_url }}/support">Soporte</a>
                 <a href="{{ base_url }}/app/settings/notifications">Configurar Notificaciones</a>
             </div>
-            
+
             <p class="copyright">
                 © {{ current_year }} {{ platform_name }}. Todos los derechos reservados.
             </p>

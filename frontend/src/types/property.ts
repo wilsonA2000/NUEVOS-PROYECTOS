@@ -9,10 +9,20 @@ export interface Property {
   };
   title: string;
   description: string;
-  property_type: 'apartment' | 'house' | 'studio' | 'penthouse' | 'townhouse' | 'commercial' | 'office' | 'warehouse' | 'land' | 'room';
+  property_type:
+    | 'apartment'
+    | 'house'
+    | 'studio'
+    | 'penthouse'
+    | 'townhouse'
+    | 'commercial'
+    | 'office'
+    | 'warehouse'
+    | 'land'
+    | 'room';
   listing_type: 'rent' | 'sale' | 'both';
   status: 'available' | 'rented' | 'maintenance' | 'pending' | 'inactive';
-  
+
   // Location
   address: string;
   city: string;
@@ -21,7 +31,7 @@ export interface Property {
   postal_code: string;
   latitude?: number;
   longitude?: number;
-  
+
   // Physical characteristics
   bedrooms: number;
   bathrooms: number;
@@ -33,13 +43,13 @@ export interface Property {
   floors: number;
   floor_number?: number;
   year_built?: number;
-  
+
   // Pricing
   rent_price?: number;
   sale_price?: number;
   security_deposit?: number;
   maintenance_fee?: number;
-  
+
   // Lease conditions
   minimum_lease_term: number;
   maximum_lease_term?: number;
@@ -47,25 +57,25 @@ export interface Property {
   smoking_allowed: boolean;
   furnished: boolean;
   utilities_included: string[];
-  
+
   // Additional information
   property_features: string[];
   nearby_amenities: string[];
   transportation: string[];
-  
+
   // Availability
   available_from?: string;
   last_updated: string;
   created_at: string;
-  
+
   // Metrics
   views_count: number;
   favorites_count: number;
-  
+
   // Visibility settings
   is_featured: boolean;
   is_active: boolean;
-  
+
   // Related data
   images: PropertyImage[];
   videos: PropertyVideo[];
@@ -101,7 +111,14 @@ export interface PropertyVideo {
 export interface PropertyAmenity {
   id: string;
   name: string;
-  category: 'interior' | 'exterior' | 'security' | 'recreation' | 'utilities' | 'parking' | 'accessibility';
+  category:
+    | 'interior'
+    | 'exterior'
+    | 'security'
+    | 'recreation'
+    | 'utilities'
+    | 'parking'
+    | 'accessibility';
   icon: string;
   description: string;
   is_active: boolean;
@@ -253,31 +270,31 @@ export interface PropertySearchFilters {
   status?: string;
   city?: string;
   state?: string;
-  
+
   // Price range
   min_price?: number;
   max_price?: number;
-  
-  // Area range  
+
+  // Area range
   min_area?: number;
   max_area?: number;
-  
+
   // Rooms and bathrooms
   min_bedrooms?: number;
   max_bedrooms?: number;
   min_bathrooms?: number;
   max_bathrooms?: number;
-  
+
   // Amenities and features
   has_parking?: boolean;
   has_pool?: boolean;
   allows_pets?: boolean;
   is_furnished?: boolean;
-  
+
   // Additional filters
   pets_allowed?: boolean;
   furnished?: boolean;
-  
+
   // Ordering and pagination
   ordering?: string;
   page?: number;
@@ -302,4 +319,4 @@ export interface PropertyFiltersResponse {
   states: string[];
   price_ranges: Array<{ min: number; max: number; label: string }>;
   bedroom_options: number[];
-} 
+}

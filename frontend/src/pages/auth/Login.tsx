@@ -60,7 +60,7 @@ export const Login: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     // Limpiar errores al cambiar el input
     setError('');
     setErrorType('');
@@ -81,7 +81,7 @@ export const Login: React.FC = () => {
       // El error ya viene procesado desde el servicio
       if (err instanceof Error) {
         setError(err.message);
-        
+
         // Detectar tipo de error para mostrar acciones específicas
         if (err.message.includes('No existe una cuenta')) {
           setErrorType('user_not_found');
@@ -98,7 +98,7 @@ export const Login: React.FC = () => {
         } else if (err.message.includes('conexión')) {
           setErrorType('connection_error');
         }
-        
+
         setShowErrorDialog(true);
       }
     }
@@ -111,17 +111,17 @@ export const Login: React.FC = () => {
   const getErrorIcon = () => {
     switch (errorType) {
       case 'user_not_found':
-        return <PersonAddIcon color="warning" />;
+        return <PersonAddIcon color='warning' />;
       case 'invalid_password':
-        return <VpnKeyIcon color="error" />;
+        return <VpnKeyIcon color='error' />;
       case 'email_not_verified':
-        return <EmailIcon color="info" />;
+        return <EmailIcon color='info' />;
       case 'account_disabled':
-        return <SecurityIcon color="error" />;
+        return <SecurityIcon color='error' />;
       case 'connection_error':
-        return <WarningIcon color="warning" />;
+        return <WarningIcon color='warning' />;
       default:
-        return <WarningIcon color="error" />;
+        return <WarningIcon color='error' />;
     }
   };
 
@@ -131,67 +131,69 @@ export const Login: React.FC = () => {
         return (
           <>
             <Button onClick={handleCloseErrorDialog}>Cerrar</Button>
-            <Button 
-              component={RouterLink} 
-              to="/register" 
-              variant="contained" 
-              color="primary"
+            <Button
+              component={RouterLink}
+              to='/register'
+              variant='contained'
+              color='primary'
               startIcon={<PersonAddIcon />}
             >
               Registrarse
             </Button>
           </>
         );
-      
+
       case 'invalid_password':
         return (
           <>
             <Button onClick={handleCloseErrorDialog}>Cerrar</Button>
-            <Button 
-              component={RouterLink} 
-              to="/forgot-password" 
-              variant="contained" 
-              color="primary"
+            <Button
+              component={RouterLink}
+              to='/forgot-password'
+              variant='contained'
+              color='primary'
               startIcon={<VpnKeyIcon />}
             >
               Recuperar Contraseña
             </Button>
           </>
         );
-      
+
       case 'email_not_verified':
         return (
           <>
             <Button onClick={handleCloseErrorDialog}>Cerrar</Button>
-            <Button 
-              component={RouterLink} 
-              to="/resend-verification" 
-              variant="contained" 
-              color="info"
+            <Button
+              component={RouterLink}
+              to='/resend-verification'
+              variant='contained'
+              color='info'
               startIcon={<EmailIcon />}
             >
               Reenviar Email
             </Button>
           </>
         );
-      
+
       case 'account_disabled':
         return (
           <>
             <Button onClick={handleCloseErrorDialog}>Cerrar</Button>
-            <Button 
-              onClick={() => window.location.href = 'mailto:soporte@verihome.com'}
-              variant="contained" 
-              color="warning"
+            <Button
+              onClick={() =>
+                (window.location.href = 'mailto:soporte@verihome.com')
+              }
+              variant='contained'
+              color='warning'
             >
               Contactar Soporte
             </Button>
           </>
         );
-      
+
       default:
         return (
-          <Button onClick={handleCloseErrorDialog} variant="contained">
+          <Button onClick={handleCloseErrorDialog} variant='contained'>
             Cerrar
           </Button>
         );
@@ -229,17 +231,30 @@ export const Login: React.FC = () => {
         }}
       />
       {/* Cuadro de login */}
-      <Card sx={{ maxWidth: 400, width: '100%', zIndex: 1, boxShadow: 6, backdropFilter: 'blur(0.5px)' }}>
+      <Card
+        sx={{
+          maxWidth: 400,
+          width: '100%',
+          zIndex: 1,
+          boxShadow: 6,
+          backdropFilter: 'blur(0.5px)',
+        }}
+      >
         <CardContent>
-          <Typography variant="h4" align="center" gutterBottom>
+          <Typography variant='h4' align='center' gutterBottom>
             Iniciar Sesión
           </Typography>
-          <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            align='center'
+            color='text.secondary'
+            sx={{ mb: 3 }}
+          >
             Ingresa tus credenciales para acceder a tu cuenta
           </Typography>
 
           {successMessage && (
-            <Alert severity="success" sx={{ mb: 2 }}>
+            <Alert severity='success' sx={{ mb: 2 }}>
               {successMessage}
             </Alert>
           )}
@@ -247,62 +262,62 @@ export const Login: React.FC = () => {
           <form onSubmit={handleSubmit} noValidate>
             <TextField
               fullWidth
-              label="Email"
-              name="email"
-              type="email"
+              label='Email'
+              name='email'
+              type='email'
               value={formData.email}
               onChange={handleChange}
-              margin="normal"
+              margin='normal'
               required
               error={!!error}
-              autoComplete="email"
+              autoComplete='email'
               autoFocus
             />
 
             <TextField
               fullWidth
-              label="Contraseña"
-              name="password"
-              type="password"
+              label='Contraseña'
+              name='password'
+              type='password'
               value={formData.password}
               onChange={handleChange}
-              margin="normal"
+              margin='normal'
               required
               error={!!error}
-              autoComplete="current-password"
+              autoComplete='current-password'
             />
 
             {error && !showErrorDialog && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity='error'
                 sx={{ mt: 2, whiteSpace: 'pre-line' }}
                 action={
                   errorType === 'email_not_verified' ? (
-                    <Button 
-                      color="inherit" 
-                      size="small"
+                    <Button
+                      color='inherit'
+                      size='small'
                       component={RouterLink}
-                      to="/resend-verification"
+                      to='/resend-verification'
                       startIcon={<EmailIcon />}
                     >
                       Reenviar Email
                     </Button>
                   ) : errorType === 'user_not_found' ? (
-                    <Button 
-                      color="inherit" 
-                      size="small"
+                    <Button
+                      color='inherit'
+                      size='small'
                       component={RouterLink}
-                      to="/register"
+                      to='/register'
                       startIcon={<PersonAddIcon />}
                     >
                       Registrarse
                     </Button>
                   ) : errorType === 'invalid_password' ? (
-                    <Button 
-                      color="inherit" 
-                      size="small"
+                    <Button
+                      color='inherit'
+                      size='small'
                       component={RouterLink}
-                      to="/forgot-password"
+                      to='/forgot-password'
                       startIcon={<VpnKeyIcon />}
                     >
                       Recuperar
@@ -310,15 +325,16 @@ export const Login: React.FC = () => {
                   ) : null
                 }
               >
-                {error.split('\n')[0]} {/* Solo mostrar la primera línea en el alert pequeño */}
+                {error.split('\n')[0]}{' '}
+                {/* Solo mostrar la primera línea en el alert pequeño */}
               </Alert>
             )}
 
             <Button
-              type="submit"
-              variant="contained"
+              type='submit'
+              variant='contained'
               fullWidth
-              size="large"
+              size='large'
               sx={{ mt: 3 }}
               disabled={login.isPending}
             >
@@ -328,19 +344,15 @@ export const Login: React.FC = () => {
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Link
                 component={RouterLink}
-                to="/forgot-password"
-                variant="body2"
+                to='/forgot-password'
+                variant='body2'
               >
                 ¿Olvidaste tu contraseña?
               </Link>
             </Box>
 
             <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Link
-                component={RouterLink}
-                to="/register"
-                variant="body2"
-              >
+              <Link component={RouterLink} to='/register' variant='body2'>
                 ¿No tienes una cuenta? Regístrate
               </Link>
             </Box>
@@ -349,56 +361,59 @@ export const Login: React.FC = () => {
       </Card>
 
       {/* Modal de Error Detallado */}
-      <Dialog 
-        open={showErrorDialog} 
+      <Dialog
+        open={showErrorDialog}
         onClose={handleCloseErrorDialog}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {getErrorIcon()}
           Error de Inicio de Sesión
         </DialogTitle>
-        
+
         <DialogContent>
           <DialogContentText sx={{ whiteSpace: 'pre-line', mb: 2 }}>
             {error}
           </DialogContentText>
-          
+
           {userEmail && (
             <>
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
+                <Typography variant='body2' color='text.secondary'>
                   Email ingresado:
                 </Typography>
-                <Chip 
-                  label={userEmail} 
-                  size="small" 
-                  variant="outlined"
+                <Chip
+                  label={userEmail}
+                  size='small'
+                  variant='outlined'
                   icon={<EmailIcon />}
                 />
               </Box>
             </>
           )}
-          
+
           {errorType === 'email_not_verified' && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                📝 <strong>Revisa estas carpetas:</strong><br/>
-                • Bandeja de entrada<br/>
-                • Correo no deseado (Spam)<br/>
-                • Promociones<br/>
-                • Actualizaciones
+            <Alert severity='info' sx={{ mt: 2 }}>
+              <Typography variant='body2'>
+                📝 <strong>Revisa estas carpetas:</strong>
+                <br />
+                • Bandeja de entrada
+                <br />
+                • Correo no deseado (Spam)
+                <br />
+                • Promociones
+                <br />• Actualizaciones
               </Typography>
             </Alert>
           )}
         </DialogContent>
-        
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          {getErrorActions()}
-        </DialogActions>
+
+        <DialogActions sx={{ p: 3, pt: 1 }}>{getErrorActions()}</DialogActions>
       </Dialog>
     </Box>
   );
-}; 
+};

@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Container, 
-  Button,
-  Alert,
-} from '@mui/material';
+import { Box, Container, Button, Alert } from '@mui/material';
 import { EmailVerificationMessage } from '../../components/EmailVerificationMessage';
-import { authService } from '../../services/authService';
 
 export const EmailVerification: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
-  
+
   // Obtener email del state de navegación
   const email = location.state?.email || '';
   const message = location.state?.message || '';
@@ -28,10 +22,10 @@ export const EmailVerification: React.FC = () => {
 
   const handleResendEmail = async () => {
     if (!email) return;
-    
+
     setIsResending(true);
     setResendMessage(null);
-    
+
     try {
       // Llamar al endpoint de reenvío
       const response = await fetch('/api/v1/users/auth/resend-confirmation/', {
@@ -41,13 +35,17 @@ export const EmailVerification: React.FC = () => {
         },
         body: JSON.stringify({ email }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setResendMessage(data.message || 'Email de verificación reenviado exitosamente.');
+        setResendMessage(
+          data.message || 'Email de verificación reenviado exitosamente.',
+        );
       } else {
         const errorData = await response.json();
-        setResendMessage(errorData.error || 'Error al reenviar el email de verificación.');
+        setResendMessage(
+          errorData.error || 'Error al reenviar el email de verificación.',
+        );
       }
     } catch (error) {
       setResendMessage('Error de conexión. Por favor, intenta más tarde.');
@@ -70,7 +68,7 @@ export const EmailVerification: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth='md'>
       <Box
         sx={{
           minHeight: '100vh',
@@ -82,15 +80,15 @@ export const EmailVerification: React.FC = () => {
       >
         {/* Mensaje inicial si existe */}
         {message && (
-          <Alert severity="success" sx={{ mb: 3 }}>
+          <Alert severity='success' sx={{ mb: 3 }}>
             {message}
           </Alert>
         )}
 
         {/* Mensaje de reenvío */}
         {resendMessage && (
-          <Alert 
-            severity={resendMessage.includes('Error') ? 'error' : 'success'} 
+          <Alert
+            severity={resendMessage.includes('Error') ? 'error' : 'success'}
             sx={{ mb: 3 }}
           >
             {resendMessage}
@@ -106,18 +104,14 @@ export const EmailVerification: React.FC = () => {
 
         {/* Botones adicionales */}
         <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Button
-            variant="text"
-            onClick={handleGoToLogin}
-            sx={{ mr: 2 }}
-          >
+          <Button variant='text' onClick={handleGoToLogin} sx={{ mr: 2 }}>
             ¿Ya verificaste tu email? Ir a Login
           </Button>
-          
+
           <Button
-            variant="text"
+            variant='text'
             onClick={() => navigate('/register')}
-            color="secondary"
+            color='secondary'
           >
             Volver al Registro
           </Button>
@@ -125,12 +119,16 @@ export const EmailVerification: React.FC = () => {
 
         {/* Información adicional */}
         <Box sx={{ mt: 4 }}>
-          <Alert severity="info">
-            <strong>¿Problemas con la verificación?</strong><br />
-            • Revisa tu carpeta de spam/promociones<br />
-            • El enlace expira en 24 horas<br />
-            • Contacta soporte si persisten los problemas<br />
-            • Asegúrate de hacer click en el enlace desde el mismo dispositivo
+          <Alert severity='info'>
+            <strong>¿Problemas con la verificación?</strong>
+            <br />
+            • Revisa tu carpeta de spam/promociones
+            <br />
+            • El enlace expira en 24 horas
+            <br />
+            • Contacta soporte si persisten los problemas
+            <br />• Asegúrate de hacer click en el enlace desde el mismo
+            dispositivo
           </Alert>
         </Box>
       </Box>

@@ -8,6 +8,7 @@ de ``status`` en ``ServiceOrderHistory``. Los views pueden setear
 atribuir la acción a un usuario específico (thread-local pattern, igual
 que en contracts.signals).
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,11 +24,11 @@ logger = logging.getLogger(__name__)
 # Map status → action_type canónico. Los estados no listados caen a
 # STATE_CHANGE (genérico).
 _STATUS_TO_ACTION = {
-    'sent': 'SEND',
-    'accepted': 'ACCEPT',
-    'rejected': 'REJECT',
-    'cancelled': 'CANCEL',
-    'paid': 'PAY',
+    "sent": "SEND",
+    "accepted": "ACCEPT",
+    "rejected": "REJECT",
+    "cancelled": "CANCEL",
+    "paid": "PAY",
 }
 
 
@@ -38,7 +39,7 @@ def _track_previous_status(sender, instance, **kwargs):
         instance._previous_status = None
         return
     try:
-        previous = sender.objects.only('status').get(pk=instance.pk)
+        previous = sender.objects.only("status").get(pk=instance.pk)
         instance._previous_status = previous.status
     except sender.DoesNotExist:
         instance._previous_status = None
@@ -49,34 +50,34 @@ def record_service_order_state_transition(sender, instance, created, **kwargs):
     """Registra creación y cada transición de status en ServiceOrderHistory."""
     from services.models import ServiceOrderHistory
 
-    previous = getattr(instance, '_previous_status', None)
+    previous = getattr(instance, "_previous_status", None)
 
     if created:
-        action_type = 'CREATE'
-        description = f'Orden creada en estado {instance.status}'
-        old_status = ''
+        action_type = "CREATE"
+        description = f"Orden creada en estado {instance.status}"
+        old_status = ""
         new_status = instance.status
     elif previous == instance.status:
         return  # sin cambio de estado, nada que registrar aquí
     else:
-        action_type = _STATUS_TO_ACTION.get(instance.status, 'STATE_CHANGE')
+        action_type = _STATUS_TO_ACTION.get(instance.status, "STATE_CHANGE")
         description = f'Transición {previous or "—"} → {instance.status}'
-        old_status = previous or ''
+        old_status = previous or ""
         new_status = instance.status
 
-    performed_by = getattr(instance, '_updated_by', None)
+    performed_by = getattr(instance, "_updated_by", None)
 
     # Resolver user_role: prestador, cliente, admin o sistema.
-    user_role = 'system'
+    user_role = "system"
     if performed_by is not None:
         if performed_by == instance.provider_id or performed_by == instance.provider:
-            user_role = 'service_provider'
+            user_role = "service_provider"
         elif performed_by == instance.client_id or performed_by == instance.client:
-            user_role = 'client'
-        elif getattr(performed_by, 'is_staff', False):
-            user_role = 'admin'
+            user_role = "client"
+        elif getattr(performed_by, "is_staff", False):
+            user_role = "admin"
         else:
-            user_role = getattr(performed_by, 'user_type', 'system') or 'system'
+            user_role = getattr(performed_by, "user_type", "system") or "system"
 
     try:
         ServiceOrderHistory.objects.create(
@@ -88,12 +89,18 @@ def record_service_order_state_transition(sender, instance, created, **kwargs):
             old_status=old_status,
             new_status=new_status,
             metadata={
-                'amount': str(instance.amount),
-                'payment_order_id': str(instance.payment_order_id) if instance.payment_order_id else None,
+                "amount": str(instance.amount),
+                "payment_order_id": str(instance.payment_order_id)
+                if instance.payment_order_id
+                else None,
             },
         )
-    except Exception as exc:  # pragma: no cover - la trazabilidad no debe romper el guardado
+    except (
+        Exception
+    ) as exc:  # pragma: no cover - la trazabilidad no debe romper el guardado
         logger.warning(
-            'No se pudo registrar transición en ServiceOrderHistory '
-            'para orden %s: %s', instance.id, exc,
+            "No se pudo registrar transición en ServiceOrderHistory "
+            "para orden %s: %s",
+            instance.id,
+            exc,
         )

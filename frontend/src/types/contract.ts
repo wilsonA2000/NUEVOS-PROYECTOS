@@ -1,4 +1,3 @@
-import { Property } from './property';
 import { User } from './index';
 
 // ===== CORE CONTRACT TYPES =====
@@ -20,7 +19,15 @@ export interface Contract {
   monthly_rent?: number;
   deposit_amount?: number;
   total_value?: number;
-  status: 'draft' | 'pending_signature' | 'partially_signed' | 'fully_signed' | 'active' | 'suspended' | 'terminated' | 'expired';
+  status:
+    | 'draft'
+    | 'pending_signature'
+    | 'partially_signed'
+    | 'fully_signed'
+    | 'active'
+    | 'suspended'
+    | 'terminated'
+    | 'expired';
   terms: string;
   created_at: string;
   updated_at: string;
@@ -43,7 +50,13 @@ export interface ContractTemplate {
 
 export interface ContractFormData {
   title: string;
-  contract_type: 'rental_urban' | 'rental_commercial' | 'rental_room' | 'rental_rural' | 'service_provider' | 'other';
+  contract_type:
+    | 'rental_urban'
+    | 'rental_commercial'
+    | 'rental_room'
+    | 'rental_rural'
+    | 'service_provider'
+    | 'other';
   property?: string;
   secondary_party: string;
   start_date: string;
@@ -77,7 +90,11 @@ export interface ContractSignature {
   contract: string;
   signer: User;
   signature_type: 'digital' | 'biometric' | 'wet_signature';
-  authentication_method: 'digital_signature' | 'webcam_face' | 'webcam_document' | 'biometric_fingerprint';
+  authentication_method:
+    | 'digital_signature'
+    | 'webcam_face'
+    | 'webcam_document'
+    | 'biometric_fingerprint';
   signature_data: string;
   signature_image?: string;
   face_verification_data?: Record<string, any>;
@@ -162,7 +179,14 @@ export interface ContractDocument {
   id: string;
   contract: string;
   title: string;
-  document_type: 'contract' | 'amendment' | 'addendum' | 'invoice' | 'receipt' | 'photo' | 'other';
+  document_type:
+    | 'contract'
+    | 'amendment'
+    | 'addendum'
+    | 'invoice'
+    | 'receipt'
+    | 'photo'
+    | 'other';
   description: string;
   file: string;
   file_size: number;

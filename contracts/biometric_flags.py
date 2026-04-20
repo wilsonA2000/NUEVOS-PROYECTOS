@@ -22,15 +22,15 @@ def is_demo_biometric_mode() -> bool:
     tiene un valor truthy. Una vez integrado un proveedor real, se
     desactiva en producción con `DEMO_BIOMETRICS=false`.
     """
-    env = os.environ.get('DEMO_BIOMETRICS')
+    env = os.environ.get("DEMO_BIOMETRICS")
     if env is not None:
-        return env.strip().lower() in ('1', 'true', 'yes', 'on')
-    return bool(getattr(settings, 'DEBUG', False))
+        return env.strip().lower() in ("1", "true", "yes", "on")
+    return bool(getattr(settings, "DEBUG", False))
 
 
 DEMO_DISCLOSURE_TEXT = (
-    'Modo demostración: la verificación biométrica está simulada. '
-    'En producción se integra con un proveedor ML real (AWS Rekognition / Metamap). '
-    'Los resultados mostrados no constituyen prueba legal hasta que la integración '
-    'esté activa y se obtenga el consentimiento bajo Ley 1581/2012.'
+    "Modo demostración: la verificación biométrica está simulada. "
+    "En producción se integra con un proveedor ML real (AWS Rekognition / Metamap). "
+    "Los resultados mostrados no constituyen prueba legal hasta que la integración "
+    "esté activa y se obtenga el consentimiento bajo Ley 1581/2012."
 )

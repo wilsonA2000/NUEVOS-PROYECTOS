@@ -18,14 +18,14 @@ login() {
     local email=$1
     local password=$2
     local user_type=$3
-    
+
     echo "🔐 Login: $email"
     response=$(curl -s -X POST "$BASE_URL/users/auth/login/" \
         -H "Content-Type: application/json" \
         -d "{\"email\":\"$email\",\"password\":\"$password\"}")
-    
+
     token=$(echo "$response" | grep -o '"access":"[^"]*"' | cut -d'"' -f4)
-    
+
     if [ -n "$token" ]; then
         echo -e "${GREEN}✅ Login exitoso${NC}"
         echo "$token"
@@ -55,19 +55,19 @@ echo ""
 if [ -n "$LANDLORD_TOKEN" ]; then
     echo "🏠 FASE 3: ENDPOINTS DE ARRENDADOR"
     echo "----------------------------------------------------------------------"
-    
+
     echo "👤 GET /users/auth/me/"
     curl -s "$BASE_URL/users/auth/me/" \
         -H "Authorization: Bearer $LANDLORD_TOKEN" | head -c 200
     echo "..."
     echo ""
-    
+
     echo "🏠 GET /properties/ (landlord)"
     curl -s "$BASE_URL/properties/" \
         -H "Authorization: Bearer $LANDLORD_TOKEN" | head -c 200
     echo "..."
     echo ""
-    
+
     echo "📄 GET /contracts/"
     curl -s "$BASE_URL/contracts/" \
         -H "Authorization: Bearer $LANDLORD_TOKEN" | head -c 200
@@ -78,13 +78,13 @@ fi
 if [ -n "$TENANT_TOKEN" ]; then
     echo "👤 FASE 4: ENDPOINTS DE ARRENDATARIO"
     echo "----------------------------------------------------------------------"
-    
+
     echo "👤 GET /users/auth/me/"
     curl -s "$BASE_URL/users/auth/me/" \
         -H "Authorization: Bearer $TENANT_TOKEN" | head -c 200
     echo "..."
     echo ""
-    
+
     echo "🔗 GET /matching/requests/"
     curl -s "$BASE_URL/matching/requests/" \
         -H "Authorization: Bearer $TENANT_TOKEN" | head -c 200

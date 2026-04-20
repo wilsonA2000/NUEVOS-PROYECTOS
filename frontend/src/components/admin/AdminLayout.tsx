@@ -123,12 +123,18 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAuth();
-  const { isSuperuser, isStaff } = useAdminAuth();
+  const { isSuperuser } = useAdminAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useAdminNotifications();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    clearNotification,
+  } = useAdminNotifications();
 
   // Fetch stats para badges
   const { data: stats } = useQuery({
@@ -167,8 +173,8 @@ const AdminLayout: React.FC = () => {
       >
         {drawerOpen && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <GavelIcon color="primary" />
-            <Typography variant="h6" fontWeight="bold" color="primary">
+            <GavelIcon color='primary' />
+            <Typography variant='h6' fontWeight='bold' color='primary'>
               Admin Legal
             </Typography>
           </Box>
@@ -184,7 +190,7 @@ const AdminLayout: React.FC = () => {
 
       {/* Menu items */}
       <List sx={{ flex: 1, pt: 1 }}>
-        {adminMenuItems.map((item) => (
+        {adminMenuItems.map(item => (
           <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
               onClick={() => handleNavigation(item.path)}
@@ -208,7 +214,7 @@ const AdminLayout: React.FC = () => {
                 }}
               >
                 {item.badge && stats?.pending_review ? (
-                  <Badge badgeContent={stats.pending_review} color="error">
+                  <Badge badgeContent={stats.pending_review} color='error'>
                     {item.icon}
                   </Badge>
                 ) : (
@@ -229,14 +235,25 @@ const AdminLayout: React.FC = () => {
           onClick={() => handleNavigation('/app/dashboard')}
           sx={{ borderRadius: 1, mb: 0.5 }}
         >
-          <ListItemIcon sx={{ minWidth: drawerOpen ? 40 : 'auto', mr: drawerOpen ? 2 : 0, justifyContent: 'center' }}>
-            <ArrowBackIcon fontSize="small" />
+          <ListItemIcon
+            sx={{
+              minWidth: drawerOpen ? 40 : 'auto',
+              mr: drawerOpen ? 2 : 0,
+              justifyContent: 'center',
+            }}
+          >
+            <ArrowBackIcon fontSize='small' />
           </ListItemIcon>
-          {drawerOpen && <ListItemText primary="Volver al App" primaryTypographyProps={{ variant: 'body2' }} />}
+          {drawerOpen && (
+            <ListItemText
+              primary='Volver al App'
+              primaryTypographyProps={{ variant: 'body2' }}
+            />
+          )}
         </ListItemButton>
         {drawerOpen && (
           <Chip
-            size="small"
+            size='small'
             color={isSuperuser ? 'error' : 'primary'}
             label={isSuperuser ? 'Superuser' : 'Staff'}
             icon={<SecurityIcon />}
@@ -251,7 +268,7 @@ const AdminLayout: React.FC = () => {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* AppBar */}
       <AppBar
-        position="fixed"
+        position='fixed'
         sx={{
           zIndex: theme.zIndex.drawer + 1,
           bgcolor: 'background.paper',
@@ -263,7 +280,7 @@ const AdminLayout: React.FC = () => {
           {/* Mobile menu button */}
           {isMobile && (
             <IconButton
-              edge="start"
+              edge='start'
               onClick={() => setMobileDrawerOpen(true)}
               sx={{ mr: 2 }}
             >
@@ -273,8 +290,8 @@ const AdminLayout: React.FC = () => {
 
           {/* Logo */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <GavelIcon color="primary" />
-            <Typography variant="h6" fontWeight="bold" noWrap>
+            <GavelIcon color='primary' />
+            <Typography variant='h6' fontWeight='bold' noWrap>
               VeriHome Admin
             </Typography>
           </Box>
@@ -284,12 +301,14 @@ const AdminLayout: React.FC = () => {
 
           {/* Alerta de urgentes */}
           {stats?.urgent_contracts && stats.urgent_contracts > 0 && (
-            <Tooltip title={`${stats.urgent_contracts} contratos urgentes (>7 días)`}>
+            <Tooltip
+              title={`${stats.urgent_contracts} contratos urgentes (>7 días)`}
+            >
               <Chip
                 icon={<WarningIcon />}
                 label={`${stats.urgent_contracts} urgentes`}
-                color="error"
-                size="small"
+                color='error'
+                size='small'
                 sx={{ mr: 2 }}
               />
             </Tooltip>
@@ -315,7 +334,7 @@ const AdminLayout: React.FC = () => {
       {/* Drawer - Desktop */}
       {!isMobile && (
         <Drawer
-          variant="permanent"
+          variant='permanent'
           sx={{
             width: drawerOpen ? DRAWER_WIDTH : DRAWER_WIDTH_COLLAPSED,
             flexShrink: 0,
@@ -337,7 +356,7 @@ const AdminLayout: React.FC = () => {
       {/* Drawer - Mobile */}
       {isMobile && (
         <Drawer
-          variant="temporary"
+          variant='temporary'
           open={mobileDrawerOpen}
           onClose={() => setMobileDrawerOpen(false)}
           sx={{
@@ -352,7 +371,7 @@ const AdminLayout: React.FC = () => {
 
       {/* Main content */}
       <Box
-        component="main"
+        component='main'
         sx={{
           flexGrow: 1,
           bgcolor: 'background.default',

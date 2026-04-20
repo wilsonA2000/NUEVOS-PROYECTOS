@@ -16,8 +16,14 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock usePayments hook
-const mockCreateTransaction = { mutateAsync: jest.fn().mockResolvedValue({}), isPending: false };
-const mockUpdateTransaction = { mutateAsync: jest.fn().mockResolvedValue({}), isPending: false };
+const mockCreateTransaction = {
+  mutateAsync: jest.fn().mockResolvedValue({}),
+  isPending: false,
+};
+const mockUpdateTransaction = {
+  mutateAsync: jest.fn().mockResolvedValue({}),
+  isPending: false,
+};
 
 jest.mock('../../../hooks/usePayments', () => ({
   usePayments: () => ({
@@ -46,11 +52,17 @@ jest.mock('@stripe/stripe-js/pure', () => ({
 
 // Mock sub-components
 jest.mock('../StripePaymentForm', () => ({
-  StripePaymentForm: () => React.createElement('div', { 'data-testid': 'stripe-form' }, 'Stripe Form'),
+  StripePaymentForm: () =>
+    React.createElement('div', { 'data-testid': 'stripe-form' }, 'Stripe Form'),
 }));
 
 jest.mock('../PayPalPaymentButton', () => ({
-  PayPalPaymentButton: () => React.createElement('div', { 'data-testid': 'paypal-button' }, 'PayPal Button'),
+  PayPalPaymentButton: () =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'paypal-button' },
+      'PayPal Button'
+    ),
 }));
 
 // Mock loggingService
@@ -74,7 +86,9 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 });
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof PaymentForm>> = {}) => {
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof PaymentForm>> = {}
+) => {
   return render(
     React.createElement(
       QueryClientProvider,
@@ -82,9 +96,9 @@ const renderComponent = (props: Partial<React.ComponentProps<typeof PaymentForm>
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(PaymentForm, props),
-      ),
-    ),
+        React.createElement(PaymentForm, props)
+      )
+    )
   );
 };
 

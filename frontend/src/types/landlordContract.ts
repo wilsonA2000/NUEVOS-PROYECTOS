@@ -5,32 +5,32 @@
 
 // Estados del workflow de contratos
 export type ContractWorkflowState =
-  | 'PENDING_ADMIN_REVIEW'     // Pendiente revisión jurídica
-  | 'RE_PENDING_ADMIN'         // Re-revisión jurídica
-  | 'DRAFT'                    // Borrador del arrendador
-  | 'LANDLORD_COMPLETING'      // Arrendador completando datos
-  | 'TENANT_INVITED'           // Arrendatario invitado
-  | 'TENANT_REVIEWING'         // Arrendatario revisando
-  | 'LANDLORD_REVIEWING'       // Arrendador revisando datos del arrendatario
-  | 'OBJECTIONS_PENDING'       // Objeciones pendientes de resolver
-  | 'BOTH_REVIEWING'           // Ambas partes revisando términos finales
-  | 'READY_TO_SIGN'            // Listo para firmas digitales
-  | 'FULLY_SIGNED'             // Completamente firmado
-  | 'PUBLISHED'                // Publicado (activo)
-  | 'EXPIRED'                  // Expirado
-  | 'TERMINATED'               // Terminado anticipadamente
-  | 'CANCELLED';               // Cancelado
+  | 'PENDING_ADMIN_REVIEW' // Pendiente revisión jurídica
+  | 'RE_PENDING_ADMIN' // Re-revisión jurídica
+  | 'DRAFT' // Borrador del arrendador
+  | 'LANDLORD_COMPLETING' // Arrendador completando datos
+  | 'TENANT_INVITED' // Arrendatario invitado
+  | 'TENANT_REVIEWING' // Arrendatario revisando
+  | 'LANDLORD_REVIEWING' // Arrendador revisando datos del arrendatario
+  | 'OBJECTIONS_PENDING' // Objeciones pendientes de resolver
+  | 'BOTH_REVIEWING' // Ambas partes revisando términos finales
+  | 'READY_TO_SIGN' // Listo para firmas digitales
+  | 'FULLY_SIGNED' // Completamente firmado
+  | 'PUBLISHED' // Publicado (activo)
+  | 'EXPIRED' // Expirado
+  | 'TERMINATED' // Terminado anticipadamente
+  | 'CANCELLED'; // Cancelado
 
 // Tipos de documento colombianos
 export type DocumentType = 'CC' | 'CE' | 'NIT' | 'PP' | 'TI';
 
 // Tipos de propiedad
-export type PropertyType = 
-  | 'apartamento' 
-  | 'casa' 
-  | 'local_comercial' 
-  | 'oficina' 
-  | 'bodega' 
+export type PropertyType =
+  | 'apartamento'
+  | 'casa'
+  | 'local_comercial'
+  | 'oficina'
+  | 'bodega'
   | 'habitacion'
   | 'finca'
   | 'lote';
@@ -39,13 +39,28 @@ export type PropertyType =
 export type RentIncreaseType = 'fixed' | 'ipc' | 'negotiated' | 'none';
 
 // Políticas de huéspedes
-export type GuestsPolicy = 'unlimited' | 'limited' | 'no_overnight' | 'no_guests' | 'prior_approval';
+export type GuestsPolicy =
+  | 'unlimited'
+  | 'limited'
+  | 'no_overnight'
+  | 'no_guests'
+  | 'prior_approval';
 
 // Responsabilidad de mantenimiento
-export type MaintenanceResponsibility = 'landlord' | 'tenant' | 'shared' | 'both';
+export type MaintenanceResponsibility =
+  | 'landlord'
+  | 'tenant'
+  | 'shared'
+  | 'both';
 
 // Tipos de garantía
-export type GuarantorType = 'personal' | 'company' | 'insurance' | 'deposit' | 'mixed' | 'bank';
+export type GuarantorType =
+  | 'personal'
+  | 'company'
+  | 'insurance'
+  | 'deposit'
+  | 'mixed'
+  | 'bank';
 
 // Prioridad de objeciones
 export type ObjectionPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -89,9 +104,15 @@ export interface TenantData {
   city: string;
   department?: string;
   country?: string;
-  
+
   // Información laboral
-  employment_type: 'employee' | 'independent' | 'business_owner' | 'retired' | 'student' | 'unemployed';
+  employment_type:
+    | 'employee'
+    | 'independent'
+    | 'business_owner'
+    | 'retired'
+    | 'student'
+    | 'unemployed';
   company_name?: string;
   position?: string;
   work_address?: string;
@@ -99,20 +120,20 @@ export interface TenantData {
   monthly_income: number;
   additional_income?: number;
   income_verification_documents?: string[];
-  
+
   // Referencias
   personal_references: PersonalReference[];
   commercial_references: CommercialReference[];
-  
+
   // Emergencia
   emergency_contact: string;
   emergency_phone: string;
   emergency_relationship: string;
-  
+
   // Mascotas (si aplica)
   has_pets?: boolean;
   pet_details?: PetDetails[];
-  
+
   // Información adicional
   household_members?: HouseholdMember[];
   previous_rental_history?: PreviousRental[];
@@ -180,7 +201,7 @@ export interface LandlordControlledContractData {
   id?: string;
   contract_number?: string;
   current_state: ContractWorkflowState;
-  
+
   // Fechas importantes
   created_at?: string;
   updated_at?: string;
@@ -189,7 +210,7 @@ export interface LandlordControlledContractData {
   end_date?: string;
   published_at?: string;
   fully_signed_at?: string;
-  
+
   // Información básica de la propiedad
   property_id: string;
   property_address: string;
@@ -202,7 +223,7 @@ export interface LandlordControlledContractData {
   property_parking_spaces?: number;
   property_furnished: boolean;
   property_description?: string;
-  
+
   // Términos económicos
   monthly_rent: number;
   security_deposit: number;
@@ -211,7 +232,7 @@ export interface LandlordControlledContractData {
   pet_deposit?: number;
   cleaning_deposit?: number;
   key_deposit?: number;
-  
+
   // Términos del contrato
   contract_duration_months: number;
   rent_increase_type: RentIncreaseType;
@@ -219,7 +240,7 @@ export interface LandlordControlledContractData {
   payment_day: number; // Día del mes para pago (1-31)
   late_payment_fee_percentage?: number;
   grace_period_days?: number;
-  
+
   // Servicios incluidos
   utilities_included: boolean;
   internet_included: boolean;
@@ -227,7 +248,7 @@ export interface LandlordControlledContractData {
   cleaning_service_included: boolean;
   maintenance_included: boolean;
   security_service_included: boolean;
-  
+
   // Políticas de la propiedad
   pets_allowed: boolean;
   smoking_allowed: boolean;
@@ -236,35 +257,35 @@ export interface LandlordControlledContractData {
   noise_restrictions?: string;
   party_policy?: string;
   modification_policy?: string;
-  
+
   // Garantías
   guarantor_required: boolean;
   guarantor_type?: GuarantorType;
   insurance_required?: boolean;
   co_signer_required?: boolean;
-  
+
   // Responsabilidades
   maintenance_responsibility: MaintenanceResponsibility;
   utilities_responsibility: 'landlord' | 'tenant' | 'shared';
   insurance_responsibility: 'landlord' | 'tenant' | 'both';
-  
+
   // Cláusulas especiales
   special_clauses: string[];
   termination_conditions?: string[];
   renewal_conditions?: string[];
-  
+
   // Datos de las partes
   landlord_data: LandlordData;
   tenant_data?: TenantData;
   tenant_email?: string;
-  
+
   // Control de workflow
   invitation_token?: string;
   landlord_approved: boolean;
   tenant_approved: boolean;
   landlord_approved_at?: string;
   tenant_approved_at?: string;
-  
+
   // Firmas digitales
   landlord_signed: boolean;
   tenant_signed: boolean;
@@ -272,10 +293,10 @@ export interface LandlordControlledContractData {
   tenant_signed_at?: string;
   landlord_signature_data?: Record<string, any>;
   tenant_signature_data?: Record<string, any>;
-  
+
   // Estado de publicación
   published: boolean;
-  
+
   // Historial del workflow (1.9.2: modelo relacional ContractWorkflowHistory)
   history_entries?: ContractHistoryEntry[];
 
@@ -303,14 +324,13 @@ export interface ContractHistoryEntry {
   related_guarantee?: string | null;
 }
 
-
 // Objeción del contrato
 export interface ContractObjection {
   id: string;
   contract_id: string;
   objected_by_user_id: string;
   objected_by_type: 'landlord' | 'tenant';
-  
+
   // Detalles de la objeción
   field_name: string;
   section: string;
@@ -318,21 +338,21 @@ export interface ContractObjection {
   proposed_value: string;
   justification: string;
   priority: ObjectionPriority;
-  
+
   // Estado y respuesta
   status: ObjectionStatus;
   response_note?: string;
   responded_by_user_id?: string;
   responded_at?: string;
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
   resolved_at?: string;
-  
+
   // Archivos adjuntos (si aplica)
   attachments?: ObjectionAttachment[];
-  
+
   // Metadatos
   legal_basis?: string;
   affects_other_clauses?: string[];
@@ -354,12 +374,12 @@ export interface ObjectionAttachment {
 export interface LandlordContractGuarantee {
   id: string;
   contract_id: string;
-  
+
   // Tipo y detalles
   guarantee_type: GuarantorType;
   amount: number;
   description?: string;
-  
+
   // Información del garante (si aplica)
   guarantor_name?: string;
   guarantor_document_type?: DocumentType;
@@ -369,23 +389,23 @@ export interface LandlordContractGuarantee {
   guarantor_address?: string;
   guarantor_income?: number;
   guarantor_assets?: Record<string, any>;
-  
+
   // Información de póliza/seguro (si aplica)
   insurance_company?: string;
   policy_number?: string;
   policy_amount?: number;
   policy_start_date?: string;
   policy_end_date?: string;
-  
+
   // Estado
   status: 'pending' | 'approved' | 'rejected' | 'expired';
   verified: boolean;
   verification_date?: string;
   verification_notes?: string;
-  
+
   // Documentos
   documents?: GuaranteeDocument[];
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -394,7 +414,13 @@ export interface LandlordContractGuarantee {
 // Documento de garantía
 export interface GuaranteeDocument {
   id: string;
-  document_type: 'id_copy' | 'income_certificate' | 'bank_statement' | 'property_deed' | 'insurance_policy' | 'other';
+  document_type:
+    | 'id_copy'
+    | 'income_certificate'
+    | 'bank_statement'
+    | 'property_deed'
+    | 'insurance_policy'
+    | 'other';
   file_name: string;
   file_path: string;
   file_size: number;
@@ -409,27 +435,27 @@ export interface ContractWorkflowHistory {
   contract_id: string;
   performed_by_user_id: string;
   performed_by_type: 'landlord' | 'tenant' | 'system' | 'admin';
-  
+
   // Detalles de la acción
   action_type: string;
   description: string;
   old_state: ContractWorkflowState;
   new_state: ContractWorkflowState;
-  
+
   // Datos adicionales
   data_changes: Record<string, any>;
   ip_address?: string;
   user_agent?: string;
   session_id?: string;
-  
+
   // Referencias relacionadas
   related_objection_id?: string;
   related_guarantee_id?: string;
   related_document_id?: string;
-  
+
   // Timestamps
   created_at: string;
-  
+
   // Metadatos de auditoría
   audit_trail?: AuditTrailEntry[];
 }
@@ -507,7 +533,7 @@ export interface CreateContractPayload {
     pets_allowed: boolean;
     smoking_allowed: boolean;
   };
-  contract_content?: string;  // Contenido del contrato editado por el arrendador
+  contract_content?: string; // Contenido del contrato editado por el arrendador
 }
 
 // Payload para completar datos del arrendador
@@ -607,7 +633,11 @@ export interface RequestedChanges {
 /**
  * Estado de una solicitud de modificación.
  */
-export type ModificationRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'IMPLEMENTED';
+export type ModificationRequestStatus =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'IMPLEMENTED';
 
 /**
  * Solicitud completa de modificación de contrato.

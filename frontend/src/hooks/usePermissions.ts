@@ -28,16 +28,18 @@ export const usePermissions = () => {
   const hasPermission = (permissionCodename: string) => {
     if (!permissions.data) return false;
 
-    return permissions.data.some((role) =>
-      role.permissions.some((permission) => permission.codename === permissionCodename),
+    return permissions.data.some(role =>
+      role.permissions.some(
+        permission => permission.codename === permissionCodename,
+      ),
     );
   };
 
   const hasAnyPermission = (permissionCodenames: string[]) => {
     if (!permissions.data) return false;
 
-    return permissions.data.some((role) =>
-      role.permissions.some((permission) =>
+    return permissions.data.some(role =>
+      role.permissions.some(permission =>
         permissionCodenames.includes(permission.codename),
       ),
     );
@@ -46,11 +48,11 @@ export const usePermissions = () => {
   const hasAllPermissions = (permissionCodenames: string[]) => {
     if (!permissions.data) return false;
 
-    const userPermissions = permissions.data.flatMap((role) =>
-      role.permissions.map((permission) => permission.codename),
+    const userPermissions = permissions.data.flatMap(role =>
+      role.permissions.map(permission => permission.codename),
     );
 
-    return permissionCodenames.every((codename) =>
+    return permissionCodenames.every(codename =>
       userPermissions.includes(codename),
     );
   };
@@ -61,4 +63,4 @@ export const usePermissions = () => {
     hasAnyPermission,
     hasAllPermissions,
   };
-}; 
+};

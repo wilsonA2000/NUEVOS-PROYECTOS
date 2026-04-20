@@ -1,5 +1,10 @@
 import { api } from './api';
-import { Message, MessageThread, MessageFolder, MessageTemplate } from '../types/message';
+import {
+  Message,
+  MessageThread,
+  MessageFolder,
+  MessageTemplate,
+} from '../types/message';
 
 // Eventos WebSocket para integración con tiempo real
 export interface WebSocketMessageEvent {
@@ -8,7 +13,8 @@ export interface WebSocketMessageEvent {
 }
 
 class MessageService {
-  private webSocketCallbacks: Map<string, Array<(...args: unknown[]) => void>> = new Map();
+  private webSocketCallbacks: Map<string, Array<(...args: unknown[]) => void>> =
+    new Map();
 
   // Registrar callback para eventos WebSocket
   onWebSocketEvent(eventType: string, callback: (...args: unknown[]) => void) {
@@ -38,10 +44,19 @@ class MessageService {
   }
 
   // === MENSAJES ===
-  async getMessages(threadId?: string, page = 1, limit = 20): Promise<{ results: Message[], count: number, next: string | null, previous: string | null }> {
+  async getMessages(
+    threadId?: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    results: Message[];
+    count: number;
+    next: string | null;
+    previous: string | null;
+  }> {
     const params: any = { page, limit };
     if (threadId) params.thread = threadId;
-    
+
     const response = await api.get('/messages/messages/', { params });
     return response.data;
   }
@@ -51,14 +66,18 @@ class MessageService {
     return response.data;
   }
 
-  async createMessage(data: { thread_id: string; content: string; attachments?: File[] }): Promise<Message> {
+  async createMessage(data: {
+    thread_id: string;
+    content: string;
+    attachments?: File[];
+  }): Promise<Message> {
     const formData = new FormData();
     formData.append('thread', data.thread_id);
     formData.append('content', data.content);
     formData.append('message_type', 'text');
 
     if (data.attachments) {
-      data.attachments.forEach((file) => {
+      data.attachments.forEach(file => {
         formData.append('attachments', file);
       });
     }
@@ -71,16 +90,16 @@ class MessageService {
 
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('new_message', response.data);
-    
+
     return response.data;
   }
 
   async updateMessage(id: string, data: Partial<Message>): Promise<Message> {
     const response = await api.put(`/messages/messages/${id}/`, data);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('message_updated', response.data);
-    
+
     return response.data;
   }
 
@@ -90,14 +109,14 @@ class MessageService {
 
   async markMessageAsRead(id: string): Promise<void> {
     await api.post(`/messages/mark-read/${id}/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('message_read', { id, isRead: true });
   }
 
   async markMessagesAsRead(ids: string[]): Promise<void> {
     await api.post('/messages/mark-multiple-read/', { message_ids: ids });
-    
+
     // Emitir evento para integración con WebSocket
     ids.forEach(id => {
       this.emitWebSocketEvent('message_read', { id, isRead: true });
@@ -105,9 +124,17 @@ class MessageService {
   }
 
   // === CONVERSACIONES/THREADS ===
-  async getThreads(page = 1, limit = 20): Promise<{ results: MessageThread[], count: number, next: string | null, previous: string | null }> {
-    const response = await api.get('/messages/threads/', { 
-      params: { page, limit }, 
+  async getThreads(
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    results: MessageThread[];
+    count: number;
+    next: string | null;
+    previous: string | null;
+  }> {
+    const response = await api.get('/messages/threads/', {
+      params: { page, limit },
     });
     return response.data;
   }
@@ -117,25 +144,28 @@ class MessageService {
     return response.data;
   }
 
-  async createThread(data: { 
-    subject: string; 
-    participants: string[]; 
-    initial_message?: string 
+  async createThread(data: {
+    subject: string;
+    participants: string[];
+    initial_message?: string;
   }): Promise<MessageThread> {
     const response = await api.post('/messages/threads/', data);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('thread_updated', response.data);
-    
+
     return response.data;
   }
 
-  async updateThread(id: string, data: Partial<MessageThread>): Promise<MessageThread> {
+  async updateThread(
+    id: string,
+    data: Partial<MessageThread>,
+  ): Promise<MessageThread> {
     const response = await api.put(`/messages/threads/${id}/`, data);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('thread_updated', response.data);
-    
+
     return response.data;
   }
 
@@ -145,19 +175,19 @@ class MessageService {
 
   async archiveThread(id: string): Promise<MessageThread> {
     const response = await api.post(`/messages/threads/${id}/archive/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('thread_updated', response.data);
-    
+
     return response.data;
   }
 
   async unarchiveThread(id: string): Promise<MessageThread> {
     const response = await api.post(`/messages/threads/${id}/unarchive/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('thread_updated', response.data);
-    
+
     return response.data;
   }
 
@@ -197,12 +227,18 @@ class MessageService {
     return response.data;
   }
 
-  async createFolder(data: { name: string; color?: string }): Promise<MessageFolder> {
+  async createFolder(data: {
+    name: string;
+    color?: string;
+  }): Promise<MessageFolder> {
     const response = await api.post('/messages/folders/', data);
     return response.data;
   }
 
-  async updateFolder(id: string, data: Partial<MessageFolder>): Promise<MessageFolder> {
+  async updateFolder(
+    id: string,
+    data: Partial<MessageFolder>,
+  ): Promise<MessageFolder> {
     const response = await api.put(`/messages/folders/${id}/`, data);
     return response.data;
   }
@@ -222,12 +258,19 @@ class MessageService {
     return response.data;
   }
 
-  async createTemplate(data: { name: string; content: string; category?: string }): Promise<MessageTemplate> {
+  async createTemplate(data: {
+    name: string;
+    content: string;
+    category?: string;
+  }): Promise<MessageTemplate> {
     const response = await api.post('/messages/templates/', data);
     return response.data;
   }
 
-  async updateTemplate(id: string, data: Partial<MessageTemplate>): Promise<MessageTemplate> {
+  async updateTemplate(
+    id: string,
+    data: Partial<MessageTemplate>,
+  ): Promise<MessageTemplate> {
     const response = await api.put(`/messages/templates/${id}/`, data);
     return response.data;
   }
@@ -237,62 +280,64 @@ class MessageService {
   }
 
   // === UTILIDADES ===
-  async sendMessage(data: { 
-    thread_id: string; 
-    content: string; 
-    attachments?: File[] 
+  async sendMessage(data: {
+    thread_id: string;
+    content: string;
+    attachments?: File[];
   }): Promise<Message> {
     // Usar createMessage que ya tiene integración WebSocket
     return this.createMessage(data);
   }
 
-  async quickReply(data: { 
-    original_message_id: string; 
-    content: string 
+  async quickReply(data: {
+    original_message_id: string;
+    content: string;
   }): Promise<Message> {
     const response = await api.post('/messages/quick-reply/', data);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('new_message', response.data);
-    
+
     return response.data;
   }
 
   async starMessage(id: string): Promise<Message> {
     const response = await api.post(`/messages/star/${id}/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('message_updated', response.data);
-    
+
     return response.data;
   }
 
   async unstarMessage(id: string): Promise<Message> {
     const response = await api.post(`/messages/unstar/${id}/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('message_updated', response.data);
-    
+
     return response.data;
   }
 
   async markThreadAsRead(threadId: string): Promise<void> {
     await api.post(`/messages/threads/${threadId}/mark-read/`);
-    
+
     // Emitir evento para integración con WebSocket
     this.emitWebSocketEvent('thread_updated', { id: threadId, is_read: true });
   }
 
-  async searchMessages(searchParams: { 
-    query?: string; 
-    thread_id?: string; 
-    sender?: string; 
-    date_from?: string; 
+  async searchMessages(searchParams: {
+    query?: string;
+    thread_id?: string;
+    sender?: string;
+    date_from?: string;
     date_to?: string;
     page?: number;
     limit?: number;
-  }): Promise<{ results: Message[], count: number }> {
-    const response = await api.get('/messages/search/', { params: searchParams });
+  }): Promise<{ results: Message[]; count: number }> {
+    const response = await api.get('/messages/search/', {
+      params: searchParams,
+    });
     return response.data;
   }
 
@@ -317,7 +362,9 @@ class MessageService {
     }
   }
 
-  async canCommunicate(userId: string): Promise<{ can_communicate: boolean; reason?: string }> {
+  async canCommunicate(
+    userId: string,
+  ): Promise<{ can_communicate: boolean; reason?: string }> {
     const response = await api.get(`/messages/can-communicate/${userId}/`);
     return response.data;
   }
@@ -329,11 +376,11 @@ class MessageService {
     if (!content.trim()) {
       throw new Error('El contenido del mensaje no puede estar vacío');
     }
-    
+
     if (!threadId) {
       throw new Error('ID de conversación requerido');
     }
-    
+
     // La validación pasó, el hook puede proceder con el envío por WebSocket
   }
 
@@ -369,8 +416,7 @@ class MessageService {
   async markAsUnread(ids: string[]): Promise<void> {
     await api.post('/messages/mark-unread/', { ids });
   }
-
 }
 
 // Crear instancia singleton
-export const messageService = new MessageService(); 
+export const messageService = new MessageService();

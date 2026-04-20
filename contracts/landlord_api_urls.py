@@ -12,7 +12,7 @@ from .landlord_api_views import (
     ContractObjectionViewSet,
     ContractGuaranteeViewSet,
     ContractWorkflowHistoryViewSet,
-    ContractModificationRequestViewSet
+    ContractModificationRequestViewSet,
 )
 
 # Importar APIs de aprobación admin (Sistema Control Molecular)
@@ -26,38 +26,52 @@ from .admin_approval_api import (
 
 # Router para ViewSets
 router = DefaultRouter()
-router.register(r'contracts', LandlordContractViewSet, basename='landlord-contracts')
-router.register(r'objections', ContractObjectionViewSet, basename='contract-objections')
-router.register(r'guarantees', ContractGuaranteeViewSet, basename='contract-guarantees')
-router.register(r'history', ContractWorkflowHistoryViewSet, basename='contract-history')
-router.register(r'modification-requests', ContractModificationRequestViewSet, basename='modification-requests')
+router.register(r"contracts", LandlordContractViewSet, basename="landlord-contracts")
+router.register(r"objections", ContractObjectionViewSet, basename="contract-objections")
+router.register(r"guarantees", ContractGuaranteeViewSet, basename="contract-guarantees")
+router.register(r"history", ContractWorkflowHistoryViewSet, basename="contract-history")
+router.register(
+    r"modification-requests",
+    ContractModificationRequestViewSet,
+    basename="modification-requests",
+)
 
-app_name = 'landlord_contracts'
+app_name = "landlord_contracts"
 
 urlpatterns = [
     # APIs principales del workflow
-    path('landlord/', include(router.urls)),
-
+    path("landlord/", include(router.urls)),
     # ==========================================================================
     # SISTEMA CONTROL MOLECULAR - APIs de Aprobación Admin
     # ==========================================================================
     # Estas rutas permiten al administrador (Wilson) revisar y aprobar contratos
     # antes de que pasen a estado DRAFT.
-
     # Listar contratos pendientes de revisión
-    path('admin/pending/', AdminPendingContractsView.as_view(), name='admin-pending-contracts'),
-
+    path(
+        "admin/pending/",
+        AdminPendingContractsView.as_view(),
+        name="admin-pending-contracts",
+    ),
     # Estadísticas de contratos para dashboard admin
-    path('admin/stats/', AdminContractStatsView.as_view(), name='admin-contract-stats'),
-
+    path("admin/stats/", AdminContractStatsView.as_view(), name="admin-contract-stats"),
     # Ver detalles de un contrato específico para revisión
-    path('admin/contracts/<uuid:contract_id>/', AdminContractDetailView.as_view(), name='admin-contract-detail'),
-
+    path(
+        "admin/contracts/<uuid:contract_id>/",
+        AdminContractDetailView.as_view(),
+        name="admin-contract-detail",
+    ),
     # Aprobar un contrato (moverlo a DRAFT)
-    path('admin/contracts/<uuid:contract_id>/approve/', AdminContractApprovalView.as_view(), name='admin-contract-approve'),
-
+    path(
+        "admin/contracts/<uuid:contract_id>/approve/",
+        AdminContractApprovalView.as_view(),
+        name="admin-contract-approve",
+    ),
     # Rechazar un contrato (devolver para correcciones)
-    path('admin/contracts/<uuid:contract_id>/reject/', AdminContractRejectionView.as_view(), name='admin-contract-reject'),
+    path(
+        "admin/contracts/<uuid:contract_id>/reject/",
+        AdminContractRejectionView.as_view(),
+        name="admin-contract-reject",
+    ),
 ]
 
 # Documentación de endpoints disponibles:
@@ -70,7 +84,7 @@ LANDLORD CONTRACT WORKFLOW API ENDPOINTS:
    POST /api/v1/contracts/landlord/contracts/
    Body: {
        "property": "property_uuid",
-       "contract_template": "default", 
+       "contract_template": "default",
        "monthly_rent": 1500000,
        "security_deposit": 1500000,
        "contract_duration_months": 12,
@@ -95,7 +109,7 @@ LANDLORD CONTRACT WORKFLOW API ENDPOINTS:
    Body: {
        "field_name": "monthly_rent",
        "current_value": "1500000",
-       "proposed_value": "1400000", 
+       "proposed_value": "1400000",
        "justification": "Razón de la objeción",
        "priority": "MEDIUM"
    }
@@ -183,8 +197,8 @@ LANDLORD CONTRACT WORKFLOW API ENDPOINTS:
 
 === ESTADOS DEL WORKFLOW ===
 
-DRAFT -> TENANT_INVITED -> TENANT_REVIEWING -> LANDLORD_REVIEWING 
--> OBJECTIONS_PENDING -> BOTH_REVIEWING -> READY_TO_SIGN 
+DRAFT -> TENANT_INVITED -> TENANT_REVIEWING -> LANDLORD_REVIEWING
+-> OBJECTIONS_PENDING -> BOTH_REVIEWING -> READY_TO_SIGN
 -> FULLY_SIGNED -> PUBLISHED
 
 === CÓDIGOS DE RESPUESTA ===

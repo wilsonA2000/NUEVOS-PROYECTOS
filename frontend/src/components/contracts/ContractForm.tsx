@@ -20,7 +20,11 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useContracts } from '../../hooks/useContracts';
-import { Contract, CreateContractDto, UpdateContractDto } from '../../types/contract';
+import {
+  Contract,
+  CreateContractDto,
+  UpdateContractDto,
+} from '../../types/contract';
 import { LandlordContractForm } from './LandlordContractForm';
 
 interface ContractFormProps {
@@ -30,34 +34,36 @@ interface ContractFormProps {
   tenantId?: string;
 }
 
-export const ContractForm: React.FC<ContractFormProps> = ({ 
-  contract, 
-  isEdit = false, 
-  propertyId, 
-  tenantId, 
+export const ContractForm: React.FC<ContractFormProps> = ({
+  contract,
+  isEdit = false,
+  propertyId,
 }) => {
   const navigate = useNavigate();
   const { createContract, updateContract } = useContracts();
   const [useProfessionalMode, setUseProfessionalMode] = React.useState(true);
-  const [formData, setFormData] = React.useState<CreateContractDto | UpdateContractDto>(
-    (contract as any) || {
-      contract_type: 'rental_urban',
-      secondary_party: '',
-      title: '',
-      description: '',
-      content: '',
-      start_date: '',
-      end_date: '',
-      monthly_rent: 0,
-      security_deposit: 0,
-      property: '',
-      is_renewable: true,
-    } as CreateContractDto,
+  const [formData, setFormData] = React.useState<
+    CreateContractDto | UpdateContractDto
+  >(
+    (contract as any) ||
+      ({
+        contract_type: 'rental_urban',
+        secondary_party: '',
+        title: '',
+        description: '',
+        content: '',
+        start_date: '',
+        end_date: '',
+        monthly_rent: 0,
+        security_deposit: 0,
+        property: '',
+        is_renewable: true,
+      } as CreateContractDto),
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name as string]: value,
     }));
@@ -67,13 +73,15 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     e.preventDefault();
     try {
       if (isEdit && contract) {
-        await updateContract.mutateAsync({ id: contract.id, data: formData as UpdateContractDto });
+        await updateContract.mutateAsync({
+          id: contract.id,
+          data: formData as UpdateContractDto,
+        });
       } else {
         await createContract.mutateAsync(formData as CreateContractDto);
       }
       navigate('/app/contracts');
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   // Show landlord contract form by default (new system)
@@ -91,41 +99,43 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" display="flex" alignItems="center" gap={1}>
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          mb={2}
+        >
+          <Typography variant='h6' display='flex' alignItems='center' gap={1}>
             <ContractIcon />
             {isEdit ? 'Editar Contrato' : 'Nuevo Contrato'}
           </Typography>
-          <Box display="flex" gap={1}>
-            <Chip 
-              label="Modo Básico" 
-              color="default" 
-              variant="outlined"
-            />
+          <Box display='flex' gap={1}>
+            <Chip label='Modo Básico' color='default' variant='outlined' />
             <Button
               startIcon={<ProfessionalIcon />}
-              variant="outlined"
-              size="small"
+              variant='outlined'
+              size='small'
               onClick={() => setUseProfessionalMode(true)}
             >
               Usar Modo Profesional
             </Button>
           </Box>
         </Box>
-        
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong>Recomendación:</strong> Usa el Modo Profesional para contratos con plantillas legales completas, 
-            generación automática de contenido y asistente paso a paso.
+
+        <Alert severity='info' sx={{ mb: 2 }}>
+          <Typography variant='body2'>
+            <strong>Recomendación:</strong> Usa el Modo Profesional para
+            contratos con plantillas legales completas, generación automática de
+            contenido y asistente paso a paso.
           </Typography>
         </Alert>
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component='form' onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Título del Contrato"
-                name="title"
+                label='Título del Contrato'
+                name='title'
                 value={formData.title}
                 onChange={handleChange}
                 required
@@ -135,46 +145,54 @@ export const ContractForm: React.FC<ContractFormProps> = ({
               <FormControl fullWidth required>
                 <InputLabel>Tipo de Contrato</InputLabel>
                 <Select
-                  name="contract_type"
+                  name='contract_type'
                   value={formData.contract_type}
                   onChange={(e: any) => handleChange(e)}
-                  label="Tipo de Contrato"
+                  label='Tipo de Contrato'
                 >
-                  <MenuItem value="rental_urban">Arrendamiento de Vivienda Urbana</MenuItem>
-                  <MenuItem value="rental_commercial">Arrendamiento de Local Comercial</MenuItem>
-                  <MenuItem value="rental_room">Arrendamiento de Habitación</MenuItem>
-                  <MenuItem value="service_provider">Contrato de Prestación de Servicios</MenuItem>
-                  <MenuItem value="other">Otro</MenuItem>
+                  <MenuItem value='rental_urban'>
+                    Arrendamiento de Vivienda Urbana
+                  </MenuItem>
+                  <MenuItem value='rental_commercial'>
+                    Arrendamiento de Local Comercial
+                  </MenuItem>
+                  <MenuItem value='rental_room'>
+                    Arrendamiento de Habitación
+                  </MenuItem>
+                  <MenuItem value='service_provider'>
+                    Contrato de Prestación de Servicios
+                  </MenuItem>
+                  <MenuItem value='other'>Otro</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="ID de Propiedad (Opcional)"
-                name="property"
+                label='ID de Propiedad (Opcional)'
+                name='property'
                 value={formData.property}
                 onChange={handleChange}
-                helperText="UUID de la propiedad relacionada"
+                helperText='UUID de la propiedad relacionada'
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="ID de Inquilino/Contraparte"
-                name="secondary_party"
+                label='ID de Inquilino/Contraparte'
+                name='secondary_party'
                 value={formData.secondary_party}
                 onChange={handleChange}
                 required
-                helperText="UUID del usuario inquilino o contraparte"
+                helperText='UUID del usuario inquilino o contraparte'
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Fecha de Inicio"
-                name="start_date"
-                type="date"
+                label='Fecha de Inicio'
+                name='start_date'
+                type='date'
                 value={formData.start_date}
                 onChange={handleChange}
                 required
@@ -186,9 +204,9 @@ export const ContractForm: React.FC<ContractFormProps> = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Fecha de Fin"
-                name="end_date"
-                type="date"
+                label='Fecha de Fin'
+                name='end_date'
+                type='date'
                 value={formData.end_date}
                 onChange={handleChange}
                 required
@@ -200,69 +218,71 @@ export const ContractForm: React.FC<ContractFormProps> = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Renta Mensual"
-                name="monthly_rent"
-                type="number"
+                label='Renta Mensual'
+                name='monthly_rent'
+                type='number'
                 value={formData.monthly_rent}
                 onChange={handleChange}
                 InputProps={{
                   startAdornment: '$',
                 }}
-                helperText="Monto en pesos colombianos"
+                helperText='Monto en pesos colombianos'
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Depósito de Garantía"
-                name="security_deposit"
-                type="number"
+                label='Depósito de Garantía'
+                name='security_deposit'
+                type='number'
                 value={formData.security_deposit}
                 onChange={handleChange}
                 InputProps={{
                   startAdornment: '$',
                 }}
-                helperText="Monto en pesos colombianos"
+                helperText='Monto en pesos colombianos'
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Descripción"
-                name="description"
+                label='Descripción'
+                name='description'
                 value={formData.description}
                 onChange={handleChange}
                 multiline
                 rows={2}
-                helperText="Descripción breve del contrato"
+                helperText='Descripción breve del contrato'
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Contenido del Contrato"
-                name="content"
+                label='Contenido del Contrato'
+                name='content'
                 value={formData.content}
                 onChange={handleChange}
                 multiline
                 rows={6}
                 required
-                helperText="Contenido completo del contrato"
+                helperText='Contenido completo del contrato'
               />
             </Grid>
             <Grid item xs={12}>
-              <Box display="flex" gap={2} justifyContent="flex-end">
+              <Box display='flex' gap={2} justifyContent='flex-end'>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={() => navigate('/app/contracts')}
                 >
                   Cancelar
                 </Button>
                 <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={createContract.isPending || updateContract.isPending}
+                  type='submit'
+                  variant='contained'
+                  color='primary'
+                  disabled={
+                    createContract.isPending || updateContract.isPending
+                  }
                 >
                   {isEdit ? 'Actualizar' : 'Crear'}
                 </Button>
@@ -273,4 +293,4 @@ export const ContractForm: React.FC<ContractFormProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+};

@@ -27,15 +27,15 @@ class BiometricStateWhitelistTests(TestCase):
             self.assertIn(state, STATES_READY_FOR_BIOMETRIC)
 
     def test_accepts_legacy_variants_without_prefix(self):
-        for state in ('tenant_biometric', 'guarantor_biometric', 'landlord_biometric'):
+        for state in ("tenant_biometric", "guarantor_biometric", "landlord_biometric"):
             self.assertIn(
                 state,
                 STATES_READY_FOR_BIOMETRIC,
-                f'El estado legacy {state!r} debe aceptarse hasta el refactor UX-E2E-02.',
+                f"El estado legacy {state!r} debe aceptarse hasta el refactor UX-E2E-02.",
             )
 
     def test_rejects_unrelated_states(self):
-        for state in ('draft', 'active', 'terminated', 'cancelled'):
+        for state in ("draft", "active", "terminated", "cancelled"):
             self.assertNotIn(state, STATES_READY_FOR_BIOMETRIC)
 
 
@@ -48,14 +48,14 @@ class BiometricServiceStartRejectsInvalidState(TestCase):
 
         service = BiometricAuthenticationService()
         contract = MagicMock()
-        contract.status = 'active'
+        contract.status = "active"
         contract.primary_party = MagicMock()
         contract.secondary_party = MagicMock()
         contract.guarantor = None
         user = contract.primary_party
         request = MagicMock()
 
-        with self.assertRaisesMessage(ValueError, 'estado válido'):
+        with self.assertRaisesMessage(ValueError, "estado válido"):
             service.initiate_authentication(contract, user, request)
 
     def test_legacy_state_does_not_raise_invalid_state(self):
@@ -68,7 +68,7 @@ class BiometricServiceStartRejectsInvalidState(TestCase):
 
         service = BiometricAuthenticationService()
         contract = MagicMock()
-        contract.status = 'tenant_biometric'
+        contract.status = "tenant_biometric"
         user = MagicMock()
         contract.primary_party = user
         contract.secondary_party = MagicMock()
@@ -78,7 +78,7 @@ class BiometricServiceStartRejectsInvalidState(TestCase):
         try:
             service.initiate_authentication(contract, user, request)
         except ValueError as exc:
-            self.assertNotIn('estado válido', str(exc))
+            self.assertNotIn("estado válido", str(exc))
         except Exception:
             # Cualquier otra excepción es aceptable (mocks incompletos).
             pass

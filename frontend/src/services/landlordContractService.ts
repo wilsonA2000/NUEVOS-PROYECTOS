@@ -35,15 +35,17 @@ export class LandlordContractService {
   /**
    * Crear un nuevo borrador de contrato
    */
-  static async createContractDraft(payload: CreateContractPayload & {
-    landlord_data?: any;
-    property_data?: any;
-    guarantee_terms?: any;
-    special_clauses?: any[];
-    economic_terms?: any;
-    contract_terms?: any;
-    tenant_data?: any;
-  }): Promise<LandlordControlledContractData> {
+  static async createContractDraft(
+    payload: CreateContractPayload & {
+      landlord_data?: any;
+      property_data?: any;
+      guarantee_terms?: any;
+      special_clauses?: any[];
+      economic_terms?: any;
+      contract_terms?: any;
+      tenant_data?: any;
+    },
+  ): Promise<LandlordControlledContractData> {
     // Transformar el payload al formato que espera el serializer backend
     // Soporta tanto basic_terms como economic_terms para mayor flexibilidad
     const basicTerms: any = payload.basic_terms || {};
@@ -53,11 +55,19 @@ export class LandlordContractService {
     const backendPayload = {
       property: payload.property_id,
       basic_terms: {
-        monthly_rent: basicTerms.monthly_rent || economicTerms.monthly_rent || 0,
-        security_deposit: basicTerms.security_deposit || economicTerms.security_deposit || 0,
-        duration_months: basicTerms.duration_months || contractTerms.duration_months || 12,
-        utilities_included: basicTerms.utilities_included ?? (Array.isArray(contractTerms.utilities_included) ? contractTerms.utilities_included.length > 0 : false),
-        pets_allowed: basicTerms.pets_allowed ?? (contractTerms.pet_policy === 'allowed'),
+        monthly_rent:
+          basicTerms.monthly_rent || economicTerms.monthly_rent || 0,
+        security_deposit:
+          basicTerms.security_deposit || economicTerms.security_deposit || 0,
+        duration_months:
+          basicTerms.duration_months || contractTerms.duration_months || 12,
+        utilities_included:
+          basicTerms.utilities_included ??
+          (Array.isArray(contractTerms.utilities_included)
+            ? contractTerms.utilities_included.length > 0
+            : false),
+        pets_allowed:
+          basicTerms.pets_allowed ?? contractTerms.pet_policy === 'allowed',
         smoking_allowed: basicTerms.smoking_allowed ?? false,
       },
       // Incluir datos del arrendador si están disponibles
@@ -71,10 +81,17 @@ export class LandlordContractService {
       contract_terms: contractTerms,
       // Mantener también campos individuales para compatibilidad
       monthly_rent: basicTerms.monthly_rent || economicTerms.monthly_rent || 0,
-      security_deposit: basicTerms.security_deposit || economicTerms.security_deposit || 0,
-      contract_duration_months: basicTerms.duration_months || contractTerms.duration_months || 12,
-      utilities_included: basicTerms.utilities_included ?? (Array.isArray(contractTerms.utilities_included) ? contractTerms.utilities_included.length > 0 : false),
-      pets_allowed: basicTerms.pets_allowed ?? (contractTerms.pet_policy === 'allowed'),
+      security_deposit:
+        basicTerms.security_deposit || economicTerms.security_deposit || 0,
+      contract_duration_months:
+        basicTerms.duration_months || contractTerms.duration_months || 12,
+      utilities_included:
+        basicTerms.utilities_included ??
+        (Array.isArray(contractTerms.utilities_included)
+          ? contractTerms.utilities_included.length > 0
+          : false),
+      pets_allowed:
+        basicTerms.pets_allowed ?? contractTerms.pet_policy === 'allowed',
       smoking_allowed: basicTerms.smoking_allowed ?? false,
     };
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
@@ -85,25 +102,65 @@ export class LandlordContractService {
    * Método alias para compatibilidad con tests y componentes legacy
    * Convierte datos genéricos a CreateContractPayload y llama createContractDraft
    */
-  static async createContract(contractData: any): Promise<LandlordControlledContractData> {
+  static async createContract(
+    contractData: any,
+  ): Promise<LandlordControlledContractData> {
     // Transformar datos genéricos directamente al formato backend
     const backendPayload = {
-      property: contractData.property_id || contractData.propertyId || contractData.property || '',
+      property:
+        contractData.property_id ||
+        contractData.propertyId ||
+        contractData.property ||
+        '',
       basic_terms: {
-        monthly_rent: Number(contractData.monthly_rent || contractData.monthlyRent || 0),
-        security_deposit: Number(contractData.security_deposit || contractData.securityDeposit || 0),
-        duration_months: Number(contractData.duration_months || contractData.durationMonths || contractData.contract_duration_months || 12),
-        utilities_included: Boolean(contractData.utilities_included || contractData.utilitiesIncluded || false),
-        pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
-        smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false),
+        monthly_rent: Number(
+          contractData.monthly_rent || contractData.monthlyRent || 0,
+        ),
+        security_deposit: Number(
+          contractData.security_deposit || contractData.securityDeposit || 0,
+        ),
+        duration_months: Number(
+          contractData.duration_months ||
+            contractData.durationMonths ||
+            contractData.contract_duration_months ||
+            12,
+        ),
+        utilities_included: Boolean(
+          contractData.utilities_included ||
+            contractData.utilitiesIncluded ||
+            false,
+        ),
+        pets_allowed: Boolean(
+          contractData.pets_allowed || contractData.petsAllowed || false,
+        ),
+        smoking_allowed: Boolean(
+          contractData.smoking_allowed || contractData.smokingAllowed || false,
+        ),
       },
       // Mantener también campos individuales para compatibilidad
-      monthly_rent: Number(contractData.monthly_rent || contractData.monthlyRent || 0),
-      security_deposit: Number(contractData.security_deposit || contractData.securityDeposit || 0),
-      contract_duration_months: Number(contractData.duration_months || contractData.durationMonths || contractData.contract_duration_months || 12),
-      utilities_included: Boolean(contractData.utilities_included || contractData.utilitiesIncluded || false),
-      pets_allowed: Boolean(contractData.pets_allowed || contractData.petsAllowed || false),
-      smoking_allowed: Boolean(contractData.smoking_allowed || contractData.smokingAllowed || false),
+      monthly_rent: Number(
+        contractData.monthly_rent || contractData.monthlyRent || 0,
+      ),
+      security_deposit: Number(
+        contractData.security_deposit || contractData.securityDeposit || 0,
+      ),
+      contract_duration_months: Number(
+        contractData.duration_months ||
+          contractData.durationMonths ||
+          contractData.contract_duration_months ||
+          12,
+      ),
+      utilities_included: Boolean(
+        contractData.utilities_included ||
+          contractData.utilitiesIncluded ||
+          false,
+      ),
+      pets_allowed: Boolean(
+        contractData.pets_allowed || contractData.petsAllowed || false,
+      ),
+      smoking_allowed: Boolean(
+        contractData.smoking_allowed || contractData.smokingAllowed || false,
+      ),
     };
     const response = await api.post(`${BASE_URL}/contracts/`, backendPayload);
     return response.data;
@@ -112,24 +169,34 @@ export class LandlordContractService {
   /**
    * Completar datos del arrendador
    */
-  static async completeLandlordData(payload: CompleteLandlordDataPayload): Promise<{
+  static async completeLandlordData(
+    payload: CompleteLandlordDataPayload,
+  ): Promise<{
     contract: LandlordControlledContractData;
     invitation_token: string;
   }> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/complete_landlord_data/`, {
-      landlord_data: payload.landlord_data,
-    });
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/complete_landlord_data/`,
+      {
+        landlord_data: payload.landlord_data,
+      },
+    );
     return response.data;
   }
 
   /**
    * Enviar invitación al arrendatario
    */
-  static async sendTenantInvitation(payload: SendTenantInvitationPayload): Promise<{ success: boolean }> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/send-invitation/`, {
-      tenant_email: payload.tenant_email,
-      personal_message: payload.personal_message,
-    });
+  static async sendTenantInvitation(
+    payload: SendTenantInvitationPayload,
+  ): Promise<{ success: boolean }> {
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/send-invitation/`,
+      {
+        tenant_email: payload.tenant_email,
+        personal_message: payload.personal_message,
+      },
+    );
     return response.data;
   }
 
@@ -158,14 +225,18 @@ export class LandlordContractService {
       });
     }
 
-    const response = await api.get(`${BASE_URL}/contracts/?${params.toString()}`);
+    const response = await api.get(
+      `${BASE_URL}/contracts/?${params.toString()}`,
+    );
     return response.data;
   }
 
   /**
    * Obtener un contrato específico del arrendador
    */
-  static async getLandlordContract(contractId: string): Promise<LandlordControlledContractData> {
+  static async getLandlordContract(
+    contractId: string,
+  ): Promise<LandlordControlledContractData> {
     const response = await api.get(`${BASE_URL}/contracts/${contractId}/`);
     return response.data;
   }
@@ -173,7 +244,9 @@ export class LandlordContractService {
   /**
    * Obtener contrato para edición con datos formateados para el editor
    */
-  static async getContractForEditing(contractId: string): Promise<LandlordControlledContractData> {
+  static async getContractForEditing(
+    contractId: string,
+  ): Promise<LandlordControlledContractData> {
     try {
       // Usar el endpoint existente pero con datos formateados para edición
       const response = await api.get(`${BASE_URL}/contracts/${contractId}/`);
@@ -203,15 +276,31 @@ export class LandlordContractService {
           email: contractData.landlord_data?.email || '',
           address: contractData.landlord_data?.address || '',
           city: contractData.landlord_data?.city || '',
-          emergency_contact: contractData.landlord_data?.emergency_contact || '',
+          emergency_contact:
+            contractData.landlord_data?.emergency_contact || '',
         },
 
         // Property fields (not nested)
-        property_id: contractData.property_data?.property_id || contractData.property?.id || '',
-        property_address: contractData.property_data?.property_address || contractData.property?.address || '',
-        property_area: contractData.property_data?.property_area || contractData.property?.area || 0,
-        property_type: contractData.property_data?.property_type || contractData.property?.property_type || 'apartamento',
-        property_furnished: contractData.property_data?.property_furnished || contractData.property?.furnished || false,
+        property_id:
+          contractData.property_data?.property_id ||
+          contractData.property?.id ||
+          '',
+        property_address:
+          contractData.property_data?.property_address ||
+          contractData.property?.address ||
+          '',
+        property_area:
+          contractData.property_data?.property_area ||
+          contractData.property?.area ||
+          0,
+        property_type:
+          contractData.property_data?.property_type ||
+          contractData.property?.property_type ||
+          'apartamento',
+        property_furnished:
+          contractData.property_data?.property_furnished ||
+          contractData.property?.furnished ||
+          false,
 
         // Tenant data (puede estar vacío en modo draft)
         tenant_data: contractData.tenant_data || null,
@@ -236,7 +325,6 @@ export class LandlordContractService {
         published_at: contractData.published_at,
       } as LandlordControlledContractData;
       return formattedContract;
-
     } catch (error) {
       throw error;
     }
@@ -249,33 +337,49 @@ export class LandlordContractService {
     contractId: string,
     data: Partial<LandlordControlledContractData>,
   ): Promise<LandlordControlledContractData> {
-    const response = await api.patch(`${BASE_URL}/contracts/${contractId}/`, data);
+    const response = await api.patch(
+      `${BASE_URL}/contracts/${contractId}/`,
+      data,
+    );
     return response.data;
   }
 
   /**
    * Aprobar contrato final (arrendador)
    */
-  static async approveLandlordContract(payload: ApproveContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/approve/`);
+  static async approveLandlordContract(
+    payload: ApproveContractPayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/approve/`,
+    );
     return response.data;
   }
 
   /**
    * Firmar contrato digitalmente (arrendador)
    */
-  static async signLandlordContract(payload: DigitalSignaturePayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/sign/`, {
-      signature_data: payload.signature_data,
-    });
+  static async signLandlordContract(
+    payload: DigitalSignaturePayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/sign/`,
+      {
+        signature_data: payload.signature_data,
+      },
+    );
     return response.data;
   }
 
   /**
    * Publicar contrato (darle vida jurídica)
    */
-  static async publishContract(payload: PublishContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/publish/`);
+  static async publishContract(
+    payload: PublishContractPayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/publish/`,
+    );
     return response.data;
   }
 
@@ -327,11 +431,14 @@ export class LandlordContractService {
   /**
    * Aprobar contrato (funciona para ambos roles)
    */
-  static async approveContract(payload: ApproveContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`/contracts/${payload.contract_id}/approve/`);
+  static async approveContract(
+    payload: ApproveContractPayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `/contracts/${payload.contract_id}/approve/`,
+    );
     return response.data;
   }
-
 
   /**
    * Obtener dashboard del arrendador
@@ -355,7 +462,9 @@ export class LandlordContractService {
   /**
    * Aceptar invitación de contrato
    */
-  static async acceptTenantInvitation(payload: AcceptInvitationPayload): Promise<LandlordControlledContractData> {
+  static async acceptTenantInvitation(
+    payload: AcceptInvitationPayload,
+  ): Promise<LandlordControlledContractData> {
     const response = await api.post(`${TENANT_BASE_URL}/accept-invitation/`, {
       invitation_token: payload.invitation_token,
     });
@@ -365,10 +474,15 @@ export class LandlordContractService {
   /**
    * Completar datos del arrendatario
    */
-  static async completeTenantData(payload: CompleteTenantDataPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${TENANT_BASE_URL}/contracts/${payload.contract_id}/complete-data/`, {
-      tenant_data: payload.tenant_data,
-    });
+  static async completeTenantData(
+    payload: CompleteTenantDataPayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${TENANT_BASE_URL}/contracts/${payload.contract_id}/complete-data/`,
+      {
+        tenant_data: payload.tenant_data,
+      },
+    );
     return response.data;
   }
 
@@ -397,33 +511,48 @@ export class LandlordContractService {
       });
     }
 
-    const response = await api.get(`${TENANT_BASE_URL}/contracts/?${params.toString()}`);
+    const response = await api.get(
+      `${TENANT_BASE_URL}/contracts/?${params.toString()}`,
+    );
     return response.data;
   }
 
   /**
    * Obtener un contrato específico del arrendatario
    */
-  static async getTenantContract(contractId: string): Promise<LandlordControlledContractData> {
-    const response = await api.get(`${TENANT_BASE_URL}/contracts/${contractId}/`);
+  static async getTenantContract(
+    contractId: string,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.get(
+      `${TENANT_BASE_URL}/contracts/${contractId}/`,
+    );
     return response.data;
   }
 
   /**
    * Aprobar contrato final (arrendatario)
    */
-  static async approveTenantContract(payload: ApproveContractPayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${TENANT_BASE_URL}/contracts/${payload.contract_id}/approve/`);
+  static async approveTenantContract(
+    payload: ApproveContractPayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${TENANT_BASE_URL}/contracts/${payload.contract_id}/approve/`,
+    );
     return response.data;
   }
 
   /**
    * Firmar contrato digitalmente (arrendatario)
    */
-  static async signTenantContract(payload: DigitalSignaturePayload): Promise<LandlordControlledContractData> {
-    const response = await api.post(`${TENANT_BASE_URL}/contracts/${payload.contract_id}/sign/`, {
-      signature_data: payload.signature_data,
-    });
+  static async signTenantContract(
+    payload: DigitalSignaturePayload,
+  ): Promise<LandlordControlledContractData> {
+    const response = await api.post(
+      `${TENANT_BASE_URL}/contracts/${payload.contract_id}/sign/`,
+      {
+        signature_data: payload.signature_data,
+      },
+    );
     return response.data;
   }
 
@@ -449,7 +578,9 @@ export class LandlordContractService {
   /**
    * Presentar una objeción
    */
-  static async submitObjection(payload: SubmitObjectionPayload): Promise<ContractObjection> {
+  static async submitObjection(
+    payload: SubmitObjectionPayload,
+  ): Promise<ContractObjection> {
     const response = await api.post('/contracts/objections/', payload);
     return response.data;
   }
@@ -457,18 +588,25 @@ export class LandlordContractService {
   /**
    * Responder a una objeción
    */
-  static async respondToObjection(payload: RespondObjectionPayload): Promise<ContractObjection> {
-    const response = await api.post(`/contracts/objections/${payload.objection_id}/respond/`, {
-      response: payload.response,
-      response_note: payload.response_note,
-    });
+  static async respondToObjection(
+    payload: RespondObjectionPayload,
+  ): Promise<ContractObjection> {
+    const response = await api.post(
+      `/contracts/objections/${payload.objection_id}/respond/`,
+      {
+        response: payload.response,
+        response_note: payload.response_note,
+      },
+    );
     return response.data;
   }
 
   /**
    * Obtener objeciones de un contrato
    */
-  static async getContractObjections(contractId: string): Promise<ContractObjection[]> {
+  static async getContractObjections(
+    contractId: string,
+  ): Promise<ContractObjection[]> {
     const response = await api.get(`/contracts/${contractId}/objections/`);
     return response.data;
   }
@@ -484,8 +622,12 @@ export class LandlordContractService {
   /**
    * Retirar una objeción
    */
-  static async withdrawObjection(objectionId: string): Promise<ContractObjection> {
-    const response = await api.post(`/contracts/objections/${objectionId}/withdraw/`);
+  static async withdrawObjection(
+    objectionId: string,
+  ): Promise<ContractObjection> {
+    const response = await api.post(
+      `/contracts/objections/${objectionId}/withdraw/`,
+    );
     return response.data;
   }
 
@@ -500,14 +642,19 @@ export class LandlordContractService {
     contractId: string,
     guaranteeData: Partial<LandlordContractGuarantee>,
   ): Promise<LandlordContractGuarantee> {
-    const response = await api.post(`/contracts/${contractId}/guarantees/`, guaranteeData);
+    const response = await api.post(
+      `/contracts/${contractId}/guarantees/`,
+      guaranteeData,
+    );
     return response.data;
   }
 
   /**
    * Obtener garantías de un contrato
    */
-  static async getContractGuarantees(contractId: string): Promise<LandlordContractGuarantee[]> {
+  static async getContractGuarantees(
+    contractId: string,
+  ): Promise<LandlordContractGuarantee[]> {
     const response = await api.get(`/contracts/${contractId}/guarantees/`);
     return response.data;
   }
@@ -519,17 +666,26 @@ export class LandlordContractService {
     guaranteeId: string,
     guaranteeData: Partial<LandlordContractGuarantee>,
   ): Promise<LandlordContractGuarantee> {
-    const response = await api.patch(`/contracts/guarantees/${guaranteeId}/`, guaranteeData);
+    const response = await api.patch(
+      `/contracts/guarantees/${guaranteeId}/`,
+      guaranteeData,
+    );
     return response.data;
   }
 
   /**
    * Verificar una garantía
    */
-  static async verifyGuarantee(guaranteeId: string, notes?: string): Promise<LandlordContractGuarantee> {
-    const response = await api.post(`/contracts/guarantees/${guaranteeId}/verify/`, {
-      verification_notes: notes,
-    });
+  static async verifyGuarantee(
+    guaranteeId: string,
+    notes?: string,
+  ): Promise<LandlordContractGuarantee> {
+    const response = await api.post(
+      `/contracts/guarantees/${guaranteeId}/verify/`,
+      {
+        verification_notes: notes,
+      },
+    );
     return response.data;
   }
 
@@ -540,7 +696,9 @@ export class LandlordContractService {
   /**
    * Obtener historial completo de un contrato
    */
-  static async getContractHistory(contractId: string): Promise<ContractWorkflowHistory[]> {
+  static async getContractHistory(
+    contractId: string,
+  ): Promise<ContractWorkflowHistory[]> {
     const response = await api.get(`/contracts/${contractId}/history/`);
     return response.data;
   }
@@ -548,8 +706,12 @@ export class LandlordContractService {
   /**
    * Obtener actividad reciente del usuario
    */
-  static async getRecentActivity(limit: number = 10): Promise<ContractWorkflowHistory[]> {
-    const response = await api.get(`/contracts/recent-activity/?limit=${limit}`);
+  static async getRecentActivity(
+    limit: number = 10,
+  ): Promise<ContractWorkflowHistory[]> {
+    const response = await api.get(
+      `/contracts/recent-activity/?limit=${limit}`,
+    );
     return response.data;
   }
 
@@ -560,7 +722,9 @@ export class LandlordContractService {
   /**
    * Validar datos antes de crear contrato
    */
-  static async validateContractData(data: Partial<LandlordControlledContractData>): Promise<{
+  static async validateContractData(
+    data: Partial<LandlordControlledContractData>,
+  ): Promise<{
     is_valid: boolean;
     errors: Record<string, string[]>;
     warnings: Record<string, string[]>;
@@ -593,7 +757,9 @@ export class LandlordContractService {
     pdf_url: string;
     expires_at: string;
   }> {
-    const response = await api.post(`/contracts/${contractId}/generate-preview/`);
+    const response = await api.post(
+      `/contracts/${contractId}/generate-preview/`,
+    );
     return response.data;
   }
 
@@ -645,11 +811,14 @@ export class LandlordContractService {
   /**
    * Generar PDF del contrato con firmas digitales
    */
-  static async generateContractPDF(contractId: string, options?: {
-    includeSignatures?: boolean;
-    includeBiometric?: boolean;
-    download?: boolean;
-  }): Promise<{
+  static async generateContractPDF(
+    contractId: string,
+    options?: {
+      includeSignatures?: boolean;
+      includeBiometric?: boolean;
+      download?: boolean;
+    },
+  ): Promise<{
     contract_id: string;
     contract_number: string;
     pdf_generated: boolean;
@@ -670,7 +839,9 @@ export class LandlordContractService {
       params.append('download', options.download.toString());
     }
 
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/generate_pdf/?${params.toString()}`);
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/generate_pdf/?${params.toString()}`,
+    );
     return response.data;
   }
 
@@ -678,9 +849,12 @@ export class LandlordContractService {
    * Descargar PDF del contrato firmado
    */
   static async downloadSignedContractPDF(contractId: string): Promise<Blob> {
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/download_pdf/`, {
-      responseType: 'blob',
-    });
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/download_pdf/`,
+      {
+        responseType: 'blob',
+      },
+    );
     return response.data;
   }
 
@@ -688,19 +862,26 @@ export class LandlordContractService {
    * Generar vista previa del PDF sin firmas
    */
   static async previewContractPDF(contractId: string): Promise<Blob> {
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/preview_pdf/`, {
-      responseType: 'blob',
-    });
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/preview_pdf/`,
+      {
+        responseType: 'blob',
+      },
+    );
     return response.data;
   }
 
   /**
    * Descargar PDF con opciones personalizadas
    */
-  static async downloadContractPDF(contractId: string, filename?: string, options?: {
-    includeSignatures?: boolean;
-    includeBiometric?: boolean;
-  }): Promise<void> {
+  static async downloadContractPDF(
+    contractId: string,
+    filename?: string,
+    options?: {
+      includeSignatures?: boolean;
+      includeBiometric?: boolean;
+    },
+  ): Promise<void> {
     const params = new URLSearchParams();
     params.append('download', 'true');
     if (options?.includeSignatures !== undefined) {
@@ -710,9 +891,12 @@ export class LandlordContractService {
       params.append('include_biometric', options.includeBiometric.toString());
     }
 
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/generate_pdf/?${params.toString()}`, {
-      responseType: 'blob',
-    });
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/generate_pdf/?${params.toString()}`,
+      {
+        responseType: 'blob',
+      },
+    );
 
     // Crear enlace de descarga
     const blob = response.data;
@@ -729,10 +913,13 @@ export class LandlordContractService {
   /**
    * Abrir PDF en nueva ventana para visualización
    */
-  static async openContractPDF(contractId: string, options?: {
-    includeSignatures?: boolean;
-    includeBiometric?: boolean;
-  }): Promise<void> {
+  static async openContractPDF(
+    contractId: string,
+    options?: {
+      includeSignatures?: boolean;
+      includeBiometric?: boolean;
+    },
+  ): Promise<void> {
     const params = new URLSearchParams();
     if (options?.includeSignatures !== undefined) {
       params.append('include_signatures', options.includeSignatures.toString());
@@ -741,15 +928,18 @@ export class LandlordContractService {
       params.append('include_biometric', options.includeBiometric.toString());
     }
 
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/preview_pdf/?${params.toString()}`, {
-      responseType: 'blob',
-    });
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/preview_pdf/?${params.toString()}`,
+      {
+        responseType: 'blob',
+      },
+    );
 
     // Abrir en nueva ventana
     const blob = response.data;
     const url = window.URL.createObjectURL(blob);
     window.open(url, '_blank');
-    
+
     // Limpiar URL después de un tiempo
     setTimeout(() => {
       window.URL.revokeObjectURL(url);
@@ -777,14 +967,17 @@ export class LandlordContractService {
     expires_at: string;
     invitation_url: string;
   }> {
-    const response = await api.post(`${BASE_URL}/contracts/${payload.contract_id}/create-invitation/`, {
-      tenant_email: payload.tenant_email,
-      tenant_phone: payload.tenant_phone,
-      tenant_name: payload.tenant_name,
-      invitation_method: payload.invitation_method || 'email',
-      personal_message: payload.personal_message,
-      expires_in_days: payload.expires_in_days || 7,
-    });
+    const response = await api.post(
+      `${BASE_URL}/contracts/${payload.contract_id}/create-invitation/`,
+      {
+        tenant_email: payload.tenant_email,
+        tenant_phone: payload.tenant_phone,
+        tenant_name: payload.tenant_name,
+        invitation_method: payload.invitation_method || 'email',
+        personal_message: payload.personal_message,
+        expires_in_days: payload.expires_in_days || 7,
+      },
+    );
     return response.data;
   }
 
@@ -795,12 +988,14 @@ export class LandlordContractService {
     invitationId: string,
     method: 'email' | 'sms' | 'whatsapp',
   ): Promise<{ success: boolean; method: string; sent_at: string }> {
-    const response = await api.post(`/contracts/invitations/${invitationId}/send/`, {
-      method,
-    });
+    const response = await api.post(
+      `/contracts/invitations/${invitationId}/send/`,
+      {
+        method,
+      },
+    );
     return response.data;
   }
-
 
   /**
    * Aceptar invitación con token
@@ -830,15 +1025,21 @@ export class LandlordContractService {
       accepted_at?: string;
     }[];
   }> {
-    const response = await api.get(`${BASE_URL}/contracts/${contractId}/invitations/`);
+    const response = await api.get(
+      `${BASE_URL}/contracts/${contractId}/invitations/`,
+    );
     return response.data;
   }
 
   /**
    * Cancelar invitación activa
    */
-  static async cancelInvitation(invitationId: string): Promise<{ success: boolean }> {
-    const response = await api.post(`/contracts/invitations/${invitationId}/cancel/`);
+  static async cancelInvitation(
+    invitationId: string,
+  ): Promise<{ success: boolean }> {
+    const response = await api.post(
+      `/contracts/invitations/${invitationId}/cancel/`,
+    );
     return response.data;
   }
 
@@ -849,9 +1050,12 @@ export class LandlordContractService {
     invitationId: string,
     newMethod?: 'email' | 'sms' | 'whatsapp',
   ): Promise<{ success: boolean; method: string; sent_at: string }> {
-    const response = await api.post(`/contracts/invitations/${invitationId}/resend/`, {
-      method: newMethod,
-    });
+    const response = await api.post(
+      `/contracts/invitations/${invitationId}/resend/`,
+      {
+        method: newMethod,
+      },
+    );
     return response.data;
   }
 
@@ -862,15 +1066,23 @@ export class LandlordContractService {
   /**
    * Reenviar invitación a arrendatario
    */
-  static async resendTenantInvitation(contractId: string): Promise<{ success: boolean }> {
-    const response = await api.post(`${BASE_URL}/contracts/${contractId}/resend-invitation/`);
+  static async resendTenantInvitation(
+    contractId: string,
+  ): Promise<{ success: boolean }> {
+    const response = await api.post(
+      `${BASE_URL}/contracts/${contractId}/resend-invitation/`,
+    );
     return response.data;
   }
 
   /**
    * Enviar recordatorio personalizado
    */
-  static async sendCustomReminder(contractId: string, message: string, recipient: 'tenant' | 'landlord'): Promise<{ success: boolean }> {
+  static async sendCustomReminder(
+    contractId: string,
+    message: string,
+    recipient: 'tenant' | 'landlord',
+  ): Promise<{ success: boolean }> {
     const response = await api.post(`/contracts/${contractId}/send-reminder/`, {
       message,
       recipient,
@@ -901,11 +1113,15 @@ export class LandlordContractService {
       formData.append('description', description);
     }
 
-    const response = await api.post(`/contracts/${contractId}/documents/`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await api.post(
+      `/contracts/${contractId}/documents/`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       },
-    });
+    );
     return response.data;
   }
 
@@ -945,7 +1161,9 @@ export class LandlordContractService {
   /**
    * Calcular total de depósitos
    */
-  static calculateTotalDeposits(contract: LandlordControlledContractData): number {
+  static calculateTotalDeposits(
+    contract: LandlordControlledContractData,
+  ): number {
     const {
       security_deposit = 0,
       utilities_deposit = 0,
@@ -954,18 +1172,26 @@ export class LandlordContractService {
       key_deposit = 0,
     } = contract;
 
-    return security_deposit + utilities_deposit + 
-           (contract.pets_allowed ? pet_deposit : 0) + 
-           cleaning_deposit + key_deposit;
+    return (
+      security_deposit +
+      utilities_deposit +
+      (contract.pets_allowed ? pet_deposit : 0) +
+      cleaning_deposit +
+      key_deposit
+    );
   }
 
   /**
    * Validar si el contrato está listo para el siguiente paso
    */
-  static isContractReadyForNextStep(contract: LandlordControlledContractData): boolean {
+  static isContractReadyForNextStep(
+    contract: LandlordControlledContractData,
+  ): boolean {
     switch (contract.current_state) {
       case 'DRAFT':
-        return !!(contract.landlord_data.full_name && contract.monthly_rent > 0);
+        return !!(
+          contract.landlord_data.full_name && contract.monthly_rent > 0
+        );
       case 'TENANT_INVITED':
         return !!contract.tenant_email;
       case 'TENANT_REVIEWING':
@@ -986,20 +1212,31 @@ export class LandlordContractService {
   /**
    * Obtener próxima acción requerida
    */
-  static getNextRequiredAction(contract: LandlordControlledContractData, userType: 'landlord' | 'tenant'): string {
+  static getNextRequiredAction(
+    contract: LandlordControlledContractData,
+    userType: 'landlord' | 'tenant',
+  ): string {
     switch (contract.current_state) {
       case 'DRAFT':
-        return userType === 'landlord' ? 'Completar datos y enviar invitación' : 'Esperando invitación';
+        return userType === 'landlord'
+          ? 'Completar datos y enviar invitación'
+          : 'Esperando invitación';
       case 'TENANT_INVITED':
-        return userType === 'tenant' ? 'Aceptar invitación y completar datos' : 'Esperando respuesta del arrendatario';
+        return userType === 'tenant'
+          ? 'Aceptar invitación y completar datos'
+          : 'Esperando respuesta del arrendatario';
       case 'TENANT_REVIEWING':
-        return userType === 'tenant' ? 'Completar datos personales' : 'Esperando datos del arrendatario';
+        return userType === 'tenant'
+          ? 'Completar datos personales'
+          : 'Esperando datos del arrendatario';
       case 'LANDLORD_REVIEWING':
-        return userType === 'landlord' ? 'Revisar datos del arrendatario' : 'Esperando aprobación del arrendador';
+        return userType === 'landlord'
+          ? 'Revisar datos del arrendatario'
+          : 'Esperando aprobación del arrendador';
       case 'OBJECTIONS_PENDING':
         return 'Resolver objeciones pendientes';
       case 'BOTH_REVIEWING':
-        return contract.landlord_approved && contract.tenant_approved 
+        return contract.landlord_approved && contract.tenant_approved
           ? 'Proceder con firmas digitales'
           : userType === 'landlord' && !contract.landlord_approved
             ? 'Aprobar contrato final'
@@ -1013,7 +1250,9 @@ export class LandlordContractService {
             ? 'Firmar digitalmente'
             : 'Esperando firma de la otra parte';
       case 'FULLY_SIGNED':
-        return userType === 'landlord' ? 'Publicar contrato' : 'Esperando publicación';
+        return userType === 'landlord'
+          ? 'Publicar contrato'
+          : 'Esperando publicación';
       case 'PUBLISHED':
         return 'Contrato activo';
       default:

@@ -169,11 +169,11 @@
 
         <!-- Content -->
         <div class="invitation-badge">Invitación a Contrato</div>
-        
+
         <h1 class="title">¡Has sido invitado a revisar un contrato de arrendamiento!</h1>
-        
+
         <p>Estimado/a arrendatario/a,</p>
-        
+
         <p>{{ landlord.get_full_name }} te ha invitado a revisar y completar un contrato de arrendamiento a través de VeriHome. Este es un proceso seguro y completamente digital.</p>
 
         <!-- Landlord Info -->
@@ -234,14 +234,14 @@
             <h5>⏰ Invitación con tiempo limitado</h5>
             <p>Esta invitación expira el <strong>{{ expiry_date|date:"d/m/Y" }} a las {{ expiry_date|time:"H:i" }}</strong>. Te recomendamos revisar el contrato lo antes posible.</p>
         </div>
-        
+
         <!-- Action Button -->
         <div style="text-align: center; margin: 30px 0;">
             <a href="{{ invitation_url }}" class="action-button">
                 📄 Revisar Contrato Ahora
             </a>
         </div>
-        
+
         <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
             <strong>📝 Qué sucede después:</strong><br>
             1. Haz clic en el botón para acceder al contrato<br>
@@ -260,7 +260,7 @@
             <p class="footer-text">
                 Este email fue enviado desde VeriHome - Plataforma de gestión de arriendos
             </p>
-            
+
             <p style="color: #9ca3af; font-size: 12px;">
                 Si no esperabas esta invitación, por favor ignora este mensaje.
             </p>

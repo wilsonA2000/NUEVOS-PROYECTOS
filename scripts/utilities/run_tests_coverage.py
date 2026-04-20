@@ -8,18 +8,19 @@ import sys
 import django
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 # Importar después de setup
 from django.test.utils import get_runner
 from django.conf import settings
 
+
 def run_tests():
     """Ejecutar tests y mostrar estadísticas"""
-    print("="*80)
+    print("=" * 80)
     print("🧪 EJECUTANDO SUITE DE TESTS - VERIHOME PROJECT")
-    print("="*80)
+    print("=" * 80)
     print()
 
     TestRunner = get_runner(settings)
@@ -27,8 +28,8 @@ def run_tests():
 
     # Apps a testear
     test_labels = [
-        'contracts.tests',
-        'matching.tests',
+        "contracts.tests",
+        "matching.tests",
     ]
 
     print(f"📦 Módulos a testear: {', '.join(test_labels)}")
@@ -40,42 +41,43 @@ def run_tests():
     for label in test_labels:
         print(f"\n{'='*80}")
         print(f"📝 Testeando: {label}")
-        print('='*80)
+        print("=" * 80)
 
         try:
             result = test_runner.run_tests([label])
             test_results[label] = {
-                'failures': result,
-                'status': '✅ PASSED' if result == 0 else '❌ FAILED'
+                "failures": result,
+                "status": "✅ PASSED" if result == 0 else "❌ FAILED",
             }
             failures += result
         except Exception as e:
             print(f"❌ Error al ejecutar {label}: {str(e)}")
-            test_results[label] = {
-                'failures': 'ERROR',
-                'status': '❌ ERROR'
-            }
+            test_results[label] = {"failures": "ERROR", "status": "❌ ERROR"}
             failures += 1
 
     # Reporte final
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("📊 REPORTE FINAL DE TESTING")
-    print("="*80)
+    print("=" * 80)
 
     for label, result in test_results.items():
         print(f"\n{label}:")
         print(f"  Status: {result['status']}")
         print(f"  Failures: {result['failures']}")
 
-    print("\n" + "="*80)
-    total_status = "✅ TODOS LOS TESTS PASARON" if failures == 0 else f"❌ {failures} TESTS FALLARON"
+    print("\n" + "=" * 80)
+    total_status = (
+        "✅ TODOS LOS TESTS PASARON"
+        if failures == 0
+        else f"❌ {failures} TESTS FALLARON"
+    )
     print(f"RESULTADO TOTAL: {total_status}")
-    print("="*80)
+    print("=" * 80)
 
     # Estadísticas de cobertura estimadas
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("📈 ESTADÍSTICAS DE COBERTURA")
-    print("="*80)
+    print("=" * 80)
 
     print("\n✅ BACKEND - Nuevos tests creados:")
     print("  • contracts/tests.py:")
@@ -114,5 +116,6 @@ def run_tests():
 
     return failures
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(run_tests())

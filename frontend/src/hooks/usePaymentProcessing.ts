@@ -45,46 +45,61 @@ export interface PaymentConfig {
 export interface UsePaymentProcessingReturn {
   // Estado del pago
   paymentState: PaymentState;
-  
+
   // Configuración
   initializeStripe: (publishableKey: string) => Promise<void>;
-  initializePayPal: (clientId: string, environment?: 'sandbox' | 'production') => void;
-  
+  initializePayPal: (
+    clientId: string,
+    environment?: 'sandbox' | 'production'
+  ) => void;
+
   // Procesamiento de pagos
   processStripePayment: (data: PaymentData) => Promise<StripePaymentResult>;
   processPayPalPayment: (data: PaymentData) => Promise<PayPalPaymentResult>;
-  
+
   // Métodos de pago guardados
   savedPaymentMethods: PaymentMethodInfo[];
   loadSavedPaymentMethods: () => void;
   removePaymentMethod: (id: string, provider: PaymentProvider) => Promise<void>;
-  setDefaultPaymentMethod: (id: string, provider: PaymentProvider) => Promise<void>;
-  
+  setDefaultPaymentMethod: (
+    id: string,
+    provider: PaymentProvider
+  ) => Promise<void>;
+
   // Reembolsos
-  createRefund: (paymentId: string, provider: PaymentProvider, amount?: number) => Promise<void>;
-  
+  createRefund: (
+    paymentId: string,
+    provider: PaymentProvider,
+    amount?: number
+  ) => Promise<void>;
+
   // Historial de transacciones
   transactionHistory: any[];
   loadTransactionHistory: () => void;
-  
+
   // Validación
-  validatePaymentData: (data: PaymentData) => { isValid: boolean; errors: string[] };
-  
+  validatePaymentData: (data: PaymentData) => {
+    isValid: boolean;
+    errors: string[];
+  };
+
   // Estados de carga
   isLoadingMethods: boolean;
   isLoadingHistory: boolean;
   isRefunding: boolean;
-  
+
   // Reset
   resetPaymentState: () => void;
-  
+
   // Manejo de errores
   handlePaymentError: (error: any, provider: PaymentProvider) => string;
 }
 
-export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessingReturn => {
+export const usePaymentProcessing = (
+  config?: PaymentConfig,
+): UsePaymentProcessingReturn => {
   const queryClient = useQueryClient();
-  
+
   const [paymentState, setPaymentState] = useState<PaymentState>({
     isProcessing: false,
     error: null,
@@ -158,16 +173,23 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
 
   // Mutación para reembolsos
   const refundMutation = useMutation({
-    mutationFn: async ({ paymentId, provider, amount }: { 
-      paymentId: string; 
-      provider: PaymentProvider; 
+    mutationFn: async ({
+      paymentId,
+      provider,
+      amount,
+    }: {
+      paymentId: string;
+      provider: PaymentProvider;
       amount?: number;
     }) => {
       if (provider === 'stripe') {
         return await stripeService.createRefund(paymentId, amount);
       } else {
-        return await paypalService.createRefund(paymentId, 
-          amount ? { currency_code: 'USD', value: amount.toString() } : undefined,
+        return await paypalService.createRefund(
+          paymentId,
+          amount
+            ? { currency_code: 'USD', value: amount.toString() }
+            : undefined,
         );
       }
     },
@@ -181,111 +203,138 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
     try {
       await stripeService.initialize({ publishableKey });
       setIsStripeInitialized(true);
-      loggingService.info(LogCategory.API, 'Stripe initialized in usePaymentProcessing');
+      loggingService.info(
+        LogCategory.API,
+        'Stripe initialized in usePaymentProcessing',
+      );
     } catch (error) {
-      loggingService.error(LogCategory.API, 'Error initializing Stripe', undefined, undefined, error as Error);
+      loggingService.error(
+        LogCategory.API,
+        'Error initializing Stripe',
+        undefined,
+        undefined,
+        error as Error,
+      );
       throw error;
     }
   }, []);
 
   // Inicializar PayPal
-  const initializePayPal = useCallback((clientId: string, environment: 'sandbox' | 'production' = 'sandbox') => {
-    try {
-      paypalService.initialize({ clientId, environment });
-      setIsPayPalInitialized(true);
-      loggingService.info(LogCategory.API, 'PayPal initialized in usePaymentProcessing');
-    } catch (error) {
-      loggingService.error(LogCategory.API, 'Error initializing PayPal', undefined, undefined, error as Error);
-      throw error;
-    }
-  }, []);
+  const initializePayPal = useCallback(
+    (clientId: string, environment: 'sandbox' | 'production' = 'sandbox') => {
+      try {
+        paypalService.initialize({ clientId, environment });
+        setIsPayPalInitialized(true);
+        loggingService.info(
+          LogCategory.API,
+          'PayPal initialized in usePaymentProcessing',
+        );
+      } catch (error) {
+        loggingService.error(
+          LogCategory.API,
+          'Error initializing PayPal',
+          undefined,
+          undefined,
+          error as Error,
+        );
+        throw error;
+      }
+    },
+    [],
+  );
 
   // Procesar pago con Stripe
-  const processStripePayment = useCallback(async (data: PaymentData): Promise<StripePaymentResult> => {
-    if (!isStripeInitialized) {
-      throw new Error('Stripe not initialized');
-    }
-
-    setPaymentState(prev => ({ ...prev, isProcessing: true, error: null }));
-
-    try {
-      const validation = validatePaymentData(data);
-      if (!validation.isValid) {
-        throw new Error(validation.errors.join(', '));
+  const processStripePayment = useCallback(
+    async (data: PaymentData): Promise<StripePaymentResult> => {
+      if (!isStripeInitialized) {
+        throw new Error('Stripe not initialized');
       }
 
-      // Crear Payment Intent
-      const paymentIntent = await stripeService.createPaymentIntent({
-        amount: Math.round(data.amount * 100), // Convertir a centavos
-        currency: data.currency.toLowerCase(),
-        contractId: data.contractId,
-        description: data.description,
-        metadata: data.metadata,
-      });
+      setPaymentState(prev => ({ ...prev, isProcessing: true, error: null }));
 
-      setPaymentState(prev => ({ 
-        ...prev, 
-        clientSecret: paymentIntent.client_secret, 
-      }));
+      try {
+        const validation = validatePaymentData(data);
+        if (!validation.isValid) {
+          throw new Error(validation.errors.join(', '));
+        }
 
-      // El pago se completará en el componente StripePaymentForm
-      return {
-        success: true,
-        paymentIntent,
-      };
-    } catch (error) {
-      const errorMessage = handlePaymentError(error, 'stripe');
-      setPaymentState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        error: errorMessage, 
-      }));
-      throw error;
-    }
-  }, [isStripeInitialized]);
+        // Crear Payment Intent
+        const paymentIntent = await stripeService.createPaymentIntent({
+          amount: Math.round(data.amount * 100), // Convertir a centavos
+          currency: data.currency.toLowerCase(),
+          contractId: data.contractId,
+          description: data.description,
+          metadata: data.metadata,
+        });
+
+        setPaymentState(prev => ({
+          ...prev,
+          clientSecret: paymentIntent.client_secret,
+        }));
+
+        // El pago se completará en el componente StripePaymentForm
+        return {
+          success: true,
+          paymentIntent,
+        };
+      } catch (error) {
+        const errorMessage = handlePaymentError(error, 'stripe');
+        setPaymentState(prev => ({
+          ...prev,
+          isProcessing: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+    [isStripeInitialized],
+  );
 
   // Procesar pago con PayPal
-  const processPayPalPayment = useCallback(async (data: PaymentData): Promise<PayPalPaymentResult> => {
-    if (!isPayPalInitialized) {
-      throw new Error('PayPal not initialized');
-    }
-
-    setPaymentState(prev => ({ ...prev, isProcessing: true, error: null }));
-
-    try {
-      const validation = validatePaymentData(data);
-      if (!validation.isValid) {
-        throw new Error(validation.errors.join(', '));
+  const processPayPalPayment = useCallback(
+    async (data: PaymentData): Promise<PayPalPaymentResult> => {
+      if (!isPayPalInitialized) {
+        throw new Error('PayPal not initialized');
       }
 
-      const order = await paypalService.createOrder({
-        amount: data.amount,
-        currency: data.currency.toUpperCase(),
-        contractId: data.contractId,
-        description: data.description,
-        metadata: data.metadata,
-      });
+      setPaymentState(prev => ({ ...prev, isProcessing: true, error: null }));
 
-      setPaymentState(prev => ({ 
-        ...prev, 
-        paymentId: order.id,
-        isProcessing: false, 
-      }));
+      try {
+        const validation = validatePaymentData(data);
+        if (!validation.isValid) {
+          throw new Error(validation.errors.join(', '));
+        }
 
-      return {
-        success: true,
-        orderId: order.id,
-      };
-    } catch (error) {
-      const errorMessage = handlePaymentError(error, 'paypal');
-      setPaymentState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        error: errorMessage, 
-      }));
-      throw error;
-    }
-  }, [isPayPalInitialized]);
+        const order = await paypalService.createOrder({
+          amount: data.amount,
+          currency: data.currency.toUpperCase(),
+          contractId: data.contractId,
+          description: data.description,
+          metadata: data.metadata,
+        });
+
+        setPaymentState(prev => ({
+          ...prev,
+          paymentId: order.id,
+          isProcessing: false,
+        }));
+
+        return {
+          success: true,
+          orderId: order.id,
+        };
+      } catch (error) {
+        const errorMessage = handlePaymentError(error, 'paypal');
+        setPaymentState(prev => ({
+          ...prev,
+          isProcessing: false,
+          error: errorMessage,
+        }));
+        throw error;
+      }
+    },
+    [isPayPalInitialized],
+  );
 
   // Cargar métodos de pago guardados
   const loadSavedPaymentMethods = useCallback(() => {
@@ -293,41 +342,68 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
   }, [refetchPaymentMethods]);
 
   // Eliminar método de pago
-  const removePaymentMethod = useCallback(async (id: string, provider: PaymentProvider) => {
-    try {
-      if (provider === 'stripe') {
-        await stripeService.removePaymentMethod(id);
+  const removePaymentMethod = useCallback(
+    async (id: string, provider: PaymentProvider) => {
+      try {
+        if (provider === 'stripe') {
+          await stripeService.removePaymentMethod(id);
+        }
+        // PayPal no permite eliminar métodos guardados directamente
+        queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
+      } catch (error) {
+        loggingService.error(
+          LogCategory.API,
+          'Error removing payment method',
+          undefined,
+          undefined,
+          error as Error,
+        );
+        throw error;
       }
-      // PayPal no permite eliminar métodos guardados directamente
-      queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
-    } catch (error) {
-      loggingService.error(LogCategory.API, 'Error removing payment method', undefined, undefined, error as Error);
-      throw error;
-    }
-  }, [queryClient]);
+    },
+    [queryClient],
+  );
 
   // Establecer método de pago por defecto
-  const setDefaultPaymentMethod = useCallback(async (id: string, provider: PaymentProvider) => {
-    try {
-      if (provider === 'stripe') {
-        await paymentService.setDefaultPaymentMethod(id);
+  const setDefaultPaymentMethod = useCallback(
+    async (id: string, provider: PaymentProvider) => {
+      try {
+        if (provider === 'stripe') {
+          await paymentService.setDefaultPaymentMethod(id);
+        }
+        queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
+      } catch (error) {
+        loggingService.error(
+          LogCategory.API,
+          'Error setting default payment method',
+          undefined,
+          undefined,
+          error as Error,
+        );
+        throw error;
       }
-      queryClient.invalidateQueries({ queryKey: ['savedPaymentMethods'] });
-    } catch (error) {
-      loggingService.error(LogCategory.API, 'Error setting default payment method', undefined, undefined, error as Error);
-      throw error;
-    }
-  }, [queryClient]);
+    },
+    [queryClient],
+  );
 
   // Crear reembolso
-  const createRefund = useCallback(async (paymentId: string, provider: PaymentProvider, amount?: number) => {
-    try {
-      await refundMutation.mutateAsync({ paymentId, provider, amount });
-    } catch (error) {
-      loggingService.error(LogCategory.API, 'Error creating refund', undefined, undefined, error as Error);
-      throw error;
-    }
-  }, [refundMutation]);
+  const createRefund = useCallback(
+    async (paymentId: string, provider: PaymentProvider, amount?: number) => {
+      try {
+        await refundMutation.mutateAsync({ paymentId, provider, amount });
+      } catch (error) {
+        loggingService.error(
+          LogCategory.API,
+          'Error creating refund',
+          undefined,
+          undefined,
+          error as Error,
+        );
+        throw error;
+      }
+    },
+    [refundMutation],
+  );
 
   // Cargar historial de transacciones
   const loadTransactionHistory = useCallback(() => {
@@ -335,26 +411,29 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
   }, [refetchTransactionHistory]);
 
   // Validar datos de pago
-  const validatePaymentData = useCallback((data: PaymentData): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
+  const validatePaymentData = useCallback(
+    (data: PaymentData): { isValid: boolean; errors: string[] } => {
+      const errors: string[] = [];
 
-    if (!data.amount || data.amount <= 0) {
-      errors.push('El monto debe ser mayor a 0');
-    }
+      if (!data.amount || data.amount <= 0) {
+        errors.push('El monto debe ser mayor a 0');
+      }
 
-    if (!data.currency || data.currency.length !== 3) {
-      errors.push('Código de moneda inválido');
-    }
+      if (!data.currency || data.currency.length !== 3) {
+        errors.push('Código de moneda inválido');
+      }
 
-    if (data.amount > 999999) {
-      errors.push('El monto excede el límite máximo');
-    }
+      if (data.amount > 999999) {
+        errors.push('El monto excede el límite máximo');
+      }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
-  }, []);
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    },
+    [],
+  );
 
   // Reset del estado de pago
   const resetPaymentState = useCallback(() => {
@@ -369,13 +448,16 @@ export const usePaymentProcessing = (config?: PaymentConfig): UsePaymentProcessi
   }, []);
 
   // Manejo de errores
-  const handlePaymentError = useCallback((error: any, provider: PaymentProvider): string => {
-    if (provider === 'stripe') {
-      return stripeService.handleStripeError(error);
-    } else {
-      return paypalService.handlePayPalError(error);
-    }
-  }, []);
+  const handlePaymentError = useCallback(
+    (error: any, provider: PaymentProvider): string => {
+      if (provider === 'stripe') {
+        return stripeService.handleStripeError(error);
+      } else {
+        return paypalService.handlePayPalError(error);
+      }
+    },
+    [],
+  );
 
   return {
     paymentState,

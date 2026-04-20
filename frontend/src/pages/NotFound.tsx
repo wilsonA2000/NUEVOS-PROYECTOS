@@ -6,7 +6,7 @@ const NotFound: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth='sm'>
       <Box
         sx={{
           minHeight: '100vh',
@@ -19,9 +19,9 @@ const NotFound: React.FC = () => {
           gap: { xs: 2, sm: 3 },
         }}
       >
-        <Typography 
-          variant="h1" 
-          color="primary" 
+        <Typography
+          variant='h1'
+          color='primary'
           sx={{
             fontSize: { xs: '6rem', sm: '8rem' },
             fontWeight: 700,
@@ -30,8 +30,8 @@ const NotFound: React.FC = () => {
         >
           404
         </Typography>
-        <Typography 
-          variant="h4" 
+        <Typography
+          variant='h4'
           sx={{
             fontSize: { xs: '1.5rem', sm: '2rem' },
             fontWeight: 600,
@@ -39,22 +39,22 @@ const NotFound: React.FC = () => {
         >
           Página No Encontrada
         </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary"
+        <Typography
+          variant='body1'
+          color='text.secondary'
           sx={{
             fontSize: { xs: '0.875rem', sm: '1rem' },
             maxWidth: '400px',
             mb: { xs: 2, sm: 3 },
           }}
         >
-          La página que estás buscando podría haber sido eliminada, haber cambiado su nombre
-          o estar temporalmente no disponible.
+          La página que estás buscando podría haber sido eliminada, haber
+          cambiado su nombre o estar temporalmente no disponible.
         </Typography>
         <Button
-          variant="contained"
-          color="primary"
-          size="large"
+          variant='contained'
+          color='primary'
+          size='large'
           onClick={() => navigate('/')}
           sx={{
             px: { xs: 3, sm: 4 },
@@ -69,4 +69,4 @@ const NotFound: React.FC = () => {
   );
 };
 
-export default NotFound; 
+export default NotFound;

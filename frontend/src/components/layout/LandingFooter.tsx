@@ -28,7 +28,7 @@ const LandingFooter: React.FC = () => {
         py: 6,
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth='lg'>
         <Grid container spacing={4}>
           {/* Logo y descripción */}
           <Grid item xs={12} md={4}>
@@ -37,7 +37,8 @@ const LandingFooter: React.FC = () => {
                 sx={{
                   width: 40,
                   height: 40,
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  background:
+                    'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                   borderRadius: 2,
                   display: 'flex',
                   alignItems: 'center',
@@ -45,7 +46,7 @@ const LandingFooter: React.FC = () => {
                 }}
               >
                 <Typography
-                  variant="h6"
+                  variant='h6'
                   sx={{
                     color: 'white',
                     fontWeight: 700,
@@ -56,7 +57,7 @@ const LandingFooter: React.FC = () => {
                 </Typography>
               </Box>
               <Typography
-                variant="h5"
+                variant='h5'
                 sx={{
                   fontWeight: 700,
                   color: 'white',
@@ -66,38 +67,55 @@ const LandingFooter: React.FC = () => {
               </Typography>
             </Box>
             <Typography
-              variant="body2"
+              variant='body2'
               sx={{
                 color: 'grey.400',
                 mb: 3,
                 lineHeight: 1.6,
               }}
             >
-              La plataforma inmobiliaria revolucionaria que conecta arrendadores, 
-              inquilinos y prestadores de servicios de manera segura y confiable.
+              La plataforma inmobiliaria revolucionaria que conecta
+              arrendadores, inquilinos y prestadores de servicios de manera
+              segura y confiable.
             </Typography>
-            
+
             {/* Información de contacto */}
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
                 <EmailIcon sx={{ fontSize: 16, color: 'grey.400' }} />
-                <a href="mailto:contacto@verihome.com" style={{ color: 'inherit', textDecoration: 'none' }}>
-                  <Typography variant="body2" sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}>
+                <a
+                  href='mailto:contacto@verihome.com'
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
+                  >
                     contacto@verihome.com
                   </Typography>
                 </a>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
                 <PhoneIcon sx={{ fontSize: 16, color: 'grey.400' }} />
-                <a href="tel:+5771234567" style={{ color: 'inherit', textDecoration: 'none' }}>
-                  <Typography variant="body2" sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}>
+                <a
+                  href='tel:+5771234567'
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
+                  >
                     +57 (7) 123-4567
                   </Typography>
                 </a>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LocationIcon sx={{ fontSize: 16, color: 'grey.400' }} />
-                <Typography variant="body2" sx={{ color: 'grey.400' }}>
+                <Typography variant='body2' sx={{ color: 'grey.400' }}>
                   Bucaramanga, Colombia
                 </Typography>
               </Box>
@@ -106,11 +124,11 @@ const LandingFooter: React.FC = () => {
             {/* Redes sociales */}
             <Box sx={{ display: 'flex', gap: 1 }}>
               <IconButton
-                component="a"
-                href="https://facebook.com/verihome"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook de VeriHome"
+                component='a'
+                href='https://facebook.com/verihome'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Facebook de VeriHome'
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -119,11 +137,11 @@ const LandingFooter: React.FC = () => {
                 <FacebookIcon />
               </IconButton>
               <IconButton
-                component="a"
-                href="https://twitter.com/verihome"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter de VeriHome"
+                component='a'
+                href='https://twitter.com/verihome'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Twitter de VeriHome'
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -132,11 +150,11 @@ const LandingFooter: React.FC = () => {
                 <TwitterIcon />
               </IconButton>
               <IconButton
-                component="a"
-                href="https://linkedin.com/company/verihome"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn de VeriHome"
+                component='a'
+                href='https://linkedin.com/company/verihome'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='LinkedIn de VeriHome'
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -145,11 +163,11 @@ const LandingFooter: React.FC = () => {
                 <LinkedInIcon />
               </IconButton>
               <IconButton
-                component="a"
-                href="https://instagram.com/verihome"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram de VeriHome"
+                component='a'
+                href='https://instagram.com/verihome'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Instagram de VeriHome'
                 sx={{
                   color: 'grey.400',
                   '&:hover': { color: 'white' },
@@ -164,17 +182,24 @@ const LandingFooter: React.FC = () => {
           <Grid item xs={12} md={2}>
             <MuiLink
               component={Link}
-              to="/"
+              to='/'
               sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 600,
+                  color: 'white',
+                  '&:hover': { color: 'grey.300' },
+                }}
+              >
                 Navegación
               </Typography>
             </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
-                to="/properties"
+                to='/properties'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -185,7 +210,7 @@ const LandingFooter: React.FC = () => {
               </MuiLink>
               <MuiLink
                 component={Link}
-                to="/about"
+                to='/about'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -196,7 +221,7 @@ const LandingFooter: React.FC = () => {
               </MuiLink>
               <MuiLink
                 component={Link}
-                to="/contact"
+                to='/contact'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -212,27 +237,74 @@ const LandingFooter: React.FC = () => {
           <Grid item xs={12} md={2}>
             <MuiLink
               component={Link}
-              to="/services"
+              to='/services'
               sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 600,
+                  color: 'white',
+                  '&:hover': { color: 'grey.300' },
+                }}
+              >
                 Servicios
               </Typography>
             </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <MuiLink component={Link} to="/services#arrendamiento" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/services#arrendamiento'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Arrendamiento
               </MuiLink>
-              <MuiLink component={Link} to="/services#venta" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/services#venta'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Venta
               </MuiLink>
-              <MuiLink component={Link} to="/services#administracion" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/services#administracion'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Administración
               </MuiLink>
-              <MuiLink component={Link} to="/services#servicios-profesionales" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/services#servicios-profesionales'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Servicios Profesionales
               </MuiLink>
-              <MuiLink component={Link} to="/services#seguros" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/services#seguros'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Seguros
               </MuiLink>
             </Box>
@@ -242,17 +314,24 @@ const LandingFooter: React.FC = () => {
           <Grid item xs={12} md={2}>
             <MuiLink
               component={Link}
-              to="/help"
+              to='/help'
               sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 600,
+                  color: 'white',
+                  '&:hover': { color: 'grey.300' },
+                }}
+              >
                 Soporte
               </Typography>
             </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
-                to="/help"
+                to='/help'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -261,13 +340,37 @@ const LandingFooter: React.FC = () => {
               >
                 Centro de Ayuda
               </MuiLink>
-              <MuiLink component={Link} to="/terms" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/terms'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Términos y Condiciones
               </MuiLink>
-              <MuiLink component={Link} to="/privacy" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/privacy'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Política de Privacidad
               </MuiLink>
-              <MuiLink component={Link} to="/security" sx={{ color: 'grey.400', textDecoration: 'none', '&:hover': { color: 'white' } }}>
+              <MuiLink
+                component={Link}
+                to='/security'
+                sx={{
+                  color: 'grey.400',
+                  textDecoration: 'none',
+                  '&:hover': { color: 'white' },
+                }}
+              >
                 Seguridad
               </MuiLink>
             </Box>
@@ -277,17 +380,24 @@ const LandingFooter: React.FC = () => {
           <Grid item xs={12} md={2}>
             <MuiLink
               component={Link}
-              to="/blog"
+              to='/blog'
               sx={{ textDecoration: 'none', display: 'block', mb: 2 }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'white', '&:hover': { color: 'grey.300' } }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 600,
+                  color: 'white',
+                  '&:hover': { color: 'grey.300' },
+                }}
+              >
                 Comunidad
               </Typography>
             </MuiLink>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <MuiLink
                 component={Link}
-                to="/blog"
+                to='/blog'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -298,7 +408,7 @@ const LandingFooter: React.FC = () => {
               </MuiLink>
               <MuiLink
                 component={Link}
-                to="/events"
+                to='/events'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -309,7 +419,7 @@ const LandingFooter: React.FC = () => {
               </MuiLink>
               <MuiLink
                 component={Link}
-                to="/partners"
+                to='/partners'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -320,7 +430,7 @@ const LandingFooter: React.FC = () => {
               </MuiLink>
               <MuiLink
                 component={Link}
-                to="/careers"
+                to='/careers'
                 sx={{
                   color: 'grey.400',
                   textDecoration: 'none',
@@ -346,7 +456,7 @@ const LandingFooter: React.FC = () => {
           }}
         >
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               color: 'grey.400',
             }}
@@ -354,7 +464,7 @@ const LandingFooter: React.FC = () => {
             © 2026 VeriHome. Todos los derechos reservados.
           </Typography>
           <Typography
-            variant="body2"
+            variant='body2'
             sx={{
               color: 'grey.400',
             }}
@@ -367,4 +477,4 @@ const LandingFooter: React.FC = () => {
   );
 };
 
-export default LandingFooter; 
+export default LandingFooter;

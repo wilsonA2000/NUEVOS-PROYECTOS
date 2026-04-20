@@ -100,53 +100,75 @@ describe('AdminService', () => {
         id: 'c-1',
         property_address: '123 Main St',
         landlord_name: 'John',
-        clauses: [{ key: 'clause-1', title: 'Payment', content: 'Monthly', is_custom: false }],
+        clauses: [
+          {
+            key: 'clause-1',
+            title: 'Payment',
+            content: 'Monthly',
+            is_custom: false,
+          },
+        ],
         history_entries: [],
       };
       mockedApi.get.mockResolvedValueOnce({ data: detail });
 
       const result = await getContractForReview('c-1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/contracts/admin/contracts/c-1/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/contracts/admin/contracts/c-1/'
+      );
       expect(result.clauses).toHaveLength(1);
     });
   });
 
   describe('approveContract', () => {
     it('should approve a contract with notes', async () => {
-      const response = { success: true, message: 'Approved', new_state: 'DRAFT' };
+      const response = {
+        success: true,
+        message: 'Approved',
+        new_state: 'DRAFT',
+      };
       mockedApi.post.mockResolvedValueOnce({ data: response });
 
       const result = await approveContract('c-1', { notes: 'Looks good' });
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/approve/',
-        { notes: 'Looks good' },
+        { notes: 'Looks good' }
       );
       expect(result.success).toBe(true);
       expect(result.new_state).toBe('DRAFT');
     });
 
     it('should approve without payload', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: { success: true, message: 'OK', new_state: 'DRAFT' } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { success: true, message: 'OK', new_state: 'DRAFT' },
+      });
 
       await approveContract('c-1');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/contracts/admin/contracts/c-1/approve/', {});
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/contracts/admin/contracts/c-1/approve/',
+        {}
+      );
     });
   });
 
   describe('rejectContract', () => {
     it('should reject a contract with required notes', async () => {
       const payload = { notes: 'Missing clauses', requires_resubmission: true };
-      const response = { success: true, message: 'Rejected', new_state: 'LANDLORD_EDITING' };
+      const response = {
+        success: true,
+        message: 'Rejected',
+        new_state: 'LANDLORD_EDITING',
+      };
       mockedApi.post.mockResolvedValueOnce({ data: response });
 
       const result = await rejectContract('c-1', payload);
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/reject/',
-        payload,
+        payload
       );
       expect(result.success).toBe(true);
     });
@@ -155,21 +177,28 @@ describe('AdminService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Contract locked'));
 
       await expect(
-        rejectContract('c-1', { notes: 'Bad', requires_resubmission: false }),
+        rejectContract('c-1', { notes: 'Bad', requires_resubmission: false })
       ).rejects.toThrow('Contract locked');
     });
   });
 
   describe('reApproveContract', () => {
     it('should re-approve a contract after corrections', async () => {
-      const response = { success: true, message: 'Re-approved', new_state: 'DRAFT', cycle: 2 };
+      const response = {
+        success: true,
+        message: 'Re-approved',
+        new_state: 'DRAFT',
+        cycle: 2,
+      };
       mockedApi.post.mockResolvedValueOnce({ data: response });
 
-      const result = await reApproveContract('c-1', { notes: 'Corrections look good' });
+      const result = await reApproveContract('c-1', {
+        notes: 'Corrections look good',
+      });
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/re-approve/',
-        { notes: 'Corrections look good' },
+        { notes: 'Corrections look good' }
       );
       expect(result.cycle).toBe(2);
     });
@@ -180,10 +209,24 @@ describe('AdminService', () => {
   describe('getSystemOverview', () => {
     it('should fetch system overview', async () => {
       const overview = {
-        users: { total: 100, active_today: 25, new_this_month: 10, by_type: {} },
-        contracts: { total: 50, active: 30, pending_review: 5, completed_this_month: 8 },
+        users: {
+          total: 100,
+          active_today: 25,
+          new_this_month: 10,
+          by_type: {},
+        },
+        contracts: {
+          total: 50,
+          active: 30,
+          pending_review: 5,
+          completed_this_month: 8,
+        },
         properties: { total: 200, available: 150, rented: 50 },
-        payments: { total_volume: 50000000, pending: 5, completed_this_month: 20 },
+        payments: {
+          total_volume: 50000000,
+          pending: 5,
+          completed_this_month: 20,
+        },
         system_health: {
           api_latency_ms: 45,
           database_status: 'healthy',
@@ -219,7 +262,10 @@ describe('AdminService', () => {
 
       const result = await generateAuditReport(request);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/audit/report/', request);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/audit/report/',
+        request
+      );
       expect(result.report_id).toBe('r-1');
     });
   });
@@ -231,7 +277,13 @@ describe('AdminService', () => {
         suspicious_ips: [],
         recent_failed_logins: [],
         active_alerts: [
-          { id: 'a-1', type: 'brute_force', message: 'Alert', severity: 'medium', created_at: '2025-01-01' },
+          {
+            id: 'a-1',
+            type: 'brute_force',
+            message: 'Alert',
+            severity: 'medium',
+            created_at: '2025-01-01',
+          },
         ],
       };
       mockedApi.get.mockResolvedValueOnce({ data: analysis });
@@ -246,8 +298,15 @@ describe('AdminService', () => {
 
   describe('exportLogs', () => {
     it('should export logs with parameters', async () => {
-      const params = { date_from: '2025-01-01', date_to: '2025-06-30', format: 'csv' as const };
-      const response = { download_url: 'https://example.com/logs.csv', records_count: 1500 };
+      const params = {
+        date_from: '2025-01-01',
+        date_to: '2025-06-30',
+        format: 'csv' as const,
+      };
+      const response = {
+        download_url: 'https://example.com/logs.csv',
+        records_count: 1500,
+      };
       mockedApi.post.mockResolvedValueOnce({ data: response });
 
       const result = await exportLogs(params);
@@ -261,12 +320,19 @@ describe('AdminService', () => {
   describe('cleanupLogs', () => {
     it('should cleanup logs with dry run', async () => {
       const params = { retention_days: 90, dry_run: true };
-      const response = { records_deleted: 500, space_freed_mb: 12.5, dry_run: true };
+      const response = {
+        records_deleted: 500,
+        space_freed_mb: 12.5,
+        dry_run: true,
+      };
       mockedApi.post.mockResolvedValueOnce({ data: response });
 
       const result = await cleanupLogs(params);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/core/logs/cleanup/', params);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/core/logs/cleanup/',
+        params
+      );
       expect(result.dry_run).toBe(true);
       expect(result.records_deleted).toBe(500);
     });
@@ -297,7 +363,9 @@ describe('AdminService', () => {
 
       const result = await getDocumentAccessHistory('doc-1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/documents/doc-1/access-history/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/documents/doc-1/access-history/'
+      );
       expect(result.total_accesses).toBe(5);
       expect(result.access_history).toHaveLength(1);
     });
@@ -312,7 +380,9 @@ describe('AdminService', () => {
 
       const result = await getContractsInCorrectionCycle();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/contracts/admin/correction-cycle/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/contracts/admin/correction-cycle/'
+      );
       expect(result).toHaveLength(1);
     });
   });
@@ -327,8 +397,17 @@ describe('AdminService', () => {
           {
             cycle: 1,
             events: [
-              { action: 'submitted', user_email: 'landlord@test.com', timestamp: '2025-01-01' },
-              { action: 'rejected', user_email: 'admin@test.com', timestamp: '2025-01-02', notes: 'Fix clauses' },
+              {
+                action: 'submitted',
+                user_email: 'landlord@test.com',
+                timestamp: '2025-01-01',
+              },
+              {
+                action: 'rejected',
+                user_email: 'admin@test.com',
+                timestamp: '2025-01-02',
+                notes: 'Fix clauses',
+              },
             ],
           },
         ],
@@ -337,7 +416,9 @@ describe('AdminService', () => {
 
       const result = await getCircularWorkflowHistory('c-1');
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/contracts/admin/contracts/c-1/workflow-history/');
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/contracts/admin/contracts/c-1/workflow-history/'
+      );
       expect(result.review_cycle_count).toBe(2);
       expect(result.history[0].events).toHaveLength(2);
     });
@@ -364,7 +445,9 @@ describe('AdminService', () => {
     });
 
     it('should expose document access method', () => {
-      expect(AdminService.getDocumentAccessHistory).toBe(getDocumentAccessHistory);
+      expect(AdminService.getDocumentAccessHistory).toBe(
+        getDocumentAccessHistory
+      );
     });
   });
 
@@ -378,9 +461,13 @@ describe('AdminService', () => {
     });
 
     it('should propagate errors on approveContract', async () => {
-      mockedApi.post.mockRejectedValueOnce(new Error('Contract already approved'));
+      mockedApi.post.mockRejectedValueOnce(
+        new Error('Contract already approved')
+      );
 
-      await expect(approveContract('c-1')).rejects.toThrow('Contract already approved');
+      await expect(approveContract('c-1')).rejects.toThrow(
+        'Contract already approved'
+      );
     });
 
     it('should propagate errors on getSystemOverview', async () => {

@@ -2,11 +2,17 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
 }
 
-const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8000';
+const API_URL =
+  typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace('/api/v1', '')
+    : 'http://localhost:8000';
 
 async function httpClient(endpoint: string, options: RequestOptions = {}) {
   const { params, ...customConfig } = options;
-  const headers = { 'Content-Type': 'application/json', ...customConfig.headers };
+  const headers = {
+    'Content-Type': 'application/json',
+    ...customConfig.headers,
+  };
 
   const config = {
     ...customConfig,
@@ -33,4 +39,4 @@ async function httpClient(endpoint: string, options: RequestOptions = {}) {
   }
 }
 
-export default httpClient; 
+export default httpClient;

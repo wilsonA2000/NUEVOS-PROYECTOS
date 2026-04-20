@@ -1,8 +1,8 @@
 /**
  * Componente de firma digital para completar el proceso de autenticación biométrica.
- * 
+ *
  * Permite al usuario firmar digitalmente después de completar la autenticación biométrica.
- * 
+ *
  * Features:
  * - Pad de firma digital con canvas
  * - Validación de firma (no vacía)
@@ -33,11 +33,9 @@ import {
   Chip,
   LinearProgress,
   CircularProgress,
-  Fade,
 } from '@mui/material';
 import {
   Draw,
-  CheckCircle,
   Security,
   Verified,
   Person,
@@ -45,9 +43,7 @@ import {
   Assignment,
   Clear,
   Save,
-  Send,
   Warning,
-  Info,
   Gavel,
 } from '@mui/icons-material';
 
@@ -98,21 +94,23 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   // Referencias
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   // Estados
   const [isDrawing, setIsDrawing] = useState(false);
-  const [signatureData, setSignatureData] = useState<SignatureData | null>(null);
+  const [signatureData, setSignatureData] = useState<SignatureData | null>(
+    null,
+  );
   const [hasSignature, setHasSignature] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [signatureQuality, setSignatureQuality] = useState(0);
-  
+
   // Configuración del canvas
   const CANVAS_WIDTH = isMobile ? 350 : 500;
   const CANVAS_HEIGHT = isMobile ? 200 : 250;
@@ -130,17 +128,17 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
     // Configurar canvas
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
-    
+
     // Configurar estilo de dibujo
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = STROKE_COLOR;
     ctx.lineWidth = STROKE_WIDTH;
-    
+
     // Fondo blanco
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Línea de firma
     ctx.strokeStyle = '#e0e0e0';
     ctx.lineWidth = 1;
@@ -150,141 +148,150 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
     ctx.lineTo(canvas.width - 50, canvas.height - 50);
     ctx.stroke();
     ctx.setLineDash([]);
-    
+
     // Texto indicativo
     ctx.fillStyle = '#9e9e9e';
     ctx.font = '14px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('Firme aquí', canvas.width / 2, canvas.height - 20);
-    
+
     // Restaurar estilo para dibujo
     ctx.strokeStyle = STROKE_COLOR;
     ctx.lineWidth = STROKE_WIDTH;
   }, []);
 
   // Obtener coordenadas del evento
-  const getEventCoordinates = useCallback((event: React.TouchEvent | React.MouseEvent | TouchEvent | MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
+  const getEventCoordinates = useCallback(
+    (event: React.TouchEvent | React.MouseEvent | TouchEvent | MouseEvent) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return { x: 0, y: 0 };
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
 
-    if ('touches' in event && event.touches.length > 0) {
-      // Evento táctil
-      return {
-        x: (event.touches[0]!.clientX - rect.left) * scaleX,
-        y: (event.touches[0]!.clientY - rect.top) * scaleY,
-      };
-    } else if ('clientX' in event) {
-      // Evento de ratón
-      return {
-        x: (event.clientX - rect.left) * scaleX,
-        y: (event.clientY - rect.top) * scaleY,
-      };
-    }
+      if ('touches' in event && event.touches.length > 0) {
+        // Evento táctil
+        return {
+          x: (event.touches[0]!.clientX - rect.left) * scaleX,
+          y: (event.touches[0]!.clientY - rect.top) * scaleY,
+        };
+      } else if ('clientX' in event) {
+        // Evento de ratón
+        return {
+          x: (event.clientX - rect.left) * scaleX,
+          y: (event.clientY - rect.top) * scaleY,
+        };
+      }
 
-    return { x: 0, y: 0 };
-  }, []);
+      return { x: 0, y: 0 };
+    },
+    [],
+  );
 
   // Iniciar dibujo
-  const startDrawing = useCallback((event: React.TouchEvent | React.MouseEvent) => {
-    event.preventDefault();
-    
-    const coords = getEventCoordinates(event);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const startDrawing = useCallback(
+    (event: React.TouchEvent | React.MouseEvent) => {
+      event.preventDefault();
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      const coords = getEventCoordinates(event);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    setIsDrawing(true);
-    
-    // Inicializar datos de firma
-    if (!signatureData) {
-      setSignatureData({
-        points: [],
-        boundingBox: {
-          minX: coords.x,
-          minY: coords.y,
-          maxX: coords.x,
-          maxY: coords.y,
-        },
-        duration: 0,
-        startTime: Date.now(),
-        endTime: 0,
-      });
-    }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    ctx.beginPath();
-    ctx.moveTo(coords.x, coords.y);
-  }, [getEventCoordinates, signatureData]);
+      setIsDrawing(true);
+
+      // Inicializar datos de firma
+      if (!signatureData) {
+        setSignatureData({
+          points: [],
+          boundingBox: {
+            minX: coords.x,
+            minY: coords.y,
+            maxX: coords.x,
+            maxY: coords.y,
+          },
+          duration: 0,
+          startTime: Date.now(),
+          endTime: 0,
+        });
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+    },
+    [getEventCoordinates, signatureData],
+  );
 
   // Dibujar
-  const draw = useCallback((event: React.TouchEvent | React.MouseEvent) => {
-    if (!isDrawing) return;
-    
-    event.preventDefault();
-    
-    const coords = getEventCoordinates(event);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const draw = useCallback(
+    (event: React.TouchEvent | React.MouseEvent) => {
+      if (!isDrawing) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      event.preventDefault();
 
-    // Dibujar línea
-    ctx.lineTo(coords.x, coords.y);
-    ctx.stroke();
+      const coords = getEventCoordinates(event);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    // Actualizar datos de firma
-    setSignatureData(prev => {
-      if (!prev) return null;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-      const newPoint: SignaturePoint = {
-        x: coords.x,
-        y: coords.y,
-        timestamp: Date.now(),
-      };
+      // Dibujar línea
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
 
-      return {
-        ...prev,
-        points: [...prev.points, newPoint],
-        boundingBox: {
-          minX: Math.min(prev.boundingBox.minX, coords.x),
-          minY: Math.min(prev.boundingBox.minY, coords.y),
-          maxX: Math.max(prev.boundingBox.maxX, coords.x),
-          maxY: Math.max(prev.boundingBox.maxY, coords.y),
-        },
-      };
-    });
+      // Actualizar datos de firma
+      setSignatureData(prev => {
+        if (!prev) return null;
 
-    setHasSignature(true);
-  }, [isDrawing, getEventCoordinates]);
+        const newPoint: SignaturePoint = {
+          x: coords.x,
+          y: coords.y,
+          timestamp: Date.now(),
+        };
+
+        return {
+          ...prev,
+          points: [...prev.points, newPoint],
+          boundingBox: {
+            minX: Math.min(prev.boundingBox.minX, coords.x),
+            minY: Math.min(prev.boundingBox.minY, coords.y),
+            maxX: Math.max(prev.boundingBox.maxX, coords.x),
+            maxY: Math.max(prev.boundingBox.maxY, coords.y),
+          },
+        };
+      });
+
+      setHasSignature(true);
+    },
+    [isDrawing, getEventCoordinates],
+  );
 
   // Terminar dibujo
   const stopDrawing = useCallback(() => {
     if (!isDrawing) return;
-    
+
     setIsDrawing(false);
-    
+
     setSignatureData(prev => {
       if (!prev) return null;
-      
+
       const endTime = Date.now();
       const duration = endTime - prev.startTime;
-      
+
       const updatedData = {
         ...prev,
         duration,
         endTime,
       };
-      
+
       // Calcular calidad de la firma
       const quality = calculateSignatureQuality(updatedData);
       setSignatureQuality(quality);
-      
+
       return updatedData;
     });
   }, [isDrawing]);
@@ -292,12 +299,18 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
   // Calcular calidad de la firma
   const calculateSignatureQuality = (data: SignatureData): number => {
     if (data.points.length < 10) return 0;
-    
+
     // Factores de calidad
-    const complexityScore = Math.min(100, data.points.length / 50 * 100); // Más puntos = más compleja
-    const sizeScore = Math.min(100, ((data.boundingBox.maxX - data.boundingBox.minX) * (data.boundingBox.maxY - data.boundingBox.minY)) / 10000 * 100);
-    const durationScore = Math.min(100, data.duration / 5000 * 100); // Tiempo razonable para firmar
-    
+    const complexityScore = Math.min(100, (data.points.length / 50) * 100); // Más puntos = más compleja
+    const sizeScore = Math.min(
+      100,
+      (((data.boundingBox.maxX - data.boundingBox.minX) *
+        (data.boundingBox.maxY - data.boundingBox.minY)) /
+        10000) *
+        100,
+    );
+    const durationScore = Math.min(100, (data.duration / 5000) * 100); // Tiempo razonable para firmar
+
     return (complexityScore + sizeScore + durationScore) / 3;
   };
 
@@ -313,16 +326,16 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
   const generateSignatureImage = useCallback((): string => {
     const canvas = canvasRef.current;
     if (!canvas) return '';
-    
+
     return canvas.toDataURL('image/png');
   }, []);
 
   // Manejar firma
   const handleSign = useCallback(async () => {
     if (!hasSignature || !termsAccepted || !privacyAccepted) return;
-    
+
     const signatureImage = generateSignatureImage();
-    
+
     // Crear datos completos de la firma
     const completeSignatureData = {
       image: signatureImage,
@@ -337,12 +350,22 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
         language: navigator.language,
       },
     };
-    
+
     // Convertir a base64 completo
     const signatureBase64 = btoa(JSON.stringify(completeSignatureData));
-    
+
     onSign(`data:application/json;base64,${signatureBase64}`);
-  }, [hasSignature, termsAccepted, privacyAccepted, generateSignatureImage, signatureData, signatureQuality, contractNumber, biometricData, onSign]);
+  }, [
+    hasSignature,
+    termsAccepted,
+    privacyAccepted,
+    generateSignatureImage,
+    signatureData,
+    signatureQuality,
+    contractNumber,
+    biometricData,
+    onSign,
+  ]);
 
   // Efectos
   useEffect(() => {
@@ -362,7 +385,9 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
     if (isDrawing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchmove', handleTouchMove, {
+        passive: false,
+      });
       document.addEventListener('touchend', handleTouchEnd);
     }
 
@@ -378,46 +403,82 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
     <Box>
       {/* Resumen de autenticación biométrica */}
       {biometricData?.confidenceScores && (
-        <Card sx={{ mb: 3, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.main' }}>
+        <Card
+          sx={{
+            mb: 3,
+            bgcolor: 'success.50',
+            border: '1px solid',
+            borderColor: 'success.main',
+          }}
+        >
           <CardContent>
-            <Typography variant="h6" gutterBottom color="success.main" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography
+              variant='h6'
+              gutterBottom
+              color='success.main'
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
               <Verified />
               Autenticación Biométrica Completada
             </Typography>
-            
+
             <Grid container spacing={2}>
               <Grid item xs={6} sm={3}>
-                <Box textAlign="center">
-                  <Typography variant="body2" color="text.secondary">Facial</Typography>
-                  <Typography variant="h6" color="success.main">
-                    {Math.round((biometricData.confidenceScores.face_confidence ?? 0) * 100)}%
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Facial
+                  </Typography>
+                  <Typography variant='h6' color='success.main'>
+                    {Math.round(
+                      (biometricData.confidenceScores.face_confidence ?? 0) *
+                        100,
+                    )}
+                    %
                   </Typography>
                 </Box>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Box textAlign="center">
-                  <Typography variant="body2" color="text.secondary">Documento</Typography>
-                  <Typography variant="h6" color="success.main">
-                    {Math.round((biometricData.confidenceScores.document_confidence ?? 0) * 100)}%
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Documento
+                  </Typography>
+                  <Typography variant='h6' color='success.main'>
+                    {Math.round(
+                      (biometricData.confidenceScores.document_confidence ??
+                        0) * 100,
+                    )}
+                    %
                   </Typography>
                 </Box>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Box textAlign="center">
-                  <Typography variant="body2" color="text.secondary">Voz</Typography>
-                  <Typography variant="h6" color="success.main">
-                    {Math.round((biometricData.confidenceScores.voice_confidence ?? 0) * 100)}%
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Voz
+                  </Typography>
+                  <Typography variant='h6' color='success.main'>
+                    {Math.round(
+                      (biometricData.confidenceScores.voice_confidence ?? 0) *
+                        100,
+                    )}
+                    %
                   </Typography>
                 </Box>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Box textAlign="center">
-                  <Typography variant="body2" color="text.secondary">General</Typography>
-                  <Typography variant="h6" color="success.main">
-                    {Math.round((biometricData.confidenceScores.overall_confidence ?? 0) * 100)}%
+                <Box textAlign='center'>
+                  <Typography variant='body2' color='text.secondary'>
+                    General
+                  </Typography>
+                  <Typography variant='h6' color='success.main'>
+                    {Math.round(
+                      (biometricData.confidenceScores.overall_confidence ?? 0) *
+                        100,
+                    )}
+                    %
                   </Typography>
                 </Box>
               </Grid>
@@ -427,24 +488,28 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       )}
 
       {/* Información del contrato */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Alert severity='info' sx={{ mb: 3 }}>
+        <Typography variant='h6' gutterBottom>
           📝 Firma Digital del Contrato
         </Typography>
-        <Typography variant="body2" paragraph>
-          Está a punto de firmar digitalmente el contrato número <strong>{contractNumber}</strong>.
-          Esta firma tendrá validez legal y completará el proceso de autenticación biométrica.
+        <Typography variant='body2' paragraph>
+          Está a punto de firmar digitalmente el contrato número{' '}
+          <strong>{contractNumber}</strong>. Esta firma tendrá validez legal y
+          completará el proceso de autenticación biométrica.
         </Typography>
-        <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+        <Box display='flex' alignItems='center' gap={2} flexWrap='wrap'>
           <Chip icon={<Assignment />} label={`Contrato: ${contractNumber}`} />
-          <Chip icon={<DateRange />} label={new Date().toLocaleDateString('es-CO')} />
-          <Chip icon={<Person />} label="Firma Digital" />
+          <Chip
+            icon={<DateRange />}
+            label={new Date().toLocaleDateString('es-CO')}
+          />
+          <Chip icon={<Person />} label='Firma Digital' />
         </Box>
       </Alert>
 
       {/* Error */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -452,11 +517,15 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       {/* Pad de firma */}
       <Card elevation={3} sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant='h6'
+            gutterBottom
+            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+          >
             <Draw />
             Área de Firma
           </Typography>
-          
+
           <Box
             ref={containerRef}
             sx={{
@@ -495,18 +564,29 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
           {/* Indicadores de calidad */}
           {hasSignature && (
             <Box sx={{ mb: 2 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                <Typography variant="body2" color="text.secondary">
+              <Box
+                display='flex'
+                alignItems='center'
+                justifyContent='space-between'
+                mb={1}
+              >
+                <Typography variant='body2' color='text.secondary'>
                   Calidad de la firma
                 </Typography>
                 <Chip
-                  size="small"
+                  size='small'
                   label={`${Math.round(signatureQuality)}%`}
-                  color={signatureQuality > 70 ? 'success' : signatureQuality > 40 ? 'warning' : 'error'}
+                  color={
+                    signatureQuality > 70
+                      ? 'success'
+                      : signatureQuality > 40
+                        ? 'warning'
+                        : 'error'
+                  }
                 />
               </Box>
               <LinearProgress
-                variant="determinate"
+                variant='determinate'
                 value={signatureQuality}
                 sx={{
                   height: 6,
@@ -514,7 +594,12 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
                   bgcolor: 'grey.200',
                   '& .MuiLinearProgress-bar': {
                     borderRadius: 3,
-                    bgcolor: signatureQuality > 70 ? 'success.main' : signatureQuality > 40 ? 'warning.main' : 'error.main',
+                    bgcolor:
+                      signatureQuality > 70
+                        ? 'success.main'
+                        : signatureQuality > 40
+                          ? 'warning.main'
+                          : 'error.main',
                   },
                 }}
               />
@@ -522,18 +607,18 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
           )}
 
           {/* Controles */}
-          <Box display="flex" justifyContent="center" gap={2}>
+          <Box display='flex' justifyContent='center' gap={2}>
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<Clear />}
               onClick={clearSignature}
               disabled={!hasSignature || loading}
             >
               Limpiar
             </Button>
-            
+
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<Save />}
               onClick={() => setShowPreview(true)}
               disabled={!hasSignature || loading}
@@ -544,9 +629,10 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
 
           {/* Advertencias */}
           {hasSignature && signatureQuality < 40 && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
+            <Alert severity='warning' sx={{ mt: 2 }}>
               <Warning sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
-              La calidad de la firma es baja. Considere firmar nuevamente de forma más clara y compleja.
+              La calidad de la firma es baja. Considere firmar nuevamente de
+              forma más clara y compleja.
             </Alert>
           )}
         </CardContent>
@@ -555,46 +641,51 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       {/* Términos y condiciones */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant='h6'
+            gutterBottom
+            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+          >
             <Gavel />
             Términos y Condiciones
           </Typography>
-          
+
           <FormControlLabel
             control={
               <Checkbox
                 checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
+                onChange={e => setTermsAccepted(e.target.checked)}
                 disabled={loading}
               />
             }
             label={
-              <Typography variant="body2">
+              <Typography variant='body2'>
                 Acepto los{' '}
                 <Button
-                  variant="text"
-                  size="small"
+                  variant='text'
+                  size='small'
                   onClick={() => setShowTerms(true)}
                   sx={{ p: 0, textDecoration: 'underline' }}
                 >
                   términos y condiciones
-                </Button>
-                {' '}del contrato digital
+                </Button>{' '}
+                del contrato digital
               </Typography>
             }
           />
-          
+
           <FormControlLabel
             control={
               <Checkbox
                 checked={privacyAccepted}
-                onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                onChange={e => setPrivacyAccepted(e.target.checked)}
                 disabled={loading}
               />
             }
             label={
-              <Typography variant="body2">
-                Acepto el tratamiento de mis datos biométricos según la política de privacidad
+              <Typography variant='body2'>
+                Acepto el tratamiento de mis datos biométricos según la política
+                de privacidad
               </Typography>
             }
           />
@@ -602,15 +693,15 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       </Card>
 
       {/* Botón de firma final */}
-      <Box textAlign="center">
+      <Box textAlign='center'>
         <Button
-          variant="contained"
-          size="large"
+          variant='contained'
+          size='large'
           onClick={handleSign}
           disabled={
-            loading || 
-            !hasSignature || 
-            !termsAccepted || 
+            loading ||
+            !hasSignature ||
+            !termsAccepted ||
             !privacyAccepted ||
             signatureQuality < 30
           }
@@ -630,39 +721,38 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       <Dialog
         open={showPreview}
         onClose={() => setShowPreview(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
-        <DialogTitle>
-          Vista Previa de la Firma
-        </DialogTitle>
+        <DialogTitle>Vista Previa de la Firma</DialogTitle>
         <DialogContent>
           {hasSignature && (
-            <Box textAlign="center">
+            <Box textAlign='center'>
               <img
                 src={generateSignatureImage()}
-                alt="Vista previa de la firma"
+                alt='Vista previa de la firma'
                 style={{
                   maxWidth: '100%',
                   border: '1px solid #ddd',
                   borderRadius: 8,
                 }}
               />
-              
+
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Calidad: {Math.round(signatureQuality)}% | 
-                  Puntos: {signatureData?.points.length || 0} | 
-                  Duración: {signatureData ? Math.round(signatureData.duration / 1000) : 0}s
+                <Typography variant='body2' color='text.secondary'>
+                  Calidad: {Math.round(signatureQuality)}% | Puntos:{' '}
+                  {signatureData?.points.length || 0} | Duración:{' '}
+                  {signatureData
+                    ? Math.round(signatureData.duration / 1000)
+                    : 0}
+                  s
                 </Typography>
               </Box>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowPreview(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setShowPreview(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 
@@ -670,44 +760,53 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
       <Dialog
         open={showTerms}
         onClose={() => setShowTerms(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          Términos y Condiciones - Firma Digital
-        </DialogTitle>
+        <DialogTitle>Términos y Condiciones - Firma Digital</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" paragraph>
+          <Typography variant='body2' paragraph>
             Al firmar digitalmente este contrato, usted acepta que:
           </Typography>
-          
-          <Typography variant="body2" component="div" sx={{ ml: 2 }}>
-            • La firma digital tiene la misma validez legal que una firma manuscrita<br />
-            • Sus datos biométricos han sido capturados y verificados de forma segura<br />
-            • El contrato será ejecutable legalmente una vez completado el proceso<br />
-            • Acepta los términos específicos del contrato de arrendamiento<br />
-            • La información proporcionada es veraz y completa<br />
-            • Comprende sus derechos y obligaciones bajo este contrato
+
+          <Typography variant='body2' component='div' sx={{ ml: 2 }}>
+            • La firma digital tiene la misma validez legal que una firma
+            manuscrita
+            <br />
+            • Sus datos biométricos han sido capturados y verificados de forma
+            segura
+            <br />
+            • El contrato será ejecutable legalmente una vez completado el
+            proceso
+            <br />
+            • Acepta los términos específicos del contrato de arrendamiento
+            <br />
+            • La información proporcionada es veraz y completa
+            <br />• Comprende sus derechos y obligaciones bajo este contrato
           </Typography>
-          
+
           <Divider sx={{ my: 2 }} />
-          
-          <Typography variant="body2" paragraph>
+
+          <Typography variant='body2' paragraph>
             <strong>Tratamiento de Datos Biométricos:</strong>
           </Typography>
-          
-          <Typography variant="body2" component="div" sx={{ ml: 2 }}>
-            • Sus datos biométricos son procesados exclusivamente para verificación de identidad<br />
-            • Los datos son cifrados y almacenados de forma segura<br />
-            • No se comparten con terceros sin su consentimiento expreso<br />
-            • Puede solicitar la eliminación de sus datos biométricos en cualquier momento<br />
-            • El procesamiento cumple con las regulaciones de protección de datos vigentes
+
+          <Typography variant='body2' component='div' sx={{ ml: 2 }}>
+            • Sus datos biométricos son procesados exclusivamente para
+            verificación de identidad
+            <br />
+            • Los datos son cifrados y almacenados de forma segura
+            <br />
+            • No se comparten con terceros sin su consentimiento expreso
+            <br />
+            • Puede solicitar la eliminación de sus datos biométricos en
+            cualquier momento
+            <br />• El procesamiento cumple con las regulaciones de protección
+            de datos vigentes
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowTerms(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setShowTerms(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>

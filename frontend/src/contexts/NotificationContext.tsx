@@ -3,7 +3,13 @@
  * Provides global notification state and actions throughout the app
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useWebSocketEnhanced';
@@ -13,7 +19,14 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'message' | 'property' | 'payment' | 'contract' | 'rating' | 'user' | 'system';
+  type:
+    | 'message'
+    | 'property'
+    | 'payment'
+    | 'contract'
+    | 'rating'
+    | 'user'
+    | 'system';
   priority: 'low' | 'medium' | 'high' | 'urgent' | 'critical';
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
   timestamp: string;
@@ -64,7 +77,10 @@ type NotificationAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_NOTIFICATIONS'; payload: Notification[] }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
-  | { type: 'UPDATE_NOTIFICATION'; payload: { id: string; updates: Partial<Notification> } }
+  | {
+      type: 'UPDATE_NOTIFICATION';
+      payload: { id: string; updates: Partial<Notification> };
+    }
   | { type: 'REMOVE_NOTIFICATION'; payload: string }
   | { type: 'MARK_AS_READ'; payload: string }
   | { type: 'MARK_ALL_AS_READ' }
@@ -81,14 +97,17 @@ const initialState: NotificationState = {
   connected: false,
 };
 
-const notificationReducer = (state: NotificationState, action: NotificationAction): NotificationState => {
+const notificationReducer = (
+  state: NotificationState,
+  action: NotificationAction,
+): NotificationState => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    
+
     case 'SET_ERROR':
       return { ...state, error: action.payload, loading: false };
-    
+
     case 'SET_NOTIFICATIONS':
       return {
         ...state,
@@ -97,7 +116,7 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
         loading: false,
         error: null,
       };
-    
+
     case 'ADD_NOTIFICATION': {
       const newNotifications = [action.payload, ...state.notifications];
       return {
@@ -119,14 +138,16 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
     }
 
     case 'REMOVE_NOTIFICATION': {
-      const filteredNotifications = state.notifications.filter(n => n.id !== action.payload);
+      const filteredNotifications = state.notifications.filter(
+        n => n.id !== action.payload,
+      );
       return {
         ...state,
         notifications: filteredNotifications,
         unreadCount: filteredNotifications.filter(n => !n.read).length,
       };
     }
-    
+
     case 'MARK_AS_READ':
       return {
         ...state,
@@ -135,23 +156,23 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
         ),
         unreadCount: Math.max(0, state.unreadCount - 1),
       };
-    
+
     case 'MARK_ALL_AS_READ':
       return {
         ...state,
         notifications: state.notifications.map(n => ({ ...n, read: true })),
         unreadCount: 0,
       };
-    
+
     case 'SET_PREFERENCES':
       return { ...state, preferences: action.payload };
-    
+
     case 'SET_CONNECTED':
       return { ...state, connected: action.payload };
-    
+
     case 'CLEAR_ALL':
       return { ...state, notifications: [], unreadCount: 0 };
-    
+
     default:
       return state;
   }
@@ -166,18 +187,24 @@ interface NotificationContextType {
     removeNotification: (id: string) => Promise<void>;
     clearAll: () => Promise<void>;
     loadPreferences: () => Promise<void>;
-    updatePreferences: (preferences: Partial<NotificationPreferences>) => Promise<void>;
+    updatePreferences: (
+      preferences: Partial<NotificationPreferences>
+    ) => Promise<void>;
     createNotification: (notification: Partial<Notification>) => Promise<void>;
     testNotification: (channel: string) => Promise<void>;
   };
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined,
+);
 
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotificationContext must be used within a NotificationProvider');
+    throw new Error(
+      'useNotificationContext must be used within a NotificationProvider',
+    );
   }
   return context;
 };
@@ -186,13 +213,15 @@ interface NotificationProviderProps {
   children: React.ReactNode;
 }
 
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({
+  children,
+}) => {
   const [state, dispatch] = useReducer(notificationReducer, initialState);
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // WebSocket integration
   const { isConnected, subscribe } = useNotifications({
-    onConnectionChange: (status) => {
+    onConnectionChange: status => {
       dispatch({ type: 'SET_CONNECTED', payload: status.connected });
     },
   });
@@ -201,41 +230,50 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   useEffect(() => {
     if (!isConnected) return undefined;
 
-    const unsubscribeNewNotification = subscribe('new_notification', (message) => {
-      const notification: Notification = {
-        id: message.data.id,
-        title: message.data.title,
-        message: message.data.message,
-        type: message.data.type,
-        priority: message.data.priority || 'medium',
-        status: message.data.status || 'delivered',
-        timestamp: message.data.timestamp,
-        read: false,
-        data: message.data.data,
-        actions: message.data.actions,
-        channel: message.data.channel,
-      };
+    const unsubscribeNewNotification = subscribe(
+      'new_notification',
+      message => {
+        const notification: Notification = {
+          id: message.data.id,
+          title: message.data.title,
+          message: message.data.message,
+          type: message.data.type,
+          priority: message.data.priority || 'medium',
+          status: message.data.status || 'delivered',
+          timestamp: message.data.timestamp,
+          read: false,
+          data: message.data.data,
+          actions: message.data.actions,
+          channel: message.data.channel,
+        };
 
-      dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+        dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
 
-      // Show toast for high priority notifications
-      if (notification.priority === 'urgent' || notification.priority === 'critical') {
-        toast.info(notification.title, {
-          position: 'top-right',
-          autoClose: 5000,
+        // Show toast for high priority notifications
+        if (
+          notification.priority === 'urgent' ||
+          notification.priority === 'critical'
+        ) {
+          toast.info(notification.title, {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+        }
+      },
+    );
+
+    const unsubscribeNotificationRead = subscribe(
+      'notification_read',
+      message => {
+        dispatch({
+          type: 'UPDATE_NOTIFICATION',
+          payload: {
+            id: message.data.notification_id,
+            updates: { read: true },
+          },
         });
-      }
-    });
-
-    const unsubscribeNotificationRead = subscribe('notification_read', (message) => {
-      dispatch({ 
-        type: 'UPDATE_NOTIFICATION', 
-        payload: { 
-          id: message.data.notification_id, 
-          updates: { read: true }, 
-        }, 
-      });
-    });
+      },
+    );
 
     return () => {
       unsubscribeNewNotification();
@@ -254,7 +292,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         const notifications = response.data.results || response.data;
         dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
       } catch (error: any) {
-        dispatch({ type: 'SET_ERROR', payload: error.message || 'Failed to load notifications' });
+        dispatch({
+          type: 'SET_ERROR',
+          payload: error.message || 'Failed to load notifications',
+        });
       }
     }, [isAuthenticated]),
 
@@ -302,29 +343,37 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         const response = await api.get('/core/notifications/preferences/');
         dispatch({ type: 'SET_PREFERENCES', payload: response.data });
-      } catch (error: any) {
-      }
+      } catch (error: any) {}
     }, [isAuthenticated]),
 
-    updatePreferences: useCallback(async (preferences: Partial<NotificationPreferences>) => {
-      try {
-        const response = await api.patch('/core/notifications/preferences/', preferences);
-        dispatch({ type: 'SET_PREFERENCES', payload: response.data });
-        toast.success('Notification preferences updated');
-      } catch (error: any) {
-        toast.error('Failed to update preferences');
-      }
-    }, []),
+    updatePreferences: useCallback(
+      async (preferences: Partial<NotificationPreferences>) => {
+        try {
+          const response = await api.patch(
+            '/core/notifications/preferences/',
+            preferences,
+          );
+          dispatch({ type: 'SET_PREFERENCES', payload: response.data });
+          toast.success('Notification preferences updated');
+        } catch (error: any) {
+          toast.error('Failed to update preferences');
+        }
+      },
+      [],
+    ),
 
-    createNotification: useCallback(async (notification: Partial<Notification>) => {
-      try {
-        const response = await api.post('/core/notifications/', notification);
-        dispatch({ type: 'ADD_NOTIFICATION', payload: response.data });
-        toast.success('Notification created');
-      } catch (error: any) {
-        toast.error('Failed to create notification');
-      }
-    }, []),
+    createNotification: useCallback(
+      async (notification: Partial<Notification>) => {
+        try {
+          const response = await api.post('/core/notifications/', notification);
+          dispatch({ type: 'ADD_NOTIFICATION', payload: response.data });
+          toast.success('Notification created');
+        } catch (error: any) {
+          toast.error('Failed to create notification');
+        }
+      },
+      [],
+    ),
 
     testNotification: useCallback(async (channel: string) => {
       try {

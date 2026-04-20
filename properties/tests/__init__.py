@@ -27,25 +27,26 @@ User = get_user_model()
 
 # -- Helpers -------------------------------------------------------------------
 
-def _make_landlord(email='landlord@test.com', **kwargs):
+
+def _make_landlord(email="landlord@test.com", **kwargs):
     """Create a landlord user for testing."""
     defaults = dict(
-        password='testpass123',
-        first_name='Juan',
-        last_name='Perez',
-        user_type='landlord',
+        password="testpass123",
+        first_name="Juan",
+        last_name="Perez",
+        user_type="landlord",
     )
     defaults.update(kwargs)
     return User.objects.create_user(email=email, **defaults)
 
 
-def _make_tenant(email='tenant@test.com', **kwargs):
+def _make_tenant(email="tenant@test.com", **kwargs):
     """Create a tenant user for testing."""
     defaults = dict(
-        password='testpass123',
-        first_name='Maria',
-        last_name='Garcia',
-        user_type='tenant',
+        password="testpass123",
+        first_name="Maria",
+        last_name="Garcia",
+        user_type="tenant",
     )
     defaults.update(kwargs)
     return User.objects.create_user(email=email, **defaults)
@@ -54,24 +55,25 @@ def _make_tenant(email='tenant@test.com', **kwargs):
 def _make_property(landlord, **kwargs):
     """Create a Property instance for testing."""
     defaults = dict(
-        title='Apartamento Centro',
-        description='Hermoso apartamento en el centro de la ciudad',
-        property_type='apartment',
-        listing_type='rent',
-        address='Calle Principal 123',
-        city='Bogota',
-        state='Cundinamarca',
-        country='Colombia',
+        title="Apartamento Centro",
+        description="Hermoso apartamento en el centro de la ciudad",
+        property_type="apartment",
+        listing_type="rent",
+        address="Calle Principal 123",
+        city="Bogota",
+        state="Cundinamarca",
+        country="Colombia",
         bedrooms=2,
         bathrooms=1,
-        total_area=Decimal('80.00'),
-        rent_price=Decimal('1500000.00'),
+        total_area=Decimal("80.00"),
+        rent_price=Decimal("1500000.00"),
     )
     defaults.update(kwargs)
     return Property.objects.create(landlord=landlord, **defaults)
 
 
 # -- PropertyModelTests --------------------------------------------------------
+
 
 class PropertyModelTests(TestCase):
     """Tests for the Property model (~15 tests)."""
@@ -82,7 +84,7 @@ class PropertyModelTests(TestCase):
     # 1
     def test_create_property(self):
         prop = _make_property(self.landlord)
-        self.assertEqual(prop.title, 'Apartamento Centro')
+        self.assertEqual(prop.title, "Apartamento Centro")
         self.assertEqual(prop.landlord, self.landlord)
         self.assertIsNotNone(prop.created_at)
 
@@ -93,18 +95,20 @@ class PropertyModelTests(TestCase):
 
     # 3
     def test_str_representation(self):
-        prop = _make_property(self.landlord, title='Mi Casa', city='Medellin', state='Antioquia')
-        self.assertEqual(str(prop), 'Mi Casa - Medellin, Antioquia')
+        prop = _make_property(
+            self.landlord, title="Mi Casa", city="Medellin", state="Antioquia"
+        )
+        self.assertEqual(str(prop), "Mi Casa - Medellin, Antioquia")
 
     # 4
     def test_default_status_available(self):
         prop = _make_property(self.landlord)
-        self.assertEqual(prop.status, 'available')
+        self.assertEqual(prop.status, "available")
 
     # 5
     def test_default_listing_type_rent(self):
         prop = _make_property(self.landlord)
-        self.assertEqual(prop.listing_type, 'rent')
+        self.assertEqual(prop.listing_type, "rent")
 
     # 6
     def test_default_lease_terms(self):
@@ -114,10 +118,12 @@ class PropertyModelTests(TestCase):
 
     # 7
     def test_get_formatted_price_rent(self):
-        prop = _make_property(self.landlord, listing_type='rent', rent_price=Decimal('1500000.00'))
+        prop = _make_property(
+            self.landlord, listing_type="rent", rent_price=Decimal("1500000.00")
+        )
         formatted = prop.get_formatted_price()
-        self.assertIn('1,500,000.00', formatted)
-        self.assertIn('/mes', formatted)
+        self.assertIn("1,500,000.00", formatted)
+        self.assertIn("/mes", formatted)
 
     # 8
     def test_get_main_image_no_images(self):
@@ -126,8 +132,8 @@ class PropertyModelTests(TestCase):
 
     # 9
     def test_ordering_by_created_at(self):
-        p1 = _make_property(self.landlord, title='First')
-        p2 = _make_property(self.landlord, title='Second')
+        p1 = _make_property(self.landlord, title="First")
+        p2 = _make_property(self.landlord, title="Second")
         qs = list(Property.objects.all())
         # ordering is ['-created_at'], newest first
         self.assertEqual(qs[0].id, p2.id)
@@ -171,6 +177,7 @@ class PropertyModelTests(TestCase):
 
 # -- PropertyFavoriteModelTests ------------------------------------------------
 
+
 class PropertyFavoriteModelTests(TestCase):
     """Tests for the PropertyFavorite model (~3 tests)."""
 
@@ -202,6 +209,7 @@ class PropertyFavoriteModelTests(TestCase):
 
 # -- PropertyInquiryModelTests ------------------------------------------------
 
+
 class PropertyInquiryModelTests(TestCase):
     """Tests for the PropertyInquiry model (~3 tests)."""
 
@@ -215,8 +223,8 @@ class PropertyInquiryModelTests(TestCase):
         inq = PropertyInquiry.objects.create(
             property=self.prop,
             inquirer=self.tenant,
-            subject='Consulta sobre el apartamento',
-            message='Me interesa, puedo visitarlo?',
+            subject="Consulta sobre el apartamento",
+            message="Me interesa, puedo visitarlo?",
         )
         self.assertEqual(inq.property, self.prop)
         self.assertEqual(inq.inquirer, self.tenant)
@@ -227,18 +235,18 @@ class PropertyInquiryModelTests(TestCase):
         inq = PropertyInquiry.objects.create(
             property=self.prop,
             inquirer=self.tenant,
-            subject='Test',
-            message='Test message',
+            subject="Test",
+            message="Test message",
         )
-        self.assertEqual(inq.status, 'new')
+        self.assertEqual(inq.status, "new")
 
     # 21
     def test_inquiry_str(self):
         inq = PropertyInquiry.objects.create(
             property=self.prop,
             inquirer=self.tenant,
-            subject='Mi consulta',
-            message='Texto de consulta',
+            subject="Mi consulta",
+            message="Texto de consulta",
         )
         result = str(inq)
         self.assertIn(self.prop.title, result)
@@ -246,30 +254,32 @@ class PropertyInquiryModelTests(TestCase):
 
 # -- PropertyAmenityModelTests ------------------------------------------------
 
+
 class PropertyAmenityModelTests(TestCase):
     """Tests for the PropertyAmenity model (~2 tests)."""
 
     # 22
     def test_create_amenity(self):
         amenity = PropertyAmenity.objects.create(
-            name='Piscina',
-            category='recreation',
-            icon='pool',
-            description='Piscina comunitaria',
+            name="Piscina",
+            category="recreation",
+            icon="pool",
+            description="Piscina comunitaria",
         )
-        self.assertEqual(amenity.name, 'Piscina')
-        self.assertEqual(amenity.category, 'recreation')
+        self.assertEqual(amenity.name, "Piscina")
+        self.assertEqual(amenity.category, "recreation")
         self.assertTrue(amenity.is_active)
-        self.assertEqual(str(amenity), 'Piscina')
+        self.assertEqual(str(amenity), "Piscina")
 
     # 23
     def test_name_unique_constraint(self):
-        PropertyAmenity.objects.create(name='Gimnasio', category='recreation')
+        PropertyAmenity.objects.create(name="Gimnasio", category="recreation")
         with self.assertRaises(IntegrityError):
-            PropertyAmenity.objects.create(name='Gimnasio', category='interior')
+            PropertyAmenity.objects.create(name="Gimnasio", category="interior")
 
 
 # -- PropertyAPITests ----------------------------------------------------------
+
 
 class PropertyAPITests(APITestCase):
     """Tests for the Property REST API (~17 tests)."""
@@ -279,25 +289,25 @@ class PropertyAPITests(APITestCase):
         self.tenant = _make_tenant()
         self.prop = _make_property(self.landlord)
 
-        self.list_url = '/api/v1/properties/'
-        self.detail_url = f'/api/v1/properties/{self.prop.id}/'
+        self.list_url = "/api/v1/properties/"
+        self.detail_url = f"/api/v1/properties/{self.prop.id}/"
 
     def _property_payload(self, **overrides):
         """Return a flat dict suitable for multipart property creation."""
         data = dict(
-            title='Nuevo Apartamento',
-            description='Descripcion del nuevo apartamento para renta',
-            property_type='apartment',
-            listing_type='rent',
-            address='Carrera 7 #45-10',
-            city='Bogota',
-            state='Cundinamarca',
-            country='Colombia',
+            title="Nuevo Apartamento",
+            description="Descripcion del nuevo apartamento para renta",
+            property_type="apartment",
+            listing_type="rent",
+            address="Carrera 7 #45-10",
+            city="Bogota",
+            state="Cundinamarca",
+            country="Colombia",
             bedrooms=3,
             bathrooms=2,
             half_bathrooms=0,
-            total_area='120.00',
-            rent_price='2000000.00',
+            total_area="120.00",
+            rent_price="2000000.00",
             minimum_lease_term=12,
             pets_allowed=False,
             smoking_allowed=False,
@@ -313,8 +323,8 @@ class PropertyAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Paginated response may use 'results' key
         data = response.data
-        if 'results' in data:
-            self.assertGreaterEqual(len(data['results']), 1)
+        if "results" in data:
+            self.assertGreaterEqual(len(data["results"]), 1)
         else:
             self.assertGreaterEqual(len(data), 1)
 
@@ -322,7 +332,9 @@ class PropertyAPITests(APITestCase):
     def test_list_properties_unauthenticated(self):
         response = self.client.get(self.list_url)
         # Depending on permissions, could be 200 (public) or 401
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED]
+        )
 
     # 26
     def test_create_property_landlord(self):
@@ -330,7 +342,9 @@ class PropertyAPITests(APITestCase):
         payload = self._property_payload()
         response = self.client.post(self.list_url, payload)
         # Accept 201 (created) or 200 (ok)
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED])
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        )
 
     # 27
     def test_create_property_tenant_forbidden(self):
@@ -344,27 +358,31 @@ class PropertyAPITests(APITestCase):
         self.client.force_authenticate(user=self.tenant)
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('title', response.data)
+        self.assertIn("title", response.data)
 
     # 29
     def test_update_property_owner(self):
         self.client.force_authenticate(user=self.landlord)
-        response = self.client.patch(self.detail_url, {'title': 'Titulo Actualizado'})
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED])
+        response = self.client.patch(self.detail_url, {"title": "Titulo Actualizado"})
+        self.assertIn(
+            response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        )
         if response.status_code == status.HTTP_200_OK:
-            self.assertEqual(response.data.get('title'), 'Titulo Actualizado')
+            self.assertEqual(response.data.get("title"), "Titulo Actualizado")
 
     # 30
     def test_update_property_non_owner_forbidden(self):
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.patch(self.detail_url, {'title': 'Hack'})
+        response = self.client.patch(self.detail_url, {"title": "Hack"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # 31
     def test_delete_property_owner(self):
         self.client.force_authenticate(user=self.landlord)
         response = self.client.delete(self.detail_url)
-        self.assertIn(response.status_code, [status.HTTP_204_NO_CONTENT, status.HTTP_200_OK])
+        self.assertIn(
+            response.status_code, [status.HTTP_204_NO_CONTENT, status.HTTP_200_OK]
+        )
         # Optimized viewset uses soft-delete (is_active=False)
         self.prop.refresh_from_db()
         self.assertFalse(self.prop.is_active)
@@ -378,30 +396,32 @@ class PropertyAPITests(APITestCase):
 
     # 33
     def test_filter_by_property_type(self):
-        _make_property(self.landlord, title='Casa Grande', property_type='house', city='Cali')
+        _make_property(
+            self.landlord, title="Casa Grande", property_type="house", city="Cali"
+        )
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.get(self.list_url, {'property_type': 'house'})
+        response = self.client.get(self.list_url, {"property_type": "house"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get('results', response.data)
+        results = response.data.get("results", response.data)
         if isinstance(results, list):
-            types = [r.get('property_type') for r in results]
-            self.assertTrue(all(t == 'house' for t in types))
+            types = [r.get("property_type") for r in results]
+            self.assertTrue(all(t == "house" for t in types))
 
     # 34
     def test_filter_by_city(self):
-        _make_property(self.landlord, title='Apto Medellin', city='Medellin')
+        _make_property(self.landlord, title="Apto Medellin", city="Medellin")
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.get(self.list_url, {'city': 'Medellin'})
+        response = self.client.get(self.list_url, {"city": "Medellin"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get('results', response.data)
+        results = response.data.get("results", response.data)
         if isinstance(results, list):
-            cities = [r.get('city') for r in results]
-            self.assertTrue(all(c == 'Medellin' for c in cities))
+            cities = [r.get("city") for r in results]
+            self.assertTrue(all(c == "Medellin" for c in cities))
 
     # 35
     def test_search_by_title(self):
         self.client.force_authenticate(user=self.tenant)
-        response = self.client.get(self.list_url, {'search': 'Apartamento'})
+        response = self.client.get(self.list_url, {"search": "Apartamento"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     # 36
@@ -411,68 +431,88 @@ class PropertyAPITests(APITestCase):
         self.prop.save()
         self.client.force_authenticate(user=self.tenant)
         from django.urls import reverse
-        url = reverse('properties_api:api_featured_properties')
+
+        url = reverse("properties_api:api_featured_properties")
         response = self.client.get(url)
         # Router's property-detail pattern <pk>/ catches 'featured/' first,
         # so this resolves to a detail lookup with pk='featured' -> 404.
         # Accept 200 if URL config is fixed, or 404 in current state.
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_404_NOT_FOUND,
+            ],
+        )
 
     # 37
     def test_trending_endpoint(self):
         """Trending endpoint - shadowed by router detail pattern in current URL config."""
-        PropertyView.objects.create(property=self.prop, ip_address='127.0.0.1')
+        PropertyView.objects.create(property=self.prop, ip_address="127.0.0.1")
         self.client.force_authenticate(user=self.tenant)
         from django.urls import reverse
-        url = reverse('properties_api:api_trending_properties')
+
+        url = reverse("properties_api:api_trending_properties")
         response = self.client.get(url)
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_404_NOT_FOUND,
+            ],
+        )
 
     # 38
     def test_toggle_favorite(self):
         self.client.force_authenticate(user=self.tenant)
-        url = f'/api/v1/properties/{self.prop.id}/toggle-favorite/'
+        url = f"/api/v1/properties/{self.prop.id}/toggle-favorite/"
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('action'), 'added')
+        self.assertEqual(response.data.get("action"), "added")
 
         # Toggle again to remove
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('action'), 'removed')
+        self.assertEqual(response.data.get("action"), "removed")
 
     # 39
     def test_stats_endpoint(self):
         """Stats endpoint - shadowed by router detail pattern in current URL config."""
         self.client.force_authenticate(user=self.landlord)
         from django.urls import reverse
-        url = reverse('properties_api:api_property_stats')
+
+        url = reverse("properties_api:api_property_stats")
         response = self.client.get(url)
-        self.assertIn(response.status_code, [
-            status.HTTP_200_OK, status.HTTP_404_NOT_FOUND,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                status.HTTP_200_OK,
+                status.HTTP_404_NOT_FOUND,
+            ],
+        )
 
     # 40
     def test_create_inquiry(self):
         """Create inquiry via API - router shadows inquiries/ path with property detail."""
         self.client.force_authenticate(user=self.tenant)
         payload = {
-            'property': str(self.prop.id),
-            'subject': 'Consulta sobre disponibilidad',
-            'message': 'Esta disponible para mudarse en abril?',
-            'preferred_contact_method': 'email',
+            "property": str(self.prop.id),
+            "subject": "Consulta sobre disponibilidad",
+            "message": "Esta disponible para mudarse en abril?",
+            "preferred_contact_method": "email",
         }
         from django.urls import reverse
-        url = reverse('properties_api:inquiry-list')
+
+        url = reverse("properties_api:inquiry-list")
         response = self.client.post(url, payload)
         # Router shadowing may cause 405 (method not allowed on detail view).
         # Accept 201 (created), 200, 403 (permission), or 405 (shadowed).
         self.assertIn(
             response.status_code,
-            [status.HTTP_200_OK, status.HTTP_201_CREATED,
-             status.HTTP_403_FORBIDDEN, status.HTTP_405_METHOD_NOT_ALLOWED],
+            [
+                status.HTTP_200_OK,
+                status.HTTP_201_CREATED,
+                status.HTTP_403_FORBIDDEN,
+                status.HTTP_405_METHOD_NOT_ALLOWED,
+            ],
         )

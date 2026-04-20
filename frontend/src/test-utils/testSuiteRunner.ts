@@ -112,7 +112,7 @@ export async function runTestSuite(suiteName: string): Promise<TestResult> {
   try {
     // Ejecutar Jest para el archivo específico
     const jestCommand = `npx jest ${suite.file} --coverage --coverageReporters=json-summary --verbose`;
-    const output = execSync(jestCommand, { 
+    const output = execSync(jestCommand, {
       encoding: 'utf-8',
       cwd: process.cwd(),
     });
@@ -121,16 +121,17 @@ export async function runTestSuite(suiteName: string): Promise<TestResult> {
 
     // Parsear resultados de Jest
     const result = parseJestOutput(output, suite.name, suite.file, duration);
-    
+
     console.log(`✅ ${suite.name} completado en ${duration}ms`);
-    console.log(`   Tests: ${result.passed} pasaron, ${result.failed} fallaron`);
+    console.log(
+      `   Tests: ${result.passed} pasaron, ${result.failed} fallaron`
+    );
     console.log(`   Cobertura: ${result.coverage.lines}% líneas\n`);
 
     return result;
-
   } catch (error: any) {
     const duration = Date.now() - startTime;
-    
+
     console.log(`❌ ${suite.name} falló en ${duration}ms`);
     console.log(`   Error: ${error.message}\n`);
 
@@ -149,8 +150,10 @@ export async function runTestSuite(suiteName: string): Promise<TestResult> {
  * Ejecuta todos los test suites
  */
 export async function runAllTestSuites(): Promise<TestSummary> {
-  console.log('🚀 Iniciando ejecución de todos los test suites del sistema de contratos\n');
-  console.log('=' .repeat(80));
+  console.log(
+    '🚀 Iniciando ejecución de todos los test suites del sistema de contratos\n'
+  );
+  console.log('='.repeat(80));
 
   const results: TestResult[] = [];
   const startTime = Date.now();
@@ -182,9 +185,17 @@ export async function runAllTestSuites(): Promise<TestSummary> {
     totalFailed: results.reduce((sum, r) => sum + r.failed, 0),
     overallDuration: totalDuration,
     overallCoverage: {
-      lines: Math.round(results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length),
-      functions: Math.round(results.reduce((sum, r) => sum + r.coverage.functions, 0) / results.length),
-      branches: Math.round(results.reduce((sum, r) => sum + r.coverage.branches, 0) / results.length),
+      lines: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length
+      ),
+      functions: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.functions, 0) /
+          results.length
+      ),
+      branches: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.branches, 0) /
+          results.length
+      ),
     },
     results,
   };
@@ -201,7 +212,9 @@ export async function runAllTestSuites(): Promise<TestSummary> {
 /**
  * Ejecuta tests por categoría
  */
-export async function runTestsByCategory(category: 'services' | 'components' | 'integration'): Promise<TestSummary> {
+export async function runTestsByCategory(
+  category: 'services' | 'components' | 'integration'
+): Promise<TestSummary> {
   console.log(`🎯 Ejecutando tests de categoría: ${category}\n`);
 
   const suitesInCategory = TEST_SUITES.filter(s => s.category === category);
@@ -222,9 +235,17 @@ export async function runTestsByCategory(category: 'services' | 'components' | '
     totalFailed: results.reduce((sum, r) => sum + r.failed, 0),
     overallDuration: totalDuration,
     overallCoverage: {
-      lines: Math.round(results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length),
-      functions: Math.round(results.reduce((sum, r) => sum + r.coverage.functions, 0) / results.length),
-      branches: Math.round(results.reduce((sum, r) => sum + r.coverage.branches, 0) / results.length),
+      lines: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length
+      ),
+      functions: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.functions, 0) /
+          results.length
+      ),
+      branches: Math.round(
+        results.reduce((sum, r) => sum + r.coverage.branches, 0) /
+          results.length
+      ),
     },
     results,
   };
@@ -236,23 +257,32 @@ export async function runTestsByCategory(category: 'services' | 'components' | '
 /**
  * Parsea la salida de Jest
  */
-function parseJestOutput(output: string, suiteName: string, fileName: string, duration: number): TestResult {
+function parseJestOutput(
+  output: string,
+  suiteName: string,
+  fileName: string,
+  duration: number
+): TestResult {
   // Extraer información de los tests pasados/fallados
   const passedMatch = output.match(/(\d+) passed/);
   const failedMatch = output.match(/(\d+) failed/);
-  
+
   const passed = passedMatch ? parseInt(passedMatch[1] ?? '0') : 0;
   const failed = failedMatch ? parseInt(failedMatch[1] ?? '0') : 0;
 
   // Intentar leer cobertura del archivo de resumen
   let coverage = { lines: 0, functions: 0, branches: 0 };
-  
+
   try {
-    const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+    const coveragePath = path.join(
+      process.cwd(),
+      'coverage',
+      'coverage-summary.json'
+    );
     if (fs.existsSync(coveragePath)) {
       const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf-8'));
       const total = coverageData.total;
-      
+
       coverage = {
         lines: Math.round(total.lines.pct || 0),
         functions: Math.round(total.functions.pct || 0),
@@ -277,7 +307,7 @@ function parseJestOutput(output: string, suiteName: string, fileName: string, du
  * Muestra el resumen de los tests
  */
 function displayTestSummary(summary: TestSummary) {
-  console.log(`\n${  '='.repeat(80)}`);
+  console.log(`\n${'='.repeat(80)}`);
   console.log('🎯 RESUMEN DE TESTS - SISTEMA DE CONTRATOS');
   console.log('='.repeat(80));
 
@@ -285,8 +315,12 @@ function displayTestSummary(summary: TestSummary) {
   console.log(`   Total de Test Suites: ${summary.totalSuites}`);
   console.log(`   Total de Tests: ${summary.totalTests}`);
   console.log(`   Tests Pasados: ${summary.totalPassed} ✅`);
-  console.log(`   Tests Fallados: ${summary.totalFailed} ${summary.totalFailed > 0 ? '❌' : '✅'}`);
-  console.log(`   Duración Total: ${(summary.overallDuration / 1000).toFixed(2)}s`);
+  console.log(
+    `   Tests Fallados: ${summary.totalFailed} ${summary.totalFailed > 0 ? '❌' : '✅'}`
+  );
+  console.log(
+    `   Duración Total: ${(summary.overallDuration / 1000).toFixed(2)}s`
+  );
 
   console.log('\n📈 COBERTURA PROMEDIO:');
   console.log(`   Líneas: ${summary.overallCoverage.lines}%`);
@@ -297,11 +331,13 @@ function displayTestSummary(summary: TestSummary) {
   summary.results.forEach(result => {
     const status = result.failed === 0 ? '✅' : '❌';
     const duration = (result.duration / 1000).toFixed(2);
-    
+
     console.log(`   ${status} ${result.suiteName}`);
-    console.log(`      Tests: ${result.passed}/${result.passed + result.failed} | ` +
-                `Duración: ${duration}s | ` +
-                `Cobertura: ${result.coverage.lines}%`);
+    console.log(
+      `      Tests: ${result.passed}/${result.passed + result.failed} | ` +
+        `Duración: ${duration}s | ` +
+        `Cobertura: ${result.coverage.lines}%`
+    );
   });
 
   // Evaluación general
@@ -309,26 +345,38 @@ function displayTestSummary(summary: TestSummary) {
   const avgCoverage = summary.overallCoverage.lines;
 
   console.log('\n🎖️  EVALUACIÓN GENERAL:');
-  
+
   if (successRate === 100 && avgCoverage >= 80) {
-    console.log(`   🌟 EXCELENTE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
+    console.log(
+      `   🌟 EXCELENTE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+    );
   } else if (successRate >= 90 && avgCoverage >= 70) {
-    console.log(`   ⭐ BUENO: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
+    console.log(
+      `   ⭐ BUENO: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+    );
   } else if (successRate >= 80) {
-    console.log(`   ⚠️  ACEPTABLE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
+    console.log(
+      `   ⚠️  ACEPTABLE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+    );
   } else {
-    console.log(`   🚨 NECESITA MEJORAS: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`);
+    console.log(
+      `   🚨 NECESITA MEJORAS: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+    );
   }
 
-  console.log(`\n${  '='.repeat(80)}`);
+  console.log(`\n${'='.repeat(80)}`);
 }
 
 /**
  * Genera reporte detallado en HTML
  */
 async function generateTestReport(summary: TestSummary) {
-  const reportPath = path.join(process.cwd(), 'test-reports', 'contracts-test-report.html');
-  
+  const reportPath = path.join(
+    process.cwd(),
+    'test-reports',
+    'contracts-test-report.html'
+  );
+
   // Crear directorio si no existe
   const reportDir = path.dirname(reportPath);
   if (!fs.existsSync(reportDir)) {
@@ -343,71 +391,71 @@ async function generateTestReport(summary: TestSummary) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Tests - Sistema de Contratos VeriHome</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
             background: #f5f5f5;
         }
-        .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
-            padding: 20px; 
-            border-radius: 8px; 
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
-        .stats { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 15px; 
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
-        .stat-card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .stat-value { 
-            font-size: 2em; 
-            font-weight: bold; 
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
             color: #667eea;
         }
-        .results-table { 
-            background: white; 
-            border-radius: 8px; 
-            overflow: hidden; 
+        .results-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        table { 
-            width: 100%; 
+        table {
+            width: 100%;
             border-collapse: collapse;
         }
-        th, td { 
-            text-align: left; 
-            padding: 12px; 
+        th, td {
+            text-align: left;
+            padding: 12px;
             border-bottom: 1px solid #eee;
         }
-        th { 
-            background: #f8f9fa; 
+        th {
+            background: #f8f9fa;
             font-weight: 600;
         }
-        .status-pass { 
-            color: #28a745; 
+        .status-pass {
+            color: #28a745;
             font-weight: bold;
         }
-        .status-fail { 
-            color: #dc3545; 
+        .status-fail {
+            color: #dc3545;
             font-weight: bold;
         }
-        .coverage-bar { 
-            background: #e9ecef; 
-            height: 8px; 
-            border-radius: 4px; 
+        .coverage-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
             overflow: hidden;
         }
-        .coverage-fill { 
-            height: 100%; 
+        .coverage-fill {
+            height: 100%;
             background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
         }
     </style>
@@ -453,7 +501,9 @@ async function generateTestReport(summary: TestSummary) {
                 </tr>
             </thead>
             <tbody>
-                ${summary.results.map(result => `
+                ${summary.results
+                  .map(
+                    result => `
                 <tr>
                     <td>
                         <strong>${result.suiteName}</strong><br>
@@ -475,7 +525,9 @@ async function generateTestReport(summary: TestSummary) {
                         ${result.coverage.lines}%
                     </td>
                 </tr>
-                `).join('')}
+                `
+                  )
+                  .join('')}
             </tbody>
         </table>
     </div>
@@ -488,7 +540,7 @@ async function generateTestReport(summary: TestSummary) {
             <li><strong>ContractsDashboard Tests:</strong> 40+ tests del dashboard unificado para ambos roles</li>
             <li><strong>BiometricContractSigning Tests:</strong> 30+ tests del sistema de firma biométrica avanzado</li>
         </ul>
-        
+
         <h3>🎯 Cobertura de Funcionalidades</h3>
         <ul>
             <li>✅ Workflow completo de contratos (creación → firma → publicación)</li>
@@ -513,11 +565,12 @@ async function generateTestReport(summary: TestSummary) {
  */
 export function runTestsInWatchMode() {
   console.log('👀 Iniciando modo watch para tests de contratos...\n');
-  
-  const watchCommand = 'npx jest --watch --testPathPattern="contracts|landlordContract" --coverage';
-  
+
+  const watchCommand =
+    'npx jest --watch --testPathPattern="contracts|landlordContract" --coverage';
+
   try {
-    execSync(watchCommand, { 
+    execSync(watchCommand, {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
@@ -539,7 +592,9 @@ if (require.main === module) {
       if (category) {
         runTestsByCategory(category);
       } else {
-        console.error('Especifica una categoría: services, components, integration');
+        console.error(
+          'Especifica una categoría: services, components, integration'
+        );
       }
       break;
     case 'watch':
@@ -554,11 +609,15 @@ if (require.main === module) {
       }
       break;
     default:
-      console.log('Uso: npm run test:contracts [all|category|watch|single] [parámetros]');
+      console.log(
+        'Uso: npm run test:contracts [all|category|watch|single] [parámetros]'
+      );
       console.log('Ejemplos:');
       console.log('  npm run test:contracts all');
       console.log('  npm run test:contracts category services');
       console.log('  npm run test:contracts watch');
-      console.log('  npm run test:contracts single "LandlordContractService Tests"');
+      console.log(
+        '  npm run test:contracts single "LandlordContractService Tests"'
+      );
   }
 }

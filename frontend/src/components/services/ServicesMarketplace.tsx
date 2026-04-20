@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  CardMedia,
   CardActions,
   Button,
   Chip,
@@ -21,7 +20,6 @@ import {
   Tab,
   Tabs,
   IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -134,7 +132,14 @@ const ServicesMarketplace: React.FC = () => {
 
   useEffect(() => {
     filterServices();
-  }, [services, searchQuery, selectedCategory, priceFilter, difficultyFilter, tabValue]);
+  }, [
+    services,
+    searchQuery,
+    selectedCategory,
+    priceFilter,
+    difficultyFilter,
+    tabValue,
+  ]);
 
   const loadData = async () => {
     try {
@@ -159,16 +164,16 @@ const ServicesMarketplace: React.FC = () => {
 
     // Tab filter
     if (tabValue === 1) {
-      filtered = filtered.filter((s) => s.is_featured);
+      filtered = filtered.filter(s => s.is_featured);
     } else if (tabValue === 2) {
-      filtered = filtered.filter((s) => s.is_most_requested);
+      filtered = filtered.filter(s => s.is_most_requested);
     }
 
     // Search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (s) =>
+        s =>
           s.name.toLowerCase().includes(query) ||
           s.short_description.toLowerCase().includes(query) ||
           s.full_description.toLowerCase().includes(query),
@@ -177,17 +182,17 @@ const ServicesMarketplace: React.FC = () => {
 
     // Category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter((s) => s.category.slug === selectedCategory);
+      filtered = filtered.filter(s => s.category.slug === selectedCategory);
     }
 
     // Price
     if (priceFilter !== 'all') {
-      filtered = filtered.filter((s) => s.pricing_type === priceFilter);
+      filtered = filtered.filter(s => s.pricing_type === priceFilter);
     }
 
     // Difficulty
     if (difficultyFilter !== 'all') {
-      filtered = filtered.filter((s) => s.difficulty === difficultyFilter);
+      filtered = filtered.filter(s => s.difficulty === difficultyFilter);
     }
 
     setFilteredServices(filtered);
@@ -233,8 +238,10 @@ const ServicesMarketplace: React.FC = () => {
   };
 
   const toggleFavorite = (serviceId: string) => {
-    setFavorites((prev) =>
-      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId],
+    setFavorites(prev =>
+      prev.includes(serviceId)
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId],
     );
   };
 
@@ -286,11 +293,11 @@ const ServicesMarketplace: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth='xl' sx={{ py: 4 }}>
         <Grid container spacing={3}>
-          {[1, 2, 3, 4, 5, 6].map((n) => (
+          {[1, 2, 3, 4, 5, 6].map(n => (
             <Grid item xs={12} sm={6} md={4} key={n}>
-              <Skeleton variant="rectangular" height={300} />
+              <Skeleton variant='rectangular' height={300} />
             </Grid>
           ))}
         </Grid>
@@ -300,20 +307,20 @@ const ServicesMarketplace: React.FC = () => {
 
   if (error) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="error">{error}</Alert>
+      <Container maxWidth='xl' sx={{ py: 4 }}>
+        <Alert severity='error'>{error}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth='xl' sx={{ py: 4 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" gutterBottom fontWeight="bold">
+        <Typography variant='h3' gutterBottom fontWeight='bold'>
           Servicios Adicionales
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
+        <Typography variant='subtitle1' color='text.secondary'>
           Encuentra servicios profesionales para tu propiedad
         </Typography>
       </Box>
@@ -324,16 +331,16 @@ const ServicesMarketplace: React.FC = () => {
         onChange={(_, newValue) => setTabValue(newValue)}
         sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
       >
-        <Tab label="Todos" />
+        <Tab label='Todos' />
         <Tab
-          label="Destacados"
-          icon={<StarIcon fontSize="small" />}
-          iconPosition="start"
+          label='Destacados'
+          icon={<StarIcon fontSize='small' />}
+          iconPosition='start'
         />
         <Tab
-          label="Más Solicitados"
-          icon={<TrendingIcon fontSize="small" />}
-          iconPosition="start"
+          label='Más Solicitados'
+          icon={<TrendingIcon fontSize='small' />}
+          iconPosition='start'
         />
       </Tabs>
 
@@ -343,12 +350,12 @@ const ServicesMarketplace: React.FC = () => {
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-              placeholder="Buscar servicios..."
+              placeholder='Buscar servicios...'
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
+                  <InputAdornment position='start'>
                     <SearchIcon />
                   </InputAdornment>
                 ),
@@ -361,11 +368,11 @@ const ServicesMarketplace: React.FC = () => {
               <InputLabel>Categoría</InputLabel>
               <Select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                label="Categoría"
+                onChange={e => setSelectedCategory(e.target.value)}
+                label='Categoría'
               >
-                <MenuItem value="all">Todas</MenuItem>
-                {categories.map((cat) => (
+                <MenuItem value='all'>Todas</MenuItem>
+                {categories.map(cat => (
                   <MenuItem key={cat.id} value={cat.slug}>
                     {cat.name}
                   </MenuItem>
@@ -379,14 +386,14 @@ const ServicesMarketplace: React.FC = () => {
               <InputLabel>Tipo de Precio</InputLabel>
               <Select
                 value={priceFilter}
-                onChange={(e) => setPriceFilter(e.target.value)}
-                label="Tipo de Precio"
+                onChange={e => setPriceFilter(e.target.value)}
+                label='Tipo de Precio'
               >
-                <MenuItem value="all">Todos</MenuItem>
-                <MenuItem value="fixed">Precio Fijo</MenuItem>
-                <MenuItem value="hourly">Por Hora</MenuItem>
-                <MenuItem value="consultation">Consulta</MenuItem>
-                <MenuItem value="quote">Bajo Cotización</MenuItem>
+                <MenuItem value='all'>Todos</MenuItem>
+                <MenuItem value='fixed'>Precio Fijo</MenuItem>
+                <MenuItem value='hourly'>Por Hora</MenuItem>
+                <MenuItem value='consultation'>Consulta</MenuItem>
+                <MenuItem value='quote'>Bajo Cotización</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -396,14 +403,14 @@ const ServicesMarketplace: React.FC = () => {
               <InputLabel>Dificultad</InputLabel>
               <Select
                 value={difficultyFilter}
-                onChange={(e) => setDifficultyFilter(e.target.value)}
-                label="Dificultad"
+                onChange={e => setDifficultyFilter(e.target.value)}
+                label='Dificultad'
               >
-                <MenuItem value="all">Todas</MenuItem>
-                <MenuItem value="easy">Fácil</MenuItem>
-                <MenuItem value="medium">Medio</MenuItem>
-                <MenuItem value="hard">Difícil</MenuItem>
-                <MenuItem value="expert">Experto</MenuItem>
+                <MenuItem value='all'>Todas</MenuItem>
+                <MenuItem value='easy'>Fácil</MenuItem>
+                <MenuItem value='medium'>Medio</MenuItem>
+                <MenuItem value='hard'>Difícil</MenuItem>
+                <MenuItem value='expert'>Experto</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -411,13 +418,14 @@ const ServicesMarketplace: React.FC = () => {
       </Box>
 
       {/* Results count */}
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Mostrando {filteredServices.length} servicio{filteredServices.length !== 1 ? 's' : ''}
+      <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+        Mostrando {filteredServices.length} servicio
+        {filteredServices.length !== 1 ? 's' : ''}
       </Typography>
 
       {/* Services Grid */}
       <Grid container spacing={3}>
-        {filteredServices.map((service) => (
+        {filteredServices.map(service => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={service.id}>
             <Card
               sx={{
@@ -432,32 +440,38 @@ const ServicesMarketplace: React.FC = () => {
               }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
                   <Chip
                     label={service.category.name}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
+                    size='small'
+                    color='primary'
+                    variant='outlined'
                   />
                   <IconButton
-                    size="small"
+                    size='small'
                     onClick={() => toggleFavorite(service.id)}
                   >
                     {favorites.includes(service.id) ? (
-                      <FavoriteIcon color="error" fontSize="small" />
+                      <FavoriteIcon color='error' fontSize='small' />
                     ) : (
-                      <FavoriteBorderIcon fontSize="small" />
+                      <FavoriteBorderIcon fontSize='small' />
                     )}
                   </IconButton>
                 </Box>
 
-                <Typography variant="h6" gutterBottom noWrap>
+                <Typography variant='h6' gutterBottom noWrap>
                   {service.name}
                 </Typography>
 
                 <Typography
-                  variant="body2"
-                  color="text.secondary"
+                  variant='body2'
+                  color='text.secondary'
                   sx={{
                     mb: 2,
                     display: '-webkit-box',
@@ -471,29 +485,40 @@ const ServicesMarketplace: React.FC = () => {
 
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
                   {service.is_featured && (
-                    <Chip label="Destacado" size="small" color="warning" />
+                    <Chip label='Destacado' size='small' color='warning' />
                   )}
                   {service.is_most_requested && (
-                    <Chip label="Popular" size="small" color="success" />
+                    <Chip label='Popular' size='small' color='success' />
                   )}
                   <Chip
                     label={getDifficultyLabel(service.difficulty)}
-                    size="small"
+                    size='small'
                     color={getDifficultyColor(service.difficulty) as any}
                   />
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <MoneyIcon fontSize="small" color="action" />
-                  <Typography variant="body2" fontWeight="medium" color="primary">
+                  <MoneyIcon fontSize='small' color='action' />
+                  <Typography
+                    variant='body2'
+                    fontWeight='medium'
+                    color='primary'
+                  >
                     {getPriceDisplay(service)}
                   </Typography>
                 </Box>
 
                 {service.estimated_duration && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <ScheduleIcon fontSize="small" color="action" />
-                    <Typography variant="caption" color="text.secondary">
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mt: 1,
+                    }}
+                  >
+                    <ScheduleIcon fontSize='small' color='action' />
+                    <Typography variant='caption' color='text.secondary'>
                       {service.estimated_duration}
                     </Typography>
                   </Box>
@@ -502,15 +527,15 @@ const ServicesMarketplace: React.FC = () => {
 
               <CardActions>
                 <Button
-                  size="small"
+                  size='small'
                   startIcon={<InfoIcon />}
                   onClick={() => handleServiceClick(service)}
                 >
                   Detalles
                 </Button>
                 <Button
-                  size="small"
-                  variant="contained"
+                  size='small'
+                  variant='contained'
                   onClick={() => handleRequestService(service)}
                 >
                   Solicitar
@@ -522,7 +547,7 @@ const ServicesMarketplace: React.FC = () => {
       </Grid>
 
       {filteredServices.length === 0 && (
-        <Alert severity="info" sx={{ mt: 4 }}>
+        <Alert severity='info' sx={{ mt: 4 }}>
           No se encontraron servicios con los filtros seleccionados.
         </Alert>
       )}
@@ -531,61 +556,69 @@ const ServicesMarketplace: React.FC = () => {
       <Dialog
         open={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
         {selectedService && (
           <>
             <DialogTitle>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h5">{selectedService.name}</Typography>
-                <Chip label={selectedService.category.name} color="primary" />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Typography variant='h5'>{selectedService.name}</Typography>
+                <Chip label={selectedService.category.name} color='primary' />
               </Box>
             </DialogTitle>
             <DialogContent dividers>
-              <Typography variant="body1" paragraph>
+              <Typography variant='body1' paragraph>
                 {selectedService.full_description}
               </Typography>
 
-              <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              <Typography variant='h6' gutterBottom sx={{ mt: 3 }}>
                 Detalles del Servicio
               </Typography>
 
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Precio:
                   </Typography>
-                  <Typography variant="body1" fontWeight="medium">
+                  <Typography variant='body1' fontWeight='medium'>
                     {getPriceDisplay(selectedService)}
                   </Typography>
                 </Grid>
 
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Duración:
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant='body1'>
                     {selectedService.estimated_duration || 'Por definir'}
                   </Typography>
                 </Grid>
 
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Dificultad:
                   </Typography>
                   <Chip
                     label={getDifficultyLabel(selectedService.difficulty)}
-                    size="small"
-                    color={getDifficultyColor(selectedService.difficulty) as any}
+                    size='small'
+                    color={
+                      getDifficultyColor(selectedService.difficulty) as any
+                    }
                   />
                 </Grid>
 
                 <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     Popularidad:
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant='body1'>
                     {selectedService.requests_count} solicitudes
                   </Typography>
                 </Grid>
@@ -593,17 +626,19 @@ const ServicesMarketplace: React.FC = () => {
 
               {selectedService.requirements && (
                 <>
-                  <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                  <Typography variant='h6' gutterBottom sx={{ mt: 3 }}>
                     Requisitos
                   </Typography>
-                  <Typography variant="body2">{selectedService.requirements}</Typography>
+                  <Typography variant='body2'>
+                    {selectedService.requirements}
+                  </Typography>
                 </>
               )}
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDetailDialogOpen(false)}>Cerrar</Button>
               <Button
-                variant="contained"
+                variant='contained'
                 onClick={() => {
                   setDetailDialogOpen(false);
                   handleRequestService(selectedService);
@@ -620,82 +655,120 @@ const ServicesMarketplace: React.FC = () => {
       <Dialog
         open={requestDialogOpen}
         onClose={() => !requestLoading && setRequestDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>Solicitar Servicio</DialogTitle>
         <DialogContent dividers>
           {requestSuccess ? (
-            <Alert severity="success">
+            <Alert severity='success'>
               ¡Solicitud enviada exitosamente! Nos pondremos en contacto pronto.
             </Alert>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}
+            >
               <TextField
                 fullWidth
-                label="Nombre Completo *"
+                label='Nombre Completo *'
                 value={requestForm.requester_name}
-                onChange={(e) => setRequestForm({ ...requestForm, requester_name: e.target.value })}
+                onChange={e =>
+                  setRequestForm({
+                    ...requestForm,
+                    requester_name: e.target.value,
+                  })
+                }
                 disabled={requestLoading}
               />
 
               <TextField
                 fullWidth
-                label="Email *"
-                type="email"
+                label='Email *'
+                type='email'
                 value={requestForm.requester_email}
-                onChange={(e) => setRequestForm({ ...requestForm, requester_email: e.target.value })}
+                onChange={e =>
+                  setRequestForm({
+                    ...requestForm,
+                    requester_email: e.target.value,
+                  })
+                }
                 disabled={requestLoading}
               />
 
               <TextField
                 fullWidth
-                label="Teléfono *"
+                label='Teléfono *'
                 value={requestForm.requester_phone}
-                onChange={(e) => setRequestForm({ ...requestForm, requester_phone: e.target.value })}
+                onChange={e =>
+                  setRequestForm({
+                    ...requestForm,
+                    requester_phone: e.target.value,
+                  })
+                }
                 disabled={requestLoading}
               />
 
               <TextField
                 fullWidth
-                label="Mensaje *"
+                label='Mensaje *'
                 multiline
                 rows={4}
                 value={requestForm.message}
-                onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
-                placeholder="Describe los detalles de lo que necesitas..."
+                onChange={e =>
+                  setRequestForm({ ...requestForm, message: e.target.value })
+                }
+                placeholder='Describe los detalles de lo que necesitas...'
                 disabled={requestLoading}
               />
 
               <TextField
                 fullWidth
-                label="Fecha Preferida"
-                type="date"
+                label='Fecha Preferida'
+                type='date'
                 value={requestForm.preferred_date}
-                onChange={(e) => setRequestForm({ ...requestForm, preferred_date: e.target.value })}
+                onChange={e =>
+                  setRequestForm({
+                    ...requestForm,
+                    preferred_date: e.target.value,
+                  })
+                }
                 InputLabelProps={{ shrink: true }}
                 disabled={requestLoading}
               />
 
               <TextField
                 fullWidth
-                label="Presupuesto Estimado"
+                label='Presupuesto Estimado'
                 value={requestForm.budget_range}
-                onChange={(e) => setRequestForm({ ...requestForm, budget_range: e.target.value })}
-                placeholder="Ej: $500.000 - $1.000.000"
+                onChange={e =>
+                  setRequestForm({
+                    ...requestForm,
+                    budget_range: e.target.value,
+                  })
+                }
+                placeholder='Ej: $500.000 - $1.000.000'
                 disabled={requestLoading}
               />
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setRequestDialogOpen(false)} disabled={requestLoading}>
+          <Button
+            onClick={() => setRequestDialogOpen(false)}
+            disabled={requestLoading}
+          >
             Cancelar
           </Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={handleSubmitRequest}
-            disabled={requestLoading || requestSuccess || !requestForm.requester_name || !requestForm.requester_email || !requestForm.message}
+            disabled={
+              requestLoading ||
+              requestSuccess ||
+              !requestForm.requester_name ||
+              !requestForm.requester_email ||
+              !requestForm.message
+            }
           >
             {requestLoading ? 'Enviando...' : 'Enviar Solicitud'}
           </Button>

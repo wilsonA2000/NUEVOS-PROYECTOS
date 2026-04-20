@@ -40,7 +40,6 @@ import { LandlordContractService } from '../../services/landlordContractService'
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 import {
   LandlordControlledContractData,
-  CreateContractPayload,
   DocumentType,
   PropertyType,
 } from '../../types/landlordContract';
@@ -123,12 +122,13 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setIsSaving] = useState(false);
-  const [contract, setContract] = useState<LandlordControlledContractData | null>(null);
+  const [contract, setContract] =
+    useState<LandlordControlledContractData | null>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  
+
   // Editable contract data state
   const [contractData, setContractData] = useState<EditableContractData>({
     landlord_full_name: '',
@@ -182,7 +182,9 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   });
 
   // Original data for comparison
-  const [originalData, setOriginalData] = useState<EditableContractData | null>(null);
+  const [originalData, setOriginalData] = useState<EditableContractData | null>(
+    null,
+  );
 
   const steps = [
     'Información del Arrendador',
@@ -215,24 +217,29 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   const loadContractData = async () => {
     try {
       setLoading(true);
-      const contractResponse = await LandlordContractService.getContractForEditing(contractId);
-      
+      const contractResponse =
+        await LandlordContractService.getContractForEditing(contractId);
+
       if (contractResponse) {
         setContract(contractResponse);
-        
+
         // Map contract data to editable format
         const editableData = mapContractToEditableData(contractResponse);
         setContractData(editableData);
         setOriginalData({ ...editableData }); // Deep copy for comparison
       }
     } catch (error) {
-      setValidationErrors(['Error al cargar el contrato. Inténtelo nuevamente.']);
+      setValidationErrors([
+        'Error al cargar el contrato. Inténtelo nuevamente.',
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const mapContractToEditableData = (contract: LandlordControlledContractData): EditableContractData => {
+  const mapContractToEditableData = (
+    contract: LandlordControlledContractData,
+  ): EditableContractData => {
     // Extract data from contract and map to editable format
     const landlordData = contract.landlord_data;
     // Extract contract_terms (puede contener guests_policy, guarantee_type, codeudor_data)
@@ -244,8 +251,10 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       landlord_full_name: landlordData.full_name || '',
       landlord_document_type: landlordData.document_type || 'CC',
       landlord_document_number: landlordData.document_number || '',
-      landlord_document_expedition_date: landlordData.document_expedition_date || '',
-      landlord_document_expedition_place: landlordData.document_expedition_place || '',
+      landlord_document_expedition_date:
+        landlordData.document_expedition_date || '',
+      landlord_document_expedition_place:
+        landlordData.document_expedition_place || '',
       landlord_phone: landlordData.phone || '',
       landlord_email: landlordData.email || '',
       landlord_address: landlordData.address || '',
@@ -268,9 +277,16 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       payment_day: contract.payment_day || 5,
 
       // Contract terms - Políticas (leer de contract_terms o valores por defecto)
-      guests_policy: contractTerms.guests_policy || (contract as any).guests_policy || 'unlimited',
-      max_occupants: contractTerms.max_occupants || (contract as any).max_occupants || 4,
-      rent_increase_type: contractTerms.rent_increase_type || (contract as any).rent_increase_type || 'ipc',
+      guests_policy:
+        contractTerms.guests_policy ||
+        (contract as any).guests_policy ||
+        'unlimited',
+      max_occupants:
+        contractTerms.max_occupants || (contract as any).max_occupants || 4,
+      rent_increase_type:
+        contractTerms.rent_increase_type ||
+        (contract as any).rent_increase_type ||
+        'ipc',
 
       // Contract template and clauses
       contract_template: 'rental_urban', // Default template
@@ -297,9 +313,11 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       property_catastral_number: codeudorData.property_catastral_number || '',
       property_linderos: codeudorData.property_linderos || '',
       property_area_guarantee: codeudorData.property_area_guarantee || 0,
-      property_department_guarantee: codeudorData.property_department_guarantee || '',
+      property_department_guarantee:
+        codeudorData.property_department_guarantee || '',
       property_city_guarantee: codeudorData.property_city_guarantee || '',
-      requires_biometric_codeudor: contractTerms.requires_biometric_codeudor || false,
+      requires_biometric_codeudor:
+        contractTerms.requires_biometric_codeudor || false,
     };
   };
 
@@ -319,14 +337,18 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       }
 
       // Prepare update payload - matching LandlordControlledContractData structure
-      const updatePayload: Partial<LandlordControlledContractData> & { contract_terms?: any } = {
+      const updatePayload: Partial<LandlordControlledContractData> & {
+        contract_terms?: any;
+      } = {
         // Landlord data
         landlord_data: {
           full_name: contractData.landlord_full_name,
           document_type: contractData.landlord_document_type as DocumentType,
           document_number: contractData.landlord_document_number,
-          document_expedition_date: contractData.landlord_document_expedition_date,
-          document_expedition_place: contractData.landlord_document_expedition_place,
+          document_expedition_date:
+            contractData.landlord_document_expedition_date,
+          document_expedition_place:
+            contractData.landlord_document_expedition_place,
           phone: contractData.landlord_phone,
           email: contractData.landlord_email,
           address: contractData.landlord_address,
@@ -383,12 +405,15 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
               // Datos específicos para codeudor_finca_raiz
               ...(contractData.guarantee_type === 'codeudor_finca_raiz' && {
                 property_matricula: contractData.property_matricula,
-                property_address_guarantee: contractData.property_address_guarantee,
+                property_address_guarantee:
+                  contractData.property_address_guarantee,
                 property_city_guarantee: contractData.property_city_guarantee,
-                property_department_guarantee: contractData.property_department_guarantee,
+                property_department_guarantee:
+                  contractData.property_department_guarantee,
                 property_area_guarantee: contractData.property_area_guarantee,
                 property_predial_number: contractData.property_predial_number,
-                property_catastral_number: contractData.property_catastral_number,
+                property_catastral_number:
+                  contractData.property_catastral_number,
                 property_linderos: contractData.property_linderos,
               }),
             },
@@ -403,13 +428,16 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         tenant_signed: false,
         published: false,
       };
-      const updatedContract = await LandlordContractService.updateContractDraft(contractId, updatePayload);
+      const updatedContract = await LandlordContractService.updateContractDraft(
+        contractId,
+        updatePayload,
+      );
 
       if (updatedContract) {
         setContract(updatedContract);
         setOriginalData({ ...contractData }); // Update original data reference
         setHasChanges(false);
-        
+
         if (showMessage) {
         }
 
@@ -417,9 +445,10 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
           onSave(updatedContract);
         }
       }
-
     } catch (error) {
-      setValidationErrors(['Error al guardar los cambios. Inténtelo nuevamente.']);
+      setValidationErrors([
+        'Error al guardar los cambios. Inténtelo nuevamente.',
+      ]);
     } finally {
       setIsSaving(false);
     }
@@ -431,15 +460,21 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
     switch (activeStep) {
       case 0: // Información del Arrendador
-        if (!contractData.landlord_full_name.trim()) errors.push('El nombre completo es requerido');
-        if (!contractData.landlord_document_number.trim()) errors.push('El número de documento es requerido');
-        if (!contractData.landlord_phone.trim()) errors.push('El teléfono es requerido');
-        if (!contractData.landlord_email.trim()) errors.push('El email es requerido');
+        if (!contractData.landlord_full_name.trim())
+          errors.push('El nombre completo es requerido');
+        if (!contractData.landlord_document_number.trim())
+          errors.push('El número de documento es requerido');
+        if (!contractData.landlord_phone.trim())
+          errors.push('El teléfono es requerido');
+        if (!contractData.landlord_email.trim())
+          errors.push('El email es requerido');
         break;
 
       case 1: // Detalles de la Propiedad
-        if (!contractData.property_address.trim()) errors.push('La dirección de la propiedad es requerida');
-        if (!contractData.property_area || contractData.property_area <= 0) errors.push('El área debe ser mayor a 0');
+        if (!contractData.property_address.trim())
+          errors.push('La dirección de la propiedad es requerida');
+        if (!contractData.property_area || contractData.property_area <= 0)
+          errors.push('El área debe ser mayor a 0');
         break;
 
       case 2: // Condiciones Económicas
@@ -452,26 +487,39 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         break;
 
       case 3: // Términos del Contrato
-        if (!contractData.contract_duration_months || contractData.contract_duration_months < 1) {
+        if (
+          !contractData.contract_duration_months ||
+          contractData.contract_duration_months < 1
+        ) {
           errors.push('La duración del contrato debe ser de al menos 1 mes');
         }
         break;
 
       case 4: // Garantías del Contrato
         if (contractData.guarantee_type !== 'none') {
-          if (!contractData.codeudor_full_name.trim()) errors.push('El nombre del codeudor es requerido');
-          if (!contractData.codeudor_document_number.trim()) errors.push('El número de documento del codeudor es requerido');
-          
+          if (!contractData.codeudor_full_name.trim())
+            errors.push('El nombre del codeudor es requerido');
+          if (!contractData.codeudor_document_number.trim())
+            errors.push('El número de documento del codeudor es requerido');
+
           if (contractData.guarantee_type === 'codeudor_salario') {
-            if (!contractData.codeudor_employer.trim()) errors.push('La empresa del codeudor es requerida');
-            if (!contractData.codeudor_monthly_income || contractData.codeudor_monthly_income <= 0) {
-              errors.push('Los ingresos mensuales del codeudor deben ser mayores a $0');
+            if (!contractData.codeudor_employer.trim())
+              errors.push('La empresa del codeudor es requerida');
+            if (
+              !contractData.codeudor_monthly_income ||
+              contractData.codeudor_monthly_income <= 0
+            ) {
+              errors.push(
+                'Los ingresos mensuales del codeudor deben ser mayores a $0',
+              );
             }
           }
-          
+
           if (contractData.guarantee_type === 'codeudor_finca_raiz') {
-            if (!contractData.property_matricula.trim()) errors.push('La matrícula inmobiliaria es requerida');
-            if (!contractData.property_address_guarantee.trim()) errors.push('La dirección del inmueble de garantía es requerida');
+            if (!contractData.property_matricula.trim())
+              errors.push('La matrícula inmobiliaria es requerida');
+            if (!contractData.property_address_guarantee.trim())
+              errors.push('La dirección del inmueble de garantía es requerida');
           }
         }
         break;
@@ -499,8 +547,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     try {
       // Abrir PDF con token JWT (evita 401 en nueva pestaña)
       await viewContractPDF(contractId);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleCancel = () => {
@@ -545,9 +592,14 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Nombre Completo"
+                label='Nombre Completo'
                 value={contractData.landlord_full_name}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_full_name: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_full_name: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -555,76 +607,116 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 <InputLabel>Tipo de Documento</InputLabel>
                 <Select
                   value={contractData.landlord_document_type}
-                  onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_type: e.target.value }))}
-                  label="Tipo de Documento"
+                  onChange={e =>
+                    setContractData(prev => ({
+                      ...prev,
+                      landlord_document_type: e.target.value,
+                    }))
+                  }
+                  label='Tipo de Documento'
                 >
-                  <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
-                  <MenuItem value="CE">Cédula de Extranjería</MenuItem>
-                  <MenuItem value="PP">Pasaporte</MenuItem>
-                  <MenuItem value="NI">NIT</MenuItem>
+                  <MenuItem value='CC'>Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value='CE'>Cédula de Extranjería</MenuItem>
+                  <MenuItem value='PP'>Pasaporte</MenuItem>
+                  <MenuItem value='NI'>NIT</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
-                label="Número de Documento"
+                label='Número de Documento'
                 value={contractData.landlord_document_number}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_number: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_document_number: e.target.value,
+                  }))
+                }
               />
             </Grid>
             {/* Campos de expedición de documento */}
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Lugar de Expedición del Documento"
+                label='Lugar de Expedición del Documento'
                 value={contractData.landlord_document_expedition_place}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_expedition_place: e.target.value }))}
-                placeholder="Ej: Piedecuesta, Santander"
-                helperText="Ciudad donde fue expedido el documento"
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_document_expedition_place: e.target.value,
+                  }))
+                }
+                placeholder='Ej: Piedecuesta, Santander'
+                helperText='Ciudad donde fue expedido el documento'
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Fecha de Expedición del Documento"
-                type="date"
+                label='Fecha de Expedición del Documento'
+                type='date'
                 value={contractData.landlord_document_expedition_date}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_document_expedition_date: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_document_expedition_date: e.target.value,
+                  }))
+                }
                 InputLabelProps={{ shrink: true }}
-                helperText="Fecha en que fue expedido el documento"
+                helperText='Fecha en que fue expedido el documento'
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Teléfono"
+                label='Teléfono'
                 value={contractData.landlord_phone}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_phone: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_phone: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Email"
+                label='Email'
                 value={contractData.landlord_email}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_email: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_email: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Dirección"
+                label='Dirección'
                 value={contractData.landlord_address}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_address: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_address: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Ciudad"
+                label='Ciudad'
                 value={contractData.landlord_city}
-                onChange={(e) => setContractData(prev => ({ ...prev, landlord_city: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    landlord_city: e.target.value,
+                  }))
+                }
               />
             </Grid>
           </Grid>
@@ -636,18 +728,28 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Dirección de la Propiedad"
+                label='Dirección de la Propiedad'
                 value={contractData.property_address}
-                onChange={(e) => setContractData(prev => ({ ...prev, property_address: e.target.value }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    property_address: e.target.value,
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Área (m²)"
-                type="number"
+                label='Área (m²)'
+                type='number'
                 value={contractData.property_area}
-                onChange={(e) => setContractData(prev => ({ ...prev, property_area: parseFloat(e.target.value) }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    property_area: parseFloat(e.target.value),
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -655,13 +757,18 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 <InputLabel>Tipo de Propiedad</InputLabel>
                 <Select
                   value={contractData.property_type}
-                  onChange={(e) => setContractData(prev => ({ ...prev, property_type: e.target.value }))}
-                  label="Tipo de Propiedad"
+                  onChange={e =>
+                    setContractData(prev => ({
+                      ...prev,
+                      property_type: e.target.value,
+                    }))
+                  }
+                  label='Tipo de Propiedad'
                 >
-                  <MenuItem value="apartamento">Apartamento</MenuItem>
-                  <MenuItem value="casa">Casa</MenuItem>
-                  <MenuItem value="oficina">Oficina</MenuItem>
-                  <MenuItem value="local">Local Comercial</MenuItem>
+                  <MenuItem value='apartamento'>Apartamento</MenuItem>
+                  <MenuItem value='casa'>Casa</MenuItem>
+                  <MenuItem value='oficina'>Oficina</MenuItem>
+                  <MenuItem value='local'>Local Comercial</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -670,10 +777,15 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 control={
                   <Switch
                     checked={contractData.property_furnished}
-                    onChange={(e) => setContractData(prev => ({ ...prev, property_furnished: e.target.checked }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        property_furnished: e.target.checked,
+                      }))
+                    }
                   />
                 }
-                label="Amoblado"
+                label='Amoblado'
               />
             </Grid>
           </Grid>
@@ -685,44 +797,68 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Arriendo Mensual"
-                type="number"
+                label='Arriendo Mensual'
+                type='number'
                 value={contractData.monthly_rent}
-                onChange={(e) => setContractData(prev => ({ ...prev, monthly_rent: parseFloat(e.target.value) }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    monthly_rent: parseFloat(e.target.value),
+                  }))
+                }
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position='start'>$</InputAdornment>
+                  ),
                 }}
               />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Depósito de Garantía"
-                type="number"
+                label='Depósito de Garantía'
+                type='number'
                 value={contractData.security_deposit}
-                onChange={(e) => setContractData(prev => ({ ...prev, security_deposit: parseFloat(e.target.value) }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    security_deposit: parseFloat(e.target.value),
+                  }))
+                }
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position='start'>$</InputAdornment>
+                  ),
                 }}
               />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Duración (meses)"
-                type="number"
+                label='Duración (meses)'
+                type='number'
                 value={contractData.contract_duration_months}
-                onChange={(e) => setContractData(prev => ({ ...prev, contract_duration_months: parseInt(e.target.value) }))}
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    contract_duration_months: parseInt(e.target.value),
+                  }))
+                }
               />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Día de Pago"
-                type="number"
+                label='Día de Pago'
+                type='number'
                 value={contractData.payment_day}
-                onChange={(e) => setContractData(prev => ({ ...prev, payment_day: parseInt(e.target.value) }))}
-                helperText="Día del mes (1-31)"
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    payment_day: parseInt(e.target.value),
+                  }))
+                }
+                helperText='Día del mes (1-31)'
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -730,10 +866,15 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 control={
                   <Switch
                     checked={contractData.utilities_included}
-                    onChange={(e) => setContractData(prev => ({ ...prev, utilities_included: e.target.checked }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        utilities_included: e.target.checked,
+                      }))
+                    }
                   />
                 }
-                label="Servicios Incluidos"
+                label='Servicios Incluidos'
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -741,16 +882,21 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 control={
                   <Switch
                     checked={contractData.pets_allowed}
-                    onChange={(e) => setContractData(prev => ({ ...prev, pets_allowed: e.target.checked }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        pets_allowed: e.target.checked,
+                      }))
+                    }
                   />
                 }
-                label="Mascotas Permitidas"
+                label='Mascotas Permitidas'
               />
             </Grid>
             {/* Divider para separar políticas adicionales */}
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1" color="primary" gutterBottom>
+              <Typography variant='subtitle1' color='primary' gutterBottom>
                 Políticas de Convivencia
               </Typography>
             </Grid>
@@ -759,23 +905,36 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 <InputLabel>Política de Huéspedes</InputLabel>
                 <Select
                   value={contractData.guests_policy}
-                  onChange={(e) => setContractData(prev => ({ ...prev, guests_policy: e.target.value as 'unlimited' | 'limited' | 'prohibited' }))}
-                  label="Política de Huéspedes"
+                  onChange={e =>
+                    setContractData(prev => ({
+                      ...prev,
+                      guests_policy: e.target.value as
+                        | 'unlimited'
+                        | 'limited'
+                        | 'prohibited',
+                    }))
+                  }
+                  label='Política de Huéspedes'
                 >
-                  <MenuItem value="unlimited">Sin Restricciones</MenuItem>
-                  <MenuItem value="limited">Limitado (máx. 3 noches)</MenuItem>
-                  <MenuItem value="prohibited">Prohibido</MenuItem>
+                  <MenuItem value='unlimited'>Sin Restricciones</MenuItem>
+                  <MenuItem value='limited'>Limitado (máx. 3 noches)</MenuItem>
+                  <MenuItem value='prohibited'>Prohibido</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Máximo de Ocupantes"
-                type="number"
+                label='Máximo de Ocupantes'
+                type='number'
                 value={contractData.max_occupants}
-                onChange={(e) => setContractData(prev => ({ ...prev, max_occupants: parseInt(e.target.value) || 1 }))}
-                helperText="Número máximo de personas"
+                onChange={e =>
+                  setContractData(prev => ({
+                    ...prev,
+                    max_occupants: parseInt(e.target.value) || 1,
+                  }))
+                }
+                helperText='Número máximo de personas'
                 inputProps={{ min: 1, max: 20 }}
               />
             </Grid>
@@ -784,12 +943,22 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 <InputLabel>Incremento de Arriendo</InputLabel>
                 <Select
                   value={contractData.rent_increase_type}
-                  onChange={(e) => setContractData(prev => ({ ...prev, rent_increase_type: e.target.value as 'ipc' | 'fixed' | 'negotiable' }))}
-                  label="Incremento de Arriendo"
+                  onChange={e =>
+                    setContractData(prev => ({
+                      ...prev,
+                      rent_increase_type: e.target.value as
+                        | 'ipc'
+                        | 'fixed'
+                        | 'negotiable',
+                    }))
+                  }
+                  label='Incremento de Arriendo'
                 >
-                  <MenuItem value="ipc">IPC (Índice de Precios al Consumidor)</MenuItem>
-                  <MenuItem value="fixed">Porcentaje Fijo</MenuItem>
-                  <MenuItem value="negotiable">Negociable</MenuItem>
+                  <MenuItem value='ipc'>
+                    IPC (Índice de Precios al Consumidor)
+                  </MenuItem>
+                  <MenuItem value='fixed'>Porcentaje Fijo</MenuItem>
+                  <MenuItem value='negotiable'>Negociable</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -804,12 +973,21 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 <InputLabel>Tipo de Garantía</InputLabel>
                 <Select
                   value={contractData.guarantee_type}
-                  onChange={(e) => setContractData(prev => ({ ...prev, guarantee_type: e.target.value as any }))}
-                  label="Tipo de Garantía"
+                  onChange={e =>
+                    setContractData(prev => ({
+                      ...prev,
+                      guarantee_type: e.target.value as any,
+                    }))
+                  }
+                  label='Tipo de Garantía'
                 >
-                  <MenuItem value="none">Sin Garantía</MenuItem>
-                  <MenuItem value="codeudor_salario">Codeudor (Salario)</MenuItem>
-                  <MenuItem value="codeudor_finca_raiz">Codeudor (Finca Raíz)</MenuItem>
+                  <MenuItem value='none'>Sin Garantía</MenuItem>
+                  <MenuItem value='codeudor_salario'>
+                    Codeudor (Salario)
+                  </MenuItem>
+                  <MenuItem value='codeudor_finca_raiz'>
+                    Codeudor (Finca Raíz)
+                  </MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -818,16 +996,21 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 {/* Sección: Datos Personales del Codeudor */}
                 <Grid item xs={12}>
                   <Divider sx={{ my: 1 }} />
-                  <Typography variant="subtitle1" color="primary" gutterBottom>
+                  <Typography variant='subtitle1' color='primary' gutterBottom>
                     Datos Personales del Codeudor
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Nombre Completo del Codeudor"
+                    label='Nombre Completo del Codeudor'
                     value={contractData.codeudor_full_name}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_full_name: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_full_name: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
@@ -836,55 +1019,85 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                     <InputLabel>Tipo Documento</InputLabel>
                     <Select
                       value={contractData.codeudor_document_type}
-                      onChange={(e) => setContractData(prev => ({ ...prev, codeudor_document_type: e.target.value as any }))}
-                      label="Tipo Documento"
+                      onChange={e =>
+                        setContractData(prev => ({
+                          ...prev,
+                          codeudor_document_type: e.target.value as any,
+                        }))
+                      }
+                      label='Tipo Documento'
                     >
-                      <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
-                      <MenuItem value="CE">Cédula de Extranjería</MenuItem>
-                      <MenuItem value="NIT">NIT</MenuItem>
+                      <MenuItem value='CC'>Cédula de Ciudadanía</MenuItem>
+                      <MenuItem value='CE'>Cédula de Extranjería</MenuItem>
+                      <MenuItem value='NIT'>NIT</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Número de Documento"
+                    label='Número de Documento'
                     value={contractData.codeudor_document_number}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_document_number: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_document_number: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Email del Codeudor"
-                    type="email"
+                    label='Email del Codeudor'
+                    type='email'
                     value={contractData.codeudor_email}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_email: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_email: e.target.value,
+                      }))
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Teléfono del Codeudor"
+                    label='Teléfono del Codeudor'
                     value={contractData.codeudor_phone}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_phone: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_phone: e.target.value,
+                      }))
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} md={8}>
                   <TextField
                     fullWidth
-                    label="Dirección del Codeudor"
+                    label='Dirección del Codeudor'
                     value={contractData.codeudor_address}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_address: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_address: e.target.value,
+                      }))
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Ciudad"
+                    label='Ciudad'
                     value={contractData.codeudor_city}
-                    onChange={(e) => setContractData(prev => ({ ...prev, codeudor_city: e.target.value }))}
+                    onChange={e =>
+                      setContractData(prev => ({
+                        ...prev,
+                        codeudor_city: e.target.value,
+                      }))
+                    }
                   />
                 </Grid>
 
@@ -893,36 +1106,58 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                   <>
                     <Grid item xs={12}>
                       <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle1" color="primary" gutterBottom>
+                      <Typography
+                        variant='subtitle1'
+                        color='primary'
+                        gutterBottom
+                      >
                         Información Laboral
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Empresa/Empleador"
+                        label='Empresa/Empleador'
                         value={contractData.codeudor_employer}
-                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_employer: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            codeudor_employer: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Cargo/Posición"
+                        label='Cargo/Posición'
                         value={contractData.codeudor_position}
-                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_position: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            codeudor_position: e.target.value,
+                          }))
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Ingresos Mensuales"
-                        type="number"
+                        label='Ingresos Mensuales'
+                        type='number'
                         value={contractData.codeudor_monthly_income}
-                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_monthly_income: parseFloat(e.target.value) || 0 }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            codeudor_monthly_income:
+                              parseFloat(e.target.value) || 0,
+                          }))
+                        }
                         InputProps={{
-                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                          startAdornment: (
+                            <InputAdornment position='start'>$</InputAdornment>
+                          ),
                         }}
                         required
                       />
@@ -930,9 +1165,14 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Teléfono de Trabajo"
+                        label='Teléfono de Trabajo'
                         value={contractData.codeudor_work_phone}
-                        onChange={(e) => setContractData(prev => ({ ...prev, codeudor_work_phone: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            codeudor_work_phone: e.target.value,
+                          }))
+                        }
                       />
                     </Grid>
                   </>
@@ -943,60 +1183,95 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                   <>
                     <Grid item xs={12}>
                       <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle1" color="primary" gutterBottom>
+                      <Typography
+                        variant='subtitle1'
+                        color='primary'
+                        gutterBottom
+                      >
                         Inmueble en Garantía
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Matrícula Inmobiliaria"
+                        label='Matrícula Inmobiliaria'
                         value={contractData.property_matricula}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_matricula: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_matricula: e.target.value,
+                          }))
+                        }
                         required
-                        helperText="Número de folio de matrícula inmobiliaria"
+                        helperText='Número de folio de matrícula inmobiliaria'
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Número Predial"
+                        label='Número Predial'
                         value={contractData.property_predial_number}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_predial_number: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_predial_number: e.target.value,
+                          }))
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Dirección del Inmueble de Garantía"
+                        label='Dirección del Inmueble de Garantía'
                         value={contractData.property_address_guarantee}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_address_guarantee: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_address_guarantee: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Ciudad"
+                        label='Ciudad'
                         value={contractData.property_city_guarantee}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_city_guarantee: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_city_guarantee: e.target.value,
+                          }))
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Departamento"
+                        label='Departamento'
                         value={contractData.property_department_guarantee}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_department_guarantee: e.target.value }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_department_guarantee: e.target.value,
+                          }))
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label="Área (m²)"
-                        type="number"
+                        label='Área (m²)'
+                        type='number'
                         value={contractData.property_area_guarantee}
-                        onChange={(e) => setContractData(prev => ({ ...prev, property_area_guarantee: parseFloat(e.target.value) || 0 }))}
+                        onChange={e =>
+                          setContractData(prev => ({
+                            ...prev,
+                            property_area_guarantee:
+                              parseFloat(e.target.value) || 0,
+                          }))
+                        }
                       />
                     </Grid>
                   </>
@@ -1010,11 +1285,13 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Las cláusulas especiales se generan automáticamente basándose en las opciones seleccionadas.
+              <Alert severity='info' sx={{ mb: 2 }}>
+                Las cláusulas especiales se generan automáticamente basándose en
+                las opciones seleccionadas.
               </Alert>
-              <Typography variant="body2" color="text.secondary">
-                Total de cláusulas especiales: {contractData.special_clauses?.length || 0}
+              <Typography variant='body2' color='text.secondary'>
+                Total de cláusulas especiales:{' '}
+                {contractData.special_clauses?.length || 0}
               </Typography>
             </Grid>
           </Grid>
@@ -1024,18 +1301,24 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Alert severity="success">
+              <Alert severity='success'>
                 Revise todos los datos antes de guardar los cambios.
               </Alert>
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
-                Cambios Realizados: {getChangedFields().length} campos modificados
+              <Typography variant='subtitle1' gutterBottom>
+                Cambios Realizados: {getChangedFields().length} campos
+                modificados
               </Typography>
               {getChangedFields().length > 0 && (
                 <Box sx={{ mt: 1 }}>
                   {getChangedFields().map(field => (
-                    <Chip key={field} label={field} size="small" sx={{ m: 0.5 }} />
+                    <Chip
+                      key={field}
+                      label={field}
+                      size='small'
+                      sx={{ m: 0.5 }}
+                    />
                   ))}
                 </Box>
               )}
@@ -1051,14 +1334,14 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   if (loading) {
     return (
       <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto', mt: 2 }}>
-        <Box display="flex" alignItems="center" mb={2}>
-          <Skeleton variant="circular" width={40} height={40} />
+        <Box display='flex' alignItems='center' mb={2}>
+          <Skeleton variant='circular' width={40} height={40} />
           <Box ml={2} flex={1}>
-            <Skeleton variant="text" width="60%" height={32} />
-            <Skeleton variant="text" width="40%" height={20} />
+            <Skeleton variant='text' width='60%' height={32} />
+            <Skeleton variant='text' width='40%' height={20} />
           </Box>
         </Box>
-        <Skeleton variant="rectangular" height={400} />
+        <Skeleton variant='rectangular' height={400} />
       </Paper>
     );
   }
@@ -1066,7 +1349,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
   if (!contract) {
     return (
       <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto', mt: 2 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           No se pudo cargar el contrato para edición.
         </Alert>
       </Paper>
@@ -1077,23 +1360,23 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
     <>
       <Paper elevation={3} sx={{ p: 3, maxWidth: 1200, mx: 'auto', mt: 2 }}>
         {/* Header */}
-        <Box display="flex" justifyContent="between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center">
-            <EditIcon color="primary" sx={{ mr: 2 }} />
+        <Box display='flex' justifyContent='between' alignItems='center' mb={3}>
+          <Box display='flex' alignItems='center'>
+            <EditIcon color='primary' sx={{ mr: 2 }} />
             <Box>
-              <Typography variant="h5" color="primary" gutterBottom>
+              <Typography variant='h5' color='primary' gutterBottom>
                 Editor de Borrador de Contrato
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 Contrato ID: {contractId} • {hasChanges && '● Sin guardar'}
               </Typography>
             </Box>
           </Box>
-          
+
           {/* Action buttons */}
-          <Box display="flex" gap={1}>
+          <Box display='flex' gap={1}>
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<PreviewIcon />}
               onClick={handlePreviewPDF}
               disabled={saving}
@@ -1101,7 +1384,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
               Vista Previa PDF
             </Button>
             <LoadingButton
-              variant="contained"
+              variant='contained'
               startIcon={<SaveIcon />}
               loading={saving}
               onClick={() => handleSave(true)}
@@ -1110,7 +1393,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </LoadingButton>
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<CloseIcon />}
               onClick={handleCancel}
             >
@@ -1121,13 +1404,14 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
         {/* Changes indicator */}
         {hasChanges && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              Hay cambios sin guardar. Los cambios se guardan automáticamente cada 30 segundos.
+          <Alert severity='warning' sx={{ mb: 3 }}>
+            <Typography variant='body2'>
+              Hay cambios sin guardar. Los cambios se guardan automáticamente
+              cada 30 segundos.
             </Typography>
             {getChangedFields().length > 0 && (
               <Box mt={1}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Campos modificados: {getChangedFields().join(', ')}
                 </Typography>
               </Box>
@@ -1137,11 +1421,15 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
         {/* Validation errors */}
         {validationErrors.length > 0 && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" gutterBottom>Corrija los siguientes errores:</Typography>
+          <Alert severity='error' sx={{ mb: 3 }}>
+            <Typography variant='subtitle2' gutterBottom>
+              Corrija los siguientes errores:
+            </Typography>
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               {validationErrors.map((error, index) => (
-                <li key={index}><Typography variant="body2">{error}</Typography></li>
+                <li key={index}>
+                  <Typography variant='body2'>{error}</Typography>
+                </li>
               ))}
             </ul>
           </Alert>
@@ -1158,10 +1446,10 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
         {/* Step Content - Editable fields for each step */}
         <Box sx={{ minHeight: 400 }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             {steps[activeStep]}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
             Paso {activeStep + 1} de {steps.length}
           </Typography>
 
@@ -1171,26 +1459,23 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
 
         {/* Navigation buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button
-            onClick={handleBack}
-            disabled={activeStep === 0}
-          >
+          <Button onClick={handleBack} disabled={activeStep === 0}>
             Anterior
           </Button>
-          
-          <Box display="flex" gap={2}>
+
+          <Box display='flex' gap={2}>
             <Button
-              variant="outlined"
+              variant='outlined'
               startIcon={<RestoreIcon />}
               onClick={loadContractData}
               disabled={loading || saving}
             >
               Restaurar Datos
             </Button>
-            
+
             {activeStep === steps.length - 1 ? (
               <LoadingButton
-                variant="contained"
+                variant='contained'
                 startIcon={<SaveIcon />}
                 loading={saving}
                 onClick={() => handleSave(true)}
@@ -1199,10 +1484,7 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
                 Finalizar Edición
               </LoadingButton>
             ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-              >
+              <Button variant='contained' onClick={handleNext}>
                 Siguiente
               </Button>
             )}
@@ -1214,27 +1496,41 @@ export const ContractDraftEditor: React.FC<ContractDraftEditorProps> = ({
       <Dialog
         open={previewDialogOpen}
         onClose={() => setPreviewDialogOpen(false)}
-        maxWidth="lg"
+        maxWidth='lg'
         fullWidth
       >
         <DialogTitle>
-          <Box display="flex" alignItems="center">
+          <Box display='flex' alignItems='center'>
             <PdfIcon sx={{ mr: 1 }} />
             Vista Previa del Contrato
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ width: '100%', height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              width: '100%',
+              height: '600px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
             <PdfIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-            <Button variant="contained" onClick={() => { setPreviewDialogOpen(false); viewContractPDF(contractId); }}>
+            <Button
+              variant='contained'
+              onClick={() => {
+                setPreviewDialogOpen(false);
+                viewContractPDF(contractId);
+              }}
+            >
               Abrir PDF en nueva pestaña
             </Button>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPreviewDialogOpen(false)}>
-            Cerrar
-          </Button>
+          <Button onClick={() => setPreviewDialogOpen(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </>

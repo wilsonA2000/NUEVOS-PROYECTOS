@@ -14,7 +14,7 @@ INSTRUCCIONES DE APLICACIÓN:
 """
 def get_queryset(self):
     user = self.request.user
-    
+
     if user.user_type == 'tenant':
         return MatchRequest.objects.filter(tenant=user)
     elif user.user_type == 'landlord':
@@ -27,7 +27,7 @@ def get_queryset(self):
 """
 def get_queryset(self):
     user = self.request.user
-    
+
     # OPTIMIZACIÓN: select_related para relaciones ForeignKey
     # prefetch_related para relaciones ManyToMany si existen
     base_queryset = MatchRequest.objects.select_related(
@@ -36,7 +36,7 @@ def get_queryset(self):
         'landlord',         # Usuario arrendador
         'property__landlord'  # Arrendador de la propiedad (evita query adicional)
     )
-    
+
     if user.user_type == 'tenant':
         # Arrendatarios ven sus solicitudes enviadas
         return base_queryset.filter(tenant=user)
@@ -103,7 +103,7 @@ DESPUÉS de la optimización:
 - MatchRequest list (20 items): ~3 queries
   * 1 query inicial con JOINs
   * 1-2 queries adicionales de paginación/conteo
-  
+
 MEJORA: ~94% reducción de queries (50 → 3)
 IMPACTO: Response time ~500ms → ~50ms (~90% más rápido)
 """

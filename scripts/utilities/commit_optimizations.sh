@@ -21,7 +21,7 @@ git commit -m "⚡ Performance optimization: Quick wins implementation
 
 Frontend optimizations:
 - Remove Leaflet library (~4 MB) - using Mapbox only
-- Implement XLSX lazy loading (~800 KB initial load reduction)  
+- Implement XLSX lazy loading (~800 KB initial load reduction)
 - Remove Recharts library (~2 MB) - using Chart.js only
 - Total: ~6.8 MB bundle reduction, 33 packages removed
 
@@ -33,13 +33,13 @@ Backend optimizations:
 
 Impact:
 ✅ 12-14% smaller bundle
-✅ 90% faster matching APIs  
+✅ 90% faster matching APIs
 ✅ Better mobile performance
 ✅ Cleaner codebase
 
 Files modified:
 - frontend/src/components/properties/PropertyForm.tsx
-- frontend/src/services/exportService.ts  
+- frontend/src/services/exportService.ts
 - matching/api_views.py
 
 Files deleted:

@@ -87,7 +87,6 @@ const steps = [
 const ContractRenewalWizard: React.FC = () => {
   const navigate = useNavigate();
   const { id: paramContractId } = useParams<{ id: string }>();
-  const { user } = useAuth();
 
   const [activeStep, setActiveStep] = useState(paramContractId ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -96,7 +95,8 @@ const ContractRenewalWizard: React.FC = () => {
 
   // Contract data
   const [contracts, setContracts] = useState<ContractSummary[]>([]);
-  const [selectedContract, setSelectedContract] = useState<ContractSummary | null>(null);
+  const [selectedContract, setSelectedContract] =
+    useState<ContractSummary | null>(null);
   const [contractNotFound, setContractNotFound] = useState(false);
 
   // Renewal terms
@@ -119,13 +119,15 @@ const ContractRenewalWizard: React.FC = () => {
   // If contractId is provided via URL params, load that contract
   useEffect(() => {
     if (paramContractId && contracts.length > 0) {
-      const contract = contracts.find((c) => c.id === paramContractId);
+      const contract = contracts.find(c => c.id === paramContractId);
       if (contract) {
         selectContract(contract);
         setContractNotFound(false);
       } else {
         setContractNotFound(true);
-        setError(`El contrato ${paramContractId} no fue encontrado o no es elegible para renovación. Solo contratos activos o próximos a vencer pueden renovarse.`);
+        setError(
+          `El contrato ${paramContractId} no fue encontrado o no es elegible para renovación. Solo contratos activos o próximos a vencer pueden renovarse.`,
+        );
       }
     } else if (paramContractId && !loading && contracts.length === 0) {
       setContractNotFound(true);
@@ -137,15 +139,19 @@ const ContractRenewalWizard: React.FC = () => {
     try {
       setLoading(true);
       const response = await contractService.getContracts();
-      const data = Array.isArray(response) ? response : (response as any)?.results || [];
+      const data = Array.isArray(response)
+        ? response
+        : (response as any)?.results || [];
       const eligible = data
         .filter((c: any) => c.status === 'active' || c.status === 'expiring')
         .map((c: any) => ({
           id: c.id,
           property_title: c.property?.title || c.property_title || 'Propiedad',
           property_address: c.property?.address || c.property_address || '',
-          tenant_name: c.secondary_party?.full_name || c.tenant_name || 'Inquilino',
-          landlord_name: c.property?.landlord?.full_name || c.landlord_name || '',
+          tenant_name:
+            c.secondary_party?.full_name || c.tenant_name || 'Inquilino',
+          landlord_name:
+            c.property?.landlord?.full_name || c.landlord_name || '',
           monthly_rent: parseFloat(c.monthly_rent || c.rent_amount || '0'),
           start_date: c.start_date || '',
           end_date: c.end_date || '',
@@ -177,7 +183,7 @@ const ContractRenewalWizard: React.FC = () => {
       const increase = contract.monthly_rent * (ipcRate / 100);
       const newRent = Math.round(contract.monthly_rent + increase);
 
-      setTerms((prev) => ({
+      setTerms(prev => ({
         ...prev,
         new_monthly_rent: newRent,
         rent_increase_percentage: ipcRate,
@@ -196,7 +202,7 @@ const ContractRenewalWizard: React.FC = () => {
     if (!selectedContract) return;
     const increase = selectedContract.monthly_rent * (rate / 100);
     const newRent = Math.round(selectedContract.monthly_rent + increase);
-    setTerms((prev) => ({
+    setTerms(prev => ({
       ...prev,
       ipc_rate: rate,
       rent_increase_percentage: rate,
@@ -209,7 +215,7 @@ const ContractRenewalWizard: React.FC = () => {
     const newStart = new Date(terms.new_start_date);
     const newEnd = new Date(newStart);
     newEnd.setMonth(newEnd.getMonth() + months);
-    setTerms((prev) => ({
+    setTerms(prev => ({
       ...prev,
       new_duration_months: months,
       new_end_date: newEnd.toISOString().split('T')[0] ?? '',
@@ -233,7 +239,9 @@ const ContractRenewalWizard: React.FC = () => {
       setSuccessDialog(true);
     } catch (err: any) {
       setError(
-        err?.response?.data?.detail || err?.response?.data?.error || 'Error al crear la renovación',
+        err?.response?.data?.detail ||
+          err?.response?.data?.error ||
+          'Error al crear la renovación',
       );
     } finally {
       setLoading(false);
@@ -265,21 +273,23 @@ const ContractRenewalWizard: React.FC = () => {
   // Step 0: Contract selection
   const renderContractSelection = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant='h6' gutterBottom>
         Selecciona el contrato a renovar
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
         Solo se muestran contratos activos o por vencer.
       </Typography>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
 
       {contracts.length === 0 && !loading && (
-        <Alert severity="info">No hay contratos elegibles para renovación.</Alert>
+        <Alert severity='info'>
+          No hay contratos elegibles para renovación.
+        </Alert>
       )}
 
       <Grid container spacing={2}>
-        {contracts.map((contract) => {
+        {contracts.map(contract => {
           const daysLeft = getDaysUntilExpiry(contract.end_date);
           return (
             <Grid item xs={12} md={6} key={contract.id}>
@@ -287,59 +297,77 @@ const ContractRenewalWizard: React.FC = () => {
                 sx={{
                   cursor: 'pointer',
                   border:
-                    selectedContract?.id === contract.id ? '2px solid' : '1px solid transparent',
-                  borderColor: selectedContract?.id === contract.id ? 'primary.main' : 'divider',
+                    selectedContract?.id === contract.id
+                      ? '2px solid'
+                      : '1px solid transparent',
+                  borderColor:
+                    selectedContract?.id === contract.id
+                      ? 'primary.main'
+                      : 'divider',
                   '&:hover': { borderColor: 'primary.light', boxShadow: 3 },
                   transition: 'all 0.2s',
                 }}
                 onClick={() => selectContract(contract)}
               >
                 <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="subtitle1" fontWeight="600">
+                  <Box
+                    display='flex'
+                    justifyContent='space-between'
+                    alignItems='center'
+                    mb={1}
+                  >
+                    <Typography variant='subtitle1' fontWeight='600'>
                       {contract.property_title}
                     </Typography>
                     {daysLeft <= 30 && (
                       <Chip
                         label={`${daysLeft} días`}
                         color={daysLeft <= 15 ? 'error' : 'warning'}
-                        size="small"
+                        size='small'
                       />
                     )}
                   </Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant='body2' color='text.secondary'>
                     {contract.property_address}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
                   <Grid container spacing={1}>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='caption' color='text.secondary'>
                         Inquilino
                       </Typography>
-                      <Typography variant="body2">{contract.tenant_name}</Typography>
+                      <Typography variant='body2'>
+                        {contract.tenant_name}
+                      </Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='caption' color='text.secondary'>
                         Renta Mensual
                       </Typography>
-                      <Typography variant="body2" fontWeight="500">
+                      <Typography variant='body2' fontWeight='500'>
                         {formatCurrency(contract.monthly_rent)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='caption' color='text.secondary'>
                         Vence
                       </Typography>
-                      <Typography variant="body2">{formatDate(contract.end_date)}</Typography>
+                      <Typography variant='body2'>
+                        {formatDate(contract.end_date)}
+                      </Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='caption' color='text.secondary'>
                         Estado
                       </Typography>
                       <Chip
-                        label={contract.status === 'active' ? 'Activo' : 'Por vencer'}
-                        color={contract.status === 'active' ? 'success' : 'warning'}
-                        size="small"
+                        label={
+                          contract.status === 'active' ? 'Activo' : 'Por vencer'
+                        }
+                        color={
+                          contract.status === 'active' ? 'success' : 'warning'
+                        }
+                        size='small'
                       />
                     </Grid>
                   </Grid>
@@ -359,28 +387,31 @@ const ContractRenewalWizard: React.FC = () => {
 
     return (
       <Box>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Términos Actuales del Contrato
         </Typography>
 
         {daysLeft <= 30 && (
           <Alert severity={daysLeft <= 15 ? 'error' : 'warning'} sx={{ mb: 3 }}>
-            Este contrato vence en <strong>{daysLeft} días</strong> ({formatDate(selectedContract.end_date)}).
+            Este contrato vence en <strong>{daysLeft} días</strong> (
+            {formatDate(selectedContract.end_date)}).
           </Alert>
         )}
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Card variant="outlined">
+            <Card variant='outlined'>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <PropertyIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight="600">
+                <Box display='flex' alignItems='center' gap={1} mb={2}>
+                  <PropertyIcon color='primary' />
+                  <Typography variant='subtitle1' fontWeight='600'>
                     Propiedad
                   </Typography>
                 </Box>
-                <Typography variant="body1">{selectedContract.property_title}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant='body1'>
+                  {selectedContract.property_title}
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
                   {selectedContract.property_address}
                 </Typography>
               </CardContent>
@@ -388,28 +419,28 @@ const ContractRenewalWizard: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card variant="outlined">
+            <Card variant='outlined'>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <MoneyIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight="600">
+                <Box display='flex' alignItems='center' gap={1} mb={2}>
+                  <MoneyIcon color='primary' />
+                  <Typography variant='subtitle1' fontWeight='600'>
                     Condiciones Económicas
                   </Typography>
                 </Box>
                 <Grid container spacing={1}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Renta Mensual
                     </Typography>
-                    <Typography variant="h6" color="primary">
+                    <Typography variant='h6' color='primary'>
                       {formatCurrency(selectedContract.monthly_rent)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Depósito
                     </Typography>
-                    <Typography variant="h6">
+                    <Typography variant='h6'>
                       {formatCurrency(selectedContract.security_deposit)}
                     </Typography>
                   </Grid>
@@ -419,32 +450,36 @@ const ContractRenewalWizard: React.FC = () => {
           </Grid>
 
           <Grid item xs={12}>
-            <Card variant="outlined">
+            <Card variant='outlined'>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <CalendarIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight="600">
+                <Box display='flex' alignItems='center' gap={1} mb={2}>
+                  <CalendarIcon color='primary' />
+                  <Typography variant='subtitle1' fontWeight='600'>
                     Vigencia
                   </Typography>
                 </Box>
                 <Grid container spacing={2}>
                   <Grid item xs={4}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Inicio
                     </Typography>
-                    <Typography variant="body1">{formatDate(selectedContract.start_date)}</Typography>
+                    <Typography variant='body1'>
+                      {formatDate(selectedContract.start_date)}
+                    </Typography>
                   </Grid>
                   <Grid item xs={4}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Fin
                     </Typography>
-                    <Typography variant="body1">{formatDate(selectedContract.end_date)}</Typography>
+                    <Typography variant='body1'>
+                      {formatDate(selectedContract.end_date)}
+                    </Typography>
                   </Grid>
                   <Grid item xs={4}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Duración
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant='body1'>
                       {selectedContract.duration_months} meses
                     </Typography>
                   </Grid>
@@ -465,30 +500,31 @@ const ContractRenewalWizard: React.FC = () => {
 
     return (
       <Box>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Configurar Nuevos Términos
         </Typography>
 
-        <Alert severity="info" icon={<LegalIcon />} sx={{ mb: 3 }}>
-          <Typography variant="body2">
-            <strong>Ley 820 de 2003, Art. 20:</strong> El incremento del canon de arrendamiento no
-            puede exceder el IPC (Índice de Precios al Consumidor) del año calendario anterior.
+        <Alert severity='info' icon={<LegalIcon />} sx={{ mb: 3 }}>
+          <Typography variant='body2'>
+            <strong>Ley 820 de 2003, Art. 20:</strong> El incremento del canon
+            de arrendamiento no puede exceder el IPC (Índice de Precios al
+            Consumidor) del año calendario anterior.
           </Typography>
         </Alert>
 
         <Grid container spacing={3}>
           {/* IPC Rate */}
           <Grid item xs={12} md={6}>
-            <Card variant="outlined">
+            <Card variant='outlined'>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <IPCIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight="600">
+                <Box display='flex' alignItems='center' gap={1} mb={2}>
+                  <IPCIcon color='primary' />
+                  <Typography variant='subtitle1' fontWeight='600'>
                     Ajuste por IPC
                   </Typography>
                 </Box>
 
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant='body2' color='text.secondary' gutterBottom>
                   Tasa IPC aplicable (%)
                 </Typography>
                 <Slider
@@ -497,8 +533,8 @@ const ContractRenewalWizard: React.FC = () => {
                   min={0}
                   max={15}
                   step={0.01}
-                  valueLabelDisplay="on"
-                  valueLabelFormat={(v) => `${v}%`}
+                  valueLabelDisplay='on'
+                  valueLabelFormat={v => `${v}%`}
                   marks={[
                     { value: 0, label: '0%' },
                     { value: 5, label: '5%' },
@@ -512,18 +548,18 @@ const ContractRenewalWizard: React.FC = () => {
 
                 <Grid container spacing={1}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Renta Actual
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant='body1'>
                       {formatCurrency(selectedContract.monthly_rent)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Nueva Renta
                     </Typography>
-                    <Typography variant="h6" color="primary" fontWeight="bold">
+                    <Typography variant='h6' color='primary' fontWeight='bold'>
                       {formatCurrency(terms.new_monthly_rent)}
                     </Typography>
                   </Grid>
@@ -531,8 +567,8 @@ const ContractRenewalWizard: React.FC = () => {
 
                 <Chip
                   label={`+${formatCurrency(rentDiff)} / mes`}
-                  color="info"
-                  size="small"
+                  color='info'
+                  size='small'
                   sx={{ mt: 1 }}
                 />
               </CardContent>
@@ -541,11 +577,11 @@ const ContractRenewalWizard: React.FC = () => {
 
           {/* Duration */}
           <Grid item xs={12} md={6}>
-            <Card variant="outlined">
+            <Card variant='outlined'>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <CalendarIcon color="primary" />
-                  <Typography variant="subtitle1" fontWeight="600">
+                <Box display='flex' alignItems='center' gap={1} mb={2}>
+                  <CalendarIcon color='primary' />
+                  <Typography variant='subtitle1' fontWeight='600'>
                     Duración de la Renovación
                   </Typography>
                 </Box>
@@ -554,8 +590,8 @@ const ContractRenewalWizard: React.FC = () => {
                   <InputLabel>Duración</InputLabel>
                   <Select
                     value={terms.new_duration_months}
-                    onChange={(e) => handleDurationChange(Number(e.target.value))}
-                    label="Duración"
+                    onChange={e => handleDurationChange(Number(e.target.value))}
+                    label='Duración'
                   >
                     <MenuItem value={6}>6 meses</MenuItem>
                     <MenuItem value={12}>12 meses (recomendado)</MenuItem>
@@ -569,16 +605,20 @@ const ContractRenewalWizard: React.FC = () => {
 
                 <Grid container spacing={1}>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Nuevo Inicio
                     </Typography>
-                    <Typography variant="body1">{formatDate(terms.new_start_date)}</Typography>
+                    <Typography variant='body1'>
+                      {formatDate(terms.new_start_date)}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant='caption' color='text.secondary'>
                       Nuevo Fin
                     </Typography>
-                    <Typography variant="body1">{formatDate(terms.new_end_date)}</Typography>
+                    <Typography variant='body1'>
+                      {formatDate(terms.new_end_date)}
+                    </Typography>
                   </Grid>
                 </Grid>
               </CardContent>
@@ -589,24 +629,27 @@ const ContractRenewalWizard: React.FC = () => {
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              label="Renta Mensual (ajuste manual)"
-              type="number"
+              label='Renta Mensual (ajuste manual)'
+              type='number'
               value={terms.new_monthly_rent}
-              onChange={(e) =>
-                setTerms((prev) => ({
+              onChange={e =>
+                setTerms(prev => ({
                   ...prev,
                   new_monthly_rent: parseFloat(e.target.value) || 0,
                   rent_increase_percentage: selectedContract
-                    ? ((parseFloat(e.target.value) - selectedContract.monthly_rent) /
+                    ? ((parseFloat(e.target.value) -
+                        selectedContract.monthly_rent) /
                         selectedContract.monthly_rent) *
                       100
                     : 0,
                 }))
               }
               InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                startAdornment: (
+                  <InputAdornment position='start'>$</InputAdornment>
+                ),
               }}
-              helperText="Puede ajustar manualmente pero no debe exceder el IPC legal"
+              helperText='Puede ajustar manualmente pero no debe exceder el IPC legal'
             />
           </Grid>
 
@@ -614,12 +657,17 @@ const ContractRenewalWizard: React.FC = () => {
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              label="Términos Adicionales"
+              label='Términos Adicionales'
               multiline
               rows={3}
               value={terms.additional_terms}
-              onChange={(e) => setTerms((prev) => ({ ...prev, additional_terms: e.target.value }))}
-              placeholder="Condiciones especiales para la renovación..."
+              onChange={e =>
+                setTerms(prev => ({
+                  ...prev,
+                  additional_terms: e.target.value,
+                }))
+              }
+              placeholder='Condiciones especiales para la renovación...'
             />
           </Grid>
         </Grid>
@@ -636,100 +684,109 @@ const ContractRenewalWizard: React.FC = () => {
 
     return (
       <Box>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Confirmar Renovación
         </Typography>
 
-        <Alert severity="success" sx={{ mb: 3 }}>
-          Revise los detalles antes de confirmar. Se creará un borrador de renovación que requiere
-          aprobación de ambas partes.
+        <Alert severity='success' sx={{ mb: 3 }}>
+          Revise los detalles antes de confirmar. Se creará un borrador de
+          renovación que requiere aprobación de ambas partes.
         </Alert>
 
-        <Card variant="outlined" sx={{ mb: 3 }}>
+        <Card variant='outlined' sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="subtitle1" fontWeight="600" gutterBottom>
+            <Typography variant='subtitle1' fontWeight='600' gutterBottom>
               Resumen de la Renovación
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Propiedad
                 </Typography>
-                <Typography variant="body1">{selectedContract.property_title}</Typography>
+                <Typography variant='body1'>
+                  {selectedContract.property_title}
+                </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Inquilino
                 </Typography>
-                <Typography variant="body1">{selectedContract.tenant_name}</Typography>
+                <Typography variant='body1'>
+                  {selectedContract.tenant_name}
+                </Typography>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Renta Actual
                 </Typography>
-                <Typography variant="body1">
+                <Typography variant='body1'>
                   {formatCurrency(selectedContract.monthly_rent)}
                 </Typography>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Nueva Renta
                 </Typography>
-                <Typography variant="body1" color="primary" fontWeight="bold">
+                <Typography variant='body1' color='primary' fontWeight='bold'>
                   {formatCurrency(terms.new_monthly_rent)}
                 </Typography>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Incremento
                 </Typography>
                 <Chip
                   label={`+${terms.rent_increase_percentage.toFixed(2)}%`}
-                  color="info"
-                  size="small"
+                  color='info'
+                  size='small'
                 />
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Diferencia Anual
                 </Typography>
-                <Typography variant="body1" color="success.main">
+                <Typography variant='body1' color='success.main'>
                   +{formatCurrency(annualDiff)}
                 </Typography>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Nueva Vigencia
                 </Typography>
-                <Typography variant="body2">
-                  {formatDate(terms.new_start_date)} - {formatDate(terms.new_end_date)}
+                <Typography variant='body2'>
+                  {formatDate(terms.new_start_date)} -{' '}
+                  {formatDate(terms.new_end_date)}
                 </Typography>
               </Grid>
               <Grid item xs={6} md={3}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Duración
                 </Typography>
-                <Typography variant="body1">{terms.new_duration_months} meses</Typography>
+                <Typography variant='body1'>
+                  {terms.new_duration_months} meses
+                </Typography>
               </Grid>
               {terms.additional_terms && (
                 <Grid item xs={12}>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant='caption' color='text.secondary'>
                     Términos Adicionales
                   </Typography>
-                  <Typography variant="body2">{terms.additional_terms}</Typography>
+                  <Typography variant='body2'>
+                    {terms.additional_terms}
+                  </Typography>
                 </Grid>
               )}
             </Grid>
           </CardContent>
         </Card>
 
-        <Alert severity="info" icon={<LegalIcon />}>
-          <Typography variant="body2">
-            Al confirmar, se generará un borrador de renovación conforme a la Ley 820 de 2003. Ambas
-            partes deberán aprobar los nuevos términos antes de que el contrato renovado entre en
-            vigencia.
+        <Alert severity='info' icon={<LegalIcon />}>
+          <Typography variant='body2'>
+            Al confirmar, se generará un borrador de renovación conforme a la
+            Ley 820 de 2003. Ambas partes deberán aprobar los nuevos términos
+            antes de que el contrato renovado entre en vigencia.
           </Typography>
         </Alert>
       </Box>
@@ -755,22 +812,25 @@ const ContractRenewalWizard: React.FC = () => {
     if (activeStep === steps.length - 1) {
       handleSubmitRenewal();
     } else {
-      setActiveStep((prev) => prev + 1);
+      setActiveStep(prev => prev + 1);
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth='lg' sx={{ py: 3 }}>
       {/* Header */}
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <Button startIcon={<BackIcon />} onClick={() => navigate('/app/contracts')}>
+      <Box display='flex' alignItems='center' gap={2} mb={3}>
+        <Button
+          startIcon={<BackIcon />}
+          onClick={() => navigate('/app/contracts')}
+        >
           Volver
         </Button>
         <Box>
-          <Typography variant="h4" fontWeight="bold">
+          <Typography variant='h4' fontWeight='bold'>
             Renovación de Contrato
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             Wizard de renovación con ajuste IPC - Ley 820 de 2003
           </Typography>
         </Box>
@@ -779,7 +839,7 @@ const ContractRenewalWizard: React.FC = () => {
       {/* Stepper */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label) => (
+          {steps.map(label => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
@@ -789,7 +849,7 @@ const ContractRenewalWizard: React.FC = () => {
 
       {/* Error */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -803,16 +863,16 @@ const ContractRenewalWizard: React.FC = () => {
       </Paper>
 
       {/* Navigation */}
-      <Box display="flex" justifyContent="space-between">
+      <Box display='flex' justifyContent='space-between'>
         <Button
-          onClick={() => setActiveStep((prev) => prev - 1)}
+          onClick={() => setActiveStep(prev => prev - 1)}
           disabled={activeStep === 0 || loading}
         >
           Anterior
         </Button>
 
         <Button
-          variant="contained"
+          variant='contained'
           onClick={handleNext}
           disabled={!canProceed() || loading}
           startIcon={
@@ -823,34 +883,41 @@ const ContractRenewalWizard: React.FC = () => {
             ) : undefined
           }
         >
-          {activeStep === steps.length - 1 ? 'Confirmar Renovación' : 'Siguiente'}
+          {activeStep === steps.length - 1
+            ? 'Confirmar Renovación'
+            : 'Siguiente'}
         </Button>
       </Box>
 
       {/* Success Dialog */}
-      <Dialog open={successDialog} maxWidth="sm" fullWidth>
+      <Dialog open={successDialog} maxWidth='sm' fullWidth>
         <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <SuccessIcon color="success" />
+          <Box display='flex' alignItems='center' gap={1}>
+            <SuccessIcon color='success' />
             Renovación Creada Exitosamente
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body1">
-            El borrador de renovación ha sido creado. Ambas partes serán notificadas para revisar y
-            aprobar los nuevos términos.
+          <Typography variant='body1'>
+            El borrador de renovación ha sido creado. Ambas partes serán
+            notificadas para revisar y aprobar los nuevos términos.
           </Typography>
           {selectedContract && (
             <Box mt={2}>
               <Chip label={selectedContract.property_title} sx={{ mr: 1 }} />
-              <Chip label={formatCurrency(terms.new_monthly_rent)} color="primary" />
+              <Chip
+                label={formatCurrency(terms.new_monthly_rent)}
+                color='primary'
+              />
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => navigate('/app/contracts')}>Ir a Contratos</Button>
+          <Button onClick={() => navigate('/app/contracts')}>
+            Ir a Contratos
+          </Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={() => {
               setSuccessDialog(false);
               setActiveStep(0);

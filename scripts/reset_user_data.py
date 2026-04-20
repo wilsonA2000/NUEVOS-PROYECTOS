@@ -9,20 +9,29 @@ import sys
 import django
 
 # Setup Django
-sys.path.append('/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
+sys.path.append("/mnt/c/Users/wilso/Desktop/NUEVOS PROYECTOS")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "verihome.settings")
 django.setup()
 
 from matching.models import MatchRequest
-from contracts.models import Contract, LandlordControlledContract, ContractSignature, BiometricAuthentication
+from contracts.models import (
+    Contract,
+    LandlordControlledContract,
+    ContractSignature,
+    BiometricAuthentication,
+)
 from requests.models import (
-    PropertyInterestRequest, ServiceRequest, MaintenanceRequest,
-    ContractSignatureRequest, BaseRequest
+    PropertyInterestRequest,
+    ServiceRequest,
+    MaintenanceRequest,
+    ContractSignatureRequest,
+    BaseRequest,
 )
 from payments.models import Payment, Transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 def reset_user_data():
     """
@@ -35,7 +44,9 @@ def reset_user_data():
     # Contar antes
     print("\n📊 DATOS ACTUALES:")
     print(f"   • MatchRequest: {MatchRequest.objects.count()}")
-    print(f"   • LandlordControlledContract: {LandlordControlledContract.objects.count()}")
+    print(
+        f"   • LandlordControlledContract: {LandlordControlledContract.objects.count()}"
+    )
     print(f"   • Contract (biométrico): {Contract.objects.count()}")
     print(f"   • BiometricAuthentication: {BiometricAuthentication.objects.count()}")
     print(f"   • PropertyInterestRequest: {PropertyInterestRequest.objects.count()}")
@@ -51,7 +62,7 @@ def reset_user_data():
 
     confirm = input("\n¿Continuar? (escribe 'SI' en mayúsculas): ")
 
-    if confirm != 'SI':
+    if confirm != "SI":
         print("\n❌ Operación cancelada")
         return
 
@@ -104,7 +115,9 @@ def reset_user_data():
 
     print("\n📊 DATOS FINALES:")
     print(f"   • MatchRequest: {MatchRequest.objects.count()}")
-    print(f"   • LandlordControlledContract: {LandlordControlledContract.objects.count()}")
+    print(
+        f"   • LandlordControlledContract: {LandlordControlledContract.objects.count()}"
+    )
     print(f"   • Contract (biométrico): {Contract.objects.count()}")
     print(f"   • BiometricAuthentication: {BiometricAuthentication.objects.count()}")
     print(f"   • Solicitudes: {BaseRequest.objects.count()}")
@@ -118,6 +131,7 @@ def reset_user_data():
 
     print("\n🏠 PROPIEDADES DISPONIBLES:")
     from properties.models import Property
+
     properties = Property.objects.all()
     print(f"   • Total propiedades: {properties.count()}")
     for prop in properties[:5]:
@@ -133,5 +147,6 @@ def reset_user_data():
     print("   4. Probar flujo completo de contratos")
     print("=" * 80)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     reset_user_data()

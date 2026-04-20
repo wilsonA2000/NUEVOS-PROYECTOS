@@ -4,7 +4,10 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import websocketService, { WebSocketMessage, ConnectionStatus } from '../services/websocketService';
+import websocketService, {
+  WebSocketMessage,
+  ConnectionStatus,
+} from '../services/websocketService';
 
 interface UseWebSocketOptions {
   autoConnect?: boolean;
@@ -19,27 +22,35 @@ interface UseWebSocketReturn {
   connect: () => Promise<void>;
   disconnect: () => void;
   send: (message: WebSocketMessage) => boolean;
-  subscribe: (eventType: string, callback: (message: WebSocketMessage) => void) => () => void;
+  subscribe: (
+    eventType: string,
+    callback: (message: WebSocketMessage) => void
+  ) => () => void;
 }
 
 export const useWebSocketEnhanced = (
   endpoint: string,
   options: UseWebSocketOptions = {},
 ): UseWebSocketReturn => {
-  const { autoConnect = true, onMessage, onConnectionChange, dependencies = [] } = options;
-  
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(() => 
-    websocketService.getConnectionStatus(endpoint),
+  const {
+    autoConnect = true,
+    onMessage,
+    onConnectionChange,
+    dependencies = [],
+  } = options;
+
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    () => websocketService.getConnectionStatus(endpoint),
   );
-  
+
   const onMessageRef = useRef(onMessage);
   const onConnectionChangeRef = useRef(onConnectionChange);
-  
+
   // Update refs when callbacks change
   useEffect(() => {
     onMessageRef.current = onMessage;
   }, [onMessage]);
-  
+
   useEffect(() => {
     onConnectionChangeRef.current = onConnectionChange;
   }, [onConnectionChange]);
@@ -50,24 +61,32 @@ export const useWebSocketEnhanced = (
   }, [endpoint]);
 
   // Disconnect function disabled
-  const disconnect = useCallback(() => {
-  }, [endpoint]);
+  const disconnect = useCallback(() => {}, [endpoint]);
 
   // Send function disabled
-  const send = useCallback((message: WebSocketMessage) => {
-    return false;
-  }, [endpoint]);
+  const send = useCallback(
+    (message: WebSocketMessage) => {
+      return false;
+    },
+    [endpoint],
+  );
 
   // Subscribe function disabled
-  const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    return () => {};
-  }, []);
+  const subscribe = useCallback(
+    (eventType: string, callback: (message: WebSocketMessage) => void) => {
+      return () => {};
+    },
+    [],
+  );
 
   // Auto-connect completely disabled
 
   // Connection status monitoring disabled
   useEffect(() => {
-    setConnectionStatus({ connected: false, connecting: false } as ConnectionStatus);
+    setConnectionStatus({
+      connected: false,
+      connecting: false,
+    } as ConnectionStatus);
   }, [endpoint]);
 
   // Message handler disabled
@@ -84,16 +103,28 @@ export const useWebSocketEnhanced = (
 
 // Specialized hooks for different WebSocket endpoints
 
-export const useMessaging = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
+export const useMessaging = (
+  options?: Omit<UseWebSocketOptions, 'autoConnect'>,
+) => {
   return useWebSocketEnhanced('messaging', { ...options, autoConnect: false });
 };
 
-export const useNotifications = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
-  return useWebSocketEnhanced('notifications', { ...options, autoConnect: false });
+export const useNotifications = (
+  options?: Omit<UseWebSocketOptions, 'autoConnect'>,
+) => {
+  return useWebSocketEnhanced('notifications', {
+    ...options,
+    autoConnect: false,
+  });
 };
 
-export const useUserStatusWS = (options?: Omit<UseWebSocketOptions, 'autoConnect'>) => {
-  return useWebSocketEnhanced('user-status', { ...options, autoConnect: false });
+export const useUserStatusWS = (
+  options?: Omit<UseWebSocketOptions, 'autoConnect'>,
+) => {
+  return useWebSocketEnhanced('user-status', {
+    ...options,
+    autoConnect: false,
+  });
 };
 
 export const useThreadMessaging = (
@@ -101,8 +132,8 @@ export const useThreadMessaging = (
   options?: Omit<UseWebSocketOptions, 'autoConnect'>,
 ) => {
   const endpoint = `messaging/thread/${threadId}`;
-  return useWebSocketEnhanced(endpoint, { 
-    ...options, 
+  return useWebSocketEnhanced(endpoint, {
+    ...options,
     autoConnect: false,
     dependencies: [threadId],
   });

@@ -12,20 +12,20 @@
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">Mi Hoja de Vida</h1>
                     <p class="text-gray-600">Información detallada para verificación en la plataforma</p>
                 </div>
-                
+
                 <div class="mt-4 md:mt-0 flex space-x-3">
                     <!-- Progreso de completitud -->
                     <div class="text-center">
                         <div class="text-2xl font-bold text-primary-600">{{ completion_percentage }}%</div>
                         <div class="text-sm text-gray-500">Completado</div>
                     </div>
-                    
+
                     <!-- Puntuación de verificación -->
                     <div class="text-center">
                         <div class="text-2xl font-bold text-green-600">{{ verification_score }}%</div>
                         <div class="text-sm text-gray-500">Verificado</div>
                     </div>
-                    
+
                     <!-- Botón de editar -->
                     <a href="{% url 'users:resume_edit' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@
                     </a>
                 </div>
             </div>
-            
+
             <!-- Barra de progreso -->
             <div class="mt-6">
                 <div class="flex justify-between text-sm text-gray-600 mb-2">
@@ -47,7 +47,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Estado de documentos -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Estado de Documentos</h2>
@@ -70,7 +70,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Información detallada -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Información Personal -->
@@ -95,7 +95,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información Educativa -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Educativa</h2>
@@ -124,7 +124,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Información Laboral -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Laboral</h2>
@@ -159,7 +159,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Información Financiera -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Financiera</h2>
@@ -191,7 +191,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Contactos de Emergencia y Referencias -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <!-- Contacto de Emergencia -->
@@ -218,7 +218,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Referencias -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Referencias</h2>
@@ -247,7 +247,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Referencia 2 -->
                     {% if resume.reference2_name %}
                     <div>
@@ -277,7 +277,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Historial de Vivienda -->
         {% if resume.eviction_history or resume.eviction_details %}
         <div class="bg-white rounded-lg shadow-md p-6 mt-6">
@@ -302,7 +302,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Información Adicional -->
         {% if resume.criminal_record or resume.criminal_record_details %}
         <div class="bg-white rounded-lg shadow-md p-6 mt-6">
@@ -329,4 +329,4 @@
         {% endif %}
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

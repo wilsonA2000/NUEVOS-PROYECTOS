@@ -57,26 +57,29 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   // Estados para manejar las dos grabaciones
-  const [recordingPhase, setRecordingPhase] = useState<'identification' | 'cultural' | 'completed'>('identification');
-  const [identificationRecording, setIdentificationRecording] = useState<string | null>(null);
-  const [culturalRecording, setCulturalRecording] = useState<string | null>(null);
+  const [recordingPhase, setRecordingPhase] = useState<
+    'identification' | 'cultural' | 'completed'
+  >('identification');
+  const [identificationRecording, setIdentificationRecording] = useState<
+    string | null
+  >(null);
+  const [culturalRecording, setCulturalRecording] = useState<string | null>(
+    null,
+  );
 
   // Manejar la primera grabación (identificación)
   const handleIdentificationRecording = (audioData: any) => {
-    
     setIdentificationRecording(audioData);
     setRecordingPhase('cultural');
-    
   };
 
   // Manejar la segunda grabación (cultural)
   const handleCulturalRecording = (audioData: any) => {
-    
     setCulturalRecording(audioData);
     setRecordingPhase('completed');
-    
+
     // Enviar ambas grabaciones al componente padre
     const completeData = {
       identificationRecording: identificationRecording,
@@ -104,7 +107,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = ev => {
       const result = ev.target?.result as string;
       if (!result) return;
       if (recordingPhase === 'identification') {
@@ -125,7 +128,9 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
   // Obtener el título según la fase
   const getCurrentTitle = () => {
     if (recordingPhase === 'identification') {
-      return userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate
+      return userInfo?.fullName &&
+        userInfo?.documentNumber &&
+        userInfo?.documentIssueDate
         ? 'Grabación 1/2: Información de Identificación Personal'
         : 'Grabación 1/2: Proporcione su Información de Identificación';
     } else if (recordingPhase === 'cultural') {
@@ -136,22 +141,31 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
   };
 
   return (
-    <Box sx={{ 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      bgcolor: 'grey.50',
-    }}>
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'grey.50',
+      }}
+    >
       {/* Header compacto */}
-      <Paper elevation={1} sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
+      <Paper
+        elevation={1}
+        sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}
+      >
         <Box sx={{ p: 1 }}>
           {/* Navegación superior - muy compacta */}
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Box display="flex" alignItems="center" gap={1}>
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+          >
+            <Box display='flex' alignItems='center' gap={1}>
               {onBack && (
                 <Button
-                  variant="outlined"
-                  size="small"
+                  variant='outlined'
+                  size='small'
                   onClick={onBack}
                   startIcon={<ArrowBackIcon />}
                   sx={{ fontSize: '0.75rem', py: 0.5 }}
@@ -160,42 +174,62 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 </Button>
               )}
               <Box>
-                <Typography variant="subtitle1" fontWeight="600" sx={{ fontSize: '1rem' }}>
+                <Typography
+                  variant='subtitle1'
+                  fontWeight='600'
+                  sx={{ fontSize: '1rem' }}
+                >
                   {stepName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   Paso {currentStep} de {totalSteps}
                 </Typography>
               </Box>
             </Box>
 
             {/* Progreso visual compacto */}
-            <Chip 
+            <Chip
               label={`${Math.round((currentStep / totalSteps) * 100)}%`}
-              size="small"
-              color="primary"
-              variant="outlined"
+              size='small'
+              color='primary'
+              variant='outlined'
             />
           </Box>
 
           {/* Instrucciones compactas */}
-          <Alert 
-            severity={recordingPhase === 'identification' ? 'info' : recordingPhase === 'cultural' ? 'warning' : 'success'} 
-            icon={<InfoIcon />} 
+          <Alert
+            severity={
+              recordingPhase === 'identification'
+                ? 'info'
+                : recordingPhase === 'cultural'
+                  ? 'warning'
+                  : 'success'
+            }
+            icon={<InfoIcon />}
             sx={{ mt: 1, mb: 0, py: 1 }}
           >
-            <Typography variant="body2" sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+            <Typography variant='body2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
               <strong>{getCurrentTitle()}</strong>
             </Typography>
 
             {/* Progreso de grabaciones - compacto */}
             <Box sx={{ mb: 1 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={recordingPhase === 'identification' ? 25 : recordingPhase === 'cultural' ? 75 : 100}
+              <LinearProgress
+                variant='determinate'
+                value={
+                  recordingPhase === 'identification'
+                    ? 25
+                    : recordingPhase === 'cultural'
+                      ? 75
+                      : 100
+                }
                 sx={{ height: 4, borderRadius: 2 }}
               />
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem' }}
+              >
                 {recordingPhase === 'identification' && 'Paso 1/2: ID'}
                 {recordingPhase === 'cultural' && 'Paso 2/2: Cultural'}
                 {recordingPhase === 'completed' && 'Completado'}
@@ -204,110 +238,159 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
 
             {/* Explicación según la fase */}
             {recordingPhase === 'identification' && (
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                {userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate
+              <Typography variant='body2' sx={{ mb: 1 }}>
+                {userInfo?.fullName &&
+                userInfo?.documentNumber &&
+                userInfo?.documentIssueDate
                   ? 'Grabe la siguiente información de identificación personal'
-                  : 'Proporcione su información de identificación personal'
-                }
+                  : 'Proporcione su información de identificación personal'}
               </Typography>
             )}
 
             {recordingPhase === 'cultural' && (
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>Ahora grabe la siguiente frase educativa</strong><br/>
-                Esta verificación cultural confirma que es una persona real y promueve la lectura.
+              <Typography variant='body2' sx={{ mb: 1 }}>
+                <strong>Ahora grabe la siguiente frase educativa</strong>
+                <br />
+                Esta verificación cultural confirma que es una persona real y
+                promueve la lectura.
               </Typography>
             )}
 
             {recordingPhase === 'completed' && (
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>¡Excelente! Ha completado ambas verificaciones de voz</strong><br/>
-                Su identidad ha sido verificada y ha demostrado sus habilidades de lectura.
+              <Typography variant='body2' sx={{ mb: 1 }}>
+                <strong>
+                  ¡Excelente! Ha completado ambas verificaciones de voz
+                </strong>
+                <br />
+                Su identidad ha sido verificada y ha demostrado sus habilidades
+                de lectura.
               </Typography>
             )}
-            
+
             {/* Información del usuario si está disponible - Solo en fase de identificación */}
-            {recordingPhase === 'identification' && userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate && (
-              <Paper 
-                variant="outlined" 
-                sx={{ 
-                  p: 1.5, 
-                  mt: 1, 
-                  mb: 2,
-                  bgcolor: 'success.50',
-                  borderColor: 'success.200',
-                }}
-              >
-                <Typography variant="caption" color="success.main" fontWeight="600" sx={{ mb: 1, display: 'block' }}>
-                  ✓ Información detectada:
-                </Typography>
-                <Grid container spacing={1} sx={{ fontSize: '0.875rem' }}>
-                  <Grid item xs={12}>
-                    <Typography variant="body2">
-                      <strong>Nombre:</strong> {userInfo.fullName}
-                    </Typography>
+            {recordingPhase === 'identification' &&
+              userInfo?.fullName &&
+              userInfo?.documentNumber &&
+              userInfo?.documentIssueDate && (
+                <Paper
+                  variant='outlined'
+                  sx={{
+                    p: 1.5,
+                    mt: 1,
+                    mb: 2,
+                    bgcolor: 'success.50',
+                    borderColor: 'success.200',
+                  }}
+                >
+                  <Typography
+                    variant='caption'
+                    color='success.main'
+                    fontWeight='600'
+                    sx={{ mb: 1, display: 'block' }}
+                  >
+                    ✓ Información detectada:
+                  </Typography>
+                  <Grid container spacing={1} sx={{ fontSize: '0.875rem' }}>
+                    <Grid item xs={12}>
+                      <Typography variant='body2'>
+                        <strong>Nombre:</strong> {userInfo.fullName}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant='body2'>
+                        <strong>Documento:</strong> {userInfo.documentNumber}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant='body2'>
+                        <strong>Expedición:</strong>{' '}
+                        {userInfo.documentIssueDate}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2">
-                      <strong>Documento:</strong> {userInfo.documentNumber}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2">
-                      <strong>Expedición:</strong> {userInfo.documentIssueDate}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
+                </Paper>
+              )}
 
             {/* Indicador de primera grabación completada */}
             {recordingPhase === 'cultural' && identificationRecording && (
-              <Paper 
-                variant="outlined" 
-                sx={{ 
-                  p: 1.5, 
-                  mt: 1, 
+              <Paper
+                variant='outlined'
+                sx={{
+                  p: 1.5,
+                  mt: 1,
                   mb: 2,
                   bgcolor: 'success.50',
                   borderColor: 'success.200',
                 }}
               >
-                <Typography variant="caption" color="success.main" fontWeight="600" sx={{ mb: 1, display: 'block' }}>
+                <Typography
+                  variant='caption'
+                  color='success.main'
+                  fontWeight='600'
+                  sx={{ mb: 1, display: 'block' }}
+                >
                   Grabación 1/2 completada: información de identidad registrada
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Ahora proceda con la verificación cultural para demostrar sus habilidades de lectura.
+                <Typography variant='body2' color='text.secondary'>
+                  Ahora proceda con la verificación cultural para demostrar sus
+                  habilidades de lectura.
                 </Typography>
               </Paper>
             )}
-            
+
             {/* Frase a grabar destacada - Solo mostrar si no está completado */}
             {recordingPhase !== 'completed' && (
               <>
-                <Paper 
-                  variant="outlined" 
-                  sx={{ 
-                    p: 2, 
-                    mt: 1, 
-                    bgcolor: recordingPhase === 'identification' ? 'primary.50' : 'warning.50',
-                    borderColor: recordingPhase === 'identification' ? 'primary.200' : 'warning.200',
+                <Paper
+                  variant='outlined'
+                  sx={{
+                    p: 2,
+                    mt: 1,
+                    bgcolor:
+                      recordingPhase === 'identification'
+                        ? 'primary.50'
+                        : 'warning.50',
+                    borderColor:
+                      recordingPhase === 'identification'
+                        ? 'primary.200'
+                        : 'warning.200',
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
-                    <VolumeUpIcon color={recordingPhase === 'identification' ? 'primary' : 'warning'} fontSize="small" />
-                    <Typography variant="subtitle2" color={recordingPhase === 'identification' ? 'primary.main' : 'warning.main'} fontWeight="600">
-                      {recordingPhase === 'identification' 
-                        ? (userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate
-                            ? 'Información a grabar:'
-                            : 'Información requerida:')
-                        : '📚 Frase educativa a grabar:'
+                  <Box
+                    display='flex'
+                    alignItems='center'
+                    gap={1}
+                    sx={{ mb: 1 }}
+                  >
+                    <VolumeUpIcon
+                      color={
+                        recordingPhase === 'identification'
+                          ? 'primary'
+                          : 'warning'
                       }
+                      fontSize='small'
+                    />
+                    <Typography
+                      variant='subtitle2'
+                      color={
+                        recordingPhase === 'identification'
+                          ? 'primary.main'
+                          : 'warning.main'
+                      }
+                      fontWeight='600'
+                    >
+                      {recordingPhase === 'identification'
+                        ? userInfo?.fullName &&
+                          userInfo?.documentNumber &&
+                          userInfo?.documentIssueDate
+                          ? 'Información a grabar:'
+                          : 'Información requerida:'
+                        : '📚 Frase educativa a grabar:'}
                     </Typography>
                   </Box>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
+                  <Typography
+                    variant='body1'
+                    sx={{
                       fontStyle: 'italic',
                       fontWeight: 500,
                       color: 'text.primary',
@@ -318,20 +401,29 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                   </Typography>
                 </Paper>
 
-                <Box component="ul" sx={{ m: '8px 0 0 0', pl: 2, fontSize: '0.875rem' }}>
+                <Box
+                  component='ul'
+                  sx={{ m: '8px 0 0 0', pl: 2, fontSize: '0.875rem' }}
+                >
                   <li>Hable con voz clara y a volumen normal</li>
                   <li>
-                    {recordingPhase === 'identification' 
-                      ? (userInfo?.fullName && userInfo?.documentNumber && userInfo?.documentIssueDate
-                          ? 'Pronuncie la información completa tal como aparece arriba'
-                          : 'Diga claramente: su nombre completo, número de documento y fecha de expedición')
-                      : 'Lea la frase educativa completa, respetando la puntuación'
-                    }
+                    {recordingPhase === 'identification'
+                      ? userInfo?.fullName &&
+                        userInfo?.documentNumber &&
+                        userInfo?.documentIssueDate
+                        ? 'Pronuncie la información completa tal como aparece arriba'
+                        : 'Diga claramente: su nombre completo, número de documento y fecha de expedición'
+                      : 'Lea la frase educativa completa, respetando la puntuación'}
                   </li>
                   <li>Grabe en un ambiente silencioso</li>
                   <li>Puede repetir la grabación si no queda satisfecho</li>
                   {recordingPhase === 'cultural' && (
-                    <li><strong>💡 Esta verificación demuestra que es una persona real y promueve la cultura</strong></li>
+                    <li>
+                      <strong>
+                        💡 Esta verificación demuestra que es una persona real y
+                        promueve la cultura
+                      </strong>
+                    </li>
                   )}
                 </Box>
               </>
@@ -339,19 +431,19 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
 
             {/* Resumen final cuando está completado */}
             {recordingPhase === 'completed' && (
-              <Paper 
-                variant="outlined" 
-                sx={{ 
-                  p: 2, 
-                  mt: 1, 
+              <Paper
+                variant='outlined'
+                sx={{
+                  p: 2,
+                  mt: 1,
                   bgcolor: 'success.50',
                   borderColor: 'success.200',
                 }}
               >
-                <Typography variant="body2" sx={{ mb: 1 }}>
+                <Typography variant='body2' sx={{ mb: 1 }}>
                   <strong>Verificaciones completadas:</strong>
                 </Typography>
-                <Box component="ul" sx={{ m: 0, pl: 2, fontSize: '0.875rem' }}>
+                <Box component='ul' sx={{ m: 0, pl: 2, fontSize: '0.875rem' }}>
                   <li>Identidad personal verificada</li>
                   <li>Capacidad de lectura demostrada</li>
                   <li>Verificación anti-bot completada</li>
@@ -363,19 +455,24 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
       </Paper>
 
       {/* Área de grabación */}
-      <Box sx={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        p: 2,
-      }}>
-        <Paper elevation={2} sx={{ 
-          height: '100%',
-          borderRadius: 2,
-          overflow: 'hidden',
+      <Box
+        sx={{
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-        }}>
+          p: 2,
+        }}
+      >
+        <Paper
+          elevation={2}
+          sx={{
+            height: '100%',
+            borderRadius: 2,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {/* Componente de grabación */}
           <Box sx={{ flex: 1, p: 2 }}>
             {recordingPhase === 'identification' && (
@@ -385,7 +482,7 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
                 loading={loading}
               />
             )}
-            
+
             {recordingPhase === 'cultural' && (
               <VoiceRecorder
                 onRecord={handleCulturalRecording}
@@ -397,21 +494,25 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
             {/* BUG-E2E-08: fallback upload si el micrófono no está disponible */}
             {recordingPhase !== 'completed' && (
               <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 1 }}
+                >
                   ¿Problemas con el micrófono?
                 </Typography>
                 <Button
-                  component="label"
-                  variant="outlined"
-                  size="small"
+                  component='label'
+                  variant='outlined'
+                  size='small'
                   startIcon={<UploadFileIcon />}
                   disabled={loading}
                 >
                   Subir audio desde archivo
                   <input
-                    type="file"
+                    type='file'
                     hidden
-                    accept="audio/wav,audio/mpeg,audio/ogg,audio/webm"
+                    accept='audio/wav,audio/mpeg,audio/ogg,audio/webm'
                     onChange={handleAudioFileUpload}
                   />
                 </Button>
@@ -419,38 +520,53 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
             )}
 
             {recordingPhase === 'completed' && (
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                height: '100%',
-                textAlign: 'center',
-                gap: 3,
-              }}>
-                <Box sx={{
-                  width: 96, height: 96, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(22,163,74,0.15), rgba(22,163,74,0.05))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '3px solid rgba(22,163,74,0.4)',
-                }}>
-                  <Box component="span" sx={{ fontSize: '3rem', lineHeight: 1, color: 'success.main' }}>
-                    {/* check mark via CSS pseudo (no emoji) */}
-                    ✓
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  textAlign: 'center',
+                  gap: 3,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: '50%',
+                    background:
+                      'linear-gradient(135deg, rgba(22,163,74,0.15), rgba(22,163,74,0.05))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '3px solid rgba(22,163,74,0.4)',
+                  }}
+                >
+                  <Box
+                    component='span'
+                    sx={{
+                      fontSize: '3rem',
+                      lineHeight: 1,
+                      color: 'success.main',
+                    }}
+                  >
+                    {/* check mark via CSS pseudo (no emoji) */}✓
                   </Box>
                 </Box>
-                <Typography variant="h5" fontWeight="600" color="success.main">
+                <Typography variant='h5' fontWeight='600' color='success.main'>
                   ¡Verificación Completada!
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Ha completado exitosamente ambas verificaciones de voz.
-                  El sistema procederá automáticamente al siguiente paso.
+                <Typography variant='body1' color='text.secondary'>
+                  Ha completado exitosamente ambas verificaciones de voz. El
+                  sistema procederá automáticamente al siguiente paso.
                 </Typography>
-                
+
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   onClick={handleReset}
-                  size="small"
+                  size='small'
                   sx={{ mt: 2 }}
                 >
                   Repetir Verificaciones
@@ -462,20 +578,23 @@ const EnhancedVoiceRecording: React.FC<EnhancedVoiceRecordingProps> = ({
       </Box>
 
       {/* Footer compacto */}
-      <Paper elevation={1} sx={{ 
-        borderRadius: 0,
-        p: 1,
-        bgcolor: 'background.paper',
-        borderTop: 1,
-        borderColor: 'divider',
-      }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography variant="caption" color="text.secondary">
+      <Paper
+        elevation={1}
+        sx={{
+          borderRadius: 0,
+          p: 1,
+          bgcolor: 'background.paper',
+          borderTop: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
+          <Typography variant='caption' color='text.secondary'>
             <MicIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
             Verificación segura por voz
           </Typography>
-          
-          <Typography variant="caption" color="primary.main" fontWeight="600">
+
+          <Typography variant='caption' color='primary.main' fontWeight='600'>
             Siguiente: Firma Digital
           </Typography>
         </Box>

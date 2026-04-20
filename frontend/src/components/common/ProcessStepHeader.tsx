@@ -68,12 +68,15 @@ const ProcessStepHeader: React.FC<ProcessStepHeaderProps> = ({
           {icon}
         </Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+          <Typography
+            variant='h5'
+            sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}
+          >
             {title}
           </Typography>
           {subtitle && (
             <Typography
-              variant="body2"
+              variant='body2'
               sx={{ color: 'rgba(255,255,255,0.82)', mt: 0.5 }}
             >
               {subtitle}

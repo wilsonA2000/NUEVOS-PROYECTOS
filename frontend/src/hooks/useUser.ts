@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { userService } from '../services/userService';
 
 export interface User {
   id: string;

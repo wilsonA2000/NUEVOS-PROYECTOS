@@ -20,19 +20,26 @@ export const useUpdateProperty = () => {
       if (queryClient && typeof queryClient.invalidateQueries === 'function') {
         try {
           // Invalidar caché específico de la propiedad
-          queryClient.invalidateQueries({ queryKey: ['property', variables.id] });
-          
+          queryClient.invalidateQueries({
+            queryKey: ['property', variables.id],
+          });
+
           // Invalidar listas y estadísticas
           queryClient.invalidateQueries({ queryKey: ['properties'] });
           queryClient.invalidateQueries({ queryKey: ['property-stats'] });
           queryClient.invalidateQueries({ queryKey: ['featured-properties'] });
           queryClient.invalidateQueries({ queryKey: ['trending-properties'] });
-          
+
           // Refetch después de un pequeño delay
           setTimeout(() => {
-            if (queryClient && typeof queryClient.refetchQueries === 'function') {
+            if (
+              queryClient &&
+              typeof queryClient.refetchQueries === 'function'
+            ) {
               queryClient.refetchQueries({ queryKey: ['properties'] });
-              queryClient.refetchQueries({ queryKey: ['property', variables.id] });
+              queryClient.refetchQueries({
+                queryKey: ['property', variables.id],
+              });
             }
           }, 100);
         } catch (error) {

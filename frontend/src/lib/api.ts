@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Usar proxy de Vite en desarrollo, URL directa en producción
 const isDevelopment = import.meta.env.DEV;
-const baseURL = isDevelopment ? '/api/v1' : (import.meta.env.VITE_API_URL || '/api/v1');
+const baseURL = isDevelopment
+  ? '/api/v1'
+  : import.meta.env.VITE_API_URL || '/api/v1';
 
 const api = axios.create({
   baseURL,
@@ -12,7 +14,7 @@ const api = axios.create({
 });
 
 // Interceptor para agregar el token de autenticación
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -22,8 +24,8 @@ api.interceptors.request.use((config) => {
 
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
@@ -94,7 +96,10 @@ export const updateUser = async (userData: any) => {
 };
 
 // Autenticación
-export const login = async (credentials: { email: string; password: string }) => {
+export const login = async (credentials: {
+  email: string;
+  password: string;
+}) => {
   const { data } = await api.post('/auth/login/', credentials);
   return data;
 };
@@ -259,7 +264,9 @@ export const getOccupancyChart = async (period: string = 'monthly') => {
 };
 
 export const getRecentActivity = async (limit: number = 10) => {
-  const { data } = await api.get('/analytics/recent-activity/', { params: { limit } });
+  const { data } = await api.get('/analytics/recent-activity/', {
+    params: { limit },
+  });
   return data;
 };
 
@@ -295,7 +302,9 @@ export const getReportHistory = async () => {
 };
 
 export const downloadReport = async (id: number) => {
-  const { data } = await api.get(`/reports/${id}/download/`, { responseType: 'blob' });
+  const { data } = await api.get(`/reports/${id}/download/`, {
+    responseType: 'blob',
+  });
   return data;
 };
 
@@ -304,7 +313,7 @@ export const uploadFile = async (file: File, type: string) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
-  
+
   const { data } = await api.post('/files/upload/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -374,7 +383,9 @@ export const getBackups = async () => {
 };
 
 export const downloadBackup = async (id: number) => {
-  const { data } = await api.get(`/backups/${id}/download/`, { responseType: 'blob' });
+  const { data } = await api.get(`/backups/${id}/download/`, {
+    responseType: 'blob',
+  });
   return data;
 };
 
@@ -387,7 +398,7 @@ export const importData = async (file: File, type: string) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
-  
+
   const { data } = await api.post('/imports/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -416,6 +427,8 @@ export const getExportHistory = async () => {
 };
 
 export const downloadExport = async (id: number) => {
-  const { data } = await api.get(`/exports/${id}/download/`, { responseType: 'blob' });
+  const { data } = await api.get(`/exports/${id}/download/`, {
+    responseType: 'blob',
+  });
   return data;
-}; 
+};

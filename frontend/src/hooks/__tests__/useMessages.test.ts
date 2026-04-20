@@ -68,11 +68,7 @@ const createWrapper = () => {
     },
   });
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useMessages Hook', () => {
@@ -103,9 +99,7 @@ describe('useMessages Hook', () => {
     { id: 'thread-1', subject: 'Thread 1', participants: ['1', '2'] },
   ];
 
-  const mockFolders = [
-    { id: 'folder-1', name: 'Important', message_count: 5 },
-  ];
+  const mockFolders = [{ id: 'folder-1', name: 'Important', message_count: 5 }];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,7 +109,9 @@ describe('useMessages Hook', () => {
     mockMessageService.getTemplates.mockResolvedValue([] as any);
     mockMessageService.getConversations.mockResolvedValue([] as any);
     mockMessageService.getUnreadCount.mockResolvedValue(3 as any);
-    mockMessageService.getMessagingStats.mockResolvedValue({ total: 10 } as any);
+    mockMessageService.getMessagingStats.mockResolvedValue({
+      total: 10,
+    } as any);
   });
 
   it('should fetch messages successfully when authenticated', async () => {
@@ -154,7 +150,10 @@ describe('useMessages Hook', () => {
 
   it('should create a message via mutation', async () => {
     const newMessage = { recipientId: '2', subject: 'New', content: 'Hello' };
-    mockMessageService.createMessage.mockResolvedValue({ id: '3', ...newMessage } as any);
+    mockMessageService.createMessage.mockResolvedValue({
+      id: '3',
+      ...newMessage,
+    } as any);
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),
@@ -169,12 +168,17 @@ describe('useMessages Hook', () => {
     });
 
     expect(mockMessageService.createMessage).toHaveBeenCalled();
-    expect(mockMessageService.createMessage.mock.calls[0][0]).toEqual(newMessage);
+    expect(mockMessageService.createMessage.mock.calls[0][0]).toEqual(
+      newMessage
+    );
   });
 
   it('should send a message via mutation', async () => {
     const messageData = { recipientId: '2', content: 'Quick message' };
-    mockMessageService.sendMessage.mockResolvedValue({ id: '4', ...messageData } as any);
+    mockMessageService.sendMessage.mockResolvedValue({
+      id: '4',
+      ...messageData,
+    } as any);
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),
@@ -211,7 +215,10 @@ describe('useMessages Hook', () => {
   });
 
   it('should update a message via mutation', async () => {
-    mockMessageService.updateMessage.mockResolvedValue({ id: '1', content: 'Updated' } as any);
+    mockMessageService.updateMessage.mockResolvedValue({
+      id: '1',
+      content: 'Updated',
+    } as any);
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),
@@ -228,12 +235,17 @@ describe('useMessages Hook', () => {
       });
     });
 
-    expect(mockMessageService.updateMessage).toHaveBeenCalledWith('1', { content: 'Updated' });
+    expect(mockMessageService.updateMessage).toHaveBeenCalledWith('1', {
+      content: 'Updated',
+    });
   });
 
   it('should create a thread via mutation', async () => {
     const threadData = { subject: 'New Thread', participants: ['1', '2'] };
-    mockMessageService.createThread.mockResolvedValue({ id: 'thread-2', ...threadData } as any);
+    mockMessageService.createThread.mockResolvedValue({
+      id: 'thread-2',
+      ...threadData,
+    } as any);
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),
@@ -252,7 +264,10 @@ describe('useMessages Hook', () => {
 
   it('should create a folder via mutation', async () => {
     const folderData = { name: 'Archive' };
-    mockMessageService.createFolder.mockResolvedValue({ id: 'folder-2', ...folderData } as any);
+    mockMessageService.createFolder.mockResolvedValue({
+      id: 'folder-2',
+      ...folderData,
+    } as any);
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),
@@ -289,7 +304,9 @@ describe('useMessages Hook', () => {
   });
 
   it('should handle message creation error', async () => {
-    mockMessageService.createMessage.mockRejectedValue(new Error('Send failed'));
+    mockMessageService.createMessage.mockRejectedValue(
+      new Error('Send failed')
+    );
 
     const { result } = renderHook(() => useMessages(), {
       wrapper: createWrapper(),

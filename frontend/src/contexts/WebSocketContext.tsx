@@ -3,9 +3,18 @@
  * Maneja conexiones automáticas para mensajería, notificaciones y estado de usuario
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { websocketService, WebSocketMessage } from '../services/websocketService';
+import {
+  websocketService,
+  WebSocketMessage,
+} from '../services/websocketService';
 import { useNotification } from '../hooks/useNotification';
 
 export interface WebSocketContextType {
@@ -13,15 +22,18 @@ export interface WebSocketContextType {
   isConnected: boolean;
   connectionStatus: string;
   connectedEndpoints: string[];
-  
+
   // Funciones de control
   connect: (endpoint: string) => Promise<void>;
   disconnect: (endpoint: string) => void;
   send: (endpoint: string, message: WebSocketMessage) => boolean;
-  
+
   // Suscripciones a eventos
-  subscribe: (eventType: string, callback: (message: WebSocketMessage) => void) => () => void;
-  
+  subscribe: (
+    eventType: string,
+    callback: (message: WebSocketMessage) => void
+  ) => () => void;
+
   // Estados específicos
   unreadMessagesCount: number;
   onlineUsers: Map<string, any>;
@@ -33,7 +45,9 @@ const WebSocketContext = createContext<WebSocketContextType | null>(null);
 export const useWebSocketContext = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
-    throw new Error('useWebSocketContext must be used within a WebSocketProvider');
+    throw new Error(
+      'useWebSocketContext must be used within a WebSocketProvider',
+    );
   }
   return context;
 };
@@ -42,23 +56,23 @@ interface WebSocketProviderProps {
   children: React.ReactNode;
 }
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children,
+}) => {
   const { isAuthenticated, user } = useAuth();
   const notification = useNotification();
-  
+
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Desconectado');
   const [connectedEndpoints, setConnectedEndpoints] = useState<string[]>([]);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [onlineUsers, setOnlineUsers] = useState<Map<string, any>>(new Map());
-  const [typingUsers, setTypingUsers] = useState<Array<{ userId: string; userName: string; threadId: string }>>([]);
+  const [typingUsers, setTypingUsers] = useState<
+    Array<{ userId: string; userName: string; threadId: string }>
+  >([]);
 
   // Endpoints principales para conectar automáticamente
-  const autoConnectEndpoints = [
-    'messaging',
-    'notifications', 
-    'user-status',
-  ];
+  const autoConnectEndpoints = ['messaging', 'notifications', 'user-status'];
 
   // WebSocket completely disabled
   useEffect(() => {
@@ -69,22 +83,24 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
   const connectToWebSockets = async () => {
     setConnectionStatus('Conectando...');
-    
+
     try {
       for (const endpoint of autoConnectEndpoints) {
         await websocketService.connectAuthenticated(endpoint);
       }
-      
+
       setIsConnected(true);
       setConnectionStatus('Conectado - Tiempo real activo');
       setConnectedEndpoints(websocketService.getConnectedEndpoints());
 
-      if (notification?.success) notification.success('Conexión en tiempo real establecida');
+      if (notification?.success)
+        notification.success('Conexión en tiempo real establecida');
     } catch (error) {
       // WebSocket connection error handled
       setIsConnected(false);
       setConnectionStatus('Error de conexión');
-      if (notification?.error) notification.error('Error al conectar tiempo real');
+      if (notification?.error)
+        notification.error('Error al conectar tiempo real');
     }
   };
 
@@ -92,7 +108,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     autoConnectEndpoints.forEach(endpoint => {
       websocketService.disconnect(endpoint);
     });
-    
+
     setIsConnected(false);
     setConnectionStatus('Desconectado');
     setConnectedEndpoints([]);
@@ -107,8 +123,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   }, []);
 
   // Disabled disconnect function
-  const disconnect = useCallback((endpoint: string) => {
-  }, []);
+  const disconnect = useCallback((endpoint: string) => {}, []);
 
   // Disabled send function
   const send = useCallback((endpoint: string, message: WebSocketMessage) => {
@@ -116,9 +131,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   }, []);
 
   // Disabled subscribe function
-  const subscribe = useCallback((eventType: string, callback: (message: WebSocketMessage) => void) => {
-    return () => {};
-  }, []);
+  const subscribe = useCallback(
+    (eventType: string, callback: (message: WebSocketMessage) => void) => {
+      return () => {};
+    },
+    [],
+  );
 
   // All WebSocket event subscriptions disabled
 

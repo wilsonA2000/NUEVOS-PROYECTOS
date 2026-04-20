@@ -24,4 +24,4 @@ export const ratingService = {
   deleteRating: async (id: string): Promise<void> => {
     await api.delete(`/ratings/ratings/${id}/`);
   },
-}; 
+};

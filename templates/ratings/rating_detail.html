@@ -16,7 +16,7 @@
                 <span class="ml-1 text-gray-600">/10</span>
             </div>
         </div>
-        
+
         <!-- Información de la calificación -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Información Relacionada</h3>
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -64,7 +64,7 @@
                         <p class="font-medium">{{ rating.contract.contract_number }}</p>
                     </div>
                     {% endif %}
-                    
+
                     {% if rating.property %}
                     <div>
                         <p class="text-sm text-gray-500">Propiedad</p>
@@ -75,7 +75,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Calificaciones por categoría -->
         {% if categories %}
         <div class="mb-6">
@@ -95,7 +95,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Comentarios -->
         <div class="mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Comentarios</h3>
@@ -126,7 +126,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Respuesta -->
         {% if rating.response %}
         <div class="mb-6">
@@ -161,14 +161,14 @@
             </div>
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <p class="text-gray-700 mb-4">Puedes responder a esta calificación para dar tu punto de vista.</p>
-                <a href="{% url 'ratings:respond_to_rating' rating_id=rating.id %}" 
+                <a href="{% url 'ratings:respond_to_rating' rating_id=rating.id %}"
                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
                     Responder
                 </a>
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Acciones -->
         <div class="flex justify-between items-center mt-8">
             <div>
@@ -182,10 +182,10 @@
                 </a>
                 {% endif %}
             </div>
-            
+
             <div>
                 {% if request.user != rating.reviewer %}
-                <a href="{% url 'ratings:report_rating' rating_id=rating.id %}" 
+                <a href="{% url 'ratings:report_rating' rating_id=rating.id %}"
                    class="text-red-600 hover:underline">
                     Reportar calificación
                 </a>

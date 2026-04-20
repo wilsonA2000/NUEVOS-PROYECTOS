@@ -9,6 +9,7 @@ Este middleware valida el token vía SimpleJWT y coloca el `User` en
 `scope['user']`. Si el token falta o es inválido, el usuario queda como
 `AnonymousUser` y el consumer cerrará la conexión según su política.
 """
+
 from __future__ import annotations
 
 from urllib.parse import parse_qs
@@ -41,7 +42,7 @@ def _get_user_from_token(raw_token: str):
         except (InvalidToken, TokenError):
             return AnonymousUser()
 
-        user_id = validated.get('user_id')
+        user_id = validated.get("user_id")
         if not user_id:
             return AnonymousUser()
         try:
@@ -56,16 +57,16 @@ class JWTAuthMiddleware(BaseMiddleware):
     """Lee `?token=<jwt>` del query string y puebla `scope['user']`."""
 
     async def __call__(self, scope, receive, send):
-        query_string = scope.get('query_string', b'').decode()
+        query_string = scope.get("query_string", b"").decode()
         params = parse_qs(query_string)
-        tokens = params.get('token') or []
+        tokens = params.get("token") or []
         if tokens:
-            scope['user'] = await _get_user_from_token(tokens[0])
+            scope["user"] = await _get_user_from_token(tokens[0])
         else:
             # Deja que el siguiente middleware (AuthMiddlewareStack)
             # intente autenticar por sesión.
-            if 'user' not in scope:
-                scope['user'] = AnonymousUser()
+            if "user" not in scope:
+                scope["user"] = AnonymousUser()
         return await super().__call__(scope, receive, send)
 
 

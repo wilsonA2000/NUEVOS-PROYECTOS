@@ -74,7 +74,8 @@ jest.mock('../../../contexts/NotificationContext', () => ({
 
 // Mock common components
 jest.mock('../../common', () => ({
-  LoadingButton: (props: any) => React.createElement('button', props, props.children),
+  LoadingButton: (props: any) =>
+    React.createElement('button', props, props.children),
 }));
 
 import NotificationCenter from '../NotificationCenter';
@@ -86,8 +87,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(NotificationCenter),
-    ),
+      React.createElement(NotificationCenter)
+    )
   );
 };
 
@@ -122,7 +123,8 @@ describe('NotificationCenter', () => {
     renderComponent();
 
     // Search field should exist
-    const searchInput = screen.queryByPlaceholderText(/Buscar/i) || screen.queryByRole('textbox');
+    const searchInput =
+      screen.queryByPlaceholderText(/Buscar/i) || screen.queryByRole('textbox');
     expect(searchInput).toBeInTheDocument();
   });
 
@@ -133,9 +135,9 @@ describe('NotificationCenter', () => {
     // Should have All/Unread/Urgent tabs or similar
     expect(
       allText.includes('Todas') ||
-      allText.includes('Todo') ||
-      allText.includes('No leídas') ||
-      allText.includes('Urgentes'),
+        allText.includes('Todo') ||
+        allText.includes('No leídas') ||
+        allText.includes('Urgentes')
     ).toBeTruthy();
   });
 
@@ -153,7 +155,8 @@ describe('NotificationCenter', () => {
   it('should filter notifications by search text', () => {
     renderComponent();
 
-    const searchInput = screen.queryByPlaceholderText(/Buscar/i) || screen.queryByRole('textbox');
+    const searchInput =
+      screen.queryByPlaceholderText(/Buscar/i) || screen.queryByRole('textbox');
     if (searchInput) {
       fireEvent.change(searchInput, { target: { value: 'pago' } });
 
@@ -188,9 +191,9 @@ describe('NotificationCenter', () => {
     // Should have a button to show/hide advanced filters
     const buttons = screen.queryAllByRole('button');
     const filterButton = buttons.find(
-      (btn) =>
+      btn =>
         btn.textContent?.includes('Filtro') ||
-        btn.getAttribute('aria-label')?.includes('filter'),
+        btn.getAttribute('aria-label')?.includes('filter')
     );
     // Filter button or icon button should exist
     expect(buttons.length).toBeGreaterThan(0);

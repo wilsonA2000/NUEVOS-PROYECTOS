@@ -8,7 +8,6 @@ import {
   Button,
   Avatar,
   Box,
-  Divider,
   Alert,
   Select,
   MenuItem,
@@ -17,8 +16,6 @@ import {
   FormControlLabel,
   Checkbox,
   IconButton,
-  Card,
-  CardContent,
   InputAdornment,
   Tabs,
   Tab,
@@ -48,7 +45,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 import { api } from '../../services/api';
-import { formatDate } from '../../utils/formatters';
+
 import { vhColors } from '../../theme/tokens';
 
 interface TabPanelProps {
@@ -61,7 +58,7 @@ const TabPanel = (props: TabPanelProps) => {
   const { children, value, index, ...other } = props;
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`profile-tabpanel-${index}`}
       aria-labelledby={`profile-tab-${index}`}
@@ -86,9 +83,19 @@ const Profile: React.FC = () => {
   // Función para calcular el porcentaje de completitud
   const calculateCompletionPercentage = (data: any): number => {
     const requiredFields = [
-      'first_name', 'last_name', 'phone_number', 'date_of_birth', 'gender',
-      'nationality', 'marital_status', 'country', 'state', 'city',
-      'current_address', 'employment_status', 'monthly_income',
+      'first_name',
+      'last_name',
+      'phone_number',
+      'date_of_birth',
+      'gender',
+      'nationality',
+      'marital_status',
+      'country',
+      'state',
+      'city',
+      'current_address',
+      'employment_status',
+      'monthly_income',
     ];
 
     const roleSpecificFields: { [key: string]: string[] } = {
@@ -99,7 +106,9 @@ const Profile: React.FC = () => {
 
     // Campos de la hoja de vida (opcionales pero aumentan el score)
     const resumeFields = [
-      'education_level', 'emergency_contact_name', 'emergency_contact_phone',
+      'education_level',
+      'emergency_contact_name',
+      'emergency_contact_phone',
     ];
 
     const userType = user?.user_type || 'tenant';
@@ -111,7 +120,9 @@ const Profile: React.FC = () => {
 
     const completedFields = allFields.filter(field => {
       const value = data[field];
-      return value !== null && value !== '' && value !== undefined && value !== 0;
+      return (
+        value !== null && value !== '' && value !== undefined && value !== 0
+      );
     });
 
     return Math.round((completedFields.length / allFields.length) * 100);
@@ -128,14 +139,14 @@ const Profile: React.FC = () => {
     gender: '',
     nationality: 'Colombiana',
     marital_status: '',
-    
+
     // Ubicación
     country: 'Colombia',
     state: '',
     city: '',
     postal_code: '',
     current_address: '',
-    
+
     // Información laboral
     employment_status: '',
     monthly_income: 0,
@@ -143,28 +154,28 @@ const Profile: React.FC = () => {
     employer_name: '',
     job_title: '',
     years_employed: 0,
-    
+
     // Información adicional
     family_size: 1,
     pets: false,
     rental_history: false,
-    
+
     // Específico por tipo de usuario
     // Arrendador
     total_properties: 0,
     years_experience: 0,
     company_name: '',
-    
+
     // Prestador de servicios
     business_name: '',
     service_category: '',
     hourly_rate: 0,
     hourly_rate_currency: 'COP',
-    
+
     // Arrendatario
     budget_range: 'medium',
     move_in_date: '',
-    
+
     // Marketing
     source: 'direct',
     marketing_consent: false,
@@ -181,7 +192,7 @@ const Profile: React.FC = () => {
       setLoading(true);
       const response = await api.get('/users/profile/');
       const userData = response.data;
-      
+
       const profileData = {
         first_name: userData.first_name || '',
         last_name: userData.last_name || '',
@@ -218,13 +229,15 @@ const Profile: React.FC = () => {
         source: userData.source || 'direct',
         marketing_consent: userData.marketing_consent || false,
       };
-      
+
       setFormData(profileData);
       setOriginalData(profileData); // Guardar datos originales
       setModifiedFields(new Set()); // Limpiar campos modificados
-      
+
       if (userData.avatar) {
-        setAvatarPreview(`${(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${userData.avatar}`);
+        setAvatarPreview(
+          `${(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${userData.avatar}`,
+        );
       }
     } catch (error) {
       showError('Error al cargar el perfil');
@@ -233,9 +246,11 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value, type } = e.target;
-    
+
     let newValue: any;
     if (type === 'checkbox') {
       newValue = (e.target as HTMLInputElement).checked;
@@ -244,10 +259,10 @@ const Profile: React.FC = () => {
     } else {
       newValue = value;
     }
-    
+
     // Actualizar formData
     setFormData(prev => ({ ...prev, [name]: newValue }));
-    
+
     // Trackear campo modificado si es diferente del valor original
     if (originalData[name] !== newValue) {
       setModifiedFields(prev => new Set(prev).add(name));
@@ -263,7 +278,7 @@ const Profile: React.FC = () => {
   const handleSelectChange = (name: string) => (event: any) => {
     const newValue = event.target.value;
     setFormData(prev => ({ ...prev, [name]: newValue }));
-    
+
     // Trackear campo modificado si es diferente del valor original
     if (originalData[name] !== newValue) {
       setModifiedFields(prev => new Set(prev).add(name));
@@ -276,7 +291,9 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
@@ -286,7 +303,7 @@ const Profile: React.FC = () => {
           setAvatarPreview(reader.result as string);
         };
         reader.readAsDataURL(file);
-        
+
         // Upload to server
         const avatarFormData = new FormData();
         avatarFormData.append('avatar', file);
@@ -307,44 +324,58 @@ const Profile: React.FC = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      
+
       // Solo enviar campos que han sido modificados
       const modifiedData: any = {};
       modifiedFields.forEach(fieldName => {
         let value = (formData as Record<string, any>)[fieldName];
-        
+
         // Convertir strings vacíos a null para fechas
-        if ((fieldName === 'move_in_date' || fieldName === 'date_of_birth') && value === '') {
+        if (
+          (fieldName === 'move_in_date' || fieldName === 'date_of_birth') &&
+          value === ''
+        ) {
           value = null;
         }
-        
+
         // Campos que aceptan strings vacíos (blank=True en el modelo)
         const blankStringFields = [
-          'postal_code', 'current_address', 'employer_name', 'job_title', 
-          'company_name', 'business_name', 'service_category',
+          'postal_code',
+          'current_address',
+          'employer_name',
+          'job_title',
+          'company_name',
+          'business_name',
+          'service_category',
         ];
-        
+
         // Convertir null a string vacío para campos que solo aceptan blank=True
-        if (blankStringFields.includes(fieldName) && (value === null || value === undefined)) {
+        if (
+          blankStringFields.includes(fieldName) &&
+          (value === null || value === undefined)
+        ) {
           value = '';
         }
-        
+
         modifiedData[fieldName] = value;
       });
-      
+
       // Si no hay campos modificados, mostrar mensaje
       if (Object.keys(modifiedData).length === 0) {
         showError('No hay cambios para guardar');
         setLoading(false);
         return;
       }
-      
+
       await api.patch('/users/profile/', modifiedData);
-      
+
       // Actualizar datos originales con los nuevos valores
-      setOriginalData((prev: Record<string, any>) => ({ ...prev, ...modifiedData }));
+      setOriginalData((prev: Record<string, any>) => ({
+        ...prev,
+        ...modifiedData,
+      }));
       setModifiedFields(new Set()); // Limpiar campos modificados
-      
+
       setSaveSuccess(true);
       success('Perfil actualizado correctamente');
       setIsEditing(false);
@@ -368,8 +399,8 @@ const Profile: React.FC = () => {
 
   if (loading && !formData.email) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center">
+      <Container maxWidth='lg' sx={{ py: 4 }}>
+        <Box display='flex' justifyContent='center'>
           <CircularProgress />
         </Box>
       </Container>
@@ -377,12 +408,12 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth='lg' sx={{ py: 4 }}>
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center">
-            <Box position="relative" mr={3}>
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
+          <Box display='flex' alignItems='center'>
+            <Box position='relative' mr={3}>
               <Avatar
                 src={avatarPreview || undefined}
                 alt={`${formData.first_name} ${formData.last_name}`}
@@ -391,17 +422,17 @@ const Profile: React.FC = () => {
               {isEditing && (
                 <>
                   <input
-                    accept="image/*"
+                    accept='image/*'
                     style={{ display: 'none' }}
-                    id="avatar-upload"
-                    type="file"
+                    id='avatar-upload'
+                    type='file'
                     onChange={handleAvatarChange}
                   />
-                  <label htmlFor="avatar-upload">
+                  <label htmlFor='avatar-upload'>
                     <IconButton
-                      color="primary"
-                      aria-label="upload picture"
-                      component="span"
+                      color='primary'
+                      aria-label='upload picture'
+                      component='span'
                       sx={{
                         position: 'absolute',
                         bottom: 0,
@@ -417,103 +448,121 @@ const Profile: React.FC = () => {
               )}
             </Box>
             <Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="h4">
+              <Box display='flex' alignItems='center' gap={1}>
+                <Typography variant='h4'>
                   {formData.first_name} {formData.last_name}
                 </Typography>
                 {user?.is_verified && (
-                  <Tooltip title="Usuario Verificado">
-                    <VerifiedIcon color="success" />
+                  <Tooltip title='Usuario Verificado'>
+                    <VerifiedIcon color='success' />
                   </Tooltip>
                 )}
               </Box>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant='body1' color='text.secondary'>
                 {formData.email}
               </Typography>
-              <Box display="flex" gap={1} mt={1}>
-                <Chip 
-                  label={user?.user_type || 'Usuario'} 
-                  size="small" 
-                  color="primary" 
+              <Box display='flex' gap={1} mt={1}>
+                <Chip
+                  label={user?.user_type || 'Usuario'}
+                  size='small'
+                  color='primary'
                 />
                 {user?.interview_code && (
-                  <Chip 
-                    label={`Rating: ${user.initial_rating}/10`} 
-                    size="small" 
-                    variant="outlined" 
+                  <Chip
+                    label={`Rating: ${user.initial_rating}/10`}
+                    size='small'
+                    variant='outlined'
                   />
                 )}
               </Box>
-              
+
               {/* Alerta de perfil incompleto */}
               {calculateCompletionPercentage(formData) < 100 && (
-                <Alert severity={calculateCompletionPercentage(formData) < 50 ? 'error' : 'warning'} sx={{ mt: 2, width: '100%', maxWidth: 500 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Su perfil est&aacute; al {calculateCompletionPercentage(formData)}% de completitud
+                <Alert
+                  severity={
+                    calculateCompletionPercentage(formData) < 50
+                      ? 'error'
+                      : 'warning'
+                  }
+                  sx={{ mt: 2, width: '100%', maxWidth: 500 }}
+                >
+                  <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    Su perfil est&aacute; al{' '}
+                    {calculateCompletionPercentage(formData)}% de completitud
                   </Typography>
-                  <Typography variant="caption">
-                    Complete toda su informaci&oacute;n para mejorar su visibilidad en la plataforma y acceder a todas las funcionalidades. Los usuarios con perfil completo tienen prioridad en el matching.
+                  <Typography variant='caption'>
+                    Complete toda su informaci&oacute;n para mejorar su
+                    visibilidad en la plataforma y acceder a todas las
+                    funcionalidades. Los usuarios con perfil completo tienen
+                    prioridad en el matching.
                   </Typography>
                 </Alert>
               )}
 
               {/* Barra de progreso de completitud */}
-              <Box mt={2} width="100%" maxWidth={400}>
-                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                  <ProgressIcon color="action" fontSize="small" />
-                  <Typography variant="body2" color="text.secondary">
-                    Completitud del perfil: {calculateCompletionPercentage(formData)}%
+              <Box mt={2} width='100%' maxWidth={400}>
+                <Box display='flex' alignItems='center' gap={1} mb={1}>
+                  <ProgressIcon color='action' fontSize='small' />
+                  <Typography variant='body2' color='text.secondary'>
+                    Completitud del perfil:{' '}
+                    {calculateCompletionPercentage(formData)}%
                   </Typography>
                   {isEditing && modifiedFields.size > 0 && (
-                    <Chip 
+                    <Chip
                       label={`${modifiedFields.size} cambio${modifiedFields.size !== 1 ? 's' : ''} pendiente${modifiedFields.size !== 1 ? 's' : ''}`}
-                      size="small"
-                      color="warning"
-                      variant="outlined"
+                      size='small'
+                      color='warning'
+                      variant='outlined'
                     />
                   )}
                 </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={calculateCompletionPercentage(formData)} 
+                <LinearProgress
+                  variant='determinate'
+                  value={calculateCompletionPercentage(formData)}
                   sx={{
                     height: 8,
                     borderRadius: 4,
                     backgroundColor: 'rgba(0, 0, 0, 0.1)',
                     '& .MuiLinearProgress-bar': {
                       borderRadius: 4,
-                      backgroundColor: calculateCompletionPercentage(formData) === 100
-                        ? vhColors.success
-                        : calculateCompletionPercentage(formData) >= 70
-                        ? vhColors.warning
-                        : vhColors.error,
+                      backgroundColor:
+                        calculateCompletionPercentage(formData) === 100
+                          ? vhColors.success
+                          : calculateCompletionPercentage(formData) >= 70
+                            ? vhColors.warning
+                            : vhColors.error,
                     },
                   }}
                 />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                  {calculateCompletionPercentage(formData) === 100 
-                    ? '¡Perfil completo! 🎉' 
-                    : 'Completa tu perfil para mejorar tu visibilidad'
-                  }
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ mt: 0.5, display: 'block' }}
+                >
+                  {calculateCompletionPercentage(formData) === 100
+                    ? '¡Perfil completo! 🎉'
+                    : 'Completa tu perfil para mejorar tu visibilidad'}
                 </Typography>
               </Box>
             </Box>
           </Box>
-          
+
           <Box>
             {isEditing ? (
-              <Box display="flex" gap={1}>
+              <Box display='flex' gap={1}>
                 <Button
-                  variant="contained"
-                  color="primary"
+                  variant='contained'
+                  color='primary'
                   startIcon={<SaveIcon />}
                   onClick={handleSubmit}
                   disabled={loading || modifiedFields.size === 0}
                 >
-                  Guardar {modifiedFields.size > 0 && `(${modifiedFields.size} ${modifiedFields.size === 1 ? 'campo' : 'campos'})`}
+                  Guardar{' '}
+                  {modifiedFields.size > 0 &&
+                    `(${modifiedFields.size} ${modifiedFields.size === 1 ? 'campo' : 'campos'})`}
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<CancelIcon />}
                   onClick={handleCancel}
                   disabled={loading}
@@ -523,7 +572,7 @@ const Profile: React.FC = () => {
               </Box>
             ) : (
               <Button
-                variant="contained"
+                variant='contained'
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
               >
@@ -541,18 +590,18 @@ const Profile: React.FC = () => {
         onClose={() => setSaveSuccess(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity="success" sx={{ width: '100%' }}>
+        <Alert severity='success' sx={{ width: '100%' }}>
           ¡Perfil actualizado exitosamente!
         </Alert>
       </Snackbar>
 
       {/* Tabs */}
       <Paper sx={{ mb: 3 }}>
-        <Tabs 
-          value={tabValue} 
+        <Tabs
+          value={tabValue}
           onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
+          variant='scrollable'
+          scrollButtons='auto'
           allowScrollButtonsMobile
           sx={{
             '& .MuiTabs-flexContainer': {
@@ -566,17 +615,29 @@ const Profile: React.FC = () => {
             },
           }}
         >
-          <Tab label="Personal" icon={<PersonIcon />} iconPosition="start" />
-          <Tab label="Ubicación" icon={<LocationIcon />} iconPosition="start" />
-          <Tab label="Laboral" icon={<WorkIcon />} iconPosition="start" />
+          <Tab label='Personal' icon={<PersonIcon />} iconPosition='start' />
+          <Tab label='Ubicación' icon={<LocationIcon />} iconPosition='start' />
+          <Tab label='Laboral' icon={<WorkIcon />} iconPosition='start' />
           {user?.user_type === 'landlord' && (
-            <Tab label="Arrendador" icon={<BusinessIcon />} iconPosition="start" />
+            <Tab
+              label='Arrendador'
+              icon={<BusinessIcon />}
+              iconPosition='start'
+            />
           )}
           {user?.user_type === 'tenant' && (
-            <Tab label="Arrendatario" icon={<HomeIcon />} iconPosition="start" />
+            <Tab
+              label='Arrendatario'
+              icon={<HomeIcon />}
+              iconPosition='start'
+            />
           )}
           {user?.user_type === 'service_provider' && (
-            <Tab label="Servicios" icon={<BusinessIcon />} iconPosition="start" />
+            <Tab
+              label='Servicios'
+              icon={<BusinessIcon />}
+              iconPosition='start'
+            />
           )}
         </Tabs>
       </Paper>
@@ -585,15 +646,15 @@ const Profile: React.FC = () => {
         {/* Personal Information Tab */}
         <TabPanel value={tabValue} index={0}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Información Personal
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Nombre"
-                  name="first_name"
+                  label='Nombre'
+                  name='first_name'
                   value={formData.first_name}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -603,8 +664,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Apellidos"
-                  name="last_name"
+                  label='Apellidos'
+                  name='last_name'
                   value={formData.last_name}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -614,16 +675,16 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Email"
-                  name="email"
-                  type="email"
+                  label='Email'
+                  name='email'
+                  type='email'
                   value={formData.email}
                   disabled
                   InputProps={{
                     endAdornment: (
-                      <InputAdornment position="end">
-                        <Tooltip title="El email no puede ser modificado">
-                          <InfoIcon color="action" fontSize="small" />
+                      <InputAdornment position='end'>
+                        <Tooltip title='El email no puede ser modificado'>
+                          <InfoIcon color='action' fontSize='small' />
                         </Tooltip>
                       </InputAdornment>
                     ),
@@ -633,8 +694,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Teléfono"
-                  name="phone_number"
+                  label='Teléfono'
+                  name='phone_number'
                   value={formData.phone_number}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -643,8 +704,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="WhatsApp"
-                  name="whatsapp"
+                  label='WhatsApp'
+                  name='whatsapp'
                   value={formData.whatsapp}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -653,9 +714,9 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Fecha de Nacimiento"
-                  name="date_of_birth"
-                  type="date"
+                  label='Fecha de Nacimiento'
+                  name='date_of_birth'
+                  type='date'
                   value={formData.date_of_birth}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -666,22 +727,24 @@ const Profile: React.FC = () => {
                 <FormControl fullWidth disabled={!isEditing}>
                   <InputLabel>Género</InputLabel>
                   <Select
-                    name="gender"
+                    name='gender'
                     value={formData.gender}
                     onChange={handleSelectChange('gender')}
                   >
-                    <MenuItem value="male">Masculino</MenuItem>
-                    <MenuItem value="female">Femenino</MenuItem>
-                    <MenuItem value="other">Otro</MenuItem>
-                    <MenuItem value="prefer_not_to_say">Prefiero no decir</MenuItem>
+                    <MenuItem value='male'>Masculino</MenuItem>
+                    <MenuItem value='female'>Femenino</MenuItem>
+                    <MenuItem value='other'>Otro</MenuItem>
+                    <MenuItem value='prefer_not_to_say'>
+                      Prefiero no decir
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Nacionalidad"
-                  name="nationality"
+                  label='Nacionalidad'
+                  name='nationality'
                   value={formData.nationality}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -691,30 +754,30 @@ const Profile: React.FC = () => {
                 <FormControl fullWidth disabled={!isEditing}>
                   <InputLabel>Estado Civil</InputLabel>
                   <Select
-                    name="marital_status"
+                    name='marital_status'
                     value={formData.marital_status}
                     onChange={handleSelectChange('marital_status')}
                   >
-                    <MenuItem value="single">Soltero/a</MenuItem>
-                    <MenuItem value="married">Casado/a</MenuItem>
-                    <MenuItem value="divorced">Divorciado/a</MenuItem>
-                    <MenuItem value="widowed">Viudo/a</MenuItem>
-                    <MenuItem value="other">Otro</MenuItem>
+                    <MenuItem value='single'>Soltero/a</MenuItem>
+                    <MenuItem value='married'>Casado/a</MenuItem>
+                    <MenuItem value='divorced'>Divorciado/a</MenuItem>
+                    <MenuItem value='widowed'>Viudo/a</MenuItem>
+                    <MenuItem value='other'>Otro</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Tamaño de Familia"
-                  name="family_size"
-                  type="number"
+                  label='Tamaño de Familia'
+                  name='family_size'
+                  type='number'
                   value={formData.family_size}
                   onChange={handleChange}
                   disabled={!isEditing}
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                      <InputAdornment position='start'>
                         <FamilyIcon />
                       </InputAdornment>
                     ),
@@ -722,18 +785,18 @@ const Profile: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Box display="flex" alignItems="center" height="100%">
+                <Box display='flex' alignItems='center' height='100%'>
                   <FormControlLabel
                     control={
                       <Checkbox
-                        name="pets"
+                        name='pets'
                         checked={formData.pets}
                         onChange={handleChange}
                         disabled={!isEditing}
                       />
                     }
                     label={
-                      <Box display="flex" alignItems="center" gap={1}>
+                      <Box display='flex' alignItems='center' gap={1}>
                         <PetsIcon />
                         <span>Tiene mascotas</span>
                       </Box>
@@ -745,13 +808,13 @@ const Profile: React.FC = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      name="rental_history"
+                      name='rental_history'
                       checked={formData.rental_history}
                       onChange={handleChange}
                       disabled={!isEditing}
                     />
                   }
-                  label="Tiene historial de arrendamiento previo"
+                  label='Tiene historial de arrendamiento previo'
                 />
               </Grid>
             </Grid>
@@ -761,15 +824,15 @@ const Profile: React.FC = () => {
         {/* Location Tab */}
         <TabPanel value={tabValue} index={1}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Información de Ubicación
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="País"
-                  name="country"
+                  label='País'
+                  name='country'
                   value={formData.country}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -778,8 +841,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Estado/Departamento"
-                  name="state"
+                  label='Estado/Departamento'
+                  name='state'
                   value={formData.state}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -788,8 +851,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Ciudad"
-                  name="city"
+                  label='Ciudad'
+                  name='city'
                   value={formData.city}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -798,8 +861,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Código Postal"
-                  name="postal_code"
+                  label='Código Postal'
+                  name='postal_code'
                   value={formData.postal_code}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -810,8 +873,8 @@ const Profile: React.FC = () => {
                   fullWidth
                   multiline
                   rows={3}
-                  label="Dirección Actual"
-                  name="current_address"
+                  label='Dirección Actual'
+                  name='current_address'
                   value={formData.current_address}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -824,7 +887,7 @@ const Profile: React.FC = () => {
         {/* Employment Tab */}
         <TabPanel value={tabValue} index={2}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Información Laboral
             </Typography>
             <Grid container spacing={3}>
@@ -832,30 +895,32 @@ const Profile: React.FC = () => {
                 <FormControl fullWidth disabled={!isEditing}>
                   <InputLabel>Estado Laboral</InputLabel>
                   <Select
-                    name="employment_status"
+                    name='employment_status'
                     value={formData.employment_status}
                     onChange={handleSelectChange('employment_status')}
                   >
-                    <MenuItem value="employed">Empleado</MenuItem>
-                    <MenuItem value="self_employed">Trabajador Independiente</MenuItem>
-                    <MenuItem value="student">Estudiante</MenuItem>
-                    <MenuItem value="unemployed">Desempleado</MenuItem>
-                    <MenuItem value="retired">Jubilado</MenuItem>
+                    <MenuItem value='employed'>Empleado</MenuItem>
+                    <MenuItem value='self_employed'>
+                      Trabajador Independiente
+                    </MenuItem>
+                    <MenuItem value='student'>Estudiante</MenuItem>
+                    <MenuItem value='unemployed'>Desempleado</MenuItem>
+                    <MenuItem value='retired'>Jubilado</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Ingresos Mensuales"
-                  name="monthly_income"
-                  type="number"
+                  label='Ingresos Mensuales'
+                  name='monthly_income'
+                  type='number'
                   value={formData.monthly_income}
                   onChange={handleChange}
                   disabled={!isEditing}
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                      <InputAdornment position='start'>
                         <MoneyIcon />
                       </InputAdornment>
                     ),
@@ -865,8 +930,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Nombre del Empleador"
-                  name="employer_name"
+                  label='Nombre del Empleador'
+                  name='employer_name'
                   value={formData.employer_name}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -875,8 +940,8 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Cargo"
-                  name="job_title"
+                  label='Cargo'
+                  name='job_title'
                   value={formData.job_title}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -885,9 +950,9 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Años de Empleo"
-                  name="years_employed"
-                  type="number"
+                  label='Años de Empleo'
+                  name='years_employed'
+                  type='number'
                   value={formData.years_employed}
                   onChange={handleChange}
                   disabled={!isEditing}
@@ -897,12 +962,12 @@ const Profile: React.FC = () => {
                 <FormControl fullWidth disabled={!isEditing}>
                   <InputLabel>Moneda</InputLabel>
                   <Select
-                    name="currency"
+                    name='currency'
                     value={formData.currency}
                     onChange={handleSelectChange('currency')}
                   >
-                    <MenuItem value="COP">Pesos Colombianos</MenuItem>
-                    <MenuItem value="USD">Dólares Americanos</MenuItem>
+                    <MenuItem value='COP'>Pesos Colombianos</MenuItem>
+                    <MenuItem value='USD'>Dólares Americanos</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -914,16 +979,16 @@ const Profile: React.FC = () => {
         {user?.user_type === 'landlord' && (
           <TabPanel value={tabValue} index={3}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Información como Arrendador
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Total de Propiedades"
-                    name="total_properties"
-                    type="number"
+                    label='Total de Propiedades'
+                    name='total_properties'
+                    type='number'
                     value={formData.total_properties}
                     onChange={handleChange}
                     disabled={!isEditing}
@@ -932,9 +997,9 @@ const Profile: React.FC = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Años de Experiencia"
-                    name="years_experience"
-                    type="number"
+                    label='Años de Experiencia'
+                    name='years_experience'
+                    type='number'
                     value={formData.years_experience}
                     onChange={handleChange}
                     disabled={!isEditing}
@@ -943,12 +1008,12 @@ const Profile: React.FC = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Nombre de la Empresa"
-                    name="company_name"
+                    label='Nombre de la Empresa'
+                    name='company_name'
                     value={formData.company_name}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    helperText="Si administra propiedades a través de una empresa"
+                    helperText='Si administra propiedades a través de una empresa'
                   />
                 </Grid>
               </Grid>
@@ -960,7 +1025,7 @@ const Profile: React.FC = () => {
         {user?.user_type === 'tenant' && (
           <TabPanel value={tabValue} index={3}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Preferencias como Arrendatario
               </Typography>
               <Grid container spacing={3}>
@@ -968,23 +1033,23 @@ const Profile: React.FC = () => {
                   <FormControl fullWidth disabled={!isEditing}>
                     <InputLabel>Rango de Presupuesto</InputLabel>
                     <Select
-                      name="budget_range"
+                      name='budget_range'
                       value={formData.budget_range}
                       onChange={handleSelectChange('budget_range')}
                     >
-                      <MenuItem value="low">Económico</MenuItem>
-                      <MenuItem value="medium">Medio</MenuItem>
-                      <MenuItem value="high">Alto</MenuItem>
-                      <MenuItem value="luxury">Premium</MenuItem>
+                      <MenuItem value='low'>Económico</MenuItem>
+                      <MenuItem value='medium'>Medio</MenuItem>
+                      <MenuItem value='high'>Alto</MenuItem>
+                      <MenuItem value='luxury'>Premium</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Fecha Deseada de Ingreso"
-                    name="move_in_date"
-                    type="date"
+                    label='Fecha Deseada de Ingreso'
+                    name='move_in_date'
+                    type='date'
                     value={formData.move_in_date}
                     onChange={handleChange}
                     disabled={!isEditing}
@@ -1000,15 +1065,15 @@ const Profile: React.FC = () => {
         {user?.user_type === 'service_provider' && (
           <TabPanel value={tabValue} index={3}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Información como Prestador de Servicios
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Nombre del Negocio"
-                    name="business_name"
+                    label='Nombre del Negocio'
+                    name='business_name'
                     value={formData.business_name}
                     onChange={handleChange}
                     disabled={!isEditing}
@@ -1018,34 +1083,34 @@ const Profile: React.FC = () => {
                   <FormControl fullWidth disabled={!isEditing}>
                     <InputLabel>Categoría de Servicio</InputLabel>
                     <Select
-                      name="service_category"
+                      name='service_category'
                       value={formData.service_category}
                       onChange={handleSelectChange('service_category')}
                     >
-                      <MenuItem value="maintenance">Mantenimiento</MenuItem>
-                      <MenuItem value="cleaning">Limpieza</MenuItem>
-                      <MenuItem value="security">Seguridad</MenuItem>
-                      <MenuItem value="gardening">Jardinería</MenuItem>
-                      <MenuItem value="electrical">Electricidad</MenuItem>
-                      <MenuItem value="plumbing">Plomería</MenuItem>
-                      <MenuItem value="painting">Pintura</MenuItem>
-                      <MenuItem value="moving">Mudanzas</MenuItem>
-                      <MenuItem value="other">Otro</MenuItem>
+                      <MenuItem value='maintenance'>Mantenimiento</MenuItem>
+                      <MenuItem value='cleaning'>Limpieza</MenuItem>
+                      <MenuItem value='security'>Seguridad</MenuItem>
+                      <MenuItem value='gardening'>Jardinería</MenuItem>
+                      <MenuItem value='electrical'>Electricidad</MenuItem>
+                      <MenuItem value='plumbing'>Plomería</MenuItem>
+                      <MenuItem value='painting'>Pintura</MenuItem>
+                      <MenuItem value='moving'>Mudanzas</MenuItem>
+                      <MenuItem value='other'>Otro</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Tarifa por Hora"
-                    name="hourly_rate"
-                    type="number"
+                    label='Tarifa por Hora'
+                    name='hourly_rate'
+                    type='number'
                     value={formData.hourly_rate}
                     onChange={handleChange}
                     disabled={!isEditing}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
+                        <InputAdornment position='start'>
                           <MoneyIcon />
                         </InputAdornment>
                       ),
@@ -1056,12 +1121,12 @@ const Profile: React.FC = () => {
                   <FormControl fullWidth disabled={!isEditing}>
                     <InputLabel>Moneda de Tarifa</InputLabel>
                     <Select
-                      name="hourly_rate_currency"
+                      name='hourly_rate_currency'
                       value={formData.hourly_rate_currency}
                       onChange={handleSelectChange('hourly_rate_currency')}
                     >
-                      <MenuItem value="COP">Pesos Colombianos</MenuItem>
-                      <MenuItem value="USD">Dólares Americanos</MenuItem>
+                      <MenuItem value='COP'>Pesos Colombianos</MenuItem>
+                      <MenuItem value='USD'>Dólares Americanos</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -1073,7 +1138,7 @@ const Profile: React.FC = () => {
 
       {/* Marketing Section (siempre al final) */}
       <Paper sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Preferencias de Marketing
         </Typography>
         <Grid container spacing={3}>
@@ -1081,17 +1146,17 @@ const Profile: React.FC = () => {
             <FormControl fullWidth disabled={!isEditing}>
               <InputLabel>¿Cómo nos conociste?</InputLabel>
               <Select
-                name="source"
+                name='source'
                 value={formData.source}
                 onChange={handleSelectChange('source')}
               >
-                <MenuItem value="direct">Directo</MenuItem>
-                <MenuItem value="google">Google</MenuItem>
-                <MenuItem value="facebook">Facebook</MenuItem>
-                <MenuItem value="instagram">Instagram</MenuItem>
-                <MenuItem value="referral">Recomendación</MenuItem>
-                <MenuItem value="advertisement">Anuncio</MenuItem>
-                <MenuItem value="other">Otro</MenuItem>
+                <MenuItem value='direct'>Directo</MenuItem>
+                <MenuItem value='google'>Google</MenuItem>
+                <MenuItem value='facebook'>Facebook</MenuItem>
+                <MenuItem value='instagram'>Instagram</MenuItem>
+                <MenuItem value='referral'>Recomendación</MenuItem>
+                <MenuItem value='advertisement'>Anuncio</MenuItem>
+                <MenuItem value='other'>Otro</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -1099,13 +1164,13 @@ const Profile: React.FC = () => {
             <FormControlLabel
               control={
                 <Checkbox
-                  name="marketing_consent"
+                  name='marketing_consent'
                   checked={formData.marketing_consent}
                   onChange={handleChange}
                   disabled={!isEditing}
                 />
               }
-              label="Acepto recibir comunicaciones de marketing y novedades de VeriHome"
+              label='Acepto recibir comunicaciones de marketing y novedades de VeriHome'
             />
           </Grid>
         </Grid>

@@ -6,10 +6,6 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   Chip,
   Stepper,
@@ -132,7 +128,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         },
         audio: false,
       });
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
@@ -169,7 +165,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
   const performFacialRecognition = async () => {
     setIsProcessing(true);
-    
+
     try {
       const imageData = await capturePhoto();
       if (!imageData) throw new Error('No se pudo capturar la imagen');
@@ -207,7 +203,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
       setVerificationResults(prev => ({ ...prev, facial: true }));
       setActiveStep(1);
-      
     } catch (error) {
       setVerificationResults(prev => ({ ...prev, facial: false }));
     } finally {
@@ -218,12 +213,12 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
   const captureDocument = async (side: 'front' | 'back' = 'front') => {
     setIsProcessing(true);
-    
+
     try {
       await startCamera();
       // Give user time to position document
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const imageData = await capturePhoto();
       if (!imageData) throw new Error('No se pudo capturar el documento');
 
@@ -232,8 +227,14 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Generar datos de documento simulados pero realistas
-      const documentTypes = ['Cédula de Ciudadanía', 'Pasaporte', 'Cédula de Extranjería'];
-      const selectedType = documentTypes[Math.floor(Math.random() * documentTypes.length)] ?? 'Cédula de Ciudadanía';
+      const documentTypes = [
+        'Cédula de Ciudadanía',
+        'Pasaporte',
+        'Cédula de Extranjería',
+      ];
+      const selectedType =
+        documentTypes[Math.floor(Math.random() * documentTypes.length)] ??
+        'Cédula de Ciudadanía';
 
       const mockDocumentData: DocumentData = {
         documentType: selectedType,
@@ -241,7 +242,10 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
         fullName: 'Usuario VeriHome', // En producción sería extraído del documento
         dateOfBirth: '1990-05-15',
         expirationDate: '2030-05-15',
-        issuingAuthority: selectedType === 'Pasaporte' ? 'Ministerio de Relaciones Exteriores' : 'Registraduría Nacional',
+        issuingAuthority:
+          selectedType === 'Pasaporte'
+            ? 'Ministerio de Relaciones Exteriores'
+            : 'Registraduría Nacional',
       };
 
       const documentVerification = {
@@ -258,7 +262,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
       setVerificationResults(prev => ({ ...prev, document: true }));
       setActiveStep(2);
-      
     } catch (error) {
       setVerificationResults(prev => ({ ...prev, document: false }));
     } finally {
@@ -269,14 +272,14 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
   const captureFingerprint = async () => {
     setIsProcessing(true);
-    
+
     try {
       // Simulate fingerprint capture
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Mock fingerprint data
       const fingerprintData = {
-        template: `FINGERPRINT_TEMPLATE_HASH_${  Date.now()}`,
+        template: `FINGERPRINT_TEMPLATE_HASH_${Date.now()}`,
         quality: 0.88,
         timestamp: new Date(),
       };
@@ -287,7 +290,6 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       }));
 
       setVerificationResults(prev => ({ ...prev, fingerprint: true }));
-      
     } catch (error) {
       setVerificationResults(prev => ({ ...prev, fingerprint: false }));
     } finally {
@@ -313,43 +315,54 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
   };
 
   const getStepIcon = (stepIndex: number) => {
-    const isCompleted = stepIndex === 0 ? verificationResults.facial :
-                      stepIndex === 1 ? verificationResults.document :
-                      verificationResults.fingerprint;
-    
-    if (isCompleted === true) return <CheckIcon color="success" />;
-    if (isCompleted === false) return <WarningIcon color="error" />;
+    const isCompleted =
+      stepIndex === 0
+        ? verificationResults.facial
+        : stepIndex === 1
+          ? verificationResults.document
+          : verificationResults.fingerprint;
+
+    if (isCompleted === true) return <CheckIcon color='success' />;
+    if (isCompleted === false) return <WarningIcon color='error' />;
     return steps[stepIndex]?.icon;
   };
 
-  const canComplete = verificationResults.facial === true && 
-                     verificationResults.document === true;
+  const canComplete =
+    verificationResults.facial === true &&
+    verificationResults.document === true;
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Typography
+        variant='h6'
+        gutterBottom
+        sx={{ display: 'flex', alignItems: 'center', mb: 3 }}
+      >
         <SecurityIcon sx={{ mr: 1 }} />
         Verificación Biométrica de Identidad
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Para garantizar la seguridad del contrato, necesitamos verificar su identidad 
-        mediante métodos biométricos. Este proceso es seguro y cumple con estándares internacionales.
+      <Alert severity='info' sx={{ mb: 2 }}>
+        Para garantizar la seguridad del contrato, necesitamos verificar su
+        identidad mediante métodos biométricos. Este proceso es seguro y cumple
+        con estándares internacionales.
       </Alert>
 
-      <Alert severity="warning" sx={{ mb: 3 }}>
-        <strong>Modo de Desarrollo:</strong> La verificación biométrica actual es simulada para propósitos de demostración.
-        En producción, esto se conectaría con APIs reales de reconocimiento facial, OCR y verificación de documentos.
+      <Alert severity='warning' sx={{ mb: 3 }}>
+        <strong>Modo de Desarrollo:</strong> La verificación biométrica actual
+        es simulada para propósitos de demostración. En producción, esto se
+        conectaría con APIs reales de reconocimiento facial, OCR y verificación
+        de documentos.
       </Alert>
 
-      <Stepper activeStep={activeStep} orientation="vertical">
+      <Stepper activeStep={activeStep} orientation='vertical'>
         {steps.map((step, index) => (
           <Step key={step.label}>
             <StepLabel icon={getStepIcon(index)}>
-              <Typography variant="subtitle1">{step.label}</Typography>
+              <Typography variant='subtitle1'>{step.label}</Typography>
             </StepLabel>
             <StepContent>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
                 {step.description}
               </Typography>
 
@@ -358,10 +371,12 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                 <Box>
                   <Card sx={{ mb: 2 }}>
                     <CardContent>
-                      <Grid container spacing={2} alignItems="center">
+                      <Grid container spacing={2} alignItems='center'>
                         <Grid item xs={12} md={8}>
                           {isCameraActive ? (
-                            <Box sx={{ position: 'relative', textAlign: 'center' }}>
+                            <Box
+                              sx={{ position: 'relative', textAlign: 'center' }}
+                            >
                               <video
                                 ref={videoRef}
                                 autoPlay
@@ -373,7 +388,10 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                                   border: `2px solid ${vhColors.divider}`,
                                 }}
                               />
-                              <canvas ref={canvasRef} style={{ display: 'none' }} />
+                              <canvas
+                                ref={canvasRef}
+                                style={{ display: 'none' }}
+                              />
                               {isProcessing && (
                                 <Box
                                   sx={{
@@ -394,38 +412,45 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                             </Box>
                           ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
-                              <CameraIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
-                              <Typography variant="body2" color="text.secondary">
+                              <CameraIcon
+                                sx={{ fontSize: 64, color: 'grey.400', mb: 2 }}
+                              />
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                              >
                                 Camera inactiva
                               </Typography>
                             </Box>
                           )}
                         </Grid>
                         <Grid item xs={12} md={4}>
-                          <Typography variant="body2" gutterBottom>
+                          <Typography variant='body2' gutterBottom>
                             <strong>Instrucciones:</strong>
                           </Typography>
-                          <Typography variant="body2" sx={{ mb: 2 }}>
-                            • Mire directamente a la cámara<br/>
-                            • Mantenga buena iluminación<br/>
-                            • No use lentes oscuros<br/>
-                            • Manténgase quieto durante la captura
+                          <Typography variant='body2' sx={{ mb: 2 }}>
+                            • Mire directamente a la cámara
+                            <br />
+                            • Mantenga buena iluminación
+                            <br />
+                            • No use lentes oscuros
+                            <br />• Manténgase quieto durante la captura
                           </Typography>
-                          
+
                           {verificationResults.facial === true && (
                             <Chip
                               icon={<CheckIcon />}
-                              label="Verificación Exitosa"
-                              color="success"
+                              label='Verificación Exitosa'
+                              color='success'
                               sx={{ mb: 1 }}
                             />
                           )}
-                          
+
                           {verificationResults.facial === false && (
                             <Chip
                               icon={<WarningIcon />}
-                              label="Verificación Fallida"
-                              color="error"
+                              label='Verificación Fallida'
+                              color='error'
                               sx={{ mb: 1 }}
                             />
                           )}
@@ -437,7 +462,7 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     {!isCameraActive ? (
                       <Button
-                        variant="outlined"
+                        variant='outlined'
                         startIcon={<CameraIcon />}
                         onClick={startCamera}
                         disabled={isProcessing}
@@ -447,15 +472,21 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                     ) : (
                       <>
                         <Button
-                          variant="contained"
-                          startIcon={isProcessing ? <CircularProgress size={20} /> : <CameraIcon />}
+                          variant='contained'
+                          startIcon={
+                            isProcessing ? (
+                              <CircularProgress size={20} />
+                            ) : (
+                              <CameraIcon />
+                            )
+                          }
                           onClick={performFacialRecognition}
                           disabled={isProcessing}
                         >
                           {isProcessing ? 'Procesando...' : 'Capturar Rostro'}
                         </Button>
                         <Button
-                          variant="outlined"
+                          variant='outlined'
                           onClick={stopCamera}
                           disabled={isProcessing}
                         >
@@ -463,12 +494,17 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                         </Button>
                       </>
                     )}
-                    
+
                     {verificationResults.facial === false && (
                       <Button
-                        variant="outlined"
+                        variant='outlined'
                         startIcon={<RefreshIcon />}
-                        onClick={() => setVerificationResults(prev => ({ ...prev, facial: null }))}
+                        onClick={() =>
+                          setVerificationResults(prev => ({
+                            ...prev,
+                            facial: null,
+                          }))
+                        }
                       >
                         Reintentar
                       </Button>
@@ -485,7 +521,9 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={8}>
                           {isCameraActive ? (
-                            <Box sx={{ position: 'relative', textAlign: 'center' }}>
+                            <Box
+                              sx={{ position: 'relative', textAlign: 'center' }}
+                            >
                               <video
                                 ref={videoRef}
                                 autoPlay
@@ -517,30 +555,45 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
                             </Box>
                           ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
-                              <DocumentIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
-                              <Typography variant="body2" color="text.secondary">
+                              <DocumentIcon
+                                sx={{ fontSize: 64, color: 'grey.400', mb: 2 }}
+                              />
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                              >
                                 Cámara para documento
                               </Typography>
                             </Box>
                           )}
                         </Grid>
                         <Grid item xs={12} md={4}>
-                          <Typography variant="body2" gutterBottom>
+                          <Typography variant='body2' gutterBottom>
                             <strong>Tipos de documento aceptados:</strong>
                           </Typography>
-                          <Typography variant="body2" sx={{ mb: 2 }}>
-                            • Cédula de Ciudadanía<br/>
-                            • Pasaporte<br/>
-                            • Cédula de Extranjería<br/>
-                            • Tarjeta de Identidad
+                          <Typography variant='body2' sx={{ mb: 2 }}>
+                            • Cédula de Ciudadanía
+                            <br />
+                            • Pasaporte
+                            <br />
+                            • Cédula de Extranjería
+                            <br />• Tarjeta de Identidad
                           </Typography>
-                          
+
                           {capturedData.documentVerification && (
-                            <Alert severity="success" sx={{ mb: 1 }}>
-                              <Typography variant="caption">
-                                <strong>Documento extraído:</strong><br/>
-                                {capturedData.documentVerification.extractedData.documentType}<br/>
-                                {capturedData.documentVerification.extractedData.fullName}
+                            <Alert severity='success' sx={{ mb: 1 }}>
+                              <Typography variant='caption'>
+                                <strong>Documento extraído:</strong>
+                                <br />
+                                {
+                                  capturedData.documentVerification
+                                    .extractedData.documentType
+                                }
+                                <br />
+                                {
+                                  capturedData.documentVerification
+                                    .extractedData.fullName
+                                }
                               </Typography>
                             </Alert>
                           )}
@@ -551,19 +604,30 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
 
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
-                      variant="contained"
-                      startIcon={isProcessing ? <CircularProgress size={20} /> : <DocumentIcon />}
+                      variant='contained'
+                      startIcon={
+                        isProcessing ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <DocumentIcon />
+                        )
+                      }
                       onClick={() => captureDocument('front')}
                       disabled={isProcessing}
                     >
                       {isProcessing ? 'Procesando...' : 'Escanear Documento'}
                     </Button>
-                    
+
                     {verificationResults.document === false && (
                       <Button
-                        variant="outlined"
+                        variant='outlined'
                         startIcon={<RefreshIcon />}
-                        onClick={() => setVerificationResults(prev => ({ ...prev, document: null }))}
+                        onClick={() =>
+                          setVerificationResults(prev => ({
+                            ...prev,
+                            document: null,
+                          }))
+                        }
                       >
                         Reintentar
                       </Button>
@@ -575,32 +639,39 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
               {/* Fingerprint Step */}
               {index === 2 && (
                 <Box>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    La verificación de huella digital es opcional pero proporciona 
-                    seguridad adicional.
+                  <Alert severity='info' sx={{ mb: 2 }}>
+                    La verificación de huella digital es opcional pero
+                    proporciona seguridad adicional.
                   </Alert>
-                  
+
                   <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <FingerprintIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="body2" gutterBottom>
+                    <FingerprintIcon
+                      sx={{ fontSize: 64, color: 'primary.main', mb: 2 }}
+                    />
+                    <Typography variant='body2' gutterBottom>
                       Coloque su dedo en el sensor de huella digital
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                  <Box
+                    sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}
+                  >
                     <Button
-                      variant="contained"
-                      startIcon={isProcessing ? <CircularProgress size={20} /> : <FingerprintIcon />}
+                      variant='contained'
+                      startIcon={
+                        isProcessing ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <FingerprintIcon />
+                        )
+                      }
                       onClick={captureFingerprint}
                       disabled={isProcessing}
                     >
                       {isProcessing ? 'Capturando...' : 'Capturar Huella'}
                     </Button>
-                    
-                    <Button
-                      variant="outlined"
-                      onClick={() => setActiveStep(3)}
-                    >
+
+                    <Button variant='outlined' onClick={() => setActiveStep(3)}>
                       Omitir
                     </Button>
                   </Box>
@@ -614,23 +685,30 @@ const BiometricVerification: React.FC<BiometricVerificationProps> = ({
       {/* Completion Actions */}
       {canComplete && (
         <Box sx={{ mt: 3, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography
+            variant='h6'
+            gutterBottom
+            sx={{ display: 'flex', alignItems: 'center' }}
+          >
             <CheckIcon sx={{ mr: 1 }} />
             Verificación Completada
           </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Su identidad ha sido verificada exitosamente. Puede proceder con la firma del contrato.
+          <Typography variant='body2' sx={{ mb: 2 }}>
+            Su identidad ha sido verificada exitosamente. Puede proceder con la
+            firma del contrato.
           </Typography>
-          
+
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             {onCancel && (
-              <Button variant="outlined" onClick={onCancel}>
+              <Button variant='outlined' onClick={onCancel}>
                 Cancelar
               </Button>
             )}
             <Button
-              variant="contained"
-              startIcon={isLoading ? <CircularProgress size={20} /> : <SecurityIcon />}
+              variant='contained'
+              startIcon={
+                isLoading ? <CircularProgress size={20} /> : <SecurityIcon />
+              }
               onClick={completeVerification}
               disabled={isLoading}
             >

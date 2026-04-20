@@ -9,7 +9,12 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ChatWindow } from '../ChatWindow';
 
 // Mock useAuth hook
-const mockUser = { id: 'user-1', first_name: 'Admin', last_name: 'Test', email: 'admin@test.com' };
+const mockUser = {
+  id: 'user-1',
+  first_name: 'Admin',
+  last_name: 'Test',
+  email: 'admin@test.com',
+};
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({ user: mockUser }),
 }));
@@ -33,13 +38,15 @@ const defaultProps = {
   recipientName: 'Maria Lopez',
 };
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof ChatWindow>> = {}) => {
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof ChatWindow>> = {}
+) => {
   return render(
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(ChatWindow, { ...defaultProps, ...props }),
-    ),
+      React.createElement(ChatWindow, { ...defaultProps, ...props })
+    )
   );
 };
 
@@ -67,7 +74,9 @@ describe('ChatWindow', () => {
     renderComponent();
 
     // The component has hardcoded initial messages
-    expect(screen.getByText(/me interesa conocer más detalles/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/me interesa conocer más detalles/i)
+    ).toBeInTheDocument();
   });
 
   it('should render the message input field', () => {
@@ -116,9 +125,9 @@ describe('ChatWindow', () => {
     const allText = document.body.textContent || '';
     expect(
       allText.includes('Desconectado') ||
-      allText.includes('Sin conexión') ||
-      allText.includes('offline') ||
-      document.body.innerHTML.includes('CircleIcon'),
+        allText.includes('Sin conexión') ||
+        allText.includes('offline') ||
+        document.body.innerHTML.includes('CircleIcon')
     ).toBeTruthy();
   });
 

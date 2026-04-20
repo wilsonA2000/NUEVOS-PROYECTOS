@@ -7,14 +7,17 @@ export const usePayments = () => {
   const { isAuthenticated } = useAuth();
 
   // Transacciones
-  const { data: transactions, isLoading, error } = useQuery({
+  const {
+    data: transactions,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getTransactions();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -28,11 +31,10 @@ return result;
   const { data: paymentMethods } = useQuery({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getPaymentMethods();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -46,11 +48,10 @@ return result;
   const { data: invoices } = useQuery({
     queryKey: ['invoices'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getInvoices();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -64,11 +65,10 @@ return result;
   const { data: escrowAccounts } = useQuery({
     queryKey: ['escrowAccounts'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getEscrowAccounts();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -82,11 +82,10 @@ return result;
   const { data: paymentPlans } = useQuery({
     queryKey: ['paymentPlans'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getPaymentPlans();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -100,11 +99,10 @@ return result;
   const { data: installments } = useQuery({
     queryKey: ['installments'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getInstallments();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -118,11 +116,10 @@ return result;
   const { data: balance } = useQuery({
     queryKey: ['balance'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getBalance();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -136,11 +133,10 @@ return result;
   const { data: dashboardStats } = useQuery({
     queryKey: ['payment-dashboard-stats'],
     queryFn: async () => {
-
-try {
+      try {
         const result = await paymentService.getPaymentDashboardStats();
 
-return result;
+        return result;
       } catch (error: any) {
         throw error;
       }
@@ -208,8 +204,13 @@ return result;
   });
 
   const verifyPaymentMethod = useMutation({
-    mutationFn: ({ id, verificationData }: { id: string; verificationData: any }) =>
-      paymentService.verifyPaymentMethod(id, verificationData),
+    mutationFn: ({
+      id,
+      verificationData,
+    }: {
+      id: string;
+      verificationData: any;
+    }) => paymentService.verifyPaymentMethod(id, verificationData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
     },
@@ -377,16 +378,16 @@ return result;
     installments,
     balance,
     dashboardStats,
-    
+
     // Estados
     isLoading,
     error,
-    
+
     // Mutaciones de transacciones
     createTransaction,
     updateTransaction,
     deleteTransaction,
-    
+
     // Mutaciones de métodos de pago
     createPaymentMethod,
     updatePaymentMethod,
@@ -394,7 +395,7 @@ return result;
     addPaymentMethod,
     verifyPaymentMethod,
     setDefaultPaymentMethod,
-    
+
     // Mutaciones de facturas
     createInvoice,
     updateInvoice,
@@ -402,23 +403,23 @@ return result;
     createInvoiceCustom,
     payInvoice,
     sendInvoice,
-    
+
     // Mutaciones de escrow
     createEscrowAccount,
     updateEscrowAccount,
     deleteEscrowAccount,
     depositToEscrow,
     releaseFromEscrow,
-    
+
     // Mutaciones de planes de pago
     createPaymentPlan,
     updatePaymentPlan,
     deletePaymentPlan,
-    
+
     // Mutaciones de cuotas
     createInstallment,
     updateInstallment,
     deleteInstallment,
     payInstallment,
   };
-}; 
+};

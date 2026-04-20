@@ -4,7 +4,7 @@
  * Facilita la creación y configuración de tests unitarios
  */
 
-import { 
+import {
   LandlordControlledContractData,
   ContractWorkflowState,
   ContractStatistics,
@@ -25,7 +25,9 @@ import {
 /**
  * Factory para crear datos de arrendador
  */
-export const createMockLandlordData = (overrides: Partial<LandlordData> = {}): LandlordData => ({
+export const createMockLandlordData = (
+  overrides: Partial<LandlordData> = {}
+): LandlordData => ({
   full_name: 'Juan Carlos Pérez',
   document_type: 'CC' as DocumentType,
   document_number: '12345678',
@@ -47,7 +49,9 @@ export const createMockLandlordData = (overrides: Partial<LandlordData> = {}): L
 /**
  * Factory para crear datos de arrendatario
  */
-export const createMockTenantData = (overrides: Partial<TenantData> = {}): TenantData => ({
+export const createMockTenantData = (
+  overrides: Partial<TenantData> = {}
+): TenantData => ({
   full_name: 'Ana María González',
   document_type: 'CC' as DocumentType,
   document_number: '87654321',
@@ -89,10 +93,12 @@ export const createMockTenantData = (overrides: Partial<TenantData> = {}): Tenan
  */
 export const createMockContract = (
   state: ContractWorkflowState = 'DRAFT',
-  overrides: Partial<LandlordControlledContractData> = {},
+  overrides: Partial<LandlordControlledContractData> = {}
 ): any => ({
   id: `contract-${Math.random().toString(36).substr(2, 9)}`,
-  contract_number: `VH-2025-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+  contract_number: `VH-2025-${Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0')}`,
   current_state: state,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
@@ -136,7 +142,9 @@ export const createMockContract = (
 /**
  * Factory para crear múltiples contratos con diferentes estados
  */
-export const createMockContractCollection = (count: number = 5): LandlordControlledContractData[] => {
+export const createMockContractCollection = (
+  count: number = 5
+): LandlordControlledContractData[] => {
   const states: ContractWorkflowState[] = [
     'DRAFT',
     'TENANT_INVITED',
@@ -148,22 +156,39 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
 
   return Array.from({ length: count }, (_, index) => {
     const state = states[index % states.length]!;
-    const baseRent = 2000000 + (index * 500000);
-    
+    const baseRent = 2000000 + index * 500000;
+
     return createMockContract(state, {
       monthly_rent: baseRent,
       security_deposit: baseRent,
       property_address: `Propiedad ${index + 1}, Sector ${['El Poblado', 'Chapinero', 'Zona Rosa', 'La Calera', 'Unicentro'][index % 5]}`,
-      tenant_data: state !== 'DRAFT' && state !== 'TENANT_INVITED' ? createMockTenantData() : undefined,
-      tenant_email: state === 'TENANT_INVITED' ? `tenant${index}@example.com` : undefined,
-      landlord_approved: ['BOTH_REVIEWING', 'READY_TO_SIGN', 'FULLY_SIGNED', 'PUBLISHED'].includes(state),
-      tenant_approved: ['BOTH_REVIEWING', 'READY_TO_SIGN', 'FULLY_SIGNED', 'PUBLISHED'].includes(state),
+      tenant_data:
+        state !== 'DRAFT' && state !== 'TENANT_INVITED'
+          ? createMockTenantData()
+          : undefined,
+      tenant_email:
+        state === 'TENANT_INVITED' ? `tenant${index}@example.com` : undefined,
+      landlord_approved: [
+        'BOTH_REVIEWING',
+        'READY_TO_SIGN',
+        'FULLY_SIGNED',
+        'PUBLISHED',
+      ].includes(state),
+      tenant_approved: [
+        'BOTH_REVIEWING',
+        'READY_TO_SIGN',
+        'FULLY_SIGNED',
+        'PUBLISHED',
+      ].includes(state),
       landlord_signed: ['FULLY_SIGNED', 'PUBLISHED'].includes(state),
       tenant_signed: ['FULLY_SIGNED', 'PUBLISHED'].includes(state),
       published: state === 'PUBLISHED',
-      start_date: state === 'PUBLISHED' ? new Date(2025, 1, 1).toISOString() : undefined,
-      end_date: state === 'PUBLISHED' ? new Date(2026, 0, 31).toISOString() : undefined,
-      published_at: state === 'PUBLISHED' ? new Date().toISOString() : undefined,
+      start_date:
+        state === 'PUBLISHED' ? new Date(2025, 1, 1).toISOString() : undefined,
+      end_date:
+        state === 'PUBLISHED' ? new Date(2026, 0, 31).toISOString() : undefined,
+      published_at:
+        state === 'PUBLISHED' ? new Date().toISOString() : undefined,
     } as LandlordControlledContractData);
   });
 };
@@ -171,34 +196,36 @@ export const createMockContractCollection = (count: number = 5): LandlordControl
 /**
  * Factory para crear estadísticas de contratos
  */
-export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}): ContractStatistics => ({
+export const createMockStatistics = (
+  overrides: Partial<ContractStatistics> = {}
+): ContractStatistics => ({
   total_contracts: 25,
   by_state: {
-    'PENDING_ADMIN_REVIEW': 2,
-    'RE_PENDING_ADMIN': 0,
-    'DRAFT': 5,
-    'LANDLORD_COMPLETING': 1,
-    'TENANT_INVITED': 3,
-    'TENANT_REVIEWING': 4,
-    'LANDLORD_REVIEWING': 2,
-    'OBJECTIONS_PENDING': 1,
-    'BOTH_REVIEWING': 2,
-    'READY_TO_SIGN': 3,
-    'FULLY_SIGNED': 2,
-    'PUBLISHED': 3,
-    'EXPIRED': 0,
-    'TERMINATED': 0,
-    'CANCELLED': 0,
+    PENDING_ADMIN_REVIEW: 2,
+    RE_PENDING_ADMIN: 0,
+    DRAFT: 5,
+    LANDLORD_COMPLETING: 1,
+    TENANT_INVITED: 3,
+    TENANT_REVIEWING: 4,
+    LANDLORD_REVIEWING: 2,
+    OBJECTIONS_PENDING: 1,
+    BOTH_REVIEWING: 2,
+    READY_TO_SIGN: 3,
+    FULLY_SIGNED: 2,
+    PUBLISHED: 3,
+    EXPIRED: 0,
+    TERMINATED: 0,
+    CANCELLED: 0,
   },
   by_property_type: {
-    'apartamento': 15,
-    'casa': 7,
-    'local_comercial': 1,
-    'oficina': 2,
-    'bodega': 0,
-    'habitacion': 0,
-    'finca': 0,
-    'lote': 0,
+    apartamento: 15,
+    casa: 7,
+    local_comercial: 1,
+    oficina: 2,
+    bodega: 0,
+    habitacion: 0,
+    finca: 0,
+    lote: 0,
   },
   average_rent: 2600000,
   total_rent_value: 65000000,
@@ -216,7 +243,7 @@ export const createMockStatistics = (overrides: Partial<ContractStatistics> = {}
  */
 export const createMockContractListResponse = (
   contracts: LandlordControlledContractData[] = createMockContractCollection(),
-  overrides: Partial<ContractListResponse> = {},
+  overrides: Partial<ContractListResponse> = {}
 ): ContractListResponse => ({
   contracts,
   total_count: contracts.length,
@@ -230,7 +257,9 @@ export const createMockContractListResponse = (
 /**
  * Factory para crear objeciones de contrato
  */
-export const createMockObjection = (overrides: Partial<ContractObjection> = {}): ContractObjection => ({
+export const createMockObjection = (
+  overrides: Partial<ContractObjection> = {}
+): ContractObjection => ({
   id: `objection-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
   objected_by_user_id: 'user-456',
@@ -239,7 +268,8 @@ export const createMockObjection = (overrides: Partial<ContractObjection> = {}):
   section: 'economic_terms',
   current_value: '2500000',
   proposed_value: '2200000',
-  justification: 'El canon propuesto está por encima del promedio del mercado para propiedades similares en la zona.',
+  justification:
+    'El canon propuesto está por encima del promedio del mercado para propiedades similares en la zona.',
   priority: 'HIGH',
   status: 'PENDING',
   created_at: new Date().toISOString(),
@@ -251,7 +281,9 @@ export const createMockObjection = (overrides: Partial<ContractObjection> = {}):
 /**
  * Factory para crear garantías de contrato
  */
-export const createMockGuarantee = (overrides: Partial<LandlordContractGuarantee> = {}): LandlordContractGuarantee => ({
+export const createMockGuarantee = (
+  overrides: Partial<LandlordContractGuarantee> = {}
+): LandlordContractGuarantee => ({
   id: `guarantee-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
   guarantee_type: 'personal',
@@ -277,7 +309,7 @@ export const createMockGuarantee = (overrides: Partial<LandlordContractGuarantee
  */
 export const createMockWorkflowHistory = (
   action: string = 'contract_created',
-  overrides: Partial<ContractWorkflowHistory> = {},
+  overrides: Partial<ContractWorkflowHistory> = {}
 ): ContractWorkflowHistory => ({
   id: `history-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
@@ -301,11 +333,15 @@ export const createMockWorkflowHistory = (
 /**
  * Helper para crear usuarios mock
  */
-export const createMockUser = (userType: 'landlord' | 'tenant' = 'landlord', overrides = {}) => ({
+export const createMockUser = (
+  userType: 'landlord' | 'tenant' = 'landlord',
+  overrides = {}
+) => ({
   id: `user-${userType}-${Math.random().toString(36).substr(2, 9)}`,
   email: `${userType}@test.com`,
   user_type: userType,
-  full_name: userType === 'landlord' ? 'Juan Carlos Pérez' : 'Ana María González',
+  full_name:
+    userType === 'landlord' ? 'Juan Carlos Pérez' : 'Ana María González',
   ...overrides,
 });
 
@@ -330,24 +366,37 @@ export const createMockInvitationsHistory = (count: number = 3) => ({
     tenant_name: index === 0 ? `Usuario ${index + 1}` : undefined,
     invitation_method: ['email', 'sms', 'whatsapp'][index % 3],
     status: ['pending', 'accepted', 'expired'][index % 3],
-    created_at: new Date(Date.now() - (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + (7 - index) * 24 * 60 * 60 * 1000).toISOString(),
-    accepted_at: index === 1 ? new Date(Date.now() - index * 12 * 60 * 60 * 1000).toISOString() : undefined,
+    created_at: new Date(
+      Date.now() - (index + 1) * 24 * 60 * 60 * 1000
+    ).toISOString(),
+    expires_at: new Date(
+      Date.now() + (7 - index) * 24 * 60 * 60 * 1000
+    ).toISOString(),
+    accepted_at:
+      index === 1
+        ? new Date(Date.now() - index * 12 * 60 * 60 * 1000).toISOString()
+        : undefined,
   })),
 });
 
 /**
  * Helper para generar errores de API mock
  */
-export const createMockApiError = (status: number = 400, message: string = 'API Error') => ({
+export const createMockApiError = (
+  status: number = 400,
+  message: string = 'API Error'
+) => ({
   response: {
     status,
     data: {
       error: message,
-      details: status === 400 ? {
-        field1: ['Este campo es requerido'],
-        field2: ['Formato inválido'],
-      } : undefined,
+      details:
+        status === 400
+          ? {
+              field1: ['Este campo es requerido'],
+              field2: ['Formato inválido'],
+            }
+          : undefined,
     },
   },
 });
@@ -393,7 +442,9 @@ export const createComplexWorkflowScenario = () => ({
 /**
  * Helper para generar datos de firmas digitales
  */
-export const createMockSignatureData = (userType: 'landlord' | 'tenant' = 'landlord') => ({
+export const createMockSignatureData = (
+  userType: 'landlord' | 'tenant' = 'landlord'
+) => ({
   signature_image: 'data:image/png;base64,iVBORw0KGgoAAAANS...',
   signature_metadata: {
     width: 300,
@@ -443,7 +494,9 @@ export const createLoadingStates = () => ({
 /**
  * Helper para validar estructura de contratos
  */
-export const validateContractStructure = (contract: any): contract is LandlordControlledContractData => {
+export const validateContractStructure = (
+  contract: any
+): contract is LandlordControlledContractData => {
   return (
     typeof contract === 'object' &&
     contract !== null &&

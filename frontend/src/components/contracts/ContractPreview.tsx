@@ -1,6 +1,6 @@
 /**
  * Vista previa interactiva del contrato antes de firma
- * 
+ *
  * Permite:
  * - Visualizar el contrato completo con formato legal
  * - Editar campos menores antes de la firma
@@ -15,17 +15,10 @@ import {
   Box,
   Container,
   Typography,
-  Card,
-  CardContent,
-  CardActions,
   Button,
   TextField,
   Grid,
   Chip,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   Paper,
   Accordion,
   AccordionSummary,
@@ -112,7 +105,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showWarning } = useSnackbar();
-  
+
   // Estados principales
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractData | null>(null);
@@ -120,69 +113,76 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('parties');
   const [showSignatureFlow, setShowSignatureFlow] = useState(false);
-  const [previewMode, setPreviewMode] = useState<'sections' | 'full' | 'pdf'>('sections');
+  const [previewMode, setPreviewMode] = useState<'sections' | 'full' | 'pdf'>(
+    'sections',
+  );
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
 
   // Configuración de secciones del contrato
-  const contractSections: ContractSection[] = useMemo(() => [
-    {
-      id: 'parties',
-      title: 'PARTES DEL CONTRATO',
-      content: `Entre los suscritos a saber: ${contract?.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : '[ARRENDADOR]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDADOR], quien en adelante se denominará EL ARRENDADOR, y ${contract?.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : '[ARRENDATARIO]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDATARIO], quien en adelante se denominará EL ARRENDATARIO.`,
-      editable: true,
-      required: true,
-      category: 'parties',
-    },
-    {
-      id: 'property',
-      title: 'OBJETO DEL CONTRATO',
-      content: `EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble ubicado en ${contract?.property?.address || '[DIRECCION_PROPIEDAD]'}, con las características descritas en el anexo del contrato.`,
-      editable: true,
-      required: true,
-      category: 'property',
-    },
-    {
-      id: 'financial',
-      title: 'CANON DE ARRENDAMIENTO Y FORMA DE PAGO',
-      content: `El canon mensual de arrendamiento es de ${contract?.monthly_rent ? `$${contract.monthly_rent.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_CANON]'} ($${contract?.monthly_rent || '[VALOR_NUMERICO]'}), que EL ARRENDATARIO se obliga a pagar dentro de los cinco (5) primeros días de cada mes. El depósito de garantía corresponde a ${contract?.deposit_amount ? `$${contract.deposit_amount.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_DEPOSITO]'}.`,
-      editable: true,
-      required: true,
-      category: 'financial',
-    },
-    {
-      id: 'duration',
-      title: 'DURACIÓN DEL CONTRATO',
-      content: `El presente contrato tendrá una duración de ${differenceInMonths(contract?.end_date ? parseISO(contract.end_date) : new Date(), contract?.start_date ? parseISO(contract.start_date) : new Date()) || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_FIN]'}.`,
-      editable: true,
-      required: true,
-      category: 'terms',
-    },
-    {
-      id: 'obligations',
-      title: 'OBLIGACIONES DE LAS PARTES',
-      content: 'OBLIGACIONES DEL ARRENDADOR: 1) Entregar el inmueble en buen estado, 2) Realizar las reparaciones necesarias por deterioro normal, 3) Respetar la destinación del inmueble. OBLIGACIONES DEL ARRENDATARIO: 1) Pagar oportunamente el canon de arrendamiento, 2) Usar el inmueble conforme a su destinación, 3) Permitir las inspecciones del arrendador, 4) Restituir el inmueble en las mismas condiciones.',
-      editable: true,
-      required: true,
-      category: 'legal',
-    },
-    {
-      id: 'clauses',
-      title: 'CLÁUSULAS ESPECIALES',
-      content: `Se pactan las siguientes cláusulas especiales: ${contract?.terms || '1) El inmueble se entrega amoblado según inventario anexo. 2) No se permite el subarriendo sin autorización previa. 3) Los servicios públicos son por cuenta del arrendatario. 4) Se prohíbe tener mascotas sin autorización.'}`,
-      editable: true,
-      required: false,
-      category: 'legal',
-    },
-    {
-      id: 'termination',
-      title: 'TERMINACIÓN DEL CONTRATO',
-      content: 'El presente contrato podrá darse por terminado por las siguientes causas: 1) Vencimiento del plazo pactado, 2) Incumplimiento en el pago del canon por más de dos (2) meses, 3) Violación de cualquiera de las obligaciones pactadas, 4) Mutuo acuerdo entre las partes. En caso de terminación anticipada por parte del arrendatario, deberá dar aviso con treinta (30) días de anticipación.',
-      editable: true,
-      required: true,
-      category: 'legal',
-    },
-  ], [contract]);
+  const contractSections: ContractSection[] = useMemo(
+    () => [
+      {
+        id: 'parties',
+        title: 'PARTES DEL CONTRATO',
+        content: `Entre los suscritos a saber: ${contract?.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : '[ARRENDADOR]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDADOR], quien en adelante se denominará EL ARRENDADOR, y ${contract?.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : '[ARRENDATARIO]'}, mayor de edad, identificado con cédula de ciudadanía número [CC_ARRENDATARIO], quien en adelante se denominará EL ARRENDATARIO.`,
+        editable: true,
+        required: true,
+        category: 'parties',
+      },
+      {
+        id: 'property',
+        title: 'OBJETO DEL CONTRATO',
+        content: `EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble ubicado en ${contract?.property?.address || '[DIRECCION_PROPIEDAD]'}, con las características descritas en el anexo del contrato.`,
+        editable: true,
+        required: true,
+        category: 'property',
+      },
+      {
+        id: 'financial',
+        title: 'CANON DE ARRENDAMIENTO Y FORMA DE PAGO',
+        content: `El canon mensual de arrendamiento es de ${contract?.monthly_rent ? `$${contract.monthly_rent.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_CANON]'} ($${contract?.monthly_rent || '[VALOR_NUMERICO]'}), que EL ARRENDATARIO se obliga a pagar dentro de los cinco (5) primeros días de cada mes. El depósito de garantía corresponde a ${contract?.deposit_amount ? `$${contract.deposit_amount.toLocaleString('es-CO')} PESOS COLOMBIANOS` : '[VALOR_DEPOSITO]'}.`,
+        editable: true,
+        required: true,
+        category: 'financial',
+      },
+      {
+        id: 'duration',
+        title: 'DURACIÓN DEL CONTRATO',
+        content: `El presente contrato tendrá una duración de ${differenceInMonths(contract?.end_date ? parseISO(contract.end_date) : new Date(), contract?.start_date ? parseISO(contract.start_date) : new Date()) || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_FIN]'}.`,
+        editable: true,
+        required: true,
+        category: 'terms',
+      },
+      {
+        id: 'obligations',
+        title: 'OBLIGACIONES DE LAS PARTES',
+        content:
+          'OBLIGACIONES DEL ARRENDADOR: 1) Entregar el inmueble en buen estado, 2) Realizar las reparaciones necesarias por deterioro normal, 3) Respetar la destinación del inmueble. OBLIGACIONES DEL ARRENDATARIO: 1) Pagar oportunamente el canon de arrendamiento, 2) Usar el inmueble conforme a su destinación, 3) Permitir las inspecciones del arrendador, 4) Restituir el inmueble en las mismas condiciones.',
+        editable: true,
+        required: true,
+        category: 'legal',
+      },
+      {
+        id: 'clauses',
+        title: 'CLÁUSULAS ESPECIALES',
+        content: `Se pactan las siguientes cláusulas especiales: ${contract?.terms || '1) El inmueble se entrega amoblado según inventario anexo. 2) No se permite el subarriendo sin autorización previa. 3) Los servicios públicos son por cuenta del arrendatario. 4) Se prohíbe tener mascotas sin autorización.'}`,
+        editable: true,
+        required: false,
+        category: 'legal',
+      },
+      {
+        id: 'termination',
+        title: 'TERMINACIÓN DEL CONTRATO',
+        content:
+          'El presente contrato podrá darse por terminado por las siguientes causas: 1) Vencimiento del plazo pactado, 2) Incumplimiento en el pago del canon por más de dos (2) meses, 3) Violación de cualquiera de las obligaciones pactadas, 4) Mutuo acuerdo entre las partes. En caso de terminación anticipada por parte del arrendatario, deberá dar aviso con treinta (30) días de anticipación.',
+        editable: true,
+        required: true,
+        category: 'legal',
+      },
+    ],
+    [contract],
+  );
 
   // Cargar datos del contrato
   useEffect(() => {
@@ -208,11 +208,11 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   // Manejar cambios en las secciones
   const handleSectionChange = (sectionId: string, newContent: string) => {
     if (!contract) return;
-    
+
     const updatedSections = contract.sections?.map(section =>
       section.id === sectionId ? { ...section, content: newContent } : section,
     );
-    
+
     setContract({
       ...contract,
       sections: updatedSections,
@@ -223,7 +223,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   // Guardar cambios
   const handleSaveChanges = async () => {
     if (!contract) return;
-    
+
     try {
       setLoading(true);
 
@@ -232,7 +232,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         terms: contract.sections?.find(s => s.id === 'clauses')?.content,
         // Otros campos editables...
       });
-      
+
       setUnsavedChanges(false);
       setEditMode(false);
     } catch (error) {
@@ -246,7 +246,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
     try {
       setLoading(true);
       const response = await contractService.generateContractPdf(contractId);
-      
+
       // Abrir PDF en nueva ventana
       if (response.pdf_url) {
         window.open(response.pdf_url, '_blank');
@@ -279,14 +279,19 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       legal: 'error',
       terms: 'info',
     };
-    return colors[category] as 'primary' | 'success' | 'warning' | 'error' | 'info';
+    return colors[category] as
+      | 'primary'
+      | 'success'
+      | 'warning'
+      | 'error'
+      | 'info';
   };
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth='lg' sx={{ py: 4 }}>
         <LinearProgress sx={{ mb: 2 }} />
-        <Typography variant="h6" textAlign="center">
+        <Typography variant='h6' textAlign='center'>
           Cargando vista previa del contrato...
         </Typography>
       </Container>
@@ -295,8 +300,8 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
 
   if (!contract) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">
+      <Container maxWidth='lg' sx={{ py: 4 }}>
+        <Alert severity='error'>
           No se pudo cargar el contrato. Por favor, intente nuevamente.
         </Alert>
       </Container>
@@ -304,35 +309,52 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth='lg' sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 4, position: 'sticky', top: 0, bgcolor: 'background.default', zIndex: 100, py: 2 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box
+        sx={{
+          mb: 4,
+          position: 'sticky',
+          top: 0,
+          bgcolor: 'background.default',
+          zIndex: 100,
+          py: 2,
+        }}
+      >
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          mb={2}
+        >
           <Box>
-            <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <PreviewIcon color="primary" />
+            <Typography
+              variant='h4'
+              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            >
+              <PreviewIcon color='primary' />
               Vista Previa del Contrato
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
+            <Typography variant='subtitle1' color='text.secondary'>
               Contrato #{contractId.slice(0, 8)} • Versión {contract.version}
             </Typography>
           </Box>
-          
-          <Box display="flex" gap={1}>
+
+          <Box display='flex' gap={1}>
             <FormControlLabel
               control={
                 <Switch
                   checked={editMode}
-                  onChange={(e) => setEditMode(e.target.checked)}
+                  onChange={e => setEditMode(e.target.checked)}
                   disabled={loading}
                 />
               }
-              label="Modo Edición"
+              label='Modo Edición'
             />
-            
+
             {onClose && (
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={onClose}
                 startIcon={<CancelIcon />}
               >
@@ -343,10 +365,16 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         </Box>
 
         {/* Toolbar */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-          <Box display="flex" gap={1} flexWrap="wrap">
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          flexWrap='wrap'
+          gap={1}
+        >
+          <Box display='flex' gap={1} flexWrap='wrap'>
             <Button
-              size="small"
+              size='small'
               onClick={() => setPreviewMode('sections')}
               variant={previewMode === 'sections' ? 'contained' : 'outlined'}
               startIcon={<ContractIcon />}
@@ -354,7 +382,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               Secciones
             </Button>
             <Button
-              size="small"
+              size='small'
               onClick={() => setPreviewMode('full')}
               variant={previewMode === 'full' ? 'contained' : 'outlined'}
               startIcon={<PreviewIcon />}
@@ -362,7 +390,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               Vista Completa
             </Button>
             <Button
-              size="small"
+              size='small'
               onClick={handleGeneratePdf}
               startIcon={<PdfIcon />}
               disabled={loading}
@@ -371,22 +399,29 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
             </Button>
           </Box>
 
-          <Box display="flex" gap={1}>
-            <Tooltip title="Reducir zoom">
+          <Box display='flex' gap={1}>
+            <Tooltip title='Reducir zoom'>
               <IconButton
                 onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.1))}
-                size="small"
+                size='small'
               >
                 <ZoomOutIcon />
               </IconButton>
             </Tooltip>
-            <Typography variant="body2" sx={{ alignSelf: 'center', minWidth: '50px', textAlign: 'center' }}>
+            <Typography
+              variant='body2'
+              sx={{
+                alignSelf: 'center',
+                minWidth: '50px',
+                textAlign: 'center',
+              }}
+            >
               {Math.round(zoomLevel * 100)}%
             </Typography>
-            <Tooltip title="Aumentar zoom">
+            <Tooltip title='Aumentar zoom'>
               <IconButton
                 onClick={() => setZoomLevel(prev => Math.min(2, prev + 0.1))}
-                size="small"
+                size='small'
               >
                 <ZoomInIcon />
               </IconButton>
@@ -397,10 +432,10 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         {/* Alertas */}
         {unsavedChanges && (
           <Alert
-            severity="warning"
+            severity='warning'
             sx={{ mt: 2 }}
             action={
-              <Button color="inherit" size="small" onClick={handleSaveChanges}>
+              <Button color='inherit' size='small' onClick={handleSaveChanges}>
                 Guardar
               </Button>
             }
@@ -411,30 +446,45 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       </Box>
 
       {/* Contenido Principal */}
-      <Box sx={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left', minHeight: '70vh' }}>
+      <Box
+        sx={{
+          transform: `scale(${zoomLevel})`,
+          transformOrigin: 'top left',
+          minHeight: '70vh',
+        }}
+      >
         {previewMode === 'sections' && (
           <Grid container spacing={3}>
             {contract.sections?.map((section, index) => (
               <Grid item xs={12} key={section.id}>
                 <Accordion
                   expanded={activeSection === section.id}
-                  onChange={() => setActiveSection(activeSection === section.id ? '' : section.id)}
+                  onChange={() =>
+                    setActiveSection(
+                      activeSection === section.id ? '' : section.id,
+                    )
+                  }
                 >
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box display="flex" alignItems="center" gap={2} width="100%">
+                    <Box
+                      display='flex'
+                      alignItems='center'
+                      gap={2}
+                      width='100%'
+                    >
                       <Chip
                         label={index + 1}
-                        size="small"
+                        size='small'
                         color={getCategoryColor(section.category)}
                       />
-                      <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                      <Typography variant='h6' sx={{ flexGrow: 1 }}>
                         {section.title}
                       </Typography>
                       {section.required && (
-                        <Chip label="Requerido" size="small" color="error" />
+                        <Chip label='Requerido' size='small' color='error' />
                       )}
                       {section.editable && editMode && (
-                        <Chip label="Editable" size="small" color="primary" />
+                        <Chip label='Editable' size='small' color='primary' />
                       )}
                     </Box>
                   </AccordionSummary>
@@ -445,13 +495,15 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                         multiline
                         minRows={4}
                         value={section.content}
-                        onChange={(e) => handleSectionChange(section.id, e.target.value)}
-                        variant="outlined"
+                        onChange={e =>
+                          handleSectionChange(section.id, e.target.value)
+                        }
+                        variant='outlined'
                       />
                     ) : (
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
+                      <Typography
+                        variant='body1'
+                        sx={{
                           textAlign: 'justify',
                           lineHeight: 1.8,
                           fontFamily: 'serif',
@@ -469,21 +521,31 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
 
         {previewMode === 'full' && (
           <Paper sx={{ p: 4, bgcolor: 'white', minHeight: '70vh' }}>
-            <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: 'serif' }}>
+            <Typography
+              variant='h4'
+              textAlign='center'
+              gutterBottom
+              sx={{ fontFamily: 'serif' }}
+            >
               CONTRATO DE ARRENDAMIENTO
             </Typography>
-            <Typography variant="h6" textAlign="center" gutterBottom color="text.secondary">
+            <Typography
+              variant='h6'
+              textAlign='center'
+              gutterBottom
+              color='text.secondary'
+            >
               No. {contractId.slice(0, 8)}
             </Typography>
-            
+
             <Divider sx={{ my: 4 }} />
-            
+
             {contract.sections?.map((section, index) => (
               <Box key={section.id} sx={{ mb: 4 }}>
-                <Typography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{
                     fontFamily: 'serif',
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
@@ -491,10 +553,10 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
                 >
                   {index + 1}. {section.title}
                 </Typography>
-                <Typography 
-                  variant="body1" 
-                  paragraph 
-                  sx={{ 
+                <Typography
+                  variant='body1'
+                  paragraph
+                  sx={{
                     textAlign: 'justify',
                     lineHeight: 1.8,
                     fontFamily: 'serif',
@@ -507,39 +569,40 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
             ))}
 
             <Divider sx={{ my: 4 }} />
-            
+
             <Box sx={{ mt: 6 }}>
-              <Typography variant="body1" textAlign="center" sx={{ mb: 4 }}>
-                En constancia de lo anterior, las partes firman el presente contrato el día{' '}
+              <Typography variant='body1' textAlign='center' sx={{ mb: 4 }}>
+                En constancia de lo anterior, las partes firman el presente
+                contrato el día{' '}
                 {format(new Date(), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}.
               </Typography>
-              
+
               <Grid container spacing={4} sx={{ mt: 4 }}>
-                <Grid item xs={12} md={6} textAlign="center">
+                <Grid item xs={12} md={6} textAlign='center'>
                   <Box sx={{ borderTop: '1px solid black', pt: 1, mt: 8 }}>
-                    <Typography variant="body1" fontWeight="bold">
+                    <Typography variant='body1' fontWeight='bold'>
                       EL ARRENDADOR
                     </Typography>
-                    <Typography variant="body2">
-                      {contract.primary_party ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}` : 'N/A'}
+                    <Typography variant='body2'>
+                      {contract.primary_party
+                        ? `${contract.primary_party.first_name} ${contract.primary_party.last_name}`
+                        : 'N/A'}
                     </Typography>
-                    <Typography variant="body2">
-                      Documento: N/A
-                    </Typography>
+                    <Typography variant='body2'>Documento: N/A</Typography>
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} md={6} textAlign="center">
+                <Grid item xs={12} md={6} textAlign='center'>
                   <Box sx={{ borderTop: '1px solid black', pt: 1, mt: 8 }}>
-                    <Typography variant="body1" fontWeight="bold">
+                    <Typography variant='body1' fontWeight='bold'>
                       EL ARRENDATARIO
                     </Typography>
-                    <Typography variant="body2">
-                      {contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : 'N/A'}
+                    <Typography variant='body2'>
+                      {contract.secondary_party
+                        ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`
+                        : 'N/A'}
                     </Typography>
-                    <Typography variant="body2">
-                      Documento: N/A
-                    </Typography>
+                    <Typography variant='body2'>Documento: N/A</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -552,7 +615,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       {!editMode && (
         <Zoom in timeout={500}>
           <Fab
-            color="primary"
+            color='primary'
             sx={{
               position: 'fixed',
               bottom: 24,
@@ -571,7 +634,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       {editMode && unsavedChanges && (
         <Zoom in timeout={500}>
           <Fab
-            color="secondary"
+            color='secondary'
             sx={{
               position: 'fixed',
               bottom: 24,
@@ -603,7 +666,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         {editMode ? (
           <>
             <Button
-              variant="contained"
+              variant='contained'
               onClick={handleSaveChanges}
               startIcon={<SaveIcon />}
               disabled={!unsavedChanges || loading}
@@ -611,7 +674,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               Guardar Cambios
             </Button>
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={() => {
                 setEditMode(false);
                 setUnsavedChanges(false);
@@ -624,7 +687,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
         ) : (
           <>
             <Button
-              variant="contained"
+              variant='contained'
               onClick={handleProceedToSign}
               startIcon={<SignIcon />}
               disabled={unsavedChanges}
@@ -632,7 +695,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               Proceder a Firmar
             </Button>
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={() => setShowTermsDialog(true)}
               startIcon={<InfoIcon />}
             >
@@ -646,48 +709,52 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       <Dialog
         open={showTermsDialog}
         onClose={() => setShowTermsDialog(false)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          Términos y Condiciones Importantes
-        </DialogTitle>
+        <DialogTitle>Términos y Condiciones Importantes</DialogTitle>
         <DialogContent>
           <List>
             <ListItem>
-              <ListItemIcon><WarningIcon color="warning" /></ListItemIcon>
+              <ListItemIcon>
+                <WarningIcon color='warning' />
+              </ListItemIcon>
               <ListItemText
-                primary="Validez Legal"
-                secondary="Este contrato tendrá plena validez legal una vez firmado digitalmente por ambas partes."
+                primary='Validez Legal'
+                secondary='Este contrato tendrá plena validez legal una vez firmado digitalmente por ambas partes.'
               />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckIcon color="success" /></ListItemIcon>
+              <ListItemIcon>
+                <CheckIcon color='success' />
+              </ListItemIcon>
               <ListItemText
-                primary="Autenticación Biométrica"
-                secondary="La firma digital incluye verificación biométrica para garantizar la identidad de los firmantes."
+                primary='Autenticación Biométrica'
+                secondary='La firma digital incluye verificación biométrica para garantizar la identidad de los firmantes.'
               />
             </ListItem>
             <ListItem>
-              <ListItemIcon><InfoIcon color="info" /></ListItemIcon>
+              <ListItemIcon>
+                <InfoIcon color='info' />
+              </ListItemIcon>
               <ListItemText
-                primary="Modificaciones"
-                secondary="Cualquier modificación posterior al contrato requerirá un nuevo proceso de firma digital."
+                primary='Modificaciones'
+                secondary='Cualquier modificación posterior al contrato requerirá un nuevo proceso de firma digital.'
               />
             </ListItem>
             <ListItem>
-              <ListItemIcon><LegalIcon color="primary" /></ListItemIcon>
+              <ListItemIcon>
+                <LegalIcon color='primary' />
+              </ListItemIcon>
               <ListItemText
-                primary="Jurisdicción"
-                secondary="Este contrato se rige por las leyes de la República de Colombia."
+                primary='Jurisdicción'
+                secondary='Este contrato se rige por las leyes de la República de Colombia.'
               />
             </ListItem>
           </List>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowTermsDialog(false)}>
-            Entendido
-          </Button>
+          <Button onClick={() => setShowTermsDialog(false)}>Entendido</Button>
         </DialogActions>
       </Dialog>
 
@@ -697,8 +764,12 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
           isOpen={showSignatureFlow}
           contractId={contractId}
           contractTitle={`Contrato de Arrendamiento #${contractId.slice(0, 8)}`}
-          signerName={contract.secondary_party ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}` : 'Usuario'}
-          signerRole="tenant"
+          signerName={
+            contract.secondary_party
+              ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`
+              : 'Usuario'
+          }
+          signerRole='tenant'
           contractData={contract}
           onSigningComplete={() => {
             setShowSignatureFlow(false);

@@ -35,11 +35,7 @@ const createWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('usePaymentProcessing Hook', () => {
@@ -156,7 +152,7 @@ describe('usePaymentProcessing Hook', () => {
     const paymentData = { amount: 100, currency: 'USD' };
 
     await expect(
-      result.current.processStripePayment(paymentData),
+      result.current.processStripePayment(paymentData)
     ).rejects.toThrow('Stripe not initialized');
   });
 
@@ -168,30 +164,40 @@ describe('usePaymentProcessing Hook', () => {
     const paymentData = { amount: 100, currency: 'USD' };
 
     await expect(
-      result.current.processPayPalPayment(paymentData),
+      result.current.processPayPalPayment(paymentData)
     ).rejects.toThrow('PayPal not initialized');
   });
 
   it('should handle stripe error via handlePaymentError', () => {
-    mockStripeService.handleStripeError.mockReturnValue('Stripe error occurred');
+    mockStripeService.handleStripeError.mockReturnValue(
+      'Stripe error occurred'
+    );
 
     const { result } = renderHook(() => usePaymentProcessing(), {
       wrapper: createWrapper(),
     });
 
-    const errorMsg = result.current.handlePaymentError(new Error('test'), 'stripe');
+    const errorMsg = result.current.handlePaymentError(
+      new Error('test'),
+      'stripe'
+    );
     expect(errorMsg).toBe('Stripe error occurred');
     expect(mockStripeService.handleStripeError).toHaveBeenCalled();
   });
 
   it('should handle paypal error via handlePaymentError', () => {
-    mockPaypalService.handlePayPalError.mockReturnValue('PayPal error occurred');
+    mockPaypalService.handlePayPalError.mockReturnValue(
+      'PayPal error occurred'
+    );
 
     const { result } = renderHook(() => usePaymentProcessing(), {
       wrapper: createWrapper(),
     });
 
-    const errorMsg = result.current.handlePaymentError(new Error('test'), 'paypal');
+    const errorMsg = result.current.handlePaymentError(
+      new Error('test'),
+      'paypal'
+    );
     expect(errorMsg).toBe('PayPal error occurred');
     expect(mockPaypalService.handlePayPalError).toHaveBeenCalled();
   });
@@ -201,7 +207,9 @@ describe('usePaymentProcessing Hook', () => {
       { id: 'txn-1', amount: 100, status: 'completed' },
       { id: 'txn-2', amount: 200, status: 'pending' },
     ];
-    mockPaymentService.getTransactionReport.mockResolvedValue(mockTransactions as any);
+    mockPaymentService.getTransactionReport.mockResolvedValue(
+      mockTransactions as any
+    );
 
     const { result } = renderHook(() => usePaymentProcessing(), {
       wrapper: createWrapper(),

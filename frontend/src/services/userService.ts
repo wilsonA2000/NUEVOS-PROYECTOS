@@ -1,5 +1,11 @@
 import { api } from './api';
-import { User, UpdateProfileDto, UserResume, UpdateResumeDto, UserSettings } from '../types/user';
+import {
+  User,
+  UpdateProfileDto,
+  UserResume,
+  UpdateResumeDto,
+  UserSettings,
+} from '../types/user';
 
 export const userService = {
   // Perfil público
@@ -16,9 +22,13 @@ export const userService = {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const response = await api.post<{ avatar_url: string }>('/users/avatar/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post<{ avatar_url: string }>(
+        '/users/avatar/',
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      );
       return response.data;
     } catch (error: any) {
       throw error;
@@ -73,9 +83,15 @@ export const userService = {
   },
 
   // Verificación de código de entrevista
-  async verifyInterviewCode(code: string, email: string): Promise<{ valid: boolean; message?: string }> {
+  async verifyInterviewCode(
+    code: string,
+    email: string,
+  ): Promise<{ valid: boolean; message?: string }> {
     try {
-      const response = await api.post('/users/verify-interview-code/', { code, email });
+      const response = await api.post('/users/verify-interview-code/', {
+        code,
+        email,
+      });
       return response.data;
     } catch (error: any) {
       throw error;
@@ -99,4 +115,4 @@ export const userService = {
       throw error;
     }
   },
-}; 
+};

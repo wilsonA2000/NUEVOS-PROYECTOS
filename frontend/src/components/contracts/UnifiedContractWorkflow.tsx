@@ -27,14 +27,7 @@ import {
   Paper,
   LinearProgress,
 } from '@mui/material';
-import {
-  CheckCircle,
-  Cancel,
-  Edit,
-  Fingerprint,
-  Publish,
-  VisibilityOutlined,
-} from '@mui/icons-material';
+import { CheckCircle, Edit, Fingerprint } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import api from '../../services/api';
@@ -74,14 +67,15 @@ interface UnifiedContractWorkflowProps {
   onUpdate?: () => void;
 }
 
-export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = ({
-  contractId,
-  onUpdate,
-}) => {
+export const UnifiedContractWorkflow: React.FC<
+  UnifiedContractWorkflowProps
+> = ({ contractId, onUpdate }) => {
   const { user } = useAuth();
   const { showSuccess, showError, showWarning, showInfo } = useSnackbar();
   const [contract, setContract] = useState<Contract | null>(null);
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus | null>(null);
+  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
@@ -138,7 +132,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   const loadContractData = async () => {
     try {
       setLoading(true);
-      
+
       // Cargar contrato y estado del workflow
       const [contractRes, statusRes] = await Promise.all([
         api.get(`/contracts/unified-contracts/${contractId}/`),
@@ -163,12 +157,16 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   const handleTenantApprove = async () => {
     try {
       setProcessing(true);
-      await api.post(`/contracts/unified-contracts/${contractId}/tenant-approve/`);
-      
+      await api.post(
+        `/contracts/unified-contracts/${contractId}/tenant-approve/`,
+      );
+
       await loadContractData();
       if (onUpdate) onUpdate();
-      
-      showSuccess('Contrato aprobado exitosamente. Ahora procederemos con la autenticación biométrica.');
+
+      showSuccess(
+        'Contrato aprobado exitosamente. Ahora procederemos con la autenticación biométrica.',
+      );
     } catch (error: any) {
       showError(error.response?.data?.error || 'Error al aprobar el contrato');
     } finally {
@@ -184,15 +182,18 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
     try {
       setProcessing(true);
-      await api.post(`/contracts/unified-contracts/${contractId}/tenant-object/`, {
-        objections: [
-          {
-            text: objectionText,
-            proposed_modification: '',
-            field_reference: '',
-          },
-        ],
-      });
+      await api.post(
+        `/contracts/unified-contracts/${contractId}/tenant-object/`,
+        {
+          objections: [
+            {
+              text: objectionText,
+              proposed_modification: '',
+              field_reference: '',
+            },
+          ],
+        },
+      );
 
       setObjectionsDialog(false);
       setObjectionText('');
@@ -213,11 +214,13 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   const handleSendToReview = async () => {
     try {
       setProcessing(true);
-      await api.post(`/contracts/unified-contracts/${contractId}/send-to-tenant-review/`);
-      
+      await api.post(
+        `/contracts/unified-contracts/${contractId}/send-to-tenant-review/`,
+      );
+
       await loadContractData();
       if (onUpdate) onUpdate();
-      
+
       showSuccess('Contrato enviado a revisión del arrendatario');
     } catch (error: any) {
       showError(error.response?.data?.error || 'Error al enviar a revisión');
@@ -229,15 +232,22 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   const handleStartBiometric = async () => {
     try {
       setProcessing(true);
-      const response = await api.post(`/contracts/unified-contracts/${contractId}/start-biometric/`);
-      
+      const response = await api.post(
+        `/contracts/unified-contracts/${contractId}/start-biometric/`,
+      );
+
       await loadContractData();
       if (onUpdate) onUpdate();
-      
+
       const nextStep = response.data.next_biometric_step;
-      showInfo(`Iniciando autenticación biométrica. Siguiente paso: ${nextStep}`);
+      showInfo(
+        `Iniciando autenticación biométrica. Siguiente paso: ${nextStep}`,
+      );
     } catch (error: any) {
-      showError(error.response?.data?.error || 'Error al iniciar autenticación biométrica');
+      showError(
+        error.response?.data?.error ||
+          'Error al iniciar autenticación biométrica',
+      );
     } finally {
       setProcessing(false);
     }
@@ -248,16 +258,19 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
   // ===================================================================
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='400px'
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   if (!contract || !workflowStatus) {
-    return (
-      <Alert severity="error">No se pudo cargar el contrato</Alert>
-    );
+    return <Alert severity='error'>No se pudo cargar el contrato</Alert>;
   }
 
   const currentStepIndex = getCurrentStepIndex(contract.status);
@@ -268,14 +281,16 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       <Card>
         <CardHeader
           title={
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h5">
-                {contract.title}
-              </Typography>
+            <Box
+              display='flex'
+              justifyContent='space-between'
+              alignItems='center'
+            >
+              <Typography variant='h5'>{contract.title}</Typography>
               <Chip
                 label={`Progreso: ${workflowStatus.workflow_progress}%`}
-                color="primary"
-                variant="outlined"
+                color='primary'
+                variant='outlined'
               />
             </Box>
           }
@@ -286,14 +301,18 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
           {/* PROGRESS BAR */}
           <Box mb={2}>
             <LinearProgress
-              variant="determinate"
+              variant='determinate'
               value={workflowStatus.workflow_progress}
               sx={{ height: 10, borderRadius: 5 }}
             />
           </Box>
 
           {/* STEPPER */}
-          <Stepper activeStep={currentStepIndex} alternativeLabel sx={{ mb: 4 }}>
+          <Stepper
+            activeStep={currentStepIndex}
+            alternativeLabel
+            sx={{ mb: 4 }}
+          >
             {steps.map((label, index) => (
               <Step key={label} completed={index < currentStepIndex}>
                 <StepLabel>{label}</StepLabel>
@@ -305,38 +324,38 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
           <Grid container spacing={2} sx={{ mb: 4 }}>
             <Grid item xs={12} md={4}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="textSecondary">
+                <Typography variant='caption' color='textSecondary'>
                   Renta Mensual
                 </Typography>
-                <Typography variant="h6">
+                <Typography variant='h6'>
                   ${contract.monthly_rent?.toLocaleString()}
                 </Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="textSecondary">
+                <Typography variant='caption' color='textSecondary'>
                   Inicio
                 </Typography>
-                <Typography variant="h6">{contract.start_date}</Typography>
+                <Typography variant='h6'>{contract.start_date}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="caption" color="textSecondary">
+                <Typography variant='caption' color='textSecondary'>
                   Fin
                 </Typography>
-                <Typography variant="h6">{contract.end_date}</Typography>
+                <Typography variant='h6'>{contract.end_date}</Typography>
               </Paper>
             </Grid>
           </Grid>
 
           {/* ESTADO ACTUAL */}
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" fontWeight="bold">
+          <Alert severity='info' sx={{ mb: 3 }}>
+            <Typography variant='subtitle1' fontWeight='bold'>
               Estado Actual: {contract.status.replace(/_/g, ' ').toUpperCase()}
             </Typography>
-            <Typography variant="body2">
+            <Typography variant='body2'>
               Fase {workflowStatus.current_phase} de 3
             </Typography>
           </Alert>
@@ -345,10 +364,10 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
           <Box>
             {/* ARRENDATARIO - REVISIÓN */}
             {isTenant && contract.status === 'tenant_review' && (
-              <Box display="flex" gap={2}>
+              <Box display='flex' gap={2}>
                 <Button
-                  variant="contained"
-                  color="success"
+                  variant='contained'
+                  color='success'
                   startIcon={<CheckCircle />}
                   onClick={handleTenantApprove}
                   disabled={processing || !workflowStatus.can_tenant_approve}
@@ -357,8 +376,8 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
                   Aprobar Contrato
                 </Button>
                 <Button
-                  variant="outlined"
-                  color="warning"
+                  variant='outlined'
+                  color='warning'
                   startIcon={<Edit />}
                   onClick={() => setObjectionsDialog(true)}
                   disabled={processing || !workflowStatus.can_tenant_object}
@@ -372,8 +391,8 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
             {/* ARRENDADOR - ENVIAR A REVISIÓN */}
             {isLandlord && contract.status === 'draft' && (
               <Button
-                variant="contained"
-                color="primary"
+                variant='contained'
+                color='primary'
                 onClick={handleSendToReview}
                 disabled={processing}
                 fullWidth
@@ -384,30 +403,33 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
             {/* ARRENDADOR - ESPERANDO REVISIÓN */}
             {isLandlord && contract.status === 'tenant_review' && (
-              <Alert severity="info">
+              <Alert severity='info'>
                 ⏳ Esperando que el arrendatario revise y apruebe el contrato...
               </Alert>
             )}
 
             {/* AMBOS - AUTENTICACIÓN BIOMÉTRICA */}
-            {contract.status === 'tenant_approved' && workflowStatus.can_start_biometric && (
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<Fingerprint />}
-                onClick={handleStartBiometric}
-                disabled={processing}
-                fullWidth
-              >
-                Iniciar Autenticación Biométrica
-              </Button>
-            )}
+            {contract.status === 'tenant_approved' &&
+              workflowStatus.can_start_biometric && (
+                <Button
+                  variant='contained'
+                  color='secondary'
+                  startIcon={<Fingerprint />}
+                  onClick={handleStartBiometric}
+                  disabled={processing}
+                  fullWidth
+                >
+                  Iniciar Autenticación Biométrica
+                </Button>
+              )}
 
             {/* ESTADOS BIOMÉTRICOS */}
-            {['tenant_biometric', 'guarantor_biometric', 'landlord_biometric'].includes(
-              contract.status,
-            ) && (
-              <Alert severity="warning">
+            {[
+              'tenant_biometric',
+              'guarantor_biometric',
+              'landlord_biometric',
+            ].includes(contract.status) && (
+              <Alert severity='warning'>
                 Autenticación biométrica en progreso...
                 <br />
                 Siguiente paso: {workflowStatus.next_biometric_step}
@@ -416,9 +438,7 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
 
             {/* CONTRATO ACTIVO */}
             {contract.status === 'active' && (
-              <Alert severity="success">
-                Contrato activo y en ejecución
-              </Alert>
+              <Alert severity='success'>Contrato activo y en ejecución</Alert>
             )}
           </Box>
         </CardContent>
@@ -428,17 +448,17 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
       <Dialog
         open={objectionsDialog}
         onClose={() => setObjectionsDialog(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>Presentar Objeciones al Contrato</DialogTitle>
         <DialogContent>
           <TextField
-            label="Describe tu objeción"
+            label='Describe tu objeción'
             multiline
             rows={4}
             value={objectionText}
-            onChange={(e) => setObjectionText(e.target.value)}
+            onChange={e => setObjectionText(e.target.value)}
             fullWidth
             sx={{ mt: 2 }}
           />
@@ -447,8 +467,8 @@ export const UnifiedContractWorkflow: React.FC<UnifiedContractWorkflowProps> = (
           <Button onClick={() => setObjectionsDialog(false)}>Cancelar</Button>
           <Button
             onClick={handleTenantObject}
-            variant="contained"
-            color="warning"
+            variant='contained'
+            color='warning'
             disabled={processing}
           >
             Enviar Objeción

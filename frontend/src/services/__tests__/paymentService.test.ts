@@ -45,11 +45,16 @@ describe('PaymentService', () => {
   describe('createTransaction', () => {
     it('should create transaction successfully', async () => {
       const createData = { amount: 1200, description: 'Security deposit' };
-      mockedApi.post.mockResolvedValueOnce({ data: { id: '2', ...createData } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { id: '2', ...createData },
+      });
 
       const result = await paymentService.createTransaction(createData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/transactions/', createData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/transactions/',
+        createData
+      );
       expect(result).toEqual({ id: '2', ...createData });
     });
   });
@@ -57,11 +62,16 @@ describe('PaymentService', () => {
   describe('updateTransaction', () => {
     it('should update transaction successfully', async () => {
       const updateData = { description: 'Updated description' };
-      mockedApi.put.mockResolvedValueOnce({ data: { ...mockTransaction, ...updateData } });
+      mockedApi.put.mockResolvedValueOnce({
+        data: { ...mockTransaction, ...updateData },
+      });
 
       const result = await paymentService.updateTransaction('1', updateData);
 
-      expect(mockedApi.put).toHaveBeenCalledWith('/payments/transactions/1/', updateData);
+      expect(mockedApi.put).toHaveBeenCalledWith(
+        '/payments/transactions/1/',
+        updateData
+      );
       expect(result).toEqual({ ...mockTransaction, ...updateData });
     });
   });
@@ -72,7 +82,9 @@ describe('PaymentService', () => {
 
       await paymentService.deleteTransaction('1');
 
-      expect(mockedApi.delete).toHaveBeenCalledWith('/payments/transactions/1/');
+      expect(mockedApi.delete).toHaveBeenCalledWith(
+        '/payments/transactions/1/'
+      );
     });
   });
 
@@ -94,13 +106,21 @@ describe('PaymentService', () => {
   describe('addPaymentMethod', () => {
     it('should add payment method successfully', async () => {
       const paymentMethodData = { type: 'card', token: 'tok_123456' };
-      const newPaymentMethod = { id: 'pm_new', type: 'card', last4: '1234', brand: 'mastercard' };
+      const newPaymentMethod = {
+        id: 'pm_new',
+        type: 'card',
+        last4: '1234',
+        brand: 'mastercard',
+      };
 
       mockedApi.post.mockResolvedValueOnce({ data: newPaymentMethod });
 
       const result = await paymentService.addPaymentMethod(paymentMethodData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/payment-methods/add/', paymentMethodData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/payment-methods/add/',
+        paymentMethodData
+      );
       expect(result).toEqual(newPaymentMethod);
     });
   });
@@ -111,7 +131,9 @@ describe('PaymentService', () => {
 
       await paymentService.deletePaymentMethod('pm_1');
 
-      expect(mockedApi.delete).toHaveBeenCalledWith('/payments/payment-methods/pm_1/');
+      expect(mockedApi.delete).toHaveBeenCalledWith(
+        '/payments/payment-methods/pm_1/'
+      );
     });
   });
 
@@ -124,7 +146,10 @@ describe('PaymentService', () => {
 
       const result = await paymentService.processPayment(paymentData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/process/', paymentData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/process/',
+        paymentData
+      );
       expect(result).toEqual(processedPayment);
     });
   });
@@ -132,7 +157,7 @@ describe('PaymentService', () => {
   describe('getEscrowAccounts', () => {
     it('should fetch escrow accounts successfully', async () => {
       const escrowAccounts = [
-        { id: 'esc_1', balance: 2000, currency: 'COP', contract_id: '1' }
+        { id: 'esc_1', balance: 2000, currency: 'COP', contract_id: '1' },
       ];
 
       mockedApi.get.mockResolvedValueOnce({ data: escrowAccounts });
@@ -148,12 +173,20 @@ describe('PaymentService', () => {
     it('should fund escrow account successfully', async () => {
       const fundData = { amount: 1000, description: 'Security deposit' };
 
-      mockedApi.post.mockResolvedValueOnce({ data: { transaction_id: 'txn_123', status: 'completed' } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { transaction_id: 'txn_123', status: 'completed' },
+      });
 
       const result = await paymentService.fundEscrow('esc_1', fundData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/escrow/esc_1/fund/', fundData);
-      expect(result).toEqual({ transaction_id: 'txn_123', status: 'completed' });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/escrow/esc_1/fund/',
+        fundData
+      );
+      expect(result).toEqual({
+        transaction_id: 'txn_123',
+        status: 'completed',
+      });
     });
   });
 
@@ -161,12 +194,20 @@ describe('PaymentService', () => {
     it('should release escrow funds successfully', async () => {
       const releaseData = { amount: 1000, reason: 'Contract completion' };
 
-      mockedApi.post.mockResolvedValueOnce({ data: { transaction_id: 'txn_456', status: 'completed' } });
+      mockedApi.post.mockResolvedValueOnce({
+        data: { transaction_id: 'txn_456', status: 'completed' },
+      });
 
       const result = await paymentService.releaseEscrow('esc_1', releaseData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/escrow/esc_1/release/', releaseData);
-      expect(result).toEqual({ transaction_id: 'txn_456', status: 'completed' });
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/escrow/esc_1/release/',
+        releaseData
+      );
+      expect(result).toEqual({
+        transaction_id: 'txn_456',
+        status: 'completed',
+      });
     });
   });
 
@@ -177,7 +218,7 @@ describe('PaymentService', () => {
         total_amount: 12000,
         installments: 12,
         frequency: 'monthly',
-        start_date: '2024-01-01'
+        start_date: '2024-01-01',
       };
 
       const paymentPlan = { id: 'plan_1', ...planData };
@@ -186,7 +227,10 @@ describe('PaymentService', () => {
 
       const result = await paymentService.createPaymentPlan(planData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/payment-plans/', planData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/payment-plans/',
+        planData
+      );
       expect(result).toEqual(paymentPlan);
     });
   });
@@ -243,7 +287,10 @@ describe('PaymentService', () => {
 
       const result = await paymentService.getTransactionReport();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/payments/reports/transactions/', { params: undefined });
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/payments/reports/transactions/',
+        { params: undefined }
+      );
       expect(result).toEqual(report);
     });
 
@@ -254,7 +301,10 @@ describe('PaymentService', () => {
 
       await paymentService.getTransactionReport(params);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/payments/reports/transactions/', { params });
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        '/payments/reports/transactions/',
+        { params }
+      );
     });
   });
 
@@ -276,7 +326,10 @@ describe('PaymentService', () => {
 
       const result = await paymentService.createStripePaymentIntent(intentData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/stripe/create-payment-intent/', intentData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/stripe/create-payment-intent/',
+        intentData
+      );
       expect(result).toEqual(intent);
     });
   });
@@ -299,7 +352,10 @@ describe('PaymentService', () => {
 
       const result = await paymentService.createPayPalOrder(orderData);
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/payments/paypal/create-order/', orderData);
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/payments/paypal/create-order/',
+        orderData
+      );
       expect(result).toEqual(order);
     });
   });

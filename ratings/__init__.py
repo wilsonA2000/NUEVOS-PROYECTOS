@@ -2,4 +2,4 @@
 Sistema de calificaciones para VeriHome.
 """
 
-default_app_config = 'ratings.apps.RatingsConfig'
+default_app_config = "ratings.apps.RatingsConfig"

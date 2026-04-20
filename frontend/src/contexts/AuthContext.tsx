@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
 import { User, LoginDto, RegisterDto } from '../types/user';
@@ -32,16 +39,22 @@ interface AuthContextType extends AuthState {
   hideErrorModal: () => void;
   // Funciones adicionales para compatibilidad
   forgotPassword?: (email: string) => Promise<void>;
-  resetPassword?: (token: string, password: string, uid?: string) => Promise<void>;
+  resetPassword?: (
+    token: string,
+    password: string,
+    uid?: string
+  ) => Promise<void>;
   updateProfile?: (data: Partial<User>) => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Removido el timer de inactividad automático
   // La sesión solo se cerrará manualmente
 
@@ -62,13 +75,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // Función para mostrar el modal de error
-  const showErrorModal = useCallback((error: string, title: string = 'Acceso No Autorizado') => {
-    setErrorModal({
-      open: true,
-      error,
-      title,
-    });
-  }, []);
+  const showErrorModal = useCallback(
+    (error: string, title: string = 'Acceso No Autorizado') => {
+      setErrorModal({
+        open: true,
+        error,
+        title,
+      });
+    },
+    [],
+  );
 
   // Función para ocultar el modal de error
   const hideErrorModal = useCallback(() => {
@@ -86,76 +102,68 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Función para extender la sesión (mantenida para compatibilidad)
   const extendSession = useCallback(() => {
-
-setShowSessionWarning(false);
+    setShowSessionWarning(false);
   }, []);
 
   // Función de logout - solo se ejecuta manualmente
   const logout = useCallback(async () => {
-
-// Ocultar advertencia
+    // Ocultar advertencia
     setShowSessionWarning(false);
-    
+
     // 1. Intentar invalidar el token en el backend
     try {
-
-await authService.logout();
-
-} catch (error) {
-    }
+      await authService.logout();
+    } catch (error) {}
 
     // 2. Usar la utilidad de limpieza para asegurar estado limpio
     clearAuthState();
 
     // 3. Actualizar estado local
 
-setAuthState({
+    setAuthState({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
     });
 
-// 4. Redirigir a la landing page usando React Router
+    // 4. Redirigir a la landing page usando React Router
 
-navigate('/', { replace: true });
-
-}, [navigate]);
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   // Efecto para verificar el token al montar el componente
   useEffect(() => {
     const initializeAuth = async () => {
       // Verificar consistencia del estado antes de proceder
       if (!isAuthStateConsistent()) {
-
-clearAuthState();
-        setAuthState({ 
-          user: null, 
-          token: null, 
-          isAuthenticated: false, 
-          isLoading: false, 
+        clearAuthState();
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
         });
         return;
       }
-      
+
       const token = localStorage.getItem('access_token');
-      
+
       try {
         const user = await authService.getCurrentUser();
-        
+
         // Verificar que el usuario tiene las propiedades necesarias
         if (!user || !user.email) {
-
-clearAuthState();
-          setAuthState({ 
-            user: null, 
-            token: null, 
-            isAuthenticated: false, 
-            isLoading: false, 
+          clearAuthState();
+          setAuthState({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
           });
           return;
         }
-        
+
         setAuthState({
           user,
           token,
@@ -164,19 +172,18 @@ clearAuthState();
         });
         resetInactivityTimer();
       } catch (error: any) {
-
-// Usar la utilidad de limpieza
+        // Usar la utilidad de limpieza
         clearAuthState();
         // Actualizar estado para mostrar landing page
-        setAuthState({ 
-          user: null, 
-          token: null, 
-          isAuthenticated: false, 
-          isLoading: false, 
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
         });
       }
     };
-    
+
     // Ejecutar inicialización
     initializeAuth();
   }, []);
@@ -190,7 +197,14 @@ clearAuthState();
     };
 
     // Eventos que indican actividad del usuario
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
 
     events.forEach(event => {
       document.addEventListener(event, handleUserActivity, true);
@@ -210,8 +224,7 @@ clearAuthState();
   // Efecto para escuchar eventos de token inválido desde el interceptor de API
   useEffect(() => {
     const handleTokenInvalid = () => {
-
-setAuthState({
+      setAuthState({
         user: null,
         token: null,
         isAuthenticated: false,
@@ -220,8 +233,7 @@ setAuthState({
     };
 
     const handleAuthStateCleared = () => {
-
-setAuthState({
+      setAuthState({
         user: null,
         token: null,
         isAuthenticated: false,
@@ -246,10 +258,10 @@ setAuthState({
       isAuthenticated: true,
       isLoading: false,
     });
-    
+
     // Iniciar timer de inactividad después del login exitoso
     resetInactivityTimer();
-    
+
     // Redirigir a la app principal, o a la página desde donde vino si está disponible
     const from = location.state?.from?.pathname || '/app';
     navigate(from, { replace: true });
@@ -259,11 +271,12 @@ setAuthState({
     // Para el registro, no hacer login automático
     // Solo mostrar el mensaje de éxito y redirigir a una página de verificación
 
-navigate('/email-verification', { 
+    navigate('/email-verification', {
       replace: true,
-      state: { 
+      state: {
         email: user.email,
-        message: 'Se ha enviado un email de verificación a tu correo electrónico.',
+        message:
+          'Se ha enviado un email de verificación a tu correo electrónico.',
       },
     });
   };
@@ -299,13 +312,16 @@ navigate('/email-verification', {
     }
   }, []);
 
-  const resetPassword = useCallback(async (token: string, password: string, uid?: string) => {
-    try {
-      await authService.resetPassword(token, password, uid);
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+  const resetPassword = useCallback(
+    async (token: string, password: string, uid?: string) => {
+      try {
+        await authService.resetPassword(token, password, uid);
+      } catch (error) {
+        throw error;
+      }
+    },
+    [],
+  );
 
   const value: AuthContextType = {
     ...authState,
@@ -343,4 +359,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

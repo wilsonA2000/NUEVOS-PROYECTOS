@@ -7,7 +7,7 @@ import { queryClient } from './lib/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { AppRoutes } from './routes/index.lazy';
 import ErrorBoundary from './components/ErrorBoundary';
-import { clearAuthState } from './utils/clearAuthState';
+
 import CustomNotification from './components/common/CustomNotification';
 import { useNotification } from './hooks/useNotification';
 import OptimizedWebSocketProvider from './contexts/OptimizedWebSocketContext';
@@ -22,7 +22,9 @@ import ScrollToTopButton from './components/common/ScrollToTopButton';
 initSentry();
 
 // Componente wrapper para las notificaciones
-const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { customNotification, hideCustomNotification } = useNotification();
 
   return (
@@ -42,13 +44,18 @@ const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
 function App() {
   useEffect(() => {
-
-// No limpiar automáticamente el localStorage al iniciar
+    // No limpiar automáticamente el localStorage al iniciar
     // Esto causaba que los usuarios tuvieran que hacer login constantemente
   }, []);
 
   return (
-    <SentryErrorBoundary fallback={<ErrorBoundary><></></ErrorBoundary>}>
+    <SentryErrorBoundary
+      fallback={
+        <ErrorBoundary>
+          <></>
+        </ErrorBoundary>
+      }
+    >
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={theme}>
@@ -79,4 +86,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

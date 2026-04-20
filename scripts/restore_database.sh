@@ -129,41 +129,41 @@ fi
 
 if [ $? -eq 0 ]; then
     print_message "Backup restaurado exitosamente en base temporal"
-    
+
     # Verificar la integridad de los datos restaurados
     print_message "Verificando integridad de datos..."
     TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $TEMP_DB -t -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
     print_info "Tablas restauradas: $(echo $TABLE_COUNT | xargs)"
-    
+
     if [ "$(echo $TABLE_COUNT | xargs)" -gt 0 ]; then
         # Renombrar bases de datos
         print_message "Intercambiando bases de datos..."
-        
+
         # Terminar conexiones activas a la base de datos original
         PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "
             SELECT pg_terminate_backend(pid)
             FROM pg_stat_activity
             WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();
         "
-        
+
         # Renombrar la base original
         OLD_DB="${DB_NAME}_old_$(date +%s)"
         PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "ALTER DATABASE $DB_NAME RENAME TO $OLD_DB;"
-        
+
         # Renombrar la base temporal a la original
         PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "ALTER DATABASE $TEMP_DB RENAME TO $DB_NAME;"
-        
+
         print_message "✅ Restauración completada exitosamente!"
         print_info "Base de datos original respaldada como: $OLD_DB"
         print_warning "Recuerda eliminar la base de datos antigua cuando confirmes que todo funciona correctamente:"
         print_warning "  dropdb -h $DB_HOST -p $DB_PORT -U $DB_USER $OLD_DB"
-        
+
     else
         print_error "La base de datos restaurada parece estar vacía"
         PGPASSWORD=$DB_PASSWORD dropdb -h $DB_HOST -p $DB_PORT -U $DB_USER $TEMP_DB
         exit 1
     fi
-    
+
 else
     print_error "Error durante la restauración"
     print_info "Limpiando base de datos temporal..."

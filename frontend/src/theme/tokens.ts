@@ -24,9 +24,11 @@ export const vh = {
     subtle: `linear-gradient(180deg, ${p.primary.main}0A 0%, transparent 100%)`,
   },
   shadows: {
-    subtle: '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
+    subtle:
+      '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
     card: '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
-    elevated: '0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06)',
+    elevated:
+      '0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06)',
     glow: `0 0 0 3px ${p.primary.main}22, 0 8px 24px ${p.primary.main}22`,
     glowSuccess: `0 0 0 3px ${p.success.main}22, 0 8px 24px ${p.success.main}22`,
   },
@@ -63,33 +65,33 @@ export const vh = {
  */
 export const vhColors = {
   // Surfaces
-  surface: p.background.paper,             // reemplaza '#ffffff'
-  surfaceMuted: p.background.default,      // reemplaza '#f8fafc', '#f8f9fa'
-  surfaceOverlay: p.action.hover,          // hover backgrounds
+  surface: p.background.paper, // reemplaza '#ffffff'
+  surfaceMuted: p.background.default, // reemplaza '#f8fafc', '#f8f9fa'
+  surfaceOverlay: p.action.hover, // hover backgrounds
 
   // Text
-  textPrimary: p.text.primary,             // reemplaza '#1a1a1a', '#2c3e50'
-  textSecondary: p.text.secondary,         // reemplaza '#6b7280', '#64748b'
+  textPrimary: p.text.primary, // reemplaza '#1a1a1a', '#2c3e50'
+  textSecondary: p.text.secondary, // reemplaza '#6b7280', '#64748b'
   textDisabled: p.text.disabled,
 
   // Semantic status
-  accentBlue: p.primary.main,              // reemplaza '#1976d2', '#2196f3', '#2196F3', '#667eea'
+  accentBlue: p.primary.main, // reemplaza '#1976d2', '#2196f3', '#2196F3', '#667eea'
   accentBlueLight: `${p.primary.main}14`,
   accentBlueBg: `${p.primary.main}08`,
 
-  success: p.success.main,                 // reemplaza '#4caf50', '#4CAF50'
+  success: p.success.main, // reemplaza '#4caf50', '#4CAF50'
   successBg: `${p.success.main}14`,
 
-  warning: p.warning.main,                 // reemplaza '#ff9800', '#FF9800', '#f59e0b'
+  warning: p.warning.main, // reemplaza '#ff9800', '#FF9800', '#f59e0b'
   warningBg: `${p.warning.main}14`,
 
-  error: p.error.main,                     // reemplaza '#F44336', '#f44336'
+  error: p.error.main, // reemplaza '#F44336', '#f44336'
   errorBg: `${p.error.main}14`,
 
   info: p.info.main,
   infoBg: `${p.info.main}14`,
 
-  purple: p.secondary.main,                // reemplaza '#9c27b0'
+  purple: p.secondary.main, // reemplaza '#9c27b0'
   purpleBg: `${p.secondary.main}14`,
 
   divider: p.divider,
@@ -105,13 +107,29 @@ export type StageKind =
 export const stageToken = (kind: StageKind) => {
   switch (kind) {
     case 'pending':
-      return { color: p.warning.main, bg: `${p.warning.main}14`, border: `${p.warning.main}33` };
+      return {
+        color: p.warning.main,
+        bg: `${p.warning.main}14`,
+        border: `${p.warning.main}33`,
+      };
     case 'inProgress':
-      return { color: p.info.main, bg: `${p.info.main}14`, border: `${p.info.main}33` };
+      return {
+        color: p.info.main,
+        bg: `${p.info.main}14`,
+        border: `${p.info.main}33`,
+      };
     case 'success':
-      return { color: p.success.main, bg: `${p.success.main}14`, border: `${p.success.main}33` };
+      return {
+        color: p.success.main,
+        bg: `${p.success.main}14`,
+        border: `${p.success.main}33`,
+      };
     case 'error':
-      return { color: p.error.main, bg: `${p.error.main}14`, border: `${p.error.main}33` };
+      return {
+        color: p.error.main,
+        bg: `${p.error.main}14`,
+        border: `${p.error.main}33`,
+      };
     default:
       return { color: p.text.secondary, bg: p.action.hover, border: p.divider };
   }

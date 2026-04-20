@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Box, Skeleton, CircularProgress } from '@mui/material';
-import { useLazyImage, useProgressiveImage, imageUtils } from '../../utils/imageOptimization';
+import {
+  useLazyImage,
+  useProgressiveImage,
+  imageUtils,
+} from '../../utils/imageOptimization';
 import { vhColors } from '../../theme/tokens';
 
 interface PropertyImageProps {
@@ -38,8 +42,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   placeholder = true,
   progressive = false,
   webpSupport = true,
-  sizes,
-  srcSet,
+
   quality = 'medium',
   blur = false,
   onLoad,
@@ -48,7 +51,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   className,
   style,
 }) => {
-  
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -56,25 +58,25 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
 
   // ULTIMATE FIX: Absolute simplification - NO optimization interference
   const optimizedSrc = React.useMemo(() => {
-    
     if (!src || typeof src !== 'string' || src.trim() === '') {
       return '/placeholder-property.jpg';
     }
-    
+
     const cleanSrc = src.trim();
-    
+
     // ZERO INTERFERENCE: All HTTP URLs pass through untouched
     if (cleanSrc.startsWith('http://') || cleanSrc.startsWith('https://')) {
       return cleanSrc;
     }
-    
+
     // For relative URLs, prefix with base URL
     if (cleanSrc.startsWith('/media/') || cleanSrc.startsWith('media/')) {
       const baseUrl = 'http://127.0.0.1:8001';
-      const fullUrl = baseUrl + (cleanSrc.startsWith('/') ? cleanSrc : `/${  cleanSrc}`);
+      const fullUrl =
+        baseUrl + (cleanSrc.startsWith('/') ? cleanSrc : `/${cleanSrc}`);
       return fullUrl;
     }
-    
+
     // Fallback for any other path format
     return cleanSrc;
   }, [src]);
@@ -82,7 +84,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   // URLs para progressive loading - SIMPLIFICADO
   const lowQualitySrc = React.useMemo(() => {
     if (!progressive || !optimizedSrc) return optimizedSrc;
-    
+
     // Solo aplicar progressive loading si imageUtils está disponible
     if (imageUtils?.addSizeToUrl) {
       try {
@@ -96,7 +98,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
 
   const highQualitySrc = React.useMemo(() => {
     if (!progressive || !optimizedSrc) return optimizedSrc;
-    
+
     // Solo aplicar progressive loading si imageUtils está disponible
     if (imageUtils?.addSizeToUrl) {
       try {
@@ -114,30 +116,35 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   }, [progressive, optimizedSrc, quality]);
 
   // Hook para lazy loading
-  const { imgRef: lazyRef, isLoaded: isLazyLoaded, isInView, error: lazyError } = useLazyImage(
-    loading === 'lazy' ? highQualitySrc : optimizedSrc,
-    { threshold: 0.1, rootMargin: '50px' },
-  );
+  const {
+    imgRef: lazyRef,
+    isLoaded: isLazyLoaded,
+    error: lazyError,
+  } = useLazyImage(loading === 'lazy' ? highQualitySrc : optimizedSrc, {
+    threshold: 0.1,
+    rootMargin: '50px',
+  });
 
   // Hook para progressive loading
-  const { src: progressiveSrc, isLoaded: isProgressiveLoaded } = useProgressiveImage(
-    lowQualitySrc,
-    highQualitySrc,
-  );
+  const { src: progressiveSrc, isLoaded: isProgressiveLoaded } =
+    useProgressiveImage(lowQualitySrc, highQualitySrc);
 
   // ULTIMATE ENGINEERING: Zero-complexity source determination
   const finalSrc = React.useMemo(() => {
-    
     // Fail fast on invalid sources
-    if (!optimizedSrc || typeof optimizedSrc !== 'string' || optimizedSrc.trim() === '') {
+    if (
+      !optimizedSrc ||
+      typeof optimizedSrc !== 'string' ||
+      optimizedSrc.trim() === ''
+    ) {
       return '/placeholder-property.jpg';
     }
-    
+
     // Skip lazy loading check for now to debug
     // if (loading === 'lazy' && !isInView) {
     //   return null;
     // }
-    
+
     // Direct return - no more complexity
     return optimizedSrc;
   }, [optimizedSrc]);
@@ -158,7 +165,9 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
     onLoad?.();
   };
 
-  const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleError = (
+    event: React.SyntheticEvent<HTMLImageElement, Event>,
+  ) => {
     const imgElement = event.target as HTMLImageElement;
     setImageError(true);
     setShowLoader(false);
@@ -168,10 +177,12 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   // Combinar refs
   const combinedRef = (node: HTMLImageElement | null) => {
     if (imgRef.current !== node) {
-      (imgRef as React.MutableRefObject<HTMLImageElement | null>).current = node;
+      (imgRef as React.MutableRefObject<HTMLImageElement | null>).current =
+        node;
     }
     if (lazyRef.current !== node) {
-      (lazyRef as React.MutableRefObject<HTMLImageElement | null>).current = node;
+      (lazyRef as React.MutableRefObject<HTMLImageElement | null>).current =
+        node;
     }
   };
 
@@ -208,10 +219,10 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
       {/* Placeholder/Skeleton */}
       {placeholder && !imageLoaded && !imageError && (
         <Skeleton
-          variant="rectangular"
-          width="100%"
-          height="100%"
-          animation="wave"
+          variant='rectangular'
+          width='100%'
+          height='100%'
+          animation='wave'
           sx={{
             position: 'absolute',
             top: 0,
@@ -237,8 +248,8 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
           style={imageStyle}
           onLoad={handleLoad}
           onError={handleError}
-          loading="eager"
-          decoding="async"
+          loading='eager'
+          decoding='async'
         />
       )}
 
@@ -263,7 +274,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
           <Box>Error al cargar imagen</Box>
           {/* Intentar cargar imagen de respaldo */}
           <Box
-            component="button"
+            component='button'
             onClick={() => {
               setImageError(false);
               setImageLoaded(false);

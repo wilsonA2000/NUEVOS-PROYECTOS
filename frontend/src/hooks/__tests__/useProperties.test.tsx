@@ -1,17 +1,30 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useProperties, useProperty, useFeaturedProperties } from '../useProperties';
+import {
+  useProperties,
+  useProperty,
+  useFeaturedProperties,
+} from '../useProperties';
 import { propertyService } from '../../services/propertyService';
 
 // Mock property service
 jest.mock('../../services/propertyService');
-const mockPropertyService = propertyService as jest.Mocked<typeof propertyService>;
+const mockPropertyService = propertyService as jest.Mocked<
+  typeof propertyService
+>;
 
 // Mock useAuth hook
 jest.mock('../useAuth', () => ({
   useAuth: jest.fn(() => ({
-    user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', user_type: 'tenant', is_verified: true },
+    user: {
+      id: '1',
+      email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      user_type: 'tenant',
+      is_verified: true,
+    },
     isAuthenticated: true,
     isLoading: false,
     login: { mutateAsync: jest.fn() },
@@ -63,9 +76,7 @@ const createTestWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -116,7 +127,14 @@ describe('useProperties Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
-      user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', user_type: 'tenant', is_verified: true } as any,
+      user: {
+        id: '1',
+        email: 'test@example.com',
+        first_name: 'Test',
+        last_name: 'User',
+        user_type: 'tenant',
+        is_verified: true,
+      } as any,
       isAuthenticated: true,
       isLoading: false,
       login: { mutateAsync: jest.fn() } as any,
@@ -135,7 +153,9 @@ describe('useProperties Hook', () => {
 
   describe('useProperties', () => {
     it('should fetch properties successfully', async () => {
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -151,7 +171,9 @@ describe('useProperties Hook', () => {
 
     it('should fetch properties with filters', async () => {
       const filters = { city: 'Bogota', min_price: 100000 };
-      mockPropertyService.getProperties.mockResolvedValue([mockProperties[0]] as any);
+      mockPropertyService.getProperties.mockResolvedValue([
+        mockProperties[0],
+      ] as any);
 
       const { result } = renderHook(() => useProperties(filters), {
         wrapper: createTestWrapper(),
@@ -191,9 +213,15 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle property creation successfully', async () => {
-      const newProperty = { ...mockProperties[0], id: '3', title: 'New Property' };
+      const newProperty = {
+        ...mockProperties[0],
+        id: '3',
+        title: 'New Property',
+      };
       mockPropertyService.createProperty.mockResolvedValue(newProperty as any);
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -210,8 +238,12 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle property creation error', async () => {
-      mockPropertyService.createProperty.mockRejectedValue(new Error('Failed to create property'));
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.createProperty.mockRejectedValue(
+        new Error('Failed to create property')
+      );
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -230,8 +262,12 @@ describe('useProperties Hook', () => {
 
     it('should handle property update', async () => {
       const updatedProperty = { ...mockProperties[0], title: 'Updated Title' };
-      mockPropertyService.updateProperty.mockResolvedValue(updatedProperty as any);
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.updateProperty.mockResolvedValue(
+        updatedProperty as any
+      );
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -244,12 +280,16 @@ describe('useProperties Hook', () => {
         });
       });
 
-      expect(mockPropertyService.updateProperty).toHaveBeenCalledWith('1', { title: 'Updated Title' });
+      expect(mockPropertyService.updateProperty).toHaveBeenCalledWith('1', {
+        title: 'Updated Title',
+      });
     });
 
     it('should handle property deletion', async () => {
       mockPropertyService.deleteProperty.mockResolvedValue(undefined as any);
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -264,8 +304,12 @@ describe('useProperties Hook', () => {
 
     it('should handle property search', async () => {
       const searchResults = [mockProperties[0]];
-      mockPropertyService.searchProperties.mockResolvedValue(searchResults as any);
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.searchProperties.mockResolvedValue(
+        searchResults as any
+      );
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -281,8 +325,12 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle toggle favorite', async () => {
-      mockPropertyService.toggleFavorite.mockResolvedValue({ message: 'Added to favorites' } as any);
-      mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
+      mockPropertyService.toggleFavorite.mockResolvedValue({
+        message: 'Added to favorites',
+      } as any);
+      mockPropertyService.getProperties.mockResolvedValue(
+        mockProperties as any
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -296,7 +344,9 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle error state', async () => {
-      mockPropertyService.getProperties.mockRejectedValue(new Error('Failed to fetch properties'));
+      mockPropertyService.getProperties.mockRejectedValue(
+        new Error('Failed to fetch properties')
+      );
 
       const { result } = renderHook(() => useProperties(), {
         wrapper: createTestWrapper(),
@@ -311,7 +361,9 @@ describe('useProperties Hook', () => {
 
   describe('useProperty', () => {
     it('should fetch single property successfully', async () => {
-      mockPropertyService.getProperty.mockResolvedValue(mockProperties[0] as any);
+      mockPropertyService.getProperty.mockResolvedValue(
+        mockProperties[0] as any
+      );
 
       const { result } = renderHook(() => useProperty('1'), {
         wrapper: createTestWrapper(),
@@ -335,7 +387,9 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle single property error', async () => {
-      mockPropertyService.getProperty.mockRejectedValue(new Error('Property not found'));
+      mockPropertyService.getProperty.mockRejectedValue(
+        new Error('Property not found')
+      );
 
       const { result } = renderHook(() => useProperty('999'), {
         wrapper: createTestWrapper(),
@@ -351,7 +405,9 @@ describe('useProperties Hook', () => {
   describe('useFeaturedProperties', () => {
     it('should fetch featured properties successfully', async () => {
       const featuredProperties = [mockProperties[0]];
-      mockPropertyService.getFeaturedProperties.mockResolvedValue(featuredProperties as any);
+      mockPropertyService.getFeaturedProperties.mockResolvedValue(
+        featuredProperties as any
+      );
 
       const { result } = renderHook(() => useFeaturedProperties(), {
         wrapper: createTestWrapper(),
@@ -366,7 +422,9 @@ describe('useProperties Hook', () => {
     });
 
     it('should handle featured properties error', async () => {
-      mockPropertyService.getFeaturedProperties.mockRejectedValue(new Error('Failed to fetch featured'));
+      mockPropertyService.getFeaturedProperties.mockRejectedValue(
+        new Error('Failed to fetch featured')
+      );
 
       const { result } = renderHook(() => useFeaturedProperties(), {
         wrapper: createTestWrapper(),

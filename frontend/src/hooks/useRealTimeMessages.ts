@@ -42,28 +42,28 @@ export interface UseRealTimeMessagesReturn {
   // Estados de conexión
   isConnected: boolean;
   connectionState: string;
-  
+
   // Mensajes en tiempo real
   sendMessage: (threadId: string, content: string) => void;
   markMessagesAsRead: (threadId: string, messageIds: string[]) => void;
-  
+
   // Indicadores de escritura
   startTyping: (threadId: string) => void;
   stopTyping: (threadId: string) => void;
   typingUsers: TypingUser[];
-  
+
   // Estados de usuario
   userStatuses: Map<string, UserStatus>;
-  
+
   // Gestión de conversaciones
   joinThread: (threadId: string) => void;
   leaveThread: (threadId: string) => void;
   currentThreadId: string | null;
-  
+
   // Notificaciones
   unreadCount: number;
   hasNewMessages: boolean;
-  
+
   // Control de conexión
   reconnect: () => void;
   disconnect: () => void;
@@ -73,7 +73,11 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const notification = useNotification();
-  const showNotification = (message: string, type: 'success' | 'error' | 'info' | 'warning', options?: any) => {
+  const showNotification = (
+    message: string,
+    type: 'success' | 'error' | 'info' | 'warning',
+    options?: any,
+  ) => {
     if (type === 'error') {
       notification.error(message, options);
     } else if (type === 'info') {
@@ -82,13 +86,15 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
       notification.success(message, options);
     }
   };
-  
+
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
-  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(new Map());
+  const [userStatuses, setUserStatuses] = useState<Map<string, UserStatus>>(
+    new Map(),
+  );
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
-  
+
   const typingTimeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const messageQueuesRef = useRef<Map<string, RealTimeMessage[]>>(new Map());
 
@@ -108,9 +114,7 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   });
 
   // WebSocket para estado de usuarios
-  const {
-    sendMessage: sendStatusMessage,
-  } = useWebSocket({
+  const { sendMessage: sendStatusMessage } = useWebSocket({
     url: '/ws/user-status/',
     onMessage: handleUserStatusMessage,
     heartbeatInterval: 60000,
@@ -182,12 +186,15 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
 
   // Manejar notificaciones pendientes
   function handlePendingNotifications(message: WebSocketMessage) {
-    const { notifications, count } = message;
+    const { count } = message;
     setUnreadCount(count);
-    
+
     if (count > 0) {
       setHasNewMessages(true);
-      showNotification(`Tienes ${count} mensaje${count > 1 ? 's' : ''} sin leer`, 'info');
+      showNotification(
+        `Tienes ${count} mensaje${count > 1 ? 's' : ''} sin leer`,
+        'info',
+      );
     }
   }
 
@@ -207,7 +214,9 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
       (oldData: any) => {
         if (!oldData) return oldData;
 
-        const exists = oldData.results?.some((msg: Message) => msg.id === newMessage.id);
+        const exists = oldData.results?.some(
+          (msg: Message) => msg.id === newMessage.id,
+        );
         if (exists) return oldData;
 
         return {
@@ -244,24 +253,19 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
 
   // Manejar confirmación de lectura
   function handleReadReceipt(message: WebSocketMessage) {
-    const { message_id, read_by, read_at } = message;
+    const { message_id, read_at } = message;
 
     // Actualizar mensaje en cache
-    queryClient.setQueryData(
-      ['messages', currentThreadId],
-      (oldData: any) => {
-        if (!oldData) return oldData;
+    queryClient.setQueryData(['messages', currentThreadId], (oldData: any) => {
+      if (!oldData) return oldData;
 
-        return {
-          ...oldData,
-          results: oldData.results?.map((msg: Message) =>
-            msg.id === message_id
-              ? { ...msg, is_read: true, read_at }
-              : msg,
-          ),
-        };
-      },
-    );
+      return {
+        ...oldData,
+        results: oldData.results?.map((msg: Message) =>
+          msg.id === message_id ? { ...msg, is_read: true, read_at } : msg,
+        ),
+      };
+    });
   }
 
   // Manejar indicadores de escritura
@@ -273,7 +277,7 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
         const filtered = prev.filter(
           user => !(user.userId === user_id && user.threadId === thread_id),
         );
-        
+
         return [
           ...filtered,
           {
@@ -293,7 +297,9 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
 
       const timeout = setTimeout(() => {
         setTypingUsers(prev =>
-          prev.filter(user => !(user.userId === user_id && user.threadId === thread_id)),
+          prev.filter(
+            user => !(user.userId === user_id && user.threadId === thread_id),
+          ),
         );
         typingTimeoutRef.current.delete(timeoutKey);
       }, 5000);
@@ -301,7 +307,9 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
       typingTimeoutRef.current.set(timeoutKey, timeout);
     } else {
       setTypingUsers(prev =>
-        prev.filter(user => !(user.userId === user_id && user.threadId === thread_id)),
+        prev.filter(
+          user => !(user.userId === user_id && user.threadId === thread_id),
+        ),
       );
     }
   }
@@ -310,13 +318,15 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   function handleConversationUpdate(message: WebSocketMessage) {
     // Invalidar queries relacionadas con conversaciones
     queryClient.invalidateQueries({ queryKey: ['threads'] });
-    queryClient.invalidateQueries({ queryKey: ['messages', message.thread_id] });
+    queryClient.invalidateQueries({
+      queryKey: ['messages', message.thread_id],
+    });
   }
 
   // Manejar actualización de estado de usuario
   function handleUserStatusUpdate(message: WebSocketMessage) {
     const { user_id, user_name, is_online, last_seen } = message;
-    
+
     setUserStatuses(prev => {
       const newMap = new Map(prev);
       newMap.set(user_id, {
@@ -330,77 +340,95 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
   }
 
   // Enviar mensaje
-  const sendMessage = useCallback((threadId: string, content: string) => {
-    if (!isConnected) {
-      showNotification('No hay conexión para enviar el mensaje', 'error');
-      return;
-    }
+  const sendMessage = useCallback(
+    (threadId: string, content: string) => {
+      if (!isConnected) {
+        showNotification('No hay conexión para enviar el mensaje', 'error');
+        return;
+      }
 
-    sendWebSocketMessage({
-      type: 'send_message',
-      thread_id: threadId,
-      content: content.trim(),
-    });
-  }, [isConnected, sendWebSocketMessage, showNotification]);
+      sendWebSocketMessage({
+        type: 'send_message',
+        thread_id: threadId,
+        content: content.trim(),
+      });
+    },
+    [isConnected, sendWebSocketMessage, showNotification],
+  );
 
   // Marcar mensajes como leídos
-  const markMessagesAsRead = useCallback((threadId: string, messageIds: string[]) => {
-    if (!isConnected || messageIds.length === 0) return;
+  const markMessagesAsRead = useCallback(
+    (threadId: string, messageIds: string[]) => {
+      if (!isConnected || messageIds.length === 0) return;
 
-    sendWebSocketMessage({
-      type: 'mark_as_read',
-      thread_id: threadId,
-      message_ids: messageIds,
-    });
+      sendWebSocketMessage({
+        type: 'mark_as_read',
+        thread_id: threadId,
+        message_ids: messageIds,
+      });
 
-    // Decrementar contador local
-    setUnreadCount(prev => Math.max(0, prev - messageIds.length));
-  }, [isConnected, sendWebSocketMessage]);
+      // Decrementar contador local
+      setUnreadCount(prev => Math.max(0, prev - messageIds.length));
+    },
+    [isConnected, sendWebSocketMessage],
+  );
 
   // Iniciar indicador de escritura
-  const startTyping = useCallback((threadId: string) => {
-    if (!isConnected) return;
+  const startTyping = useCallback(
+    (threadId: string) => {
+      if (!isConnected) return;
 
-    sendWebSocketMessage({
-      type: 'typing_start',
-      thread_id: threadId,
-    });
-  }, [isConnected, sendWebSocketMessage]);
+      sendWebSocketMessage({
+        type: 'typing_start',
+        thread_id: threadId,
+      });
+    },
+    [isConnected, sendWebSocketMessage],
+  );
 
   // Detener indicador de escritura
-  const stopTyping = useCallback((threadId: string) => {
-    if (!isConnected) return;
+  const stopTyping = useCallback(
+    (threadId: string) => {
+      if (!isConnected) return;
 
-    sendWebSocketMessage({
-      type: 'typing_stop',
-      thread_id: threadId,
-    });
-  }, [isConnected, sendWebSocketMessage]);
+      sendWebSocketMessage({
+        type: 'typing_stop',
+        thread_id: threadId,
+      });
+    },
+    [isConnected, sendWebSocketMessage],
+  );
 
   // Unirse a conversación
-  const joinThread = useCallback((threadId: string) => {
-    if (!isConnected) return;
+  const joinThread = useCallback(
+    (threadId: string) => {
+      if (!isConnected) return;
 
-    setCurrentThreadId(threadId);
-    sendWebSocketMessage({
-      type: 'join_conversation',
-      thread_id: threadId,
-    });
-  }, [isConnected, sendWebSocketMessage]);
+      setCurrentThreadId(threadId);
+      sendWebSocketMessage({
+        type: 'join_conversation',
+        thread_id: threadId,
+      });
+    },
+    [isConnected, sendWebSocketMessage],
+  );
 
   // Salir de conversación
-  const leaveThread = useCallback((threadId: string) => {
-    if (!isConnected) return;
+  const leaveThread = useCallback(
+    (threadId: string) => {
+      if (!isConnected) return;
 
-    if (currentThreadId === threadId) {
-      setCurrentThreadId(null);
-    }
+      if (currentThreadId === threadId) {
+        setCurrentThreadId(null);
+      }
 
-    sendWebSocketMessage({
-      type: 'leave_conversation',
-      thread_id: threadId,
-    });
-  }, [isConnected, sendWebSocketMessage, currentThreadId]);
+      sendWebSocketMessage({
+        type: 'leave_conversation',
+        thread_id: threadId,
+      });
+    },
+    [isConnected, sendWebSocketMessage, currentThreadId],
+  );
 
   // Enviar heartbeat para estado de usuario
   useEffect(() => {
@@ -430,28 +458,28 @@ export const useRealTimeMessages = (): UseRealTimeMessagesReturn => {
     // Estados de conexión
     isConnected,
     connectionState,
-    
+
     // Mensajes en tiempo real
     sendMessage,
     markMessagesAsRead,
-    
+
     // Indicadores de escritura
     startTyping,
     stopTyping,
     typingUsers,
-    
+
     // Estados de usuario
     userStatuses,
-    
+
     // Gestión de conversaciones
     joinThread,
     leaveThread,
     currentThreadId,
-    
+
     // Notificaciones
     unreadCount,
     hasNewMessages,
-    
+
     // Control de conexión
     reconnect,
     disconnect,

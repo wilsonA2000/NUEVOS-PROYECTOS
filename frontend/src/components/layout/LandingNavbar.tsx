@@ -34,20 +34,20 @@ const LandingNavbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
-    setMobileOpen((prev) => !prev);
+    setMobileOpen(prev => !prev);
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
+    <AppBar
+      position='fixed'
+      sx={{
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth='lg'>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           {/* Logo */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -63,7 +63,7 @@ const LandingNavbar: React.FC = () => {
               }}
             >
               <Typography
-                variant="h6"
+                variant='h6'
                 sx={{
                   color: 'white',
                   fontWeight: 700,
@@ -75,8 +75,8 @@ const LandingNavbar: React.FC = () => {
             </Box>
             <Typography
               component={Link}
-              to="/"
-              variant="h5"
+              to='/'
+              variant='h5'
               sx={{
                 fontWeight: 700,
                 background: 'linear-gradient(135deg, #2563eb, #1e40af)',
@@ -95,9 +95,9 @@ const LandingNavbar: React.FC = () => {
 
           {/* Hamburger menu for mobile */}
           <IconButton
-            color="primary"
-            aria-label="open navigation menu"
-            edge="start"
+            color='primary'
+            aria-label='open navigation menu'
+            edge='start'
             onClick={handleDrawerToggle}
             sx={{ display: { md: 'none' } }}
           >
@@ -106,15 +106,19 @@ const LandingNavbar: React.FC = () => {
 
           {/* Mobile Drawer */}
           <Drawer
-            anchor="left"
+            anchor='left'
             open={mobileOpen}
             onClose={handleDrawerToggle}
             sx={{ display: { md: 'none' } }}
             ModalProps={{ keepMounted: true }}
           >
-            <Box sx={{ width: 260, pt: 2 }} role="presentation" onClick={handleDrawerToggle}>
+            <Box
+              sx={{ width: 260, pt: 2 }}
+              role='presentation'
+              onClick={handleDrawerToggle}
+            >
               <List>
-                {navItems.map((item) => (
+                {navItems.map(item => (
                   <ListItem key={item.label} disablePadding>
                     <ListItemButton component={Link} to={item.to}>
                       <ListItemIcon>{item.icon}</ListItemIcon>
@@ -128,7 +132,7 @@ const LandingNavbar: React.FC = () => {
 
           {/* Enlaces de navegación (desktop) */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <Button
                 key={item.label}
                 component={Link}
@@ -151,8 +155,8 @@ const LandingNavbar: React.FC = () => {
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               component={Link}
-              to="/login"
-              variant="outlined"
+              to='/login'
+              variant='outlined'
               sx={{
                 borderColor: 'primary.main',
                 color: 'primary.main',
@@ -166,8 +170,8 @@ const LandingNavbar: React.FC = () => {
             </Button>
             <Button
               component={Link}
-              to="/register"
-              variant="contained"
+              to='/register'
+              variant='contained'
               sx={{
                 background: 'linear-gradient(135deg, #2563eb, #1e40af)',
                 '&:hover': {
@@ -184,4 +188,4 @@ const LandingNavbar: React.FC = () => {
   );
 };
 
-export default LandingNavbar; 
+export default LandingNavbar;

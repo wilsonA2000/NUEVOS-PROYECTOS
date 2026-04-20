@@ -15,14 +15,17 @@ const mockUpdateContractDraft = jest.fn();
 jest.mock('../../../services/landlordContractService', () => ({
   LandlordContractService: {
     getContractForEditing: (id: string) => mockGetContractForEditing(id),
-    updateContractDraft: (id: string, data: any) => mockUpdateContractDraft(id, data),
+    updateContractDraft: (id: string, data: any) =>
+      mockUpdateContractDraft(id, data),
     previewContractPDF: jest.fn(),
   },
 }));
 
 const theme = createTheme();
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof ContractDraftEditor>> = {}) => {
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof ContractDraftEditor>> = {}
+) => {
   const defaultProps = {
     contractId: 'draft-001',
     onSave: jest.fn(),
@@ -34,8 +37,8 @@ const renderComponent = (props: Partial<React.ComponentProps<typeof ContractDraf
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(ContractDraftEditor, { ...defaultProps, ...props }),
-    ),
+      React.createElement(ContractDraftEditor, { ...defaultProps, ...props })
+    )
   );
 };
 
@@ -100,9 +103,9 @@ describe('ContractDraftEditor', () => {
       // The stepper should show step labels
       expect(
         allText.includes('Arrendador') ||
-        allText.includes('Propiedad') ||
-        allText.includes('Económic') ||
-        allText.includes('Paso'),
+          allText.includes('Propiedad') ||
+          allText.includes('Económic') ||
+          allText.includes('Paso')
       ).toBeTruthy();
     });
   });
@@ -115,8 +118,8 @@ describe('ContractDraftEditor', () => {
       const allText = document.body.textContent || '';
       expect(
         allText.includes('Error') ||
-        allText.includes('error') ||
-        allText.includes('cargar'),
+          allText.includes('error') ||
+          allText.includes('cargar')
       ).toBeTruthy();
     });
   });
@@ -132,10 +135,10 @@ describe('ContractDraftEditor', () => {
     // Look for a cancel/close button
     const cancelButtons = screen.queryAllByRole('button');
     const cancelButton = cancelButtons.find(
-      (btn) =>
+      btn =>
         btn.textContent?.includes('Cancelar') ||
         btn.textContent?.includes('Cerrar') ||
-        btn.getAttribute('aria-label') === 'close',
+        btn.getAttribute('aria-label') === 'close'
     );
 
     if (cancelButton) {

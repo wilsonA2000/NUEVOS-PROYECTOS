@@ -26,29 +26,47 @@ jest.mock('../../../services/contractService', () => ({
 // Mock sub-components to simplify testing
 jest.mock('../CameraCaptureSimple', () => {
   return function MockCameraCapture(props: any) {
-    return React.createElement('div', { 'data-testid': 'camera-capture' }, 'Camera Capture Mock');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'camera-capture' },
+      'Camera Capture Mock'
+    );
   };
 });
 
 jest.mock('../EnhancedDocumentVerification', () => {
   return function MockDocumentVerification(props: any) {
-    return React.createElement('div', { 'data-testid': 'document-verification' }, 'Document Verification Mock');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'document-verification' },
+      'Document Verification Mock'
+    );
   };
 });
 
 jest.mock('../VoiceRecorder', () => {
   return function MockVoiceRecorder(props: any) {
-    return React.createElement('div', { 'data-testid': 'voice-recorder' }, 'Voice Recorder Mock');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'voice-recorder' },
+      'Voice Recorder Mock'
+    );
   };
 });
 
 jest.mock('../DigitalSignaturePad', () => {
   return function MockSignaturePad(props: any) {
-    return React.createElement('div', { 'data-testid': 'signature-pad' }, 'Signature Pad Mock');
+    return React.createElement(
+      'div',
+      { 'data-testid': 'signature-pad' },
+      'Signature Pad Mock'
+    );
   };
 });
 
-const mockedContractService = contractService as jest.Mocked<typeof contractService>;
+const mockedContractService = contractService as jest.Mocked<
+  typeof contractService
+>;
 
 const theme = createTheme();
 const queryClient = new QueryClient({
@@ -58,7 +76,9 @@ const queryClient = new QueryClient({
   },
 });
 
-const renderComponent = (props: Partial<React.ComponentProps<typeof BiometricAuthenticationFlow>> = {}) => {
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof BiometricAuthenticationFlow>> = {}
+) => {
   const defaultProps = {
     open: true,
     onClose: jest.fn(),
@@ -74,9 +94,12 @@ const renderComponent = (props: Partial<React.ComponentProps<typeof BiometricAut
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(BiometricAuthenticationFlow, { ...defaultProps, ...props }),
-      ),
-    ),
+        React.createElement(BiometricAuthenticationFlow, {
+          ...defaultProps,
+          ...props,
+        })
+      )
+    )
   );
 };
 
@@ -121,11 +144,19 @@ describe('BiometricAuthenticationFlow', () => {
 
     await waitFor(() => {
       // The stepper should show labels for all 5 steps
-      const stepLabels = ['Captura Facial', 'Documento', 'Combinada', 'Voz', 'Firma'];
+      const stepLabels = [
+        'Captura Facial',
+        'Documento',
+        'Combinada',
+        'Voz',
+        'Firma',
+      ];
       // At least one of these terms should appear (the component may use variations)
       const allText = document.body.textContent || '';
-      const hasSteps = stepLabels.some((label) => allText.includes(label));
-      expect(hasSteps || allText.includes('Paso') || allText.includes('Step')).toBeTruthy();
+      const hasSteps = stepLabels.some(label => allText.includes(label));
+      expect(
+        hasSteps || allText.includes('Paso') || allText.includes('Step')
+      ).toBeTruthy();
     });
   });
 
@@ -133,7 +164,9 @@ describe('BiometricAuthenticationFlow', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(mockedContractService.startBiometricAuthentication).toHaveBeenCalledWith('contract-123');
+      expect(
+        mockedContractService.startBiometricAuthentication
+      ).toHaveBeenCalledWith('contract-123');
     });
   });
 
@@ -149,7 +182,10 @@ describe('BiometricAuthenticationFlow', () => {
     // Find close button (could be an X button or Cancel button)
     const closeButtons = screen.queryAllByRole('button');
     const closeButton = closeButtons.find(
-      (btn) => btn.getAttribute('aria-label') === 'close' || btn.textContent?.includes('Cancelar') || btn.textContent?.includes('Cerrar'),
+      btn =>
+        btn.getAttribute('aria-label') === 'close' ||
+        btn.textContent?.includes('Cancelar') ||
+        btn.textContent?.includes('Cerrar')
     );
 
     if (closeButton) {
@@ -160,7 +196,7 @@ describe('BiometricAuthenticationFlow', () => {
 
   it('should show error state when authentication start fails', async () => {
     mockedContractService.startBiometricAuthentication.mockRejectedValueOnce(
-      new Error('Failed to start authentication'),
+      new Error('Failed to start authentication')
     );
 
     renderComponent();
@@ -169,7 +205,10 @@ describe('BiometricAuthenticationFlow', () => {
       const allText = document.body.textContent || '';
       // Should show some error indication
       expect(
-        allText.includes('error') || allText.includes('Error') || allText.includes('falló') || allText.includes('intentar'),
+        allText.includes('error') ||
+          allText.includes('Error') ||
+          allText.includes('falló') ||
+          allText.includes('intentar')
       ).toBeTruthy();
     });
   });
@@ -177,7 +216,7 @@ describe('BiometricAuthenticationFlow', () => {
   it('should call onError when authentication fails', async () => {
     const onError = jest.fn();
     mockedContractService.startBiometricAuthentication.mockRejectedValueOnce(
-      new Error('Auth failed'),
+      new Error('Auth failed')
     );
 
     renderComponent({ onError });
@@ -191,13 +230,15 @@ describe('BiometricAuthenticationFlow', () => {
     renderComponent({ contractId: 'custom-contract-id' });
 
     await waitFor(() => {
-      expect(mockedContractService.startBiometricAuthentication).toHaveBeenCalledWith('custom-contract-id');
+      expect(
+        mockedContractService.startBiometricAuthentication
+      ).toHaveBeenCalledWith('custom-contract-id');
     });
   });
 
   it('should show loading state while initializing', () => {
     mockedContractService.startBiometricAuthentication.mockImplementation(
-      () => new Promise(() => {}), // Never resolves
+      () => new Promise(() => {}) // Never resolves
     );
 
     renderComponent();

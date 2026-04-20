@@ -36,9 +36,14 @@ import { formatCurrency } from '../../utils/formatters';
 
 export const PaymentTable: React.FC = () => {
   const navigate = useNavigate();
-  const { transactions: payments = [], isLoading, error, deleteTransaction: deletePayment } = usePayments();
+  const {
+    transactions: payments = [],
+    isLoading,
+    error,
+    deleteTransaction: deletePayment,
+  } = usePayments();
   const { confirm, ConfirmDialog } = useConfirmDialog();
-  
+
   // Estados para filtros y paginación
   const [filterModel, setFilterModel] = useState<GridFilterModel>({
     items: [],
@@ -49,7 +54,7 @@ export const PaymentTable: React.FC = () => {
     page: 0,
     pageSize: 10,
   });
-  
+
   // Estados para filtros personalizados
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -58,14 +63,20 @@ export const PaymentTable: React.FC = () => {
   const filteredPayments = useMemo(() => {
     if (!payments) return [];
 
-    return payments.filter((payment) => {
+    return payments.filter(payment => {
       // Filtro de búsqueda
-      const matchesSearch = searchTerm === '' || 
-        payment.contract.property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.contract.tenant.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        searchTerm === '' ||
+        payment.contract.property.title
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        payment.contract.tenant.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       // Filtro de estado
-      const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
+      const matchesStatus =
+        statusFilter === 'all' || payment.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -80,10 +91,10 @@ export const PaymentTable: React.FC = () => {
       minWidth: 200,
       renderCell: (params: GridRenderCellParams) => (
         <Box>
-          <Typography variant="body2" fontWeight="medium">
+          <Typography variant='body2' fontWeight='medium'>
             {params.value.property.title}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             {params.value.property.address}
           </Typography>
         </Box>
@@ -95,10 +106,10 @@ export const PaymentTable: React.FC = () => {
       width: 150,
       renderCell: (params: GridRenderCellParams) => (
         <Box>
-          <Typography variant="body2" fontWeight="medium">
+          <Typography variant='body2' fontWeight='medium'>
             {params.row.contract.tenant.name}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             {params.row.contract.tenant.email}
           </Typography>
         </Box>
@@ -110,7 +121,7 @@ export const PaymentTable: React.FC = () => {
       type: 'number',
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
-        <Typography variant="body2" fontWeight="medium" color="primary">
+        <Typography variant='body2' fontWeight='medium' color='primary'>
           {formatCurrency(params.value)}
         </Typography>
       ),
@@ -120,7 +131,7 @@ export const PaymentTable: React.FC = () => {
       headerName: 'Fecha Vencimiento',
       width: 140,
       renderCell: (params: GridRenderCellParams) => (
-        <Typography variant="body2">
+        <Typography variant='body2'>
           {new Date(params.value).toLocaleDateString()}
         </Typography>
       ),
@@ -130,8 +141,10 @@ export const PaymentTable: React.FC = () => {
       headerName: 'Fecha Pago',
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
-        <Typography variant="body2">
-          {params.value ? new Date(params.value).toLocaleDateString() : 'Pendiente'}
+        <Typography variant='body2'>
+          {params.value
+            ? new Date(params.value).toLocaleDateString()
+            : 'Pendiente'}
         </Typography>
       ),
     },
@@ -142,8 +155,8 @@ export const PaymentTable: React.FC = () => {
       renderCell: (params: GridRenderCellParams) => (
         <Chip
           label={params.value || 'No especificado'}
-          variant="outlined"
-          size="small"
+          variant='outlined'
+          size='small'
         />
       ),
     },
@@ -153,13 +166,25 @@ export const PaymentTable: React.FC = () => {
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
         <Chip
-          label={params.value === 'paid' ? 'Pagado' : 
-                 params.value === 'pending' ? 'Pendiente' : 
-                 params.value === 'overdue' ? 'Vencido' : 'Cancelado'}
-          color={params.value === 'paid' ? 'success' : 
-                 params.value === 'pending' ? 'warning' : 
-                 params.value === 'overdue' ? 'error' : 'default'}
-          size="small"
+          label={
+            params.value === 'paid'
+              ? 'Pagado'
+              : params.value === 'pending'
+                ? 'Pendiente'
+                : params.value === 'overdue'
+                  ? 'Vencido'
+                  : 'Cancelado'
+          }
+          color={
+            params.value === 'paid'
+              ? 'success'
+              : params.value === 'pending'
+                ? 'warning'
+                : params.value === 'overdue'
+                  ? 'error'
+                  : 'default'
+          }
+          size='small'
         />
       ),
     },
@@ -168,23 +193,23 @@ export const PaymentTable: React.FC = () => {
       type: 'actions',
       headerName: 'Acciones',
       width: 120,
-      getActions: (params) => [
+      getActions: params => [
         <GridActionsCellItem
-          key="view"
+          key='view'
           icon={<ViewIcon />}
-          label="Ver"
+          label='Ver'
           onClick={() => navigate(`/app/payments/${params.row.id}`)}
         />,
         <GridActionsCellItem
-          key="edit"
+          key='edit'
           icon={<EditIcon />}
-          label="Editar"
+          label='Editar'
           onClick={() => navigate(`/app/payments/${params.row.id}/edit`)}
         />,
         <GridActionsCellItem
-          key="delete"
+          key='delete'
           icon={<DeleteIcon />}
-          label="Eliminar"
+          label='Eliminar'
           onClick={() => handleDelete(params.row.id)}
         />,
       ],
@@ -221,7 +246,7 @@ export const PaymentTable: React.FC = () => {
     return (
       <Card>
         <CardContent>
-          <Typography color="error">Error al cargar los pagos</Typography>
+          <Typography color='error'>Error al cargar los pagos</Typography>
         </CardContent>
       </Card>
     );
@@ -230,10 +255,15 @@ export const PaymentTable: React.FC = () => {
   return (
     <Card>
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h6">Lista de Pagos</Typography>
+        <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          mb={3}
+        >
+          <Typography variant='h6'>Lista de Pagos</Typography>
           <Button
-            variant="contained"
+            variant='contained'
             startIcon={<AddIcon />}
             onClick={() => navigate('/app/payments/new')}
           >
@@ -242,33 +272,33 @@ export const PaymentTable: React.FC = () => {
         </Box>
 
         {/* Filtros personalizados */}
-        <Box display="flex" gap={2} mb={3} flexWrap="wrap">
+        <Box display='flex' gap={2} mb={3} flexWrap='wrap'>
           <TextField
-            label="Buscar"
-            variant="outlined"
-            size="small"
+            label='Buscar'
+            variant='outlined'
+            size='small'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             sx={{ minWidth: 200 }}
           />
-          
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+
+          <FormControl size='small' sx={{ minWidth: 120 }}>
             <InputLabel>Estado</InputLabel>
             <Select
               value={statusFilter}
-              label="Estado"
-              onChange={(e) => setStatusFilter(e.target.value)}
+              label='Estado'
+              onChange={e => setStatusFilter(e.target.value)}
             >
-              <MenuItem value="all">Todos</MenuItem>
-              <MenuItem value="paid">Pagado</MenuItem>
-              <MenuItem value="pending">Pendiente</MenuItem>
-              <MenuItem value="overdue">Vencido</MenuItem>
-              <MenuItem value="cancelled">Cancelado</MenuItem>
+              <MenuItem value='all'>Todos</MenuItem>
+              <MenuItem value='paid'>Pagado</MenuItem>
+              <MenuItem value='pending'>Pendiente</MenuItem>
+              <MenuItem value='overdue'>Vencido</MenuItem>
+              <MenuItem value='cancelled'>Cancelado</MenuItem>
             </Select>
           </FormControl>
 
           <Button
-            variant="outlined"
+            variant='outlined'
             startIcon={<FilterIcon />}
             onClick={clearFilters}
           >

@@ -16,8 +16,6 @@ import {
   Paper,
   Typography,
   Grid,
-  Card,
-  CardContent,
   Alert,
   CircularProgress,
   List,
@@ -27,7 +25,6 @@ import {
   Chip,
   Avatar,
   Divider,
-  LinearProgress,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
@@ -41,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 
-import { AdminService, SecurityAnalysis } from '../../services/adminService';
+import { AdminService } from '../../services/adminService';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -60,13 +57,13 @@ const getRiskColor = (score: number): 'success' | 'warning' | 'error' => {
 const getSeverityIcon = (severity: string) => {
   switch (severity) {
     case 'critical':
-      return <ErrorIcon color="error" />;
+      return <ErrorIcon color='error' />;
     case 'high':
-      return <WarningIcon color="error" />;
+      return <WarningIcon color='error' />;
     case 'medium':
-      return <WarningIcon color="warning" />;
+      return <WarningIcon color='warning' />;
     default:
-      return <WarningIcon color="info" />;
+      return <WarningIcon color='info' />;
   }
 };
 
@@ -103,23 +100,24 @@ const AdminSecurityPanel: React.FC = () => {
   if (!adminPermissions.canAccessSecurityPanel) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          No tienes permisos para acceder al panel de seguridad.
-          Se requiere rol de superusuario.
+        <Alert severity='error'>
+          No tienes permisos para acceder al panel de seguridad. Se requiere rol
+          de superusuario.
         </Alert>
       </Box>
     );
   }
 
   if (isLoading) {
-    return <LoadingSpinner message="Cargando análisis de seguridad..." />;
+    return <LoadingSpinner message='Cargando análisis de seguridad...' />;
   }
 
   if (error || !security) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          Error al cargar el análisis de seguridad: {(error as Error)?.message || 'Error desconocido'}
+        <Alert severity='error'>
+          Error al cargar el análisis de seguridad:{' '}
+          {(error as Error)?.message || 'Error desconocido'}
         </Alert>
       </Box>
     );
@@ -131,10 +129,10 @@ const AdminSecurityPanel: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+        <Typography variant='h4' fontWeight='bold' gutterBottom>
           Panel de Seguridad
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant='body1' color='text.secondary'>
           Monitoreo en tiempo real de amenazas y actividad sospechosa.
         </Typography>
       </Box>
@@ -143,12 +141,12 @@ const AdminSecurityPanel: React.FC = () => {
         {/* Risk Score */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="h6" fontWeight="medium" gutterBottom>
+            <Typography variant='h6' fontWeight='medium' gutterBottom>
               Puntuación de Riesgo
             </Typography>
             <Box sx={{ position: 'relative', display: 'inline-flex', my: 2 }}>
               <CircularProgress
-                variant="determinate"
+                variant='determinate'
                 value={security.risk_score}
                 size={120}
                 thickness={8}
@@ -166,17 +164,21 @@ const AdminSecurityPanel: React.FC = () => {
                   justifyContent: 'center',
                 }}
               >
-                <Typography variant="h3" fontWeight="bold" color={`${riskColor}.main`}>
+                <Typography
+                  variant='h3'
+                  fontWeight='bold'
+                  color={`${riskColor}.main`}
+                >
                   {security.risk_score}
                 </Typography>
               </Box>
             </Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               {security.risk_score < 30
                 ? 'Sistema seguro'
                 : security.risk_score < 70
-                ? 'Precaución recomendada'
-                : 'Atención requerida'}
+                  ? 'Precaución recomendada'
+                  : 'Atención requerida'}
             </Typography>
           </Paper>
         </Grid>
@@ -185,24 +187,27 @@ const AdminSecurityPanel: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <WarningIcon color="warning" />
-              <Typography variant="h6" fontWeight="medium">
+              <WarningIcon color='warning' />
+              <Typography variant='h6' fontWeight='medium'>
                 Alertas Activas
               </Typography>
               <Chip
-                size="small"
+                size='small'
                 label={security.active_alerts.length}
-                color={security.active_alerts.length > 0 ? 'warning' : 'success'}
+                color={
+                  security.active_alerts.length > 0 ? 'warning' : 'success'
+                }
               />
             </Box>
 
             {security.active_alerts.length === 0 ? (
-              <Alert severity="success" icon={<OkIcon />}>
-                No hay alertas activas. El sistema está funcionando correctamente.
+              <Alert severity='success' icon={<OkIcon />}>
+                No hay alertas activas. El sistema está funcionando
+                correctamente.
               </Alert>
             ) : (
               <List dense disablePadding>
-                {security.active_alerts.map((alert) => (
+                {security.active_alerts.map(alert => (
                   <ListItem
                     key={alert.id}
                     sx={{
@@ -210,19 +215,32 @@ const AdminSecurityPanel: React.FC = () => {
                         alert.severity === 'critical'
                           ? 'error.50'
                           : alert.severity === 'high'
-                          ? 'warning.50'
-                          : 'background.paper',
+                            ? 'warning.50'
+                            : 'background.paper',
                       borderRadius: 1,
                       mb: 1,
                     }}
                   >
-                    <ListItemIcon>{getSeverityIcon(alert.severity)}</ListItemIcon>
+                    <ListItemIcon>
+                      {getSeverityIcon(alert.severity)}
+                    </ListItemIcon>
                     <ListItemText
                       primary={alert.message}
                       secondary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                          <Chip size="small" label={alert.type} variant="outlined" />
-                          <Typography variant="caption" color="text.secondary">
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 0.5,
+                          }}
+                        >
+                          <Chip
+                            size='small'
+                            label={alert.type}
+                            variant='outlined'
+                          />
+                          <Typography variant='caption' color='text.secondary'>
                             {formatDateTime(alert.created_at)}
                           </Typography>
                         </Box>
@@ -239,14 +257,14 @@ const AdminSecurityPanel: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <BlockIcon color="error" />
-              <Typography variant="h6" fontWeight="medium">
+              <BlockIcon color='error' />
+              <Typography variant='h6' fontWeight='medium'>
                 IPs Sospechosas
               </Typography>
             </Box>
 
             {security.suspicious_ips.length === 0 ? (
-              <Alert severity="success" icon={<OkIcon />}>
+              <Alert severity='success' icon={<OkIcon />}>
                 No se detectaron IPs sospechosas.
               </Alert>
             ) : (
@@ -256,15 +274,17 @@ const AdminSecurityPanel: React.FC = () => {
                     {index > 0 && <Divider />}
                     <ListItem>
                       <ListItemIcon>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'error.light' }}>
-                          <IpIcon fontSize="small" />
+                        <Avatar
+                          sx={{ width: 32, height: 32, bgcolor: 'error.light' }}
+                        >
+                          <IpIcon fontSize='small' />
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
                         primary={ip.ip}
                         secondary={`${ip.failed_attempts} intentos fallidos`}
                       />
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='caption' color='text.secondary'>
                         {formatDateTime(ip.last_attempt)}
                       </Typography>
                     </ListItem>
@@ -279,46 +299,57 @@ const AdminSecurityPanel: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <PersonIcon color="warning" />
-              <Typography variant="h6" fontWeight="medium">
+              <PersonIcon color='warning' />
+              <Typography variant='h6' fontWeight='medium'>
                 Intentos de Login Fallidos
               </Typography>
             </Box>
 
             {security.recent_failed_logins.length === 0 ? (
-              <Alert severity="success" icon={<OkIcon />}>
+              <Alert severity='success' icon={<OkIcon />}>
                 No hay intentos fallidos recientes.
               </Alert>
             ) : (
               <List dense disablePadding>
-                {security.recent_failed_logins.slice(0, 5).map((login, index) => (
-                  <React.Fragment key={`${login.email}-${login.timestamp}`}>
-                    {index > 0 && <Divider />}
-                    <ListItem>
-                      <ListItemIcon>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.light' }}>
-                          <PersonIcon fontSize="small" />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={login.email}
-                        secondary={
-                          <Box>
-                            <Typography variant="caption" display="block">
-                              IP: {login.ip}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {login.reason}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDateTime(login.timestamp)}
-                      </Typography>
-                    </ListItem>
-                  </React.Fragment>
-                ))}
+                {security.recent_failed_logins
+                  .slice(0, 5)
+                  .map((login, index) => (
+                    <React.Fragment key={`${login.email}-${login.timestamp}`}>
+                      {index > 0 && <Divider />}
+                      <ListItem>
+                        <ListItemIcon>
+                          <Avatar
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              bgcolor: 'warning.light',
+                            }}
+                          >
+                            <PersonIcon fontSize='small' />
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={login.email}
+                          secondary={
+                            <Box>
+                              <Typography variant='caption' display='block'>
+                                IP: {login.ip}
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                              >
+                                {login.reason}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                        <Typography variant='caption' color='text.secondary'>
+                          {formatDateTime(login.timestamp)}
+                        </Typography>
+                      </ListItem>
+                    </React.Fragment>
+                  ))}
               </List>
             )}
           </Paper>

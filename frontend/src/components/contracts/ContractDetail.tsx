@@ -89,12 +89,24 @@ const DataCard: React.FC<{
     }}
   >
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-      <Box sx={{ color: accent || 'text.secondary', display: 'flex' }}>{icon}</Box>
-      <Typography variant="caption" color="text.secondary" fontWeight={500} noWrap>
+      <Box sx={{ color: accent || 'text.secondary', display: 'flex' }}>
+        {icon}
+      </Box>
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        fontWeight={500}
+        noWrap
+      >
         {label}
       </Typography>
     </Box>
-    <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ color: accent || 'text.primary' }}>
+    <Typography
+      variant='subtitle1'
+      fontWeight={700}
+      noWrap
+      sx={{ color: accent || 'text.primary' }}
+    >
       {value}
     </Typography>
   </Box>
@@ -106,11 +118,18 @@ export const ContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { contracts, isLoading, error } = useContracts();
 
-  const contract = Array.isArray(contracts) ? contracts.find((c) => c.id === id) : undefined;
+  const contract = Array.isArray(contracts)
+    ? contracts.find(c => c.id === id)
+    : undefined;
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='400px'
+      >
         <CircularProgress />
       </Box>
     );
@@ -118,20 +137,24 @@ export const ContractDetail: React.FC = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ m: 2 }}>
+      <Alert severity='error' sx={{ m: 2 }}>
         <AlertTitle>Error al cargar el contrato</AlertTitle>
-        {error.message || 'Ha ocurrido un error al cargar los detalles del contrato.'}
+        {error.message ||
+          'Ha ocurrido un error al cargar los detalles del contrato.'}
       </Alert>
     );
   }
 
   if (!contract) {
     return (
-      <Alert severity="warning" sx={{ m: 2 }}>
+      <Alert severity='warning' sx={{ m: 2 }}>
         <AlertTitle>Contrato no encontrado</AlertTitle>
         El contrato con ID {id?.substring(0, 8)}... no fue encontrado.
         <Box mt={2}>
-          <Button variant="contained" onClick={() => navigate('/app/contracts')}>
+          <Button
+            variant='contained'
+            onClick={() => navigate('/app/contracts')}
+          >
             Volver a Contratos
           </Button>
         </Box>
@@ -142,7 +165,11 @@ export const ContractDetail: React.FC = () => {
   const stage = stageToken(contractStateKind(contract.status));
   const workflowProgress = (contract as any).workflow_progress ?? null;
   const progressColor =
-    workflowProgress === 100 ? 'success' : workflowProgress >= 50 ? 'primary' : 'warning';
+    workflowProgress === 100
+      ? 'success'
+      : workflowProgress >= 50
+        ? 'primary'
+        : 'warning';
   const actions = getAvailableActions(contract.status, contract.id, navigate);
 
   const monthlyRent =
@@ -169,22 +196,33 @@ export const ContractDetail: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <GavelIcon sx={{ color: stage.color, fontSize: 28 }} />
           <Box>
-            <Typography variant="h6" fontWeight={700} sx={{ color: stage.color }}>
+            <Typography
+              variant='h6'
+              fontWeight={700}
+              sx={{ color: stage.color }}
+            >
               {contractStateLabel(contract.status)}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               Contrato #{contract.id?.substring(0, 8)}
             </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: 'wrap',
+          }}
+        >
           <StatusChip
             kind={contractStateKind(contract.status)}
             label={contractStateLabel(contract.status)}
           />
           {(contract as any).admin_review_escalated && (
-            <Chip label="Escalado" color="error" size="small" />
+            <Chip label='Escalado' color='error' size='small' />
           )}
         </Box>
       </Box>
@@ -192,16 +230,22 @@ export const ContractDetail: React.FC = () => {
       {/* ─── Progreso de workflow ─────────────────────────────────────── */}
       {workflowProgress !== null && (
         <Box sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="caption" color="text.secondary">
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}
+          >
+            <Typography variant='caption' color='text.secondary'>
               Progreso del contrato
             </Typography>
-            <Typography variant="caption" fontWeight={600} color={`${progressColor}.main`}>
+            <Typography
+              variant='caption'
+              fontWeight={600}
+              color={`${progressColor}.main`}
+            >
               {workflowProgress}%
             </Typography>
           </Box>
           <LinearProgress
-            variant="determinate"
+            variant='determinate'
             value={workflowProgress}
             color={progressColor}
             sx={{ height: 6, borderRadius: 3 }}
@@ -213,15 +257,19 @@ export const ContractDetail: React.FC = () => {
       <Grid container spacing={1.5} sx={{ mb: 2 }}>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<HomeIcon fontSize="small" />}
-            label="Propiedad"
-            value={contract.property?.title || contract.property?.address || 'No especificada'}
+            icon={<HomeIcon fontSize='small' />}
+            label='Propiedad'
+            value={
+              contract.property?.title ||
+              contract.property?.address ||
+              'No especificada'
+            }
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<PersonIcon fontSize="small" />}
-            label="Inquilino"
+            icon={<PersonIcon fontSize='small' />}
+            label='Inquilino'
             value={
               contract.secondary_party
                 ? `${contract.secondary_party.first_name} ${contract.secondary_party.last_name}`
@@ -232,24 +280,24 @@ export const ContractDetail: React.FC = () => {
         </Grid>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<AttachMoneyIcon fontSize="small" />}
-            label="Canon mensual"
+            icon={<AttachMoneyIcon fontSize='small' />}
+            label='Canon mensual'
             value={`$${monthlyRent.toLocaleString('es-CO')}`}
             accent={vhColors.accentBlue}
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<AttachMoneyIcon fontSize="small" />}
-            label="Depósito garantía"
+            icon={<AttachMoneyIcon fontSize='small' />}
+            label='Depósito garantía'
             value={`$${depositAmount.toLocaleString('es-CO')}`}
             accent={vhColors.warning}
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<CalendarIcon fontSize="small" />}
-            label="Inicio"
+            icon={<CalendarIcon fontSize='small' />}
+            label='Inicio'
             value={
               contract.start_date
                 ? new Date(contract.start_date).toLocaleDateString('es-CO')
@@ -259,8 +307,8 @@ export const ContractDetail: React.FC = () => {
         </Grid>
         <Grid item xs={6} sm={3}>
           <DataCard
-            icon={<CalendarIcon fontSize="small" />}
-            label="Vencimiento"
+            icon={<CalendarIcon fontSize='small' />}
+            label='Vencimiento'
             value={
               contract.end_date
                 ? new Date(contract.end_date).toLocaleDateString('es-CO')
@@ -272,12 +320,12 @@ export const ContractDetail: React.FC = () => {
 
       {/* ─── Términos ────────────────────────────────────────────────── */}
       {contract.terms && (
-        <Card variant="outlined" sx={{ mb: 2, borderRadius: 2 }}>
+        <Card variant='outlined' sx={{ mb: 2, borderRadius: 2 }}>
           <CardContent sx={{ pb: '12px !important' }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            <Typography variant='subtitle2' color='text.secondary' gutterBottom>
               Términos y condiciones
             </Typography>
-            <Typography variant="body2">{contract.terms}</Typography>
+            <Typography variant='body2'>{contract.terms}</Typography>
           </CardContent>
         </Card>
       )}
@@ -290,15 +338,15 @@ export const ContractDetail: React.FC = () => {
       <Divider sx={{ mb: 2 }} />
 
       {/* ─── Acciones contextuales ────────────────────────────────── */}
-      <Box display="flex" gap={1.5} flexWrap="wrap">
+      <Box display='flex' gap={1.5} flexWrap='wrap'>
         <Button
-          variant="outlined"
+          variant='outlined'
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/app/contracts')}
         >
           Volver
         </Button>
-        {actions.map((action) => (
+        {actions.map(action => (
           <Button
             key={action.label}
             variant={action.variant}

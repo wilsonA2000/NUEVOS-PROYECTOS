@@ -12,7 +12,12 @@ import { useAdminAuth } from './useAdminAuth';
 
 export interface AdminNotification {
   id: string;
-  type: 'contract_pending' | 'biometric_complete' | 'security_alert' | 'system_health' | 'user_report';
+  type:
+    | 'contract_pending'
+    | 'biometric_complete'
+    | 'security_alert'
+    | 'system_health'
+    | 'user_report';
   title: string;
   message: string;
   severity: 'info' | 'warning' | 'error' | 'success';
@@ -53,13 +58,18 @@ export const useAdminNotifications = (): UseAdminNotificationsReturn => {
         setIsConnected(true);
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.type === 'admin_notification' || data.notification_type?.startsWith('admin_')) {
+          if (
+            data.type === 'admin_notification' ||
+            data.notification_type?.startsWith('admin_')
+          ) {
             const notification: AdminNotification = {
-              id: data.id || `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              id:
+                data.id ||
+                `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
               type: data.notification_type || data.type || 'contract_pending',
               title: data.title || 'Notificacion Admin',
               message: data.message || data.body || '',
@@ -68,7 +78,7 @@ export const useAdminNotifications = (): UseAdminNotificationsReturn => {
               read: false,
               data: data.extra_data || data.data,
             };
-            setNotifications((prev) => [notification, ...prev].slice(0, 50));
+            setNotifications(prev => [notification, ...prev].slice(0, 50));
           }
         } catch {
           // Ignore non-JSON messages
@@ -101,20 +111,20 @@ export const useAdminNotifications = (): UseAdminNotificationsReturn => {
   }, [connect]);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n)),
     );
   }, []);
 
   const markAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   }, []);
 
   const clearNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return {
     notifications,

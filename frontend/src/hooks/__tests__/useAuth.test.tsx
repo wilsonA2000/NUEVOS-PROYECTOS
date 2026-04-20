@@ -7,8 +7,20 @@ const mockContextValue = {
   token: null,
   isAuthenticated: false,
   isLoading: false,
-  login: { mutate: jest.fn(), mutateAsync: jest.fn(), isPending: false, isError: false, isSuccess: false },
-  register: { mutate: jest.fn(), mutateAsync: jest.fn(), isPending: false, isError: false, isSuccess: false },
+  login: {
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+  },
+  register: {
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+  },
   logout: jest.fn(),
   updateUser: jest.fn(),
   resetInactivityTimer: jest.fn(),
@@ -32,7 +44,9 @@ describe('useAuth Hook', () => {
   const createWrapper = (contextOverrides = {}) => {
     const value = { ...mockContextValue, ...contextOverrides };
     return ({ children }: { children: ReactNode }) => (
-      <MockAuthContext.Provider value={value}>{children}</MockAuthContext.Provider>
+      <MockAuthContext.Provider value={value}>
+        {children}
+      </MockAuthContext.Provider>
     );
   };
 
@@ -54,7 +68,9 @@ describe('useAuth Hook', () => {
   });
 
   it('should throw error when used outside provider', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     expect(() => {
       renderHook(() => useAuth());
@@ -139,7 +155,11 @@ describe('useAuth Hook', () => {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.errorModal).toEqual({ open: false, error: '', title: '' });
+    expect(result.current.errorModal).toEqual({
+      open: false,
+      error: '',
+      title: '',
+    });
     expect(typeof result.current.showErrorModal).toBe('function');
     expect(typeof result.current.hideErrorModal).toBe('function');
   });

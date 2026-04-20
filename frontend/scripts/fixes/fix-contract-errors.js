@@ -110,36 +110,36 @@ const fixes = [
 // Función principal
 async function runFixes() {
   log('\n🔧 Iniciando correcciones automáticas...', colors.cyan);
-  
+
   let totalFixes = 0;
   let successfulFixes = 0;
-  
+
   for (const fixConfig of fixes) {
     totalFixes++;
     log(`\n${colors.magenta}[${totalFixes}/${fixes.length}] ${fixConfig.name}${colors.reset}`);
     info(`  ${fixConfig.description}`);
-    
+
     const filePath = path.join(process.cwd(), fixConfig.file);
-    
+
     try {
       // Verificar que el archivo existe
       if (!fs.existsSync(filePath)) {
         error(`  Archivo no encontrado: ${fixConfig.file}`);
         continue;
       }
-      
+
       // Leer contenido actual
       const originalContent = fs.readFileSync(filePath, 'utf8');
-      
+
       // Aplicar corrección
       const result = fixConfig.fix(originalContent);
-      
+
       if (result.changed) {
         // Hacer backup del archivo original
         const backupPath = `${filePath}.backup.${Date.now()}`;
         fs.writeFileSync(backupPath, originalContent);
         info(`  Backup creado: ${backupPath}`);
-        
+
         // Escribir contenido corregido
         fs.writeFileSync(filePath, result.content);
         success(`  Archivo corregido: ${fixConfig.file}`);
@@ -148,20 +148,20 @@ async function runFixes() {
         info(`  No se requieren cambios en: ${fixConfig.file}`);
         successfulFixes++;
       }
-      
+
     } catch (err) {
       error(`  Error procesando ${fixConfig.file}: ${err.message}`);
     }
   }
-  
+
   // Resumen final
   log('\n📊 Resumen de Correcciones:', colors.cyan);
   success(`  Archivos procesados: ${totalFixes}`);
   success(`  Correcciones exitosas: ${successfulFixes}`);
-  
+
   if (successfulFixes === totalFixes) {
     log('\n🎉 ¡Todas las correcciones se aplicaron exitosamente!', colors.green);
-    
+
     // Instrucciones para el usuario
     log('\n📋 Próximos pasos:', colors.cyan);
     info('  1. Reinicia el servidor de desarrollo:');
@@ -170,7 +170,7 @@ async function runFixes() {
     info('     Ctrl+Shift+R (Windows/Linux) o Cmd+Shift+R (Mac)');
     info('  3. Verifica que la creación de contratos funcione correctamente');
     info('  4. Monitorea la consola para confirmar que no hay errores');
-    
+
   } else {
     warning('\n⚠️ Algunas correcciones no se pudieron aplicar completamente');
     warning('   Revisa los errores anteriores y aplica correcciones manualmente si es necesario');
@@ -181,30 +181,30 @@ async function runFixes() {
 function printCacheClearInstructions() {
   log('\n🧹 Instrucciones para Limpiar Caché del Navegador:', colors.cyan);
   log('═══════════════════════════════════════════════════════');
-  
+
   info('Chrome/Edge:');
   info('  1. Abre DevTools (F12)');
   info('  2. Click derecho en el botón de recarga');
   info('  3. Selecciona "Empty Cache and Hard Reload"');
-  
+
   info('\nFirefox:');
   info('  1. Abre DevTools (F12)');
   info('  2. Ve a Network tab');
   info('  3. Check "Disable Cache"');
   info('  4. Recarga la página (Ctrl+Shift+R)');
-  
+
   info('\nAlternativa Universal:');
   info('  1. Ctrl+Shift+Delete (Windows/Linux) o Cmd+Shift+Delete (Mac)');
   info('  2. Selecciona "Cached images and files"');
   info('  3. Click "Clear data"');
-  
+
   warning('\n⚠️ IMPORTANTE: La limpieza de caché es CRÍTICA para que los cambios se apliquen');
 }
 
 // Función para verificar el estado del proyecto
 function checkProjectHealth() {
   log('\n🏥 Verificación de Salud del Proyecto:', colors.cyan);
-  
+
   const criticalFiles = [
     'package.json',
     'src/services/api.ts',
@@ -213,9 +213,9 @@ function checkProjectHealth() {
     'src/utils/auditMiddleware.ts',
     'src/utils/performanceMonitor.ts'
   ];
-  
+
   let healthScore = 0;
-  
+
   criticalFiles.forEach(file => {
     const filePath = path.join(process.cwd(), file);
     if (fs.existsSync(filePath)) {
@@ -225,9 +225,9 @@ function checkProjectHealth() {
       error(`  ❌ ${file} - MISSING`);
     }
   });
-  
+
   const healthPercentage = (healthScore / criticalFiles.length) * 100;
-  
+
   if (healthPercentage === 100) {
     success(`\n🎯 Salud del Proyecto: ${healthPercentage}% - EXCELENTE`);
   } else if (healthPercentage >= 80) {
@@ -246,18 +246,18 @@ async function main() {
       error('   Navega al directorio frontend y ejecuta: node fix-contract-errors.js');
       process.exit(1);
     }
-    
+
     // Verificar salud del proyecto
     checkProjectHealth();
-    
+
     // Ejecutar correcciones
     await runFixes();
-    
+
     // Mostrar instrucciones de caché
     printCacheClearInstructions();
-    
+
     log('\n🚀 Script de corrección completado exitosamente!', colors.green);
-    
+
   } catch (error) {
     log('\n💥 Error fatal en el script:', colors.red);
     console.error(error);

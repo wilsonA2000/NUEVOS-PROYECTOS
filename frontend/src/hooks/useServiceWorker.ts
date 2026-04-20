@@ -80,16 +80,22 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
 
           // Check for updates periodically (every hour)
           if (registration) {
-            setInterval(() => {
-              registration.update();
-            }, 60 * 60 * 1000);
+            setInterval(
+              () => {
+                registration.update();
+              },
+              60 * 60 * 1000,
+            );
           }
         },
         onRegisterError(error) {
           setState(prev => ({
             ...prev,
             isInstalling: false,
-            error: error instanceof Error ? error.message : 'Error desconocido al registrar SW',
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Error desconocido al registrar SW',
           }));
         },
         onNeedRefresh() {
@@ -195,8 +201,7 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
     try {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map(name => caches.delete(name)));
-    } catch (error) {
-    }
+    } catch (error) {}
   }, []);
 
   // Auto-registrar en mount
@@ -226,19 +231,23 @@ export function useServiceWorker(): ServiceWorkerState & ServiceWorkerActions {
 
 // Hook para notificaciones push
 export function usePushNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [permission, setPermission] =
+    useState<NotificationPermission>('default');
+  const [subscription, setSubscription] = useState<PushSubscription | null>(
+    null,
+  );
   const { registration } = useServiceWorker();
 
-  const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
-    if (!('Notification' in window)) {
-      return 'denied';
-    }
+  const requestPermission =
+    useCallback(async (): Promise<NotificationPermission> => {
+      if (!('Notification' in window)) {
+        return 'denied';
+      }
 
-    const perm = await Notification.requestPermission();
-    setPermission(perm);
-    return perm;
-  }, []);
+      const perm = await Notification.requestPermission();
+      setPermission(perm);
+      return perm;
+    }, []);
 
   const subscribe = useCallback(async (): Promise<PushSubscription | null> => {
     if (!registration || permission !== 'granted') {
@@ -355,7 +364,10 @@ export function usePWAInstall() {
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt,
+      );
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);

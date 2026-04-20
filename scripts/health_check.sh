@@ -20,14 +20,14 @@ NC='\033[0m' # No Color
 check_container() {
     local service=$1
     local container_name="$(docker-compose ps -q $service 2>/dev/null)"
-    
+
     if [ -z "$container_name" ]; then
         echo -e "${RED}❌ $service: Contenedor no encontrado${NC}"
         return 1
     fi
-    
+
     local status=$(docker inspect --format='{{.State.Status}}' $container_name 2>/dev/null || echo "unknown")
-    
+
     case $status in
         "running")
             echo -e "${GREEN}✅ $service: Ejecutándose${NC}"
@@ -53,7 +53,7 @@ check_http() {
     local url=$1
     local service_name=$2
     local timeout=${3:-10}
-    
+
     if curl -f -s --max-time $timeout "$url" > /dev/null 2>&1; then
         echo -e "${GREEN}✅ $service_name: HTTP OK${NC}"
         return 0

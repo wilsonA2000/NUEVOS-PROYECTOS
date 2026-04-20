@@ -111,12 +111,18 @@ Object.defineProperty(navigator, 'mediaDevices', {
   value: {
     getUserMedia: jest.fn().mockResolvedValue({
       getTracks: () => [{ stop: jest.fn() }],
-      getVideoTracks: () => [{ getSettings: () => ({ width: 640, height: 480 }) }],
+      getVideoTracks: () => [
+        { getSettings: () => ({ width: 640, height: 480 }) },
+      ],
       getAudioTracks: () => [{ stop: jest.fn() }],
     }),
     enumerateDevices: jest.fn().mockResolvedValue([
       { deviceId: 'camera1', kind: 'videoinput', label: 'Front Camera' },
-      { deviceId: 'microphone1', kind: 'audioinput', label: 'Default Microphone' },
+      {
+        deviceId: 'microphone1',
+        kind: 'audioinput',
+        label: 'Default Microphone',
+      },
     ]),
     getDisplayMedia: jest.fn().mockResolvedValue({
       getTracks: () => [{ stop: jest.fn() }],
@@ -128,7 +134,7 @@ Object.defineProperty(navigator, 'mediaDevices', {
 Object.defineProperty(navigator, 'geolocation', {
   writable: true,
   value: {
-    getCurrentPosition: jest.fn().mockImplementation((success) => {
+    getCurrentPosition: jest.fn().mockImplementation(success => {
       success({
         coords: {
           latitude: 4.5709,
@@ -223,7 +229,7 @@ const mockCanvas = {
     font: '12px Arial',
   })),
   toDataURL: jest.fn(() => 'data:image/png;base64,mock-canvas-data'),
-  toBlob: jest.fn((callback) => {
+  toBlob: jest.fn(callback => {
     callback(new Blob(['mock-canvas-blob'], { type: 'image/png' }));
   }),
   width: 640,
@@ -240,19 +246,19 @@ HTMLCanvasElement.prototype.toBlob = mockCanvas.toBlob;
 
 // Mock de FileReader
 global.FileReader = jest.fn().mockImplementation(() => ({
-  readAsDataURL: jest.fn(function(this: any) {
+  readAsDataURL: jest.fn(function (this: any) {
     setTimeout(() => {
       this.result = 'data:image/png;base64,mock-file-data';
       this.onload?.({ target: this });
     }, 100);
   }),
-  readAsArrayBuffer: jest.fn(function(this: any) {
+  readAsArrayBuffer: jest.fn(function (this: any) {
     setTimeout(() => {
       this.result = new ArrayBuffer(8);
       this.onload?.({ target: this });
     }, 100);
   }),
-  readAsText: jest.fn(function(this: any) {
+  readAsText: jest.fn(function (this: any) {
     setTimeout(() => {
       this.result = 'mock-text-content';
       this.onload?.({ target: this });
@@ -273,7 +279,10 @@ global.FileReader = jest.fn().mockImplementation(() => ({
 // Mock de File y Blob
 global.File = jest.fn().mockImplementation((chunks, filename, options) => ({
   name: filename,
-  size: chunks.reduce((size: number, chunk: any) => size + (chunk.length || 0), 0),
+  size: chunks.reduce(
+    (size: number, chunk: any) => size + (chunk.length || 0),
+    0
+  ),
   type: options?.type || '',
   lastModified: Date.now(),
   stream: jest.fn(),
@@ -283,7 +292,9 @@ global.File = jest.fn().mockImplementation((chunks, filename, options) => ({
 })) as any;
 
 // Mock de URL API
-global.URL.createObjectURL = jest.fn(() => `blob:mock-object-url-${  Math.random()}`);
+global.URL.createObjectURL = jest.fn(
+  () => `blob:mock-object-url-${Math.random()}`
+);
 global.URL.revokeObjectURL = jest.fn();
 
 // =====================================================================
@@ -322,10 +333,10 @@ beforeAll(() => {
 afterEach(() => {
   // Resetear handlers después de cada test
   server.resetHandlers();
-  
+
   // Limpiar localStorage
   localStorageMock.clear();
-  
+
   // Limpiar mocks
   jest.clearAllMocks();
 });
@@ -333,7 +344,7 @@ afterEach(() => {
 afterAll(() => {
   // Cerrar servidor de mocks
   server.close();
-  
+
   // Restaurar console
   global.console = originalConsole;
 });
@@ -365,18 +376,19 @@ afterEach(() => {
 // Función para esperar por condiciones asíncronas
 global.waitForCondition = async (condition: () => boolean, timeout = 5000) => {
   const startTime = Date.now();
-  
-  while (!condition() && (Date.now() - startTime) < timeout) {
+
+  while (!condition() && Date.now() - startTime < timeout) {
     await new Promise(resolve => setTimeout(resolve, 50));
   }
-  
+
   if (!condition()) {
     throw new Error(`Condition not met within ${timeout}ms`);
   }
 };
 
 // Función para simular delays
-global.simulateDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+global.simulateDelay = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms));
 
 // Función para crear mock events
 global.createMockEvent = (type: string, properties: any = {}) => {
@@ -424,7 +436,10 @@ beforeAll(() => {
 // `var` es el único modificador válido para globales en `declare global`.
 /* eslint-disable no-var */
 declare global {
-  var waitForCondition: (condition: () => boolean, timeout?: number) => Promise<void>;
+  var waitForCondition: (
+    condition: () => boolean,
+    timeout?: number
+  ) => Promise<void>;
   var simulateDelay: (ms: number) => Promise<void>;
   var createMockEvent: (type: string, properties?: any) => Event;
   var cleanupAllMocks: () => void;
@@ -443,12 +458,14 @@ expect.extend({
     const pass = received >= floor && received <= ceiling;
     if (pass) {
       return {
-        message: () => `expected ${received} not to be within range ${floor} - ${ceiling}`,
+        message: () =>
+          `expected ${received} not to be within range ${floor} - ${ceiling}`,
         pass: true,
       };
     } else {
       return {
-        message: () => `expected ${received} to be within range ${floor} - ${ceiling}`,
+        message: () =>
+          `expected ${received} to be within range ${floor} - ${ceiling}`,
         pass: false,
       };
     }
@@ -461,6 +478,8 @@ expect.extend({
 
 console.log('✅ Integration test setup completed');
 console.log(`📊 Jest timeout: ${(jest as any).getTimeout?.() || 'default'}ms`);
-console.log(`🔧 Debug mode: ${process.env.DEBUG_TESTS === 'true' ? 'enabled' : 'disabled'}`);
+console.log(
+  `🔧 Debug mode: ${process.env.DEBUG_TESTS === 'true' ? 'enabled' : 'disabled'}`
+);
 
 export {};

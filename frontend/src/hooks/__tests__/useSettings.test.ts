@@ -11,7 +11,9 @@ jest.mock('../../lib/api', () => ({
 }));
 
 const mockGetSettings = getSettings as jest.MockedFunction<typeof getSettings>;
-const mockUpdateSettings = updateSettings as jest.MockedFunction<typeof updateSettings>;
+const mockUpdateSettings = updateSettings as jest.MockedFunction<
+  typeof updateSettings
+>;
 
 // Test wrapper with fresh QueryClient per test
 const createWrapper = () => {
@@ -23,11 +25,7 @@ const createWrapper = () => {
   });
 
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useSettings Hook', () => {
@@ -115,7 +113,9 @@ describe('useSettings Hook', () => {
     });
 
     expect(mockUpdateSettings).toHaveBeenCalledTimes(1);
-    expect(mockUpdateSettings.mock.calls[0][0]).toEqual({ company_name: 'VeriHome Pro' });
+    expect(mockUpdateSettings.mock.calls[0][0]).toEqual({
+      company_name: 'VeriHome Pro',
+    });
     await waitFor(() => {
       expect(result.current.update.isSuccess).toBe(true);
     });
@@ -174,7 +174,10 @@ describe('useSettings Hook', () => {
         sms_notifications: true,
       },
     };
-    mockUpdateSettings.mockResolvedValue({ ...mockSettings, ...updatedNotifSettings } as any);
+    mockUpdateSettings.mockResolvedValue({
+      ...mockSettings,
+      ...updatedNotifSettings,
+    } as any);
 
     const { result } = renderHook(() => useSettings(), {
       wrapper: createWrapper(),

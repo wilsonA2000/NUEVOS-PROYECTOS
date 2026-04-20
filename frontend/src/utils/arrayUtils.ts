@@ -30,4 +30,4 @@ export const isEmptyArray = (value: any[] | undefined | null): boolean => {
  */
 export const getArrayLength = (value: any[] | undefined | null): number => {
   return Array.isArray(value) ? value.length : 0;
-}; 
+};

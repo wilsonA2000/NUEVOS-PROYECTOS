@@ -1,5 +1,15 @@
 import { api } from './api';
-import { Contract, ContractFormData, ContractFilters, ContractTemplate, ContractSignature, ContractDocument, ContractStats, SignatureData, BiometricData } from '../types/contract';
+import {
+  Contract,
+  ContractFormData,
+  ContractFilters,
+  ContractTemplate,
+  ContractSignature,
+  ContractDocument,
+  ContractStats,
+  SignatureData,
+  BiometricData,
+} from '../types/contract';
 
 // ===== CONTRACTS CRUD =====
 
@@ -30,7 +40,9 @@ const getContract = async (id: string): Promise<Contract> => {
   }
 };
 
-const createContract = async (contractData: ContractFormData): Promise<Contract> => {
+const createContract = async (
+  contractData: ContractFormData,
+): Promise<Contract> => {
   try {
     const response = await api.post('/contracts/contracts/', contractData);
     return response.data;
@@ -39,9 +51,15 @@ const createContract = async (contractData: ContractFormData): Promise<Contract>
   }
 };
 
-const updateContract = async (id: string, contractData: Partial<ContractFormData>): Promise<Contract> => {
+const updateContract = async (
+  id: string,
+  contractData: Partial<ContractFormData>,
+): Promise<Contract> => {
   try {
-    const response = await api.patch(`/contracts/contracts/${id}/`, contractData);
+    const response = await api.patch(
+      `/contracts/contracts/${id}/`,
+      contractData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -85,9 +103,15 @@ const createTemplate = async (templateData: any): Promise<ContractTemplate> => {
   }
 };
 
-const updateTemplate = async (id: string, templateData: any): Promise<ContractTemplate> => {
+const updateTemplate = async (
+  id: string,
+  templateData: any,
+): Promise<ContractTemplate> => {
   try {
-    const response = await api.patch(`/contracts/templates/${id}/`, templateData);
+    const response = await api.patch(
+      `/contracts/templates/${id}/`,
+      templateData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -104,9 +128,13 @@ const deleteTemplate = async (id: string): Promise<void> => {
 
 // ===== DIGITAL SIGNATURES =====
 
-const getSignatures = async (contractId?: string): Promise<ContractSignature[]> => {
+const getSignatures = async (
+  contractId?: string,
+): Promise<ContractSignature[]> => {
   try {
-    const url = contractId ? `/contracts/signatures/?contract=${contractId}` : '/contracts/signatures/';
+    const url = contractId
+      ? `/contracts/signatures/?contract=${contractId}`
+      : '/contracts/signatures/';
     const response = await api.get(url);
     return response.data;
   } catch (error) {
@@ -114,7 +142,9 @@ const getSignatures = async (contractId?: string): Promise<ContractSignature[]> 
   }
 };
 
-const createSignature = async (signatureData: any): Promise<ContractSignature> => {
+const createSignature = async (
+  signatureData: any,
+): Promise<ContractSignature> => {
   try {
     const response = await api.post('/contracts/signatures/', signatureData);
     return response.data;
@@ -127,8 +157,8 @@ const createSignature = async (signatureData: any): Promise<ContractSignature> =
  * Firma digital avanzada con verificación biométrica
  */
 const signContract = async (
-  contractId: string, 
-  signatureData: SignatureData, 
+  contractId: string,
+  signatureData: SignatureData,
   biometricData?: BiometricData,
   verificationLevel: 'basic' | 'enhanced' | 'maximum' = 'basic',
 ): Promise<ContractSignature> => {
@@ -151,7 +181,10 @@ const signContract = async (
       },
     };
 
-    const response = await api.post(`/contracts/contracts/${contractId}/sign/`, payload);
+    const response = await api.post(
+      `/contracts/contracts/${contractId}/sign/`,
+      payload,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -161,9 +194,15 @@ const signContract = async (
 /**
  * Verificar la autenticidad de una firma
  */
-const verifySignature = async (contractId: string, verificationData: any): Promise<any> => {
+const verifySignature = async (
+  contractId: string,
+  verificationData: any,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/contracts/${contractId}/verify-signature/`, verificationData);
+    const response = await api.post(
+      `/contracts/contracts/${contractId}/verify-signature/`,
+      verificationData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -177,7 +216,9 @@ const verifySignature = async (contractId: string, verificationData: any): Promi
  */
 const activateContract = async (contractId: string): Promise<Contract> => {
   try {
-    const response = await api.post(`/contracts/contracts/${contractId}/activate/`);
+    const response = await api.post(
+      `/contracts/contracts/${contractId}/activate/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -187,9 +228,15 @@ const activateContract = async (contractId: string): Promise<Contract> => {
 /**
  * Suspender un contrato activo
  */
-const suspendContract = async (contractId: string, reason?: string): Promise<Contract> => {
+const suspendContract = async (
+  contractId: string,
+  reason?: string,
+): Promise<Contract> => {
   try {
-    const response = await api.post(`/contracts/contracts/${contractId}/suspend/`, { reason });
+    const response = await api.post(
+      `/contracts/contracts/${contractId}/suspend/`,
+      { reason },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -200,7 +247,9 @@ const suspendContract = async (contractId: string, reason?: string): Promise<Con
 
 const getAmendments = async (contractId?: string): Promise<any[]> => {
   try {
-    const url = contractId ? `/contracts/amendments/?contract=${contractId}` : '/contracts/amendments/';
+    const url = contractId
+      ? `/contracts/amendments/?contract=${contractId}`
+      : '/contracts/amendments/';
     const response = await api.get(url);
     return response.data;
   } catch (error) {
@@ -221,7 +270,9 @@ const createAmendment = async (amendmentData: any): Promise<any> => {
 
 const getRenewals = async (contractId?: string): Promise<any[]> => {
   try {
-    const url = contractId ? `/contracts/renewals/?contract=${contractId}` : '/contracts/renewals/';
+    const url = contractId
+      ? `/contracts/renewals/?contract=${contractId}`
+      : '/contracts/renewals/';
     const response = await api.get(url);
     return response.data;
   } catch (error) {
@@ -242,7 +293,9 @@ const createRenewal = async (renewalData: any): Promise<any> => {
 
 const getTerminations = async (contractId?: string): Promise<any[]> => {
   try {
-    const url = contractId ? `/contracts/terminations/?contract=${contractId}` : '/contracts/terminations/';
+    const url = contractId
+      ? `/contracts/terminations/?contract=${contractId}`
+      : '/contracts/terminations/';
     const response = await api.get(url);
     return response.data;
   } catch (error) {
@@ -252,7 +305,10 @@ const getTerminations = async (contractId?: string): Promise<any[]> => {
 
 const createTermination = async (terminationData: any): Promise<any> => {
   try {
-    const response = await api.post('/contracts/terminations/', terminationData);
+    const response = await api.post(
+      '/contracts/terminations/',
+      terminationData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -261,9 +317,13 @@ const createTermination = async (terminationData: any): Promise<any> => {
 
 // ===== DOCUMENT MANAGEMENT =====
 
-const getDocuments = async (contractId?: string): Promise<ContractDocument[]> => {
+const getDocuments = async (
+  contractId?: string,
+): Promise<ContractDocument[]> => {
   try {
-    const url = contractId ? `/contracts/documents/?contract=${contractId}` : '/contracts/documents/';
+    const url = contractId
+      ? `/contracts/documents/?contract=${contractId}`
+      : '/contracts/documents/';
     const response = await api.get(url);
     return response.data;
   } catch (error) {
@@ -271,13 +331,20 @@ const getDocuments = async (contractId?: string): Promise<ContractDocument[]> =>
   }
 };
 
-const uploadDocument = async (contractId: string, documentData: FormData): Promise<ContractDocument> => {
+const uploadDocument = async (
+  contractId: string,
+  documentData: FormData,
+): Promise<ContractDocument> => {
   try {
-    const response = await api.post(`/contracts/contracts/${contractId}/documents/upload/`, documentData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await api.post(
+      `/contracts/contracts/${contractId}/documents/upload/`,
+      documentData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       },
-    });
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -326,9 +393,13 @@ const getContractStats = async (): Promise<ContractStats> => {
 /**
  * Iniciar proceso de autenticación biométrica
  */
-const startBiometricAuthentication = async (contractId: string): Promise<any> => {
+const startBiometricAuthentication = async (
+  contractId: string,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/${contractId}/start-authentication/`);
+    const response = await api.post(
+      `/contracts/${contractId}/start-authentication/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -338,12 +409,19 @@ const startBiometricAuthentication = async (contractId: string): Promise<any> =>
 /**
  * Procesar captura facial (frontal y lateral)
  */
-const processFaceCapture = async (contractId: string, frontImage: string, sideImage: string): Promise<any> => {
+const processFaceCapture = async (
+  contractId: string,
+  frontImage: string,
+  sideImage: string,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/${contractId}/auth/face-capture/`, {
-      face_front_image: frontImage,
-      face_side_image: sideImage,
-    });
+    const response = await api.post(
+      `/contracts/${contractId}/auth/face-capture/`,
+      {
+        face_front_image: frontImage,
+        face_side_image: sideImage,
+      },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -353,13 +431,21 @@ const processFaceCapture = async (contractId: string, frontImage: string, sideIm
 /**
  * Procesar verificación de documento
  */
-const processDocumentVerification = async (contractId: string, documentImage: string, documentType: string, documentNumber?: string): Promise<any> => {
+const processDocumentVerification = async (
+  contractId: string,
+  documentImage: string,
+  documentType: string,
+  documentNumber?: string,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/${contractId}/auth/document-capture/`, {
-      document_image: documentImage,
-      document_type: documentType,
-      document_number: documentNumber || '',
-    });
+    const response = await api.post(
+      `/contracts/${contractId}/auth/document-capture/`,
+      {
+        document_image: documentImage,
+        document_type: documentType,
+        document_number: documentNumber || '',
+      },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -369,11 +455,17 @@ const processDocumentVerification = async (contractId: string, documentImage: st
 /**
  * Procesar verificación combinada (documento + rostro)
  */
-const processCombinedVerification = async (contractId: string, combinedImage: string): Promise<any> => {
+const processCombinedVerification = async (
+  contractId: string,
+  combinedImage: string,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/${contractId}/auth/combined-capture/`, {
-      combined_image: combinedImage,
-    });
+    const response = await api.post(
+      `/contracts/${contractId}/auth/combined-capture/`,
+      {
+        combined_image: combinedImage,
+      },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -383,12 +475,19 @@ const processCombinedVerification = async (contractId: string, combinedImage: st
 /**
  * Procesar verificación de voz
  */
-const processVoiceVerification = async (contractId: string, voiceRecording: string, expectedText?: string): Promise<any> => {
+const processVoiceVerification = async (
+  contractId: string,
+  voiceRecording: string,
+  expectedText?: string,
+): Promise<any> => {
   try {
-    const response = await api.post(`/contracts/${contractId}/auth/voice-capture/`, {
-      voice_recording: voiceRecording,
-      expected_text: expectedText,
-    });
+    const response = await api.post(
+      `/contracts/${contractId}/auth/voice-capture/`,
+      {
+        voice_recording: voiceRecording,
+        expected_text: expectedText,
+      },
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -410,7 +509,9 @@ const completeAuthentication = async (contractId: string): Promise<any> => {
 /**
  * Consultar estado de autenticación biométrica
  */
-const getBiometricAuthenticationStatus = async (contractId: string): Promise<any> => {
+const getBiometricAuthenticationStatus = async (
+  contractId: string,
+): Promise<any> => {
   try {
     const response = await api.get(`/contracts/${contractId}/auth/status/`);
     return response.data;
@@ -434,9 +535,15 @@ const generateContractPDF = async (contractId: string): Promise<any> => {
 /**
  * Editar contrato antes de autenticación
  */
-const editContractBeforeAuth = async (contractId: string, contractData: any): Promise<any> => {
+const editContractBeforeAuth = async (
+  contractId: string,
+  contractData: any,
+): Promise<any> => {
   try {
-    const response = await api.patch(`/contracts/${contractId}/edit-before-auth/`, contractData);
+    const response = await api.patch(
+      `/contracts/${contractId}/edit-before-auth/`,
+      contractData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -448,15 +555,17 @@ const editContractBeforeAuth = async (contractId: string, contractData: any): Pr
 /**
  * @deprecated Use new biometric authentication flow instead
  */
-const processBiometricVerification = async (biometricData: BiometricData): Promise<any> => {
+const processBiometricVerification = async (
+  biometricData: BiometricData,
+): Promise<any> => {
   // Esta función debe conectarse con APIs reales de verificación biométrica
   // Por ahora retorna datos simulados
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve({
         success: true,
         confidence: 0.95,
-        verificationId: `bio_${  Date.now()}`,
+        verificationId: `bio_${Date.now()}`,
         facialRecognition: biometricData.facialRecognition,
         documentVerification: biometricData.documentVerification,
         fingerprint: biometricData.fingerprint,
@@ -470,7 +579,7 @@ const processBiometricVerification = async (biometricData: BiometricData): Promi
  */
 const verifyIdentityDocument = async (documentImage: string): Promise<any> => {
   // Conectar con API real de OCR y verificación de documentos
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve({
         success: true,
@@ -493,7 +602,7 @@ const verifyIdentityDocument = async (documentImage: string): Promise<any> => {
  */
 const verifyFacialRecognition = async (faceImage: string): Promise<any> => {
   // Conectar con API real de reconocimiento facial
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve({
         success: true,
@@ -513,7 +622,9 @@ const verifyFacialRecognition = async (faceImage: string): Promise<any> => {
 
 const validateMatchForContract = async (matchId: string) => {
   try {
-    const response = await api.post(`/matching/requests/${matchId}/validate-contract/`);
+    const response = await api.post(
+      `/matching/requests/${matchId}/validate-contract/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -522,7 +633,10 @@ const validateMatchForContract = async (matchId: string) => {
 
 const createContractFromMatch = async (matchId: string, contractData: any) => {
   try {
-    const response = await api.post(`/matching/requests/${matchId}/create-contract/`, contractData);
+    const response = await api.post(
+      `/matching/requests/${matchId}/create-contract/`,
+      contractData,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -548,7 +662,11 @@ const sendContractForReview = async (contractId: string): Promise<any> => {
 /**
  * Respuesta del arrendatario a la revisión del contrato
  */
-const tenantContractReview = async (contractId: string, action: 'approve' | 'request_changes', comments?: string): Promise<any> => {
+const tenantContractReview = async (
+  contractId: string,
+  action: 'approve' | 'request_changes',
+  comments?: string,
+): Promise<any> => {
   try {
     const response = await api.post('/contracts/tenant-review/', {
       contract_id: contractId,
@@ -593,7 +711,9 @@ const getPendingTenantReviewContracts = async (): Promise<Contract[]> => {
  */
 export const sendBiometricReminder = async (contractId: string) => {
   try {
-    const response = await api.post(`/contracts/${contractId}/send-biometric-reminder/`);
+    const response = await api.post(
+      `/contracts/${contractId}/send-biometric-reminder/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -605,7 +725,9 @@ export const sendBiometricReminder = async (contractId: string) => {
  */
 export const confirmKeyDelivery = async (contractId: string) => {
   try {
-    const response = await api.post(`/contracts/${contractId}/confirm-key-delivery/`);
+    const response = await api.post(
+      `/contracts/${contractId}/confirm-key-delivery/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -617,7 +739,9 @@ export const confirmKeyDelivery = async (contractId: string) => {
  */
 export const startContractExecution = async (contractId: string) => {
   try {
-    const response = await api.post(`/contracts/${contractId}/start-execution/`);
+    const response = await api.post(
+      `/contracts/${contractId}/start-execution/`,
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -633,46 +757,46 @@ export const contractService = {
   createContract,
   updateContract,
   deleteContract,
-  
+
   // Templates
   getTemplates,
   getTemplate,
   createTemplate,
   updateTemplate,
   deleteTemplate,
-  
+
   // Signatures
   getSignatures,
   createSignature,
   signContract,
   verifySignature,
-  
+
   // Contract states
   activateContract,
   suspendContract,
-  
+
   // Amendments
   getAmendments,
   createAmendment,
-  
+
   // Renewals
   getRenewals,
   createRenewal,
-  
+
   // Terminations
   getTerminations,
   createTermination,
-  
+
   // Documents
   getDocuments,
   uploadDocument,
   deleteDocument,
-  
+
   // Reports
   getExpiringContracts,
   getPendingSignatures,
   getContractStats,
-  
+
   // Biometric Authentication Flow - NEW
   startBiometricAuthentication,
   processFaceCapture,
@@ -684,19 +808,19 @@ export const contractService = {
   generateContractPDF,
   generateContractPdf: generateContractPDF, // Alias for compatibility
   editContractBeforeAuth,
-  
+
   // Biometric (deprecated - legacy)
   processBiometricVerification,
   verifyIdentityDocument,
   verifyFacialRecognition,
-  
+
   // Match → Contract integration
   validateMatchForContract,
   createContractFromMatch,
 
   // Contract Workflow Actions
   sendContractForReview,
-  
+
   // New Matched Candidates APIs
   sendBiometricReminder,
   confirmKeyDelivery,
@@ -707,4 +831,3 @@ export const contractService = {
 
 export default contractService;
 /* FORCE RELOAD 1754456937796 - CONTRACT_SERVICE - Nuclear fix applied */
-
