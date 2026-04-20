@@ -103,7 +103,7 @@ describe('useCreateProperty Hook', () => {
 
     expect(mockPropertyService.createProperty).toHaveBeenCalledTimes(1);
     expect(mockPropertyService.createProperty.mock.calls[0][0]).toEqual(
-      propertyData
+      propertyData,
     );
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -127,7 +127,7 @@ describe('useCreateProperty Hook', () => {
 
   it('should handle creation error', async () => {
     mockPropertyService.createProperty.mockRejectedValue(
-      new Error('Creation failed')
+      new Error('Creation failed'),
     );
 
     const { result } = renderHook(() => useCreateProperty(), {
@@ -166,7 +166,7 @@ describe('useCreateProperty Hook', () => {
     await waitFor(() => {
       expect(result.current.error).toBeTruthy();
       expect(result.current.error?.message).toBe(
-        'Validation failed: title is required'
+        'Validation failed: title is required',
       );
     });
   });

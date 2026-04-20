@@ -102,7 +102,7 @@ describe('Performance Tests', () => {
 
       // Simulate concurrent API calls
       const promises = Array.from({ length: 10 }, (_, i) =>
-        mockedApi.get(`/items/${i}`)
+        mockedApi.get(`/items/${i}`),
       );
 
       const results = await Promise.all(promises);
@@ -149,7 +149,7 @@ describe('Performance Tests', () => {
       ];
 
       const slowComponents = heavyComponents.filter(
-        comp => comp.renderTime > 100
+        comp => comp.renderTime > 100,
       );
 
       expect(slowComponents).toHaveLength(3);
@@ -157,7 +157,7 @@ describe('Performance Tests', () => {
       // Log performance warnings
       slowComponents.forEach(comp => {
         console.warn(
-          `Heavy component detected: ${comp.name} (${comp.renderTime}ms)`
+          `Heavy component detected: ${comp.name} (${comp.renderTime}ms)`,
         );
       });
     });
@@ -182,7 +182,7 @@ describe('Performance Tests', () => {
 
       if (renderCount > 3) {
         console.warn(
-          `Excessive re-renders detected for ${componentName}: ${renderCount}`
+          `Excessive re-renders detected for ${componentName}: ${renderCount}`,
         );
       }
     });
@@ -233,7 +233,7 @@ describe('Performance Tests', () => {
 
       if (datasetSize > maxSizeInBytes / 2) {
         console.warn(
-          `Large dataset detected: ${(datasetSize / 1024 / 1024).toFixed(2)}MB`
+          `Large dataset detected: ${(datasetSize / 1024 / 1024).toFixed(2)}MB`,
         );
       }
     });
@@ -250,7 +250,7 @@ describe('Performance Tests', () => {
 
       const totalSize = criticalResources.reduce(
         (sum, resource) => sum + resource.size,
-        0
+        0,
       );
       const maxBundleSize = 1.5 * 1024 * 1024; // 1.5MB limit
 
@@ -261,7 +261,7 @@ describe('Performance Tests', () => {
         if (resource.size > 1024 * 1024) {
           // 1MB
           console.warn(
-            `Large resource: ${resource.name} (${(resource.size / 1024 / 1024).toFixed(2)}MB)`
+            `Large resource: ${resource.name} (${(resource.size / 1024 / 1024).toFixed(2)}MB)`,
           );
         }
       });
@@ -284,7 +284,7 @@ describe('Performance Tests', () => {
       // Total split chunks should be manageable
       const totalChunkSize = routeChunks.reduce(
         (sum, chunk) => sum + chunk.size,
-        0
+        0,
       );
       expect(totalChunkSize).toBeLessThan(1024 * 1024); // 1MB total
     });
@@ -386,7 +386,7 @@ describe('Performance Tests', () => {
 
       // Should throttle messages if too frequent
       const throttledMessages = messages.filter(
-        (_, index) => index < maxMessagesPerSecond
+        (_, index) => index < maxMessagesPerSecond,
       );
 
       expect(throttledMessages).toHaveLength(maxMessagesPerSecond);
@@ -475,7 +475,7 @@ describe('Performance Tests', () => {
       }
 
       expect(performanceReport.recommendations).toContain(
-        'Optimize component rendering'
+        'Optimize component rendering',
       );
       expect(performanceReport.timestamp).toBeDefined();
     });

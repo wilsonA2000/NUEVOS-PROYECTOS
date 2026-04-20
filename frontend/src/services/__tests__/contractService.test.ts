@@ -90,7 +90,7 @@ describe('ContractService', () => {
       const result = await contractService.getContract('contract-1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/contracts/contract-1/'
+        '/contracts/contracts/contract-1/',
       );
       expect(result).toEqual(mockContract);
     });
@@ -105,7 +105,7 @@ describe('ContractService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/contracts/',
-        contractData
+        contractData,
       );
       expect(result).toEqual(mockContract);
     });
@@ -122,7 +122,7 @@ describe('ContractService', () => {
 
       expect(mockedApi.patch).toHaveBeenCalledWith(
         '/contracts/contracts/contract-1/',
-        { title: 'Updated' }
+        { title: 'Updated' },
       );
       expect(result.title).toBe('Updated');
     });
@@ -135,7 +135,7 @@ describe('ContractService', () => {
       await contractService.deleteContract('contract-1');
 
       expect(mockedApi.delete).toHaveBeenCalledWith(
-        '/contracts/contracts/contract-1/'
+        '/contracts/contracts/contract-1/',
       );
     });
   });
@@ -155,7 +155,7 @@ describe('ContractService', () => {
         await contractService.startBiometricAuthentication('contract-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/contract-1/start-authentication/'
+        '/contracts/contract-1/start-authentication/',
       );
       expect(result).toEqual(authResponse);
     });
@@ -164,7 +164,7 @@ describe('ContractService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Authentication failed'));
 
       await expect(
-        contractService.startBiometricAuthentication('contract-1')
+        contractService.startBiometricAuthentication('contract-1'),
       ).rejects.toThrow('Authentication failed');
     });
   });
@@ -177,7 +177,7 @@ describe('ContractService', () => {
       const result = await contractService.processFaceCapture(
         'contract-1',
         'base64-front',
-        'base64-side'
+        'base64-side',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
@@ -185,7 +185,7 @@ describe('ContractService', () => {
         {
           face_front_image: 'base64-front',
           face_side_image: 'base64-side',
-        }
+        },
       );
       expect(result.face_confidence).toBe(0.95);
     });
@@ -204,7 +204,7 @@ describe('ContractService', () => {
         'contract-1',
         'base64-doc',
         'cedula',
-        '12345678'
+        '12345678',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('ContractService', () => {
           document_image: 'base64-doc',
           document_type: 'cedula',
           document_number: '12345678',
-        }
+        },
       );
       expect(result.document_confidence).toBe(0.98);
     });
@@ -224,7 +224,7 @@ describe('ContractService', () => {
       await contractService.processDocumentVerification(
         'contract-1',
         'base64-doc',
-        'pasaporte'
+        'pasaporte',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
@@ -233,7 +233,7 @@ describe('ContractService', () => {
           document_image: 'base64-doc',
           document_type: 'pasaporte',
           document_number: '',
-        }
+        },
       );
     });
   });
@@ -245,14 +245,14 @@ describe('ContractService', () => {
 
       const result = await contractService.processCombinedVerification(
         'contract-1',
-        'base64-combined'
+        'base64-combined',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/contract-1/auth/combined-capture/',
         {
           combined_image: 'base64-combined',
-        }
+        },
       );
       expect(result.combined_confidence).toBe(0.93);
     });
@@ -270,7 +270,7 @@ describe('ContractService', () => {
       const result = await contractService.processVoiceVerification(
         'contract-1',
         'base64-voice',
-        'Acepto los terminos'
+        'Acepto los terminos',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
@@ -278,7 +278,7 @@ describe('ContractService', () => {
         {
           voice_recording: 'base64-voice',
           expected_text: 'Acepto los terminos',
-        }
+        },
       );
       expect(result.voice_confidence).toBe(0.91);
     });
@@ -296,7 +296,7 @@ describe('ContractService', () => {
       const result = await contractService.completeAuthentication('contract-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/contract-1/complete-auth/'
+        '/contracts/contract-1/complete-auth/',
       );
       expect(result.overall_confidence).toBe(0.94);
     });
@@ -321,7 +321,7 @@ describe('ContractService', () => {
         await contractService.getBiometricAuthenticationStatus('contract-1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/contract-1/auth/status/'
+        '/contracts/contract-1/auth/status/',
       );
       expect(result.progress).toBe(40);
       expect(result.completed_steps.face_front).toBe(true);
@@ -339,7 +339,7 @@ describe('ContractService', () => {
       const result = await contractService.generateContractPDF('contract-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/contract-1/generate-pdf/'
+        '/contracts/contract-1/generate-pdf/',
       );
       expect(result.pdf_url).toBeDefined();
     });
@@ -352,12 +352,12 @@ describe('ContractService', () => {
 
       const result = await contractService.editContractBeforeAuth(
         'contract-1',
-        { monthly_rent: 3000000 }
+        { monthly_rent: 3000000 },
       );
 
       expect(mockedApi.patch).toHaveBeenCalledWith(
         '/contracts/contract-1/edit-before-auth/',
-        { monthly_rent: 3000000 }
+        { monthly_rent: 3000000 },
       );
       expect(result.monthly_rent).toBe(3000000);
     });
@@ -374,7 +374,7 @@ describe('ContractService', () => {
       const result = await contractService.activateContract('contract-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/contracts/contract-1/activate/'
+        '/contracts/contracts/contract-1/activate/',
       );
       expect(result.status).toBe('active');
     });
@@ -388,12 +388,12 @@ describe('ContractService', () => {
 
       const result = await contractService.suspendContract(
         'contract-1',
-        'Non-payment'
+        'Non-payment',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/contracts/contract-1/suspend/',
-        { reason: 'Non-payment' }
+        { reason: 'Non-payment' },
       );
     });
   });
@@ -420,7 +420,7 @@ describe('ContractService', () => {
             signature: 'base64-signature-data',
           }),
           verification_level: 'basic',
-        })
+        }),
       );
     });
   });
@@ -434,7 +434,7 @@ describe('ContractService', () => {
       const result = await contractService.getExpiringContracts();
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/reports/expiring/'
+        '/contracts/reports/expiring/',
       );
       expect(result).toEqual([mockContract]);
     });
@@ -462,13 +462,13 @@ describe('ContractService', () => {
 
       const result = await contractService.uploadDocument(
         'contract-1',
-        formData
+        formData,
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/contracts/contract-1/documents/upload/',
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
       expect(result.document_id).toBe('doc-1');
     });
@@ -483,7 +483,7 @@ describe('ContractService', () => {
       const result = await contractService.validateMatchForContract('match-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/matching/requests/match-1/validate-contract/'
+        '/matching/requests/match-1/validate-contract/',
       );
       expect(result.valid).toBe(true);
     });
@@ -498,12 +498,12 @@ describe('ContractService', () => {
       const contractData = { monthly_rent: 2500000, duration_months: 12 };
       const result = await contractService.createContractFromMatch(
         'match-1',
-        contractData
+        contractData,
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/matching/requests/match-1/create-contract/',
-        contractData
+        contractData,
       );
       expect(result.contract_id).toBe('new-contract');
     });
@@ -516,7 +516,7 @@ describe('ContractService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('Network Error'));
 
       await expect(contractService.getContracts()).rejects.toThrow(
-        'Network Error'
+        'Network Error',
       );
     });
 
@@ -524,7 +524,7 @@ describe('ContractService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Validation Error'));
 
       await expect(contractService.createContract({} as any)).rejects.toThrow(
-        'Validation Error'
+        'Validation Error',
       );
     });
 
@@ -532,7 +532,7 @@ describe('ContractService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Contract locked'));
 
       await expect(
-        contractService.startBiometricAuthentication('contract-1')
+        contractService.startBiometricAuthentication('contract-1'),
       ).rejects.toThrow('Contract locked');
     });
   });

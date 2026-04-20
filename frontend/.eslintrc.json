@@ -61,7 +61,7 @@
     "no-useless-catch": "warn",
     "no-useless-escape": "warn",
     "no-empty": ["warn", { "allowEmptyCatch": true }],
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "semi": ["error", "always"],
     "comma-dangle": ["error", "always-multiline"],
     "object-curly-spacing": ["error", "always"],

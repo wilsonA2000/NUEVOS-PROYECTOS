@@ -69,7 +69,7 @@ describe('Responsive Design Tests', () => {
       mockMediaQuery('(min-width: 768px) and (max-width: 1024px)', true);
 
       const isTablet = window.matchMedia(
-        '(min-width: 768px) and (max-width: 1024px)'
+        '(min-width: 768px) and (max-width: 1024px)',
       ).matches;
       expect(isTablet).toBe(true);
       expect(window.innerWidth).toBe(768);
@@ -416,7 +416,7 @@ describe('Responsive Design Tests', () => {
       };
 
       expect(parseInt(mockAccessibility.minTouchTarget)).toBeGreaterThanOrEqual(
-        44
+        44,
       );
       expect(mockAccessibility.colorContrast).toBeGreaterThanOrEqual(4.5);
       expect(mockAccessibility.focusIndicators).toBe(true);
@@ -486,7 +486,7 @@ describe('Responsive Design Tests', () => {
 
         expect(mockViewport.adjustForBrowser).toBe(true);
         expect(mockViewport.actualHeight).toBeLessThanOrEqual(
-          window.innerHeight
+          window.innerHeight,
         );
       });
     });

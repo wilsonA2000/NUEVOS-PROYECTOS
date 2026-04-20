@@ -87,7 +87,7 @@ describe('usePermissions Hook', () => {
     });
 
     expect(
-      result.current.hasAnyPermission(['view_property', 'edit_property'])
+      result.current.hasAnyPermission(['view_property', 'edit_property']),
     ).toBe(false);
   });
 
@@ -97,7 +97,7 @@ describe('usePermissions Hook', () => {
     });
 
     expect(
-      result.current.hasAllPermissions(['view_property', 'edit_property'])
+      result.current.hasAllPermissions(['view_property', 'edit_property']),
     ).toBe(false);
   });
 
@@ -126,7 +126,7 @@ describe('usePermissions Hook', () => {
 
     // With empty permissions, should return false
     expect(
-      result.current.hasAnyPermission(['view_property', 'non_existent'])
+      result.current.hasAnyPermission(['view_property', 'non_existent']),
     ).toBe(false);
   });
 
@@ -141,7 +141,7 @@ describe('usePermissions Hook', () => {
 
     // With empty permissions, should return false
     expect(
-      result.current.hasAllPermissions(['view_property', 'edit_property'])
+      result.current.hasAllPermissions(['view_property', 'edit_property']),
     ).toBe(false);
   });
 

@@ -31,7 +31,7 @@ export interface WebSocketContextType {
   // Suscripciones a eventos
   subscribe: (
     eventType: string,
-    callback: (message: WebSocketMessage) => void
+    callback: (message: WebSocketMessage) => void,
   ) => () => void;
 
   // Estados específicos

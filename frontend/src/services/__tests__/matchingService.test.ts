@@ -46,7 +46,7 @@ describe('MatchingService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('Network Error'));
 
       await expect(matchingService.getMyMatchRequests()).rejects.toThrow(
-        'Network Error'
+        'Network Error',
       );
     });
   });
@@ -86,7 +86,7 @@ describe('MatchingService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/matching/requests/',
-        requestData
+        requestData,
       );
       expect(result.data).toEqual(mockResponse);
     });
@@ -114,7 +114,7 @@ describe('MatchingService', () => {
         '/matching/check-existing/',
         {
           params: { property_id: 'prop-1' },
-        }
+        },
       );
     });
   });
@@ -126,7 +126,7 @@ describe('MatchingService', () => {
       await matchingService.cancelMatchRequestById('match-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/matching/requests/match-1/cancel/'
+        '/matching/requests/match-1/cancel/',
       );
     });
   });
@@ -140,7 +140,7 @@ describe('MatchingService', () => {
       await matchingService.markMatchRequestViewed('match-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/matching/requests/match-1/mark_viewed/'
+        '/matching/requests/match-1/mark_viewed/',
       );
     });
   });
@@ -157,7 +157,7 @@ describe('MatchingService', () => {
         '/matching/requests/match-1/accept/',
         {
           message: 'Welcome!',
-        }
+        },
       );
     });
 
@@ -168,7 +168,7 @@ describe('MatchingService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/matching/requests/match-1/accept/',
-        {}
+        {},
       );
     });
   });
@@ -185,7 +185,7 @@ describe('MatchingService', () => {
         '/matching/requests/match-1/reject/',
         {
           message: 'Not suitable',
-        }
+        },
       );
     });
   });
@@ -216,7 +216,7 @@ describe('MatchingService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/matching/criteria/',
-        criteriaData
+        criteriaData,
       );
     });
   });
@@ -285,7 +285,7 @@ describe('MatchingService', () => {
       const result = await matchingService.validateMatchForContract('match-1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/matching/requests/match-1/validate-contract/'
+        '/matching/requests/match-1/validate-contract/',
       );
       expect(result.data.valid).toBe(true);
     });
@@ -298,12 +298,12 @@ describe('MatchingService', () => {
 
       const result = await matchingService.createContractFromMatch(
         'match-1',
-        contractData
+        contractData,
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/matching/requests/match-1/create-contract/',
-        contractData
+        contractData,
       );
       expect(result.data.contract_id).toBe('c-1');
     });
@@ -360,7 +360,7 @@ describe('MatchingService', () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 5);
       const result = matchingService.calculateDaysUntilExpiry(
-        futureDate.toISOString()
+        futureDate.toISOString(),
       );
       expect(result).toBeGreaterThan(0);
       expect(result).toBeLessThanOrEqual(6);
@@ -372,7 +372,7 @@ describe('MatchingService', () => {
       const soonDate = new Date();
       soonDate.setDate(soonDate.getDate() + 2);
       expect(
-        matchingService.isMatchExpiringSoon(soonDate.toISOString(), 3)
+        matchingService.isMatchExpiringSoon(soonDate.toISOString(), 3),
       ).toBe(true);
     });
 
@@ -386,10 +386,10 @@ describe('MatchingService', () => {
       expect(matchingService.getContractStatusColor('DRAFT')).toBe('default');
       expect(matchingService.getContractStatusColor('ACTIVE')).toBe('success');
       expect(matchingService.getContractStatusColor('TERMINATED')).toBe(
-        'error'
+        'error',
       );
       expect(matchingService.getContractStatusColor('PENDING_SIG')).toBe(
-        'info'
+        'info',
       );
     });
   });
@@ -397,13 +397,13 @@ describe('MatchingService', () => {
   describe('getEmploymentTypeText', () => {
     it('should return Spanish text for employment types', () => {
       expect(matchingService.getEmploymentTypeText('employed')).toBe(
-        'Empleado'
+        'Empleado',
       );
       expect(matchingService.getEmploymentTypeText('self_employed')).toBe(
-        'Independiente'
+        'Independiente',
       );
       expect(matchingService.getEmploymentTypeText('student')).toBe(
-        'Estudiante'
+        'Estudiante',
       );
       expect(matchingService.getEmploymentTypeText('retired')).toBe('Jubilado');
     });
@@ -416,7 +416,7 @@ describe('MatchingService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('Server Error'));
 
       await expect(matchingService.getMyMatchRequests()).rejects.toThrow(
-        'Server Error'
+        'Server Error',
       );
     });
 
@@ -424,7 +424,7 @@ describe('MatchingService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Validation Error'));
 
       await expect(
-        matchingService.createMatchRequest({} as any)
+        matchingService.createMatchRequest({} as any),
       ).rejects.toThrow('Validation Error');
     });
 
@@ -432,7 +432,7 @@ describe('MatchingService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Not Found'));
 
       await expect(
-        matchingService.acceptMatchRequest('invalid-id')
+        matchingService.acceptMatchRequest('invalid-id'),
       ).rejects.toThrow('Not Found');
     });
   });

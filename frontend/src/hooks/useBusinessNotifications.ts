@@ -15,7 +15,7 @@ export interface NotificationTrigger {
   // Servicios
   onServiceRequest: (
     serviceProvider: any,
-    serviceDetails: any
+    serviceDetails: any,
   ) => Promise<void>;
 
   // Respuestas a solicitudes

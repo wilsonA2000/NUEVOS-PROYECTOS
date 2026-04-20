@@ -188,7 +188,7 @@ interface NotificationContextType {
     clearAll: () => Promise<void>;
     loadPreferences: () => Promise<void>;
     updatePreferences: (
-      preferences: Partial<NotificationPreferences>
+      preferences: Partial<NotificationPreferences>,
     ) => Promise<void>;
     createNotification: (notification: Partial<Notification>) => Promise<void>;
     testNotification: (channel: string) => Promise<void>;

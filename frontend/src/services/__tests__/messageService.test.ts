@@ -147,7 +147,7 @@ describe('MessageService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/messages/mark-multiple-read/',
-        { message_ids: ['1', '2'] }
+        { message_ids: ['1', '2'] },
       );
     });
   });
@@ -208,7 +208,7 @@ describe('MessageService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/messages/threads/',
-        threadData
+        threadData,
       );
       expect(result).toEqual(mockThread);
     });
@@ -221,7 +221,7 @@ describe('MessageService', () => {
       const result = await messageService.archiveThread('thread_1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/messages/threads/thread_1/archive/'
+        '/messages/threads/thread_1/archive/',
       );
       expect(result).toEqual({ archived: true });
     });
@@ -234,7 +234,7 @@ describe('MessageService', () => {
       const result = await messageService.unarchiveThread('thread_1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/messages/threads/thread_1/unarchive/'
+        '/messages/threads/thread_1/unarchive/',
       );
       expect(result).toEqual({ archived: false });
     });
@@ -266,7 +266,7 @@ describe('MessageService', () => {
       await messageService.markThreadAsRead('thread_1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/messages/threads/thread_1/mark-read/'
+        '/messages/threads/thread_1/mark-read/',
       );
     });
   });
@@ -334,7 +334,7 @@ describe('MessageService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/messages/templates/',
-        templateData
+        templateData,
       );
       expect(result).toEqual(template);
     });
@@ -369,7 +369,7 @@ describe('MessageService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/messages/quick-reply/',
-        replyData
+        replyData,
       );
       expect(result).toEqual(mockMessage);
     });
@@ -394,7 +394,7 @@ describe('MessageService', () => {
       const result = await messageService.canCommunicate('user_1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/messages/can-communicate/user_1/'
+        '/messages/can-communicate/user_1/',
       );
       expect(result).toEqual(response);
     });

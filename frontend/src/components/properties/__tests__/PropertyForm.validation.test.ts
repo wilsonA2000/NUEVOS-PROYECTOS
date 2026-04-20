@@ -16,14 +16,14 @@ const FILE_VALIDATION = {
 };
 
 const validateImageFiles = (
-  files: File[]
+  files: File[],
 ): { valid: File[]; errors: string[] } => {
   const errors: string[] = [];
   const valid: File[] = [];
 
   if (files.length > FILE_VALIDATION.images.maxCount) {
     errors.push(
-      `Máximo ${FILE_VALIDATION.images.maxCount} imágenes permitidas`
+      `Máximo ${FILE_VALIDATION.images.maxCount} imágenes permitidas`,
     );
     return { valid: files.slice(0, FILE_VALIDATION.images.maxCount), errors };
   }
@@ -32,7 +32,7 @@ const validateImageFiles = (
     // Validar tipo MIME
     if (!FILE_VALIDATION.images.allowedTypes.includes(file.type)) {
       errors.push(
-        `Archivo ${index + 1}: Tipo no permitido. Use JPG, PNG o WebP`
+        `Archivo ${index + 1}: Tipo no permitido. Use JPG, PNG o WebP`,
       );
       return;
     }
@@ -155,7 +155,7 @@ describe('PropertyForm File Validation', () => {
 
     it('should limit the number of files to maximum count', () => {
       const tooManyFiles = Array.from({ length: 12 }, (_, i) =>
-        createMockFile(`test${i}.jpg`, 'image/jpeg', 1024 * 1024)
+        createMockFile(`test${i}.jpg`, 'image/jpeg', 1024 * 1024),
       );
 
       const result = validateImageFiles(tooManyFiles);
@@ -201,14 +201,14 @@ describe('PropertyForm File Validation', () => {
       const invalidFile = createMockFile(
         'test.avi',
         'video/avi',
-        10 * 1024 * 1024
+        10 * 1024 * 1024,
       );
 
       const result = validateVideoFile(invalidFile);
 
       expect(result.valid).toBe(false);
       expect(result.error).toBe(
-        'Tipo de video no permitido. Use MP4, WebM o MOV'
+        'Tipo de video no permitido. Use MP4, WebM o MOV',
       );
     });
 
@@ -216,7 +216,7 @@ describe('PropertyForm File Validation', () => {
       const invalidFile = createMockFile(
         'test.avi',
         'video/mp4',
-        10 * 1024 * 1024
+        10 * 1024 * 1024,
       );
 
       const result = validateVideoFile(invalidFile);
@@ -229,7 +229,7 @@ describe('PropertyForm File Validation', () => {
       const largeFile = createMockFile(
         'test.mp4',
         'video/mp4',
-        60 * 1024 * 1024
+        60 * 1024 * 1024,
       ); // 60MB > 50MB limit
 
       const result = validateVideoFile(largeFile);
@@ -242,7 +242,7 @@ describe('PropertyForm File Validation', () => {
       const maxSizeFile = createMockFile(
         'test.mp4',
         'video/mp4',
-        50 * 1024 * 1024
+        50 * 1024 * 1024,
       ); // Exactly 50MB
 
       const result = validateVideoFile(maxSizeFile);

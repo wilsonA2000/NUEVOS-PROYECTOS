@@ -94,7 +94,6 @@ const LandlordDocumentReview: React.FC<LandlordDocumentReviewProps> = ({
   onDocumentReviewed,
   onAllApproved,
 }) => {
-
   // Estados principales
   const [checklist, setChecklist] = useState<DocumentChecklist | null>(null);
   const [loading, setLoading] = useState(true);

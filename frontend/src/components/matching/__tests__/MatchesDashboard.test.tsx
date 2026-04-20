@@ -116,9 +116,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(MatchesDashboard)
-      )
-    )
+        React.createElement(MatchesDashboard),
+      ),
+    ),
   );
 };
 
@@ -147,7 +147,7 @@ describe('MatchesDashboard', () => {
     const progressBars = screen.queryAllByRole('progressbar');
     const allText = document.body.textContent || '';
     expect(
-      progressBars.length > 0 || allText.includes('Cargando')
+      progressBars.length > 0 || allText.includes('Cargando'),
     ).toBeTruthy();
   });
 
@@ -159,7 +159,7 @@ describe('MatchesDashboard', () => {
     expect(
       allText.includes('error') ||
         allText.includes('Error') ||
-        allText.includes('Failed')
+        allText.includes('Failed'),
     ).toBeTruthy();
   });
 
@@ -178,7 +178,7 @@ describe('MatchesDashboard', () => {
     expect(
       allText.includes('Pendiente') ||
         allText.includes('PENDIENTE') ||
-        allText.includes('Solicitud')
+        allText.includes('Solicitud'),
     ).toBeTruthy();
   });
 
@@ -193,7 +193,7 @@ describe('MatchesDashboard', () => {
     expect(
       allText.includes('Enviada') ||
         allText.includes('ENVIADA') ||
-        allText.includes('Solicitud')
+        allText.includes('Solicitud'),
     ).toBeTruthy();
   });
 
@@ -206,7 +206,7 @@ describe('MatchesDashboard', () => {
       allText.includes('No hay solicitudes') ||
         allText.includes('no hay') ||
         allText.includes('vacío') ||
-        allText.includes('solicitudes')
+        allText.includes('solicitudes'),
     ).toBeTruthy();
   });
 
@@ -238,7 +238,7 @@ describe('MatchesDashboard', () => {
     const allText = document.body.textContent || '';
     // Should display tenant name or property info
     expect(
-      allText.includes('Carlos') || allText.includes('Apto Centro')
+      allText.includes('Carlos') || allText.includes('Apto Centro'),
     ).toBeTruthy();
   });
 });

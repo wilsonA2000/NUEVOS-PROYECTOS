@@ -281,7 +281,7 @@ global.File = jest.fn().mockImplementation((chunks, filename, options) => ({
   name: filename,
   size: chunks.reduce(
     (size: number, chunk: any) => size + (chunk.length || 0),
-    0
+    0,
   ),
   type: options?.type || '',
   lastModified: Date.now(),
@@ -293,7 +293,7 @@ global.File = jest.fn().mockImplementation((chunks, filename, options) => ({
 
 // Mock de URL API
 global.URL.createObjectURL = jest.fn(
-  () => `blob:mock-object-url-${Math.random()}`
+  () => `blob:mock-object-url-${Math.random()}`,
 );
 global.URL.revokeObjectURL = jest.fn();
 
@@ -438,7 +438,7 @@ beforeAll(() => {
 declare global {
   var waitForCondition: (
     condition: () => boolean,
-    timeout?: number
+    timeout?: number,
   ) => Promise<void>;
   var simulateDelay: (ms: number) => Promise<void>;
   var createMockEvent: (type: string, properties?: any) => Event;
@@ -479,7 +479,7 @@ expect.extend({
 console.log('✅ Integration test setup completed');
 console.log(`📊 Jest timeout: ${(jest as any).getTimeout?.() || 'default'}ms`);
 console.log(
-  `🔧 Debug mode: ${process.env.DEBUG_TESTS === 'true' ? 'enabled' : 'disabled'}`
+  `🔧 Debug mode: ${process.env.DEBUG_TESTS === 'true' ? 'enabled' : 'disabled'}`,
 );
 
 export {};

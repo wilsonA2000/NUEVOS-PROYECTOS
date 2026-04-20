@@ -85,12 +85,12 @@ describe('Login Component', () => {
     render(<Login />, { wrapper: createWrapper });
 
     expect(
-      screen.getByRole('heading', { name: /iniciar sesión/i })
+      screen.getByRole('heading', { name: /iniciar sesión/i }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /iniciar sesión/i })
+      screen.getByRole('button', { name: /iniciar sesión/i }),
     ).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe('Login Component', () => {
 
     const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
     const passwordInput = screen.getByLabelText(
-      /contraseña/i
+      /contraseña/i,
     ) as HTMLInputElement;
 
     await user.type(emailInput, 'test@example.com');
@@ -169,7 +169,7 @@ describe('Login Component', () => {
   it('shows register link', () => {
     render(<Login />, { wrapper: createWrapper });
     expect(
-      screen.getByText('¿No tienes una cuenta? Regístrate')
+      screen.getByText('¿No tienes una cuenta? Regístrate'),
     ).toBeInTheDocument();
   });
 });

@@ -173,7 +173,7 @@ describe('PropertyList Component', () => {
 
   it('shows loading state while fetching properties', () => {
     mockGetProperties.mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 10000))
+      () => new Promise(resolve => setTimeout(resolve, 10000)),
     );
 
     render(<PropertyList />, { wrapper: createWrapper });
@@ -193,21 +193,21 @@ describe('PropertyList Component', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/no se encontraron propiedades/i)
+        screen.getByText(/no se encontraron propiedades/i),
       ).toBeInTheDocument();
     });
   });
 
   it('handles error state', async () => {
     mockGetProperties.mockRejectedValueOnce(
-      new Error('Error al cargar propiedades')
+      new Error('Error al cargar propiedades'),
     );
 
     render(<PropertyList />, { wrapper: createWrapper });
 
     await waitFor(() => {
       expect(
-        screen.getByText(/error al cargar las propiedades/i)
+        screen.getByText(/error al cargar las propiedades/i),
       ).toBeInTheDocument();
     });
   });

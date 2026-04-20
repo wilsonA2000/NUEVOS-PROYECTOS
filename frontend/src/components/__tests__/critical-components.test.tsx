@@ -147,7 +147,7 @@ describe('Critical Components Tests', () => {
         <ProtectedRoute>
           <div>Protected Content</div>
         </ProtectedRoute>,
-        { wrapper }
+        { wrapper },
       );
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
     });

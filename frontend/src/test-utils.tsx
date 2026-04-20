@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
 
 export function renderWithClient(ui: React.ReactElement) {
   const { rerender, ...result } = render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
   );
   return {
     ...result,
@@ -20,7 +20,7 @@ export function renderWithClient(ui: React.ReactElement) {
       rerender(
         <QueryClientProvider client={queryClient}>
           {rerenderUi}
-        </QueryClientProvider>
+        </QueryClientProvider>,
       ),
   };
 }

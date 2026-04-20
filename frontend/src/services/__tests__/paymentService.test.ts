@@ -53,7 +53,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/transactions/',
-        createData
+        createData,
       );
       expect(result).toEqual({ id: '2', ...createData });
     });
@@ -70,7 +70,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.put).toHaveBeenCalledWith(
         '/payments/transactions/1/',
-        updateData
+        updateData,
       );
       expect(result).toEqual({ ...mockTransaction, ...updateData });
     });
@@ -83,7 +83,7 @@ describe('PaymentService', () => {
       await paymentService.deleteTransaction('1');
 
       expect(mockedApi.delete).toHaveBeenCalledWith(
-        '/payments/transactions/1/'
+        '/payments/transactions/1/',
       );
     });
   });
@@ -119,7 +119,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/payment-methods/add/',
-        paymentMethodData
+        paymentMethodData,
       );
       expect(result).toEqual(newPaymentMethod);
     });
@@ -132,7 +132,7 @@ describe('PaymentService', () => {
       await paymentService.deletePaymentMethod('pm_1');
 
       expect(mockedApi.delete).toHaveBeenCalledWith(
-        '/payments/payment-methods/pm_1/'
+        '/payments/payment-methods/pm_1/',
       );
     });
   });
@@ -148,7 +148,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/process/',
-        paymentData
+        paymentData,
       );
       expect(result).toEqual(processedPayment);
     });
@@ -181,7 +181,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/escrow/esc_1/fund/',
-        fundData
+        fundData,
       );
       expect(result).toEqual({
         transaction_id: 'txn_123',
@@ -202,7 +202,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/escrow/esc_1/release/',
-        releaseData
+        releaseData,
       );
       expect(result).toEqual({
         transaction_id: 'txn_456',
@@ -229,7 +229,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/payment-plans/',
-        planData
+        planData,
       );
       expect(result).toEqual(paymentPlan);
     });
@@ -289,7 +289,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.get).toHaveBeenCalledWith(
         '/payments/reports/transactions/',
-        { params: undefined }
+        { params: undefined },
       );
       expect(result).toEqual(report);
     });
@@ -303,7 +303,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.get).toHaveBeenCalledWith(
         '/payments/reports/transactions/',
-        { params }
+        { params },
       );
     });
   });
@@ -328,7 +328,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/stripe/create-payment-intent/',
-        intentData
+        intentData,
       );
       expect(result).toEqual(intent);
     });
@@ -354,7 +354,7 @@ describe('PaymentService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/payments/paypal/create-order/',
-        orderData
+        orderData,
       );
       expect(result).toEqual(order);
     });

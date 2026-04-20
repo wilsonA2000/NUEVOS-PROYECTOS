@@ -42,7 +42,7 @@ interface ExportButtonProps {
   availableFormats?: ExportFormat[];
   onExport?: (
     format: ExportFormat,
-    data: any
+    data: any,
   ) => Promise<Blob | string> | Blob | string;
   disabled?: boolean;
   variant?: 'contained' | 'outlined' | 'text';

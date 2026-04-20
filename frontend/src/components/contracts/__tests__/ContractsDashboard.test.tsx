@@ -94,7 +94,7 @@ describe('ContractsDashboard', () => {
       render(
         <TestWrapper>
           <ContractsDashboard />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Dashboard should render without crashing
@@ -128,7 +128,7 @@ describe('ContractsDashboard', () => {
       render(
         <TestWrapper>
           <ContractsDashboard />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -159,7 +159,7 @@ describe('ContractsDashboard', () => {
       render(
         <TestWrapper>
           <ContractsDashboard />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Should render without crashing
@@ -187,7 +187,7 @@ describe('ContractsDashboard', () => {
       render(
         <TestWrapper>
           <ContractsDashboard />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(document.body).toBeInTheDocument();

@@ -69,7 +69,7 @@ jest.mock('../TenantContractsDashboard', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'tenant-dashboard' },
-      'Tenant Dashboard'
+      'Tenant Dashboard',
     );
   };
 });
@@ -87,9 +87,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(ContractList)
-      )
-    )
+        React.createElement(ContractList),
+      ),
+    ),
   );
 };
 
@@ -169,7 +169,7 @@ describe('ContractList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/Error al cargar los contratos/i)
+      screen.getByText(/Error al cargar los contratos/i),
     ).toBeInTheDocument();
   });
 
@@ -178,7 +178,7 @@ describe('ContractList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/No tienes contratos activos o finalizados/i)
+      screen.getByText(/No tienes contratos activos o finalizados/i),
     ).toBeInTheDocument();
   });
 
@@ -210,7 +210,7 @@ describe('ContractList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/No hay contratos disponibles/i)
+      screen.getByText(/No hay contratos disponibles/i),
     ).toBeInTheDocument();
   });
 });

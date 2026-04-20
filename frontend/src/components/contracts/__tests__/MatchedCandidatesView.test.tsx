@@ -83,7 +83,7 @@ jest.mock('../../../services/landlordContractService', () => ({
     performWorkflowAction: jest.fn(),
     getContracts: jest.fn().mockResolvedValue({ contracts: [] }),
     formatCurrency: jest.fn(
-      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`
+      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`,
     ),
   },
 }));
@@ -132,7 +132,7 @@ describe('MatchedCandidatesView', () => {
     render(
       <BrowserRouter>
         <MatchedCandidatesView />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -144,7 +144,7 @@ describe('MatchedCandidatesView', () => {
     render(
       <BrowserRouter>
         <MatchedCandidatesView />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -156,7 +156,7 @@ describe('MatchedCandidatesView', () => {
     render(
       <BrowserRouter>
         <MatchedCandidatesView />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -171,7 +171,7 @@ describe('MatchedCandidatesView', () => {
     render(
       <BrowserRouter>
         <MatchedCandidatesView />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {

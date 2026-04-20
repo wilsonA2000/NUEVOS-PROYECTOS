@@ -99,7 +99,7 @@ describe('API Integration Tests', () => {
         } catch (error: any) {
           expect(error.response.status).toBe(400);
           expect(error.response.data.details).toHaveProperty(
-            'property_address'
+            'property_address',
           );
           expect(error.response.data.details).toHaveProperty('monthly_rent');
         }
@@ -118,7 +118,7 @@ describe('API Integration Tests', () => {
 
         const result = await LandlordContractService.updateContractDraft(
           mockContract.id,
-          updates
+          updates,
         );
 
         expect(mockPatch).toHaveBeenCalledTimes(1);
@@ -128,7 +128,7 @@ describe('API Integration Tests', () => {
 
       it('should fetch contract list with pagination', async () => {
         const contractList = Array.from({ length: 5 }, (_, i) =>
-          createMockContract('PUBLISHED', { id: `contract-${i}` })
+          createMockContract('PUBLISHED', { id: `contract-${i}` }),
         );
 
         mockGet.mockResolvedValueOnce({
@@ -145,7 +145,7 @@ describe('API Integration Tests', () => {
         const result = await LandlordContractService.getContracts(
           undefined,
           1,
-          5
+          5,
         );
 
         expect(mockGet).toHaveBeenCalledTimes(1);
@@ -268,7 +268,7 @@ describe('API Integration Tests', () => {
         mockPost.mockResolvedValueOnce({ data: initResponse });
 
         const result = await contractService.startBiometricAuthentication(
-          mockContract.id
+          mockContract.id,
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
@@ -289,7 +289,7 @@ describe('API Integration Tests', () => {
         const result = await contractService.processFaceCapture(
           mockContract.id,
           'base64-front-image',
-          'base64-side-image'
+          'base64-side-image',
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
@@ -319,7 +319,7 @@ describe('API Integration Tests', () => {
         const result = await contractService.processDocumentVerification(
           mockContract.id,
           'base64-document-image',
-          'CC'
+          'CC',
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
@@ -341,12 +341,12 @@ describe('API Integration Tests', () => {
         const result = await contractService.processVoiceVerification(
           mockContract.id,
           'base64-audio-data',
-          'Yo acepto los términos del contrato'
+          'Yo acepto los términos del contrato',
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(result.transcription).toBe(
-          'Yo acepto los términos del contrato'
+          'Yo acepto los términos del contrato',
         );
         expect(result.confidenceScore).toBe(0.89);
       });
@@ -368,7 +368,7 @@ describe('API Integration Tests', () => {
         mockPost.mockResolvedValueOnce({ data: completionResponse });
 
         const result = await contractService.completeAuthentication(
-          mockContract.id
+          mockContract.id,
         );
 
         expect(mockPost).toHaveBeenCalledTimes(1);
@@ -394,14 +394,14 @@ describe('API Integration Tests', () => {
           await contractService.processFaceCapture(
             mockContract.id,
             'img1',
-            'img2'
+            'img2',
           );
           fail('Should have thrown');
         } catch (error: any) {
           expect(error.response.status).toBe(403);
           expect(error.response.data.error).toBe('fraud_detected');
           expect(error.response.data.fraud_indicators).toContain(
-            'multiple_devices'
+            'multiple_devices',
           );
         }
       });
@@ -549,7 +549,7 @@ describe('API Integration Tests', () => {
         createMockContract('PUBLISHED', {
           id: `large-contract-${i}`,
           property_address: `Large Property ${i}`,
-        })
+        }),
       );
 
       const largeResponse = {

@@ -120,7 +120,7 @@ describe('useNotifications Hook', () => {
     });
 
     expect(mockApi.post).toHaveBeenCalledWith(
-      '/core/notifications/mark_all_read/'
+      '/core/notifications/mark_all_read/',
     );
     expect(result.current.unreadCount).toBe(0);
   });

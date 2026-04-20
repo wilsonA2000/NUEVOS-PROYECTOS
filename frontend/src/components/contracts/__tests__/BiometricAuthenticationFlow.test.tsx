@@ -29,7 +29,7 @@ jest.mock('../CameraCaptureSimple', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'camera-capture' },
-      'Camera Capture Mock'
+      'Camera Capture Mock',
     );
   };
 });
@@ -39,7 +39,7 @@ jest.mock('../EnhancedDocumentVerification', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'document-verification' },
-      'Document Verification Mock'
+      'Document Verification Mock',
     );
   };
 });
@@ -49,7 +49,7 @@ jest.mock('../VoiceRecorder', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'voice-recorder' },
-      'Voice Recorder Mock'
+      'Voice Recorder Mock',
     );
   };
 });
@@ -59,7 +59,7 @@ jest.mock('../DigitalSignaturePad', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'signature-pad' },
-      'Signature Pad Mock'
+      'Signature Pad Mock',
     );
   };
 });
@@ -77,7 +77,7 @@ const queryClient = new QueryClient({
 });
 
 const renderComponent = (
-  props: Partial<React.ComponentProps<typeof BiometricAuthenticationFlow>> = {}
+  props: Partial<React.ComponentProps<typeof BiometricAuthenticationFlow>> = {},
 ) => {
   const defaultProps = {
     open: true,
@@ -97,9 +97,9 @@ const renderComponent = (
         React.createElement(BiometricAuthenticationFlow, {
           ...defaultProps,
           ...props,
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 };
 
@@ -155,7 +155,7 @@ describe('BiometricAuthenticationFlow', () => {
       const allText = document.body.textContent || '';
       const hasSteps = stepLabels.some(label => allText.includes(label));
       expect(
-        hasSteps || allText.includes('Paso') || allText.includes('Step')
+        hasSteps || allText.includes('Paso') || allText.includes('Step'),
       ).toBeTruthy();
     });
   });
@@ -165,7 +165,7 @@ describe('BiometricAuthenticationFlow', () => {
 
     await waitFor(() => {
       expect(
-        mockedContractService.startBiometricAuthentication
+        mockedContractService.startBiometricAuthentication,
       ).toHaveBeenCalledWith('contract-123');
     });
   });
@@ -185,7 +185,7 @@ describe('BiometricAuthenticationFlow', () => {
       btn =>
         btn.getAttribute('aria-label') === 'close' ||
         btn.textContent?.includes('Cancelar') ||
-        btn.textContent?.includes('Cerrar')
+        btn.textContent?.includes('Cerrar'),
     );
 
     if (closeButton) {
@@ -196,7 +196,7 @@ describe('BiometricAuthenticationFlow', () => {
 
   it('should show error state when authentication start fails', async () => {
     mockedContractService.startBiometricAuthentication.mockRejectedValueOnce(
-      new Error('Failed to start authentication')
+      new Error('Failed to start authentication'),
     );
 
     renderComponent();
@@ -208,7 +208,7 @@ describe('BiometricAuthenticationFlow', () => {
         allText.includes('error') ||
           allText.includes('Error') ||
           allText.includes('falló') ||
-          allText.includes('intentar')
+          allText.includes('intentar'),
       ).toBeTruthy();
     });
   });
@@ -216,7 +216,7 @@ describe('BiometricAuthenticationFlow', () => {
   it('should call onError when authentication fails', async () => {
     const onError = jest.fn();
     mockedContractService.startBiometricAuthentication.mockRejectedValueOnce(
-      new Error('Auth failed')
+      new Error('Auth failed'),
     );
 
     renderComponent({ onError });
@@ -231,14 +231,14 @@ describe('BiometricAuthenticationFlow', () => {
 
     await waitFor(() => {
       expect(
-        mockedContractService.startBiometricAuthentication
+        mockedContractService.startBiometricAuthentication,
       ).toHaveBeenCalledWith('custom-contract-id');
     });
   });
 
   it('should show loading state while initializing', () => {
     mockedContractService.startBiometricAuthentication.mockImplementation(
-      () => new Promise(() => {}) // Never resolves
+      () => new Promise(() => {}), // Never resolves
     );
 
     renderComponent();

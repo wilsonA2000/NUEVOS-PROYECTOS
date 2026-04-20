@@ -653,7 +653,7 @@ const NewDashboard: React.FC = () => {
             </Typography>
             <Typography variant='body1' color='textSecondary'>
               Bienvenido, {user?.first_name} -{' '}
-              {format(new Date(), 'EEEE dd \'de\' MMMM', { locale: es })}
+              {format(new Date(), "EEEE dd 'de' MMMM", { locale: es })}
             </Typography>
           </Box>
           <Box display='flex' gap={2}>

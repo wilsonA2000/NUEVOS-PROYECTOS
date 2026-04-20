@@ -106,7 +106,7 @@ jest.mock('date-fns', () => ({
   format: jest.fn(() => '01/01/2026'),
   addMonths: jest.fn(
     (date: Date, months: number) =>
-      new Date(date.getTime() + months * 30 * 86400000)
+      new Date(date.getTime() + months * 30 * 86400000),
   ),
   differenceInMonths: jest.fn(() => 12),
 }));
@@ -189,7 +189,7 @@ const defaultAuthValue = {
 };
 
 const renderComponent = (
-  props: Partial<React.ComponentProps<typeof LandlordContractForm>> = {}
+  props: Partial<React.ComponentProps<typeof LandlordContractForm>> = {},
 ) => {
   const queryClient = createQueryClient();
 
@@ -200,7 +200,7 @@ const renderComponent = (
           <LandlordContractForm {...props} />
         </ThemeProvider>
       </BrowserRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
@@ -231,7 +231,7 @@ describe('LandlordContractForm', () => {
   it('should render loading state when contract data is being fetched', async () => {
     // Simulate edit mode with a contractId so loadContractData triggers loading
     mockedLandlordContractService.getContracts.mockImplementation(
-      () => new Promise(() => {}) // Never resolves to keep loading active
+      () => new Promise(() => {}), // Never resolves to keep loading active
     );
 
     renderComponent({ isEdit: true, contractId: 'contract-edit-123' });
@@ -239,7 +239,7 @@ describe('LandlordContractForm', () => {
     // The component shows LinearProgress with "Cargando..." text while loading
     await waitFor(() => {
       expect(
-        screen.getByText(/Cargando información del contrato/i)
+        screen.getByText(/Cargando información del contrato/i),
       ).toBeInTheDocument();
     });
   });
@@ -432,7 +432,7 @@ describe('LandlordContractForm', () => {
       current_state: 'DRAFT',
     };
     mockedLandlordContractService.createContractDraft.mockResolvedValue(
-      mockResult as any
+      mockResult as any,
     );
 
     const onSuccess = jest.fn();
@@ -451,7 +451,7 @@ describe('LandlordContractForm', () => {
   // -----------------------------------------------------------------------
   it('should display error messages when contract creation fails', async () => {
     mockedLandlordContractService.createContractDraft.mockRejectedValue(
-      new Error('Error de servidor al crear el contrato')
+      new Error('Error de servidor al crear el contrato'),
     );
 
     renderComponent();

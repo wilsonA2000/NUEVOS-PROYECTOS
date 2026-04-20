@@ -29,7 +29,7 @@ jest.mock('../../../components/common/LoadingSpinner', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'loading-spinner' },
-      props.message || 'Loading...'
+      props.message || 'Loading...',
     );
   };
 });
@@ -61,10 +61,10 @@ const renderComponent = () => {
         React.createElement(
           ThemeProvider,
           { theme },
-          React.createElement(AdminDashboard)
-        )
-      )
-    )
+          React.createElement(AdminDashboard),
+        ),
+      ),
+    ),
   );
 };
 
@@ -125,13 +125,13 @@ describe('AdminDashboard', () => {
     });
     mockedAdminService.getContractStats.mockResolvedValue(mockStats);
     mockedAdminService.getPendingContracts.mockResolvedValue(
-      mockPendingContracts
+      mockPendingContracts,
     );
   });
 
   it('should show loading spinner while fetching data', () => {
     mockedAdminService.getContractStats.mockImplementation(
-      () => new Promise(() => {}) // Never resolves
+      () => new Promise(() => {}), // Never resolves
     );
 
     renderComponent();
@@ -144,7 +144,7 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Dashboard de Administraci/i)
+        screen.getByText(/Dashboard de Administraci/i),
       ).toBeInTheDocument();
     });
   });
@@ -191,18 +191,18 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Dashboard de Administraci/i)
+        screen.getByText(/Dashboard de Administraci/i),
       ).toBeInTheDocument();
     });
 
     expect(
-      screen.queryByText(/contrato\(s\) llevan m/i)
+      screen.queryByText(/contrato\(s\) llevan m/i),
     ).not.toBeInTheDocument();
   });
 
   it('should display error alert when stats fetch fails', async () => {
     mockedAdminService.getContractStats.mockRejectedValue(
-      new Error('Server error')
+      new Error('Server error'),
     );
 
     renderComponent();
@@ -219,7 +219,7 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/No hay contratos pendientes/i)
+        screen.getByText(/No hay contratos pendientes/i),
       ).toBeInTheDocument();
     });
   });

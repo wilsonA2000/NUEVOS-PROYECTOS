@@ -49,7 +49,7 @@ describe('ProtectedRoute', () => {
         <ProtectedRoute>
           <TestChild />
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -72,13 +72,13 @@ describe('ProtectedRoute', () => {
         <ProtectedRoute>
           <TestChild />
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       '/',
       { from: expect.any(Object) },
-      true
+      true,
     );
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
   });
@@ -105,7 +105,7 @@ describe('ProtectedRoute', () => {
         <ProtectedRoute>
           <TestChild />
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -128,13 +128,13 @@ describe('ProtectedRoute', () => {
         <ProtectedRoute>
           <TestChild />
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       '/',
       { from: expect.objectContaining({ pathname: '/dashboard' }) },
-      true
+      true,
     );
   });
 });

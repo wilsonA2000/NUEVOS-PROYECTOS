@@ -15,7 +15,7 @@ export const handlers = [
       {
         user_id: 1,
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -100,14 +100,14 @@ export const handlers = [
       properties = properties.filter(
         property =>
           property.title.toLowerCase().includes(search.toLowerCase()) ||
-          property.description.toLowerCase().includes(search.toLowerCase())
+          property.description.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
     // Filter by property type
     if (propertyType) {
       properties = properties.filter(
-        property => property.property_type === propertyType
+        property => property.property_type === propertyType,
       );
     }
 
@@ -155,7 +155,7 @@ export const handlers = [
 
     return HttpResponse.json(
       { detail: 'Propiedad no encontrada' },
-      { status: 404 }
+      { status: 404 },
     );
   }),
 
@@ -175,7 +175,7 @@ export const handlers = [
         created_at: '2025-01-03T00:00:00Z',
         updated_at: '2025-01-03T00:00:00Z',
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -247,7 +247,7 @@ export const handlers = [
         content: 'Estoy interesado en esta propiedad',
         created_at: new Date().toISOString(),
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -283,7 +283,7 @@ export const handlers = [
         status: 'pending',
         created_at: new Date().toISOString(),
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -316,7 +316,7 @@ export const handlers = [
         status: 'pending',
         created_at: new Date().toISOString(),
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 
@@ -324,7 +324,7 @@ export const handlers = [
   http.post('/api/v1/auth/login/error', () => {
     return HttpResponse.json(
       { detail: 'Credenciales inválidas' },
-      { status: 401 }
+      { status: 401 },
     );
   }),
 
@@ -340,21 +340,21 @@ export const handlers = [
 
 // Export individual handlers for test customization
 export const authHandlers = handlers.filter(handler =>
-  handler.info.path?.includes('/auth/')
+  handler.info.path?.includes('/auth/'),
 );
 
 export const propertyHandlers = handlers.filter(handler =>
-  handler.info.path?.includes('/properties/')
+  handler.info.path?.includes('/properties/'),
 );
 
 export const messageHandlers = handlers.filter(handler =>
-  handler.info.path?.includes('/messages/')
+  handler.info.path?.includes('/messages/'),
 );
 
 export const contractHandlers = handlers.filter(handler =>
-  handler.info.path?.includes('/contracts/')
+  handler.info.path?.includes('/contracts/'),
 );
 
 export const paymentHandlers = handlers.filter(handler =>
-  handler.info.path?.includes('/payments/')
+  handler.info.path?.includes('/payments/'),
 );

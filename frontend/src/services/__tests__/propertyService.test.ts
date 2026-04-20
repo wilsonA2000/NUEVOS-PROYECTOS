@@ -94,7 +94,7 @@ describe('PropertyService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
 
       await expect(propertyService.getProperties()).rejects.toThrow(
-        'API Error'
+        'API Error',
       );
     });
   });
@@ -115,13 +115,13 @@ describe('PropertyService', () => {
       mockedApi.post.mockResolvedValueOnce({ data: mockProperty });
 
       const result = await propertyService.createProperty(
-        mockCreatePropertyDto
+        mockCreatePropertyDto,
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/properties/',
         mockCreatePropertyDto,
-        undefined
+        undefined,
       );
       expect(result).toEqual(mockProperty);
     });
@@ -146,7 +146,7 @@ describe('PropertyService', () => {
       mockedApi.post.mockRejectedValueOnce(mockError);
 
       await expect(
-        propertyService.createProperty(mockCreatePropertyDto)
+        propertyService.createProperty(mockCreatePropertyDto),
       ).rejects.toThrow('Validation failed');
     });
   });
@@ -163,7 +163,7 @@ describe('PropertyService', () => {
       expect(mockedApi.put).toHaveBeenCalledWith(
         '/properties/1/',
         { title: 'Updated Apartment' },
-        undefined
+        undefined,
       );
       expect(result).toEqual(updatedProperty);
     });
@@ -249,7 +249,7 @@ describe('PropertyService', () => {
       const result = await propertyService.toggleFavorite('1');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/properties/1/toggle-favorite/'
+        '/properties/1/toggle-favorite/',
       );
       expect(result).toEqual({ message: 'Added to favorites' });
     });
@@ -316,7 +316,7 @@ describe('PropertyService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/properties/1/contact-landlord/',
-        contactData
+        contactData,
       );
       expect(result).toEqual({ message: 'Message sent' });
     });

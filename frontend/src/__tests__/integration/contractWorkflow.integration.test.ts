@@ -165,7 +165,7 @@ describe('Contract Workflow Integration Tests', () => {
         {
           contract_id: baseContractId,
           signature_data: signatureData.signature_image,
-        }
+        },
       );
 
       expect(signedContract.current_state).toBe('FULLY_SIGNED');
@@ -335,7 +335,7 @@ describe('Contract Workflow Integration Tests', () => {
       const faceResult = await contractService.processFaceCapture(
         baseContractId,
         'front',
-        'side'
+        'side',
       );
       expect(faceResult.confidenceScore).toBe(0.95);
 
@@ -355,7 +355,7 @@ describe('Contract Workflow Integration Tests', () => {
       const docResult = await contractService.processDocumentVerification(
         baseContractId,
         'doc-img',
-        'CC'
+        'CC',
       );
       expect(docResult.extractedData.fullName).toBe('ANA MARIA GONZALEZ');
 
@@ -372,7 +372,7 @@ describe('Contract Workflow Integration Tests', () => {
       const voiceResult = await contractService.processVoiceVerification(
         baseContractId,
         'voice-data',
-        'Acepto los términos'
+        'Acepto los términos',
       );
       expect(voiceResult.confidenceScore).toBe(0.89);
 
@@ -562,7 +562,7 @@ describe('Contract Workflow Integration Tests', () => {
         createMockContract('PUBLISHED', {
           id: `contract-${index}`,
           property_address: `Propiedad ${index}`,
-        })
+        }),
       );
 
       mockGet.mockResolvedValueOnce({

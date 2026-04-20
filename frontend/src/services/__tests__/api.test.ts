@@ -92,7 +92,7 @@ describe('API Configuration', () => {
                 endpoint,
                 message: 'Necesitas iniciar sesión para acceder a este recurso',
               },
-            })
+            }),
           );
 
           return {
@@ -109,7 +109,7 @@ describe('API Configuration', () => {
       },
       error => {
         return Promise.reject(error);
-      }
+      },
     );
 
     // Add response interceptor matching the real module
@@ -126,7 +126,7 @@ describe('API Configuration', () => {
               response: response,
               isAxiosError: true,
               toJSON: () => ({}),
-            }
+            },
           );
           return Promise.reject(error);
         }
@@ -135,13 +135,13 @@ describe('API Configuration', () => {
       error => {
         if (error.code === 'ECONNABORTED') {
           return Promise.reject(
-            new Error('La petición tardó demasiado tiempo')
+            new Error('La petición tardó demasiado tiempo'),
           );
         }
 
         if (!error.response) {
           return Promise.reject(
-            new Error('No se pudo conectar con el servidor')
+            new Error('No se pudo conectar con el servidor'),
           );
         }
 
@@ -156,7 +156,7 @@ describe('API Configuration', () => {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   });
 
@@ -420,7 +420,7 @@ describe('API Configuration', () => {
       }
 
       const tokenInvalidCall = dispatchEventSpy.mock.calls.find(
-        (call: any[]) => call[0]?.type === 'tokenInvalid'
+        (call: any[]) => call[0]?.type === 'tokenInvalid',
       );
       expect(tokenInvalidCall).toBeDefined();
     });

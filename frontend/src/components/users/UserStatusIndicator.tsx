@@ -55,7 +55,7 @@ interface UserStatusIndicatorProps {
   onClick?: (userStatus: UserStatus) => void;
   /** Status change handler */
   onStatusChange?: (
-    newStatus: Partial<Pick<UserStatus, 'status' | 'customMessage'>>
+    newStatus: Partial<Pick<UserStatus, 'status' | 'customMessage'>>,
   ) => void;
   /** Loading state */
   isLoading?: boolean;

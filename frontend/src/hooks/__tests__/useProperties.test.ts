@@ -238,7 +238,7 @@ describe('useProperties Hook', () => {
   it('should handle property update via mutation', async () => {
     const updatedProperty = { ...mockProperties[0], title: 'Updated Title' };
     mockPropertyService.updateProperty.mockResolvedValue(
-      updatedProperty as any
+      updatedProperty as any,
     );
     mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
 
@@ -283,7 +283,7 @@ describe('useProperties Hook', () => {
   it('should handle search properties via mutation', async () => {
     const searchResults = [mockProperties[0]];
     mockPropertyService.searchProperties.mockResolvedValue(
-      searchResults as any
+      searchResults as any,
     );
     mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
 
@@ -325,7 +325,7 @@ describe('useProperties Hook', () => {
 
   it('should handle error state when fetching fails', async () => {
     mockPropertyService.getProperties.mockRejectedValue(
-      new Error('Failed to fetch')
+      new Error('Failed to fetch'),
     );
 
     const { result } = renderHook(() => useProperties(), {
@@ -340,7 +340,7 @@ describe('useProperties Hook', () => {
 
   it('should handle creation error', async () => {
     mockPropertyService.createProperty.mockRejectedValue(
-      new Error('Creation failed')
+      new Error('Creation failed'),
     );
     mockPropertyService.getProperties.mockResolvedValue(mockProperties as any);
 
@@ -410,7 +410,7 @@ describe('useFeaturedProperties Hook', () => {
   it('should fetch featured properties', async () => {
     const featured = [{ id: '1', title: 'Featured', status: 'available' }];
     mockPropertyService.getFeaturedProperties.mockResolvedValue(
-      featured as any
+      featured as any,
     );
 
     const { result } = renderHook(() => useFeaturedProperties(), {

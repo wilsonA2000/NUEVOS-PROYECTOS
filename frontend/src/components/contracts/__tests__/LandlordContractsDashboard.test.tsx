@@ -51,7 +51,7 @@ jest.mock('../../common/LoadingSpinner', () => ({
     React.createElement(
       'div',
       { 'data-testid': 'loading-spinner' },
-      props.message || 'Loading...'
+      props.message || 'Loading...',
     ),
 }));
 
@@ -70,8 +70,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(LandlordContractsDashboard)
-    )
+      React.createElement(LandlordContractsDashboard),
+    ),
   );
 };
 
@@ -149,7 +149,7 @@ describe('LandlordContractsDashboard', () => {
       expect(screen.getAllByText('Propiedad').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText(/Estado/).length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('Arrendatario').length).toBeGreaterThanOrEqual(
-        1
+        1,
       );
       expect(screen.getAllByText('Canon').length).toBeGreaterThanOrEqual(1);
     });
@@ -170,7 +170,7 @@ describe('LandlordContractsDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Error al cargar dashboard/i)
+        screen.getByText(/Error al cargar dashboard/i),
       ).toBeInTheDocument();
     });
   });
@@ -205,7 +205,7 @@ describe('LandlordContractsDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/No hay contratos en esta categoría/i)
+        screen.getByText(/No hay contratos en esta categoría/i),
       ).toBeInTheDocument();
     });
   });
@@ -215,7 +215,7 @@ describe('LandlordContractsDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByPlaceholderText(/Buscar por dirección/i)
+        screen.getByPlaceholderText(/Buscar por dirección/i),
       ).toBeInTheDocument();
     });
   });

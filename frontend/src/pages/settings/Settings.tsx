@@ -38,11 +38,7 @@ const Settings: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm<UserSettings>({
+  const { control, handleSubmit, reset } = useForm<UserSettings>({
     defaultValues: {
       notifications: {
         email_notifications: true,

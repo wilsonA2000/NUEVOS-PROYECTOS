@@ -39,14 +39,14 @@ const defaultProps = {
 };
 
 const renderComponent = (
-  props: Partial<React.ComponentProps<typeof ChatWindow>> = {}
+  props: Partial<React.ComponentProps<typeof ChatWindow>> = {},
 ) => {
   return render(
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(ChatWindow, { ...defaultProps, ...props })
-    )
+      React.createElement(ChatWindow, { ...defaultProps, ...props }),
+    ),
   );
 };
 
@@ -75,7 +75,7 @@ describe('ChatWindow', () => {
 
     // The component has hardcoded initial messages
     expect(
-      screen.getByText(/me interesa conocer más detalles/i)
+      screen.getByText(/me interesa conocer más detalles/i),
     ).toBeInTheDocument();
   });
 
@@ -127,7 +127,7 @@ describe('ChatWindow', () => {
       allText.includes('Desconectado') ||
         allText.includes('Sin conexión') ||
         allText.includes('offline') ||
-        document.body.innerHTML.includes('CircleIcon')
+        document.body.innerHTML.includes('CircleIcon'),
     ).toBeTruthy();
   });
 

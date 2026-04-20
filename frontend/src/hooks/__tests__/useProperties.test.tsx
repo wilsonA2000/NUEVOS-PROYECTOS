@@ -154,7 +154,7 @@ describe('useProperties Hook', () => {
   describe('useProperties', () => {
     it('should fetch properties successfully', async () => {
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -220,7 +220,7 @@ describe('useProperties Hook', () => {
       };
       mockPropertyService.createProperty.mockResolvedValue(newProperty as any);
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -239,10 +239,10 @@ describe('useProperties Hook', () => {
 
     it('should handle property creation error', async () => {
       mockPropertyService.createProperty.mockRejectedValue(
-        new Error('Failed to create property')
+        new Error('Failed to create property'),
       );
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -263,10 +263,10 @@ describe('useProperties Hook', () => {
     it('should handle property update', async () => {
       const updatedProperty = { ...mockProperties[0], title: 'Updated Title' };
       mockPropertyService.updateProperty.mockResolvedValue(
-        updatedProperty as any
+        updatedProperty as any,
       );
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -288,7 +288,7 @@ describe('useProperties Hook', () => {
     it('should handle property deletion', async () => {
       mockPropertyService.deleteProperty.mockResolvedValue(undefined as any);
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -305,10 +305,10 @@ describe('useProperties Hook', () => {
     it('should handle property search', async () => {
       const searchResults = [mockProperties[0]];
       mockPropertyService.searchProperties.mockResolvedValue(
-        searchResults as any
+        searchResults as any,
       );
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -329,7 +329,7 @@ describe('useProperties Hook', () => {
         message: 'Added to favorites',
       } as any);
       mockPropertyService.getProperties.mockResolvedValue(
-        mockProperties as any
+        mockProperties as any,
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -345,7 +345,7 @@ describe('useProperties Hook', () => {
 
     it('should handle error state', async () => {
       mockPropertyService.getProperties.mockRejectedValue(
-        new Error('Failed to fetch properties')
+        new Error('Failed to fetch properties'),
       );
 
       const { result } = renderHook(() => useProperties(), {
@@ -362,7 +362,7 @@ describe('useProperties Hook', () => {
   describe('useProperty', () => {
     it('should fetch single property successfully', async () => {
       mockPropertyService.getProperty.mockResolvedValue(
-        mockProperties[0] as any
+        mockProperties[0] as any,
       );
 
       const { result } = renderHook(() => useProperty('1'), {
@@ -388,7 +388,7 @@ describe('useProperties Hook', () => {
 
     it('should handle single property error', async () => {
       mockPropertyService.getProperty.mockRejectedValue(
-        new Error('Property not found')
+        new Error('Property not found'),
       );
 
       const { result } = renderHook(() => useProperty('999'), {
@@ -406,7 +406,7 @@ describe('useProperties Hook', () => {
     it('should fetch featured properties successfully', async () => {
       const featuredProperties = [mockProperties[0]];
       mockPropertyService.getFeaturedProperties.mockResolvedValue(
-        featuredProperties as any
+        featuredProperties as any,
       );
 
       const { result } = renderHook(() => useFeaturedProperties(), {
@@ -423,7 +423,7 @@ describe('useProperties Hook', () => {
 
     it('should handle featured properties error', async () => {
       mockPropertyService.getFeaturedProperties.mockRejectedValue(
-        new Error('Failed to fetch featured')
+        new Error('Failed to fetch featured'),
       );
 
       const { result } = renderHook(() => useFeaturedProperties(), {

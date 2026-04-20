@@ -53,9 +53,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(AdminMaintenance)
-      )
-    )
+        React.createElement(AdminMaintenance),
+      ),
+    ),
   );
 };
 
@@ -86,7 +86,7 @@ describe('AdminMaintenance', () => {
 
     expect(screen.getByText('Mantenimiento del Sistema')).toBeInTheDocument();
     expect(
-      screen.getByText(/Operaciones de mantenimiento/i)
+      screen.getByText(/Operaciones de mantenimiento/i),
     ).toBeInTheDocument();
   });
 
@@ -177,7 +177,7 @@ describe('AdminMaintenance', () => {
     // Dialog should close (MUI Dialog may animate out)
     await waitFor(() => {
       expect(
-        screen.queryByText(/Se eliminaran los logs/i)
+        screen.queryByText(/Se eliminaran los logs/i),
       ).not.toBeInTheDocument();
     });
   });
@@ -197,13 +197,13 @@ describe('AdminMaintenance', () => {
 
     await waitFor(() => {
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/core/maintenance/clear-logs/'
+        '/core/maintenance/clear-logs/',
       );
     });
 
     await waitFor(() => {
       expect(
-        screen.getByText('Logs limpiados exitosamente')
+        screen.getByText('Logs limpiados exitosamente'),
       ).toBeInTheDocument();
     });
   });
@@ -224,7 +224,7 @@ describe('AdminMaintenance', () => {
     fireEvent.click(sessionButton);
 
     expect(
-      screen.getByText(/Se cerraran todas las sesiones/i)
+      screen.getByText(/Se cerraran todas las sesiones/i),
     ).toBeInTheDocument();
   });
 
@@ -239,7 +239,7 @@ describe('AdminMaintenance', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Error de conexion a la base de datos')
+        screen.getByText('Error de conexion a la base de datos'),
       ).toBeInTheDocument();
     });
   });
@@ -257,7 +257,7 @@ describe('AdminMaintenance', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Operacion completada exitosamente')
+        screen.getByText('Operacion completada exitosamente'),
       ).toBeInTheDocument();
     });
   });

@@ -219,7 +219,11 @@ export const PaymentTable: React.FC = () => {
   const handleDelete = async (paymentId: number) => {
     const confirmed = await confirm(
       '¿Estás seguro de que quieres eliminar este pago?',
-      { title: 'Eliminar pago', confirmText: 'Eliminar', confirmColor: 'error' },
+      {
+        title: 'Eliminar pago',
+        confirmText: 'Eliminar',
+        confirmColor: 'error',
+      },
     );
     if (confirmed) {
       await deletePayment.mutateAsync(paymentId.toString());

@@ -23,7 +23,7 @@ jest.mock('../../services/matchingService', () => ({
     formatCurrency: jest
       .fn()
       .mockImplementation((amount: number | null) =>
-        amount ? `$${amount.toLocaleString()}` : '$0'
+        amount ? `$${amount.toLocaleString()}` : '$0',
       ),
     calculateDaysUntilExpiry: jest.fn().mockReturnValue(5),
     isMatchExpiringSoon: jest.fn().mockReturnValue(false),
@@ -46,7 +46,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return React.createElement(
     QueryClientProvider,
     { client: queryClient },
-    children
+    children,
   );
 };
 

@@ -31,7 +31,7 @@ jest.mock('../../../components/common/LoadingSpinner', () => {
     return React.createElement(
       'div',
       { 'data-testid': 'loading-spinner' },
-      props.message || 'Loading...'
+      props.message || 'Loading...',
     );
   };
 });
@@ -47,13 +47,13 @@ jest.mock('../../../components/admin/ContractApprovalModal', () => {
       React.createElement(
         'button',
         { onClick: () => props.onConfirm({ notes: 'Aprobado' }) },
-        'Confirmar Aprobacion'
+        'Confirmar Aprobacion',
       ),
       React.createElement(
         'button',
         { onClick: props.onClose },
-        'Cancelar Aprobacion'
-      )
+        'Cancelar Aprobacion',
+      ),
     );
   };
 });
@@ -75,13 +75,13 @@ jest.mock('../../../components/admin/ContractRejectionModal', () => {
               requires_resubmission: true,
             }),
         },
-        'Confirmar Rechazo'
+        'Confirmar Rechazo',
       ),
       React.createElement(
         'button',
         { onClick: props.onClose },
-        'Cancelar Rechazo'
-      )
+        'Cancelar Rechazo',
+      ),
     );
   };
 });
@@ -166,7 +166,7 @@ const mockAdminPermissions = {
 
 const renderComponent = (
   contractId = 'contract-abc-123',
-  searchParams = ''
+  searchParams = '',
 ) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -194,11 +194,11 @@ const renderComponent = (
             React.createElement(Route, {
               path: '/app/admin/contracts/:contractId/review',
               element: React.createElement(AdminContractReview),
-            })
-          )
-        )
-      )
-    )
+            }),
+          ),
+        ),
+      ),
+    ),
   );
 };
 
@@ -216,7 +216,7 @@ describe('AdminContractReview', () => {
       adminPermissions: mockAdminPermissions,
     });
     mockedAdminService.getContractForReview.mockResolvedValue(
-      mockContract as any
+      mockContract as any,
     );
     mockedAdminService.approveContract.mockResolvedValue({
       success: true,
@@ -232,14 +232,14 @@ describe('AdminContractReview', () => {
 
   it('should show loading spinner while fetching contract data', () => {
     mockedAdminService.getContractForReview.mockImplementation(
-      () => new Promise(() => {}) // Never resolves
+      () => new Promise(() => {}), // Never resolves
     );
 
     renderComponent();
 
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     expect(
-      screen.getByText(/Cargando detalles del contrato/i)
+      screen.getByText(/Cargando detalles del contrato/i),
     ).toBeInTheDocument();
   });
 
@@ -278,7 +278,7 @@ describe('AdminContractReview', () => {
     await waitFor(() => {
       expect(screen.getByTestId('approval-modal')).toBeInTheDocument();
       expect(
-        screen.getByText(/Aprobar: Apartamento Centro Bogota/)
+        screen.getByText(/Aprobar: Apartamento Centro Bogota/),
       ).toBeInTheDocument();
     });
   });
@@ -299,7 +299,7 @@ describe('AdminContractReview', () => {
     await waitFor(() => {
       expect(screen.getByTestId('rejection-modal')).toBeInTheDocument();
       expect(
-        screen.getByText(/Rechazar: Apartamento Centro Bogota/)
+        screen.getByText(/Rechazar: Apartamento Centro Bogota/),
       ).toBeInTheDocument();
     });
   });
@@ -334,7 +334,7 @@ describe('AdminContractReview', () => {
     // Landlord info
     expect(screen.getByText('Carlos Gomez')).toBeInTheDocument();
     expect(
-      screen.getAllByText('carlos@example.com').length
+      screen.getAllByText('carlos@example.com').length,
     ).toBeGreaterThanOrEqual(1);
 
     // Tenant info
@@ -386,14 +386,14 @@ describe('AdminContractReview', () => {
 
   it('should display error state when contract is not found', async () => {
     mockedAdminService.getContractForReview.mockRejectedValue(
-      new Error('No encontrado')
+      new Error('No encontrado'),
     );
 
     renderComponent();
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Error al cargar el contrato/i)
+        screen.getByText(/Error al cargar el contrato/i),
       ).toBeInTheDocument();
     });
 
@@ -437,7 +437,7 @@ describe('AdminContractReview', () => {
     });
 
     expect(
-      screen.getByText(/lleva m\u00e1s de 7 d\u00edas pendiente/i)
+      screen.getByText(/lleva m\u00e1s de 7 d\u00edas pendiente/i),
     ).toBeInTheDocument();
   });
 

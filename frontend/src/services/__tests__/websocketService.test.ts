@@ -246,7 +246,7 @@ class WebSocketService {
 
   getConnectedEndpoints(): string[] {
     return Array.from(this.connections.keys()).filter(endpoint =>
-      this.isConnected(endpoint)
+      this.isConnected(endpoint),
     );
   }
 
@@ -369,7 +369,7 @@ describe('WebSocketService', () => {
     it('should create a WebSocket connection with token', async () => {
       const connectPromise = websocketService.connect(
         'messaging',
-        'test-token'
+        'test-token',
       );
       const ws = wsInstances[wsInstances.length - 1];
 
@@ -386,7 +386,7 @@ describe('WebSocketService', () => {
     it('should resolve immediately if already connected', async () => {
       const connectPromise1 = websocketService.connect(
         'messaging',
-        'test-token'
+        'test-token',
       );
       const ws = wsInstances[wsInstances.length - 1];
       ws.simulateOpen();
@@ -402,27 +402,27 @@ describe('WebSocketService', () => {
     it('should reject when no auth token is available', async () => {
       localStorageMock.getItem.mockReturnValue(null);
       await expect(websocketService.connect('messaging')).rejects.toThrow(
-        'No authentication token available'
+        'No authentication token available',
       );
     });
 
     it('should reject on WebSocket error', async () => {
       const connectPromise = websocketService.connect(
         'messaging',
-        'test-token'
+        'test-token',
       );
       const ws = wsInstances[wsInstances.length - 1];
       ws.simulateError();
 
       await expect(connectPromise).rejects.toThrow(
-        'WebSocket error on messaging'
+        'WebSocket error on messaging',
       );
     });
 
     it('should update connection status to connecting then connected', async () => {
       const connectPromise = websocketService.connect(
         'messaging',
-        'test-token'
+        'test-token',
       );
 
       // Should be in connecting state
@@ -461,7 +461,7 @@ describe('WebSocketService', () => {
       localStorageMock.getItem.mockReturnValue(null);
 
       await expect(
-        websocketService.connectAuthenticated('notifications')
+        websocketService.connectAuthenticated('notifications'),
       ).rejects.toThrow('User not authenticated');
     });
   });
@@ -536,7 +536,7 @@ describe('WebSocketService', () => {
         expect.objectContaining({
           type: 'message.new',
           data: { text: 'Hello' },
-        })
+        }),
       );
     });
 

@@ -24,7 +24,7 @@ jest.mock('../../../services/landlordContractService', () => ({
 const theme = createTheme();
 
 const renderComponent = (
-  props: Partial<React.ComponentProps<typeof ContractDraftEditor>> = {}
+  props: Partial<React.ComponentProps<typeof ContractDraftEditor>> = {},
 ) => {
   const defaultProps = {
     contractId: 'draft-001',
@@ -37,8 +37,8 @@ const renderComponent = (
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(ContractDraftEditor, { ...defaultProps, ...props })
-    )
+      React.createElement(ContractDraftEditor, { ...defaultProps, ...props }),
+    ),
   );
 };
 
@@ -105,7 +105,7 @@ describe('ContractDraftEditor', () => {
         allText.includes('Arrendador') ||
           allText.includes('Propiedad') ||
           allText.includes('Económic') ||
-          allText.includes('Paso')
+          allText.includes('Paso'),
       ).toBeTruthy();
     });
   });
@@ -119,7 +119,7 @@ describe('ContractDraftEditor', () => {
       expect(
         allText.includes('Error') ||
           allText.includes('error') ||
-          allText.includes('cargar')
+          allText.includes('cargar'),
       ).toBeTruthy();
     });
   });
@@ -138,7 +138,7 @@ describe('ContractDraftEditor', () => {
       btn =>
         btn.textContent?.includes('Cancelar') ||
         btn.textContent?.includes('Cerrar') ||
-        btn.getAttribute('aria-label') === 'close'
+        btn.getAttribute('aria-label') === 'close',
     );
 
     if (cancelButton) {

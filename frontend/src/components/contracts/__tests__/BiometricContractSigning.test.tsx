@@ -90,7 +90,7 @@ describe('BiometricContractSigning', () => {
     render(
       <TestWrapper>
         <BiometricContractSigning {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // The component should render without crashing
@@ -101,12 +101,12 @@ describe('BiometricContractSigning', () => {
     render(
       <TestWrapper>
         <BiometricContractSigning {...defaultProps} open={false} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // When closed, the dialog content should not be visible
     expect(
-      screen.queryByText('Firma Digital con Verificación Biométrica')
+      screen.queryByText('Firma Digital con Verificación Biométrica'),
     ).not.toBeInTheDocument();
   });
 
@@ -114,7 +114,7 @@ describe('BiometricContractSigning', () => {
     render(
       <TestWrapper>
         <BiometricContractSigning {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Component should have rendered
@@ -128,7 +128,7 @@ describe('BiometricContractSigning', () => {
           {...defaultProps}
           contractId='different-contract'
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(document.body).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('BiometricContractSigning', () => {
     render(
       <TestWrapper>
         <BiometricContractSigning {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Should not crash even when API fails

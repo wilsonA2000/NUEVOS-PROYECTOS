@@ -169,7 +169,7 @@ describe('useMessages Hook', () => {
 
     expect(mockMessageService.createMessage).toHaveBeenCalled();
     expect(mockMessageService.createMessage.mock.calls[0][0]).toEqual(
-      newMessage
+      newMessage,
     );
   });
 
@@ -305,7 +305,7 @@ describe('useMessages Hook', () => {
 
   it('should handle message creation error', async () => {
     mockMessageService.createMessage.mockRejectedValue(
-      new Error('Send failed')
+      new Error('Send failed'),
     );
 
     const { result } = renderHook(() => useMessages(), {

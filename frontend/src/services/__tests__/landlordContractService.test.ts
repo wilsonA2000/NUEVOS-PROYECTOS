@@ -80,7 +80,7 @@ describe('LandlordContractService', () => {
             monthly_rent: 2500000,
             duration_months: 12,
           }),
-        })
+        }),
       );
       expect(result).toEqual(mockContract);
     });
@@ -110,7 +110,7 @@ describe('LandlordContractService', () => {
             monthly_rent: 3000000,
             duration_months: 24,
           }),
-        })
+        }),
       );
     });
   });
@@ -135,7 +135,7 @@ describe('LandlordContractService', () => {
         expect.objectContaining({
           property: 'prop-456',
           pets_allowed: true,
-        })
+        }),
       );
       expect(result).toEqual(mockContract);
     });
@@ -152,14 +152,14 @@ describe('LandlordContractService', () => {
         'contract-123',
         {
           monthly_rent: 2800000,
-        } as any
+        } as any,
       );
 
       expect(mockedApi.patch).toHaveBeenCalledWith(
         '/contracts/landlord/contracts/contract-123/',
         {
           monthly_rent: 2800000,
-        }
+        },
       );
       expect(result.monthly_rent).toBe(2800000);
     });
@@ -178,11 +178,11 @@ describe('LandlordContractService', () => {
       const result = await LandlordContractService.getLandlordContracts(
         undefined,
         1,
-        10
+        10,
       );
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        expect.stringContaining('/contracts/landlord/contracts/')
+        expect.stringContaining('/contracts/landlord/contracts/'),
       );
       expect(result.contracts).toHaveLength(1);
     });
@@ -195,7 +195,7 @@ describe('LandlordContractService', () => {
       await LandlordContractService.getLandlordContracts(
         { state: ['DRAFT'] } as any,
         2,
-        5
+        5,
       );
 
       const calledUrl = mockedApi.get.mock.calls[0][0] as string;
@@ -213,7 +213,7 @@ describe('LandlordContractService', () => {
         await LandlordContractService.getLandlordContract('contract-123');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/landlord/contracts/contract-123/'
+        '/contracts/landlord/contracts/contract-123/',
       );
       expect(result.id).toBe('contract-123');
     });
@@ -235,7 +235,7 @@ describe('LandlordContractService', () => {
         '/contracts/landlord/contracts/contract-123/send-invitation/',
         expect.objectContaining({
           tenant_email: 'tenant@example.com',
-        })
+        }),
       );
       expect(result.success).toBe(true);
     });
@@ -310,7 +310,7 @@ describe('LandlordContractService', () => {
         '/contracts/tenant/accept-invitation/',
         {
           invitation_token: 'token-abc',
-        }
+        },
       );
       expect(result.current_state).toBe('TENANT_REVIEWING');
     });
@@ -351,14 +351,14 @@ describe('LandlordContractService', () => {
         'contract-123',
         {
           guarantee_type: 'personal',
-        } as any
+        } as any,
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/contract-123/guarantees/',
         {
           guarantee_type: 'personal',
-        }
+        },
       );
       expect(result.id).toBe('guar-1');
     });
@@ -372,7 +372,7 @@ describe('LandlordContractService', () => {
         await LandlordContractService.getContractGuarantees('contract-123');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/contract-123/guarantees/'
+        '/contracts/contract-123/guarantees/',
       );
       expect(result).toHaveLength(1);
     });
@@ -386,14 +386,14 @@ describe('LandlordContractService', () => {
 
       const result = await LandlordContractService.verifyGuarantee(
         'guar-1',
-        'Verificacion aprobada'
+        'Verificacion aprobada',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/guarantees/guar-1/verify/',
         {
           verification_notes: 'Verificacion aprobada',
-        }
+        },
       );
     });
   });
@@ -413,7 +413,7 @@ describe('LandlordContractService', () => {
         {
           includeSignatures: true,
           includeBiometric: true,
-        }
+        },
       );
 
       const calledUrl = mockedApi.get.mock.calls[0][0] as string;
@@ -436,7 +436,7 @@ describe('LandlordContractService', () => {
         await LandlordContractService.generateContractPreview('contract-123');
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/contract-123/generate-preview/'
+        '/contracts/contract-123/generate-preview/',
       );
       expect(result.pdf_url).toBeDefined();
     });
@@ -455,7 +455,7 @@ describe('LandlordContractService', () => {
       });
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/landlord/contracts/contract-123/approve/'
+        '/contracts/landlord/contracts/contract-123/approve/',
       );
       expect(result.landlord_approved).toBe(true);
     });
@@ -472,7 +472,7 @@ describe('LandlordContractService', () => {
       });
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/contracts/landlord/contracts/contract-123/publish/'
+        '/contracts/landlord/contracts/contract-123/publish/',
       );
       expect(result.published).toBe(true);
       expect(result.current_state).toBe('PUBLISHED');
@@ -497,7 +497,7 @@ describe('LandlordContractService', () => {
     it('should return true for DRAFT with valid landlord data and rent', () => {
       const contract = { ...mockContract, current_state: 'DRAFT' as any };
       expect(
-        LandlordContractService.isContractReadyForNextStep(contract as any)
+        LandlordContractService.isContractReadyForNextStep(contract as any),
       ).toBe(true);
     });
 
@@ -509,7 +509,7 @@ describe('LandlordContractService', () => {
         monthly_rent: 0,
       };
       expect(
-        LandlordContractService.isContractReadyForNextStep(contract as any)
+        LandlordContractService.isContractReadyForNextStep(contract as any),
       ).toBe(false);
     });
 
@@ -521,7 +521,7 @@ describe('LandlordContractService', () => {
         tenant_approved: true,
       };
       expect(
-        LandlordContractService.isContractReadyForNextStep(contract as any)
+        LandlordContractService.isContractReadyForNextStep(contract as any),
       ).toBe(true);
     });
   });
@@ -530,7 +530,7 @@ describe('LandlordContractService', () => {
     it('should return correct action for landlord on DRAFT', () => {
       const action = LandlordContractService.getNextRequiredAction(
         mockContract as any,
-        'landlord'
+        'landlord',
       );
       expect(action).toBe('Completar datos y enviar invitación');
     });
@@ -538,7 +538,7 @@ describe('LandlordContractService', () => {
     it('should return correct action for tenant on DRAFT', () => {
       const action = LandlordContractService.getNextRequiredAction(
         mockContract as any,
-        'tenant'
+        'tenant',
       );
       expect(action).toBe('Esperando invitación');
     });
@@ -551,7 +551,7 @@ describe('LandlordContractService', () => {
       };
       const action = LandlordContractService.getNextRequiredAction(
         contract as any,
-        'landlord'
+        'landlord',
       );
       expect(action).toBe('Firmar digitalmente');
     });
@@ -575,7 +575,7 @@ describe('LandlordContractService', () => {
             pets_allowed: false,
             smoking_allowed: false,
           },
-        })
+        }),
       ).rejects.toThrow('Validation failed');
     });
 
@@ -583,7 +583,7 @@ describe('LandlordContractService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('Not found'));
 
       await expect(
-        LandlordContractService.getLandlordContract('nonexistent')
+        LandlordContractService.getLandlordContract('nonexistent'),
       ).rejects.toThrow('Not found');
     });
   });

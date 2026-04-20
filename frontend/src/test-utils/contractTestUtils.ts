@@ -26,7 +26,7 @@ import {
  * Factory para crear datos de arrendador
  */
 export const createMockLandlordData = (
-  overrides: Partial<LandlordData> = {}
+  overrides: Partial<LandlordData> = {},
 ): LandlordData => ({
   full_name: 'Juan Carlos Pérez',
   document_type: 'CC' as DocumentType,
@@ -50,7 +50,7 @@ export const createMockLandlordData = (
  * Factory para crear datos de arrendatario
  */
 export const createMockTenantData = (
-  overrides: Partial<TenantData> = {}
+  overrides: Partial<TenantData> = {},
 ): TenantData => ({
   full_name: 'Ana María González',
   document_type: 'CC' as DocumentType,
@@ -93,7 +93,7 @@ export const createMockTenantData = (
  */
 export const createMockContract = (
   state: ContractWorkflowState = 'DRAFT',
-  overrides: Partial<LandlordControlledContractData> = {}
+  overrides: Partial<LandlordControlledContractData> = {},
 ): any => ({
   id: `contract-${Math.random().toString(36).substr(2, 9)}`,
   contract_number: `VH-2025-${Math.floor(Math.random() * 1000)
@@ -143,7 +143,7 @@ export const createMockContract = (
  * Factory para crear múltiples contratos con diferentes estados
  */
 export const createMockContractCollection = (
-  count: number = 5
+  count: number = 5,
 ): LandlordControlledContractData[] => {
   const states: ContractWorkflowState[] = [
     'DRAFT',
@@ -197,7 +197,7 @@ export const createMockContractCollection = (
  * Factory para crear estadísticas de contratos
  */
 export const createMockStatistics = (
-  overrides: Partial<ContractStatistics> = {}
+  overrides: Partial<ContractStatistics> = {},
 ): ContractStatistics => ({
   total_contracts: 25,
   by_state: {
@@ -243,7 +243,7 @@ export const createMockStatistics = (
  */
 export const createMockContractListResponse = (
   contracts: LandlordControlledContractData[] = createMockContractCollection(),
-  overrides: Partial<ContractListResponse> = {}
+  overrides: Partial<ContractListResponse> = {},
 ): ContractListResponse => ({
   contracts,
   total_count: contracts.length,
@@ -258,7 +258,7 @@ export const createMockContractListResponse = (
  * Factory para crear objeciones de contrato
  */
 export const createMockObjection = (
-  overrides: Partial<ContractObjection> = {}
+  overrides: Partial<ContractObjection> = {},
 ): ContractObjection => ({
   id: `objection-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
@@ -282,7 +282,7 @@ export const createMockObjection = (
  * Factory para crear garantías de contrato
  */
 export const createMockGuarantee = (
-  overrides: Partial<LandlordContractGuarantee> = {}
+  overrides: Partial<LandlordContractGuarantee> = {},
 ): LandlordContractGuarantee => ({
   id: `guarantee-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
@@ -309,7 +309,7 @@ export const createMockGuarantee = (
  */
 export const createMockWorkflowHistory = (
   action: string = 'contract_created',
-  overrides: Partial<ContractWorkflowHistory> = {}
+  overrides: Partial<ContractWorkflowHistory> = {},
 ): ContractWorkflowHistory => ({
   id: `history-${Math.random().toString(36).substr(2, 9)}`,
   contract_id: 'contract-123',
@@ -335,7 +335,7 @@ export const createMockWorkflowHistory = (
  */
 export const createMockUser = (
   userType: 'landlord' | 'tenant' = 'landlord',
-  overrides = {}
+  overrides = {},
 ) => ({
   id: `user-${userType}-${Math.random().toString(36).substr(2, 9)}`,
   email: `${userType}@test.com`,
@@ -367,10 +367,10 @@ export const createMockInvitationsHistory = (count: number = 3) => ({
     invitation_method: ['email', 'sms', 'whatsapp'][index % 3],
     status: ['pending', 'accepted', 'expired'][index % 3],
     created_at: new Date(
-      Date.now() - (index + 1) * 24 * 60 * 60 * 1000
+      Date.now() - (index + 1) * 24 * 60 * 60 * 1000,
     ).toISOString(),
     expires_at: new Date(
-      Date.now() + (7 - index) * 24 * 60 * 60 * 1000
+      Date.now() + (7 - index) * 24 * 60 * 60 * 1000,
     ).toISOString(),
     accepted_at:
       index === 1
@@ -384,7 +384,7 @@ export const createMockInvitationsHistory = (count: number = 3) => ({
  */
 export const createMockApiError = (
   status: number = 400,
-  message: string = 'API Error'
+  message: string = 'API Error',
 ) => ({
   response: {
     status,
@@ -443,7 +443,7 @@ export const createComplexWorkflowScenario = () => ({
  * Helper para generar datos de firmas digitales
  */
 export const createMockSignatureData = (
-  userType: 'landlord' | 'tenant' = 'landlord'
+  userType: 'landlord' | 'tenant' = 'landlord',
 ) => ({
   signature_image: 'data:image/png;base64,iVBORw0KGgoAAAANS...',
   signature_metadata: {
@@ -495,7 +495,7 @@ export const createLoadingStates = () => ({
  * Helper para validar estructura de contratos
  */
 export const validateContractStructure = (
-  contract: any
+  contract: any,
 ): contract is LandlordControlledContractData => {
   return (
     typeof contract === 'object' &&

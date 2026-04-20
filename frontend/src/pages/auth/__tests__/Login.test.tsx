@@ -89,23 +89,23 @@ describe('Login Component', () => {
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(
-      screen.getByRole('heading', { name: /iniciar sesión/i })
+      screen.getByRole('heading', { name: /iniciar sesión/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Ingresa tus credenciales para acceder a tu cuenta')
+      screen.getByText('Ingresa tus credenciales para acceder a tu cuenta'),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /iniciar sesión/i })
+      screen.getByRole('button', { name: /iniciar sesión/i }),
     ).toBeInTheDocument();
     expect(screen.getByText('¿Olvidaste tu contraseña?')).toBeInTheDocument();
     expect(
-      screen.getByText('¿No tienes una cuenta? Regístrate')
+      screen.getByText('¿No tienes una cuenta? Regístrate'),
     ).toBeInTheDocument();
   });
 
@@ -115,12 +115,12 @@ describe('Login Component', () => {
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
     const passwordInput = screen.getByLabelText(
-      /contraseña/i
+      /contraseña/i,
     ) as HTMLInputElement;
 
     await user.type(emailInput, 'test@example.com');
@@ -141,7 +141,7 @@ describe('Login Component', () => {
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const emailInput = screen.getByLabelText(/email/i);
@@ -165,13 +165,13 @@ describe('Login Component', () => {
   it('should handle login error', async () => {
     const user = userEvent.setup();
     mockMutateAsync.mockRejectedValueOnce(
-      new Error('No existe una cuenta con ese email')
+      new Error('No existe una cuenta con ese email'),
     );
 
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const emailInput = screen.getByLabelText(/email/i);
@@ -210,7 +210,7 @@ describe('Login Component', () => {
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByText('Iniciando sesión...')).toBeInTheDocument();
@@ -246,7 +246,7 @@ describe('Login Component', () => {
     render(
       <TestWrapper>
         <Login />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });

@@ -21,7 +21,7 @@ jest.mock('../../../services/landlordContractService', () => ({
     getInvitations: jest.fn().mockResolvedValue({ invitations: [] }),
     sendInvitation: jest.fn().mockResolvedValue({ success: true }),
     formatCurrency: jest.fn(
-      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`
+      (amount: number) => `$${amount?.toLocaleString('es-CO') || '0'}`,
     ),
     getContracts: jest.fn().mockResolvedValue({ contracts: [] }),
     getStatistics: jest.fn().mockResolvedValue({}),
@@ -103,7 +103,7 @@ describe('TenantInvitationSystem', () => {
     render(
       <TestWrapper>
         <TenantInvitationSystem {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // The component should render without crashing
@@ -114,7 +114,7 @@ describe('TenantInvitationSystem', () => {
     render(
       <TestWrapper>
         <TenantInvitationSystem {...defaultProps} open={false} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // When closed, dialog content should not be visible
@@ -134,7 +134,7 @@ describe('TenantInvitationSystem', () => {
           {...defaultProps}
           contract={customContract as any}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(document.body).toBeInTheDocument();
@@ -144,7 +144,7 @@ describe('TenantInvitationSystem', () => {
     render(
       <TestWrapper>
         <TenantInvitationSystem {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Component should have rendered successfully
@@ -160,7 +160,7 @@ describe('TenantInvitationSystem', () => {
           {...defaultProps}
           contract={contractWithoutId as any}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(document.body).toBeInTheDocument();

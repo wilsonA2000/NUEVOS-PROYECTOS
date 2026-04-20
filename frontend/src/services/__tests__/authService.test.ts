@@ -55,16 +55,16 @@ describe('AuthService', () => {
 
       expect(mockApi.post).toHaveBeenCalledWith(
         '/users/auth/login/',
-        loginData
+        loginData,
       );
       expect(mockApi.get).toHaveBeenCalledWith('/users/auth/me/');
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'access_token',
-        'mock-access-token'
+        'mock-access-token',
       );
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'refresh_token',
-        'mock-refresh-token'
+        'mock-refresh-token',
       );
       expect(result).toEqual(mockUserResponse.data);
     });
@@ -82,7 +82,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Credenciales invalidas'
+        'Credenciales invalidas',
       );
 
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('access_token');
@@ -97,7 +97,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(networkError);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Error de red'
+        'Error de red',
       );
     });
 
@@ -114,7 +114,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(serverError);
 
       await expect(authService.login(loginData)).rejects.toThrow(
-        'Error del servidor'
+        'Error del servidor',
       );
     });
 
@@ -185,7 +185,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.register(registerData)).rejects.toThrow(
-        'Este email ya esta registrado'
+        'Este email ya esta registrado',
       );
     });
 
@@ -203,7 +203,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.register(registerData)).rejects.toThrow(
-        'Datos de entrada invalidos'
+        'Datos de entrada invalidos',
       );
     });
   });
@@ -264,7 +264,7 @@ describe('AuthService', () => {
       mockApi.get.mockResolvedValueOnce(mockResponse);
 
       await expect(authService.getCurrentUser()).rejects.toThrow(
-        'Usuario invalido recibido del servidor'
+        'Usuario invalido recibido del servidor',
       );
     });
 
@@ -318,7 +318,7 @@ describe('AuthService', () => {
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.updateProfile(updateData)).rejects.toThrow(
-        'Error al actualizar perfil'
+        'Error al actualizar perfil',
       );
     });
   });
@@ -341,7 +341,7 @@ describe('AuthService', () => {
       mockApi.put.mockRejectedValueOnce(errorResponse);
 
       await expect(authService.changePassword('wrong', 'new')).rejects.toThrow(
-        'Contrasena actual incorrecta'
+        'Contrasena actual incorrecta',
       );
     });
   });
@@ -356,7 +356,7 @@ describe('AuthService', () => {
         '/users/auth/forgot-password/',
         {
           email: 'test@example.com',
-        }
+        },
       );
     });
 
@@ -366,7 +366,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(
-        authService.forgotPassword('notfound@example.com')
+        authService.forgotPassword('notfound@example.com'),
       ).rejects.toThrow('Usuario no encontrado');
     });
   });
@@ -389,7 +389,7 @@ describe('AuthService', () => {
       mockApi.post.mockRejectedValueOnce(errorResponse);
 
       await expect(
-        authService.resetPassword('invalid-token', 'newPassword')
+        authService.resetPassword('invalid-token', 'newPassword'),
       ).rejects.toThrow('Token invalido o expirado');
     });
   });
@@ -411,7 +411,7 @@ describe('AuthService', () => {
         authService.login({
           email: 'test@example.com',
           password: 'password',
-        })
+        }),
       ).rejects.toThrow('Demasiadas solicitudes');
     });
 
@@ -431,7 +431,7 @@ describe('AuthService', () => {
         authService.login({
           email: 'test@example.com',
           password: 'password',
-        })
+        }),
       ).rejects.toThrow('Acceso denegado');
     });
 
@@ -451,7 +451,7 @@ describe('AuthService', () => {
         authService.login({
           email: 'test@example.com',
           password: 'password',
-        })
+        }),
       ).rejects.toThrow('Recurso no encontrado');
     });
 
@@ -469,7 +469,7 @@ describe('AuthService', () => {
         authService.login({
           email: 'test@example.com',
           password: 'password',
-        })
+        }),
       ).rejects.toThrow('String error message');
     });
   });

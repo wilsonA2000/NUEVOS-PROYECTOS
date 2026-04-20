@@ -124,7 +124,7 @@ export async function runTestSuite(suiteName: string): Promise<TestResult> {
 
     console.log(`✅ ${suite.name} completado en ${duration}ms`);
     console.log(
-      `   Tests: ${result.passed} pasaron, ${result.failed} fallaron`
+      `   Tests: ${result.passed} pasaron, ${result.failed} fallaron`,
     );
     console.log(`   Cobertura: ${result.coverage.lines}% líneas\n`);
 
@@ -151,7 +151,7 @@ export async function runTestSuite(suiteName: string): Promise<TestResult> {
  */
 export async function runAllTestSuites(): Promise<TestSummary> {
   console.log(
-    '🚀 Iniciando ejecución de todos los test suites del sistema de contratos\n'
+    '🚀 Iniciando ejecución de todos los test suites del sistema de contratos\n',
   );
   console.log('='.repeat(80));
 
@@ -186,15 +186,15 @@ export async function runAllTestSuites(): Promise<TestSummary> {
     overallDuration: totalDuration,
     overallCoverage: {
       lines: Math.round(
-        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length
+        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length,
       ),
       functions: Math.round(
         results.reduce((sum, r) => sum + r.coverage.functions, 0) /
-          results.length
+          results.length,
       ),
       branches: Math.round(
         results.reduce((sum, r) => sum + r.coverage.branches, 0) /
-          results.length
+          results.length,
       ),
     },
     results,
@@ -213,7 +213,7 @@ export async function runAllTestSuites(): Promise<TestSummary> {
  * Ejecuta tests por categoría
  */
 export async function runTestsByCategory(
-  category: 'services' | 'components' | 'integration'
+  category: 'services' | 'components' | 'integration',
 ): Promise<TestSummary> {
   console.log(`🎯 Ejecutando tests de categoría: ${category}\n`);
 
@@ -236,15 +236,15 @@ export async function runTestsByCategory(
     overallDuration: totalDuration,
     overallCoverage: {
       lines: Math.round(
-        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length
+        results.reduce((sum, r) => sum + r.coverage.lines, 0) / results.length,
       ),
       functions: Math.round(
         results.reduce((sum, r) => sum + r.coverage.functions, 0) /
-          results.length
+          results.length,
       ),
       branches: Math.round(
         results.reduce((sum, r) => sum + r.coverage.branches, 0) /
-          results.length
+          results.length,
       ),
     },
     results,
@@ -261,7 +261,7 @@ function parseJestOutput(
   output: string,
   suiteName: string,
   fileName: string,
-  duration: number
+  duration: number,
 ): TestResult {
   // Extraer información de los tests pasados/fallados
   const passedMatch = output.match(/(\d+) passed/);
@@ -277,7 +277,7 @@ function parseJestOutput(
     const coveragePath = path.join(
       process.cwd(),
       'coverage',
-      'coverage-summary.json'
+      'coverage-summary.json',
     );
     if (fs.existsSync(coveragePath)) {
       const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf-8'));
@@ -316,10 +316,10 @@ function displayTestSummary(summary: TestSummary) {
   console.log(`   Total de Tests: ${summary.totalTests}`);
   console.log(`   Tests Pasados: ${summary.totalPassed} ✅`);
   console.log(
-    `   Tests Fallados: ${summary.totalFailed} ${summary.totalFailed > 0 ? '❌' : '✅'}`
+    `   Tests Fallados: ${summary.totalFailed} ${summary.totalFailed > 0 ? '❌' : '✅'}`,
   );
   console.log(
-    `   Duración Total: ${(summary.overallDuration / 1000).toFixed(2)}s`
+    `   Duración Total: ${(summary.overallDuration / 1000).toFixed(2)}s`,
   );
 
   console.log('\n📈 COBERTURA PROMEDIO:');
@@ -336,7 +336,7 @@ function displayTestSummary(summary: TestSummary) {
     console.log(
       `      Tests: ${result.passed}/${result.passed + result.failed} | ` +
         `Duración: ${duration}s | ` +
-        `Cobertura: ${result.coverage.lines}%`
+        `Cobertura: ${result.coverage.lines}%`,
     );
   });
 
@@ -348,19 +348,19 @@ function displayTestSummary(summary: TestSummary) {
 
   if (successRate === 100 && avgCoverage >= 80) {
     console.log(
-      `   🌟 EXCELENTE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+      `   🌟 EXCELENTE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`,
     );
   } else if (successRate >= 90 && avgCoverage >= 70) {
     console.log(
-      `   ⭐ BUENO: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+      `   ⭐ BUENO: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`,
     );
   } else if (successRate >= 80) {
     console.log(
-      `   ⚠️  ACEPTABLE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+      `   ⚠️  ACEPTABLE: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`,
     );
   } else {
     console.log(
-      `   🚨 NECESITA MEJORAS: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`
+      `   🚨 NECESITA MEJORAS: ${successRate.toFixed(1)}% de éxito, ${avgCoverage}% cobertura`,
     );
   }
 
@@ -374,7 +374,7 @@ async function generateTestReport(summary: TestSummary) {
   const reportPath = path.join(
     process.cwd(),
     'test-reports',
-    'contracts-test-report.html'
+    'contracts-test-report.html',
   );
 
   // Crear directorio si no existe
@@ -525,7 +525,7 @@ async function generateTestReport(summary: TestSummary) {
                         ${result.coverage.lines}%
                     </td>
                 </tr>
-                `
+                `,
                   )
                   .join('')}
             </tbody>
@@ -593,7 +593,7 @@ if (require.main === module) {
         runTestsByCategory(category);
       } else {
         console.error(
-          'Especifica una categoría: services, components, integration'
+          'Especifica una categoría: services, components, integration',
         );
       }
       break;
@@ -610,14 +610,14 @@ if (require.main === module) {
       break;
     default:
       console.log(
-        'Uso: npm run test:contracts [all|category|watch|single] [parámetros]'
+        'Uso: npm run test:contracts [all|category|watch|single] [parámetros]',
       );
       console.log('Ejemplos:');
       console.log('  npm run test:contracts all');
       console.log('  npm run test:contracts category services');
       console.log('  npm run test:contracts watch');
       console.log(
-        '  npm run test:contracts single "LandlordContractService Tests"'
+        '  npm run test:contracts single "LandlordContractService Tests"',
       );
   }
 }

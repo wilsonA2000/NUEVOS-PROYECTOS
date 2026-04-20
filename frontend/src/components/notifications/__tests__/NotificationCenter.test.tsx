@@ -87,8 +87,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(NotificationCenter)
-    )
+      React.createElement(NotificationCenter),
+    ),
   );
 };
 
@@ -137,7 +137,7 @@ describe('NotificationCenter', () => {
       allText.includes('Todas') ||
         allText.includes('Todo') ||
         allText.includes('No leídas') ||
-        allText.includes('Urgentes')
+        allText.includes('Urgentes'),
     ).toBeTruthy();
   });
 
@@ -193,7 +193,7 @@ describe('NotificationCenter', () => {
     const filterButton = buttons.find(
       btn =>
         btn.textContent?.includes('Filtro') ||
-        btn.getAttribute('aria-label')?.includes('filter')
+        btn.getAttribute('aria-label')?.includes('filter'),
     );
     // Filter button or icon button should exist
     expect(buttons.length).toBeGreaterThan(0);

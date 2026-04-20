@@ -61,7 +61,7 @@ jest.mock(
     AreaChart: ({ children }: any) => <div>{children}</div>,
     Area: () => null,
   }),
-  { virtual: true }
+  { virtual: true },
 );
 
 // Mock the NewDashboard component to avoid deep dependency issues

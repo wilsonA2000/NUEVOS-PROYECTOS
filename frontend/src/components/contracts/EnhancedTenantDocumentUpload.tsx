@@ -1291,7 +1291,9 @@ const EnhancedTenantDocumentUpload: React.FC<
         try {
           const errorJson = JSON.parse(errorText);
           throw new Error(
-            errorJson.error || errorJson.detail || 'Error al subir el documento',
+            errorJson.error ||
+              errorJson.detail ||
+              'Error al subir el documento',
           );
         } catch (e) {
           throw new Error('Error al subir el documento');

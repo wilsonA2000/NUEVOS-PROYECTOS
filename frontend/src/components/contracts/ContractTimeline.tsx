@@ -156,7 +156,7 @@ const ContractTimeline: React.FC<ContractTimelineProps> = ({ contractId }) => {
                     >
                       {format(
                         parseISO(entry.created_at),
-                        'd \'de\' MMMM yyyy, HH:mm',
+                        "d 'de' MMMM yyyy, HH:mm",
                         { locale: es },
                       )}
                     </Typography>

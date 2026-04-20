@@ -88,15 +88,15 @@ describe('PropertyForm Component', () => {
     render(
       <TestWrapper>
         <PropertyForm onSubmit={mockOnSubmit} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByTestId('property-form')).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /crear propiedad/i })
+      screen.getByRole('button', { name: /crear propiedad/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /cancelar/i })
+      screen.getByRole('button', { name: /cancelar/i }),
     ).toBeInTheDocument();
   });
 
@@ -106,7 +106,7 @@ describe('PropertyForm Component', () => {
     render(
       <TestWrapper>
         <PropertyForm onSubmit={mockOnSubmit} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const submitButton = screen.getByRole('button', {
@@ -123,7 +123,7 @@ describe('PropertyForm Component', () => {
     render(
       <TestWrapper>
         <PropertyForm onSubmit={mockOnSubmit} isLoading={true} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const submitButton = screen.getByRole('button', { name: /creando/i });
@@ -137,7 +137,7 @@ describe('PropertyForm Component', () => {
     render(
       <TestWrapper>
         <PropertyForm onSubmit={mockOnSubmit} error={errorMessage} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -147,7 +147,7 @@ describe('PropertyForm Component', () => {
     render(
       <TestWrapper>
         <PropertyForm onSubmit={mockOnSubmit} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByLabelText(/titulo/i)).toBeInTheDocument();

@@ -53,7 +53,7 @@ jest.mock('../../common/LoadingSpinner', () => ({
     React.createElement(
       'div',
       { 'data-testid': 'loading-spinner' },
-      props.message || 'Loading...'
+      props.message || 'Loading...',
     ),
 }));
 
@@ -85,8 +85,8 @@ const renderComponent = () => {
     React.createElement(
       ThemeProvider,
       { theme },
-      React.createElement(TenantContractsDashboard)
-    )
+      React.createElement(TenantContractsDashboard),
+    ),
   );
 };
 
@@ -116,7 +116,7 @@ describe('TenantContractsDashboard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Error al cargar contratos/i)
+        screen.getByText(/Error al cargar contratos/i),
       ).toBeInTheDocument();
     });
   });
@@ -129,7 +129,7 @@ describe('TenantContractsDashboard', () => {
       expect(
         allText.includes('Arrendatario') ||
           allText.includes('contrato') ||
-          allText.includes('Contrato')
+          allText.includes('Contrato'),
       ).toBeTruthy();
     });
   });

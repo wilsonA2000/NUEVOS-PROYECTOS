@@ -149,7 +149,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
       {
         id: 'duration',
         title: 'DURACIÓN DEL CONTRATO',
-        content: `El presente contrato tendrá una duración de ${differenceInMonths(contract?.end_date ? parseISO(contract.end_date) : new Date(), contract?.start_date ? parseISO(contract.start_date) : new Date()) || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), 'dd \'de\' MMMM \'de\' yyyy', { locale: es }) : '[FECHA_FIN]'}.`,
+        content: `El presente contrato tendrá una duración de ${differenceInMonths(contract?.end_date ? parseISO(contract.end_date) : new Date(), contract?.start_date ? parseISO(contract.start_date) : new Date()) || '[X]'} meses, contados a partir del ${contract?.start_date ? format(parseISO(contract.start_date), "dd 'de' MMMM 'de' yyyy", { locale: es }) : '[FECHA_INICIO]'} hasta el ${contract?.end_date ? format(parseISO(contract.end_date), "dd 'de' MMMM 'de' yyyy", { locale: es }) : '[FECHA_FIN]'}.`,
         editable: true,
         required: true,
         category: 'terms',
@@ -574,7 +574,7 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
               <Typography variant='body1' textAlign='center' sx={{ mb: 4 }}>
                 En constancia de lo anterior, las partes firman el presente
                 contrato el día{' '}
-                {format(new Date(), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}.
+                {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: es })}.
               </Typography>
 
               <Grid container spacing={4} sx={{ mt: 4 }}>

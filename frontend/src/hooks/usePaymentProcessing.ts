@@ -50,7 +50,7 @@ export interface UsePaymentProcessingReturn {
   initializeStripe: (publishableKey: string) => Promise<void>;
   initializePayPal: (
     clientId: string,
-    environment?: 'sandbox' | 'production'
+    environment?: 'sandbox' | 'production',
   ) => void;
 
   // Procesamiento de pagos
@@ -63,14 +63,14 @@ export interface UsePaymentProcessingReturn {
   removePaymentMethod: (id: string, provider: PaymentProvider) => Promise<void>;
   setDefaultPaymentMethod: (
     id: string,
-    provider: PaymentProvider
+    provider: PaymentProvider,
   ) => Promise<void>;
 
   // Reembolsos
   createRefund: (
     paymentId: string,
     provider: PaymentProvider,
-    amount?: number
+    amount?: number,
   ) => Promise<void>;
 
   // Historial de transacciones

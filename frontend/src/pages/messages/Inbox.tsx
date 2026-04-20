@@ -67,7 +67,9 @@ const Inbox: React.FC = () => {
     try {
       const response = await api.post(`/messages/threads/${threadId}/star/`);
       setThreads(
-        threads.map(thread => (thread.id === threadId ? response.data : thread)),
+        threads.map(thread =>
+          thread.id === threadId ? response.data : thread,
+        ),
       );
     } catch (error) {}
   };

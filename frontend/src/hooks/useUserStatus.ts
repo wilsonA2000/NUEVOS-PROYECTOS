@@ -20,7 +20,7 @@ export interface UseUserStatusReturn {
   // Current user status
   myStatus: UserStatus | null;
   setMyStatus: (
-    status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>
+    status: Partial<Pick<UserStatus, 'status' | 'customMessage'>>,
   ) => void;
 
   // Other users status

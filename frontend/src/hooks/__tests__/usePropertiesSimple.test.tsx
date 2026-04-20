@@ -139,7 +139,7 @@ describe('useProperties Hook (Simple)', () => {
 
     it('should handle properties fetch error', async () => {
       mockPropertyService.getProperties.mockRejectedValueOnce(
-        new Error('Error al cargar propiedades')
+        new Error('Error al cargar propiedades'),
       );
 
       const { result } = renderHook(() => useProperties(), {

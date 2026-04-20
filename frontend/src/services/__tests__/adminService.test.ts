@@ -115,7 +115,7 @@ describe('AdminService', () => {
       const result = await getContractForReview('c-1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/admin/contracts/c-1/'
+        '/contracts/admin/contracts/c-1/',
       );
       expect(result.clauses).toHaveLength(1);
     });
@@ -134,7 +134,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/approve/',
-        { notes: 'Looks good' }
+        { notes: 'Looks good' },
       );
       expect(result.success).toBe(true);
       expect(result.new_state).toBe('DRAFT');
@@ -149,7 +149,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/approve/',
-        {}
+        {},
       );
     });
   });
@@ -168,7 +168,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/reject/',
-        payload
+        payload,
       );
       expect(result.success).toBe(true);
     });
@@ -177,7 +177,7 @@ describe('AdminService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Contract locked'));
 
       await expect(
-        rejectContract('c-1', { notes: 'Bad', requires_resubmission: false })
+        rejectContract('c-1', { notes: 'Bad', requires_resubmission: false }),
       ).rejects.toThrow('Contract locked');
     });
   });
@@ -198,7 +198,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/contracts/admin/contracts/c-1/re-approve/',
-        { notes: 'Corrections look good' }
+        { notes: 'Corrections look good' },
       );
       expect(result.cycle).toBe(2);
     });
@@ -264,7 +264,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/core/audit/report/',
-        request
+        request,
       );
       expect(result.report_id).toBe('r-1');
     });
@@ -331,7 +331,7 @@ describe('AdminService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/core/logs/cleanup/',
-        params
+        params,
       );
       expect(result.dry_run).toBe(true);
       expect(result.records_deleted).toBe(500);
@@ -364,7 +364,7 @@ describe('AdminService', () => {
       const result = await getDocumentAccessHistory('doc-1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/documents/doc-1/access-history/'
+        '/documents/doc-1/access-history/',
       );
       expect(result.total_accesses).toBe(5);
       expect(result.access_history).toHaveLength(1);
@@ -381,7 +381,7 @@ describe('AdminService', () => {
       const result = await getContractsInCorrectionCycle();
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/admin/correction-cycle/'
+        '/contracts/admin/correction-cycle/',
       );
       expect(result).toHaveLength(1);
     });
@@ -417,7 +417,7 @@ describe('AdminService', () => {
       const result = await getCircularWorkflowHistory('c-1');
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/contracts/admin/contracts/c-1/workflow-history/'
+        '/contracts/admin/contracts/c-1/workflow-history/',
       );
       expect(result.review_cycle_count).toBe(2);
       expect(result.history[0].events).toHaveLength(2);
@@ -446,7 +446,7 @@ describe('AdminService', () => {
 
     it('should expose document access method', () => {
       expect(AdminService.getDocumentAccessHistory).toBe(
-        getDocumentAccessHistory
+        getDocumentAccessHistory,
       );
     });
   });
@@ -462,11 +462,11 @@ describe('AdminService', () => {
 
     it('should propagate errors on approveContract', async () => {
       mockedApi.post.mockRejectedValueOnce(
-        new Error('Contract already approved')
+        new Error('Contract already approved'),
       );
 
       await expect(approveContract('c-1')).rejects.toThrow(
-        'Contract already approved'
+        'Contract already approved',
       );
     });
 

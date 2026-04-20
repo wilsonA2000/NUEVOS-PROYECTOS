@@ -42,7 +42,7 @@ interface AuthContextType extends AuthState {
   resetPassword?: (
     token: string,
     password: string,
-    uid?: string
+    uid?: string,
   ) => Promise<void>;
   updateProfile?: (data: Partial<User>) => Promise<void>;
 }

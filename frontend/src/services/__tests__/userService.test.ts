@@ -40,7 +40,7 @@ describe('UserService', () => {
 
       expect(mockedApi.patch).toHaveBeenCalledWith(
         '/users/profile/',
-        updateData
+        updateData,
       );
       expect(result.first_name).toBe('Updated');
     });
@@ -49,7 +49,7 @@ describe('UserService', () => {
       mockedApi.patch.mockRejectedValueOnce(new Error('Validation Error'));
 
       await expect(userService.updateProfile({} as any)).rejects.toThrow(
-        'Validation Error'
+        'Validation Error',
       );
     });
   });
@@ -71,7 +71,7 @@ describe('UserService', () => {
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/users/avatar/',
         expect.any(FormData),
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
       expect(result.avatar_url).toBe('https://example.com/avatars/avatar.jpg');
     });
@@ -81,7 +81,7 @@ describe('UserService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('File too large'));
 
       await expect(userService.uploadAvatar(mockFile)).rejects.toThrow(
-        'File too large'
+        'File too large',
       );
     });
   });
@@ -138,7 +138,7 @@ describe('UserService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Duplicate resume'));
 
       await expect(userService.createResume({} as any)).rejects.toThrow(
-        'Duplicate resume'
+        'Duplicate resume',
       );
     });
   });
@@ -167,7 +167,7 @@ describe('UserService', () => {
 
       expect(mockedApi.put).toHaveBeenCalledWith(
         '/users/settings/',
-        settingsData
+        settingsData,
       );
       expect(result.notifications_enabled).toBe(false);
     });
@@ -176,7 +176,7 @@ describe('UserService', () => {
       mockedApi.put.mockRejectedValueOnce(new Error('Invalid settings'));
 
       await expect(userService.updateSettings({} as any)).rejects.toThrow(
-        'Invalid settings'
+        'Invalid settings',
       );
     });
   });
@@ -190,7 +190,7 @@ describe('UserService', () => {
 
       const result = await userService.verifyInterviewCode(
         'ABC123',
-        'user@test.com'
+        'user@test.com',
       );
 
       expect(mockedApi.post).toHaveBeenCalledWith(
@@ -198,7 +198,7 @@ describe('UserService', () => {
         {
           code: 'ABC123',
           email: 'user@test.com',
-        }
+        },
       );
       expect(result.valid).toBe(true);
     });
@@ -209,7 +209,7 @@ describe('UserService', () => {
 
       const result = await userService.verifyInterviewCode(
         'WRONG',
-        'user@test.com'
+        'user@test.com',
       );
 
       expect(result.valid).toBe(false);
@@ -219,7 +219,7 @@ describe('UserService', () => {
       mockedApi.post.mockRejectedValueOnce(new Error('Server Error'));
 
       await expect(
-        userService.verifyInterviewCode('CODE', 'user@test.com')
+        userService.verifyInterviewCode('CODE', 'user@test.com'),
       ).rejects.toThrow('Server Error');
     });
   });
@@ -244,14 +244,14 @@ describe('UserService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/users/register/',
-        registrationData
+        registrationData,
       );
       expect(result.email).toBe('new@test.com');
     });
 
     it('should propagate errors for invalid registration data', async () => {
       mockedApi.post.mockRejectedValueOnce(
-        new Error('Email already registered')
+        new Error('Email already registered'),
       );
 
       await expect(
@@ -263,7 +263,7 @@ describe('UserService', () => {
           user_type: 'tenant',
           phone_number: '+57300',
           interview_code: 'CODE',
-        })
+        }),
       ).rejects.toThrow('Email already registered');
     });
   });
@@ -281,7 +281,7 @@ describe('UserService', () => {
       mockedApi.patch.mockRejectedValueOnce(new Error('Internal Server Error'));
 
       await expect(userService.updateProfile({} as any)).rejects.toThrow(
-        'Internal Server Error'
+        'Internal Server Error',
       );
     });
   });

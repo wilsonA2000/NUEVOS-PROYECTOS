@@ -51,7 +51,7 @@ describe('NotificationService', () => {
       mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
 
       await expect(notificationService.getNotifications()).rejects.toThrow(
-        'API Error'
+        'API Error',
       );
     });
   });
@@ -81,7 +81,7 @@ describe('NotificationService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/core/notifications/',
-        createData
+        createData,
       );
       expect(result).toEqual(mockNotification);
     });
@@ -92,7 +92,7 @@ describe('NotificationService', () => {
       mockedApi.post.mockRejectedValueOnce(mockError);
 
       await expect(notificationService.createNotification({})).rejects.toThrow(
-        'Validation failed'
+        'Validation failed',
       );
     });
   });
@@ -134,7 +134,7 @@ describe('NotificationService', () => {
       await notificationService.markAllAsRead();
 
       expect(mockedApi.post).toHaveBeenCalledWith(
-        '/core/notifications/mark-all-read/'
+        '/core/notifications/mark-all-read/',
       );
     });
   });
@@ -156,7 +156,7 @@ describe('NotificationService', () => {
       const result = await notificationService.getUnreadCount();
 
       expect(mockedApi.get).toHaveBeenCalledWith(
-        '/core/notifications/unread_count/'
+        '/core/notifications/unread_count/',
       );
       expect(result).toEqual({ count: 7 });
     });
@@ -193,7 +193,7 @@ describe('NotificationService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/core/activity-logs/',
-        logData
+        logData,
       );
       expect(result).toEqual({ id: '1', ...logData });
     });
@@ -222,7 +222,7 @@ describe('NotificationService', () => {
 
       expect(mockedApi.post).toHaveBeenCalledWith(
         '/core/system-alerts/',
-        alertData
+        alertData,
       );
       expect(result).toEqual({ id: '1', ...alertData });
     });

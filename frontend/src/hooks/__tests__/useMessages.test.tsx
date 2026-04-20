@@ -125,8 +125,8 @@ describe('useMessages', () => {
     mockMessageService.getMessages.mockImplementation(
       () =>
         new Promise(resolve =>
-          setTimeout(() => resolve(mockMessages as any), 5000)
-        )
+          setTimeout(() => resolve(mockMessages as any), 5000),
+        ),
     );
 
     const { result } = renderHook(() => useMessages(), {

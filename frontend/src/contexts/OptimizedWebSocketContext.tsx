@@ -31,7 +31,7 @@ export interface OptimizedWebSocketContextType {
   // Event subscriptions
   subscribe: (
     eventType: string,
-    callback: (message: WebSocketMessage) => void
+    callback: (message: WebSocketMessage) => void,
   ) => () => void;
 
   // Status states

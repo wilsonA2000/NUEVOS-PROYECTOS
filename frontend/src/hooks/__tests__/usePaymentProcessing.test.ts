@@ -152,7 +152,7 @@ describe('usePaymentProcessing Hook', () => {
     const paymentData = { amount: 100, currency: 'USD' };
 
     await expect(
-      result.current.processStripePayment(paymentData)
+      result.current.processStripePayment(paymentData),
     ).rejects.toThrow('Stripe not initialized');
   });
 
@@ -164,13 +164,13 @@ describe('usePaymentProcessing Hook', () => {
     const paymentData = { amount: 100, currency: 'USD' };
 
     await expect(
-      result.current.processPayPalPayment(paymentData)
+      result.current.processPayPalPayment(paymentData),
     ).rejects.toThrow('PayPal not initialized');
   });
 
   it('should handle stripe error via handlePaymentError', () => {
     mockStripeService.handleStripeError.mockReturnValue(
-      'Stripe error occurred'
+      'Stripe error occurred',
     );
 
     const { result } = renderHook(() => usePaymentProcessing(), {
@@ -179,7 +179,7 @@ describe('usePaymentProcessing Hook', () => {
 
     const errorMsg = result.current.handlePaymentError(
       new Error('test'),
-      'stripe'
+      'stripe',
     );
     expect(errorMsg).toBe('Stripe error occurred');
     expect(mockStripeService.handleStripeError).toHaveBeenCalled();
@@ -187,7 +187,7 @@ describe('usePaymentProcessing Hook', () => {
 
   it('should handle paypal error via handlePaymentError', () => {
     mockPaypalService.handlePayPalError.mockReturnValue(
-      'PayPal error occurred'
+      'PayPal error occurred',
     );
 
     const { result } = renderHook(() => usePaymentProcessing(), {
@@ -196,7 +196,7 @@ describe('usePaymentProcessing Hook', () => {
 
     const errorMsg = result.current.handlePaymentError(
       new Error('test'),
-      'paypal'
+      'paypal',
     );
     expect(errorMsg).toBe('PayPal error occurred');
     expect(mockPaypalService.handlePayPalError).toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('usePaymentProcessing Hook', () => {
       { id: 'txn-2', amount: 200, status: 'pending' },
     ];
     mockPaymentService.getTransactionReport.mockResolvedValue(
-      mockTransactions as any
+      mockTransactions as any,
     );
 
     const { result } = renderHook(() => usePaymentProcessing(), {

@@ -229,7 +229,7 @@ export function useOptimizedInfiniteQuery<TData = unknown, TError = Error>(
     getNextPageParam?: (lastPage: TData, pages: TData[]) => number | undefined;
     getPreviousPageParam?: (
       firstPage: TData,
-      pages: TData[]
+      pages: TData[],
     ) => number | undefined;
   },
 ) {
@@ -324,7 +324,8 @@ export const useNotificationsQuery = () => {
     ['notifications', 'unread'],
     () =>
       import('../services/notificationService').then(
-        m => m.notificationService?.getNotifications?.(1) || Promise.resolve([]),
+        m =>
+          m.notificationService?.getNotifications?.(1) || Promise.resolve([]),
       ),
     {
       refetchInterval: 30000, // Refresh cada 30 segundos

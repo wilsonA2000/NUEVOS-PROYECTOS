@@ -45,9 +45,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(ContractDetail)
-      )
-    )
+        React.createElement(ContractDetail),
+      ),
+    ),
   );
 };
 
@@ -88,7 +88,7 @@ describe('ContractDetail', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/Error al cargar el contrato/i)
+      screen.getByText(/Error al cargar el contrato/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/Network error/i)).toBeInTheDocument();
   });
@@ -127,7 +127,7 @@ describe('ContractDetail', () => {
     renderComponent();
 
     expect(
-      screen.getByText('Contrato de arrendamiento estándar')
+      screen.getByText('Contrato de arrendamiento estándar'),
     ).toBeInTheDocument();
   });
 
@@ -149,7 +149,7 @@ describe('ContractDetail', () => {
     fireEvent.click(editButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      '/app/contracts/contract-001/edit'
+      '/app/contracts/contract-001/edit',
     );
   });
 

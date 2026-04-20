@@ -52,9 +52,9 @@ const renderComponent = () => {
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(PaymentList)
-      )
-    )
+        React.createElement(PaymentList),
+      ),
+    ),
   );
 };
 
@@ -102,7 +102,7 @@ describe('PaymentList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/Debes iniciar sesión para ver los pagos/i)
+      screen.getByText(/Debes iniciar sesión para ver los pagos/i),
     ).toBeInTheDocument();
   });
 
@@ -125,7 +125,7 @@ describe('PaymentList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/No hay transacciones disponibles/i)
+      screen.getByText(/No hay transacciones disponibles/i),
     ).toBeInTheDocument();
   });
 

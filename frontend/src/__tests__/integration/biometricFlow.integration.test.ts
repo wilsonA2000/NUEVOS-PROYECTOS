@@ -138,7 +138,7 @@ describe('Biometric Flow Integration Tests', () => {
       });
 
       const initResult = await contractService.startBiometricAuthentication(
-        mockContract.id
+        mockContract.id,
       );
       expect(initResult.authenticationId).toBe('auth-biometric-123');
       expect(initResult.securityLevel).toBe('high');
@@ -149,7 +149,7 @@ describe('Biometric Flow Integration Tests', () => {
       const faceResult = await contractService.processFaceCapture(
         mockContract.id,
         'base64-front-image',
-        'base64-side-image'
+        'base64-side-image',
       );
       expect(faceResult.confidenceScore).toBe(0.95);
       expect(faceResult.completedSteps.face_front).toBe(true);
@@ -162,7 +162,7 @@ describe('Biometric Flow Integration Tests', () => {
       const docResult = await contractService.processDocumentVerification(
         mockContract.id,
         'base64-document-image',
-        'CC'
+        'CC',
       );
       expect(docResult.extractedData.documentNumber).toBe('12345678');
       expect(docResult.extractedData.fullName).toBe('ANA MARIA GONZALEZ');
@@ -180,7 +180,7 @@ describe('Biometric Flow Integration Tests', () => {
 
       const combinedResult = await contractService.processCombinedVerification(
         mockContract.id,
-        'base64-combined-image'
+        'base64-combined-image',
       );
       expect(combinedResult.confidenceScore).toBe(0.94);
 
@@ -192,7 +192,7 @@ describe('Biometric Flow Integration Tests', () => {
       const voiceResult = await contractService.processVoiceVerification(
         mockContract.id,
         'base64-audio-data',
-        'Yo Ana María González acepto los términos'
+        'Yo Ana María González acepto los términos',
       );
       expect(voiceResult.transcription).toContain('acepto los términos');
       expect(voiceResult.confidenceScore).toBe(0.89);
@@ -203,7 +203,7 @@ describe('Biometric Flow Integration Tests', () => {
       });
 
       const completionResult = await contractService.completeAuthentication(
-        mockContract.id
+        mockContract.id,
       );
       expect(completionResult.biometric_verified).toBe(true);
       expect(completionResult.confidence_scores.overall_confidence).toBe(0.94);
@@ -219,7 +219,7 @@ describe('Biometric Flow Integration Tests', () => {
         data: biometricResponses.initialization,
       });
       const init = await contractService.startBiometricAuthentication(
-        mockContract.id
+        mockContract.id,
       );
 
       // Face capture
@@ -227,7 +227,7 @@ describe('Biometric Flow Integration Tests', () => {
       const face = await contractService.processFaceCapture(
         mockContract.id,
         'front',
-        'side'
+        'side',
       );
 
       // Verify next step is correctly indicated
@@ -242,7 +242,7 @@ describe('Biometric Flow Integration Tests', () => {
       const doc = await contractService.processDocumentVerification(
         mockContract.id,
         'doc-img',
-        'CC'
+        'CC',
       );
       expect(doc.nextStep).toBe('combined');
     });
@@ -262,7 +262,7 @@ describe('Biometric Flow Integration Tests', () => {
       const result = await contractService.processFaceCapture(
         mockContract.id,
         'low-quality-front',
-        'low-quality-side'
+        'low-quality-side',
       );
 
       expect(result.status).toBe('warning');
@@ -281,7 +281,7 @@ describe('Biometric Flow Integration Tests', () => {
       const retryResult = await contractService.processFaceCapture(
         mockContract.id,
         'better-front',
-        'better-side'
+        'better-side',
       );
 
       expect(retryResult.confidenceScore).toBe(0.95);
@@ -302,7 +302,7 @@ describe('Biometric Flow Integration Tests', () => {
       const result = await contractService.processDocumentVerification(
         mockContract.id,
         'base64-cedula-image',
-        'CC'
+        'CC',
       );
 
       expect(result.extractedData.documentType).toBe('CC');
@@ -329,7 +329,7 @@ describe('Biometric Flow Integration Tests', () => {
         await contractService.processDocumentVerification(
           mockContract.id,
           'unknown-doc-image',
-          'UNKNOWN'
+          'UNKNOWN',
         );
         fail('Should have thrown');
       } catch (error: any) {
@@ -368,14 +368,14 @@ describe('Biometric Flow Integration Tests', () => {
         await contractService.processFaceCapture(
           mockContract.id,
           'front',
-          'side'
+          'side',
         );
         fail('Should have thrown');
       } catch (error: any) {
         expect(error.response.status).toBe(403);
         expect(error.response.data.error).toBe('fraud_detected');
         expect(error.response.data.fraud_indicators).toContain(
-          'multiple_devices_detected'
+          'multiple_devices_detected',
         );
         expect(error.response.data.security_action).toBe('session_terminated');
       }
@@ -396,7 +396,7 @@ describe('Biometric Flow Integration Tests', () => {
         await contractService.processFaceCapture(
           mockContract.id,
           'front',
-          'side'
+          'side',
         );
         fail('Should have thrown');
       } catch (error: any) {
@@ -427,7 +427,7 @@ describe('Biometric Flow Integration Tests', () => {
           await contractService.processFaceCapture(
             mockContract.id,
             'bad-front',
-            'bad-side'
+            'bad-side',
           );
           fail('Should have thrown');
         } catch (error: any) {
@@ -463,17 +463,17 @@ describe('Biometric Flow Integration Tests', () => {
       await contractService.processFaceCapture(
         mockContract.id,
         'front',
-        'side'
+        'side',
       );
       await contractService.processDocumentVerification(
         mockContract.id,
         'doc',
-        'CC'
+        'CC',
       );
       await contractService.processVoiceVerification(
         mockContract.id,
         'voice',
-        'phrase'
+        'phrase',
       );
       await contractService.completeAuthentication(mockContract.id);
 
@@ -495,7 +495,7 @@ describe('Biometric Flow Integration Tests', () => {
       const startTime = performance.now();
 
       const promises = Array.from({ length: 5 }, () =>
-        contractService.getBiometricAuthenticationStatus(mockContract.id)
+        contractService.getBiometricAuthenticationStatus(mockContract.id),
       );
 
       const results = await Promise.all(promises);
@@ -536,21 +536,21 @@ describe('Biometric Flow Integration Tests', () => {
         });
 
       const init = await contractService.startBiometricAuthentication(
-        mockContract.id
+        mockContract.id,
       );
       expect(init.authenticationId).toBe(authId);
 
       const face = await contractService.processFaceCapture(
         mockContract.id,
         'front',
-        'side'
+        'side',
       );
       expect(face.authenticationId).toBe(authId);
 
       const doc = await contractService.processDocumentVerification(
         mockContract.id,
         'doc',
-        'CC'
+        'CC',
       );
       expect(doc.authenticationId).toBe(authId);
     });
@@ -588,7 +588,7 @@ describe('Biometric Flow Integration Tests', () => {
       const result1 = await contractService.processFaceCapture(
         mockContract.id,
         'front',
-        'side'
+        'side',
       );
       expect(result1.completedSteps.face_front).toBe(true);
       expect(result1.completedSteps.document).toBe(false);
@@ -596,14 +596,14 @@ describe('Biometric Flow Integration Tests', () => {
       const result2 = await contractService.processFaceCapture(
         mockContract.id,
         'front2',
-        'side2'
+        'side2',
       );
       expect(result2.completedSteps.face_side).toBe(true);
 
       const result3 = await contractService.processDocumentVerification(
         mockContract.id,
         'doc',
-        'CC'
+        'CC',
       );
       expect(result3.completedSteps.document).toBe(true);
     });

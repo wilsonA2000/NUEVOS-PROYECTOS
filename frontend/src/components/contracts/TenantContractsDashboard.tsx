@@ -93,7 +93,6 @@ interface TenantAction {
 }
 
 const TenantContractsDashboard: React.FC = () => {
-
   // Estados principales
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState<LandlordControlledContractData[]>(

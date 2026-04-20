@@ -24,7 +24,7 @@ interface UseWebSocketReturn {
   send: (message: WebSocketMessage) => boolean;
   subscribe: (
     eventType: string,
-    callback: (message: WebSocketMessage) => void
+    callback: (message: WebSocketMessage) => void,
   ) => () => void;
 }
 

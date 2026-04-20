@@ -61,7 +61,7 @@ jest.mock('../PayPalPaymentButton', () => ({
     React.createElement(
       'div',
       { 'data-testid': 'paypal-button' },
-      'PayPal Button'
+      'PayPal Button',
     ),
 }));
 
@@ -87,7 +87,7 @@ const queryClient = new QueryClient({
 });
 
 const renderComponent = (
-  props: Partial<React.ComponentProps<typeof PaymentForm>> = {}
+  props: Partial<React.ComponentProps<typeof PaymentForm>> = {},
 ) => {
   return render(
     React.createElement(
@@ -96,9 +96,9 @@ const renderComponent = (
       React.createElement(
         ThemeProvider,
         { theme },
-        React.createElement(PaymentForm, props)
-      )
-    )
+        React.createElement(PaymentForm, props),
+      ),
+    ),
   );
 };
 

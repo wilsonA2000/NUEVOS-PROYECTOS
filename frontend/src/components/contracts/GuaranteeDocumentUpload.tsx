@@ -89,7 +89,7 @@ interface DropzoneBlockProps {
   onDrop: (
     accepted: File[],
     rejected: unknown[],
-    docType: DocumentType
+    docType: DocumentType,
   ) => void;
   onPreview: (doc: GuaranteeDocument) => void;
   onRemove: (docId: string) => void;
