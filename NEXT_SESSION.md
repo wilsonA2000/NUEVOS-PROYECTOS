@@ -1,10 +1,60 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-20 (Fases O1-O4 + P1-P10 · **CI 9/9 verde** 🎉 · 24 commits)
+**Última actualización**: 2026-04-21 (P0.1 commits 1-4 · AWS Rekognition facial integrado con fallback demo)
 
 ---
 
-## Estado actual
+## Lo que se hizo en esta sesión (2026-04-21 · Fase P0.1 biométrico real)
+
+Migra el análisis facial del servicio biométrico de stub a proveedor
+real (AWS Rekognition) manteniendo un `DemoFacialProvider` como fallback
+transparente para CI / dev sin AWS. Scope: **solo facial**. Documento OCR
+y voz siguen en stub (fases P0.2 y P0.3).
+
+| Commit | Contenido | Tests |
+|---|---|---|
+| **Commit 1** `72fecf9` | `contracts/biometric_providers/` · `base.py` (ABC + `FaceAnalysis`), `demo.py`, `factory.py` (cache + fallback). Aislado, sin wire. | 11/11 OK |
+| **Commit 2** `7357d89` | `aws_rekognition.py`: `detect_faces(ALL)` + `compare_faces` + heurística de liveness (EyesOpen + Sunglasses + \|Yaw\| + Sharpness). `__init__` raisea si faltan credenciales → factory cae a demo. Tests con `unittest.mock.MagicMock` (moto descartado, más liviano). | +15 (26 total) |
+| **Commit 3** `b57b5c9` | Wire en `BiometricAuthenticationService`: `__init__` acepta `facial_provider=` inyectable, `_process_face_image` y `_analyze_face_coherence` delegan al provider. Shape de `auth.facial_analysis` preservada → **0 regresión**. `_compare_faces` del flujo combined queda documentado como deuda P0.2. | contracts 153/153 OK (1 skip legacy) |
+| **Commit 4** `<pendiente>` | `settings.py`: 6 vars nuevas (`BIOMETRIC_FACIAL_PROVIDER`, umbrales, credenciales AWS). `biometric_flags.is_demo_biometric_mode()` consulta al provider activo como fuente de verdad. `.env.prod.example` documenta las vars + nota legal TDI. | — |
+
+### Arquitectura resultante
+
+```
+contracts/
+├── biometric_service.py          # orquestador (wire commit 3)
+├── biometric_flags.py            # disclosure Ley 1581 (actualizado commit 4)
+└── biometric_providers/
+    ├── __init__.py               # re-exports públicos
+    ├── base.py                   # ABC FacialProvider + FaceAnalysis
+    ├── demo.py                   # DemoFacialProvider (scores fijos)
+    ├── aws_rekognition.py        # AWSRekognitionProvider
+    └── factory.py                # get_facial_provider() con fallback
+```
+
+### Deuda que queda abierta
+
+- **P0.2 — documento OCR**: stubs `_process_document_image` +
+  `_extract_document_info` + `_validate_document_info`. Candidatos:
+  AWS Textract (patrón calcado del commit 2) o Metamap (SDK dedicado
+  LatAm, mejor cobertura de cédulas CO).
+- **P0.3 — voz**: stubs `_process_voice_recording` + `_transcribe_voice`
+  + `_analyze_voice_characteristics`. Candidatos: Google Speech-to-Text
+  o Azure Speech + Azure Speaker Recognition para biometric voice.
+- **P0.4 — liveness real**: Rekognition Face Liveness requiere frontend
+  Amplify SDK + video stream + session token. La heurística actual
+  (MVP) puede ser burlada con foto-de-foto.
+- **P0.5 — combined flow refactor**: `_compare_faces` y
+  `_extract_face_from_combined` necesitan rediseño para pasar bytes
+  reales a Rekognition.
+- **Ley 1581 TDI**: addendum de política de privacidad + consentimiento
+  explícito (bloqueante legal, no código).
+- **DIAN XAdES**: firmar `integrity_hash` con `.p12` + signxml (stub
+  en `payments/dian_invoice_service.py`).
+
+---
+
+## Estado previo (2026-04-20 · Fases O1-O4 + P1-P10 · CI 9/9 verde · 24 commits)
 
 | Indicador | Valor |
 |-----------|-------|

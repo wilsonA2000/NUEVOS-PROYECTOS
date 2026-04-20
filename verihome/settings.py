@@ -959,3 +959,23 @@ CKEDITOR_UPLOAD_PATH = "ckeditor/"
 
 # Configuración de simple_history
 SIMPLE_HISTORY_REVERT_DISABLED = True  # Solo admin puede revertir
+
+# =============================================================================
+# BIOMETRIC PROVIDERS (P0.1 · ver contracts/biometric_providers/)
+# =============================================================================
+# Selecciona el proveedor facial activo. `demo` usa scores simulados
+# (apto para CI y dev sin AWS). `aws_rekognition` llama a AWS real; si
+# faltan credenciales cae a demo automáticamente.
+BIOMETRIC_FACIAL_PROVIDER = os.getenv("BIOMETRIC_FACIAL_PROVIDER", "demo")
+
+# Umbrales compartidos por los proveedores.
+BIOMETRIC_MIN_FACE_QUALITY = float(os.getenv("BIOMETRIC_MIN_FACE_QUALITY", "0.7"))
+BIOMETRIC_MIN_FACE_SIMILARITY = float(
+    os.getenv("BIOMETRIC_MIN_FACE_SIMILARITY", "0.85")
+)
+
+# Credenciales AWS Rekognition. Mantener vacías en dev/tests; en producción
+# se setean vía variables de entorno (nunca en código ni commits).
+AWS_REKOGNITION_ACCESS_KEY_ID = os.getenv("AWS_REKOGNITION_ACCESS_KEY_ID", "")
+AWS_REKOGNITION_SECRET_ACCESS_KEY = os.getenv("AWS_REKOGNITION_SECRET_ACCESS_KEY", "")
+AWS_REKOGNITION_REGION = os.getenv("AWS_REKOGNITION_REGION", "us-east-1")

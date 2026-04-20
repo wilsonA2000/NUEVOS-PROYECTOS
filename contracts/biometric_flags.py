@@ -17,14 +17,26 @@ from django.conf import settings
 def is_demo_biometric_mode() -> bool:
     """Retorna True cuando los scores biométricos son simulados.
 
-    Por ahora se activa automáticamente en entornos de desarrollo
-    (`DEBUG=True`) o cuando la variable de entorno `DEMO_BIOMETRICS`
-    tiene un valor truthy. Una vez integrado un proveedor real, se
-    desactiva en producción con `DEMO_BIOMETRICS=false`.
+    Desde P0.1 la fuente de verdad es el `FacialProvider` activo: si el
+    factory devuelve `DemoFacialProvider` (explícito o por fallback al
+    faltar credenciales AWS), el servicio biométrico está en demo. Las
+    vars `DEMO_BIOMETRICS` y `DEBUG=True` siguen funcionando como override
+    manual (para entornos donde se quiere forzar el disclosure).
     """
     env = os.environ.get("DEMO_BIOMETRICS")
     if env is not None:
         return env.strip().lower() in ("1", "true", "yes", "on")
+
+    try:
+        from contracts.biometric_providers import get_facial_provider
+
+        if get_facial_provider().is_demo():
+            return True
+    except Exception:
+        # Si el paquete falla por cualquier razón, tratamos como demo
+        # para no ocultar el disclosure al usuario final.
+        return True
+
     return bool(getattr(settings, "DEBUG", False))
 
 
