@@ -4,24 +4,37 @@ Implementa verificación facial, documento de identidad, y grabación de voz con
 """
 
 import base64
+import hashlib
 from typing import Dict, Any
-from datetime import timedelta
 import logging
 
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.db import transaction
 
-from .biometric_providers import FaceAnalysis, FacialProvider, get_facial_provider
+from .biometric_providers import (
+    DocumentAnalysis,
+    DocumentProvider,
+    FaceAnalysis,
+    FacialProvider,
+    get_document_provider,
+    get_facial_provider,
+)
 from .models import Contract, BiometricAuthentication
 
 logger = logging.getLogger(__name__)
+
+_DOC_CACHE_MAX = 8
 
 
 class BiometricAuthenticationService:
     """Servicio completo de autenticación biométrica para contratos digitales."""
 
-    def __init__(self, facial_provider: FacialProvider | None = None):
+    def __init__(
+        self,
+        facial_provider: FacialProvider | None = None,
+        document_provider: DocumentProvider | None = None,
+    ):
         self.min_confidence_threshold = 0.7
         self.image_quality_threshold = 0.8
         self.voice_duration_min = 3  # segundos mínimos
@@ -32,6 +45,14 @@ class BiometricAuthenticationService:
         self._facial_provider: FacialProvider = (
             facial_provider or get_facial_provider()
         )
+        # P0.2: análisis de documento delegado al DocumentProvider activo.
+        self._document_provider: DocumentProvider = (
+            document_provider or get_document_provider()
+        )
+        # Cache por sesión para evitar dos llamadas al provider desde
+        # `_process_document_image` y `_extract_document_info` (la API
+        # real cobra por cada invocación).
+        self._document_cache: Dict[str, DocumentAnalysis] = {}
 
     def initiate_authentication(
         self, contract: Contract, user, request
@@ -835,44 +856,76 @@ class BiometricAuthenticationService:
         ]
         return sum(scores) / len(scores)
 
+    # Análisis de documento delegado al `DocumentProvider` activo.
     def _process_document_image(
         self, image_data: str, document_type: str
     ) -> Dict[str, Any]:
-        """Simula el análisis de imagen de documento."""
-        return {
-            "document_detected": True,
-            "quality_score": 0.88,
-            "security_features": True,
-            "tamper_detected": False,
-            "corners_detected": 4,
-            "text_regions": 12,  # Simulado
-            "document_type": document_type,
-        }
+        """Analiza la imagen del documento vía el proveedor activo."""
+        analysis = self._get_document_analysis(image_data, document_type)
+        payload = analysis.to_image_analysis_dict()
+        payload["provider"] = analysis.provider
+        return payload
 
     def _extract_document_info(
         self, image_data: str, document_type: str
     ) -> Dict[str, Any]:
-        """Simula la extracción OCR de información del documento."""
-        return {
-            "document_number": "1234567890",  # Simulado
-            "name": "Juan Pérez García",  # Simulado
-            "expiry_date": timezone.now().date() + timedelta(days=1825),  # 5 años
-            "detected_type": document_type,
-            "ocr_confidence": 0.91,
-        }
+        """Extrae campos del documento vía el proveedor activo."""
+        analysis = self._get_document_analysis(image_data, document_type)
+        payload = analysis.to_ocr_results_dict()
+        payload["provider"] = analysis.provider
+        return payload
 
     def _validate_document_info(
         self, ocr_results: Dict, document_type: str
     ) -> Dict[str, Any]:
-        """Valida la información extraída del documento."""
+        """Valida los campos extraídos contra el tipo esperado."""
+        today = timezone.now().date()
+        number = str(ocr_results.get("document_number") or "")
+        expiry = ocr_results.get("expiry_date")
+        detected = ocr_results.get("detected_type") or ""
+
+        document_number_valid = len(number) >= 6
+        if expiry:
+            expiry_date_valid = expiry > today
+        else:
+            # Cédula CO no tiene fecha de vencimiento (vigencia indefinida).
+            expiry_date_valid = detected in {"cedula_ciudadania", "tarjeta_identidad"}
+        name_present = bool(ocr_results.get("name"))
+        type_matches = detected == document_type
+
+        overall_validity = (
+            (0.4 if document_number_valid else 0.0)
+            + (0.2 if name_present else 0.0)
+            + (0.2 if expiry_date_valid else 0.0)
+            + (0.2 if type_matches else 0.0)
+        )
+
         return {
-            "document_number_valid": len(ocr_results.get("document_number", "")) >= 8,
-            "expiry_date_valid": ocr_results.get("expiry_date", timezone.now().date())
-            > timezone.now().date(),
-            "name_present": bool(ocr_results.get("name")),
-            "type_matches": ocr_results.get("detected_type") == document_type,
-            "overall_validity": 0.89,
+            "document_number_valid": document_number_valid,
+            "expiry_date_valid": expiry_date_valid,
+            "name_present": name_present,
+            "type_matches": type_matches,
+            "overall_validity": overall_validity,
         }
+
+    def _get_document_analysis(
+        self, image_data: str, document_type: str
+    ) -> DocumentAnalysis:
+        """Invoca el DocumentProvider cacheando por (image_data, doc_type)."""
+        key = self._document_cache_key(image_data, document_type)
+        cached = self._document_cache.get(key)
+        if cached is not None:
+            return cached
+        analysis = self._document_provider.analyze_document(image_data, document_type)
+        if len(self._document_cache) >= _DOC_CACHE_MAX:
+            self._document_cache.pop(next(iter(self._document_cache)))
+        self._document_cache[key] = analysis
+        return analysis
+
+    @staticmethod
+    def _document_cache_key(image_data: str, document_type: str) -> str:
+        blob = f"{document_type}:{image_data or ''}".encode("utf-8", errors="ignore")
+        return hashlib.sha256(blob).hexdigest()
 
     def _calculate_document_confidence(
         self, document_analysis: Dict, ocr_results: Dict, validation_results: Dict
