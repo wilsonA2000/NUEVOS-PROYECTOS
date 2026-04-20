@@ -12,6 +12,9 @@ from __future__ import annotations
 
 from .base import FaceAnalysis, FacialProvider
 from .demo import DemoFacialProvider
+from .document_base import DocumentAnalysis, DocumentProvider
+from .document_demo import DemoDocumentProvider
+from .document_factory import get_document_provider
 from .factory import get_facial_provider
 
 __all__ = [
@@ -19,4 +22,8 @@ __all__ = [
     "FacialProvider",
     "DemoFacialProvider",
     "get_facial_provider",
+    "DocumentAnalysis",
+    "DocumentProvider",
+    "DemoDocumentProvider",
+    "get_document_provider",
 ]
