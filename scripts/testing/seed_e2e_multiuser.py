@@ -39,6 +39,9 @@ GUARANTOR_EMAIL = "guarantor.e2e@verihome.com"
 ADMIN_EMAIL = "abogado.e2e@verihome.com"
 SERVICE_PROVIDER_EMAIL = "prestador.e2e@verihome.com"
 VERIFICATION_AGENT_EMAIL = "agente.e2e@verihome.com"
+# 2026-04-20: actor juridico para full-admin-review-flow (password propio)
+JURIDICO_EMAIL = "juridico@verihome.com"
+JURIDICO_PASSWORD = "juridico123"
 PASSWORD = "admin123"
 PROPERTY_TITLE = "E2E Test Property - Playwright"
 
@@ -56,7 +59,7 @@ def emit_result(result):
     print("__SEED_JSON_END__")
 
 
-def ensure_user(email, user_type, first_name, last_name, is_staff=False):
+def ensure_user(email, user_type, first_name, last_name, is_staff=False, password=None):
     user, created = User.objects.get_or_create(
         email=email,
         defaults={
@@ -68,7 +71,7 @@ def ensure_user(email, user_type, first_name, last_name, is_staff=False):
             "is_staff": is_staff,
         },
     )
-    user.set_password(PASSWORD)
+    user.set_password(password or PASSWORD)
     user.is_verified = True
     user.is_active = True
     user.user_type = user_type
@@ -320,6 +323,10 @@ def main():
     verification_agent = ensure_user(
         VERIFICATION_AGENT_EMAIL, "landlord", "Agente", "Verificacion", is_staff=True
     )
+    juridico = ensure_user(
+        JURIDICO_EMAIL, "landlord", "Juridico", "VeriHome",
+        is_staff=True, password=JURIDICO_PASSWORD,
+    )
 
     result = {
         "mode": mode,
@@ -329,12 +336,15 @@ def main():
         "admin_id": str(admin.id),
         "service_provider_id": str(service_provider.id),
         "verification_agent_id": str(verification_agent.id),
+        "juridico_id": str(juridico.id),
         "landlord_email": LANDLORD_EMAIL,
         "tenant_email": TENANT_EMAIL,
         "guarantor_email": GUARANTOR_EMAIL,
         "admin_email": ADMIN_EMAIL,
         "service_provider_email": SERVICE_PROVIDER_EMAIL,
         "verification_agent_email": VERIFICATION_AGENT_EMAIL,
+        "juridico_email": JURIDICO_EMAIL,
+        "juridico_password": JURIDICO_PASSWORD,
         "password": PASSWORD,
         "timestamp": timezone.now().isoformat(),
     }
