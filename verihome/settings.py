@@ -988,3 +988,9 @@ BIOMETRIC_DOCUMENT_PROVIDER = os.getenv("BIOMETRIC_DOCUMENT_PROVIDER", "demo")
 AWS_TEXTRACT_ACCESS_KEY_ID = os.getenv("AWS_TEXTRACT_ACCESS_KEY_ID", "")
 AWS_TEXTRACT_SECRET_ACCESS_KEY = os.getenv("AWS_TEXTRACT_SECRET_ACCESS_KEY", "")
 AWS_TEXTRACT_REGION = os.getenv("AWS_TEXTRACT_REGION", "us-east-1")
+
+# P0.3 · proveedor de análisis de voz.
+# Hoy sólo acepta `demo` (andamio listo). P0.3b integrará un provider
+# real (Google Speech-to-Text / AWS Transcribe streaming / Azure Speech).
+# El factory ya hace fallback a demo ante valores desconocidos.
+BIOMETRIC_VOICE_PROVIDER = os.getenv("BIOMETRIC_VOICE_PROVIDER", "demo")

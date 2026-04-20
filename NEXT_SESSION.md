@@ -1,10 +1,50 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-21 (P0.1 + P0.2 · facial + documento OCR reales con fallback demo)
+**Última actualización**: 2026-04-21 (P0.1 + P0.2 + P0.3 · facial + documento + andamio voz)
 
 ---
 
-## Lo que se hizo en esta sesión (2026-04-21 tarde · Fase P0.2 documento OCR)
+## Lo que se hizo en esta sesión (2026-04-21 noche · Fase P0.3 voz — andamio)
+
+Cierra la triada provider+factory+fallback del biométrico con el
+VoiceProvider. Scope acotado: infraestructura + demo + wire. El
+provider real (Google STT / AWS Transcribe streaming / Azure Speech)
+queda para P0.3b — la naturaleza async de la transcripción biométrica
+requiere pipeline Celery dedicado, fuera del scope de esta sesión.
+
+| Commit | Hash | Contenido | Tests |
+|---|---|---|---|
+| **Commit 9** | `<prev>` | `voice_base.py` (ABC `VoiceProvider` + dataclass `VoiceAnalysis` con 4 helpers shape), `voice_demo.py` (scores fijos), `voice_factory.py` con `_VALID_PROVIDERS` hook para providers futuros. 12 tests. | 12/12 |
+| **Commit 10** | `61ede54` | Wire en `BiometricAuthenticationService`: `__init__(voice_provider=None)`, los 4 stubs delegan al provider vía `_get_voice_analysis` con cache LRU 8. `_analyze_audio_quality` (antes scores fijos 0.84/0.88) ahora también delega. Shape preservada → 0 regresión. | 206/206 |
+| **Commit 11** | `<pendiente>` | `BIOMETRIC_VOICE_PROVIDER` en settings + .env.prod.example + sección P0.3 aquí. | — |
+
+### Deuda P0.3b — provider real
+
+Cuando se integre, la implementación deberá:
+
+1. Crear `google_stt.py` (o `aws_transcribe.py`, o `azure_speech.py`)
+   que implemente `VoiceProvider.analyze_voice()`.
+2. Añadir el nombre al `_VALID_PROVIDERS` del factory.
+3. Gestionar la naturaleza async de Transcribe: o bien usar
+   `start_transcription_job` + polling (bloqueante, lento) o migrar
+   el flujo a Celery para que el endpoint HTTP devuelva
+   `status: processing` y actualice `auth.voice_analysis` cuando
+   termine (patrón event-driven).
+4. Añadir credenciales al settings y .env.prod.example.
+5. Tests con mock del SDK correspondiente (patrón P0.1 / P0.2).
+
+Candidatos evaluados:
+- **Google Speech-to-Text** — sync short audio API (≤60s), simple.
+  Soporta es-CO nativo. Requiere `google-cloud-speech`.
+- **AWS Transcribe** — async con polling o streaming WebSocket; más
+  complejo pero mantiene stack AWS. Soporta es-US.
+- **Azure Speech + Speaker Recognition** — único con Speaker ID real
+  para verificación biométrica (no solo transcripción). Requiere
+  `azure-cognitiveservices-speech`.
+
+---
+
+## Lo que se hizo antes en esta sesión (2026-04-21 tarde · Fase P0.2 documento OCR)
 
 Extiende el patrón provider+factory+fallback a los stubs de análisis de
 documento de identidad. Arquitectura espejo de P0.1.
@@ -77,7 +117,10 @@ contracts/
   Textract híbrido + parser cédula CO. Ver sección P0.2 arriba.
 - **P0.2b — tamper detection real**: Textract no expone detección de
   falsificación. Requiere Metamap / Onfido (comercial). Candidato P1.
-- **P0.3 — voz**: stubs `_process_voice_recording` + `_transcribe_voice`
+- ✅ **P0.3 — voz (andamio)**: cerrada esta sesión (commits 9-11).
+  VoiceProvider interface + DemoVoiceProvider + wire. Ver sección P0.3
+  arriba. Provider real queda como P0.3b.
+- **P0.3b — voz provider real**: stubs `_process_voice_recording` + `_transcribe_voice`
   + `_analyze_voice_characteristics`. Candidatos: Google Speech-to-Text
   o Azure Speech + Azure Speaker Recognition para biometric voice.
 - **P0.4 — liveness real**: Rekognition Face Liveness requiere frontend
