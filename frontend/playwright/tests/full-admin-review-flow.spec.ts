@@ -149,13 +149,14 @@ test('flujo completo: admin-review → DRAFT → tenant → firma biométrica �
   attachLoggers(tenantPage, 'tenant', ctx);
 
   // Inyectar token tenant en localStorage
-  await tenantPage.goto('http://localhost:5174/login');
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5174';
+  await tenantPage.goto(`${baseUrl}/login`);
   await tenantPage.evaluate((token) => {
     localStorage.setItem('access_token', token);
     localStorage.setItem('refresh_token', token);
   }, tenantToken);
 
-  await tenantPage.goto('http://localhost:5174/app/admin/contracts');
+  await tenantPage.goto(`${baseUrl}/app/admin/contracts`);
   await tenantPage.waitForTimeout(2000);
   const afterGuard = tenantPage.url();
   const guardOk = !afterGuard.includes('/app/admin/contracts');
