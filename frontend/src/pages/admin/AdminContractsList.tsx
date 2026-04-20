@@ -158,7 +158,7 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 
 function getComparator<Key extends keyof AdminContractSummary>(
   order: Order,
-  orderBy: Key
+  orderBy: Key,
 ): (a: AdminContractSummary, b: AdminContractSummary) => number {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
@@ -214,7 +214,7 @@ const AdminContractsList: React.FC = () => {
           (c.property_title ?? '').toLowerCase().includes(term) ||
           c.landlord_name.toLowerCase().includes(term) ||
           (c.tenant_name ?? '').toLowerCase().includes(term) ||
-          c.property_address.toLowerCase().includes(term)
+          c.property_address.toLowerCase().includes(term),
       );
     }
 
@@ -282,7 +282,7 @@ const AdminContractsList: React.FC = () => {
   // Paginated data
   const paginatedContracts = filteredContracts.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   return (

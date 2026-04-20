@@ -35,7 +35,7 @@ export function useScrollReveal(options: UseScrollRevealOptions = {}) {
           observer.unobserve(element);
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     observer.observe(element);

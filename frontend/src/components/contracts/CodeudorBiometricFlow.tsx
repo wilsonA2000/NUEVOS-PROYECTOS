@@ -251,7 +251,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
           response = await contractService.processFaceCapture(
             contractId,
             biometricData.frontImage || data.imageData,
-            data.imageData
+            data.imageData,
           );
           break;
 
@@ -261,7 +261,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
             contractId,
             data.documentImage,
             codeudorData.document_type,
-            codeudorData.document_number
+            codeudorData.document_number,
           );
           break;
 
@@ -269,7 +269,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
           stepName = 'codeudor_combined';
           response = await contractService.processCombinedVerification(
             contractId,
-            data.combinedImage
+            data.combinedImage,
           );
           break;
 
@@ -278,7 +278,7 @@ const CodeudorBiometricFlow: React.FC<CodeudorBiometricFlowProps> = ({
           response = await contractService.processVoiceVerification(
             contractId,
             data.audioBlob,
-            biometricData.voiceText
+            biometricData.voiceText,
           );
           break;
       }

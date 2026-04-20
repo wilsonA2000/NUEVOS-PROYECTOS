@@ -25,9 +25,9 @@ const ContractModificationService = {
    * @returns Promesa con la solicitud creada
    */
   async createModificationRequest(
-    payload: CreateModificationRequestPayload
+    payload: CreateModificationRequestPayload,
   ): Promise<ContractModificationRequest> {
-    const response = await api.post<ContractModificationRequest>(BASE_URL + '/', payload);
+    const response = await api.post<ContractModificationRequest>(`${BASE_URL  }/`, payload);
     return response.data;
   },
 
@@ -52,7 +52,7 @@ const ContractModificationService = {
     }
 
     const response = await api.get<ContractModificationRequest[]>(
-      `${BASE_URL}/?${params.toString()}`
+      `${BASE_URL}/?${params.toString()}`,
     );
     return response.data;
   },
@@ -64,10 +64,10 @@ const ContractModificationService = {
    * @returns Promesa con los detalles de la solicitud
    */
   async getModificationRequest(
-    modificationId: string
+    modificationId: string,
   ): Promise<ContractModificationRequest> {
     const response = await api.get<ContractModificationRequest>(
-      `${BASE_URL}/${modificationId}/`
+      `${BASE_URL}/${modificationId}/`,
     );
     return response.data;
   },
@@ -81,11 +81,11 @@ const ContractModificationService = {
    */
   async respondToModificationRequest(
     modificationId: string,
-    payload: RespondModificationRequestPayload
+    payload: RespondModificationRequestPayload,
   ): Promise<ContractModificationRequest> {
     const response = await api.post<ContractModificationRequest>(
       `${BASE_URL}/${modificationId}/respond/`,
-      payload
+      payload,
     );
     return response.data;
   },
@@ -100,10 +100,10 @@ const ContractModificationService = {
    * @returns Promesa con la solicitud actualizada
    */
   async markAsImplemented(
-    modificationId: string
+    modificationId: string,
   ): Promise<ContractModificationRequest> {
     const response = await api.post<ContractModificationRequest>(
-      `${BASE_URL}/${modificationId}/mark-implemented/`
+      `${BASE_URL}/${modificationId}/mark-implemented/`,
     );
     return response.data;
   },
@@ -115,7 +115,7 @@ const ContractModificationService = {
    * @returns Promesa con array de solicitudes del contrato
    */
   async getContractModificationRequests(
-    contractId: string
+    contractId: string,
   ): Promise<ContractModificationRequest[]> {
     return this.listModificationRequests({ contract_id: contractId });
   },
@@ -158,7 +158,7 @@ const ContractModificationService = {
    */
   async approveModificationRequest(
     modificationId: string,
-    landlordResponse?: string
+    landlordResponse?: string,
   ): Promise<ContractModificationRequest> {
     return this.respondToModificationRequest(modificationId, {
       action: 'approve',
@@ -175,7 +175,7 @@ const ContractModificationService = {
    */
   async rejectModificationRequest(
     modificationId: string,
-    landlordResponse: string
+    landlordResponse: string,
   ): Promise<ContractModificationRequest> {
     return this.respondToModificationRequest(modificationId, {
       action: 'reject',

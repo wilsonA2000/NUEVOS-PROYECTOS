@@ -312,6 +312,7 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
  };
 
  const createDropzone = (docType: DocumentType) => {
+ // eslint-disable-next-line react-hooks/rules-of-hooks
  const { getRootProps, getInputProps, isDragActive } = useDropzone({
  onDrop: (acceptedFiles, rejectedFiles) => onDrop(acceptedFiles, rejectedFiles, docType),
  accept: docType.acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),

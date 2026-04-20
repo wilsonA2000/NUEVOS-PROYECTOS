@@ -311,7 +311,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
           </Box>
         );
 
-      case 2:
+      case 2: {
         const selectedBank = banks.find((b) => b.financial_institution_code === formData.bankCode);
         return (
           <Box>
@@ -367,6 +367,7 @@ const PSECheckout: React.FC<PSECheckoutProps> = ({
             </Alert>
           </Box>
         );
+      }
 
       default:
         return null;

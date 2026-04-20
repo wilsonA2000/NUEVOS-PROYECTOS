@@ -42,8 +42,8 @@ export function initSentry(): void {
       if (event.exception?.values?.some(
         (e) => e.stacktrace?.frames?.some(
           (f) => f.filename?.includes('extensions/')
-            || f.filename?.includes('chrome-extension')
-        )
+            || f.filename?.includes('chrome-extension'),
+        ),
       )) {
         return null;
       }

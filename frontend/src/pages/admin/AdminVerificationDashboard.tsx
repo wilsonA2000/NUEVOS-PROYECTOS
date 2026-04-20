@@ -302,7 +302,7 @@ const AdminVerificationDashboard: React.FC = () => {
         is_available: !current,
       });
       setAgents((prev) =>
-        prev.map((a) => (a.id === agentId ? { ...a, is_available: !current } : a))
+        prev.map((a) => (a.id === agentId ? { ...a, is_available: !current } : a)),
       );
       setSuccessMessage('Disponibilidad del agente actualizada.');
       fetchStats();

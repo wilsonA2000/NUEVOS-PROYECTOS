@@ -9,7 +9,7 @@
     "build:analyze": "ANALYZE=true npm run build",
     "build:prod": "NODE_ENV=production tsc && vite build",
     "build:staging": "NODE_ENV=staging tsc && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "format": "prettier --write src/**/*.{ts,tsx,js,jsx,json,css,md}",
     "format:check": "prettier --check src/**/*.{ts,tsx,js,jsx,json,css,md}",

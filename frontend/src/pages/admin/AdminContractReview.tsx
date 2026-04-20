@@ -116,10 +116,10 @@ const AdminContractReview: React.FC = () => {
 
   // Estado de modales
   const [approvalModalOpen, setApprovalModalOpen] = useState(
-    searchParams.get('action') === 'approve'
+    searchParams.get('action') === 'approve',
   );
   const [rejectionModalOpen, setRejectionModalOpen] = useState(
-    searchParams.get('action') === 'reject'
+    searchParams.get('action') === 'reject',
   );
   const [mutationError, setMutationError] = useState<string | null>(null);
 

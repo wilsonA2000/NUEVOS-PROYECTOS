@@ -13,6 +13,8 @@ export const ensureArray = <T>(value: T[] | undefined | null): T[] => {
  * Asegura que un valor sea un array y filtra elementos nulos/undefined
  */
 export const ensureArrayFiltered = <T>(value: T[] | undefined | null): T[] => {
+  // `!= null` intencional: filtra null Y undefined en un solo check.
+  // eslint-disable-next-line eqeqeq
   return Array.isArray(value) ? value.filter(item => item != null) : [];
 };
 

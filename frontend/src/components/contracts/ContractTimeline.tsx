@@ -123,7 +123,7 @@ const ContractTimeline: React.FC<ContractTimelineProps> = ({ contractId }) => {
                       sx={{ height: 22, fontSize: '0.7rem' }}
                     />
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {format(parseISO(entry.created_at), "d 'de' MMMM yyyy, HH:mm", { locale: es })}
+                      {format(parseISO(entry.created_at), 'd \'de\' MMMM yyyy, HH:mm', { locale: es })}
                     </Typography>
                   </Box>
                 </Box>

@@ -134,9 +134,10 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
   const generateDefaultExport = (format: ExportFormat, data: any): Blob => {
     switch (format) {
-      case 'json':
+      case 'json': {
         const jsonString = JSON.stringify(data, null, 2);
         return new Blob([jsonString], { type: 'application/json' });
+      }
 
       case 'csv':
         if (Array.isArray(data) && data.length > 0) {

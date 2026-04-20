@@ -384,7 +384,7 @@ const Layout: React.FC = () => {
               onClick={() => { navigate('/app/admin'); handleProfileMenuClose(); }}
               sx={{
                 bgcolor: 'rgba(156, 39, 176, 0.08)',
-                '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.15)' }
+                '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.15)' },
               }}
             >
               <ListItemIcon>

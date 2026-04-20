@@ -170,16 +170,19 @@ export const PaymentTable: React.FC = () => {
       width: 120,
       getActions: (params) => [
         <GridActionsCellItem
+          key="view"
           icon={<ViewIcon />}
           label="Ver"
           onClick={() => navigate(`/app/payments/${params.row.id}`)}
         />,
         <GridActionsCellItem
+          key="edit"
           icon={<EditIcon />}
           label="Editar"
           onClick={() => navigate(`/app/payments/${params.row.id}/edit`)}
         />,
         <GridActionsCellItem
+          key="delete"
           icon={<DeleteIcon />}
           label="Eliminar"
           onClick={() => handleDelete(params.row.id)}

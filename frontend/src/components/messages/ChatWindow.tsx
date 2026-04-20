@@ -65,7 +65,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
  // Placeholder WebSocket context - replace with actual implementation
  const isConnected = false;
  const send = (_channel: string, _data: any) => { return true; };
- const subscribe = (event: string, handler: Function) => () => {};
+ const subscribe = (_event: string, _handler: (...args: unknown[]) => void) => () => {};
  const onlineUsers = new Set<string>();
  
  // Estado local para usuarios escribiendo

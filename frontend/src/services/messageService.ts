@@ -8,10 +8,10 @@ export interface WebSocketMessageEvent {
 }
 
 class MessageService {
-  private webSocketCallbacks: Map<string, Function[]> = new Map();
+  private webSocketCallbacks: Map<string, Array<(...args: unknown[]) => void>> = new Map();
 
   // Registrar callback para eventos WebSocket
-  onWebSocketEvent(eventType: string, callback: Function) {
+  onWebSocketEvent(eventType: string, callback: (...args: unknown[]) => void) {
     if (!this.webSocketCallbacks.has(eventType)) {
       this.webSocketCallbacks.set(eventType, []);
     }
@@ -19,7 +19,7 @@ class MessageService {
   }
 
   // Desregistrar callback
-  offWebSocketEvent(eventType: string, callback: Function) {
+  offWebSocketEvent(eventType: string, callback: (...args: unknown[]) => void) {
     const callbacks = this.webSocketCallbacks.get(eventType);
     if (callbacks) {
       const index = callbacks.indexOf(callback);

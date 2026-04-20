@@ -110,7 +110,7 @@ export const useAdminAuth = (): UseAdminAuthReturn => {
         });
       }
     },
-    [state.isLoading, state.isAdmin, navigate]
+    [state.isLoading, state.isAdmin, navigate],
   );
 
   /**

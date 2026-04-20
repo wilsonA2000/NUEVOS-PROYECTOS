@@ -137,7 +137,7 @@ api.interceptors.response.use(
           response: response,
           isAxiosError: true,
           toJSON: () => ({}),
-        }
+        },
       );
       return Promise.reject(error);
     }

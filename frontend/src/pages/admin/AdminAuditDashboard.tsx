@@ -88,7 +88,7 @@ const AdminAuditDashboard: React.FC = () => {
     setSelectedSections((prev) =>
       prev.includes(sectionId)
         ? prev.filter((id) => id !== sectionId)
-        : [...prev, sectionId]
+        : [...prev, sectionId],
     );
   };
 

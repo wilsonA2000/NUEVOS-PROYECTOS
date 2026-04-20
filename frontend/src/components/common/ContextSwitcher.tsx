@@ -100,7 +100,7 @@ export const ContextSwitcher: React.FC<ContextSwitcherProps> = ({ compact = fals
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // Estado local para reactividad inmediata sin esperar cambio de URL
   const [forcedContextId, setForcedContextId] = useState<string | null>(
-    () => localStorage.getItem(CONTEXT_STORAGE_KEY)
+    () => localStorage.getItem(CONTEXT_STORAGE_KEY),
   );
 
   // Detectar contextos disponibles para el usuario

@@ -102,7 +102,7 @@ const ThreadDetail: React.FC = () => {
     mutationFn: async (content: string) => {
       // Endpoint correcto: /messages/send/ con thread_id en el body.
       // /messages/threads/<id>/messages/ no existe.
-      const response = await api.post(`/messages/send/`, {
+      const response = await api.post('/messages/send/', {
         thread_id: threadId,
         content,
       });

@@ -472,12 +472,12 @@ const ModificationRequestModal: React.FC<ModificationRequestModalProps> = ({
   const handleUpdateChange = (
     sectionId: string,
     field: 'currentValue' | 'requestedValue' | 'reason',
-    value: string
+    value: string,
   ) => {
     setSelectedChanges(prev =>
       prev.map(change =>
-        change.sectionId === sectionId ? { ...change, [field]: value } : change
-      )
+        change.sectionId === sectionId ? { ...change, [field]: value } : change,
+      ),
     );
   };
 

@@ -46,7 +46,7 @@ interface Action {
 const getAvailableActions = (
   status: string,
   contractId: string,
-  navigate: ReturnType<typeof useNavigate>
+  navigate: ReturnType<typeof useNavigate>,
 ): Action[] => {
   const actions: Action[] = [
     {

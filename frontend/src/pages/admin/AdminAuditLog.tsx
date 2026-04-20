@@ -64,7 +64,7 @@ const AdminAuditLog: React.FC = () => {
     return d.toISOString().split('T')[0] ?? '';
   });
   const [dateTo, setDateTo] = useState<string>(
-    () => new Date().toISOString().split('T')[0] ?? ''
+    () => new Date().toISOString().split('T')[0] ?? '',
   );
   const [activityType, setActivityType] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
@@ -80,7 +80,7 @@ const AdminAuditLog: React.FC = () => {
       page: page + 1,
       page_size: pageSize,
     }),
-    [dateFrom, dateTo, activityType, modelName, page, pageSize]
+    [dateFrom, dateTo, activityType, modelName, page, pageSize],
   );
 
   const { data, isLoading, isError, error } = useQuery({

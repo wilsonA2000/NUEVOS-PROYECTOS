@@ -135,7 +135,7 @@ const TenantInvitationLanding: React.FC = () => {
         const contractData: ContractInfo = {
           id: data.contract?.id || data.contract_id || '',
           contractNumber: data.contract?.contract_number || data.contract_number || '',
-          title: data.contract?.title || `Contrato de Arrendamiento`,
+          title: data.contract?.title || 'Contrato de Arrendamiento',
           property: {
             address: data.contract?.property?.address || data.property_address || '',
             city: data.contract?.property?.city || data.property_city || '',

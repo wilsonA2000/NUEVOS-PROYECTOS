@@ -98,15 +98,16 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
         error: null,
       };
     
-    case 'ADD_NOTIFICATION':
+    case 'ADD_NOTIFICATION': {
       const newNotifications = [action.payload, ...state.notifications];
       return {
         ...state,
         notifications: newNotifications,
         unreadCount: newNotifications.filter(n => !n.read).length,
       };
-    
-    case 'UPDATE_NOTIFICATION':
+    }
+
+    case 'UPDATE_NOTIFICATION': {
       const updatedNotifications = state.notifications.map(n =>
         n.id === action.payload.id ? { ...n, ...action.payload.updates } : n,
       );
@@ -115,14 +116,16 @@ const notificationReducer = (state: NotificationState, action: NotificationActio
         notifications: updatedNotifications,
         unreadCount: updatedNotifications.filter(n => !n.read).length,
       };
-    
-    case 'REMOVE_NOTIFICATION':
+    }
+
+    case 'REMOVE_NOTIFICATION': {
       const filteredNotifications = state.notifications.filter(n => n.id !== action.payload);
       return {
         ...state,
         notifications: filteredNotifications,
         unreadCount: filteredNotifications.filter(n => !n.read).length,
       };
+    }
     
     case 'MARK_AS_READ':
       return {

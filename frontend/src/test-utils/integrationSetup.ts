@@ -421,18 +421,21 @@ beforeAll(() => {
 // =====================================================================
 
 // Declaraciones de tipos globales para utilidades de test
+// `var` es el único modificador válido para globales en `declare global`.
+/* eslint-disable no-var */
 declare global {
   var waitForCondition: (condition: () => boolean, timeout?: number) => Promise<void>;
   var simulateDelay: (ms: number) => Promise<void>;
   var createMockEvent: (type: string, properties?: any) => Event;
   var cleanupAllMocks: () => void;
-  
+
   namespace jest {
     interface Matchers<R> {
       toBeWithinRange(floor: number, ceiling: number): R;
     }
   }
 }
+/* eslint-enable no-var */
 
 // Custom matchers
 expect.extend({

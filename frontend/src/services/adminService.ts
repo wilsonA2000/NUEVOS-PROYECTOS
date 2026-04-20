@@ -203,7 +203,7 @@ export const getContractForReview = async (contractId: string): Promise<AdminCon
  */
 export const approveContract = async (
   contractId: string,
-  payload: AdminApprovalPayload = {}
+  payload: AdminApprovalPayload = {},
 ): Promise<{ success: boolean; message: string; new_state: string }> => {
   const response = await api.post(`/contracts/admin/contracts/${contractId}/approve/`, payload);
   return response.data;
@@ -214,7 +214,7 @@ export const approveContract = async (
  */
 export const rejectContract = async (
   contractId: string,
-  payload: AdminRejectionPayload
+  payload: AdminRejectionPayload,
 ): Promise<{ success: boolean; message: string; new_state: string }> => {
   const response = await api.post(`/contracts/admin/contracts/${contractId}/reject/`, payload);
   return response.data;
@@ -225,7 +225,7 @@ export const rejectContract = async (
  */
 export const reApproveContract = async (
   contractId: string,
-  payload: AdminApprovalPayload = {}
+  payload: AdminApprovalPayload = {},
 ): Promise<{ success: boolean; message: string; new_state: string; cycle: number }> => {
   const response = await api.post(`/contracts/admin/contracts/${contractId}/re-approve/`, payload);
   return response.data;
@@ -247,7 +247,7 @@ export const getSystemOverview = async (): Promise<SystemOverview> => {
  * Generar reporte de auditoría
  */
 export const generateAuditReport = async (
-  request: AuditReportRequest
+  request: AuditReportRequest,
 ): Promise<AuditReportResponse> => {
   const response = await api.post('/core/audit/report/', request);
   return response.data;
@@ -320,7 +320,7 @@ export interface AuditLogFilters {
  * Backend: `/api/v1/core/audit-logs/` (GlobalAuditLogAPIView).
  */
 export const getAuditLogs = async (
-  filters: AuditLogFilters = {}
+  filters: AuditLogFilters = {},
 ): Promise<AuditLogPage> => {
   const params: Record<string, string | number> = {};
   Object.entries(filters).forEach(([key, value]) => {
@@ -351,7 +351,7 @@ export const cleanupLogs = async (params: {
  * Obtener historial de accesos a documentos (admin only)
  */
 export const getDocumentAccessHistory = async (
-  documentId: string
+  documentId: string,
 ): Promise<{
   document_id: string;
   document_type: string;
@@ -387,7 +387,7 @@ export const getContractsInCorrectionCycle = async (): Promise<AdminContractSumm
  * Ver historial completo del workflow circular
  */
 export const getCircularWorkflowHistory = async (
-  contractId: string
+  contractId: string,
 ): Promise<{
   contract_id: string;
   review_cycle_count: number;

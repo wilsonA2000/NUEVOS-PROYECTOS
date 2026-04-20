@@ -165,10 +165,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
     onError?.();
   };
 
-  const handleLoadStart = () => {
-    setShowLoader(true);
-  };
-
   // Combinar refs
   const combinedRef = (node: HTMLImageElement | null) => {
     if (imgRef.current !== node) {
@@ -241,7 +237,6 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
           style={imageStyle}
           onLoad={handleLoad}
           onError={handleError}
-          onLoadStart={handleLoadStart}
           loading="eager"
           decoding="async"
         />
