@@ -64,7 +64,7 @@ coverage==7.3.2
 drf-spectacular==0.26.5
 
 # Seguridad
-cryptography==41.0.7
+cryptography==44.0.3
 
 # WebSockets y Real-time
 channels==4.2.2
