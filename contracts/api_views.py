@@ -863,7 +863,9 @@ class DigitalSignatureAPIView(APIView):
         import hashlib
 
         timestamp = timezone.now().isoformat()
-        return hashlib.md5(f"TIMESTAMP:{timestamp}".encode()).hexdigest()
+        return hashlib.md5(
+            f"TIMESTAMP:{timestamp}".encode(), usedforsecurity=False
+        ).hexdigest()
 
     def generate_blockchain_hash(self, signature):
         """Genera un hash de blockchain (simulado)."""

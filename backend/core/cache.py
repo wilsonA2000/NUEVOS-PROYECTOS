@@ -145,7 +145,7 @@ def generate_cache_key(*args, **kwargs) -> str:
     """Generar clave de cache única basada en argumentos."""
     key_data = {"args": args, "kwargs": sorted(kwargs.items()) if kwargs else {}}
     key_string = json.dumps(key_data, cls=DjangoJSONEncoder, sort_keys=True)
-    return hashlib.md5(key_string.encode()).hexdigest()
+    return hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
 
 
 def cache_result(key_prefix: str, timeout: int = 300, cache_type: str = "default"):

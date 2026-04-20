@@ -130,7 +130,7 @@ def handle_video_files(
     for i, video_file in enumerate(video_files):
         # Generar hash único para el archivo
         file_hash = hashlib.md5(
-            f"{video_file.name}_{video_file.size}".encode()
+            f"{video_file.name}_{video_file.size}".encode(), usedforsecurity=False
         ).hexdigest()[:12]
         processed_hashes.add(file_hash)
 

@@ -75,7 +75,9 @@ jobs:
       run: python manage.py migrate --noinput
 
     - name: Run Django tests
-      run: python manage.py test --parallel --keepdb
+      # --parallel deshabilitado: PicklingError con ModuleSkipped en
+      # Django+Python 3.12 parallel runner. Single-process funciona.
+      run: python manage.py test --keepdb
 
   # Job 2: Frontend Tests
   test-frontend:
