@@ -90,6 +90,137 @@ interface GuaranteeDocumentUploadProps {
  disabled?: boolean;
 }
 
+interface DropzoneBlockProps {
+ docType: DocumentType;
+ existingDoc?: GuaranteeDocument;
+ disabled: boolean;
+ onDrop: (accepted: File[], rejected: unknown[], docType: DocumentType) => void;
+ onPreview: (doc: GuaranteeDocument) => void;
+ onRemove: (docId: string) => void;
+}
+
+const DropzoneBlock: React.FC<DropzoneBlockProps> = ({
+ docType,
+ existingDoc,
+ disabled,
+ onDrop,
+ onPreview,
+ onRemove,
+}) => {
+ const { getRootProps, getInputProps, isDragActive } = useDropzone({
+ onDrop: (acceptedFiles, rejectedFiles) => onDrop(acceptedFiles, rejectedFiles, docType),
+ accept: docType.acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
+ maxFiles: 1,
+ disabled,
+ });
+
+ return (
+ <Paper
+ {...getRootProps()}
+ sx={{
+ p: 3,
+ border: `2px dashed ${isDragActive ? vhColors.accentBlue : existingDoc?.status === 'uploaded' ? vhColors.success : vhColors.divider}`,
+ borderRadius: 2,
+ bgcolor: isDragActive ? 'action.hover' : existingDoc?.status === 'uploaded' ? 'success.50' : 'background.paper',
+ cursor: disabled ? 'not-allowed' : 'pointer',
+ transition: 'all 0.2s ease-in-out',
+ '&:hover': disabled ? {} : {
+ borderColor: vhColors.accentBlue,
+ bgcolor: 'action.hover',
+ },
+ }}
+ >
+ <input {...getInputProps()}/>
+
+ <Box display="flex" alignItems="center" gap={2}>
+ {docType.icon}
+ <Box flex={1}>
+ <Typography variant="subtitle2" gutterBottom>
+ {docType.name}
+ {docType.category === 'required' && (
+ <Chip label="Requerido" color="error" size="small" sx={{ ml: 1 }}/>
+ )}
+</Typography>
+ <Typography variant="body2" color="text.secondary">
+ {docType.description}
+</Typography>
+ <Typography variant="caption" color="text.secondary">
+ Máximo {docType.maxSize}MB • {docType.acceptedTypes.join(', ')}
+</Typography>
+</Box>
+
+ {existingDoc ? (
+ <Box display="flex" alignItems="center" gap={1}>
+ {existingDoc.status === 'uploading' && (
+ <Box sx={{ minWidth: 100 }}>
+ <LinearProgress
+ variant="determinate"
+ value={existingDoc.progress || 0}
+ sx={{ mb: 1 }}
+/>
+ <Typography variant="caption">
+ {Math.round(existingDoc.progress || 0)}%
+</Typography>
+</Box>
+ )}
+
+ {existingDoc.status === 'uploaded' && (
+ <>
+ <CheckCircle color="success"/>
+ <Typography variant="body2" color="success.main">
+ Subido
+</Typography>
+</>
+ )}
+
+ {existingDoc.status === 'error' && (
+ <>
+ <Error color="error"/>
+ <Typography variant="body2" color="error.main">
+ Error
+</Typography>
+</>
+ )}
+
+ <Tooltip title="Vista previa">
+ <IconButton
+ size="small"
+ onClick={(e) => {
+ e.stopPropagation();
+ onPreview(existingDoc);
+ }}
+ disabled={existingDoc.status !== 'uploaded'}
+ >
+ <Visibility/>
+</IconButton>
+</Tooltip>
+
+ <Tooltip title="Eliminar">
+ <IconButton
+ size="small"
+ onClick={(e) => {
+ e.stopPropagation();
+ onRemove(existingDoc.id);
+ }}
+ color="error"
+ >
+ <Delete/>
+</IconButton>
+</Tooltip>
+</Box>
+ ) : (
+ <Box display="flex" alignItems="center" gap={1}>
+ <CloudUpload color={isDragActive ? 'primary' : 'action'}/>
+ <Typography variant="body2" color="text.secondary">
+ {isDragActive ? 'Suelta aquí' : 'Clic o arrastra'}
+</Typography>
+</Box>
+ )}
+</Box>
+</Paper>
+ );
+};
+
 // Document type definitions by guarantee type
 const DOCUMENT_TYPES: Record<string, DocumentType[]> = {
  codeudor_salario: [
@@ -311,124 +442,6 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
  }
  };
 
- const createDropzone = (docType: DocumentType) => {
- // eslint-disable-next-line react-hooks/rules-of-hooks
- const { getRootProps, getInputProps, isDragActive } = useDropzone({
- onDrop: (acceptedFiles, rejectedFiles) => onDrop(acceptedFiles, rejectedFiles, docType),
- accept: docType.acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
- maxFiles: 1,
- disabled,
- });
-
- const existingDoc = documents.find(doc => doc.type === docType.id);
-
- return (
- <Paper
- {...getRootProps()}
- sx={{
- p: 3,
- border: `2px dashed ${isDragActive ? vhColors.accentBlue : existingDoc?.status === 'uploaded' ? vhColors.success : vhColors.divider}`,
- borderRadius: 2,
- bgcolor: isDragActive ? 'action.hover' : existingDoc?.status === 'uploaded' ? 'success.50' : 'background.paper',
- cursor: disabled ? 'not-allowed' : 'pointer',
- transition: 'all 0.2s ease-in-out',
- '&:hover': disabled ? {} : {
- borderColor: vhColors.accentBlue,
- bgcolor: 'action.hover',
- },
- }}
- >
- <input {...getInputProps()}/>
- 
- <Box display="flex" alignItems="center" gap={2}>
- {docType.icon}
- <Box flex={1}>
- <Typography variant="subtitle2" gutterBottom>
- {docType.name}
- {docType.category === 'required' && (
- <Chip label="Requerido" color="error" size="small" sx={{ ml: 1 }}/>
- )}
-</Typography>
- <Typography variant="body2" color="text.secondary">
- {docType.description}
-</Typography>
- <Typography variant="caption" color="text.secondary">
- Máximo {docType.maxSize}MB • {docType.acceptedTypes.join(', ')}
-</Typography>
-</Box>
- 
- {existingDoc ? (
- <Box display="flex" alignItems="center" gap={1}>
- {existingDoc.status === 'uploading' && (
- <Box sx={{ minWidth: 100 }}>
- <LinearProgress 
- variant="determinate" 
- value={existingDoc.progress || 0}
- sx={{ mb: 1 }}
-/>
- <Typography variant="caption">
- {Math.round(existingDoc.progress || 0)}%
-</Typography>
-</Box>
- )}
- 
- {existingDoc.status === 'uploaded' && (
- <>
- <CheckCircle color="success"/>
- <Typography variant="body2" color="success.main">
- Subido
-</Typography>
-</>
- )}
- 
- {existingDoc.status === 'error' && (
- <>
- <Error color="error"/>
- <Typography variant="body2" color="error.main">
- Error
-</Typography>
-</>
- )}
- 
- <Tooltip title="Vista previa">
- <IconButton 
- size="small" 
- onClick={(e) => {
- e.stopPropagation();
- handlePreviewDocument(existingDoc);
- }}
- disabled={existingDoc.status !== 'uploaded'}
- >
- <Visibility/>
-</IconButton>
-</Tooltip>
- 
- <Tooltip title="Eliminar">
- <IconButton 
- size="small" 
- onClick={(e) => {
- e.stopPropagation();
- removeDocument(existingDoc.id);
- }}
- color="error"
- >
- <Delete/>
-</IconButton>
-</Tooltip>
-</Box>
- ) : (
- <Box display="flex" alignItems="center" gap={1}>
- <CloudUpload color={isDragActive ? 'primary' : 'action'}/>
- <Typography variant="body2" color="text.secondary">
- {isDragActive ? 'Suelta aquí' : 'Clic o arrastra'}
-</Typography>
-</Box>
- )}
-</Box>
-</Paper>
- );
- };
-
  // Don't render if no guarantee type
  if (guaranteeType === 'none') {
  return null;
@@ -486,7 +499,14 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
  <Grid container spacing={2} sx={{ mb: 3 }}>
  {requiredDocs.map(docType => (
  <Grid item xs={12} key={docType.id}>
- {createDropzone(docType)}
+ <DropzoneBlock
+ docType={docType}
+ existingDoc={documents.find(doc => doc.type === docType.id)}
+ disabled={disabled}
+ onDrop={onDrop}
+ onPreview={handlePreviewDocument}
+ onRemove={removeDocument}
+ />
 </Grid>
  ))}
 </Grid>
@@ -504,7 +524,14 @@ const GuaranteeDocumentUpload: React.FC<GuaranteeDocumentUploadProps> = ({
  <Grid container spacing={2}>
  {optionalDocs.map(docType => (
  <Grid item xs={12} key={docType.id}>
- {createDropzone(docType)}
+ <DropzoneBlock
+ docType={docType}
+ existingDoc={documents.find(doc => doc.type === docType.id)}
+ disabled={disabled}
+ onDrop={onDrop}
+ onPreview={handlePreviewDocument}
+ onRemove={removeDocument}
+ />
 </Grid>
  ))}
 </Grid>
