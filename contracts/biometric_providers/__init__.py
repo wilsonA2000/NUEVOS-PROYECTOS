@@ -16,6 +16,9 @@ from .document_base import DocumentAnalysis, DocumentProvider
 from .document_demo import DemoDocumentProvider
 from .document_factory import get_document_provider
 from .factory import get_facial_provider
+from .voice_base import VoiceAnalysis, VoiceProvider
+from .voice_demo import DemoVoiceProvider
+from .voice_factory import get_voice_provider
 
 __all__ = [
     "FaceAnalysis",
@@ -26,4 +29,8 @@ __all__ = [
     "DocumentProvider",
     "DemoDocumentProvider",
     "get_document_provider",
+    "VoiceAnalysis",
+    "VoiceProvider",
+    "DemoVoiceProvider",
+    "get_voice_provider",
 ]
