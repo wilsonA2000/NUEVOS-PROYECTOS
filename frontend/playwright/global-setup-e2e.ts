@@ -80,14 +80,19 @@ async function globalSetup(): Promise<void> {
     );
   }
 
-  // Parsear ultimo bloque JSON de stdout (el script imprime logs antes)
-  const match = stdout.match(/\{[\s\S]*\}\s*$/);
-  if (!match) {
+  // Extraer JSON entre marcadores sentinela. El regex greedy anterior
+  // fallaba si algun apps.ready()/warning imprimia un '{' a stdout antes.
+  const startMarker = '__SEED_JSON_START__';
+  const endMarker = '__SEED_JSON_END__';
+  const startIdx = stdout.indexOf(startMarker);
+  const endIdx = stdout.indexOf(endMarker);
+  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
     throw new Error(
-      `[globalSetup] No se encontro JSON en output del seed:\n${stdout}`,
+      `[globalSetup] Marcadores JSON no encontrados en output del seed:\n${stdout}`,
     );
   }
-  const data = JSON.parse(match[0]) as Record<string, string>;
+  const jsonText = stdout.slice(startIdx + startMarker.length, endIdx).trim();
+  const data = JSON.parse(jsonText) as Record<string, string>;
 
   process.env.E2E_LANDLORD_EMAIL = data.landlord_email;
   process.env.E2E_TENANT_EMAIL = data.tenant_email;

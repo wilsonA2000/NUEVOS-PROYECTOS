@@ -200,11 +200,15 @@ export function runSeed(mode: string): Record<string, string> {
     shell: '/bin/bash',
     maxBuffer: 4 * 1024 * 1024,
   });
-  const match = stdout.match(/\{[\s\S]*\}\s*$/);
-  if (!match) {
-    throw new Error(`seed no devolvio JSON:\n${stdout}`);
+  const startMarker = '__SEED_JSON_START__';
+  const endMarker = '__SEED_JSON_END__';
+  const startIdx = stdout.indexOf(startMarker);
+  const endIdx = stdout.indexOf(endMarker);
+  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+    throw new Error(`seed no devolvio JSON (marcadores ausentes):\n${stdout}`);
   }
-  return JSON.parse(match[0]);
+  const jsonText = stdout.slice(startIdx + startMarker.length, endIdx).trim();
+  return JSON.parse(jsonText);
 }
 
 export async function apiGet(

@@ -47,6 +47,15 @@ def log(msg):
     print(f"[seed] {msg}", file=sys.stderr)
 
 
+def emit_result(result):
+    # Marcadores sentinela para que globalSetup pueda extraer el JSON
+    # aunque Django/apps impriman cualquier cosa a stdout antes (warnings,
+    # ready(), management commands). JSON compacto en una sola linea.
+    print("__SEED_JSON_START__")
+    print(json.dumps(result))
+    print("__SEED_JSON_END__")
+
+
 def ensure_user(email, user_type, first_name, last_name, is_staff=False):
     user, created = User.objects.get_or_create(
         email=email,
@@ -331,7 +340,7 @@ def main():
     }
 
     if mode == "minimal":
-        print(json.dumps(result, indent=2))
+        emit_result(result)
         return
 
     prop = ensure_property(landlord)
@@ -340,7 +349,7 @@ def main():
     if mode == "property_ready":
         # Solo limpiar artefactos previos para dejar propiedad disponible
         reset_match_and_contracts(landlord, tenant, prop)
-        print(json.dumps(result, indent=2))
+        emit_result(result)
         return
 
     reset_match_and_contracts(landlord, tenant, prop)
@@ -684,7 +693,7 @@ def main():
         result["subscription_plan_id"] = str(plan.id)
         log(f"ServiceSubscription activa para prestador: {service_provider.email}")
 
-    print(json.dumps(result, indent=2))
+    emit_result(result)
 
 
 if __name__ == "__main__":
