@@ -1,10 +1,49 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-21 (P0.1 commits 1-4 · AWS Rekognition facial integrado con fallback demo)
+**Última actualización**: 2026-04-21 (P0.1 + P0.2 · facial + documento OCR reales con fallback demo)
 
 ---
 
-## Lo que se hizo en esta sesión (2026-04-21 · Fase P0.1 biométrico real)
+## Lo que se hizo en esta sesión (2026-04-21 tarde · Fase P0.2 documento OCR)
+
+Extiende el patrón provider+factory+fallback a los stubs de análisis de
+documento de identidad. Arquitectura espejo de P0.1.
+
+| Commit | Hash | Contenido | Tests |
+|---|---|---|---|
+| **Commit 5** | `<prev>` | `document_base.py` (ABC `DocumentProvider` + dataclass `DocumentAnalysis` con helpers `to_image_analysis_dict`/`to_ocr_results_dict`/`to_validation_dict`), `document_demo.py`, `document_factory.py`. 12 tests. | 12/12 |
+| **Commit 6** | `1d768fa` | `aws_textract.py` (estrategia híbrida `analyze_id` para pasaporte/CE + `detect_document_text` para cédula CO con fallback auto si confidence<0.5). `_colombian_id_parser.py` puro: detección tipo por keywords jerarquizadas, número cédula 6-10 dígitos, prefijo CE, fechas DD/MM/YYYY + español (ENE/FEB/...), nombres en MAYÚSCULAS sin stopwords. 29 tests nuevos. | 29/29 |
+| **Commit 7** | `fb878ce` | Wire en `BiometricAuthenticationService`: `__init__(document_provider=None)`, los 3 stubs delegan al provider con cache LRU de 8 por `(image_hash, doc_type)` (una sola llamada AWS por documento entre `_process_document_image` + `_extract_document_info`). `_validate_document_info` reescrito: cédula CO sin vencimiento → válido por ley, 6 dígitos mínimos. Shape `auth.document_analysis` preservada. | 194/194 |
+| **Commit 8** | `<pendiente>` | `BIOMETRIC_DOCUMENT_PROVIDER` + `AWS_TEXTRACT_*` en `settings.py` y `.env.prod.example` con nota legal TDI. Actualización `NEXT_SESSION.md`. | — |
+
+### Bugfix en parser descubierto por tests
+
+- Regex de fecha capturaba solo los primeros 2 dígitos del año
+  (`(19|20)\d{2}` → grupo solo `19` o `20`, luego el parser los
+  interpretaba como 2-digit year y devolvía 2019). Corregido a
+  `((?:19|20)\d{2})`.
+- "REPUBLICA DE COLOMBIA" masqueaba pasaporte/tarjeta. Reorganizado en
+  tiers: keywords explícitas primero, REP. DE COLOMBIA sólo fallback.
+
+### Arquitectura consolidada P0.1 + P0.2
+
+```
+contracts/biometric_providers/
+├── __init__.py                    # re-exports públicos
+├── base.py                        # FacialProvider + FaceAnalysis
+├── demo.py                        # DemoFacialProvider
+├── aws_rekognition.py             # AWSRekognitionProvider
+├── factory.py                     # get_facial_provider()
+├── document_base.py               # DocumentProvider + DocumentAnalysis
+├── document_demo.py               # DemoDocumentProvider
+├── aws_textract.py                # AWSTextractProvider (híbrido)
+├── document_factory.py            # get_document_provider()
+└── _colombian_id_parser.py        # parser puro testeable
+```
+
+---
+
+## Lo que se hizo antes (2026-04-21 mañana · Fase P0.1 biométrico facial)
 
 Migra el análisis facial del servicio biométrico de stub a proveedor
 real (AWS Rekognition) manteniendo un `DemoFacialProvider` como fallback
@@ -34,10 +73,10 @@ contracts/
 
 ### Deuda que queda abierta
 
-- **P0.2 — documento OCR**: stubs `_process_document_image` +
-  `_extract_document_info` + `_validate_document_info`. Candidatos:
-  AWS Textract (patrón calcado del commit 2) o Metamap (SDK dedicado
-  LatAm, mejor cobertura de cédulas CO).
+- ✅ **P0.2 — documento OCR**: cerrada esta sesión (commits 5-8). AWS
+  Textract híbrido + parser cédula CO. Ver sección P0.2 arriba.
+- **P0.2b — tamper detection real**: Textract no expone detección de
+  falsificación. Requiere Metamap / Onfido (comercial). Candidato P1.
 - **P0.3 — voz**: stubs `_process_voice_recording` + `_transcribe_voice`
   + `_analyze_voice_characteristics`. Candidatos: Google Speech-to-Text
   o Azure Speech + Azure Speaker Recognition para biometric voice.

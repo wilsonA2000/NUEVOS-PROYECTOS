@@ -979,3 +979,12 @@ BIOMETRIC_MIN_FACE_SIMILARITY = float(
 AWS_REKOGNITION_ACCESS_KEY_ID = os.getenv("AWS_REKOGNITION_ACCESS_KEY_ID", "")
 AWS_REKOGNITION_SECRET_ACCESS_KEY = os.getenv("AWS_REKOGNITION_SECRET_ACCESS_KEY", "")
 AWS_REKOGNITION_REGION = os.getenv("AWS_REKOGNITION_REGION", "us-east-1")
+
+# P0.2 · proveedor OCR para documento de identidad.
+# `demo` devuelve campos simulados. `aws_textract` usa Textract real
+# (analyze_id para pasaporte/CE, detect_document_text + parser local
+# para cédula CO). Si faltan credenciales cae a demo.
+BIOMETRIC_DOCUMENT_PROVIDER = os.getenv("BIOMETRIC_DOCUMENT_PROVIDER", "demo")
+AWS_TEXTRACT_ACCESS_KEY_ID = os.getenv("AWS_TEXTRACT_ACCESS_KEY_ID", "")
+AWS_TEXTRACT_SECRET_ACCESS_KEY = os.getenv("AWS_TEXTRACT_SECRET_ACCESS_KEY", "")
+AWS_TEXTRACT_REGION = os.getenv("AWS_TEXTRACT_REGION", "us-east-1")
