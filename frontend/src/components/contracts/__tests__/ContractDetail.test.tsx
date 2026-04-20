@@ -104,8 +104,10 @@ describe('ContractDetail', () => {
     mockUseContracts.contracts = [sampleContract];
     renderComponent();
 
-    expect(screen.getByText(/Contrato #contract-001/i)).toBeInTheDocument();
-    expect(screen.getByText('active')).toBeInTheDocument();
+    // id.substring(0, 8) → 'contract'
+    expect(screen.getByText(/Contrato #contract/i)).toBeInTheDocument();
+    // StatusChip renderiza el label mapeado, no el raw status
+    expect(screen.getAllByText('Activo').length).toBeGreaterThan(0);
   });
 
   it('should display property information', () => {
@@ -141,8 +143,9 @@ describe('ContractDetail', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/app/contracts');
   });
 
-  it('should navigate to edit when Editar button is clicked', () => {
-    mockUseContracts.contracts = [sampleContract];
+  it('should navigate to edit when contract status is draft', () => {
+    // Editar solo aparece para status in ['draft', 'pending_tenant_biometric']
+    mockUseContracts.contracts = [{ ...sampleContract, status: 'draft' }];
     renderComponent();
 
     const editButton = screen.getByText('Editar');
@@ -158,7 +161,7 @@ describe('ContractDetail', () => {
     mockUseContracts.contracts = [sampleContract];
     renderComponent();
 
-    const pdfButton = screen.getByText(/Ver PDF del Contrato/i);
+    const pdfButton = screen.getByText('Ver PDF');
     fireEvent.click(pdfButton);
 
     expect(viewContractPDF).toHaveBeenCalledWith('contract-001');

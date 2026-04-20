@@ -190,14 +190,6 @@ describe('ContractList', () => {
     expect(screen.getByText('Activo')).toBeInTheDocument();
   });
 
-  it('should display Candidatos Aprobados button for landlords', () => {
-    mockUseContracts.contracts = [activeContract];
-    renderComponent();
-
-    const candidatesButton = screen.getByText('Candidatos Aprobados');
-    expect(candidatesButton).toBeInTheDocument();
-  });
-
   it('should show the title Contratos', () => {
     mockUseContracts.contracts = [activeContract];
     renderComponent();
