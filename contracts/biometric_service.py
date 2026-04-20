@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.db import transaction
 
+from .biometric_providers import FaceAnalysis, FacialProvider, get_facial_provider
 from .models import Contract, BiometricAuthentication
 
 logger = logging.getLogger(__name__)
@@ -20,11 +21,17 @@ logger = logging.getLogger(__name__)
 class BiometricAuthenticationService:
     """Servicio completo de autenticación biométrica para contratos digitales."""
 
-    def __init__(self):
+    def __init__(self, facial_provider: FacialProvider | None = None):
         self.min_confidence_threshold = 0.7
         self.image_quality_threshold = 0.8
         self.voice_duration_min = 3  # segundos mínimos
         self.voice_duration_max = 30  # segundos máximos
+        # P0.1: análisis facial delegado a `contracts.biometric_providers`.
+        # Por defecto se selecciona según `BIOMETRIC_FACIAL_PROVIDER`; los
+        # tests pueden inyectar un stub.
+        self._facial_provider: FacialProvider = (
+            facial_provider or get_facial_provider()
+        )
 
     def initiate_authentication(
         self, contract: Contract, user, request
@@ -779,29 +786,42 @@ class BiometricAuthenticationService:
             logger.error(f"Error guardando audio base64: {e}")
             raise
 
-    # Métodos de análisis simulados (en producción usarían servicios de ML reales)
+    # Análisis facial delegado al `FacialProvider` activo (demo o AWS).
+    # Voz + documento siguen siendo stubs; migrarán en fases P0.2 y P0.3.
     def _process_face_image(self, image_data: str, face_type: str) -> Dict[str, Any]:
-        """Simula el análisis de imagen facial."""
+        """Analiza una captura facial vía el proveedor activo."""
+        analysis = self._facial_provider.analyze_face(image_data, face_type)
         return {
-            "face_detected": True,
-            "quality_score": 0.85,
-            "liveness_score": 0.92,
-            "pose_estimation": {"yaw": 0.1, "pitch": 0.05, "roll": 0.02},
-            "face_landmarks": 68,  # Simulado
+            "face_detected": analysis.face_detected,
+            "quality_score": analysis.quality_score,
+            "liveness_score": analysis.liveness_score,
+            "pose_estimation": analysis.pose_estimation,
+            "face_landmarks": analysis.face_landmarks,
             "face_type": face_type,
+            "provider": analysis.provider,
             "processed_at": timezone.now().isoformat(),
+            "_raw": analysis.raw,
         }
 
     def _analyze_face_coherence(
         self, front_analysis: Dict, side_analysis: Dict
     ) -> Dict[str, Any]:
-        """Analiza la coherencia entre las dos capturas faciales."""
-        return {
-            "face_match_probability": 0.94,
-            "feature_consistency": 0.89,
-            "lighting_consistency": 0.87,
-            "same_person_confidence": 0.91,
-        }
+        """Coherencia entre frontal y lateral según el proveedor activo."""
+        front = self._rehydrate_face_analysis(front_analysis)
+        side = self._rehydrate_face_analysis(side_analysis)
+        return self._facial_provider.check_coherence(front, side)
+
+    @staticmethod
+    def _rehydrate_face_analysis(payload: Dict[str, Any]) -> "FaceAnalysis":
+        return FaceAnalysis(
+            face_detected=payload.get("face_detected", False),
+            quality_score=float(payload.get("quality_score", 0.0)),
+            liveness_score=float(payload.get("liveness_score", 0.0)),
+            pose_estimation=payload.get("pose_estimation", {}) or {},
+            face_landmarks=int(payload.get("face_landmarks", 0) or 0),
+            provider=payload.get("provider", "unknown"),
+            raw=payload.get("_raw", {}) or {},
+        )
 
     def _calculate_face_confidence(
         self, front_analysis: Dict, side_analysis: Dict, coherence_analysis: Dict
@@ -903,8 +923,14 @@ class BiometricAuthenticationService:
         }
 
     def _compare_faces(self, original_path: str, extracted_face: Dict) -> float:
-        """Simula la comparación de rostros."""
-        return 0.91  # Simulado
+        """Comparación usada por `process_combined_verification`.
+
+        Stub pendiente de migrar: recibe una ruta a la imagen guardada y un
+        dict de extracción (no imagen). Para integrar Rekognition aquí hay
+        que reescribir también `_extract_face_from_combined` y pasar bytes
+        reales. Queda como deuda en fase P0.2 (combined flow refactor).
+        """
+        return 0.91
 
     def _compare_documents(self, original_path: str, extracted_document: Dict) -> float:
         """Simula la comparación de documentos."""
