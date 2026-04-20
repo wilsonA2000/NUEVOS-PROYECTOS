@@ -17,9 +17,7 @@ from .document_base import DocumentAnalysis, DocumentProvider
 class DemoDocumentProvider(DocumentProvider):
     name = "demo"
 
-    def analyze_document(
-        self, image_data: str, document_type: str
-    ) -> DocumentAnalysis:
+    def analyze_document(self, image_data: str, document_type: str) -> DocumentAnalysis:
         today = timezone.now().date()
         analysis = DocumentAnalysis(
             document_detected=True,

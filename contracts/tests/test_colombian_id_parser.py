@@ -27,9 +27,7 @@ class TypeDetectionTests(SimpleTestCase):
         self.assertEqual(result.detected_type, "cedula_ciudadania")
 
     def test_detects_tarjeta_identidad(self):
-        result = parse_colombian_id(
-            ["REPUBLICA DE COLOMBIA", "TARJETA DE IDENTIDAD"]
-        )
+        result = parse_colombian_id(["REPUBLICA DE COLOMBIA", "TARJETA DE IDENTIDAD"])
         self.assertEqual(result.detected_type, "tarjeta_identidad")
 
     def test_detects_cedula_extranjeria(self):
@@ -39,9 +37,7 @@ class TypeDetectionTests(SimpleTestCase):
         self.assertEqual(result.detected_type, "cedula_extranjeria")
 
     def test_detects_pasaporte(self):
-        result = parse_colombian_id(
-            ["REPUBLICA DE COLOMBIA", "PASAPORTE", "AR123456"]
-        )
+        result = parse_colombian_id(["REPUBLICA DE COLOMBIA", "PASAPORTE", "AR123456"])
         self.assertEqual(result.detected_type, "pasaporte")
 
     def test_empty_input_returns_empty_type(self):
@@ -65,16 +61,12 @@ class DocumentNumberTests(SimpleTestCase):
 
     def test_rejects_leading_zero(self):
         # Números colombianos no llevan cero inicial.
-        result = parse_colombian_id(
-            ["CEDULA DE CIUDADANIA", "0123456", "PEDRO GARCIA"]
-        )
+        result = parse_colombian_id(["CEDULA DE CIUDADANIA", "0123456", "PEDRO GARCIA"])
         # 0123456 no debe coincidir; si no hay otro número devuelve None.
         self.assertNotEqual(result.document_number, "0123456")
 
     def test_prefers_longer_candidate(self):
-        result = parse_colombian_id(
-            ["CEDULA", "123456", "numero real 1012345678"]
-        )
+        result = parse_colombian_id(["CEDULA", "123456", "numero real 1012345678"])
         self.assertEqual(result.document_number, "1012345678")
 
 
@@ -99,9 +91,7 @@ class DateExtractionTests(SimpleTestCase):
         self.assertEqual(result.expiry_date, date(2030, 7, 15))
 
     def test_spanish_month_abbreviation(self):
-        result = parse_colombian_id(
-            ["CEDULA", "FECHA DE NACIMIENTO 12 ABR 1985"]
-        )
+        result = parse_colombian_id(["CEDULA", "FECHA DE NACIMIENTO 12 ABR 1985"])
         self.assertEqual(result.date_of_birth, date(1985, 4, 12))
 
 

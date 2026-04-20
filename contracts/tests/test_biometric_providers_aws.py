@@ -195,9 +195,7 @@ class AWSRekognitionProviderInitTests(SimpleTestCase):
         AWS_REKOGNITION_REGION="us-east-1",
     )
     def test_init_with_credentials_builds_boto3_client(self):
-        with patch(
-            "contracts.biometric_providers.aws_rekognition.boto3"
-        ) as boto3_mock:
+        with patch("contracts.biometric_providers.aws_rekognition.boto3") as boto3_mock:
             boto3_mock.client.return_value = MagicMock()
             provider = AWSRekognitionProvider()
             self.assertFalse(provider.is_demo())
@@ -231,9 +229,7 @@ class FactoryAWSFallbackTests(SimpleTestCase):
         AWS_REKOGNITION_SECRET_ACCESS_KEY="fake-secret",
     )
     def test_factory_builds_aws_when_credentials_present(self):
-        with patch(
-            "contracts.biometric_providers.aws_rekognition.boto3"
-        ) as boto3_mock:
+        with patch("contracts.biometric_providers.aws_rekognition.boto3") as boto3_mock:
             boto3_mock.client.return_value = MagicMock()
             provider = get_facial_provider()
             self.assertIsInstance(provider, AWSRekognitionProvider)

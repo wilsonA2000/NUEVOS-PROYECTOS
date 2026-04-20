@@ -42,9 +42,7 @@ class BiometricAuthenticationService:
         # P0.1: análisis facial delegado a `contracts.biometric_providers`.
         # Por defecto se selecciona según `BIOMETRIC_FACIAL_PROVIDER`; los
         # tests pueden inyectar un stub.
-        self._facial_provider: FacialProvider = (
-            facial_provider or get_facial_provider()
-        )
+        self._facial_provider: FacialProvider = facial_provider or get_facial_provider()
         # P0.2: análisis de documento delegado al DocumentProvider activo.
         self._document_provider: DocumentProvider = (
             document_provider or get_document_provider()

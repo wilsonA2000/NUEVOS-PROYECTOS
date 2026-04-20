@@ -22,7 +22,10 @@ _VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_AWS_TEXTRACT}
 
 
 def _resolve_provider_name() -> str:
-    name = getattr(settings, "BIOMETRIC_DOCUMENT_PROVIDER", _PROVIDER_DEMO) or _PROVIDER_DEMO
+    name = (
+        getattr(settings, "BIOMETRIC_DOCUMENT_PROVIDER", _PROVIDER_DEMO)
+        or _PROVIDER_DEMO
+    )
     name = name.strip().lower()
     if name not in _VALID_PROVIDERS:
         logger.warning(
@@ -36,9 +39,7 @@ def _build_aws_textract_provider() -> DocumentProvider:
     try:
         from .aws_textract import AWSTextractProvider
     except ImportError as exc:
-        logger.warning(
-            "AWSTextractProvider no disponible: %s — fallback demo", exc
-        )
+        logger.warning("AWSTextractProvider no disponible: %s — fallback demo", exc)
         return DemoDocumentProvider()
 
     try:

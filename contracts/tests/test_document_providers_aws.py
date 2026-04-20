@@ -22,8 +22,14 @@ SAMPLE_DATAURL = f"data:image/png;base64,{SAMPLE_IMG_B64}"
 
 
 def _analyze_id_response(
-    *, first="JUAN", last="PEREZ", number="AR123456", doc_type="PASSPORT",
-    dob="1990-03-12", expiry="2030-07-15", confidence=95.0
+    *,
+    first="JUAN",
+    last="PEREZ",
+    number="AR123456",
+    doc_type="PASSPORT",
+    dob="1990-03-12",
+    expiry="2030-07-15",
+    confidence=95.0,
 ) -> dict:
     return {
         "IdentityDocuments": [

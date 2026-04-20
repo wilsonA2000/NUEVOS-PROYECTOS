@@ -42,9 +42,7 @@ class AWSRekognitionProvider(FacialProvider):
 
         access_key = getattr(settings, "AWS_REKOGNITION_ACCESS_KEY_ID", "") or ""
         secret_key = getattr(settings, "AWS_REKOGNITION_SECRET_ACCESS_KEY", "") or ""
-        region = (
-            getattr(settings, "AWS_REKOGNITION_REGION", "us-east-1") or "us-east-1"
-        )
+        region = getattr(settings, "AWS_REKOGNITION_REGION", "us-east-1") or "us-east-1"
 
         if not access_key or not secret_key:
             raise RuntimeError(

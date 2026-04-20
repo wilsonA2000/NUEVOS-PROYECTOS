@@ -46,8 +46,18 @@ _DATE_SPANISH_MONTH_RE = re.compile(
 )
 
 _SPANISH_MONTHS = {
-    "ENE": 1, "FEB": 2, "MAR": 3, "ABR": 4, "MAY": 5, "JUN": 6,
-    "JUL": 7, "AGO": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DIC": 12,
+    "ENE": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "ABR": 4,
+    "MAY": 5,
+    "JUN": 6,
+    "JUL": 7,
+    "AGO": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DIC": 12,
 }
 
 _BIRTH_HINTS = ("NACIMIENTO", "NACIDO", "DATE OF BIRTH", "BIRTH")
@@ -184,7 +194,9 @@ def _extract_names(lines: list[str]) -> tuple[str | None, str | None, str | None
     return full_name, first_name, last_name
 
 
-def _assign_dates(text: str, dates: list[tuple[date, int]]) -> tuple[date | None, date | None]:
+def _assign_dates(
+    text: str, dates: list[tuple[date, int]]
+) -> tuple[date | None, date | None]:
     """Intenta asociar fechas con su contexto (nacimiento vs vencimiento)."""
     if not dates:
         return None, None

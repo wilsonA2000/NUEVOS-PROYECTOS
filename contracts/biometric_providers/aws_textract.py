@@ -36,9 +36,7 @@ class AWSTextractProvider(DocumentProvider):
     name = "aws_textract"
 
     def __init__(self, client: Any | None = None) -> None:
-        self.min_quality = float(
-            getattr(settings, "BIOMETRIC_MIN_FACE_QUALITY", 0.7)
-        )
+        self.min_quality = float(getattr(settings, "BIOMETRIC_MIN_FACE_QUALITY", 0.7))
         if client is not None:
             self._client = client
             return
@@ -68,9 +66,7 @@ class AWSTextractProvider(DocumentProvider):
             _, image_data = image_data.split(",", 1)
         return base64.b64decode(image_data)
 
-    def analyze_document(
-        self, image_data: str, document_type: str
-    ) -> DocumentAnalysis:
+    def analyze_document(self, image_data: str, document_type: str) -> DocumentAnalysis:
         image_bytes = self._decode(image_data)
 
         if document_type in _STRUCTURED_DOC_TYPES:
@@ -89,9 +85,7 @@ class AWSTextractProvider(DocumentProvider):
         self, image_bytes: bytes, document_type: str
     ) -> DocumentAnalysis | None:
         try:
-            response = self._client.analyze_id(
-                DocumentPages=[{"Bytes": image_bytes}]
-            )
+            response = self._client.analyze_id(DocumentPages=[{"Bytes": image_bytes}])
         except Exception as exc:  # ClientError, EndpointConnectionError...
             logger.warning("Textract analyze_id falló: %s", exc)
             return None
@@ -115,15 +109,15 @@ class AWSTextractProvider(DocumentProvider):
             return None
 
         confidences = [c for _, c in field_map.values() if c > 0]
-        avg_confidence = (sum(confidences) / len(confidences) / 100.0) if confidences else 0.0
+        avg_confidence = (
+            (sum(confidences) / len(confidences) / 100.0) if confidences else 0.0
+        )
 
         first_name = field_map.get("FIRST_NAME", ("", 0))[0] or None
         last_name = field_map.get("LAST_NAME", ("", 0))[0] or None
         full_name = " ".join(n for n in (first_name, last_name) if n) or None
         document_number = field_map.get("DOCUMENT_NUMBER", ("", 0))[0] or None
-        detected_type = (
-            field_map.get("ID_TYPE", ("", 0))[0].lower() or document_type
-        )
+        detected_type = field_map.get("ID_TYPE", ("", 0))[0].lower() or document_type
 
         analysis = DocumentAnalysis(
             document_detected=True,
@@ -184,7 +178,9 @@ class AWSTextractProvider(DocumentProvider):
             )
 
         confidences = [float(b.get("Confidence", 0.0)) for b in line_blocks]
-        avg_confidence = (sum(confidences) / len(confidences) / 100.0) if confidences else 0.0
+        avg_confidence = (
+            (sum(confidences) / len(confidences) / 100.0) if confidences else 0.0
+        )
 
         parsed: ParsedColombianID = parse_colombian_id(lines)
         detected_type = parsed.detected_type or document_type
@@ -215,9 +211,7 @@ class AWSTextractProvider(DocumentProvider):
         return analysis
 
     @staticmethod
-    def _fill_validation(
-        analysis: DocumentAnalysis, expected_type: str
-    ) -> None:
+    def _fill_validation(analysis: DocumentAnalysis, expected_type: str) -> None:
         today = timezone.now().date()
         analysis.document_number_valid = bool(
             analysis.document_number and len(analysis.document_number) >= 6

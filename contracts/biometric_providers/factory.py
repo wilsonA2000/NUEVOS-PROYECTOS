@@ -18,12 +18,12 @@ _VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_AWS}
 
 
 def _resolve_provider_name() -> str:
-    name = getattr(settings, "BIOMETRIC_FACIAL_PROVIDER", _PROVIDER_DEMO) or _PROVIDER_DEMO
+    name = (
+        getattr(settings, "BIOMETRIC_FACIAL_PROVIDER", _PROVIDER_DEMO) or _PROVIDER_DEMO
+    )
     name = name.strip().lower()
     if name not in _VALID_PROVIDERS:
-        logger.warning(
-            "BIOMETRIC_FACIAL_PROVIDER=%r no reconocido, usando demo", name
-        )
+        logger.warning("BIOMETRIC_FACIAL_PROVIDER=%r no reconocido, usando demo", name)
         return _PROVIDER_DEMO
     return name
 
