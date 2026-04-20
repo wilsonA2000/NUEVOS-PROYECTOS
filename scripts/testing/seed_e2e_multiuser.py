@@ -324,8 +324,12 @@ def main():
         VERIFICATION_AGENT_EMAIL, "landlord", "Agente", "Verificacion", is_staff=True
     )
     juridico = ensure_user(
-        JURIDICO_EMAIL, "landlord", "Juridico", "VeriHome",
-        is_staff=True, password=JURIDICO_PASSWORD,
+        JURIDICO_EMAIL,
+        "landlord",
+        "Juridico",
+        "VeriHome",
+        is_staff=True,
+        password=JURIDICO_PASSWORD,
     )
 
     result = {
@@ -418,7 +422,7 @@ def main():
                     "property_type": "apartment",
                     "listing_type": "rent",
                     "status": "available",
-                    "address": f"Carrera X #{len(created_ids)+1}-00",
+                    "address": f"Carrera X #{len(created_ids) + 1}-00",
                     "city": city,
                     "state": "Colombia",
                     "total_area": Decimal("60.00"),

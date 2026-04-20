@@ -10,8 +10,10 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
+const mockSetSearchParams = jest.fn();
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [new URLSearchParams(), mockSetSearchParams],
 }));
 
 // Mock useAuth hook
