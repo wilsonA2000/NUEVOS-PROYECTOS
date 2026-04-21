@@ -1,10 +1,37 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-21 (P1-CI · Jest + E2E skipped re-habilitados)
+**Última actualización**: 2026-04-21 (P0.5 · combined flow refactor · facial 100%)
 
 ---
 
-## Lo que se hizo en esta sesión (2026-04-21 cierre · Fase P1-CI)
+## Lo que se hizo en esta sesión (2026-04-21 cierre · Fase P0.5 combined flow)
+
+Cierra el subsistema facial al 100%. Antes de esta fase, el flujo combined
+(paso 3 del biométrico — documento-junto-al-rostro) tenía dos stubs:
+- `_extract_face_from_combined` devolvía coordenadas simuladas.
+- `_compare_faces` devolvía `0.91` hardcoded.
+
+Después del refactor:
+- `_extract_face_from_combined` delega en `facial_provider.analyze_face(image, "combined")` y propaga `face_detected / quality / liveness`.
+- `_compare_faces(source_b64, target_b64)` delega en `facial_provider.compare_faces` con base64 reales. Rekognition detecta el rostro más grande de cada imagen internamente.
+- Helper nuevo `_read_image_as_base64(file_field)` reconstruye la imagen frontal guardada en disco durante `process_face_image` para pasarla al provider en el combined.
+- Call-site en `process_combined_verification` actualizado: ya no pasa `file_field.path` + dict, pasa dos base64.
+
+| Test suite | Resultado |
+|---|---|
+| `test_biometric_combined_flow.py` (nuevo) — 9 tests | 9/9 OK |
+| `contracts` full suite | 215/215 OK + 1 skip (0 regresión) |
+
+### Deuda que queda abierta tras P0.5
+
+- `_compare_documents` (`return 0.88` hardcoded) — requiere DocumentProvider con operación `compare_id_photos` y que `_extract_document_from_combined` se alinee al patrón.
+- `_verify_combined_coherence` (`return 0.87` hardcoded) — puede derivarse de `face_detected + document_detected + quality_scores` sin provider.
+- P0.4 liveness real (Rekognition Face Liveness) — heurística actual se burla con foto-de-foto (riesgo jurídico real).
+- P0.3b voz provider real (Google STT / Azure Speaker).
+
+---
+
+## Lo que se hizo antes (2026-04-21 cierre · Fase P1-CI)
 
 Re-incluye en CI 2 test-suites Jest y 2 E2E Playwright que quedaron
 marcadas como excluidas/skipped en sesiones previas. Scope puramente

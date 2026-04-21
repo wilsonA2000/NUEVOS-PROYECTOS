@@ -377,10 +377,13 @@ class BiometricAuthenticationService:
                 combined_image_data
             )
 
-            # Comparar con las imágenes anteriores
+            # Comparar rostro frontal original (disco) con el de la
+            # imagen combinada recibida. Pasamos base64 al provider que
+            # detecta y compara internamente (Rekognition compare_faces).
+            original_face_b64 = self._read_image_as_base64(auth.face_front_image)
             face_match_score = self._compare_faces(
-                auth.face_front_image.path if auth.face_front_image else None,
-                face_extraction,
+                original_face_b64,
+                combined_image_data,
             )
 
             document_match_score = self._compare_documents(
@@ -976,17 +979,33 @@ class BiometricAuthenticationService:
         }
 
     def _extract_face_from_combined(self, image_data: str) -> Dict[str, Any]:
-        """Simula la extracción del rostro de la imagen combinada."""
-        return {
-            "face_detected": True,
-            "face_region": {
-                "x": 100,
-                "y": 150,
-                "width": 200,
-                "height": 250,
-            },  # Simulado
-            "quality": 0.83,
-        }
+        """Detecta rostro en la imagen combinada vía el proveedor activo.
+
+        Rekognition `compare_faces` selecciona internamente el rostro más
+        grande de cada imagen, así que aquí basta con confirmar presencia
+        y registrar calidad/liveness para las checks posteriores.
+        """
+        try:
+            analysis = self._facial_provider.analyze_face(image_data, "combined")
+            return {
+                "face_detected": analysis.face_detected,
+                "quality": analysis.quality_score,
+                "liveness_score": analysis.liveness_score,
+                "pose_estimation": analysis.pose_estimation,
+                "provider": analysis.provider,
+            }
+        except Exception as exc:
+            logger.warning(
+                "facial_provider.analyze_face(combined) falló: %s — fallback no-detected",
+                exc,
+            )
+            return {
+                "face_detected": False,
+                "quality": 0.0,
+                "liveness_score": 0.0,
+                "pose_estimation": {},
+                "provider": self._facial_provider.name,
+            }
 
     def _extract_document_from_combined(self, image_data: str) -> Dict[str, Any]:
         """Simula la extracción del documento de la imagen combinada."""
@@ -1001,15 +1020,48 @@ class BiometricAuthenticationService:
             "quality": 0.86,
         }
 
-    def _compare_faces(self, original_path: str, extracted_face: Dict) -> float:
-        """Comparación usada por `process_combined_verification`.
+    def _compare_faces(
+        self,
+        source_image_data: str | None,
+        target_image_data: str | None,
+    ) -> float:
+        """Compara rostros entre la captura frontal original y la combinada.
 
-        Stub pendiente de migrar: recibe una ruta a la imagen guardada y un
-        dict de extracción (no imagen). Para integrar Rekognition aquí hay
-        que reescribir también `_extract_face_from_combined` y pasar bytes
-        reales. Queda como deuda en fase P0.2 (combined flow refactor).
+        Delega en `facial_provider.compare_faces(source, target)` que:
+        - AWS Rekognition: detecta el rostro más grande en cada imagen y
+          devuelve similarity normalizada 0.0-1.0.
+        - Demo: score simulado 0.95.
+
+        Si falta cualquiera de las dos imágenes o el provider falla,
+        devuelve 0.0 (la coherencia del combined verification caerá por
+        debajo del threshold y se rechazará la verificación).
         """
-        return 0.91
+        if not source_image_data or not target_image_data:
+            return 0.0
+        try:
+            return self._facial_provider.compare_faces(
+                source_image_data, target_image_data
+            )
+        except Exception as exc:
+            logger.warning(
+                "facial_provider.compare_faces falló: %s — fallback 0.0", exc
+            )
+            return 0.0
+
+    def _read_image_as_base64(self, file_field) -> str | None:
+        """Lee un FileField guardado en disco y lo devuelve como base64.
+
+        Helper para reconstruir la imagen original que se guardó durante
+        `process_face_image` y pasarla al provider en la fase combinada.
+        """
+        if not file_field:
+            return None
+        try:
+            with file_field.open("rb") as fh:
+                return base64.b64encode(fh.read()).decode("ascii")
+        except Exception as exc:
+            logger.warning("No se pudo leer %s: %s", file_field, exc)
+            return None
 
     def _compare_documents(self, original_path: str, extracted_document: Dict) -> float:
         """Simula la comparación de documentos."""
