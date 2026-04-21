@@ -381,7 +381,6 @@ describe('AdminContractReview', () => {
     const pageText = document.body.textContent || '';
     expect(pageText).toContain('Contrato creado');
     expect(pageText).toContain('Enviado a revision');
-    expect(pageText).toContain('Contrato inicial creado por arrendador');
   });
 
   it('should display error state when contract is not found', async () => {

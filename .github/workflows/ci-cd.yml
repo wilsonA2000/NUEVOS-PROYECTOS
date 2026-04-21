@@ -104,14 +104,7 @@ jobs:
 
     - name: Run frontend tests
       working-directory: ./frontend
-      # Excluidos temporalmente: 2 test-suites con aserciones desactualizadas
-      # (textos UI que cambiaron). Ver NEXT_SESSION.md "tests frontend
-      # pendientes de actualizar". ContractList y ContractDetail ya
-      # fueron actualizados en P9.
-      run: >-
-        npm run test:coverage --
-        --testPathIgnorePatterns=AdminContractReview.test.tsx
-        --testPathIgnorePatterns=MatchesDashboard.test.tsx
+      run: npm run test:coverage
 
     - name: Build frontend
       working-directory: ./frontend

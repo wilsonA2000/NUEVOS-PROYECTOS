@@ -1,10 +1,45 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-21 (P0.1 + P0.2 + P0.3 · facial + documento + andamio voz)
+**Última actualización**: 2026-04-21 (P1-CI · Jest + E2E skipped re-habilitados)
 
 ---
 
-## Lo que se hizo en esta sesión (2026-04-21 noche · Fase P0.3 voz — andamio)
+## Lo que se hizo en esta sesión (2026-04-21 cierre · Fase P1-CI)
+
+Re-incluye en CI 2 test-suites Jest y 2 E2E Playwright que quedaron
+marcadas como excluidas/skipped en sesiones previas. Scope puramente
+CI-hardening — sin cambios de lógica aplicación.
+
+| Commit | Contenido |
+|---|---|
+| **P1-CI.1** | `AdminContractReview.test.tsx` — elimina aserción obsoleta `'Contrato inicial creado por arrendador'` que no existe en el componente actual. Resto de aserciones verificadas contra componente (líneas 184, 283, 295, 322, 315, 448, 669, 709). |
+| **P1-CI.2** | `.github/workflows/ci-cd.yml` — remueve `--testPathIgnorePatterns=AdminContractReview.test.tsx` + `MatchesDashboard.test.tsx`. MatchesDashboard ya estaba resiliente (assertions con `\|\|`) y el mock `useSearchParams` se arregló en `43b9095`. |
+| **P1-CI.3** | `fase-l1-profile-resume.spec.ts` — remueve `test.skip`. Comentario TODO obsoleto (menciona "selectores UI" pero el test es **API-only**, sin page.click/getByText). |
+| **P1-CI.4** | `fase-h3-subscriptions-ui.spec.ts` — remueve `test.skip`. Textos "Suscribirse" + badges "Activa"/"Prueba" confirmados en `SubscriptionPlans.tsx:119-120,316`. |
+
+### Fase G1 WebSocket — deferida
+
+`fase-g1-websocket-messaging.spec.ts` se mantiene skipped. La causa raíz
+(`runserver` de Django vs Daphne en CI para servir ws://) requiere
+migración de infra:
+- Cambiar `nohup python manage.py runserver` por `daphne -b 0.0.0.0 -p 8000 verihome.asgi:application`.
+- O mantener runserver pero arrancar Celery + daphne en workers separados.
+- Validar que Channels + channel_layer Redis propaga en ventana <8s en CI.
+- Scope: 2-3 sesiones con tuning de timeouts.
+
+Hasta entonces, **WS en local sí funciona** (confirmado en moleculares).
+
+### Limitación de esta sesión
+
+Jest cuelga en WSL por issue pre-existente (MSW + jsdom); no se pudo
+validar tests localmente. Se procedió por **diff manual test vs
+componente**, leyendo las aserciones línea a línea y confirmando que
+los textos existen en los archivos actuales. CI será el validador
+final en el push.
+
+---
+
+## Lo que se hizo antes (2026-04-21 noche · Fase P0.3 voz — andamio)
 
 Cierra la triada provider+factory+fallback del biométrico con el
 VoiceProvider. Scope acotado: infraestructura + demo + wire. El
