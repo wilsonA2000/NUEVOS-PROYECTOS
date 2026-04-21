@@ -8,7 +8,9 @@ está en `"demo"` explícitamente (por defecto en tests y CI).
 
 from __future__ import annotations
 
-from .base import FaceAnalysis, FacialProvider
+import uuid
+
+from .base import FaceAnalysis, FacialProvider, LivenessResult, LivenessSession
 
 
 class DemoFacialProvider(FacialProvider):
@@ -40,3 +42,27 @@ class DemoFacialProvider(FacialProvider):
 
     def is_demo(self) -> bool:
         return True
+
+    def supports_liveness(self) -> bool:
+        """Demo expone la API para que frontend + tests puedan
+        ejercitar el flujo sin credenciales AWS. El veredicto es
+        siempre `is_live=True` con confidence 0.95.
+        """
+        return True
+
+    def create_liveness_session(self) -> LivenessSession:
+        return LivenessSession(
+            session_id=f"demo-{uuid.uuid4()}",
+            provider=self.name,
+            client_region="us-east-1",
+        )
+
+    def get_liveness_results(self, session_id: str) -> LivenessResult:
+        return LivenessResult(
+            session_id=session_id,
+            is_live=True,
+            confidence=0.95,
+            status="SUCCEEDED",
+            provider=self.name,
+            raw={"simulated": True},
+        )

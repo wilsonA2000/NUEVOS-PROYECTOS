@@ -1,10 +1,66 @@
 # NEXT_SESSION.md — VeriHome
 
-**Última actualización**: 2026-04-21 (P0.5 · combined flow refactor · facial 100%)
+**Última actualización**: 2026-04-21 (P0.4a · Face Liveness backend)
 
 ---
 
-## Lo que se hizo en esta sesión (2026-04-21 cierre · Fase P0.5 combined flow)
+## Lo que se hizo en esta sesión (2026-04-21 noche · Fase P0.4a · backend liveness)
+
+Backend completo del soporte para Rekognition Face Liveness. Todavía
+no activo en producción porque el **frontend Amplify** (P0.4b) es lo
+que corre el challenge real — el backend sólo expone crear-sesión y
+validar-resultado. Dividido en dos sesiones para evitar scope inmanejable.
+
+| Commit | Contenido | Tests |
+|---|---|---|
+| **P0.4a** `<pendiente>` | `FacialProvider` + 4 métodos nuevos: `supports_liveness()`, `create_liveness_session()`, `get_liveness_results(session_id)`, dataclasses `LivenessSession` + `LivenessResult`. `DemoFacialProvider` responde con session fake + is_live=True. `AWSRekognitionProvider` invoca `create_face_liveness_session` + `get_face_liveness_session_results`; normaliza Confidence 0-100 a 0.0-1.0; `is_live` solo cuando `Status=SUCCEEDED` AND `confidence >= min_similarity` (0.85 default). Extrae `AuditImages` para auditoría. | +10 provider tests |
+| **Service** | `BiometricAuthenticationService.create_liveness_session(auth_id)` + `verify_liveness(auth_id, session_id)`. Persisten en `auth.facial_analysis["liveness_session"]` y `["liveness"]`. Levantan `RuntimeError` si el provider no soporta liveness (endpoint devuelve 501). | +5 service tests |
+| **Endpoints** | `POST /api/v1/contracts/{id}/auth/liveness/create-session/` → devuelve `{session_id, provider, client_region}`. `POST /api/v1/contracts/{id}/auth/liveness/verify/` con body `{session_id}` → devuelve `{is_live, confidence, status, audit_image_count}`. | Integration pendiente frontend |
+| **contracts** | 230/230 OK + 1 skip (0 regresión sobre 215) | — |
+
+### Arquitectura Liveness
+
+```
+Frontend (P0.4b)                    Backend (P0.4a · HECHO)
+────────────────                    ────────────────────
+1. POST /auth/liveness/             →  FacialProvider.create_liveness_session
+   create-session/                      → Rekognition CreateFaceLivenessSession
+                                        → SessionId persistido en facial_analysis
+                                     ←  {session_id, client_region}
+
+2. Amplify FaceLivenessDetector     →  Rekognition endpoint regional
+   (video stream directo)              (backend NO intermedia)
+
+3. onAnalysisComplete                →  POST /auth/liveness/verify/
+                                        → FacialProvider.get_liveness_results
+                                          → Rekognition GetFaceLivenessSessionResults
+                                          → is_live + confidence persistidos
+                                        ←  {is_live, confidence, status}
+```
+
+### Decisión técnica — umbral `is_live`
+
+Se reutiliza `BIOMETRIC_MIN_FACE_SIMILARITY` (0.85 default) que también
+gobierna `compare_faces`. Una sesión con Confidence=80 se considera
+**no live** — esto es conservador (AWS recomienda 70+ para casos
+típicos) pero consistente con la política de comparación facial:
+si requiere 85% de similitud para validar que es la misma persona,
+exigir lo mismo para validar que es persona-no-foto.
+
+### Deuda que sigue abierta tras P0.4a
+
+- **P0.4b — frontend Amplify**: `@aws-amplify/ui-react-liveness`,
+  componente nuevo que sustituye (o complementa) `CameraCapture.tsx`
+  frontal. Scope: 1-2 sesiones.
+- Integrar `facial_analysis.liveness.is_live=False` como bloqueo en
+  `_calculate_face_confidence` (actualmente la heurística local del
+  paso 1 ignora el liveness real si no se invocó).
+- `_compare_documents` + `_verify_combined_coherence` siguen hardcoded
+  (0.88 / 0.87).
+
+---
+
+## Lo que se hizo antes (2026-04-21 cierre · Fase P0.5 combined flow)
 
 Cierra el subsistema facial al 100%. Antes de esta fase, el flujo combined
 (paso 3 del biométrico — documento-junto-al-rostro) tenía dos stubs:

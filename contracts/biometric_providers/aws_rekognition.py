@@ -22,7 +22,7 @@ from typing import Any
 import boto3
 from django.conf import settings
 
-from .base import FaceAnalysis, FacialProvider
+from .base import FaceAnalysis, FacialProvider, LivenessResult, LivenessSession
 
 logger = logging.getLogger(__name__)
 
@@ -183,3 +183,63 @@ class AWSRekognitionProvider(FacialProvider):
 
     def is_demo(self) -> bool:
         return False
+
+    def supports_liveness(self) -> bool:
+        return True
+
+    def create_liveness_session(self) -> LivenessSession:
+        """Crea una Face Liveness session en AWS.
+
+        Devuelve el `SessionId` que el frontend entrega a
+        `FaceLivenessDetector` de Amplify. Amplify conecta
+        directamente al endpoint regional de Rekognition — el
+        backend no intermedia el video stream.
+        """
+        response = self._client.create_face_liveness_session()
+        session_id = response.get("SessionId", "")
+        if not session_id:
+            raise RuntimeError(
+                "Rekognition no devolvió SessionId en create_face_liveness_session"
+            )
+        region = getattr(settings, "AWS_REKOGNITION_REGION", "us-east-1") or "us-east-1"
+        return LivenessSession(
+            session_id=session_id,
+            provider=self.name,
+            client_region=region,
+        )
+
+    def get_liveness_results(self, session_id: str) -> LivenessResult:
+        """Consulta el resultado de una sesión de Liveness.
+
+        Rekognition devuelve `Status` ∈ {`SUCCEEDED`, `FAILED`,
+        `EXPIRED`, `CREATED`, `IN_PROGRESS`} y `Confidence` 0-100.
+        Se considera `is_live=True` sólo cuando `Status=SUCCEEDED`
+        y `Confidence >= min_similarity*100` (umbral compartido
+        con compare_faces — consistencia de política).
+        """
+        response = self._client.get_face_liveness_session_results(
+            SessionId=session_id
+        )
+        status = str(response.get("Status", "UNKNOWN"))
+        confidence_raw = float(response.get("Confidence", 0.0) or 0.0)
+        confidence = max(0.0, min(1.0, confidence_raw / 100.0))
+        is_live = status == "SUCCEEDED" and confidence >= self.min_similarity
+
+        audit_bytes: list[bytes] = []
+        for image in response.get("AuditImages", []) or []:
+            payload = (image.get("Bytes") if isinstance(image, dict) else None) or b""
+            if payload:
+                audit_bytes.append(payload)
+
+        return LivenessResult(
+            session_id=session_id,
+            is_live=is_live,
+            confidence=confidence,
+            status=status,
+            provider=self.name,
+            audit_images=audit_bytes,
+            raw={
+                "confidence_raw": confidence_raw,
+                "reference_image_present": bool(response.get("ReferenceImage")),
+            },
+        )

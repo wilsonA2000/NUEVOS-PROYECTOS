@@ -17,6 +17,8 @@ from .biometric_providers import (
     DocumentProvider,
     FaceAnalysis,
     FacialProvider,
+    LivenessResult,
+    LivenessSession,
     VoiceAnalysis,
     VoiceProvider,
     get_document_provider,
@@ -1062,6 +1064,76 @@ class BiometricAuthenticationService:
         except Exception as exc:
             logger.warning("No se pudo leer %s: %s", file_field, exc)
             return None
+
+    # ------------------------------------------------------------------
+    # P0.4 — Face Liveness real
+    # ------------------------------------------------------------------
+
+    def create_liveness_session(self, auth_id: str) -> Dict[str, Any]:
+        """Crea una sesión de Face Liveness para `auth_id`.
+
+        Devuelve el payload que el frontend necesita para invocar al
+        Amplify `FaceLivenessDetector`. El `session_id` + metadata se
+        persisten en `auth.facial_analysis["liveness_session"]` para
+        auditoría y para poder consultarlo luego vía `verify_liveness`.
+
+        Si el provider activo no soporta liveness real (ej. demo cuando
+        se deshabilita explícitamente), se levanta `RuntimeError` para
+        que el endpoint devuelva 501 — el flujo MVP sigue funcionando
+        con la heurística local de `analyze_face.liveness_score`.
+        """
+        if not self._facial_provider.supports_liveness():
+            raise RuntimeError(
+                f"Provider {self._facial_provider.name} no soporta Face Liveness"
+            )
+
+        auth = BiometricAuthentication.objects.get(id=auth_id)
+        session = self._facial_provider.create_liveness_session()
+
+        facial = dict(auth.facial_analysis or {})
+        facial["liveness_session"] = {
+            "session_id": session.session_id,
+            "provider": session.provider,
+            "client_region": session.client_region,
+            "created_at": timezone.now().isoformat(),
+        }
+        auth.facial_analysis = facial
+        auth.save(update_fields=["facial_analysis"])
+
+        return {
+            "session_id": session.session_id,
+            "provider": session.provider,
+            "client_region": session.client_region,
+        }
+
+    def verify_liveness(self, auth_id: str, session_id: str) -> Dict[str, Any]:
+        """Consulta el resultado de la sesión y persiste en el auth.
+
+        Tolerante: si el resultado es inválido (FAILED/EXPIRED) se
+        guarda igual para auditoría. El consumidor del endpoint
+        decide si bloquea el flujo en base a `is_live`.
+        """
+        if not self._facial_provider.supports_liveness():
+            raise RuntimeError(
+                f"Provider {self._facial_provider.name} no soporta Face Liveness"
+            )
+
+        auth = BiometricAuthentication.objects.get(id=auth_id)
+        result = self._facial_provider.get_liveness_results(session_id)
+
+        facial = dict(auth.facial_analysis or {})
+        facial["liveness"] = {
+            "session_id": result.session_id,
+            "is_live": result.is_live,
+            "confidence": result.confidence,
+            "status": result.status,
+            "provider": result.provider,
+            "verified_at": timezone.now().isoformat(),
+        }
+        auth.facial_analysis = facial
+        auth.save(update_fields=["facial_analysis"])
+
+        return result.to_dict()
 
     def _compare_documents(self, original_path: str, extracted_document: Dict) -> float:
         """Simula la comparación de documentos."""

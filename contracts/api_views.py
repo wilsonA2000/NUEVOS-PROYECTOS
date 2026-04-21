@@ -1801,6 +1801,96 @@ class FaceCaptureAPIView(APIView):
             )
 
 
+class LivenessSessionCreateAPIView(APIView):
+    """P0.4 · Crea una sesión de Face Liveness para el auth activo.
+
+    El frontend (Amplify FaceLivenessDetector) usa el `session_id`
+    para invocar al endpoint regional de Rekognition y ejecutar el
+    challenge en el navegador. El backend no intermedia el video.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, contract_id):
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status__in=["pending", "in_progress"],
+            )
+
+            payload = biometric_service.create_liveness_session(str(auth.id))
+            return Response(payload)
+
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {"error": "Autenticación biométrica no encontrada o expirada"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except RuntimeError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Error creando sesión de liveness: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class LivenessVerifyAPIView(APIView):
+    """P0.4 · Consulta el resultado de una sesión de Liveness y lo persiste.
+
+    El frontend señaliza completado tras el challenge; este endpoint
+    llama a Rekognition `get_face_liveness_session_results` y devuelve
+    `is_live + confidence + status` además de persistirlo en
+    `facial_analysis.liveness` para auditoría jurídica.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, contract_id):
+        try:
+            from .biometric_service import biometric_service
+            from .models import BiometricAuthentication
+
+            session_id = request.data.get("session_id")
+            if not session_id:
+                return Response(
+                    {"error": "Se requiere session_id"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            auth = BiometricAuthentication.objects.get(
+                contract_id=contract_id,
+                user=request.user,
+                status__in=["pending", "in_progress"],
+            )
+
+            payload = biometric_service.verify_liveness(str(auth.id), session_id)
+            return Response(payload)
+
+        except BiometricAuthentication.DoesNotExist:
+            return Response(
+                {"error": "Autenticación biométrica no encontrada o expirada"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except RuntimeError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Error verificando liveness: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class DocumentCaptureAPIView(APIView):
     """Vista para capturar documento de identidad."""
 

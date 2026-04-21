@@ -10,7 +10,7 @@ tocar el servicio.
 
 from __future__ import annotations
 
-from .base import FaceAnalysis, FacialProvider
+from .base import FaceAnalysis, FacialProvider, LivenessResult, LivenessSession
 from .demo import DemoFacialProvider
 from .document_base import DocumentAnalysis, DocumentProvider
 from .document_demo import DemoDocumentProvider
@@ -23,6 +23,8 @@ from .voice_factory import get_voice_provider
 __all__ = [
     "FaceAnalysis",
     "FacialProvider",
+    "LivenessResult",
+    "LivenessSession",
     "DemoFacialProvider",
     "get_facial_provider",
     "DocumentAnalysis",
