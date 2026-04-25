@@ -54,7 +54,7 @@ class ExtractFaceFromCombinedTests(SimpleTestCase):
 
     def test_returns_not_detected_when_provider_raises(self):
         service, provider = _make_service_with_mock_provider()
-        provider.analyze_face.side_effect = RuntimeError("rekognition boom")
+        provider.analyze_face.side_effect = RuntimeError("provider boom")
 
         result = service._extract_face_from_combined("data:image/png;base64,xxx")
 
@@ -93,7 +93,7 @@ class CompareFacesTests(SimpleTestCase):
 
     def test_returns_zero_when_provider_raises(self):
         service, provider = _make_service_with_mock_provider()
-        provider.compare_faces.side_effect = RuntimeError("rekognition boom")
+        provider.compare_faces.side_effect = RuntimeError("provider boom")
 
         score = service._compare_faces("base64_source", "base64_target")
 

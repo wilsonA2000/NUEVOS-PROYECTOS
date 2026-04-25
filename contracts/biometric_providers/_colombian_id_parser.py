@@ -1,9 +1,9 @@
 """Parser best-effort de texto OCR para documentos de identidad CO.
 
-Se usa cuando Textract `analyze_id` no cubre el tipo de documento
-(cédula de ciudadanía y tarjeta de identidad no están en la lista
-soportada oficial de AWS) y recurrimos a `detect_document_text` +
-heurística. Expone una función pura para que sea testeable sin AWS.
+Se usa como capa secundaria cuando un proveedor OCR devuelve líneas
+crudas de texto sin parsear los campos (tipo doc, número, nombres,
+fechas) en formato estructurado. Función pura, testeable sin
+dependencias externas.
 """
 
 from __future__ import annotations
@@ -227,9 +227,8 @@ def _assign_dates(
 def parse_colombian_id(text_lines: list[str]) -> ParsedColombianID:
     """Entrada principal del parser.
 
-    Recibe la lista de líneas de texto extraídas por OCR (por ejemplo
-    los `Text` de los `Block` tipo LINE de Textract). Best-effort: los
-    campos que no puedan extraerse quedan en `None`.
+    Recibe la lista de líneas de texto extraídas por OCR. Best-effort:
+    los campos que no puedan extraerse quedan en `None`.
     """
     lines = [ln for ln in text_lines if ln and ln.strip()]
     text = "\n".join(lines)

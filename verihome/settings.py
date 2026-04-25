@@ -961,11 +961,11 @@ CKEDITOR_UPLOAD_PATH = "ckeditor/"
 SIMPLE_HISTORY_REVERT_DISABLED = True  # Solo admin puede revertir
 
 # =============================================================================
-# BIOMETRIC PROVIDERS (P0.1 · ver contracts/biometric_providers/)
+# BIOMETRIC PROVIDERS (ver contracts/biometric_providers/)
 # =============================================================================
-# Selecciona el proveedor facial activo. `demo` usa scores simulados
-# (apto para CI y dev sin AWS). `aws_rekognition` llama a AWS real; si
-# faltan credenciales cae a demo automáticamente.
+# Selecciona el proveedor facial activo. Hoy sólo `demo` (scores simulados).
+# Truora Identity se integrará en fase TR-3 cubriendo face + document +
+# liveness con head movements + cruce Registraduría en un único proceso.
 BIOMETRIC_FACIAL_PROVIDER = os.getenv("BIOMETRIC_FACIAL_PROVIDER", "demo")
 
 # Umbrales compartidos por los proveedores.
@@ -974,20 +974,9 @@ BIOMETRIC_MIN_FACE_SIMILARITY = float(
     os.getenv("BIOMETRIC_MIN_FACE_SIMILARITY", "0.85")
 )
 
-# Credenciales AWS Rekognition. Mantener vacías en dev/tests; en producción
-# se setean vía variables de entorno (nunca en código ni commits).
-AWS_REKOGNITION_ACCESS_KEY_ID = os.getenv("AWS_REKOGNITION_ACCESS_KEY_ID", "")
-AWS_REKOGNITION_SECRET_ACCESS_KEY = os.getenv("AWS_REKOGNITION_SECRET_ACCESS_KEY", "")
-AWS_REKOGNITION_REGION = os.getenv("AWS_REKOGNITION_REGION", "us-east-1")
-
-# P0.2 · proveedor OCR para documento de identidad.
-# `demo` devuelve campos simulados. `aws_textract` usa Textract real
-# (analyze_id para pasaporte/CE, detect_document_text + parser local
-# para cédula CO). Si faltan credenciales cae a demo.
+# Proveedor OCR para documento de identidad. Mismo plan: `demo` por ahora,
+# Truora cubrirá cédula CO con cruce Registraduría en TR-3.
 BIOMETRIC_DOCUMENT_PROVIDER = os.getenv("BIOMETRIC_DOCUMENT_PROVIDER", "demo")
-AWS_TEXTRACT_ACCESS_KEY_ID = os.getenv("AWS_TEXTRACT_ACCESS_KEY_ID", "")
-AWS_TEXTRACT_SECRET_ACCESS_KEY = os.getenv("AWS_TEXTRACT_SECRET_ACCESS_KEY", "")
-AWS_TEXTRACT_REGION = os.getenv("AWS_TEXTRACT_REGION", "us-east-1")
 
 # P0.3 · proveedor de análisis de voz.
 # Hoy sólo acepta `demo` (andamio listo). P0.3b integrará un provider

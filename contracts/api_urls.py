@@ -89,16 +89,6 @@ urlpatterns = [
         name="api_face_capture",
     ),
     path(
-        "<uuid:contract_id>/auth/liveness/create-session/",
-        api_views.LivenessSessionCreateAPIView.as_view(),
-        name="api_liveness_create_session",
-    ),
-    path(
-        "<uuid:contract_id>/auth/liveness/verify/",
-        api_views.LivenessVerifyAPIView.as_view(),
-        name="api_liveness_verify",
-    ),
-    path(
         "<uuid:contract_id>/auth/document-capture/",
         api_views.DocumentCaptureAPIView.as_view(),
         name="api_document_capture",

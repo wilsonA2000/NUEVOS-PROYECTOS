@@ -8,53 +8,6 @@ from typing import Any
 
 
 @dataclass
-class LivenessSession:
-    """Handle opaco de una sesión de Face Liveness en curso.
-
-    `session_id` se devuelve al frontend para que Amplify lo use con
-    `FaceLivenessDetector`. `client_region` indica la región AWS donde
-    vive la sesión (Amplify necesita saberla para apuntar al endpoint
-    correcto).
-
-    El proveedor demo devuelve un session_id fake; AWS Rekognition
-    devuelve el SessionId real de `create_face_liveness_session`.
-    """
-
-    session_id: str
-    provider: str = "unknown"
-    client_region: str = "us-east-1"
-
-
-@dataclass
-class LivenessResult:
-    """Resultado final de una sesión de Face Liveness.
-
-    `confidence` es el score oficial del servicio (0.0-1.0; en
-    Rekognition viene 0-100, se normaliza). `status` es el estado
-    crudo ('SUCCEEDED', 'FAILED', 'EXPIRED'). `is_live` derivado:
-    status=='SUCCEEDED' AND confidence>=threshold.
-    """
-
-    session_id: str
-    is_live: bool
-    confidence: float
-    status: str
-    provider: str = "unknown"
-    audit_images: list[bytes] = field(default_factory=list)
-    raw: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "session_id": self.session_id,
-            "is_live": self.is_live,
-            "confidence": self.confidence,
-            "status": self.status,
-            "provider": self.provider,
-            "audit_image_count": len(self.audit_images),
-        }
-
-
-@dataclass
 class FaceAnalysis:
     """Resultado normalizado del análisis de una imagen facial.
 
@@ -86,8 +39,7 @@ class FacialProvider(ABC):
 
     Los stubs internos de `BiometricAuthenticationService` se apoyan en
     estos cuatro métodos. Se documentan rangos/semántica aquí para que
-    los proveedores reales (AWS, Azure, Google) puedan mapear sus APIs
-    a una interfaz uniforme.
+    los proveedores reales puedan mapear sus APIs a una interfaz uniforme.
     """
 
     name: str = "base"
@@ -118,39 +70,3 @@ class FacialProvider(ABC):
     def is_demo(self) -> bool:
         """True cuando el proveedor devuelve scores simulados."""
         return False
-
-    def supports_liveness(self) -> bool:
-        """True si el proveedor implementa Face Liveness real.
-
-        Los proveedores que devuelvan False usan la heurística local
-        (EyesOpen + Pose + Sharpness) de `analyze_face.liveness_score`,
-        que se burla con foto-de-foto. Documentar la limitación al
-        usuario final es responsabilidad de la UI (Ley 1581 TDI).
-        """
-        return False
-
-    def create_liveness_session(self) -> "LivenessSession":
-        """Crea una sesión de Face Liveness y devuelve su handle.
-
-        El `session_id` se entrega al frontend (Amplify SDK) que
-        corre el detector en el navegador con video stream. Al
-        terminar, el backend llama `get_liveness_results` para
-        recoger el veredicto.
-
-        Implementación default: raise — los proveedores que
-        devuelvan `supports_liveness()=True` deben sobreescribirlo.
-        """
-        raise NotImplementedError(
-            f"{type(self).__name__} no soporta Face Liveness real"
-        )
-
-    def get_liveness_results(self, session_id: str) -> "LivenessResult":
-        """Obtiene el resultado de una sesión de Face Liveness.
-
-        El frontend señaliza al backend cuando el usuario completa
-        el challenge; este método consulta al proveedor y devuelve
-        confidence + status.
-        """
-        raise NotImplementedError(
-            f"{type(self).__name__} no soporta Face Liveness real"
-        )

@@ -1,7 +1,8 @@
 """Factory para seleccionar el DocumentProvider activo.
 
-Mismo patrón que `factory.py` (facial): `lru_cache`, resolver por
-setting, try-import con fallback transparente a demo.
+Hoy sólo expone `demo` (scores simulados). Truora Identity (fase TR-3)
+cubrirá OCR de cédula CO + cruce Registraduría dentro del mismo proceso
+que el liveness facial.
 """
 
 from __future__ import annotations
@@ -17,8 +18,7 @@ from .document_demo import DemoDocumentProvider
 logger = logging.getLogger(__name__)
 
 _PROVIDER_DEMO = "demo"
-_PROVIDER_AWS_TEXTRACT = "aws_textract"
-_VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_AWS_TEXTRACT}
+_VALID_PROVIDERS = {_PROVIDER_DEMO}
 
 
 def _resolve_provider_name() -> str:
@@ -35,27 +35,8 @@ def _resolve_provider_name() -> str:
     return name
 
 
-def _build_aws_textract_provider() -> DocumentProvider:
-    try:
-        from .aws_textract import AWSTextractProvider
-    except ImportError as exc:
-        logger.warning("AWSTextractProvider no disponible: %s — fallback demo", exc)
-        return DemoDocumentProvider()
-
-    try:
-        return AWSTextractProvider()
-    except Exception as exc:
-        logger.warning(
-            "AWSTextractProvider no pudo inicializarse (%s) — fallback demo",
-            exc,
-        )
-        return DemoDocumentProvider()
-
-
 @lru_cache(maxsize=1)
 def get_document_provider() -> DocumentProvider:
     """Devuelve la instancia del DocumentProvider activo (memoizada)."""
-    name = _resolve_provider_name()
-    if name == _PROVIDER_AWS_TEXTRACT:
-        return _build_aws_textract_provider()
+    _resolve_provider_name()
     return DemoDocumentProvider()

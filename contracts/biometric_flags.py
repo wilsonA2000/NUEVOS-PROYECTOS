@@ -17,11 +17,10 @@ from django.conf import settings
 def is_demo_biometric_mode() -> bool:
     """Retorna True cuando los scores biométricos son simulados.
 
-    Desde P0.1 la fuente de verdad es el `FacialProvider` activo: si el
-    factory devuelve `DemoFacialProvider` (explícito o por fallback al
-    faltar credenciales AWS), el servicio biométrico está en demo. Las
-    vars `DEMO_BIOMETRICS` y `DEBUG=True` siguen funcionando como override
-    manual (para entornos donde se quiere forzar el disclosure).
+    Fuente de verdad: el `FacialProvider` activo. Si el factory devuelve
+    `DemoFacialProvider` (default actual; Truora se integra en TR-3), el
+    servicio biométrico está en demo. Las vars `DEMO_BIOMETRICS` y
+    `DEBUG=True` siguen funcionando como override manual.
     """
     env = os.environ.get("DEMO_BIOMETRICS")
     if env is not None:
@@ -42,7 +41,8 @@ def is_demo_biometric_mode() -> bool:
 
 DEMO_DISCLOSURE_TEXT = (
     "Modo demostración: la verificación biométrica está simulada. "
-    "En producción se integra con un proveedor ML real (AWS Rekognition / Metamap). "
-    "Los resultados mostrados no constituyen prueba legal hasta que la integración "
+    "En producción se integra con Truora Identity (cédula CO + cruce "
+    "Registraduría + face liveness con head movements). Los resultados "
+    "mostrados no constituyen prueba legal hasta que la integración "
     "esté activa y se obtenga el consentimiento bajo Ley 1581/2012."
 )

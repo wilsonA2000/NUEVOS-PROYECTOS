@@ -1,13 +1,11 @@
 """Tests del paquete `contracts.biometric_providers`.
 
 Cubre la interfaz base, el DemoFacialProvider y el factory con fallback
-cuando el proveedor AWS no se puede inicializar. Los tests del provider
-AWS real viven en `test_biometric_providers_aws.py` (commit 2).
+cuando el proveedor configurado no se reconoce. El provider Truora real
+se integrará en fase TR-3 con su propia suite de tests.
 """
 
 from __future__ import annotations
-
-from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
@@ -104,19 +102,9 @@ class FactoryTests(SimpleTestCase):
         provider = get_facial_provider()
         self.assertIsInstance(provider, DemoFacialProvider)
 
-    @override_settings(BIOMETRIC_FACIAL_PROVIDER="AWS_REKOGNITION")
+    @override_settings(BIOMETRIC_FACIAL_PROVIDER="DEMO")
     def test_provider_name_is_normalized(self):
-        self.assertEqual(_resolve_provider_name(), "aws_rekognition")
-
-    @override_settings(BIOMETRIC_FACIAL_PROVIDER="aws_rekognition")
-    def test_aws_import_error_falls_back_to_demo(self):
-        # Simula que `aws_rekognition.py` no existe o falla al importar.
-        with patch(
-            "contracts.biometric_providers.factory._build_aws_provider",
-            return_value=DemoFacialProvider(),
-        ):
-            provider = get_facial_provider()
-            self.assertIsInstance(provider, DemoFacialProvider)
+        self.assertEqual(_resolve_provider_name(), "demo")
 
     def test_cache_returns_same_instance(self):
         first = get_facial_provider()

@@ -1,12 +1,10 @@
 """Tests del DocumentProvider: interfaz base, demo y factory.
 
-Los tests del provider AWS Textract viven en
-`test_document_providers_aws.py` (commit 6).
+El provider Truora real (TR-3) cubrirá OCR cédula CO + cruce
+Registraduría con su propia suite de tests.
 """
 
 from __future__ import annotations
-
-from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
@@ -132,18 +130,9 @@ class FactoryTests(SimpleTestCase):
         provider = get_document_provider()
         self.assertIsInstance(provider, DemoDocumentProvider)
 
-    @override_settings(BIOMETRIC_DOCUMENT_PROVIDER="AWS_TEXTRACT")
+    @override_settings(BIOMETRIC_DOCUMENT_PROVIDER="DEMO")
     def test_provider_name_is_normalized(self):
-        self.assertEqual(_resolve_provider_name(), "aws_textract")
-
-    @override_settings(BIOMETRIC_DOCUMENT_PROVIDER="aws_textract")
-    def test_textract_import_error_falls_back_to_demo(self):
-        with patch(
-            "contracts.biometric_providers.document_factory._build_aws_textract_provider",
-            return_value=DemoDocumentProvider(),
-        ):
-            provider = get_document_provider()
-            self.assertIsInstance(provider, DemoDocumentProvider)
+        self.assertEqual(_resolve_provider_name(), "demo")
 
     def test_cache_returns_same_instance(self):
         first = get_document_provider()

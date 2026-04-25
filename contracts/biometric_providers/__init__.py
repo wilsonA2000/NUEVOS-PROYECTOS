@@ -1,16 +1,15 @@
 """Proveedores de análisis biométrico facial para VeriHome.
 
 El servicio `BiometricAuthenticationService` delega el análisis real
-(detección de rostro, quality, liveness heurístico, comparación facial)
-a una implementación de `FacialProvider`. Esto permite intercambiar
-entre un `DemoFacialProvider` (scores fijos, usado por defecto en dev
-y CI) y proveedores reales (AWS Rekognition, futuros Azure/Google) sin
-tocar el servicio.
+(detección de rostro, quality, comparación facial) a una implementación
+de `FacialProvider`. Esto permite intercambiar entre un
+`DemoFacialProvider` (scores fijos, usado por defecto en dev y CI) y
+proveedores reales (Truora Identity, futuros) sin tocar el servicio.
 """
 
 from __future__ import annotations
 
-from .base import FaceAnalysis, FacialProvider, LivenessResult, LivenessSession
+from .base import FaceAnalysis, FacialProvider
 from .demo import DemoFacialProvider
 from .document_base import DocumentAnalysis, DocumentProvider
 from .document_demo import DemoDocumentProvider
@@ -23,8 +22,6 @@ from .voice_factory import get_voice_provider
 __all__ = [
     "FaceAnalysis",
     "FacialProvider",
-    "LivenessResult",
-    "LivenessSession",
     "DemoFacialProvider",
     "get_facial_provider",
     "DocumentAnalysis",

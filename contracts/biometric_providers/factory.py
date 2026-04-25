@@ -1,4 +1,9 @@
-"""Factory para seleccionar el proveedor facial activo."""
+"""Factory para seleccionar el proveedor facial activo.
+
+Hoy sólo expone `demo` (scores simulados). El provider Truora Identity
+se integrará en fase TR-3 — cubrirá face + document + liveness en un
+único flujo, así que no se mantienen wrappers AWS-específicos aquí.
+"""
 
 from __future__ import annotations
 
@@ -13,8 +18,7 @@ from .demo import DemoFacialProvider
 logger = logging.getLogger(__name__)
 
 _PROVIDER_DEMO = "demo"
-_PROVIDER_AWS = "aws_rekognition"
-_VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_AWS}
+_VALID_PROVIDERS = {_PROVIDER_DEMO}
 
 
 def _resolve_provider_name() -> str:
@@ -28,28 +32,6 @@ def _resolve_provider_name() -> str:
     return name
 
 
-def _build_aws_provider() -> FacialProvider:
-    """Intenta construir el proveedor AWS; si falla, cae a demo.
-
-    El import se hace local para que instalar boto3/moto no sea
-    requisito duro cuando el proveedor activo es demo.
-    """
-    try:
-        from .aws_rekognition import AWSRekognitionProvider
-    except ImportError as exc:
-        logger.warning("AWSRekognitionProvider no disponible: %s — fallback demo", exc)
-        return DemoFacialProvider()
-
-    try:
-        return AWSRekognitionProvider()
-    except Exception as exc:
-        logger.warning(
-            "AWSRekognitionProvider no pudo inicializarse (%s) — fallback demo",
-            exc,
-        )
-        return DemoFacialProvider()
-
-
 @lru_cache(maxsize=1)
 def get_facial_provider() -> FacialProvider:
     """Devuelve la instancia del proveedor activo (memoizada).
@@ -57,7 +39,5 @@ def get_facial_provider() -> FacialProvider:
     Para invalidar la cache (tests, cambio de setting runtime) llamar
     `get_facial_provider.cache_clear()`.
     """
-    name = _resolve_provider_name()
-    if name == _PROVIDER_AWS:
-        return _build_aws_provider()
+    _resolve_provider_name()
     return DemoFacialProvider()
