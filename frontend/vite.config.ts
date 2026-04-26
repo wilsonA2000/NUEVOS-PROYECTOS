@@ -351,9 +351,11 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      // Pre-bundle estos paquetes para mejor performance en dev
       'react',
       'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       '@mui/material',
       '@mui/lab',
       '@mui/icons-material',
@@ -363,10 +365,7 @@ export default defineConfig({
       'react-router-dom',
       'axios',
     ],
-    exclude: [
-      // Excluir paquetes que causan problemas con pre-bundling
-    ],
-    // Force optimize algunos paquetes problemáticos
+    exclude: [],
     force: false,
   },
   // CSS optimization

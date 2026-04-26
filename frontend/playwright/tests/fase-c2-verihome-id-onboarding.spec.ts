@@ -125,23 +125,12 @@ test.describe('VeriHome ID onboarding (C-NEXT)', () => {
     expect(body.status).toBe('rejected');
   });
 
-  test('UI: ruta /app/verihome-id/onboarding registrada y autenticada', async ({
+  test('UI: página onboarding renderiza header VeriHome ID sin crashes', async ({
     page,
   }) => {
-    // NOTA: hay un bug pre-existente en el Layout (LanguageSelector con
-    // MUI Select renderValue) que ErrorBoundary captura en cualquier
-    // /app/* — afecta todas las páginas, no solo esta. Es ortogonal a
-    // C-NEXT. Por eso este smoke solo valida que la ruta está
-    // registrada y exige autenticación. El render visual completo se
-    // valida manualmente cuando el bug del Layout esté arreglado.
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
 
-    // 1. Sin auth, redirige a /login (ProtectedRoute funcionando).
-    await page.goto('/app/verihome-id/onboarding');
-    await page.waitForLoadState('domcontentloaded');
-    expect(page.url()).toMatch(/\/login|\/app\/verihome-id\/onboarding/);
-
-    // 2. Login y volver: ahora la URL persiste en /app/verihome-id/...
-    //    (la ruta NO redirige a /app/dashboard como hace el catch-all).
     await page.goto('/login');
     await page.fill('input[name="email"], input[type="email"]', TENANT_EMAIL);
     await page.fill(
@@ -153,9 +142,26 @@ test.describe('VeriHome ID onboarding (C-NEXT)', () => {
 
     await page.goto('/app/verihome-id/onboarding');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     expect(page.url()).toContain('/app/verihome-id/onboarding');
-    expect(page.url()).not.toContain('/dashboard');
+
+    // El header propio de la página onboarding debe estar visible
+    await expect(
+      page.getByRole('heading', { name: /^VeriHome ID$/i }).first(),
+    ).toBeVisible({ timeout: 10000 });
+
+    // ErrorBoundary NO debe haber capturado nada
+    const html = await page.content();
+    expect(html).not.toContain('Algo salió mal');
+    expect(html).not.toContain('Se ha producido un error');
+
+    // Sin errores fatales en consola
+    const fatal = errors.filter(
+      e =>
+        !e.toLowerCase().includes('mapbox') &&
+        !e.toLowerCase().includes('failed to load'),
+    );
+    expect(fatal, fatal.join('\n')).toEqual([]);
   });
 });
