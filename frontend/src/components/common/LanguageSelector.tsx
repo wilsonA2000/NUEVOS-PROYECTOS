@@ -1,76 +1,68 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Select,
-  MenuItem,
-  FormControl,
-  SelectChangeEvent,
-  Box,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Menu, MenuItem, Typography } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 
 const LanguageSelector: React.FC = () => {
   const { i18n } = useTranslation();
-
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    const lang = event.target.value;
-    i18n.changeLanguage(lang);
-  };
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const currentLanguage = i18n.language?.startsWith('es') ? 'es' : 'en';
 
+  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => setAnchorEl(null);
+
+  const handleSelect = (lang: 'es' | 'en') => {
+    i18n.changeLanguage(lang);
+    handleClose();
+  };
+
   return (
-    <FormControl size='small' sx={{ minWidth: 80 }}>
-      <Select
-        value={currentLanguage}
-        onChange={handleChange}
-        displayEmpty
-        variant='outlined'
+    <>
+      <Button
+        size='small'
+        onClick={handleOpen}
         sx={{
-          '& .MuiSelect-select': {
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            py: 0.5,
-            px: 1,
-          },
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255, 255, 255, 0.3)',
-          },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255, 255, 255, 0.5)',
-          },
+          minWidth: 80,
           color: 'inherit',
-          fontSize: '0.875rem',
+          textTransform: 'none',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          py: 0.5,
+          px: 1,
+          '&:hover': { borderColor: 'rgba(255, 255, 255, 0.5)' },
         }}
-        renderValue={value => (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <LanguageIcon fontSize='small' />
-            <Typography variant='body2' component='span'>
-              {value === 'es' ? 'ES' : 'EN'}
-            </Typography>
-          </Box>
-        )}
       >
-        <MenuItem value='es'>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant='body2'>ES</Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Espa&ntilde;ol
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LanguageIcon fontSize='small' />
+          <Typography variant='body2' component='span'>
+            {currentLanguage === 'es' ? 'ES' : 'EN'}
+          </Typography>
+        </Box>
+      </Button>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem
+          selected={currentLanguage === 'es'}
+          onClick={() => handleSelect('es')}
+        >
+          ES — Español
         </MenuItem>
-        <MenuItem value='en'>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant='body2'>EN</Typography>
-            <Typography variant='body2' color='text.secondary'>
-              English
-            </Typography>
-          </Box>
+        <MenuItem
+          selected={currentLanguage === 'en'}
+          onClick={() => handleSelect('en')}
+        >
+          EN — English
         </MenuItem>
-      </Select>
-    </FormControl>
+      </Menu>
+    </>
   );
 };
 
