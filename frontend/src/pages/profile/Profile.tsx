@@ -45,6 +45,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 import { api } from '../../services/api';
+import VeriHomeIDCard from '../../components/biometric/VeriHomeIDCard';
 
 import { vhColors } from '../../theme/tokens';
 
@@ -594,6 +595,9 @@ const Profile: React.FC = () => {
           ¡Perfil actualizado exitosamente!
         </Alert>
       </Snackbar>
+
+      {/* VeriHome ID — verificación de identidad */}
+      <VeriHomeIDCard />
 
       {/* Tabs */}
       <Paper sx={{ mb: 3 }}>

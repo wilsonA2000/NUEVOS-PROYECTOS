@@ -37,6 +37,7 @@ import {
   Logout,
   Build,
   Assessment,
+  Fingerprint,
   ChevronRight,
   Star,
   VerifiedUser,
@@ -409,6 +410,17 @@ const Layout: React.FC = () => {
             <Description fontSize='small' />
           </ListItemIcon>
           <ListItemText>{t('nav.resume')}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            navigate('/app/verihome-id/onboarding');
+            handleProfileMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <Fingerprint fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>VeriHome ID</ListItemText>
         </MenuItem>
         <MenuItem
           onClick={() => {
