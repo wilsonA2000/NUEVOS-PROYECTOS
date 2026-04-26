@@ -12,7 +12,12 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from .models import VerificationAgent, VerificationVisit, VerificationReport
+from .models import (
+    FieldVisitRequest,
+    VerificationAgent,
+    VerificationReport,
+    VerificationVisit,
+)
 
 User = get_user_model()
 
@@ -460,3 +465,138 @@ class VerificationReportAPITests(APITestCase):
             else len(response.data),
             1,
         )
+
+
+# 1x1 transparent PNG en base64; suficiente para que ImageField acepte el blob.
+_DUMMY_PNG = (
+    "data:image/png;base64,"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII="
+)
+
+
+def _onboarding_payload(score_total="0.45"):
+    return {
+        "document_type_declared": "cedula_ciudadania",
+        "document_number_declared": "1234567890",
+        "full_name_declared": "Juan Perez",
+        "cedula_anverso": _DUMMY_PNG,
+        "cedula_reverso": _DUMMY_PNG,
+        "selfie": _DUMMY_PNG,
+        "ocr_data": {"document_number": "1234567890"},
+        "liveness_data": {"completed_steps": 5},
+        "face_match_data": {"similarity": 0.78, "passed": True},
+        "digital_score": {"observaciones": [], "total": float(score_total)},
+        "digital_score_total": score_total,
+    }
+
+
+class FieldVisitRequestAPITests(APITestCase):
+    """API tests for VeriHome ID onboarding endpoint."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="onboarding@test.com",
+            password="test123",
+            first_name="Wilson",
+            last_name="A",
+            user_type="tenant",
+        )
+        self.staff = User.objects.create_user(
+            email="staff@test.com",
+            password="test123",
+            first_name="Staff",
+            last_name="User",
+            user_type="landlord",
+            is_staff=True,
+        )
+
+    def test_onboarding_requires_authentication(self):
+        response = self.client.post(
+            "/api/v1/verification/onboarding/", _onboarding_payload(), format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_onboarding_creates_record_with_aprobado_verdict(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.45"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["digital_verdict"], "aprobado")
+        self.assertEqual(response.data["status"], "digital_completed")
+
+        instance = FieldVisitRequest.objects.get(id=response.data["id"])
+        self.assertEqual(instance.user, self.user)
+        self.assertTrue(instance.cedula_anverso.name)
+        self.assertTrue(instance.cedula_reverso.name)
+        self.assertTrue(instance.selfie_liveness.name)
+
+    def test_onboarding_rechazado_persists_with_status_rejected(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.10"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["digital_verdict"], "rechazado")
+        self.assertEqual(response.data["status"], "rejected")
+
+    def test_onboarding_observado_verdict_at_threshold(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.30"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["digital_verdict"], "observado")
+
+    def test_me_returns_latest_onboarding(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.30"),
+            format="json",
+        )
+        latest = self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.45"),
+            format="json",
+        )
+        response = self.client.get("/api/v1/verification/onboarding/me/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], latest.data["id"])
+
+    def test_me_returns_404_when_no_onboarding(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/v1/verification/onboarding/me/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_forbidden_for_non_staff(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/v1/verification/onboarding/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_works_for_staff(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.45"),
+            format="json",
+        )
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get("/api/v1/verification/onboarding/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_score_total_out_of_range_rejected(self):
+        self.client.force_authenticate(user=self.user)
+        payload = _onboarding_payload("0.45")
+        payload["digital_score_total"] = "0.99"
+        response = self.client.post(
+            "/api/v1/verification/onboarding/", payload, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

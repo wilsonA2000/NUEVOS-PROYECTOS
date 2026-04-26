@@ -5,15 +5,22 @@ API Views para el módulo de Verificación Presencial de VeriHome.
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .models import VerificationAgent, VerificationVisit, VerificationReport
+from .models import (
+    FieldVisitRequest,
+    VerificationAgent,
+    VerificationReport,
+    VerificationVisit,
+)
 from .serializers import (
+    FieldVisitRequestSerializer,
     VerificationAgentSerializer,
-    VerificationVisitSerializer,
     VerificationReportSerializer,
+    VerificationVisitSerializer,
 )
 
 
@@ -311,3 +318,88 @@ class VerificationReportViewSet(viewsets.ModelViewSet):
         report.admin_notes = request.data.get("notes", "")
         report.save(update_fields=["approved_by_admin", "admin_notes", "updated_at"])
         return Response(self.get_serializer(report).data)
+
+
+class FieldVisitOnboardingThrottle(UserRateThrottle):
+    """Limita el envío de onboardings VeriHome ID por usuario."""
+
+    scope = "field_visit_onboarding"
+
+
+class FieldVisitRequestViewSet(viewsets.GenericViewSet):
+    """
+    Onboarding VeriHome ID.
+
+    - POST /api/v1/verification/onboarding/  → crea registro a partir del
+      payload `VeriHomeIDDigitalResult` del frontend.
+    - GET  /api/v1/verification/onboarding/me/ → último onboarding del user.
+    - GET  /api/v1/verification/onboarding/    → staff: lista todos.
+    """
+
+    serializer_class = FieldVisitRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = FieldVisitRequest.objects.select_related("user", "scheduled_visit").all()
+        if not self.request.user.is_staff:
+            qs = qs.filter(user=self.request.user)
+        return qs
+
+    def get_throttles(self):
+        if self.action == "create":
+            return [FieldVisitOnboardingThrottle()]
+        return super().get_throttles()
+
+    def list(self, request):
+        if not request.user.is_staff:
+            return Response(
+                {"detail": "Solo staff puede listar todos los onboardings."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        try:
+            from core.audit_service import log_activity
+
+            log_activity(
+                request,
+                action_type="verihome_id.onboarding_complete",
+                description=(
+                    f"Onboarding VeriHome ID completado "
+                    f"({instance.digital_verdict}, score={instance.digital_score_total})"
+                ),
+                target_object=instance,
+                details={
+                    "verdict": instance.digital_verdict,
+                    "score_total": str(instance.digital_score_total),
+                    "document_type": instance.document_type_declared,
+                },
+                success=instance.digital_verdict != "rechazado",
+            )
+        except Exception:
+            pass
+
+        return Response(
+            self.get_serializer(instance).data, status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=False, methods=["get"], url_path="me")
+    def me(self, request):
+        """Último onboarding del usuario actual (o 404 si no tiene)."""
+        instance = (
+            FieldVisitRequest.objects.filter(user=request.user)
+            .order_by("-created_at")
+            .first()
+        )
+        if not instance:
+            return Response(
+                {"detail": "No hay onboarding registrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(self.get_serializer(instance).data)

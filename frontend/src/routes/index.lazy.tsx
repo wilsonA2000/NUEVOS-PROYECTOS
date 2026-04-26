@@ -150,6 +150,11 @@ const TenantInvitationLanding = lazy(
 // Página pública de autenticación de codeudor (SIN login requerido)
 const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
 
+// VeriHome ID — onboarding digital previo a visita en campo
+const VeriHomeIDOnboardingPage = lazy(
+  () => import('../pages/verihome-id/VeriHomeIDOnboardingPage'),
+);
+
 // 🔐 ADMIN ROUTES (Plan Maestro V2.0)
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
@@ -731,6 +736,15 @@ export const AppRoutes: React.FC = () => {
           element={
             <LazyRoute>
               <CommunityPage />
+            </LazyRoute>
+          }
+        />
+        {/* VeriHome ID — onboarding digital pre-visita */}
+        <Route
+          path='verihome-id/onboarding'
+          element={
+            <LazyRoute type='form'>
+              <VeriHomeIDOnboardingPage />
             </LazyRoute>
           }
         />

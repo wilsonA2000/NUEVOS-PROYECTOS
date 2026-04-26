@@ -1,8 +1,44 @@
+import base64
+import binascii
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from rest_framework import serializers
-from .models import VerificationAgent, VerificationVisit, VerificationReport
+
+from .models import (
+    FieldVisitRequest,
+    VerificationAgent,
+    VerificationReport,
+    VerificationVisit,
+)
 
 User = get_user_model()
+
+
+def _decode_base64_image(payload, prefix):
+    """Convierte un data URL base64 a ContentFile o devuelve None."""
+    if not payload or not isinstance(payload, str):
+        return None
+    if not payload.startswith("data:"):
+        return None
+    try:
+        header, b64data = payload.split(";base64,", 1)
+        ext = header.split("/")[-1].split(";")[0] or "jpg"
+        decoded = base64.b64decode(b64data, validate=True)
+    except (ValueError, binascii.Error):
+        return None
+    return ContentFile(decoded, name=f"{prefix}.{ext}")
+
+
+def _verdict_from_score(total):
+    """Replica `classifyDigitalScore` del frontend (umbrales 0.40 / 0.25)."""
+    total = Decimal(str(total))
+    if total >= Decimal("0.40"):
+        return "aprobado"
+    if total >= Decimal("0.25"):
+        return "observado"
+    return "rechazado"
 
 
 class VerificationAgentSerializer(serializers.ModelSerializer):
@@ -140,3 +176,127 @@ class VerificationReportSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class FieldVisitRequestSerializer(serializers.ModelSerializer):
+    """
+    Onboarding VeriHome ID. Recibe el payload `VeriHomeIDDigitalResult`
+    del frontend (incluye base64 de las 3 imágenes) y persiste el registro.
+    """
+
+    cedula_anverso = serializers.CharField(write_only=True, allow_null=True)
+    cedula_reverso = serializers.CharField(write_only=True, allow_null=True)
+    selfie = serializers.CharField(
+        write_only=True, source="selfie_liveness_b64", allow_null=True
+    )
+
+    cedula_anverso_url = serializers.SerializerMethodField(read_only=True)
+    cedula_reverso_url = serializers.SerializerMethodField(read_only=True)
+    selfie_url = serializers.SerializerMethodField(read_only=True)
+
+    user_email = serializers.EmailField(source="user.email", read_only=True)
+    user_full_name = serializers.CharField(
+        source="user.get_full_name", read_only=True
+    )
+
+    class Meta:
+        model = FieldVisitRequest
+        fields = [
+            "id",
+            "user",
+            "user_email",
+            "user_full_name",
+            "document_type_declared",
+            "document_number_declared",
+            "full_name_declared",
+            "cedula_anverso",
+            "cedula_reverso",
+            "selfie",
+            "cedula_anverso_url",
+            "cedula_reverso_url",
+            "selfie_url",
+            "ocr_data",
+            "liveness_data",
+            "face_match_data",
+            "digital_score",
+            "digital_score_total",
+            "digital_verdict",
+            "scheduled_visit",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "user",
+            "digital_verdict",
+            "scheduled_visit",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_cedula_anverso_url(self, obj):
+        return obj.cedula_anverso.url if obj.cedula_anverso else None
+
+    def get_cedula_reverso_url(self, obj):
+        return obj.cedula_reverso.url if obj.cedula_reverso else None
+
+    def get_selfie_url(self, obj):
+        return obj.selfie_liveness.url if obj.selfie_liveness else None
+
+    def validate_digital_score_total(self, value):
+        if value is None:
+            raise serializers.ValidationError("digital_score_total es obligatorio")
+        if value < 0 or value > Decimal("0.5"):
+            raise serializers.ValidationError(
+                "digital_score_total debe estar entre 0.0 y 0.5"
+            )
+        return value
+
+    def create(self, validated_data):
+        request = self.context["request"]
+        anverso_b64 = validated_data.pop("cedula_anverso", None)
+        reverso_b64 = validated_data.pop("cedula_reverso", None)
+        selfie_b64 = validated_data.pop("selfie_liveness_b64", None)
+
+        verdict = _verdict_from_score(validated_data["digital_score_total"])
+        status_value = "rejected" if verdict == "rechazado" else "digital_completed"
+
+        instance = FieldVisitRequest.objects.create(
+            user=request.user,
+            digital_verdict=verdict,
+            status=status_value,
+            user_agent=request.META.get("HTTP_USER_AGENT", "")[:500],
+            ip_address=_client_ip(request),
+            **validated_data,
+        )
+
+        anverso_file = _decode_base64_image(anverso_b64, "cedula_anverso")
+        if anverso_file:
+            instance.cedula_anverso.save(anverso_file.name, anverso_file, save=False)
+        reverso_file = _decode_base64_image(reverso_b64, "cedula_reverso")
+        if reverso_file:
+            instance.cedula_reverso.save(reverso_file.name, reverso_file, save=False)
+        selfie_file = _decode_base64_image(selfie_b64, "selfie_liveness")
+        if selfie_file:
+            instance.selfie_liveness.save(selfie_file.name, selfie_file, save=False)
+
+        if anverso_file or reverso_file or selfie_file:
+            instance.save(
+                update_fields=[
+                    "cedula_anverso",
+                    "cedula_reverso",
+                    "selfie_liveness",
+                    "updated_at",
+                ]
+            )
+
+        return instance
+
+
+def _client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")

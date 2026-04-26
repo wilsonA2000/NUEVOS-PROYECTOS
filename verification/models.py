@@ -300,3 +300,144 @@ class VerificationReport(models.Model):
 
     def __str__(self):
         return f"Reporte {self.visit.visit_number} - {self.get_overall_condition_display()} ({self.initial_rating}/10)"
+
+
+def _field_visit_upload_path(instance, filename):
+    return f"verihome_id/{instance.user_id}/{instance.id}/{filename}"
+
+
+class FieldVisitRequest(models.Model):
+    """
+    Solicitud de visita de campo VeriHome ID.
+
+    Persiste el output del flujo digital (`VeriHomeIDDigitalResult` del
+    frontend) y queda como trigger para programar la `VerificationVisit`
+    presencial. Conserva imágenes (anverso/reverso/selfie) en disco y los
+    datos estructurados de OCR/liveness/face match en JSON, junto con el
+    score parcial digital y un veredicto.
+    """
+
+    DOCUMENT_TYPES = [
+        ("cedula_ciudadania", "Cédula de Ciudadanía"),
+        ("cedula_extranjeria", "Cédula de Extranjería"),
+        ("tarjeta_identidad", "Tarjeta de Identidad"),
+        ("pasaporte", "Pasaporte"),
+    ]
+
+    VERDICT_CHOICES = [
+        ("aprobado", "Aprobado para visita"),
+        ("observado", "Observado — requiere revisión"),
+        ("rechazado", "Rechazado"),
+    ]
+
+    STATUS_CHOICES = [
+        ("digital_completed", "Flujo digital completado"),
+        ("visit_scheduled", "Visita presencial programada"),
+        ("visit_completed", "Visita presencial completada"),
+        ("rejected", "Rechazado en flujo digital"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="field_visit_requests",
+        verbose_name="Usuario solicitante",
+    )
+
+    document_type_declared = models.CharField(
+        "Tipo de documento declarado", max_length=30, choices=DOCUMENT_TYPES
+    )
+    document_number_declared = models.CharField(
+        "Número de documento declarado", max_length=30
+    )
+    full_name_declared = models.CharField(
+        "Nombre completo declarado", max_length=200
+    )
+
+    cedula_anverso = models.ImageField(
+        "Cédula anverso",
+        upload_to=_field_visit_upload_path,
+        null=True,
+        blank=True,
+    )
+    cedula_reverso = models.ImageField(
+        "Cédula reverso",
+        upload_to=_field_visit_upload_path,
+        null=True,
+        blank=True,
+    )
+    selfie_liveness = models.ImageField(
+        "Selfie con liveness",
+        upload_to=_field_visit_upload_path,
+        null=True,
+        blank=True,
+    )
+
+    ocr_data = models.JSONField(
+        "Datos OCR",
+        null=True,
+        blank=True,
+        help_text="ParsedColombianID: número, nombres, apellidos, fechas",
+    )
+    liveness_data = models.JSONField(
+        "Datos liveness",
+        null=True,
+        blank=True,
+        help_text="LivenessResult sin imagen (head turns + métricas)",
+    )
+    face_match_data = models.JSONField(
+        "Match facial",
+        null=True,
+        blank=True,
+        help_text="FaceMatchResult cédula↔selfie (similarity + threshold)",
+    )
+
+    digital_score = models.JSONField(
+        "Score digital desglosado",
+        help_text="VerihomeIdScoreBreakdown con sub-puntajes y observaciones",
+    )
+    digital_score_total = models.DecimalField(
+        "Score digital total",
+        max_digits=4,
+        decimal_places=3,
+        validators=[MinValueValidator(0), MaxValueValidator(0.5)],
+        help_text="Score parcial 0.0–0.5 (la visita en campo aporta el resto)",
+    )
+    digital_verdict = models.CharField(
+        "Veredicto digital", max_length=20, choices=VERDICT_CHOICES
+    )
+
+    scheduled_visit = models.OneToOneField(
+        VerificationVisit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="field_visit_request",
+        verbose_name="Visita presencial vinculada",
+    )
+
+    status = models.CharField(
+        "Estado", max_length=30, choices=STATUS_CHOICES, default="digital_completed"
+    )
+
+    user_agent = models.CharField("User-Agent", max_length=500, blank=True)
+    ip_address = models.GenericIPAddressField("Dirección IP", null=True, blank=True)
+
+    created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
+    updated_at = models.DateTimeField("Última actualización", auto_now=True)
+
+    class Meta:
+        verbose_name = "Solicitud de Visita VeriHome ID"
+        verbose_name_plural = "Solicitudes de Visita VeriHome ID"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self):
+        return (
+            f"VeriHome ID {self.user.email} "
+            f"({self.digital_verdict}, {self.digital_score_total})"
+        )

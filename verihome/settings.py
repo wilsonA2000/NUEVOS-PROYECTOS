@@ -217,6 +217,9 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        "field_visit_onboarding": "4/hour",
+    },
 }
 
 # DRF Spectacular - OpenAPI Documentation
