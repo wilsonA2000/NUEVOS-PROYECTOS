@@ -50,6 +50,14 @@ import {
   ScoringFilters,
   ScoringResponse,
 } from '../../services/fieldVisitActsApi';
+import { api } from '../../services/api';
+
+interface AgentOption {
+  id: string;
+  agent_code: string;
+  user_name: string;
+  is_available: boolean;
+}
 
 const VERDICT_OPTIONS: { value: '' | FinalVerdict; label: string }[] = [
   { value: '', label: 'Todos' },
@@ -158,6 +166,22 @@ const AdminVerihomeIdScoring: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'' | FieldVisitActStatus>('');
   const [minScore, setMinScore] = useState<string>('');
   const [maxScore, setMaxScore] = useState<string>('');
+  const [agentId, setAgentId] = useState<string>('');
+
+  const agentsQuery = useQuery<AgentOption[]>({
+    queryKey: ['verification-agents-list'],
+    queryFn: async () => {
+      const { data } = await api.get('/verification/agents/');
+      const list = Array.isArray(data) ? data : (data?.results ?? []);
+      return list.map((a: Record<string, unknown>) => ({
+        id: String(a.id),
+        agent_code: String(a.agent_code ?? ''),
+        user_name: String(a.user_name ?? ''),
+        is_available: Boolean(a.is_available),
+      }));
+    },
+    staleTime: 5 * 60_000,
+  });
 
   const filters = useMemo<ScoringFilters>(() => {
     const out: ScoringFilters = {};
@@ -167,8 +191,9 @@ const AdminVerihomeIdScoring: React.FC = () => {
     if (!Number.isNaN(minNum)) out.min_score = minNum;
     const maxNum = parseFloat(maxScore);
     if (!Number.isNaN(maxNum)) out.max_score = maxNum;
+    if (agentId) out.agent_id = agentId;
     return out;
-  }, [verdict, statusFilter, minScore, maxScore]);
+  }, [verdict, statusFilter, minScore, maxScore, agentId]);
 
   const query = useQuery<ScoringResponse>({
     queryKey: ['verihome-id-scoring', filters],
@@ -336,6 +361,25 @@ const AdminVerihomeIdScoring: React.FC = () => {
             inputProps={{ inputMode: 'decimal' }}
             sx={{ maxWidth: 140 }}
           />
+          <FormControl size='small' sx={{ minWidth: 220 }}>
+            <InputLabel id='scoring-agent'>Agente</InputLabel>
+            <Select
+              labelId='scoring-agent'
+              label='Agente'
+              value={agentId}
+              data-testid='scoring-agent-filter'
+              onChange={e => setAgentId(String(e.target.value))}
+              disabled={agentsQuery.isLoading}
+            >
+              <MenuItem value=''>Todos</MenuItem>
+              {(agentsQuery.data ?? []).map(a => (
+                <MenuItem key={a.id} value={a.id}>
+                  {a.agent_code} · {a.user_name}
+                  {!a.is_available && ' (inactivo)'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
       </Paper>
 
