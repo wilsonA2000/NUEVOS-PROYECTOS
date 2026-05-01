@@ -441,3 +441,154 @@ class FieldVisitRequest(models.Model):
             f"VeriHome ID {self.user.email} "
             f"({self.digital_verdict}, {self.digital_score_total})"
         )
+
+
+def _field_visit_act_pdf_path(instance, filename):
+    return f"verihome_id/acts/{instance.field_request.user_id}/{instance.id}/{filename}"
+
+
+class FieldVisitAct(models.Model):
+    """
+    Acta consolidada de la visita de campo VeriHome ID.
+
+    Reúne las 10 secciones del flujo (`docs/strategy/VERIHOME_ID_FIELD_VISIT_FLOW.md`)
+    en un único documento legalmente vinculante. Ciclo de firmas:
+    verificado → agente → abogado titulado (Wilson). Al firmar el abogado
+    se cierra el bloque de la cadena con `final_hash` referenciando el
+    acta inmediatamente anterior, dando integridad probatoria estilo
+    Merkle/blockchain ligero.
+
+    Cumple Ley 527/1999 (mensajes de datos), Ley 1581/2012 (datos
+    personales) y Ley 820/2003 (arrendamiento).
+    """
+
+    STATUS_CHOICES = [
+        ("draft", "Borrador del agente"),
+        ("signed_by_parties", "Firmada por verificado y agente"),
+        ("signed_by_lawyer", "Firmada por abogado titulado"),
+        ("sealed", "Sellada en cadena"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    act_number = models.CharField(
+        "Número de acta", max_length=20, unique=True, blank=True
+    )
+
+    field_request = models.OneToOneField(
+        FieldVisitRequest,
+        on_delete=models.PROTECT,
+        related_name="act",
+        verbose_name="Solicitud VeriHome ID",
+    )
+    visit = models.OneToOneField(
+        VerificationVisit,
+        on_delete=models.PROTECT,
+        related_name="act",
+        verbose_name="Visita presencial",
+    )
+
+    payload = models.JSONField(
+        "Contenido del acta",
+        default=dict,
+        help_text=(
+            "Secciones I-VIII consolidadas: identificación, agente, "
+            "consentimiento, biometría, cruces oficiales, validación "
+            "documental, inmueble, score y observaciones."
+        ),
+    )
+
+    pdf_file = models.FileField(
+        "PDF del acta",
+        upload_to=_field_visit_act_pdf_path,
+        null=True,
+        blank=True,
+        max_length=255,
+    )
+    pdf_sha256 = models.CharField("SHA-256 del PDF", max_length=64, blank=True)
+
+    verified_signature = models.JSONField(
+        "Firma del verificado", null=True, blank=True
+    )
+    verified_signed_at = models.DateTimeField(
+        "Fecha firma verificado", null=True, blank=True
+    )
+    agent_signature = models.JSONField("Firma del agente", null=True, blank=True)
+    agent_signed_at = models.DateTimeField(
+        "Fecha firma agente", null=True, blank=True
+    )
+
+    lawyer_user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="signed_acts",
+        verbose_name="Abogado certificador",
+    )
+    lawyer_signed_at = models.DateTimeField(
+        "Fecha firma abogado", null=True, blank=True
+    )
+    lawyer_tp_number = models.CharField(
+        "T.P. abogado", max_length=20, blank=True
+    )
+    lawyer_full_name = models.CharField(
+        "Nombre completo abogado", max_length=200, blank=True
+    )
+    lawyer_cc = models.CharField("Cédula abogado", max_length=30, blank=True)
+    lawyer_certificate_fingerprint = models.CharField(
+        "Huella certificado .p12",
+        max_length=64,
+        blank=True,
+        help_text="Reservado para firma PAdES futura (C13).",
+    )
+
+    prev_act = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="next_act",
+        verbose_name="Acta anterior en cadena",
+    )
+    prev_hash = models.CharField("Hash anterior", max_length=64, blank=True)
+    payload_hash = models.CharField("Hash de payload + PDF", max_length=64, blank=True)
+    final_hash = models.CharField(
+        "Hash final del bloque", max_length=64, blank=True, db_index=True
+    )
+    block_number = models.PositiveIntegerField(
+        "Número de bloque", null=True, blank=True, unique=True
+    )
+
+    status = models.CharField(
+        "Estado", max_length=20, choices=STATUS_CHOICES, default="draft"
+    )
+
+    geolocation_lat = models.DecimalField(
+        "Latitud", max_digits=9, decimal_places=6, null=True, blank=True
+    )
+    geolocation_lng = models.DecimalField(
+        "Longitud", max_digits=9, decimal_places=6, null=True, blank=True
+    )
+    ip_address = models.GenericIPAddressField("Dirección IP", null=True, blank=True)
+
+    created_at = models.DateTimeField("Fecha creación", auto_now_add=True)
+    updated_at = models.DateTimeField("Última actualización", auto_now=True)
+
+    class Meta:
+        verbose_name = "Acta VeriHome ID"
+        verbose_name_plural = "Actas VeriHome ID"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["block_number"]),
+        ]
+
+    def __str__(self):
+        return f"{self.act_number or '(sin número)'} · {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        if not self.act_number:
+            year = timezone.now().year
+            count = FieldVisitAct.objects.filter(created_at__year=year).count() + 1
+            self.act_number = f"ACT-{year}-{count:05d}"
+        super().save(*args, **kwargs)

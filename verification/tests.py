@@ -600,3 +600,378 @@ class FieldVisitRequestAPITests(APITestCase):
             "/api/v1/verification/onboarding/", payload, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+# =============================================================================
+# C11 — FieldVisitAct + hash chain
+# =============================================================================
+
+
+def _build_sealed_act(
+    user,
+    agent,
+    lawyer,
+    *,
+    payload=None,
+    pdf_sha256="a" * 64,
+    score_total="0.45",
+):
+    """Helper: crea FieldVisitRequest + Visit + Act y la sella en cadena."""
+    from decimal import Decimal
+    from verification.models import FieldVisitAct
+    from verification.services.hash_chain import seal_act
+
+    field_request = FieldVisitRequest.objects.create(
+        user=user,
+        document_type_declared="cedula_ciudadania",
+        document_number_declared="1234567890",
+        full_name_declared=user.get_full_name() or user.email,
+        digital_score={"total": float(score_total)},
+        digital_score_total=Decimal(score_total),
+        digital_verdict="aprobado",
+    )
+    visit = VerificationVisit.objects.create(
+        visit_type="tenant",
+        agent=agent,
+        target_user=user,
+        visit_address="Calle 1 #2-3",
+        scheduled_date=timezone.now().date(),
+    )
+    act = FieldVisitAct(
+        field_request=field_request,
+        visit=visit,
+        payload=payload or {"section_i": {"name": user.get_full_name()}},
+        pdf_sha256=pdf_sha256,
+        verified_signature={"data": "sig"},
+        verified_signed_at=timezone.now(),
+        agent_signature={"data": "sig"},
+        agent_signed_at=timezone.now(),
+        lawyer_user=lawyer,
+        lawyer_signed_at=timezone.now(),
+        lawyer_tp_number="12345",
+        lawyer_full_name="Wilson A",
+        lawyer_cc="1098765432",
+        status="signed_by_lawyer",
+    )
+    act.save()
+    seal_act(act, lawyer_signed_at=act.lawyer_signed_at)
+    act.save()
+    return act
+
+
+class HashChainTests(TestCase):
+    """Verifica integridad del hash chain de FieldVisitAct."""
+
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            email="u1@t.com", password="x", first_name="U", last_name="1",
+            user_type="tenant",
+        )
+        self.user2 = User.objects.create_user(
+            email="u2@t.com", password="x", first_name="U", last_name="2",
+            user_type="tenant",
+        )
+        self.user3 = User.objects.create_user(
+            email="u3@t.com", password="x", first_name="U", last_name="3",
+            user_type="tenant",
+        )
+        self.lawyer = User.objects.create_user(
+            email="lawyer@t.com", password="x", first_name="W", last_name="A",
+            user_type="landlord", is_staff=True,
+        )
+        agent_user = User.objects.create_user(
+            email="agent_chain@t.com", password="x",
+            first_name="Ag", last_name="Ent",
+            user_type="landlord", is_staff=True,
+        )
+        self.agent = VerificationAgent.objects.create(user=agent_user)
+
+    def test_first_act_uses_genesis_prev_hash(self):
+        from verification.services.hash_chain import GENESIS_PREV_HASH
+
+        act = _build_sealed_act(self.user1, self.agent, self.lawyer)
+        self.assertEqual(act.prev_hash, GENESIS_PREV_HASH)
+        self.assertEqual(act.block_number, 1)
+        self.assertIsNone(act.prev_act)
+        self.assertEqual(len(act.final_hash), 64)
+
+    def test_chain_links_prev_hash_correctly(self):
+        a1 = _build_sealed_act(self.user1, self.agent, self.lawyer)
+        a2 = _build_sealed_act(self.user2, self.agent, self.lawyer)
+        self.assertEqual(a2.prev_hash, a1.final_hash)
+        self.assertEqual(a2.prev_act_id, a1.id)
+        self.assertEqual(a2.block_number, 2)
+
+    def test_payload_hash_changes_when_payload_mutates(self):
+        from verification.services.hash_chain import compute_payload_hash
+
+        act = _build_sealed_act(self.user1, self.agent, self.lawyer)
+        original = act.payload_hash
+        mutated = compute_payload_hash(
+            {**act.payload, "extra": "tampered"}, act.pdf_sha256
+        )
+        self.assertNotEqual(original, mutated)
+
+    def test_verify_chain_passes_for_clean_chain(self):
+        from verification.services.hash_chain import verify_chain
+
+        _build_sealed_act(self.user1, self.agent, self.lawyer)
+        _build_sealed_act(self.user2, self.agent, self.lawyer)
+        _build_sealed_act(self.user3, self.agent, self.lawyer)
+        result = verify_chain()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["total"], 3)
+        self.assertEqual(result["errors"], [])
+
+    def test_verify_chain_detects_payload_tampering(self):
+        from verification.services.hash_chain import verify_chain
+
+        a1 = _build_sealed_act(self.user1, self.agent, self.lawyer)
+        _build_sealed_act(self.user2, self.agent, self.lawyer)
+        # Mutar payload sin recomputar hash
+        a1.payload = {**a1.payload, "tampered": True}
+        a1.save(update_fields=["payload"])
+        result = verify_chain()
+        self.assertFalse(result["ok"])
+        codes = {e["code"] for e in result["errors"]}
+        self.assertIn("payload_tampered", codes)
+
+    def test_verify_chain_detects_prev_hash_break(self):
+        from verification.services.hash_chain import verify_chain
+
+        _build_sealed_act(self.user1, self.agent, self.lawyer)
+        a2 = _build_sealed_act(self.user2, self.agent, self.lawyer)
+        a2.prev_hash = "0" * 64
+        a2.save(update_fields=["prev_hash"])
+        result = verify_chain()
+        self.assertFalse(result["ok"])
+        codes = {e["code"] for e in result["errors"]}
+        self.assertIn("prev_hash_mismatch", codes)
+
+    def test_act_number_autogenerated(self):
+        act = _build_sealed_act(self.user1, self.agent, self.lawyer)
+        year = timezone.now().year
+        self.assertTrue(act.act_number.startswith(f"ACT-{year}-"))
+
+
+class FieldVisitActAPITests(APITestCase):
+    """Endpoints C11: draft, parties-sign, lawyer-sign, verify-chain."""
+
+    def setUp(self):
+        from decimal import Decimal
+
+        self.lawyer_email = "lawyer-api@test.com"
+        # Activa IsLawyer para este test forzando settings.
+        from django.test import override_settings  # noqa: F401
+
+        self.lawyer = User.objects.create_user(
+            email=self.lawyer_email, password="x",
+            first_name="Wilson", last_name="A",
+            user_type="landlord", is_staff=True,
+        )
+        self.staff = User.objects.create_user(
+            email="staff-api@test.com", password="x",
+            first_name="Staff", last_name="X",
+            user_type="landlord", is_staff=True,
+        )
+        agent_user = User.objects.create_user(
+            email="agent-api@test.com", password="x",
+            first_name="Ag", last_name="Ent",
+            user_type="landlord", is_staff=True,
+        )
+        self.agent = VerificationAgent.objects.create(user=agent_user)
+        self.target = User.objects.create_user(
+            email="target-api@test.com", password="x",
+            first_name="Tar", last_name="Get",
+            user_type="tenant",
+        )
+        self.field_request = FieldVisitRequest.objects.create(
+            user=self.target,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="9999",
+            full_name_declared="Tar Get",
+            digital_score={"total": 0.45},
+            digital_score_total=Decimal("0.45"),
+            digital_verdict="aprobado",
+        )
+        self.visit = VerificationVisit.objects.create(
+            visit_type="tenant",
+            agent=self.agent,
+            target_user=self.target,
+            visit_address="Cr 1 #1-1",
+            scheduled_date=timezone.now().date(),
+            status="scheduled",
+        )
+
+    def _create_draft_act(self):
+        from verification.models import FieldVisitAct
+
+        return FieldVisitAct.objects.create(
+            field_request=self.field_request,
+            visit=self.visit,
+            payload={"section_i": {"name": "Tar Get"}},
+        )
+
+    def test_create_draft_requires_auth(self):
+        response = self.client.post(
+            "/api/v1/verification/acts/",
+            {
+                "field_request": str(self.field_request.id),
+                "visit": str(self.visit.id),
+                "payload": {"section_i": {}},
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_staff_creates_draft(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            "/api/v1/verification/acts/",
+            {
+                "field_request": str(self.field_request.id),
+                "visit": str(self.visit.id),
+                "payload": {"section_i": {"name": "Tar Get"}},
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data["status"], "draft")
+        self.assertTrue(response.data["act_number"].startswith("ACT-"))
+
+    def test_parties_sign_transitions_state(self):
+        act = self._create_draft_act()
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            f"/api/v1/verification/acts/{act.id}/parties-sign/",
+            {
+                "verified_signature": {"data": "v"},
+                "agent_signature": {"data": "a"},
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["status"], "signed_by_parties")
+
+    def test_lawyer_sign_requires_lawyer_role(self):
+        from django.test import override_settings
+
+        act = self._create_draft_act()
+        act.verified_signature = {"data": "v"}
+        act.agent_signature = {"data": "a"}
+        act.verified_signed_at = timezone.now()
+        act.agent_signed_at = timezone.now()
+        act.pdf_sha256 = "b" * 64
+        act.status = "signed_by_parties"
+        act.save()
+
+        self.client.force_authenticate(user=self.staff)
+        with override_settings(LAWYER_EMAIL=self.lawyer_email):
+            response = self.client.post(
+                f"/api/v1/verification/acts/{act.id}/lawyer-sign/", {}, format="json"
+            )
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_lawyer_sign_seals_chain(self):
+        from django.test import override_settings
+
+        act = self._create_draft_act()
+        act.verified_signature = {"data": "v"}
+        act.agent_signature = {"data": "a"}
+        act.verified_signed_at = timezone.now()
+        act.agent_signed_at = timezone.now()
+        act.pdf_sha256 = "c" * 64
+        act.status = "signed_by_parties"
+        act.save()
+
+        self.client.force_authenticate(user=self.lawyer)
+        with override_settings(
+            LAWYER_EMAIL=self.lawyer_email,
+            LAWYER_TP_NUMBER="98765",
+            LAWYER_FULL_NAME="Wilson A",
+            LAWYER_CC="1098765432",
+        ):
+            response = self.client.post(
+                f"/api/v1/verification/acts/{act.id}/lawyer-sign/", {}, format="json"
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+            self.assertEqual(response.data["status"], "sealed")
+            self.assertEqual(response.data["block_number"], 1)
+            self.assertEqual(len(response.data["final_hash"]), 64)
+
+    def test_lawyer_sign_blocked_without_pdf(self):
+        from django.test import override_settings
+
+        act = self._create_draft_act()
+        act.verified_signature = {"data": "v"}
+        act.agent_signature = {"data": "a"}
+        act.verified_signed_at = timezone.now()
+        act.agent_signed_at = timezone.now()
+        act.status = "signed_by_parties"
+        act.save()
+
+        self.client.force_authenticate(user=self.lawyer)
+        with override_settings(LAWYER_EMAIL=self.lawyer_email):
+            response = self.client.post(
+                f"/api/v1/verification/acts/{act.id}/lawyer-sign/", {}, format="json"
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_verify_chain_endpoint_requires_staff(self):
+        self.client.force_authenticate(user=self.target)
+        response = self.client.get("/api/v1/verification/acts/verify-chain/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get("/api/v1/verification/acts/verify-chain/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("ok", response.data)
+        self.assertIn("errors", response.data)
+
+    def test_generate_pdf_endpoint(self):
+        act = self._create_draft_act()
+        act.verified_signature = {"data": "v"}
+        act.agent_signature = {"data": "a"}
+        act.verified_signed_at = timezone.now()
+        act.agent_signed_at = timezone.now()
+        act.status = "signed_by_parties"
+        act.save()
+
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            f"/api/v1/verification/acts/{act.id}/generate-pdf/", {}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertIsNotNone(response.data["pdf_url"])
+        self.assertEqual(len(response.data["pdf_sha256"]), 64)
+        act.refresh_from_db()
+        self.assertTrue(act.pdf_file)
+
+    def test_seal_marks_user_verified_via_signal(self):
+        from django.test import override_settings
+
+        act = self._create_draft_act()
+        act.verified_signature = {"data": "v"}
+        act.agent_signature = {"data": "a"}
+        act.verified_signed_at = timezone.now()
+        act.agent_signed_at = timezone.now()
+        act.pdf_sha256 = "d" * 64
+        act.status = "signed_by_parties"
+        act.save()
+
+        self.client.force_authenticate(user=self.lawyer)
+        with override_settings(
+            LAWYER_EMAIL=self.lawyer_email,
+            LAWYER_TP_NUMBER="1",
+            LAWYER_FULL_NAME="W",
+            LAWYER_CC="2",
+        ):
+            response = self.client.post(
+                f"/api/v1/verification/acts/{act.id}/lawyer-sign/", {}, format="json"
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.target.refresh_from_db()
+        self.assertTrue(self.target.is_verified)
+        self.field_request.refresh_from_db()
+        self.assertEqual(self.field_request.status, "visit_completed")

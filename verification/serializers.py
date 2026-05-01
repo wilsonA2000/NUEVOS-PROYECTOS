@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from .models import (
+    FieldVisitAct,
     FieldVisitRequest,
     VerificationAgent,
     VerificationReport,
@@ -300,3 +301,95 @@ def _client_ip(request):
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
+
+
+class FieldVisitActSerializer(serializers.ModelSerializer):
+    """
+    Acta consolidada VeriHome ID. Lectura full + edición de payload por
+    el agente. Las firmas y el sellado del bloque se manejan por
+    acciones dedicadas (`parties-sign`, `lawyer-sign`).
+    """
+
+    field_request = serializers.PrimaryKeyRelatedField(
+        queryset=FieldVisitRequest.objects.all()
+    )
+    visit = serializers.PrimaryKeyRelatedField(
+        queryset=VerificationVisit.objects.all()
+    )
+    visit_number = serializers.CharField(source="visit.visit_number", read_only=True)
+    target_user_email = serializers.EmailField(
+        source="field_request.user.email", read_only=True
+    )
+    target_user_name = serializers.CharField(
+        source="field_request.user.get_full_name", read_only=True
+    )
+    lawyer_email = serializers.EmailField(
+        source="lawyer_user.email", read_only=True, default=None
+    )
+    pdf_url = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = FieldVisitAct
+        fields = [
+            "id",
+            "act_number",
+            "field_request",
+            "visit",
+            "visit_number",
+            "target_user_email",
+            "target_user_name",
+            "payload",
+            "pdf_file",
+            "pdf_url",
+            "pdf_sha256",
+            "verified_signature",
+            "verified_signed_at",
+            "agent_signature",
+            "agent_signed_at",
+            "lawyer_user",
+            "lawyer_email",
+            "lawyer_signed_at",
+            "lawyer_tp_number",
+            "lawyer_full_name",
+            "lawyer_cc",
+            "lawyer_certificate_fingerprint",
+            "prev_act",
+            "prev_hash",
+            "payload_hash",
+            "final_hash",
+            "block_number",
+            "status",
+            "status_display",
+            "geolocation_lat",
+            "geolocation_lng",
+            "ip_address",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "act_number",
+            "pdf_file",
+            "pdf_sha256",
+            "verified_signed_at",
+            "agent_signed_at",
+            "lawyer_user",
+            "lawyer_signed_at",
+            "lawyer_tp_number",
+            "lawyer_full_name",
+            "lawyer_cc",
+            "lawyer_certificate_fingerprint",
+            "prev_act",
+            "prev_hash",
+            "payload_hash",
+            "final_hash",
+            "block_number",
+            "status",
+            "ip_address",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_pdf_url(self, obj):
+        return obj.pdf_file.url if obj.pdf_file else None

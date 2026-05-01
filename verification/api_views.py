@@ -2,7 +2,7 @@
 API Views para el módulo de Verificación Presencial de VeriHome.
 """
 
-from rest_framework import viewsets, permissions, status
+from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
@@ -11,22 +11,44 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from .models import (
+    FieldVisitAct,
     FieldVisitRequest,
     VerificationAgent,
     VerificationReport,
     VerificationVisit,
 )
 from .serializers import (
+    FieldVisitActSerializer,
     FieldVisitRequestSerializer,
     VerificationAgentSerializer,
     VerificationReportSerializer,
     VerificationVisitSerializer,
 )
+from .services.act_pdf import save_act_pdf
+from .services.hash_chain import seal_act, verify_chain
 
 
 class IsStaffUser(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.is_staff
+
+
+class IsLawyer(permissions.BasePermission):
+    """
+    Permite acciones reservadas al abogado certificador (Wilson). Requiere
+    `is_staff=True` y email coincidente con `settings.LAWYER_EMAIL`.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        lawyer_email = getattr(settings, "LAWYER_EMAIL", "") or ""
+        return bool(
+            user
+            and user.is_authenticated
+            and user.is_staff
+            and lawyer_email
+            and user.email.lower() == lawyer_email.lower()
+        )
 
 
 class IsStaffOrAssignedAgent(permissions.BasePermission):
@@ -403,3 +425,215 @@ class FieldVisitRequestViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
         return Response(self.get_serializer(instance).data)
+
+
+class FieldVisitActViewSet(viewsets.ModelViewSet):
+    """
+    Acta de visita VeriHome ID. Ciclo: draft → signed_by_parties →
+    signed_by_lawyer → sealed.
+
+    - Staff y agente asignado pueden crear borrador y editar payload.
+    - Sólo el abogado (`IsLawyer`) sella el bloque y cierra la cadena.
+    """
+
+    serializer_class = FieldVisitActSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStaffOrAssignedAgent]
+    http_method_names = ["get", "post", "patch", "head", "options"]
+
+    def get_queryset(self):
+        qs = FieldVisitAct.objects.select_related(
+            "field_request", "field_request__user",
+            "visit", "visit__agent", "visit__agent__user",
+            "lawyer_user",
+        ).all()
+        if not self.request.user.is_staff:
+            qs = qs.filter(visit__agent__user=self.request.user)
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        return qs
+
+    def perform_create(self, serializer):
+        visit = serializer.validated_data["visit"]
+        field_request = serializer.validated_data["field_request"]
+        if visit.status not in ("scheduled", "in_progress", "completed"):
+            raise serializers.ValidationError(
+                {"visit": "La visita debe estar programada o en curso."}
+            )
+        if field_request.user_id != visit.target_user_id:
+            raise serializers.ValidationError(
+                {
+                    "field_request": (
+                        "El usuario del onboarding no coincide con el "
+                        "destinatario de la visita."
+                    )
+                }
+            )
+        serializer.save(
+            ip_address=_client_ip_from_request(self.request),
+            status="draft",
+        )
+
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Use PATCH para editar el borrador."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.status != "draft":
+            return Response(
+                {"detail": "Solo se puede editar el acta en estado draft."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().partial_update(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], url_path="parties-sign")
+    def parties_sign(self, request, pk=None):
+        """
+        Captura las firmas del verificado y del agente. Requiere ambas
+        en el body (`verified_signature`, `agent_signature`) como JSON
+        con `data` (data URL) y opcional `geolocation_lat/lng`.
+        """
+        act = self.get_object()
+        if act.status != "draft":
+            return Response(
+                {"detail": "Solo se firman actas en draft."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        verified_sig = request.data.get("verified_signature")
+        agent_sig = request.data.get("agent_signature")
+        if not verified_sig or not agent_sig:
+            return Response(
+                {
+                    "detail": (
+                        "Se requieren `verified_signature` y `agent_signature`."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        now = timezone.now()
+        act.verified_signature = verified_sig
+        act.verified_signed_at = now
+        act.agent_signature = agent_sig
+        act.agent_signed_at = now
+        if request.data.get("geolocation_lat") is not None:
+            act.geolocation_lat = request.data.get("geolocation_lat")
+            act.geolocation_lng = request.data.get("geolocation_lng")
+        act.status = "signed_by_parties"
+        act.save()
+        return Response(self.get_serializer(act).data)
+
+    @action(detail=True, methods=["get"], url_path="pdf")
+    def pdf(self, request, pk=None):
+        """Descarga el PDF del acta (si ya fue generado)."""
+        from django.http import FileResponse, HttpResponseNotFound
+
+        act = self.get_object()
+        if not act.pdf_file:
+            return HttpResponseNotFound("El acta aún no tiene PDF generado.")
+        return FileResponse(
+            act.pdf_file.open("rb"),
+            as_attachment=True,
+            filename=f"{act.act_number}.pdf",
+        )
+
+    @action(detail=True, methods=["post"], url_path="generate-pdf")
+    def generate_pdf(self, request, pk=None):
+        """
+        Renderiza el PDF del acta y lo persiste con su sha256. Requerido
+        antes de la firma del abogado.
+        """
+        act = self.get_object()
+        if act.status not in ("signed_by_parties",):
+            return Response(
+                {"detail": "Solo se genera PDF tras firmas de verificado y agente."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        sha256 = save_act_pdf(act)
+        return Response(
+            {
+                "pdf_url": act.pdf_file.url if act.pdf_file else None,
+                "pdf_sha256": sha256,
+            }
+        )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="lawyer-sign",
+        permission_classes=[permissions.IsAuthenticated, IsLawyer],
+    )
+    def lawyer_sign(self, request, pk=None):
+        """
+        Wilson firma el acta como abogado titulado y cierra el bloque
+        de la cadena. Requiere PDF generado previamente y firmas de
+        verificado y agente.
+        """
+        act = self.get_object()
+        if act.status != "signed_by_parties":
+            return Response(
+                {
+                    "detail": (
+                        "El acta debe estar firmada por verificado y agente "
+                        "antes de la firma del abogado."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not act.pdf_sha256:
+            return Response(
+                {"detail": "El PDF del acta debe generarse antes de firmar."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        now = timezone.now()
+        act.lawyer_user = request.user
+        act.lawyer_signed_at = now
+        act.lawyer_tp_number = settings.LAWYER_TP_NUMBER
+        act.lawyer_full_name = settings.LAWYER_FULL_NAME
+        act.lawyer_cc = settings.LAWYER_CC
+        act.status = "signed_by_lawyer"
+        act.save()
+        seal_act(act, lawyer_signed_at=now)
+        act.save()
+
+        try:
+            from core.audit_service import log_activity
+
+            log_activity(
+                request,
+                action_type="verihome_id.act_sealed",
+                description=(
+                    f"Acta {act.act_number} sellada en bloque "
+                    f"#{act.block_number} (final_hash={act.final_hash[:12]}…)"
+                ),
+                target_object=act,
+                details={
+                    "act_number": act.act_number,
+                    "block_number": act.block_number,
+                    "final_hash": act.final_hash,
+                },
+                success=True,
+            )
+        except Exception:
+            pass
+
+        return Response(self.get_serializer(act).data)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="verify-chain",
+        permission_classes=[permissions.IsAuthenticated, IsStaffUser],
+    )
+    def verify_chain_endpoint(self, request):
+        """Recorre la cadena entera y reporta inconsistencias."""
+        return Response(verify_chain())
+
+
+def _client_ip_from_request(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")

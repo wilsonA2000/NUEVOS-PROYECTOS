@@ -17,6 +17,11 @@ router.register(
     api_views.FieldVisitRequestViewSet,
     basename="verihome-id-onboarding",
 )
+router.register(
+    r"acts",
+    api_views.FieldVisitActViewSet,
+    basename="verihome-id-act",
+)
 
 urlpatterns = [
     path("", include(router.urls)),

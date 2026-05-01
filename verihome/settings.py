@@ -916,6 +916,17 @@ else:
 # Frontend URL for invitation emails
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
+# =============================================================================
+# VERIHOME ID — Datos del abogado certificador (Wilson)
+# =============================================================================
+# Usados por `FieldVisitAct.lawyer_sign` para sellar la cadena con firma
+# electrónica simple (Ley 527/1999 art. 7). Upgrade a firma PAdES con
+# certificado .p12 queda reservado para C13.
+LAWYER_EMAIL = config("LAWYER_EMAIL", default="")
+LAWYER_TP_NUMBER = config("LAWYER_TP_NUMBER", default="")
+LAWYER_FULL_NAME = config("LAWYER_FULL_NAME", default="")
+LAWYER_CC = config("LAWYER_CC", default="")
+
 
 # Django Debug Toolbar
 INTERNAL_IPS = ["127.0.0.1", "localhost"]
