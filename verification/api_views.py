@@ -786,7 +786,12 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
+        agent_id = request.query_params.get("agent_id")
+        if agent_id:
+            qs = qs.filter(visit__agent_id=agent_id)
+
         qs = qs.order_by("-total_score", "-created_at")
+        now = timezone.now()
         results = [
             {
                 "act_id": str(act.id),
@@ -805,6 +810,16 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
                 "status": act.status,
                 "block_number": act.block_number,
                 "sealed": act.status == "sealed",
+                "agent_id": (
+                    str(act.visit.agent_id) if act.visit and act.visit.agent_id
+                    else None
+                ),
+                "agent_name": (
+                    act.visit.agent.user.get_full_name()
+                    if act.visit and act.visit.agent
+                    else None
+                ),
+                "days_waiting": (now - act.created_at).days,
                 "created_at": act.created_at.isoformat(),
             }
             for act in qs

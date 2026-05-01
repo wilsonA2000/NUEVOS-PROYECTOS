@@ -1342,3 +1342,80 @@ class VisitScoreEndpointTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class AutoAssignAgentsCommandTests(TestCase):
+    """`python manage.py auto_assign_agents` enlaza solicitudes pendientes."""
+
+    def setUp(self):
+        from decimal import Decimal
+
+        self.user1 = User.objects.create_user(
+            email="aa1@t.com", password="x", first_name="A", last_name="A1",
+            user_type="tenant",
+        )
+        self.user2 = User.objects.create_user(
+            email="aa2@t.com", password="x", first_name="A", last_name="A2",
+            user_type="tenant",
+        )
+        agent_user = User.objects.create_user(
+            email="aagent@t.com", password="x",
+            first_name="Ag", last_name="Ent",
+            user_type="landlord", is_staff=True,
+        )
+        self.agent = VerificationAgent.objects.create(user=agent_user)
+
+        self.req1 = FieldVisitRequest.objects.create(
+            user=self.user1,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="1",
+            full_name_declared="A1",
+            digital_score={"total": 0.45},
+            digital_score_total=Decimal("0.45"),
+            digital_verdict="aprobado",
+            status="digital_completed",
+        )
+        # rejected NO debe asignarse
+        self.req_rejected = FieldVisitRequest.objects.create(
+            user=self.user2,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="2",
+            full_name_declared="A2",
+            digital_score={"total": 0.10},
+            digital_score_total=Decimal("0.10"),
+            digital_verdict="rechazado",
+            status="rejected",
+        )
+
+    def test_command_assigns_pending_to_available_agent(self):
+        from django.core.management import call_command
+
+        call_command("auto_assign_agents")
+        self.req1.refresh_from_db()
+        self.assertEqual(self.req1.status, "visit_scheduled")
+        self.assertIsNotNone(self.req1.scheduled_visit_id)
+        self.assertEqual(self.req1.scheduled_visit.agent_id, self.agent.id)
+
+    def test_command_skips_rejected_requests(self):
+        from django.core.management import call_command
+
+        call_command("auto_assign_agents")
+        self.req_rejected.refresh_from_db()
+        self.assertIsNone(self.req_rejected.scheduled_visit_id)
+
+    def test_command_dry_run_does_not_persist(self):
+        from django.core.management import call_command
+
+        call_command("auto_assign_agents", "--dry-run")
+        self.req1.refresh_from_db()
+        self.assertEqual(self.req1.status, "digital_completed")
+        self.assertIsNone(self.req1.scheduled_visit_id)
+
+    def test_command_does_nothing_when_no_agents_available(self):
+        from django.core.management import call_command
+
+        self.agent.is_available = False
+        self.agent.save()
+        call_command("auto_assign_agents")
+        self.req1.refresh_from_db()
+        self.assertIsNone(self.req1.scheduled_visit_id)
