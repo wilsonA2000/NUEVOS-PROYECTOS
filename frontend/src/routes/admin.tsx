@@ -45,6 +45,12 @@ const AdminVerificationDashboard = lazy(
 const AdminTicketsDashboard = lazy(
   () => import('../pages/admin/AdminTicketsDashboard'),
 );
+const AdminFieldVisitActs = lazy(
+  () => import('../pages/admin/AdminFieldVisitActs'),
+);
+const AdminFieldVisitActDetail = lazy(
+  () => import('../pages/admin/AdminFieldVisitActDetail'),
+);
 
 /**
  * Loading fallback para lazy components
@@ -107,6 +113,13 @@ const AdminRoutes: React.FC = () => {
 
           {/* Tickets */}
           <Route path='tickets' element={<AdminTicketsDashboard />} />
+
+          {/* Actas VeriHome ID (C11) */}
+          <Route path='visitas' element={<AdminFieldVisitActs />} />
+          <Route
+            path='visitas/:actId'
+            element={<AdminFieldVisitActDetail />}
+          />
 
           {/* Catch-all redirect */}
           <Route path='*' element={<Navigate to='/app/admin' replace />} />
