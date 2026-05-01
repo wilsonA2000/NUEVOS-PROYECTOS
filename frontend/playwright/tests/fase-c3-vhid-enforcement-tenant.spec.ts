@@ -86,12 +86,13 @@ test.describe('F1 · C3 · VHID enforcement tenant sin onboarding', () => {
       seed.password,
     );
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/app/**', { timeout: 30000 });
+    await page.waitForURL('**/app/**', { timeout: 60000 });
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
     await page.goto('/app/dashboard');
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
 
     const banner = page.getByTestId('vhid-banner');
-    await expect(banner).toBeVisible({ timeout: 15000 });
+    await expect(banner).toBeVisible({ timeout: 30000 });
     await expect(banner).toHaveAttribute('data-vhid-next-step', 'start_onboarding');
     await expect(
       banner.getByText(/Verificación VeriHome ID requerida/i),

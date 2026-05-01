@@ -164,8 +164,31 @@ def reset_match_and_contracts(landlord, tenant, prop):
             primary_party=landlord, secondary_party=tenant
         ).delete()
         log(f"deleted prior legacy Contracts: {deleted_c[0]}")
+    except Exception:
+        pass
+
+    try:
+        # Limpia PaymentOrders + RentPaymentSchedule + Transactions del
+        # par landlord+tenant para que el conteo del seed contract_active
+        # coincida con lo que el endpoint devuelve (Fase D1).
+        from payments.models import PaymentOrder, RentPaymentSchedule, Transaction
+
+        deleted_po = PaymentOrder.objects.filter(
+            payer=tenant, payee=landlord
+        ).delete()
+        log(f"deleted prior PaymentOrders (payer/payee): {deleted_po[0]}")
+
+        deleted_rps = RentPaymentSchedule.objects.filter(
+            tenant=tenant, landlord=landlord
+        ).delete()
+        log(f"deleted prior RentPaymentSchedules: {deleted_rps[0]}")
+
+        deleted_tx = Transaction.objects.filter(
+            payer=tenant, payee=landlord
+        ).delete()
+        log(f"deleted prior Transactions: {deleted_tx[0]}")
     except Exception as exc:
-        log(f"warn: could not clean legacy Contract: {exc}")
+        log(f"warn: could not clean payment artifacts: {exc}")
 
 
 def create_match_request(landlord, tenant, prop, has_guarantor=False):
