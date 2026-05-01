@@ -1517,7 +1517,10 @@ class EditContractBeforeAuthAPIView(APIView):
 class StartBiometricAuthenticationAPIView(APIView):
     """Vista para iniciar autenticación biométrica."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    def get_permissions(self):
+        from verification.permissions import VerihomeIDRequired
+
+        return [permissions.IsAuthenticated(), VerihomeIDRequired()]
 
     def post(self, request, contract_id):
         """Inicia el proceso de autenticación biométrica."""

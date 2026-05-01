@@ -46,6 +46,14 @@ class MatchRequestViewSet(viewsets.ModelViewSet):
             return MatchRequestDetailSerializer
         return MatchRequestSerializer
 
+    def get_permissions(self):
+        """VeriHome ID enforcement: solo verificados aplican a propiedades."""
+        if self.action == "create":
+            from verification.permissions import VerihomeIDRequired
+
+            return [permissions.IsAuthenticated(), VerihomeIDRequired()]
+        return super().get_permissions()
+
     def create(self, request, *args, **kwargs):
         """Override create to add detailed error logging."""
         logger.info(

@@ -927,6 +927,14 @@ LAWYER_TP_NUMBER = config("LAWYER_TP_NUMBER", default="")
 LAWYER_FULL_NAME = config("LAWYER_FULL_NAME", default="")
 LAWYER_CC = config("LAWYER_CC", default="")
 
+# VHID-ENF: bloqueo de acciones críticas (crear propiedad, aplicar match,
+# iniciar biométrica) para usuarios sin verificación VeriHome ID. Se
+# desactiva automáticamente en suites de test para no romper fixtures
+# existentes; los tests de enforcement lo activan con override_settings.
+VERIHOME_ID_ENFORCEMENT = config(
+    "VERIHOME_ID_ENFORCEMENT", default=not TESTING, cast=bool
+)
+
 
 # Django Debug Toolbar
 INTERNAL_IPS = ["127.0.0.1", "localhost"]

@@ -975,3 +975,119 @@ class FieldVisitActAPITests(APITestCase):
         self.assertTrue(self.target.is_verified)
         self.field_request.refresh_from_db()
         self.assertEqual(self.field_request.status, "visit_completed")
+
+
+class VerihomeIDStatusEndpointTests(APITestCase):
+    """`/api/v1/verification/onboarding/status/` consolida estado del onboarding."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="status@test.com", password="x",
+            first_name="St", last_name="At",
+            user_type="tenant",
+        )
+        self.url = "/api/v1/verification/onboarding/status/"
+
+    def test_status_without_onboarding(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["is_verified"])
+        self.assertFalse(response.data["has_onboarding"])
+        self.assertEqual(response.data["next_step"], "start_onboarding")
+        self.assertIn("create_property", response.data["blocking_actions"])
+
+    def test_status_with_pending_visit(self):
+        from decimal import Decimal
+
+        FieldVisitRequest.objects.create(
+            user=self.user,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="1",
+            full_name_declared="X",
+            digital_score={"total": 0.45},
+            digital_score_total=Decimal("0.45"),
+            digital_verdict="aprobado",
+            status="digital_completed",
+        )
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.data["next_step"], "wait_visit")
+        self.assertTrue(response.data["has_onboarding"])
+        self.assertEqual(response.data["onboarding_status"], "digital_completed")
+
+    def test_status_when_verified(self):
+        self.user.is_verified = True
+        self.user.save(update_fields=["is_verified"])
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertTrue(response.data["is_verified"])
+        self.assertEqual(response.data["blocking_actions"], [])
+
+
+from django.test import override_settings as _override_settings
+
+
+@_override_settings(VERIHOME_ID_ENFORCEMENT=True)
+class VerihomeIDEnforcementTests(APITestCase):
+    """`VerihomeIDRequired` bloquea acciones críticas hasta verificación."""
+
+    def setUp(self):
+        self.unverified = User.objects.create_user(
+            email="unverif@test.com", password="x",
+            first_name="Un", last_name="V",
+            user_type="tenant",
+        )
+        self.verified = User.objects.create_user(
+            email="verif@test.com", password="x",
+            first_name="Ve", last_name="R",
+            user_type="tenant",
+        )
+        self.verified.is_verified = True
+        self.verified.save(update_fields=["is_verified"])
+
+    def test_match_create_blocked_for_unverified(self):
+        from properties.models import Property
+
+        landlord = User.objects.create_user(
+            email="ll@test.com", password="x",
+            first_name="L", last_name="L",
+            user_type="landlord",
+            is_verified=True,
+        )
+        property_obj = Property.objects.create(
+            landlord=landlord,
+            title="Apartamento",
+            description="Test",
+            property_type="apartment",
+            listing_type="rent",
+            rent_price=1000000,
+            address="Cr 1",
+            city="Bogotá",
+            state="Cundinamarca",
+            country="Colombia",
+            bedrooms=2,
+            bathrooms=1,
+            total_area=80,
+        )
+        self.client.force_authenticate(user=self.unverified)
+        response = self.client.post(
+            "/api/v1/matching/requests/",
+            {
+                "property": str(property_obj.id),
+                "tenant_message": "Me interesa",
+                "monthly_income": 3000000,
+                "employment_type": "employee",
+                "preferred_move_in_date": "2026-06-01",
+                "lease_duration_months": 12,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        body = response.data
+        # PermissionDenied(detail=dict) se serializa plano: {detail, code, next_step}
+        code = body.get("code") if isinstance(body, dict) else None
+        if code is None:
+            nested = body.get("detail") if isinstance(body, dict) else None
+            code = nested.get("code") if isinstance(nested, dict) else None
+        self.assertEqual(str(code), "verihome_id_required")

@@ -106,6 +106,15 @@ class PropertyViewSet(
             return OptimizedPropertyDetailSerializer
         return PropertySerializer
 
+    def get_permissions(self):
+        """VeriHome ID enforcement: solo usuarios verificados crean propiedades."""
+        perms = super().get_permissions()
+        if self.action == "create":
+            from verification.permissions import VerihomeIDRequired
+
+            perms.append(VerihomeIDRequired())
+        return perms
+
     def list(self, request, *args, **kwargs):
         """
         Optimized list view with intelligent caching.

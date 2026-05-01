@@ -426,6 +426,61 @@ class FieldVisitRequestViewSet(viewsets.GenericViewSet):
             )
         return Response(self.get_serializer(instance).data)
 
+    @action(detail=False, methods=["get"], url_path="status")
+    def status_endpoint(self, request):
+        """
+        Estado consolidado del onboarding VeriHome ID del usuario actual.
+        Lo consume el frontend para banners, gates y deshabilitar
+        acciones críticas (crear propiedad, aplicar match, biometría).
+        """
+        user = request.user
+        last = (
+            FieldVisitRequest.objects.filter(user=user)
+            .order_by("-created_at")
+            .first()
+        )
+        act = None
+        if last:
+            from .models import FieldVisitAct
+
+            act = (
+                FieldVisitAct.objects.filter(field_request=last)
+                .order_by("-created_at")
+                .first()
+            )
+
+        is_verified = bool(getattr(user, "is_verified", False))
+        if not last:
+            next_step = "start_onboarding"
+        elif last.status == "rejected":
+            next_step = "start_onboarding"
+        elif last.status in ("digital_completed", "visit_scheduled"):
+            next_step = "wait_visit"
+        else:
+            next_step = "complete" if is_verified else "wait_visit"
+
+        return Response(
+            {
+                "is_verified": is_verified,
+                "has_onboarding": last is not None,
+                "onboarding_status": last.status if last else None,
+                "digital_verdict": last.digital_verdict if last else None,
+                "digital_score_total": (
+                    str(last.digital_score_total) if last else None
+                ),
+                "act_status": act.status if act else None,
+                "block_number": act.block_number if act else None,
+                "next_step": next_step,
+                "blocking_actions": [
+                    "create_property",
+                    "apply_match",
+                    "start_biometric",
+                ]
+                if not is_verified
+                else [],
+            }
+        )
+
 
 class FieldVisitActViewSet(viewsets.ModelViewSet):
     """
