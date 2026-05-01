@@ -74,6 +74,7 @@ import VisitEvaluationModal from './VisitEvaluationModal';
 import LandlordDocumentReview from './LandlordDocumentReview';
 import ContractDraftEditor from './ContractDraftEditor';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
+import VerihomeIdGate from '../verihome-id/VerihomeIdGate';
 
 interface MatchedCandidate {
   id: string;
@@ -853,15 +854,17 @@ const MatchedCandidatesView: React.FC = () => {
       ) {
         return (
           <>
-            <Button
-              variant='contained'
-              color='primary'
-              startIcon={<BiometricIcon />}
-              onClick={() => handleStartBiometricAuth(candidate)}
-              size='small'
-            >
-              Completar Mi Autenticación
-            </Button>
+            <VerihomeIdGate action='start_biometric'>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<BiometricIcon />}
+                onClick={() => handleStartBiometricAuth(candidate)}
+                size='small'
+              >
+                Completar Mi Autenticación
+              </Button>
+            </VerihomeIdGate>
             <Button
               variant='outlined'
               color='info'

@@ -31,6 +31,7 @@ import { CheckCircle, Edit, Fingerprint } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import api from '../../services/api';
+import VerihomeIdGate from '../verihome-id/VerihomeIdGate';
 
 interface Contract {
   id: string;
@@ -411,16 +412,18 @@ export const UnifiedContractWorkflow: React.FC<
             {/* AMBOS - AUTENTICACIÓN BIOMÉTRICA */}
             {contract.status === 'tenant_approved' &&
               workflowStatus.can_start_biometric && (
-                <Button
-                  variant='contained'
-                  color='secondary'
-                  startIcon={<Fingerprint />}
-                  onClick={handleStartBiometric}
-                  disabled={processing}
-                  fullWidth
-                >
-                  Iniciar Autenticación Biométrica
-                </Button>
+                <VerihomeIdGate action='start_biometric'>
+                  <Button
+                    variant='contained'
+                    color='secondary'
+                    startIcon={<Fingerprint />}
+                    onClick={handleStartBiometric}
+                    disabled={processing}
+                    fullWidth
+                  >
+                    Iniciar Autenticación Biométrica
+                  </Button>
+                </VerihomeIdGate>
               )}
 
             {/* ESTADOS BIOMÉTRICOS */}

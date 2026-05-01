@@ -50,6 +50,7 @@ import {
 
 // Importar el flujo biométrico
 import ProfessionalBiometricFlow from '../../components/contracts/ProfessionalBiometricFlow';
+import VerihomeIdGate from '../../components/verihome-id/VerihomeIdGate';
 import { LandlordContractService } from '../../services/landlordContractService';
 import { contractService } from '../../services/contractService';
 
@@ -494,15 +495,17 @@ const TenantInvitationLanding: React.FC = () => {
                 )}
 
                 {currentStep === 2 && (
-                  <Button
-                    variant='contained'
-                    size='large'
-                    fullWidth
-                    onClick={() => setShowBiometricFlow(true)}
-                    startIcon={<Security />}
-                  >
-                    Iniciar Autenticación
-                  </Button>
+                  <VerihomeIdGate action='start_biometric'>
+                    <Button
+                      variant='contained'
+                      size='large'
+                      fullWidth
+                      onClick={() => setShowBiometricFlow(true)}
+                      startIcon={<Security />}
+                    >
+                      Iniciar Autenticación
+                    </Button>
+                  </VerihomeIdGate>
                 )}
 
                 {currentStep === 4 && (
