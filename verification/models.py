@@ -5,6 +5,8 @@ Gestiona agentes de campo, visitas de verificación, reportes
 y asignación de calificaciones iniciales a usuarios y propiedades.
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -469,6 +471,12 @@ class FieldVisitAct(models.Model):
         ("sealed", "Sellada en cadena"),
     ]
 
+    FINAL_VERDICT_CHOICES = [
+        ("aprobado", "Aprobado"),
+        ("observado", "Observado"),
+        ("rechazado", "Rechazado"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     act_number = models.CharField(
         "Número de acta", max_length=20, unique=True, blank=True
@@ -494,6 +502,47 @@ class FieldVisitAct(models.Model):
             "Secciones I-VIII consolidadas: identificación, agente, "
             "consentimiento, biometría, cruces oficiales, validación "
             "documental, inmueble, score y observaciones."
+        ),
+    )
+
+    visit_score_breakdown = models.JSONField(
+        "Score de visita desglosado",
+        default=dict,
+        blank=True,
+        help_text=(
+            "Sub-puntajes 0.0-0.5 asignados por el agente: "
+            "{cedula_real, observacion_visual, recibo_publico, "
+            "comprobante_laboral, email_otp, telefono_otp, "
+            "cruces_oficiales, inmueble_existe}"
+        ),
+    )
+    visit_score_total = models.DecimalField(
+        "Score visita total",
+        max_digits=4,
+        decimal_places=3,
+        default=Decimal("0.000"),
+        validators=[MinValueValidator(0), MaxValueValidator(0.5)],
+        help_text="Score parcial 0.0-0.5 que aporta la visita presencial",
+    )
+    total_score = models.DecimalField(
+        "Score compuesto total",
+        max_digits=4,
+        decimal_places=3,
+        default=Decimal("0.000"),
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
+        help_text=(
+            "Suma del score digital (0.0-0.5) + score visita (0.0-0.5). "
+            "Se actualiza automáticamente al save()."
+        ),
+    )
+    final_verdict = models.CharField(
+        "Veredicto final",
+        max_length=20,
+        choices=FINAL_VERDICT_CHOICES,
+        default="rechazado",
+        help_text=(
+            "≥0.80 aprobado · ≥0.55 observado · <0.55 rechazado. "
+            "Se recalcula automáticamente al save() con visit_score_total."
         ),
     )
 
@@ -586,9 +635,27 @@ class FieldVisitAct(models.Model):
     def __str__(self):
         return f"{self.act_number or '(sin número)'} · {self.get_status_display()}"
 
+    def recompute_score(self) -> None:
+        """
+        Recalcula `total_score` y `final_verdict` a partir de
+        `digital_score_total` (FieldVisitRequest) + `visit_score_total`.
+        Umbrales: ≥0.80 aprobado · ≥0.55 observado · <0.55 rechazado.
+        """
+        digital = self.field_request.digital_score_total or Decimal("0.000")
+        visit = self.visit_score_total or Decimal("0.000")
+        self.total_score = (digital + visit).quantize(Decimal("0.001"))
+        if self.total_score >= Decimal("0.80"):
+            self.final_verdict = "aprobado"
+        elif self.total_score >= Decimal("0.55"):
+            self.final_verdict = "observado"
+        else:
+            self.final_verdict = "rechazado"
+
     def save(self, *args, **kwargs):
         if not self.act_number:
             year = timezone.now().year
             count = FieldVisitAct.objects.filter(created_at__year=year).count() + 1
             self.act_number = f"ACT-{year}-{count:05d}"
+        if self.field_request_id:
+            self.recompute_score()
         super().save(*args, **kwargs)

@@ -686,6 +686,77 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         """Recorre la cadena entera y reporta inconsistencias."""
         return Response(verify_chain())
 
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="scoring",
+        permission_classes=[permissions.IsAuthenticated, IsStaffUser],
+    )
+    def scoring(self, request):
+        """
+        Ranking de candidatos VeriHome ID. Filtros opcionales:
+          - verdict={aprobado|observado|rechazado}
+          - status={draft|signed_by_parties|signed_by_lawyer|sealed}
+          - min_score (decimal 0-1)
+          - max_score (decimal 0-1)
+        Orden por defecto: total_score DESC.
+        """
+        from decimal import Decimal, InvalidOperation
+
+        qs = FieldVisitAct.objects.select_related(
+            "field_request", "field_request__user", "visit", "visit__agent"
+        ).all()
+
+        verdict = request.query_params.get("verdict")
+        if verdict:
+            qs = qs.filter(final_verdict=verdict)
+
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        for param, op in (("min_score", "gte"), ("max_score", "lte")):
+            value = request.query_params.get(param)
+            if value:
+                try:
+                    qs = qs.filter(**{f"total_score__{op}": Decimal(value)})
+                except (InvalidOperation, ValueError):
+                    return Response(
+                        {"detail": f"Valor inválido en `{param}`."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+        qs = qs.order_by("-total_score", "-created_at")
+        results = [
+            {
+                "act_id": str(act.id),
+                "act_number": act.act_number,
+                "user_id": str(act.field_request.user_id),
+                "user_email": act.field_request.user.email,
+                "user_name": act.field_request.user.get_full_name(),
+                "digital_score_total": str(
+                    act.field_request.digital_score_total or 0
+                ),
+                "digital_verdict": act.field_request.digital_verdict,
+                "visit_score_total": str(act.visit_score_total or 0),
+                "visit_score_breakdown": act.visit_score_breakdown or {},
+                "total_score": str(act.total_score),
+                "final_verdict": act.final_verdict,
+                "status": act.status,
+                "block_number": act.block_number,
+                "sealed": act.status == "sealed",
+                "created_at": act.created_at.isoformat(),
+            }
+            for act in qs
+        ]
+        summary = {
+            "total": len(results),
+            "aprobados": sum(1 for r in results if r["final_verdict"] == "aprobado"),
+            "observados": sum(1 for r in results if r["final_verdict"] == "observado"),
+            "rechazados": sum(1 for r in results if r["final_verdict"] == "rechazado"),
+        }
+        return Response({"summary": summary, "results": results})
+
 
 def _client_ip_from_request(request):
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR")

@@ -323,6 +323,18 @@ class FieldVisitActSerializer(serializers.ModelSerializer):
     target_user_name = serializers.CharField(
         source="field_request.user.get_full_name", read_only=True
     )
+    digital_score_total = serializers.DecimalField(
+        source="field_request.digital_score_total",
+        max_digits=4,
+        decimal_places=3,
+        read_only=True,
+    )
+    digital_verdict = serializers.CharField(
+        source="field_request.digital_verdict", read_only=True
+    )
+    final_verdict_display = serializers.CharField(
+        source="get_final_verdict_display", read_only=True
+    )
     lawyer_email = serializers.EmailField(
         source="lawyer_user.email", read_only=True, default=None
     )
@@ -364,6 +376,13 @@ class FieldVisitActSerializer(serializers.ModelSerializer):
             "geolocation_lat",
             "geolocation_lng",
             "ip_address",
+            "visit_score_breakdown",
+            "visit_score_total",
+            "digital_score_total",
+            "digital_verdict",
+            "total_score",
+            "final_verdict",
+            "final_verdict_display",
             "created_at",
             "updated_at",
         ]
@@ -387,6 +406,8 @@ class FieldVisitActSerializer(serializers.ModelSerializer):
             "block_number",
             "status",
             "ip_address",
+            "total_score",
+            "final_verdict",
             "created_at",
             "updated_at",
         ]

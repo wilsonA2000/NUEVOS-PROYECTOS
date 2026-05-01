@@ -1091,3 +1091,160 @@ class VerihomeIDEnforcementTests(APITestCase):
             nested = body.get("detail") if isinstance(body, dict) else None
             code = nested.get("code") if isinstance(nested, dict) else None
         self.assertEqual(str(code), "verihome_id_required")
+
+
+# =============================================================================
+# C12 — Score compuesto + endpoint scoring
+# =============================================================================
+
+
+class CompositeScoreTests(TestCase):
+    """`FieldVisitAct.recompute_score` deriva total_score + final_verdict."""
+
+    def setUp(self):
+        from decimal import Decimal
+
+        self.user = User.objects.create_user(
+            email="score@t.com", password="x", first_name="S", last_name="C",
+            user_type="tenant",
+        )
+        agent_user = User.objects.create_user(
+            email="agscore@t.com", password="x",
+            first_name="A", last_name="G",
+            user_type="landlord", is_staff=True,
+        )
+        self.agent = VerificationAgent.objects.create(user=agent_user)
+        self.field_request = FieldVisitRequest.objects.create(
+            user=self.user,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="1",
+            full_name_declared="X",
+            digital_score={"total": 0.45},
+            digital_score_total=Decimal("0.45"),
+            digital_verdict="aprobado",
+        )
+        self.visit = VerificationVisit.objects.create(
+            visit_type="tenant",
+            agent=self.agent,
+            target_user=self.user,
+            visit_address="Cr 1",
+            scheduled_date=timezone.now().date(),
+        )
+
+    def _build_act(self, visit_score):
+        from decimal import Decimal
+        from verification.models import FieldVisitAct
+
+        return FieldVisitAct.objects.create(
+            field_request=self.field_request,
+            visit=self.visit,
+            visit_score_total=Decimal(str(visit_score)),
+        )
+
+    def test_total_score_equals_digital_plus_visit(self):
+        from decimal import Decimal
+
+        act = self._build_act("0.40")
+        self.assertEqual(act.total_score, Decimal("0.850"))
+
+    def test_verdict_aprobado_when_total_above_080(self):
+        act = self._build_act("0.40")  # 0.45 + 0.40 = 0.85
+        self.assertEqual(act.final_verdict, "aprobado")
+
+    def test_verdict_observado_between_055_and_080(self):
+        act = self._build_act("0.20")  # 0.45 + 0.20 = 0.65
+        self.assertEqual(act.final_verdict, "observado")
+
+    def test_verdict_rechazado_below_055(self):
+        act = self._build_act("0.05")  # 0.45 + 0.05 = 0.50
+        self.assertEqual(act.final_verdict, "rechazado")
+
+
+class ScoringEndpointTests(APITestCase):
+    """`/api/v1/verification/acts/scoring/` rankea candidatos."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from verification.models import FieldVisitAct
+
+        self.staff = User.objects.create_user(
+            email="staffscore@t.com", password="x",
+            first_name="St", last_name="ff",
+            user_type="landlord", is_staff=True,
+        )
+        agent_user = User.objects.create_user(
+            email="agscoreapi@t.com", password="x",
+            first_name="A", last_name="G",
+            user_type="landlord", is_staff=True,
+        )
+        agent = VerificationAgent.objects.create(user=agent_user)
+        self.acts = []
+        for idx, (digital, visit) in enumerate(
+            [
+                ("0.45", "0.40"),  # 0.85 aprobado
+                ("0.30", "0.30"),  # 0.60 observado
+                ("0.10", "0.10"),  # 0.20 rechazado
+            ]
+        ):
+            user = User.objects.create_user(
+                email=f"u{idx}@t.com", password="x",
+                first_name=f"U{idx}", last_name="X",
+                user_type="tenant",
+            )
+            fr = FieldVisitRequest.objects.create(
+                user=user,
+                document_type_declared="cedula_ciudadania",
+                document_number_declared=str(idx),
+                full_name_declared=f"U{idx}",
+                digital_score={"total": float(digital)},
+                digital_score_total=Decimal(digital),
+                digital_verdict="aprobado",
+            )
+            visit_obj = VerificationVisit.objects.create(
+                visit_type="tenant",
+                agent=agent,
+                target_user=user,
+                visit_address="Cr 1",
+                scheduled_date=timezone.now().date(),
+            )
+            self.acts.append(
+                FieldVisitAct.objects.create(
+                    field_request=fr,
+                    visit=visit_obj,
+                    visit_score_total=Decimal(visit),
+                )
+            )
+
+    def test_scoring_requires_staff(self):
+        response = self.client.get("/api/v1/verification/acts/scoring/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_scoring_lists_ranked_results(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get("/api/v1/verification/acts/scoring/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        body = response.data
+        self.assertEqual(body["summary"]["total"], 3)
+        self.assertEqual(body["summary"]["aprobados"], 1)
+        self.assertEqual(body["summary"]["observados"], 1)
+        self.assertEqual(body["summary"]["rechazados"], 1)
+        # Orden DESC por total_score
+        scores = [r["total_score"] for r in body["results"]]
+        self.assertEqual(scores, sorted(scores, reverse=True))
+
+    def test_scoring_filter_verdict(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get(
+            "/api/v1/verification/acts/scoring/?verdict=aprobado"
+        )
+        self.assertEqual(response.data["summary"]["total"], 1)
+        self.assertEqual(
+            response.data["results"][0]["final_verdict"], "aprobado"
+        )
+
+    def test_scoring_filter_min_score(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get(
+            "/api/v1/verification/acts/scoring/?min_score=0.55"
+        )
+        self.assertEqual(response.data["summary"]["total"], 2)
