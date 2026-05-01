@@ -55,7 +55,13 @@ const VerihomeIdGate: React.FC<Props> = ({
   return (
     <Tooltip title={message} placement={tooltipPlacement} arrow>
       {/* span necesario porque MUI Tooltip no funciona sobre disabled */}
-      <Box component='span' sx={{ display: 'inline-block' }}>
+      <Box
+        component='span'
+        sx={{ display: 'inline-block' }}
+        data-testid={`vhid-gate-${action}`}
+        data-vhid-blocked='true'
+        data-vhid-next-step={data?.next_step ?? ''}
+      >
         {wrapped}
       </Box>
     </Tooltip>

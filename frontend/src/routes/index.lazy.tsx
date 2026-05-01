@@ -183,6 +183,15 @@ const AdminTicketsDashboard = lazy(
 const AdminVerificationDashboard = lazy(
   () => import('../pages/admin/AdminVerificationDashboard'),
 );
+const AdminFieldVisitActs = lazy(
+  () => import('../pages/admin/AdminFieldVisitActs'),
+);
+const AdminFieldVisitActDetail = lazy(
+  () => import('../pages/admin/AdminFieldVisitActDetail'),
+);
+const AdminVerihomeIdScoring = lazy(
+  () => import('../pages/admin/AdminVerihomeIdScoring'),
+);
 
 // Componentes de loading especializados
 const PageLoader: React.FC = () => (
@@ -862,6 +871,32 @@ export const AppRoutes: React.FC = () => {
           element={
             <LazyRoute type='list'>
               <AdminVerificationDashboard />
+            </LazyRoute>
+          }
+        />
+        {/* C11 · Actas VeriHome ID */}
+        <Route
+          path='visitas'
+          element={
+            <LazyRoute type='list'>
+              <AdminFieldVisitActs />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path='visitas/:actId'
+          element={
+            <LazyRoute type='page'>
+              <AdminFieldVisitActDetail />
+            </LazyRoute>
+          }
+        />
+        {/* C12 · Scoring VeriHome ID */}
+        <Route
+          path='verihome-id/scoring'
+          element={
+            <LazyRoute type='page'>
+              <AdminVerihomeIdScoring />
             </LazyRoute>
           }
         />

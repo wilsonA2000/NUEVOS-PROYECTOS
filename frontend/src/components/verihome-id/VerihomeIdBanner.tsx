@@ -45,6 +45,8 @@ const VerihomeIdBanner: React.FC = () => {
       severity={severity}
       icon={icon}
       sx={{ mb: 3 }}
+      data-testid='vhid-banner'
+      data-vhid-next-step={data.next_step}
       action={
         !isWaitingVisit ? (
           <Button
@@ -53,6 +55,7 @@ const VerihomeIdBanner: React.FC = () => {
             variant='outlined'
             component={RouterLink}
             to='/app/verihome-id/onboarding'
+            data-testid='vhid-banner-cta'
           >
             Iniciar verificación
           </Button>

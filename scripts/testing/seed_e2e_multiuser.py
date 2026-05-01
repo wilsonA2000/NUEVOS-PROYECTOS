@@ -7,6 +7,11 @@ Modos (CLI arg):
   - property_ready            : + propiedad del landlord disponible
   - ready_for_bio             : + MatchRequest aceptada + Contract status=ready_for_authentication
   - ready_for_bio_guarantor   : + todo lo anterior + CodeudorAuthToken activo
+  - vhid_tenant_unverified    : tenant SIN FieldVisitRequest, is_verified=False (F1·C3)
+  - vhid_tenant_wait_visit    : tenant con FieldVisitRequest digital_completed/aprobado
+                                sin scheduled_visit, is_verified=False (F1·C4)
+  - vhid_act_in_progress      : agente + FieldVisitRequest + VerificationVisit asignada
+                                + FieldVisitAct(status=draft) (F1·C5)
 
 Imprime JSON en stdout con IDs; logs a stderr.
 """
@@ -309,6 +314,130 @@ def create_codeudor_token(landlord, guarantor, landlord_contract):
         return None
 
 
+def reset_field_visit_data(user):
+    """
+    Borra `FieldVisitAct`, `FieldVisitRequest` y `VerificationVisit`
+    del usuario para garantizar estado limpio en seeds de VeriHome ID.
+    """
+    try:
+        from verification.models import (
+            FieldVisitAct,
+            FieldVisitRequest,
+            VerificationVisit,
+        )
+
+        deleted_acts = FieldVisitAct.objects.filter(field_request__user=user).delete()
+        log(f"deleted prior FieldVisitActs: {deleted_acts[0]}")
+        deleted_reqs = FieldVisitRequest.objects.filter(user=user).delete()
+        log(f"deleted prior FieldVisitRequests: {deleted_reqs[0]}")
+        deleted_visits = VerificationVisit.objects.filter(target_user=user).delete()
+        log(f"deleted prior VerificationVisits (target={user.email}): {deleted_visits[0]}")
+    except Exception as exc:
+        log(f"warn: reset_field_visit_data failed for {user.email}: {exc}")
+
+
+def ensure_verification_agent_profile(agent_user):
+    """Crea/asegura `VerificationAgent` profile para el usuario agente."""
+    try:
+        from verification.models import VerificationAgent
+
+        profile, _ = VerificationAgent.objects.get_or_create(
+            user=agent_user,
+            defaults={
+                "specialization": "both",
+                "is_available": True,
+                "max_weekly_visits": 20,
+                "service_areas": ["Cabecera", "San Francisco", "Bucaramanga"],
+            },
+        )
+        profile.is_available = True
+        profile.save(update_fields=["is_available"])
+        return profile
+    except Exception as exc:
+        log(f"warn: ensure_verification_agent_profile failed: {exc}")
+        return None
+
+
+def create_field_visit_request_wait_visit(user):
+    """
+    Crea `FieldVisitRequest` con flujo digital aprobado y sin visita
+    presencial asignada. Estado consolidado `wait_visit` para el frontend.
+    """
+    from verification.models import FieldVisitRequest
+
+    fr = FieldVisitRequest.objects.create(
+        user=user,
+        document_type_declared="cedula_ciudadania",
+        document_number_declared="1098765432",
+        full_name_declared=f"{user.first_name} {user.last_name}".strip() or "Tenant E2E",
+        ocr_data={
+            "document_number": "1098765432",
+            "first_names": user.first_name or "Leidy",
+            "surnames": user.last_name or "Tenant",
+        },
+        liveness_data={"qualityScore": 0.85, "totalDurationMs": 4200},
+        face_match_data={"similarity": 0.78, "passed": True},
+        digital_score={
+            "observaciones": [],
+            "total": 0.45,
+            "subscores": {
+                "ocr_match": 0.10,
+                "liveness": 0.10,
+                "face_match": 0.10,
+                "selfie_quality": 0.075,
+                "doc_quality": 0.075,
+            },
+        },
+        digital_score_total=Decimal("0.450"),
+        digital_verdict="aprobado",
+        status="digital_completed",
+    )
+    log(f"FieldVisitRequest created (wait_visit): {fr.id}")
+    return fr
+
+
+def create_field_visit_act_draft(field_request, agent_profile, tenant):
+    """
+    Crea visita presencial asignada al agente (status=in_progress) y
+    `FieldVisitAct` en borrador, listo para que el agente cargue scores.
+    """
+    from verification.models import FieldVisitAct, VerificationVisit
+
+    visit = VerificationVisit.objects.create(
+        visit_type="tenant",
+        target_user=tenant,
+        status="in_progress",
+        agent=agent_profile,
+        visit_address="Calle 34 #27-18",
+        visit_city="Bucaramanga",
+        scheduled_date=timezone.now().date(),
+        scheduled_time="10:00",
+        started_at=timezone.now(),
+    )
+    field_request.scheduled_visit = visit
+    field_request.status = "visit_scheduled"
+    field_request.save(update_fields=["scheduled_visit", "status"])
+
+    act = FieldVisitAct.objects.create(
+        field_request=field_request,
+        visit=visit,
+        payload={
+            "secciones": {
+                "I": {"identificacion": field_request.full_name_declared},
+                "II": {"agente": agent_profile.user.email if agent_profile else None},
+            }
+        },
+        visit_score_breakdown={},
+        visit_score_total=Decimal("0.000"),
+        status="draft",
+    )
+    log(
+        f"FieldVisitAct draft created: {act.id} "
+        f"(act_number={act.act_number}, visit={visit.visit_number})"
+    )
+    return visit, act
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "ready_for_bio"
     log(f"mode: {mode}")
@@ -354,6 +483,51 @@ def main():
     }
 
     if mode == "minimal":
+        emit_result(result)
+        return
+
+    if mode == "vhid_tenant_unverified":
+        # F1·C3 — tenant SIN onboarding VeriHome ID. POST a properties /
+        # match-requests debe responder 403 con code=verihome_id_required.
+        prop = ensure_property(landlord)
+        result["property_id"] = str(prop.id)
+        reset_field_visit_data(tenant)
+        if tenant.is_verified:
+            tenant.is_verified = False
+            tenant.save(update_fields=["is_verified"])
+        emit_result(result)
+        return
+
+    if mode == "vhid_tenant_wait_visit":
+        # F1·C4 — tenant con flujo digital aprobado pero sin visita.
+        # next_step="wait_visit". Banner Dashboard + Gate disabled.
+        prop = ensure_property(landlord)
+        result["property_id"] = str(prop.id)
+        reset_field_visit_data(tenant)
+        if tenant.is_verified:
+            tenant.is_verified = False
+            tenant.save(update_fields=["is_verified"])
+        fr = create_field_visit_request_wait_visit(tenant)
+        result["field_request_id"] = str(fr.id)
+        emit_result(result)
+        return
+
+    if mode == "vhid_act_in_progress":
+        # F1·C5 — agente con visita asignada y FieldVisitAct draft listo
+        # para que el agente cargue 8 sub-scores via VisitScoreEditor.
+        prop = ensure_property(landlord)
+        result["property_id"] = str(prop.id)
+        reset_field_visit_data(tenant)
+        if tenant.is_verified:
+            tenant.is_verified = False
+            tenant.save(update_fields=["is_verified"])
+        agent_profile = ensure_verification_agent_profile(verification_agent)
+        fr = create_field_visit_request_wait_visit(tenant)
+        visit, act = create_field_visit_act_draft(fr, agent_profile, tenant)
+        result["field_request_id"] = str(fr.id)
+        result["visit_id"] = str(visit.id)
+        result["act_id"] = str(act.id)
+        result["agent_profile_id"] = str(agent_profile.id) if agent_profile else None
         emit_result(result)
         return
 

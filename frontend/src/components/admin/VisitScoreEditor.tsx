@@ -153,7 +153,12 @@ const VisitScoreEditor: React.FC<Props> = ({
   };
 
   return (
-    <Paper variant='outlined' sx={{ p: 2 }}>
+    <Paper
+      variant='outlined'
+      sx={{ p: 2 }}
+      data-testid='visit-score-editor'
+      data-visit-score-total={total.toFixed(3)}
+    >
       <Stack
         direction='row'
         alignItems='center'
@@ -192,7 +197,7 @@ const VisitScoreEditor: React.FC<Props> = ({
       <Grid container spacing={2}>
         {SUBSCORE_FIELDS.map(f => (
           <Grid item xs={12} md={6} key={f.key}>
-            <Box>
+            <Box data-testid={`visit-score-slider-${f.key}`}>
               <Stack
                 direction='row'
                 alignItems='center'
@@ -231,6 +236,7 @@ const VisitScoreEditor: React.FC<Props> = ({
           startIcon={<RefreshIcon />}
           onClick={handleReset}
           disabled={disabled || mutation.isPending}
+          data-testid='visit-score-reset'
         >
           Limpiar
         </Button>
@@ -246,6 +252,7 @@ const VisitScoreEditor: React.FC<Props> = ({
           }
           onClick={() => mutation.mutate()}
           disabled={disabled || mutation.isPending || overflow}
+          data-testid='visit-score-save'
         >
           {mutation.isPending ? 'Guardando…' : 'Guardar score'}
         </Button>
