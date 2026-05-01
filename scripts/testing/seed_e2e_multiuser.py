@@ -12,6 +12,9 @@ Modos (CLI arg):
                                 sin scheduled_visit, is_verified=False (F1·C4)
   - vhid_act_in_progress      : agente + FieldVisitRequest + VerificationVisit asignada
                                 + FieldVisitAct(status=draft) (F1·C5)
+  - full_ecosystem            : pruebas manuales · todos los usuarios verificados +
+                                4 propiedades + Contract activo + ServiceSubscription
+                                + InterviewCode + SupportTicket abierto.
 
 Imprime JSON en stdout con IDs; logs a stderr.
 """
@@ -461,6 +464,188 @@ def create_field_visit_act_draft(field_request, agent_profile, tenant):
     return visit, act
 
 
+def setup_full_ecosystem(
+    landlord, tenant, guarantor, admin, service_provider, verification_agent
+):
+    """
+    Modo `full_ecosystem` para pruebas manuales del usuario.
+
+    Construye un escenario completo: tenant verificado bypass-VHID,
+    4 propiedades en distintas ciudades, un MatchRequest aceptado +
+    Contract activo + cronograma de pagos, ServiceSubscription activa
+    para el provider, VerificationAgent profile, InterviewCode válido
+    para registros nuevos, SupportTicket abierto. Todo idempotente.
+    """
+    from datetime import date as _date
+    from dateutil.relativedelta import relativedelta
+
+    # 1) Marcar usuarios como verificados (bypass VHID enforcement)
+    for u in [tenant, guarantor, service_provider]:
+        if not u.is_verified:
+            u.is_verified = True
+            u.verification_date = timezone.now()
+            u.save(update_fields=["is_verified", "verification_date"])
+
+    # 2) Limpiar artefactos previos del par landlord+tenant
+    prop = ensure_property(landlord)
+    reset_match_and_contracts(landlord, tenant, prop)
+    reset_field_visit_data(tenant)
+
+    # 3) 3 propiedades adicionales para variedad de búsqueda
+    Property.objects.filter(title__startswith="VeriHome Demo · ").delete()
+    extras = [
+        ("VeriHome Demo · Cedritos", "Bogotá", "Cundinamarca", Decimal("2800000"), 3, 2),
+        ("VeriHome Demo · El Poblado", "Medellín", "Antioquia", Decimal("1900000"), 2, 1),
+        ("VeriHome Demo · Ciudad Jardín", "Cali", "Valle del Cauca", Decimal("1200000"), 2, 2),
+    ]
+    extra_ids = []
+    for title, city, state, price, beds, baths in extras:
+        p = Property.objects.create(
+            landlord=landlord,
+            title=title,
+            description=f"Propiedad demo VeriHome en {city}",
+            property_type="apartment",
+            listing_type="rent",
+            status="available",
+            address=f"Calle {len(extra_ids)+10} #20-{len(extra_ids)+5}",
+            city=city,
+            state=state,
+            country="Colombia",
+            postal_code="000000",
+            bedrooms=beds,
+            bathrooms=baths,
+            total_area=Decimal("70.00"),
+            rent_price=price,
+            is_active=True,
+        )
+        extra_ids.append(str(p.id))
+    log(f"created {len(extra_ids)} extra demo properties")
+
+    # 4) MatchRequest aceptado + Contract + LCC ACTIVE → genera cronograma
+    mr = create_match_request(landlord, tenant, prop)
+    contract = create_contract_ready_for_signing(landlord, tenant, prop, mr)
+    lcc = create_landlord_controlled_contract(landlord, tenant, prop, contract)
+    if lcc:
+        lcc.start_date = _date.today()
+        lcc.end_date = lcc.start_date + relativedelta(months=12)
+        lcc.economic_terms = {
+            "monthly_rent": "1500000",
+            "security_deposit": "1500000",
+        }
+        lcc.save(update_fields=["start_date", "end_date", "economic_terms"])
+        lcc._updated_by = landlord
+        lcc.current_state = "ACTIVE"
+        lcc.save(update_fields=["current_state"])
+
+    # 5) ServiceSubscription activa + Service para el provider
+    try:
+        from services.models import (
+            ServiceCategory,
+            Service,
+            ServiceSubscription,
+            SubscriptionPlan,
+        )
+
+        plan, _ = SubscriptionPlan.objects.get_or_create(
+            slug="plan-demo",
+            defaults={
+                "name": "Plan Demo VeriHome",
+                "description": "Plan estándar para pruebas manuales",
+                "billing_cycle": "monthly",
+                "price": Decimal("50000"),
+                "max_active_services": 10,
+                "max_monthly_requests": 100,
+                "is_active": True,
+            },
+        )
+        ServiceSubscription.objects.update_or_create(
+            service_provider=service_provider,
+            defaults={
+                "plan": plan,
+                "status": "active",
+                "start_date": timezone.now() - timedelta(days=1),
+                "end_date": timezone.now() + timedelta(days=365),
+                "auto_renew": True,
+            },
+        )
+        cat, _ = ServiceCategory.objects.get_or_create(
+            slug="demo-mantenimiento",
+            defaults={
+                "name": "Mantenimiento general",
+                "description": "Categoría demo VeriHome",
+                "is_active": True,
+            },
+        )
+        Service.objects.get_or_create(
+            slug="demo-reparacion-general",
+            defaults={
+                "category": cat,
+                "name": "Reparación general · Demo",
+                "short_description": "Servicio demo para pruebas",
+                "full_description": "Reparaciones generales (plomería, electricidad, pintura)",
+                "pricing_type": "fixed",
+                "base_price": Decimal("180000"),
+                "difficulty": "easy",
+                "estimated_duration": "2h",
+                "is_active": True,
+                "provider": service_provider,
+            },
+        )
+    except Exception as exc:
+        log(f"warn: services setup failed: {exc}")
+
+    # 6) VerificationAgent profile siempre disponible
+    ensure_verification_agent_profile(verification_agent)
+
+    # 7) InterviewCode válido para registros nuevos
+    interview_code = None
+    try:
+        from users.models.interview import InterviewCode
+
+        InterviewCode.objects.filter(code="DEMO2026").delete()
+        interview_code = InterviewCode.objects.create(
+            code="DEMO2026",
+            user_type="tenant",
+            email=f"nuevo.tenant.demo@verihome.local",
+            valid_from=timezone.now() - timedelta(hours=1),
+            valid_until=timezone.now() + timedelta(days=30),
+            created_by=admin,
+            max_uses=10,
+        )
+        log(f"InterviewCode demo: {interview_code.code}")
+    except Exception as exc:
+        log(f"warn: InterviewCode setup failed: {exc}")
+
+    # 8) SupportTicket abierto del tenant
+    ticket = None
+    try:
+        from core.models import SupportTicket
+
+        SupportTicket.objects.filter(
+            subject__startswith="DEMO · ",
+        ).delete()
+        ticket = SupportTicket.objects.create(
+            subject="DEMO · No puedo descargar el PDF del contrato",
+            description="Cuando hago click en descargar el PDF aparece error 500.",
+            category="technical",
+            priority="medium",
+            created_by=tenant,
+            status="open",
+        )
+    except Exception as exc:
+        log(f"warn: SupportTicket setup failed: {exc}")
+
+    return {
+        "property_id": str(prop.id),
+        "property_extra_ids": extra_ids,
+        "match_request_id": str(mr.id),
+        "contract_id": str(contract.id),
+        "lcc_id": str(lcc.id) if lcc else None,
+        "interview_code": interview_code.code if interview_code else None,
+        "ticket_id": str(ticket.id) if ticket else None,
+    }
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "ready_for_bio"
     log(f"mode: {mode}")
@@ -506,6 +691,17 @@ def main():
     }
 
     if mode == "minimal":
+        emit_result(result)
+        return
+
+    if mode == "full_ecosystem":
+        # Modo para pruebas manuales: tenant verificado bypass-VHID,
+        # 4 propiedades, ServiceSubscription, contrato activo con
+        # cronograma, ticket abierto, InterviewCode válido.
+        ext = setup_full_ecosystem(
+            landlord, tenant, guarantor, admin, service_provider, verification_agent
+        )
+        result.update(ext)
         emit_result(result)
         return
 
