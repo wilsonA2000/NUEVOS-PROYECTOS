@@ -89,8 +89,11 @@ class VerificationAgent(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.agent_code:
-            count = VerificationAgent.objects.count() + 1
-            self.agent_code = f"AGT-{count:04d}"
+            from core.numbering import next_global_serial
+
+            self.agent_code = next_global_serial(
+                VerificationAgent, "AGT", "agent_code", padding=4
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -202,9 +205,15 @@ class VerificationVisit(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.visit_number:
-            year = timezone.now().year
-            count = VerificationVisit.objects.filter(created_at__year=year).count() + 1
-            self.visit_number = f"VIS-{year}-{count:05d}"
+            from core.numbering import next_serial
+
+            self.visit_number = next_serial(
+                VerificationVisit,
+                timezone.now().year,
+                "VIS",
+                "visit_number",
+                padding=5,
+            )
         if self.started_at and self.completed_at:
             self.duration_minutes = int(
                 (self.completed_at - self.started_at).total_seconds() / 60
@@ -653,9 +662,15 @@ class FieldVisitAct(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.act_number:
-            year = timezone.now().year
-            count = FieldVisitAct.objects.filter(created_at__year=year).count() + 1
-            self.act_number = f"ACT-{year}-{count:05d}"
+            from core.numbering import next_serial
+
+            self.act_number = next_serial(
+                FieldVisitAct,
+                timezone.now().year,
+                "ACT",
+                "act_number",
+                padding=5,
+            )
         if self.field_request_id:
             self.recompute_score()
         super().save(*args, **kwargs)

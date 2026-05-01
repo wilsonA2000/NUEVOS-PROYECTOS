@@ -538,11 +538,19 @@ class SupportTicket(models.Model):
         return f"Ticket {self.ticket_number} - {self.subject}"
 
     def save(self, *args, **kwargs):
-        # Generar número de ticket único si no existe
+        # Generar número de ticket único si no existe.
+        # Usamos max(numeric)+1 en vez de count()+1 para tolerar huecos
+        # tras borrados (seeds E2E, cleanups).
         if not self.ticket_number:
-            year = timezone.now().year
-            count = SupportTicket.objects.filter(created_at__year=year).count() + 1
-            self.ticket_number = f"SPT-{year}-{count:05d}"
+            from core.numbering import next_serial
+
+            self.ticket_number = next_serial(
+                SupportTicket,
+                timezone.now().year,
+                "SPT",
+                "ticket_number",
+                padding=5,
+            )
 
         super().save(*args, **kwargs)
 

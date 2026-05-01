@@ -303,11 +303,18 @@ class Contract(models.Model):
         return f"{self.contract_number} - {self.title}"
 
     def save(self, *args, **kwargs):
-        # Generar número de contrato único si no existe
+        # Generar número de contrato único si no existe.
+        # max(numeric)+1 en vez de count()+1 para tolerar huecos.
         if not self.contract_number:
-            year = timezone.now().year
-            count = Contract.objects.filter(created_at__year=year).count() + 1
-            self.contract_number = f"VH-{year}-{count:06d}"
+            from core.numbering import next_serial
+
+            self.contract_number = next_serial(
+                Contract,
+                timezone.now().year,
+                "VH",
+                "contract_number",
+                padding=6,
+            )
 
         # Guardar contrato primero
         super().save(*args, **kwargs)
