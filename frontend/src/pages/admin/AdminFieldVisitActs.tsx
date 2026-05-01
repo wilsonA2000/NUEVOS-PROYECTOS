@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import {
   Fingerprint as FingerprintIcon,
+  Insights as InsightsIcon,
   Link as LinkIcon,
   VerifiedUser as VerifiedIcon,
 } from '@mui/icons-material';
@@ -95,19 +96,29 @@ const AdminFieldVisitActs: React.FC = () => {
           </Typography>
         </Stack>
 
-        {chainQuery.isSuccess && (
-          <Chip
-            icon={<LinkIcon />}
-            color={chainQuery.data.ok ? 'success' : 'error'}
-            label={
-              chainQuery.data.ok
-                ? `Cadena íntegra (${chainQuery.data.total} bloque${
-                    chainQuery.data.total === 1 ? '' : 's'
-                  })`
-                : `Cadena rota: ${chainQuery.data.errors.length} error(es)`
-            }
-          />
-        )}
+        <Stack direction='row' spacing={1.5} alignItems='center'>
+          <Button
+            startIcon={<InsightsIcon />}
+            variant='outlined'
+            component={RouterLink}
+            to='/app/admin/verihome-id/scoring'
+          >
+            Scoring
+          </Button>
+          {chainQuery.isSuccess && (
+            <Chip
+              icon={<LinkIcon />}
+              color={chainQuery.data.ok ? 'success' : 'error'}
+              label={
+                chainQuery.data.ok
+                  ? `Cadena íntegra (${chainQuery.data.total} bloque${
+                      chainQuery.data.total === 1 ? '' : 's'
+                    })`
+                  : `Cadena rota: ${chainQuery.data.errors.length} error(es)`
+              }
+            />
+          )}
+        </Stack>
       </Stack>
 
       {chainQuery.isSuccess && !chainQuery.data.ok && (

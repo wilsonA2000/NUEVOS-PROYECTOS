@@ -51,6 +51,9 @@ const AdminFieldVisitActs = lazy(
 const AdminFieldVisitActDetail = lazy(
   () => import('../pages/admin/AdminFieldVisitActDetail'),
 );
+const AdminVerihomeIdScoring = lazy(
+  () => import('../pages/admin/AdminVerihomeIdScoring'),
+);
 
 /**
  * Loading fallback para lazy components
@@ -119,6 +122,12 @@ const AdminRoutes: React.FC = () => {
           <Route
             path='visitas/:actId'
             element={<AdminFieldVisitActDetail />}
+          />
+
+          {/* Scoring VeriHome ID (C12) */}
+          <Route
+            path='verihome-id/scoring'
+            element={<AdminVerihomeIdScoring />}
           />
 
           {/* Catch-all redirect */}

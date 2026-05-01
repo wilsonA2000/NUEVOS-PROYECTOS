@@ -60,6 +60,43 @@ export interface ChainVerification {
   }>;
 }
 
+export type FinalVerdict = 'aprobado' | 'observado' | 'rechazado';
+
+export interface ScoringRow {
+  act_id: string;
+  act_number: string;
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  digital_score_total: string;
+  digital_verdict: 'aprobado' | 'observado' | 'rechazado' | null;
+  visit_score_total: string;
+  visit_score_breakdown: Record<string, number>;
+  total_score: string;
+  final_verdict: FinalVerdict;
+  status: FieldVisitActStatus;
+  block_number: number | null;
+  sealed: boolean;
+  created_at: string;
+}
+
+export interface ScoringResponse {
+  summary: {
+    total: number;
+    aprobados: number;
+    observados: number;
+    rechazados: number;
+  };
+  results: ScoringRow[];
+}
+
+export interface ScoringFilters {
+  verdict?: FinalVerdict;
+  status?: FieldVisitActStatus;
+  min_score?: number;
+  max_score?: number;
+}
+
 const BASE = '/verification/acts';
 
 export const fieldVisitActsApi = {
@@ -117,6 +154,16 @@ export const fieldVisitActsApi = {
 
   async verifyChain(): Promise<ChainVerification> {
     const { data } = await api.get(`${BASE}/verify-chain/`);
+    return data;
+  },
+
+  async scoring(filters?: ScoringFilters): Promise<ScoringResponse> {
+    const params: Record<string, string | number> = {};
+    if (filters?.verdict) params.verdict = filters.verdict;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.min_score !== undefined) params.min_score = filters.min_score;
+    if (filters?.max_score !== undefined) params.max_score = filters.max_score;
+    const { data } = await api.get(`${BASE}/scoring/`, { params });
     return data;
   },
 
