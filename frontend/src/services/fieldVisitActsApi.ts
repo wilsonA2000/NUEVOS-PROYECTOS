@@ -44,6 +44,13 @@ export interface FieldVisitAct {
   geolocation_lat: string | null;
   geolocation_lng: string | null;
   ip_address: string | null;
+  visit_score_breakdown: Record<string, number>;
+  visit_score_total: string;
+  digital_score_total: string;
+  digital_verdict: 'aprobado' | 'observado' | 'rechazado' | null;
+  total_score: string;
+  final_verdict: 'aprobado' | 'observado' | 'rechazado';
+  final_verdict_display: string;
   created_at: string;
   updated_at: string;
 }
@@ -154,6 +161,17 @@ export const fieldVisitActsApi = {
 
   async verifyChain(): Promise<ChainVerification> {
     const { data } = await api.get(`${BASE}/verify-chain/`);
+    return data;
+  },
+
+  async updateVisitScore(
+    id: string,
+    body: {
+      visit_score_breakdown: Record<string, number>;
+      visit_score_total: number;
+    },
+  ): Promise<FieldVisitAct> {
+    const { data } = await api.post(`${BASE}/${id}/visit-score/`, body);
     return data;
   },
 

@@ -1248,3 +1248,97 @@ class ScoringEndpointTests(APITestCase):
             "/api/v1/verification/acts/scoring/?min_score=0.55"
         )
         self.assertEqual(response.data["summary"]["total"], 2)
+
+
+class VisitScoreEndpointTests(APITestCase):
+    """`POST /acts/{id}/visit-score/` valida sub-puntajes y recalcula verdict."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from verification.models import FieldVisitAct
+
+        self.staff = User.objects.create_user(
+            email="vstaff@t.com", password="x",
+            first_name="V", last_name="St",
+            user_type="landlord", is_staff=True,
+        )
+        agent_user = User.objects.create_user(
+            email="vagent@t.com", password="x",
+            first_name="A", last_name="G",
+            user_type="landlord", is_staff=True,
+        )
+        agent = VerificationAgent.objects.create(user=agent_user)
+        self.user = User.objects.create_user(
+            email="vuser@t.com", password="x",
+            first_name="U", last_name="S",
+            user_type="tenant",
+        )
+        fr = FieldVisitRequest.objects.create(
+            user=self.user,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="9",
+            full_name_declared="U S",
+            digital_score={"total": 0.45},
+            digital_score_total=Decimal("0.45"),
+            digital_verdict="aprobado",
+        )
+        visit_obj = VerificationVisit.objects.create(
+            visit_type="tenant",
+            agent=agent,
+            target_user=self.user,
+            visit_address="Cr 1",
+            scheduled_date=timezone.now().date(),
+        )
+        self.act = FieldVisitAct.objects.create(
+            field_request=fr,
+            visit=visit_obj,
+        )
+
+    def test_visit_score_total_out_of_range_rejected(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            f"/api/v1/verification/acts/{self.act.id}/visit-score/",
+            {
+                "visit_score_breakdown": {"cedula_real": 0.10},
+                "visit_score_total": "0.99",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_score_recomputes_verdict(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            f"/api/v1/verification/acts/{self.act.id}/visit-score/",
+            {
+                "visit_score_breakdown": {
+                    "cedula_real": 0.10,
+                    "observacion_visual": 0.05,
+                    "recibo_publico": 0.05,
+                    "comprobante_laboral": 0.05,
+                    "email_otp": 0.05,
+                    "telefono_otp": 0.05,
+                    "cruces_oficiales": 0.05,
+                    "inmueble_existe": 0.00,
+                },
+                "visit_score_total": "0.40",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["final_verdict"], "aprobado")
+        self.assertEqual(str(response.data["visit_score_total"]), "0.400")
+
+    def test_visit_score_blocked_when_not_draft(self):
+        self.act.status = "signed_by_parties"
+        self.act.save()
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.post(
+            f"/api/v1/verification/acts/{self.act.id}/visit-score/",
+            {
+                "visit_score_breakdown": {},
+                "visit_score_total": "0.10",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

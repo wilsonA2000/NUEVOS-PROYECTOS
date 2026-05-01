@@ -30,6 +30,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 
 import LawyerSignDialog from '../../components/admin/LawyerSignDialog';
+import VisitScoreEditor from '../../components/admin/VisitScoreEditor';
 import {
   FieldVisitAct,
   fieldVisitActsApi,
@@ -245,6 +246,63 @@ const AdminFieldVisitActDetail: React.FC = () => {
           ],
         ]}
       />
+
+      <Box sx={{ mb: 2 }}>
+        <VisitScoreEditor
+          actId={act.id}
+          initialBreakdown={act.visit_score_breakdown}
+          initialTotal={parseFloat(act.visit_score_total || '0')}
+          disabled={act.status !== 'draft'}
+        />
+      </Box>
+
+      <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
+        <Typography variant='subtitle1' fontWeight={600} gutterBottom>
+          Veredicto compuesto
+        </Typography>
+        <Stack
+          direction='row'
+          spacing={3}
+          alignItems='center'
+          justifyContent='space-between'
+          flexWrap='wrap'
+        >
+          <Stack>
+            <Typography variant='caption' color='text.secondary'>
+              Digital
+            </Typography>
+            <Typography variant='h6'>
+              {parseFloat(act.digital_score_total || '0').toFixed(3)}
+            </Typography>
+          </Stack>
+          <Stack>
+            <Typography variant='caption' color='text.secondary'>
+              Visita
+            </Typography>
+            <Typography variant='h6'>
+              {parseFloat(act.visit_score_total || '0').toFixed(3)}
+            </Typography>
+          </Stack>
+          <Stack>
+            <Typography variant='caption' color='text.secondary'>
+              Total
+            </Typography>
+            <Typography variant='h5' fontWeight={700}>
+              {parseFloat(act.total_score || '0').toFixed(3)}
+            </Typography>
+          </Stack>
+          <Chip
+            color={
+              act.final_verdict === 'aprobado'
+                ? 'success'
+                : act.final_verdict === 'observado'
+                  ? 'warning'
+                  : 'error'
+            }
+            label={act.final_verdict_display}
+          />
+        </Stack>
+      </Paper>
 
       <Section
         title='Cadena de integridad'

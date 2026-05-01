@@ -544,6 +544,66 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
             )
         return super().partial_update(request, *args, **kwargs)
 
+    @action(detail=True, methods=["post"], url_path="visit-score")
+    def update_visit_score(self, request, pk=None):
+        """
+        Actualiza `visit_score_breakdown` (sub-puntajes 0.0-0.5) y
+        `visit_score_total` del acta. Solo en estado draft. El total
+        debe estar en [0, 0.5]; cada sub-puntaje en [0, 0.5].
+        El final_verdict y total_score se recalculan al save().
+        """
+        from decimal import Decimal, InvalidOperation
+
+        act = self.get_object()
+        if act.status != "draft":
+            return Response(
+                {"detail": "El score de visita solo se edita en draft."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        breakdown = request.data.get("visit_score_breakdown") or {}
+        total_raw = request.data.get("visit_score_total")
+        if total_raw is None:
+            return Response(
+                {"detail": "`visit_score_total` es obligatorio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            total = Decimal(str(total_raw))
+        except (InvalidOperation, ValueError):
+            return Response(
+                {"detail": "`visit_score_total` debe ser numérico."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if total < Decimal("0") or total > Decimal("0.5"):
+            return Response(
+                {"detail": "`visit_score_total` debe estar entre 0.0 y 0.5."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not isinstance(breakdown, dict):
+            return Response(
+                {"detail": "`visit_score_breakdown` debe ser un objeto."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        for key, value in breakdown.items():
+            try:
+                v = Decimal(str(value))
+            except (InvalidOperation, ValueError):
+                return Response(
+                    {"detail": f"`{key}` debe ser numérico."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if v < Decimal("0") or v > Decimal("0.5"):
+                return Response(
+                    {"detail": f"`{key}` debe estar entre 0.0 y 0.5."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        act.visit_score_breakdown = breakdown
+        act.visit_score_total = total
+        act.save()
+        return Response(self.get_serializer(act).data)
+
     @action(detail=True, methods=["post"], url_path="parties-sign")
     def parties_sign(self, request, pk=None):
         """
