@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { vhColors } from '../../theme/tokens';
+import VerihomeIdGate from '../verihome-id/VerihomeIdGate';
 
 // Interfaces exactas del backend
 interface Property {
@@ -1057,26 +1058,28 @@ Puedes incluir:
                   Siguiente
                 </Button>
               ) : (
-                <Button
-                  type='submit'
-                  variant='contained'
-                  startIcon={
-                    isSubmitting ? (
-                      <CircularProgress size={20} color='inherit' />
-                    ) : (
-                      <SendIcon />
-                    )
-                  }
-                  disabled={isSubmitting}
-                  sx={{
-                    backgroundColor: 'var(--color-primary)',
-                    '&:hover': {
-                      backgroundColor: 'var(--color-primary-dark)',
-                    },
-                  }}
-                >
-                  {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
-                </Button>
+                <VerihomeIdGate action='apply_match'>
+                  <Button
+                    type='submit'
+                    variant='contained'
+                    startIcon={
+                      isSubmitting ? (
+                        <CircularProgress size={20} color='inherit' />
+                      ) : (
+                        <SendIcon />
+                      )
+                    }
+                    disabled={isSubmitting}
+                    sx={{
+                      backgroundColor: 'var(--color-primary)',
+                      '&:hover': {
+                        backgroundColor: 'var(--color-primary-dark)',
+                      },
+                    }}
+                  >
+                    {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
+                  </Button>
+                </VerihomeIdGate>
               )}
             </Box>
           </Box>

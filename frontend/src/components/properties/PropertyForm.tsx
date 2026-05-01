@@ -54,6 +54,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { TransitionProps } from '@mui/material/transitions';
 import { vhColors } from '../../theme/tokens';
+import VerihomeIdGate from '../verihome-id/VerihomeIdGate';
 
 // Componente de transición para el modal de éxito
 const Transition = React.forwardRef(function Transition(
@@ -2111,22 +2112,39 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                   >
                     Cancelar
                   </Button>
-                  <Button
-                    type='submit'
-                    variant='contained'
-                    disabled={isLoading}
-                    startIcon={
-                      isLoading ? <CircularProgress size={20} /> : <SaveIcon />
-                    }
-                  >
-                    {isLoading
-                      ? isEditMode
-                        ? 'Actualizando...'
-                        : 'Creando...'
-                      : isEditMode
-                        ? 'Actualizar Propiedad'
-                        : 'Crear Propiedad'}
-                  </Button>
+                  {isEditMode ? (
+                    <Button
+                      type='submit'
+                      variant='contained'
+                      disabled={isLoading}
+                      startIcon={
+                        isLoading ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <SaveIcon />
+                        )
+                      }
+                    >
+                      {isLoading ? 'Actualizando...' : 'Actualizar Propiedad'}
+                    </Button>
+                  ) : (
+                    <VerihomeIdGate action='create_property'>
+                      <Button
+                        type='submit'
+                        variant='contained'
+                        disabled={isLoading}
+                        startIcon={
+                          isLoading ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <SaveIcon />
+                          )
+                        }
+                      >
+                        {isLoading ? 'Creando...' : 'Crear Propiedad'}
+                      </Button>
+                    </VerihomeIdGate>
+                  )}
                 </Box>
               </Grid>
             </Grid>
