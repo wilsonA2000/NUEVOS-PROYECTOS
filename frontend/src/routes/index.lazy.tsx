@@ -154,6 +154,9 @@ const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
 const VeriHomeIDOnboardingPage = lazy(
   () => import('../pages/verihome-id/VeriHomeIDOnboardingPage'),
 );
+const AgentVisitsQueue = lazy(
+  () => import('../pages/agent/AgentVisitsQueue'),
+);
 
 // 🔐 ADMIN ROUTES (Plan Maestro V2.0)
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
@@ -745,6 +748,15 @@ export const AppRoutes: React.FC = () => {
           element={
             <LazyRoute type='form'>
               <VeriHomeIDOnboardingPage />
+            </LazyRoute>
+          }
+        />
+        {/* E5 · Cola de visitas del agente verificador */}
+        <Route
+          path='agente/visitas'
+          element={
+            <LazyRoute type='dashboard'>
+              <AgentVisitsQueue />
             </LazyRoute>
           }
         />

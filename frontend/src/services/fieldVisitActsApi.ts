@@ -84,6 +84,9 @@ export interface ScoringRow {
   status: FieldVisitActStatus;
   block_number: number | null;
   sealed: boolean;
+  agent_id: string | null;
+  agent_name: string | null;
+  days_waiting: number;
   created_at: string;
 }
 
@@ -102,6 +105,7 @@ export interface ScoringFilters {
   status?: FieldVisitActStatus;
   min_score?: number;
   max_score?: number;
+  agent_id?: string;
 }
 
 const BASE = '/verification/acts';
@@ -181,6 +185,7 @@ export const fieldVisitActsApi = {
     if (filters?.status) params.status = filters.status;
     if (filters?.min_score !== undefined) params.min_score = filters.min_score;
     if (filters?.max_score !== undefined) params.max_score = filters.max_score;
+    if (filters?.agent_id) params.agent_id = filters.agent_id;
     const { data } = await api.get(`${BASE}/scoring/`, { params });
     return data;
   },

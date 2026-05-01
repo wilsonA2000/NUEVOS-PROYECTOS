@@ -10,6 +10,7 @@ import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -37,6 +38,7 @@ import {
   Insights as InsightsIcon,
   Warning as WarningIcon,
   Cancel as CancelIcon,
+  FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
@@ -173,13 +175,78 @@ const AdminVerihomeIdScoring: React.FC = () => {
     queryFn: () => fieldVisitActsApi.scoring(filters),
   });
 
+  const handleExportCsv = () => {
+    if (!query.data || query.data.results.length === 0) return;
+    const headers = [
+      'act_number',
+      'user_email',
+      'user_name',
+      'digital_score',
+      'visit_score',
+      'total_score',
+      'final_verdict',
+      'status',
+      'agent_name',
+      'days_waiting',
+      'block_number',
+      'created_at',
+    ];
+    const escape = (v: unknown) => {
+      const s = v === null || v === undefined ? '' : String(v);
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+    const rows = query.data.results.map(r =>
+      [
+        r.act_number,
+        r.user_email,
+        r.user_name,
+        r.digital_score_total,
+        r.visit_score_total,
+        r.total_score,
+        r.final_verdict,
+        r.status,
+        r.agent_name,
+        r.days_waiting,
+        r.block_number ?? '',
+        r.created_at,
+      ]
+        .map(escape)
+        .join(','),
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const today = new Date().toISOString().split('T')[0];
+    link.download = `verihome_id_scoring_${today}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
-      <Stack direction='row' spacing={1.5} alignItems='center' sx={{ mb: 3 }}>
-        <InsightsIcon color='primary' />
-        <Typography variant='h5' fontWeight={600}>
-          Scoring VeriHome ID
-        </Typography>
+      <Stack
+        direction='row'
+        spacing={1.5}
+        alignItems='center'
+        justifyContent='space-between'
+        sx={{ mb: 3 }}
+      >
+        <Stack direction='row' spacing={1.5} alignItems='center'>
+          <InsightsIcon color='primary' />
+          <Typography variant='h5' fontWeight={600}>
+            Scoring VeriHome ID
+          </Typography>
+        </Stack>
+        <Button
+          startIcon={<FileDownloadIcon />}
+          variant='outlined'
+          disabled={!query.data || query.data.results.length === 0}
+          onClick={() => handleExportCsv()}
+        >
+          Exportar CSV
+        </Button>
       </Stack>
 
       {query.data && (
@@ -298,6 +365,7 @@ const AdminVerihomeIdScoring: React.FC = () => {
                   <TableCell>Total</TableCell>
                   <TableCell>Veredicto</TableCell>
                   <TableCell>Estado</TableCell>
+                  <TableCell>Días</TableCell>
                   <TableCell>Bloque</TableCell>
                 </TableRow>
               </TableHead>
@@ -353,6 +421,28 @@ const AdminVerihomeIdScoring: React.FC = () => {
                         variant='outlined'
                         label={row.status}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title={
+                          row.agent_name
+                            ? `Asignado a ${row.agent_name}`
+                            : 'Sin agente asignado'
+                        }
+                        arrow
+                      >
+                        <Typography
+                          variant='body2'
+                          color={
+                            row.days_waiting > 7
+                              ? 'error.main'
+                              : 'text.secondary'
+                          }
+                          fontWeight={row.days_waiting > 7 ? 600 : 400}
+                        >
+                          {row.days_waiting}d
+                        </Typography>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       {row.block_number !== null

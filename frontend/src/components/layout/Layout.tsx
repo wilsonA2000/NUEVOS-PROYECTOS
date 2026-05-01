@@ -45,8 +45,10 @@ import {
   CardMembership,
   AdminPanelSettings,
 } from '@mui/icons-material';
+import { Badge } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import { useVerihomeIdStatus } from '../../hooks/useVerihomeIdStatus';
 import PushNotificationCenter from '../notifications/PushNotificationCenter';
 import UserStatusSelector from '../users/UserStatusSelector';
 import OptimizedWebSocketStatus from '../common/OptimizedWebSocketStatus';
@@ -65,6 +67,12 @@ const baseMenuItems = [
   { key: 'nav.ratings', icon: <Star />, path: '/app/ratings' },
   { key: 'nav.services', icon: <Build />, path: '/app/services' },
   { key: 'nav.requests', icon: <Assessment />, path: '/app/requests' },
+  {
+    key: 'VeriHome ID',
+    icon: <Fingerprint />,
+    path: '/app/verihome-id/onboarding',
+    verihomeIdItem: true,
+  },
 ];
 
 // Items adicionales por rol
@@ -101,6 +109,9 @@ const Layout: React.FC = () => {
 
   // No WebSocket dependency for user status
   const { user, logout } = useAuth();
+  const verihomeIdStatus = useVerihomeIdStatus();
+  const verihomeIdPending =
+    !!verihomeIdStatus.data && !verihomeIdStatus.data.is_verified;
 
   // Build menu items based on user role
   const menuItemsDef = [
@@ -222,7 +233,14 @@ const Layout: React.FC = () => {
                     minWidth: { xs: 32, sm: 56 },
                   }}
                 >
-                  {item.icon}
+                  {(item as { verihomeIdItem?: boolean }).verihomeIdItem &&
+                  verihomeIdPending ? (
+                    <Badge color='warning' variant='dot' overlap='circular'>
+                      {item.icon}
+                    </Badge>
+                  ) : (
+                    item.icon
+                  )}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.text}
