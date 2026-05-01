@@ -57,6 +57,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { api } from '../../services/api';
+import VerihomeIdBanner from '../../components/verihome-id/VerihomeIdBanner';
 import { formatCurrency } from '../../utils/formatters';
 import {
   Chart as ChartJS,
@@ -639,6 +640,7 @@ const NewDashboard: React.FC = () => {
 
   return (
     <Container maxWidth='xl' sx={{ py: 4 }}>
+      <VerihomeIdBanner />
       {/* Header */}
       <Box mb={4}>
         <Box

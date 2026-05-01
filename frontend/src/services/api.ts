@@ -198,7 +198,33 @@ api.interceptors.response.use(
         window.dispatchEvent(new CustomEvent('tokenInvalid'));
         break;
       case 403:
-        // console.error('Acceso denegado:', data);
+        // VHID-ENF: detectar bloqueo por VeriHome ID y disparar evento
+        // global para que VerihomeIdGate / Snackbar reaccionen.
+        try {
+          const body = error.response?.data;
+          const code =
+            (body && (body.code || body.detail?.code)) || undefined;
+          if (code === 'verihome_id_required') {
+            window.dispatchEvent(
+              new CustomEvent('verihomeIdRequired', {
+                detail: {
+                  next_step:
+                    body.next_step ||
+                    body.detail?.next_step ||
+                    'start_onboarding',
+                  message:
+                    body.detail && typeof body.detail === 'string'
+                      ? body.detail
+                      : body.detail?.detail ||
+                        'Verificación VeriHome ID requerida.',
+                },
+              }),
+            );
+          }
+        } catch {
+          // best-effort: si la respuesta no es parseable seguimos sin
+          // disparar evento.
+        }
         break;
       case 404:
         // console.error('Recurso no encontrado:', error.config.url);

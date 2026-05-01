@@ -14,6 +14,7 @@ import OptimizedWebSocketProvider from './contexts/OptimizedWebSocketContext';
 import { initSentry, SentryErrorBoundary } from './services/sentryService';
 import OfflineIndicator from './components/common/OfflineIndicator';
 import UpdatePrompt from './components/common/UpdatePrompt';
+import VerihomeIdRequiredListener from './components/verihome-id/VerihomeIdRequiredListener';
 import { SnackbarProvider } from './contexts/SnackbarContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
@@ -72,6 +73,7 @@ function App() {
                     <NotificationWrapper>
                       <OfflineIndicator />
                       <UpdatePrompt />
+                      <VerihomeIdRequiredListener />
                       <AppRoutes />
                       <ScrollToTopButton />
                     </NotificationWrapper>
