@@ -289,7 +289,8 @@ describe('useMatchRequests Hook', () => {
     expect(result.current.getStatusColor('pending')).toBe('primary');
     expect(result.current.getStatusText('pending')).toBe('Pendiente');
     expect(result.current.getPriorityColor('medium')).toBe('warning');
-    expect(result.current.formatCurrency(2500000)).toContain('2,500,000');
+    // matchingService usa Intl.NumberFormat('es-CO') → separador de miles "."
+    expect(result.current.formatCurrency(2500000)).toContain('2.500.000');
   });
 
   it('should check expiry status', async () => {

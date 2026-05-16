@@ -8,27 +8,25 @@ function makeFaceApi(opts: {
   targetDescriptor: Float32Array | null;
   distance?: number;
 }): FaceApiModule {
+  // detectSingleFace se llama 2 veces (Promise.all en compareFaceImages).
+  // Cada llamada crea su propia chain .withFaceLandmarks().withFaceDescriptor(),
+  // por lo que el contador interno de mockResolvedValueOnce se resetea por
+  // chain. Distinguimos primera (source) vs segunda (target) en mockImplementationOnce.
+  const chainFor = (descriptor: Float32Array | null) => ({
+    withFaceLandmarks: () => ({
+      withFaceDescriptor: () =>
+        Promise.resolve(descriptor ? { descriptor } : undefined),
+      run: jest.fn(),
+    }),
+    run: jest.fn(),
+  });
   return {
     nets: {} as never,
     TinyFaceDetectorOptions: function () {} as never,
-    detectSingleFace: jest.fn().mockImplementation(() => ({
-      withFaceLandmarks: () => ({
-        withFaceDescriptor: jest
-          .fn()
-          .mockResolvedValueOnce(
-            opts.sourceDescriptor
-              ? { descriptor: opts.sourceDescriptor }
-              : undefined,
-          )
-          .mockResolvedValueOnce(
-            opts.targetDescriptor
-              ? { descriptor: opts.targetDescriptor }
-              : undefined,
-          ),
-        run: jest.fn(),
-      }),
-      run: jest.fn(),
-    })),
+    detectSingleFace: jest
+      .fn()
+      .mockImplementationOnce(() => chainFor(opts.sourceDescriptor))
+      .mockImplementationOnce(() => chainFor(opts.targetDescriptor)),
     euclideanDistance: jest.fn().mockReturnValue(opts.distance ?? 0.5),
   } as unknown as FaceApiModule;
 }

@@ -416,10 +416,11 @@ describe('AdminContractReview', () => {
     const volverButton = screen.getByRole('button', { name: /Volver/i });
     expect(volverButton).toBeInTheDocument();
 
-    // Breadcrumbs
+    // Breadcrumbs: "Revisi\u00f3n" aparece tanto en breadcrumb como en header,
+    // as\u00ed que validamos que al menos un nodo lo contenga.
     expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Contratos')).toBeInTheDocument();
-    expect(screen.getByText(/Revisi\u00f3n/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Revisi\u00f3n/i).length).toBeGreaterThan(0);
   });
 
   it('should show urgent alert when contract is urgent', async () => {
