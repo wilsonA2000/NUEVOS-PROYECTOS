@@ -105,7 +105,7 @@ class VerificationAgentViewSet(viewsets.ModelViewSet):
         total = VerificationAgent.objects.count()
         available = VerificationAgent.objects.filter(is_available=True).count()
         visits_today = VerificationVisit.objects.filter(
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
             status__in=["scheduled", "in_progress"],
         ).count()
         visits_pending = VerificationVisit.objects.filter(status="pending").count()
@@ -529,9 +529,20 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
             status="draft",
         )
 
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        # PUT excluido vía http_method_names. Devolvemos 405 con mensaje
+        # explicativo en lugar del genérico de DRF.
+        from rest_framework.exceptions import MethodNotAllowed
+
+        if request.method == "PUT":
+            raise MethodNotAllowed(
+                "PUT",
+                detail="Use PATCH para editar el borrador del acta.",
+            )
+        return super().http_method_not_allowed(request, *args, **kwargs)
+
     def partial_update(self, request, *args, **kwargs):
-        # PUT está bloqueado vía http_method_names (DRF devuelve 405).
-        # Aquí restringimos PATCH a actas en estado draft.
+        # PATCH solo se permite mientras el acta está en draft.
         instance = self.get_object()
         if instance.status != "draft":
             return Response(
