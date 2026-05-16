@@ -105,6 +105,14 @@ const AdminFieldVisitActs: React.FC = () => {
           >
             Scoring
           </Button>
+          <Button
+            startIcon={<InsightsIcon />}
+            variant='outlined'
+            component={RouterLink}
+            to='/app/admin/verihome-id/analytics'
+          >
+            Analytics
+          </Button>
           {chainQuery.isSuccess && (
             <Chip
               icon={<LinkIcon />}

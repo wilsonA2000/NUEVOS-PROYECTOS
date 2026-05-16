@@ -192,6 +192,9 @@ const AdminFieldVisitActDetail = lazy(
 const AdminVerihomeIdScoring = lazy(
   () => import('../pages/admin/AdminVerihomeIdScoring'),
 );
+const AdminVerihomeIdAnalytics = lazy(
+  () => import('../pages/admin/AdminVerihomeIdAnalytics'),
+);
 
 // Componentes de loading especializados
 const PageLoader: React.FC = () => (
@@ -897,6 +900,15 @@ export const AppRoutes: React.FC = () => {
           element={
             <LazyRoute type='page'>
               <AdminVerihomeIdScoring />
+            </LazyRoute>
+          }
+        />
+        {/* F5 · Analytics VeriHome ID */}
+        <Route
+          path='verihome-id/analytics'
+          element={
+            <LazyRoute type='page'>
+              <AdminVerihomeIdAnalytics />
             </LazyRoute>
           }
         />

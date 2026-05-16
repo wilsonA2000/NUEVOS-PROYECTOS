@@ -108,6 +108,38 @@ export interface ScoringFilters {
   agent_id?: string;
 }
 
+export interface AnalyticsTimelineEntry {
+  month: string;
+  total: number;
+  aprobado: number;
+  observado: number;
+  rechazado: number;
+}
+
+export interface AnalyticsResponse {
+  summary: {
+    total: number;
+    aprobados: number;
+    observados: number;
+    rechazados: number;
+    avg_total_score: number;
+    avg_visit_score: number;
+    avg_digital_score: number;
+    sealed_count: number;
+    draft_count: number;
+  };
+  by_verdict: Record<FinalVerdict, number>;
+  by_status: Record<FieldVisitActStatus, number>;
+  timeline: AnalyticsTimelineEntry[];
+  subscore_avg: Record<string, number>;
+  window_months: number;
+}
+
+export interface AnalyticsFilters {
+  agent_id?: string;
+  months?: number;
+}
+
 const BASE = '/verification/acts';
 
 export const fieldVisitActsApi = {
@@ -187,6 +219,14 @@ export const fieldVisitActsApi = {
     if (filters?.max_score !== undefined) params.max_score = filters.max_score;
     if (filters?.agent_id) params.agent_id = filters.agent_id;
     const { data } = await api.get(`${BASE}/scoring/`, { params });
+    return data;
+  },
+
+  async analytics(filters?: AnalyticsFilters): Promise<AnalyticsResponse> {
+    const params: Record<string, string | number> = {};
+    if (filters?.agent_id) params.agent_id = filters.agent_id;
+    if (filters?.months) params.months = filters.months;
+    const { data } = await api.get(`${BASE}/analytics/`, { params });
     return data;
   },
 

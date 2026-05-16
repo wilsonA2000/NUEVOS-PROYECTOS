@@ -839,6 +839,112 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         }
         return Response({"summary": summary, "results": results})
 
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="analytics",
+        permission_classes=[permissions.IsAuthenticated, IsStaffUser],
+    )
+    def analytics(self, request):
+        """
+        Métricas agregadas de actas VeriHome ID para dashboards.
+
+        Filtros opcionales:
+          - agent_id=<uuid>            limita al agente
+          - months=<int>               ventana temporal (default 6, máx 24)
+
+        Responde:
+          - summary: totales globales y promedios.
+          - by_verdict, by_status: conteos para gráficos de torta/barras.
+          - timeline: evolución mensual por veredicto.
+          - subscore_avg: promedio por sub-puntaje de visita.
+        """
+        from decimal import Decimal
+        from collections import defaultdict
+        from datetime import timedelta
+
+        qs = FieldVisitAct.objects.select_related(
+            "field_request", "visit"
+        ).all()
+
+        agent_id = request.query_params.get("agent_id")
+        if agent_id:
+            qs = qs.filter(visit__agent_id=agent_id)
+
+        try:
+            months = min(max(int(request.query_params.get("months") or 6), 1), 24)
+        except (TypeError, ValueError):
+            months = 6
+
+        window_start = timezone.localdate().replace(day=1) - timedelta(days=31 * (months - 1))
+        recent_qs = qs.filter(created_at__date__gte=window_start)
+
+        by_verdict = {"aprobado": 0, "observado": 0, "rechazado": 0}
+        by_status = {"draft": 0, "signed_by_parties": 0, "signed_by_lawyer": 0, "sealed": 0}
+        subscore_sum: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+        subscore_count: dict[str, int] = defaultdict(int)
+        timeline_buckets: dict[str, dict[str, int]] = defaultdict(
+            lambda: {"total": 0, "aprobado": 0, "observado": 0, "rechazado": 0}
+        )
+
+        total_score_sum = Decimal("0")
+        visit_score_sum = Decimal("0")
+        digital_score_sum = Decimal("0")
+
+        for act in qs:
+            by_verdict[act.final_verdict] = by_verdict.get(act.final_verdict, 0) + 1
+            by_status[act.status] = by_status.get(act.status, 0) + 1
+            total_score_sum += act.total_score or Decimal("0")
+            visit_score_sum += act.visit_score_total or Decimal("0")
+            digital_score_sum += act.field_request.digital_score_total or Decimal("0")
+            for key, value in (act.visit_score_breakdown or {}).items():
+                try:
+                    subscore_sum[key] += Decimal(str(value))
+                    subscore_count[key] += 1
+                except Exception:
+                    continue
+
+        for act in recent_qs:
+            month_key = act.created_at.strftime("%Y-%m")
+            bucket = timeline_buckets[month_key]
+            bucket["total"] += 1
+            bucket[act.final_verdict] = bucket.get(act.final_verdict, 0) + 1
+
+        total = qs.count()
+        avg = lambda s: float((s / total).quantize(Decimal("0.001"))) if total else 0.0  # noqa: E731
+
+        timeline = [
+            {"month": k, **v}
+            for k, v in sorted(timeline_buckets.items())
+        ]
+
+        subscore_avg = {
+            key: float((subscore_sum[key] / subscore_count[key]).quantize(Decimal("0.001")))
+            for key in subscore_sum
+            if subscore_count[key] > 0
+        }
+
+        return Response(
+            {
+                "summary": {
+                    "total": total,
+                    "aprobados": by_verdict.get("aprobado", 0),
+                    "observados": by_verdict.get("observado", 0),
+                    "rechazados": by_verdict.get("rechazado", 0),
+                    "avg_total_score": avg(total_score_sum),
+                    "avg_visit_score": avg(visit_score_sum),
+                    "avg_digital_score": avg(digital_score_sum),
+                    "sealed_count": by_status.get("sealed", 0),
+                    "draft_count": by_status.get("draft", 0),
+                },
+                "by_verdict": by_verdict,
+                "by_status": by_status,
+                "timeline": timeline,
+                "subscore_avg": subscore_avg,
+                "window_months": months,
+            }
+        )
+
 
 def _client_ip_from_request(request):
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
