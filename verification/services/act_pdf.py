@@ -62,10 +62,13 @@ def _build_styles():
 
 def _kv_table(rows):
     """Crea tabla 2 columnas con etiqueta + valor."""
-    safe_rows = [[Paragraph(k, _SHARED_STYLES["ActBody"]),
-                  Paragraph(str(v) if v is not None else "—",
-                            _SHARED_STYLES["ActBody"])]
-                 for k, v in rows]
+    safe_rows = [
+        [
+            Paragraph(k, _SHARED_STYLES["ActBody"]),
+            Paragraph(str(v) if v is not None else "—", _SHARED_STYLES["ActBody"]),
+        ]
+        for k, v in rows
+    ]
     table = Table(safe_rows, colWidths=[2.0 * inch, 4.4 * inch])
     table.setStyle(
         TableStyle(
@@ -249,7 +252,10 @@ def render_act_pdf(act) -> bytes:
         _kv_table(
             [
                 ("Score total", section_viii.get("score_total", "—")),
-                ("Decisión", section_viii.get("verdict", act.field_request.digital_verdict)),
+                (
+                    "Decisión",
+                    section_viii.get("verdict", act.field_request.digital_verdict),
+                ),
                 ("Razones", section_viii.get("reasons", "—")),
             ]
         )
@@ -261,12 +267,14 @@ def render_act_pdf(act) -> bytes:
             [
                 (
                     "Verificado",
-                    f"Firmado el {act.verified_signed_at}" if act.verified_signed_at
+                    f"Firmado el {act.verified_signed_at}"
+                    if act.verified_signed_at
                     else "Pendiente",
                 ),
                 (
                     "Agente",
-                    f"Firmado el {act.agent_signed_at}" if act.agent_signed_at
+                    f"Firmado el {act.agent_signed_at}"
+                    if act.agent_signed_at
                     else "Pendiente",
                 ),
                 (

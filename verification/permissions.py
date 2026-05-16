@@ -55,9 +55,7 @@ class VerihomeIDRequired(permissions.BasePermission):
         from verification.models import FieldVisitRequest
 
         last = (
-            FieldVisitRequest.objects.filter(user=user)
-            .order_by("-created_at")
-            .first()
+            FieldVisitRequest.objects.filter(user=user).order_by("-created_at").first()
         )
         if not last:
             return "start_onboarding"

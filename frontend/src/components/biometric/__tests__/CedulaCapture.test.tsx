@@ -84,7 +84,9 @@ describe('CedulaCapture', () => {
       />,
     );
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Cancelar/i }),
+      ).toBeInTheDocument();
     });
   });
 });

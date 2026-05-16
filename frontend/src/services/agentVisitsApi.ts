@@ -52,7 +52,7 @@ export const agentVisitsApi = {
     status?: VerificationVisitStatus;
   }): Promise<VerificationVisit[]> {
     const { data } = await api.get(`${BASE}/`, { params });
-    return Array.isArray(data) ? data : (data?.results ?? []);
+    return Array.isArray(data) ? data : data?.results ?? [];
   },
 
   async start(id: string): Promise<VerificationVisit> {

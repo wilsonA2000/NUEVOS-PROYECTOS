@@ -435,9 +435,7 @@ class FieldVisitRequestViewSet(viewsets.GenericViewSet):
         """
         user = request.user
         last = (
-            FieldVisitRequest.objects.filter(user=user)
-            .order_by("-created_at")
-            .first()
+            FieldVisitRequest.objects.filter(user=user).order_by("-created_at").first()
         )
         act = None
         if last:
@@ -497,8 +495,11 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = FieldVisitAct.objects.select_related(
-            "field_request", "field_request__user",
-            "visit", "visit__agent", "visit__agent__user",
+            "field_request",
+            "field_request__user",
+            "visit",
+            "visit__agent",
+            "visit__agent__user",
             "lawyer_user",
         ).all()
         if not self.request.user.is_staff:
@@ -628,11 +629,7 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         agent_sig = request.data.get("agent_signature")
         if not verified_sig or not agent_sig:
             return Response(
-                {
-                    "detail": (
-                        "Se requieren `verified_signature` y `agent_signature`."
-                    )
-                },
+                {"detail": ("Se requieren `verified_signature` y `agent_signature`.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         now = timezone.now()
@@ -806,9 +803,7 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
                 "user_id": str(act.field_request.user_id),
                 "user_email": act.field_request.user.email,
                 "user_name": act.field_request.user.get_full_name(),
-                "digital_score_total": str(
-                    act.field_request.digital_score_total or 0
-                ),
+                "digital_score_total": str(act.field_request.digital_score_total or 0),
                 "digital_verdict": act.field_request.digital_verdict,
                 "visit_score_total": str(act.visit_score_total or 0),
                 "visit_score_breakdown": act.visit_score_breakdown or {},
@@ -818,7 +813,8 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
                 "block_number": act.block_number,
                 "sealed": act.status == "sealed",
                 "agent_id": (
-                    str(act.visit.agent_id) if act.visit and act.visit.agent_id
+                    str(act.visit.agent_id)
+                    if act.visit and act.visit.agent_id
                     else None
                 ),
                 "agent_name": (
@@ -863,9 +859,7 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         from collections import defaultdict
         from datetime import timedelta
 
-        qs = FieldVisitAct.objects.select_related(
-            "field_request", "visit"
-        ).all()
+        qs = FieldVisitAct.objects.select_related("field_request", "visit").all()
 
         agent_id = request.query_params.get("agent_id")
         if agent_id:
@@ -876,11 +870,18 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         except (TypeError, ValueError):
             months = 6
 
-        window_start = timezone.localdate().replace(day=1) - timedelta(days=31 * (months - 1))
+        window_start = timezone.localdate().replace(day=1) - timedelta(
+            days=31 * (months - 1)
+        )
         recent_qs = qs.filter(created_at__date__gte=window_start)
 
         by_verdict = {"aprobado": 0, "observado": 0, "rechazado": 0}
-        by_status = {"draft": 0, "signed_by_parties": 0, "signed_by_lawyer": 0, "sealed": 0}
+        by_status = {
+            "draft": 0,
+            "signed_by_parties": 0,
+            "signed_by_lawyer": 0,
+            "sealed": 0,
+        }
         subscore_sum: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
         subscore_count: dict[str, int] = defaultdict(int)
         timeline_buckets: dict[str, dict[str, int]] = defaultdict(
@@ -913,13 +914,12 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
         total = qs.count()
         avg = lambda s: float((s / total).quantize(Decimal("0.001"))) if total else 0.0  # noqa: E731
 
-        timeline = [
-            {"month": k, **v}
-            for k, v in sorted(timeline_buckets.items())
-        ]
+        timeline = [{"month": k, **v} for k, v in sorted(timeline_buckets.items())]
 
         subscore_avg = {
-            key: float((subscore_sum[key] / subscore_count[key]).quantize(Decimal("0.001")))
+            key: float(
+                (subscore_sum[key] / subscore_count[key]).quantize(Decimal("0.001"))
+            )
             for key in subscore_sum
             if subscore_count[key] > 0
         }

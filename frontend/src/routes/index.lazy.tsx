@@ -154,9 +154,7 @@ const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
 const VeriHomeIDOnboardingPage = lazy(
   () => import('../pages/verihome-id/VeriHomeIDOnboardingPage'),
 );
-const AgentVisitsQueue = lazy(
-  () => import('../pages/agent/AgentVisitsQueue'),
-);
+const AgentVisitsQueue = lazy(() => import('../pages/agent/AgentVisitsQueue'));
 
 // 🔐 ADMIN ROUTES (Plan Maestro V2.0)
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));

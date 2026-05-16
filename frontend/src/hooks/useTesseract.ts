@@ -51,7 +51,8 @@ function loadTesseract(): Promise<TesseractGlobal> {
         reject(new Error('Tesseract no inicializó tras carga del script'));
       }
     };
-    script.onerror = () => reject(new Error('No se pudo cargar Tesseract.js desde CDN'));
+    script.onerror = () =>
+      reject(new Error('No se pudo cargar Tesseract.js desde CDN'));
     document.head.appendChild(script);
   });
 

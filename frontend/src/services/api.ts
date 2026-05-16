@@ -202,8 +202,7 @@ api.interceptors.response.use(
         // global para que VerihomeIdGate / Snackbar reaccionen.
         try {
           const body = error.response?.data;
-          const code =
-            (body && (body.code || body.detail?.code)) || undefined;
+          const code = (body && (body.code || body.detail?.code)) || undefined;
           if (code === 'verihome_id_required') {
             window.dispatchEvent(
               new CustomEvent('verihomeIdRequired', {

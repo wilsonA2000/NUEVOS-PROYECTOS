@@ -100,7 +100,7 @@ const AdminVerihomeIdAnalytics: React.FC = () => {
     queryKey: ['verification-agents'],
     queryFn: async () => {
       const { data } = await api.get('/verification/agents/');
-      return Array.isArray(data) ? data : (data?.results ?? []);
+      return Array.isArray(data) ? data : data?.results ?? [];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -305,7 +305,9 @@ const AdminVerihomeIdAnalytics: React.FC = () => {
                   Distribución por veredicto
                 </Typography>
                 {(summary?.total ?? 0) === 0 ? (
-                  <Alert severity='info'>Sin datos para los filtros seleccionados.</Alert>
+                  <Alert severity='info'>
+                    Sin datos para los filtros seleccionados.
+                  </Alert>
                 ) : (
                   <Box sx={{ height: 290 }}>
                     <Doughnut
@@ -326,7 +328,9 @@ const AdminVerihomeIdAnalytics: React.FC = () => {
                   Evolución mensual ({analyticsQuery.data?.window_months}m)
                 </Typography>
                 {(analyticsQuery.data?.timeline?.length ?? 0) === 0 ? (
-                  <Alert severity='info'>Sin actas en la ventana seleccionada.</Alert>
+                  <Alert severity='info'>
+                    Sin actas en la ventana seleccionada.
+                  </Alert>
                 ) : (
                   <Box sx={{ height: 290 }}>
                     <Line
@@ -335,7 +339,9 @@ const AdminVerihomeIdAnalytics: React.FC = () => {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { position: 'bottom' } },
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                        scales: {
+                          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        },
                       }}
                     />
                   </Box>
@@ -347,10 +353,11 @@ const AdminVerihomeIdAnalytics: React.FC = () => {
                 <Typography variant='subtitle1' fontWeight={600} sx={{ mb: 1 }}>
                   Promedio por sub-puntaje (de 0.10 máximo)
                 </Typography>
-                {Object.keys(analyticsQuery.data?.subscore_avg || {}).length === 0 ? (
+                {Object.keys(analyticsQuery.data?.subscore_avg || {}).length ===
+                0 ? (
                   <Alert severity='info'>
-                    Sin sub-puntajes registrados aún. Los agentes deben completar
-                    al menos un acta con score para verlos aquí.
+                    Sin sub-puntajes registrados aún. Los agentes deben
+                    completar al menos un acta con score para verlos aquí.
                   </Alert>
                 ) : (
                   <Box sx={{ height: 290 }}>

@@ -108,9 +108,7 @@ def notify_visit_scheduled(sender, instance, created, **kwargs):
         return
 
     visit = instance.scheduled_visit
-    agent_name = (
-        visit.agent.user.get_full_name() if visit and visit.agent else "—"
-    )
+    agent_name = visit.agent.user.get_full_name() if visit and visit.agent else "—"
     _safe_notify(
         user=instance.user,
         notification_type="contract",

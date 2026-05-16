@@ -189,8 +189,8 @@ const VisitScoreEditor: React.FC<Props> = ({
       )}
       {overflow && (
         <Alert severity='error' sx={{ mb: 2 }}>
-          La suma supera el máximo permitido (0.50). Ajustá los valores
-          antes de guardar.
+          La suma supera el máximo permitido (0.50). Ajustá los valores antes de
+          guardar.
         </Alert>
       )}
 

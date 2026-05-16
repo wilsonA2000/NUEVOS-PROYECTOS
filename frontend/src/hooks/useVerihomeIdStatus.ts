@@ -7,10 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api } from '../services/api';
 
-export type VerihomeIdNextStep =
-  | 'start_onboarding'
-  | 'wait_visit'
-  | 'complete';
+export type VerihomeIdNextStep = 'start_onboarding' | 'wait_visit' | 'complete';
 
 export interface VerihomeIdStatus {
   is_verified: boolean;
@@ -31,7 +28,9 @@ export interface VerihomeIdStatus {
     | null;
   block_number: number | null;
   next_step: VerihomeIdNextStep;
-  blocking_actions: Array<'create_property' | 'apply_match' | 'start_biometric'>;
+  blocking_actions: Array<
+    'create_property' | 'apply_match' | 'start_biometric'
+  >;
 }
 
 export const VERIHOME_ID_STATUS_KEY = ['verihome-id-status'] as const;

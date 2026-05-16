@@ -31,9 +31,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import CedulaCapture, {
-  type CedulaCaptureMetadata,
-} from './CedulaCapture';
+import CedulaCapture, { type CedulaCaptureMetadata } from './CedulaCapture';
 import LivenessCapture, { type LivenessResult } from './LivenessCapture';
 import { useFaceApi } from '../../hooks/useFaceApi';
 import { useTesseract } from '../../hooks/useTesseract';
@@ -109,9 +107,8 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
   const [livenessResult, setLivenessResult] = useState<LivenessResult | null>(
     null,
   );
-  const [faceMatchResult, setFaceMatchResult] = useState<FaceMatchResult | null>(
-    null,
-  );
+  const [faceMatchResult, setFaceMatchResult] =
+    useState<FaceMatchResult | null>(null);
   const [matchRunning, setMatchRunning] = useState(false);
   const [finalScore, setFinalScore] = useState<VerihomeIdScoreBreakdown | null>(
     null,
@@ -298,7 +295,7 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
           />
         );
 
-      case 4:
+      case 4: {
         if (matchRunning || !finalScore) {
           return (
             <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -319,8 +316,8 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
                 {(finalScore.total * 100).toFixed(0)} / 50
               </Typography>
               <Typography variant='caption' color='text.secondary'>
-                Score parcial digital (la visita en campo aporta hasta 50
-                puntos adicionales)
+                Score parcial digital (la visita en campo aporta hasta 50 puntos
+                adicionales)
               </Typography>
             </Box>
 
@@ -385,6 +382,7 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
             </Stack>
           </Stack>
         );
+      }
 
       default:
         return null;
@@ -395,10 +393,12 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
     <Paper sx={{ p: 3 }}>
       <Stack spacing={3}>
         <Box>
-          <Typography variant='h5'>VeriHome ID — Verificación digital</Typography>
+          <Typography variant='h5'>
+            VeriHome ID — Verificación digital
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Antes de agendar tu visita en campo necesitamos validar tu
-            identidad de forma digital.
+            Antes de agendar tu visita en campo necesitamos validar tu identidad
+            de forma digital.
           </Typography>
         </Box>
 
@@ -411,9 +411,7 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
         </Stepper>
 
         {ocrRunning && (
-          <Alert severity='info'>
-            Extrayendo información del documento…
-          </Alert>
+          <Alert severity='info'>Extrayendo información del documento…</Alert>
         )}
 
         {renderStep()}

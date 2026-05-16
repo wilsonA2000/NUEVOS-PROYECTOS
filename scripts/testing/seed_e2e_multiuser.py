@@ -176,9 +176,7 @@ def reset_match_and_contracts(landlord, tenant, prop):
         # coincida con lo que el endpoint devuelve (Fase D1).
         from payments.models import PaymentOrder, RentPaymentSchedule, Transaction
 
-        deleted_po = PaymentOrder.objects.filter(
-            payer=tenant, payee=landlord
-        ).delete()
+        deleted_po = PaymentOrder.objects.filter(payer=tenant, payee=landlord).delete()
         log(f"deleted prior PaymentOrders (payer/payee): {deleted_po[0]}")
 
         deleted_rps = RentPaymentSchedule.objects.filter(
@@ -186,9 +184,7 @@ def reset_match_and_contracts(landlord, tenant, prop):
         ).delete()
         log(f"deleted prior RentPaymentSchedules: {deleted_rps[0]}")
 
-        deleted_tx = Transaction.objects.filter(
-            payer=tenant, payee=landlord
-        ).delete()
+        deleted_tx = Transaction.objects.filter(payer=tenant, payee=landlord).delete()
         log(f"deleted prior Transactions: {deleted_tx[0]}")
     except Exception as exc:
         log(f"warn: could not clean payment artifacts: {exc}")
@@ -357,7 +353,9 @@ def reset_field_visit_data(user):
         deleted_reqs = FieldVisitRequest.objects.filter(user=user).delete()
         log(f"deleted prior FieldVisitRequests: {deleted_reqs[0]}")
         deleted_visits = VerificationVisit.objects.filter(target_user=user).delete()
-        log(f"deleted prior VerificationVisits (target={user.email}): {deleted_visits[0]}")
+        log(
+            f"deleted prior VerificationVisits (target={user.email}): {deleted_visits[0]}"
+        )
     except Exception as exc:
         log(f"warn: reset_field_visit_data failed for {user.email}: {exc}")
 
@@ -395,7 +393,8 @@ def create_field_visit_request_wait_visit(user):
         user=user,
         document_type_declared="cedula_ciudadania",
         document_number_declared="1098765432",
-        full_name_declared=f"{user.first_name} {user.last_name}".strip() or "Tenant E2E",
+        full_name_declared=f"{user.first_name} {user.last_name}".strip()
+        or "Tenant E2E",
         ocr_data={
             "document_number": "1098765432",
             "first_names": user.first_name or "Leidy",
@@ -494,9 +493,30 @@ def setup_full_ecosystem(
     # 3) 3 propiedades adicionales para variedad de búsqueda
     Property.objects.filter(title__startswith="VeriHome Demo · ").delete()
     extras = [
-        ("VeriHome Demo · Cedritos", "Bogotá", "Cundinamarca", Decimal("2800000"), 3, 2),
-        ("VeriHome Demo · El Poblado", "Medellín", "Antioquia", Decimal("1900000"), 2, 1),
-        ("VeriHome Demo · Ciudad Jardín", "Cali", "Valle del Cauca", Decimal("1200000"), 2, 2),
+        (
+            "VeriHome Demo · Cedritos",
+            "Bogotá",
+            "Cundinamarca",
+            Decimal("2800000"),
+            3,
+            2,
+        ),
+        (
+            "VeriHome Demo · El Poblado",
+            "Medellín",
+            "Antioquia",
+            Decimal("1900000"),
+            2,
+            1,
+        ),
+        (
+            "VeriHome Demo · Ciudad Jardín",
+            "Cali",
+            "Valle del Cauca",
+            Decimal("1200000"),
+            2,
+            2,
+        ),
     ]
     extra_ids = []
     for title, city, state, price, beds, baths in extras:
@@ -606,7 +626,7 @@ def setup_full_ecosystem(
         interview_code = InterviewCode.objects.create(
             code="DEMO2026",
             user_type="tenant",
-            email=f"nuevo.tenant.demo@verihome.local",
+            email="nuevo.tenant.demo@verihome.local",
             valid_from=timezone.now() - timedelta(hours=1),
             valid_until=timezone.now() + timedelta(days=30),
             created_by=admin,

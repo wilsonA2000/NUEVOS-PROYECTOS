@@ -18,10 +18,10 @@ export interface HeadPose {
 
 function mean(points: FaceApiPoint[]): FaceApiPoint {
   if (points.length === 0) return { x: 0, y: 0 };
-  const sum = points.reduce(
-    (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
-    { x: 0, y: 0 },
-  );
+  const sum = points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), {
+    x: 0,
+    y: 0,
+  });
   return { x: sum.x / points.length, y: sum.y / points.length };
 }
 

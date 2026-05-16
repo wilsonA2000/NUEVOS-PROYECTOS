@@ -362,9 +362,7 @@ class FieldVisitRequest(models.Model):
     document_number_declared = models.CharField(
         "Número de documento declarado", max_length=30
     )
-    full_name_declared = models.CharField(
-        "Nombre completo declarado", max_length=200
-    )
+    full_name_declared = models.CharField("Nombre completo declarado", max_length=200)
 
     cedula_anverso = models.ImageField(
         "Cédula anverso",
@@ -564,16 +562,12 @@ class FieldVisitAct(models.Model):
     )
     pdf_sha256 = models.CharField("SHA-256 del PDF", max_length=64, blank=True)
 
-    verified_signature = models.JSONField(
-        "Firma del verificado", null=True, blank=True
-    )
+    verified_signature = models.JSONField("Firma del verificado", null=True, blank=True)
     verified_signed_at = models.DateTimeField(
         "Fecha firma verificado", null=True, blank=True
     )
     agent_signature = models.JSONField("Firma del agente", null=True, blank=True)
-    agent_signed_at = models.DateTimeField(
-        "Fecha firma agente", null=True, blank=True
-    )
+    agent_signed_at = models.DateTimeField("Fecha firma agente", null=True, blank=True)
 
     lawyer_user = models.ForeignKey(
         User,
@@ -586,9 +580,7 @@ class FieldVisitAct(models.Model):
     lawyer_signed_at = models.DateTimeField(
         "Fecha firma abogado", null=True, blank=True
     )
-    lawyer_tp_number = models.CharField(
-        "T.P. abogado", max_length=20, blank=True
-    )
+    lawyer_tp_number = models.CharField("T.P. abogado", max_length=20, blank=True)
     lawyer_full_name = models.CharField(
         "Nombre completo abogado", max_length=200, blank=True
     )

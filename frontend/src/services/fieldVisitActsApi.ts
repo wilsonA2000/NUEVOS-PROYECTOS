@@ -143,9 +143,11 @@ export interface AnalyticsFilters {
 const BASE = '/verification/acts';
 
 export const fieldVisitActsApi = {
-  async list(params?: { status?: FieldVisitActStatus }): Promise<FieldVisitAct[]> {
+  async list(params?: {
+    status?: FieldVisitActStatus;
+  }): Promise<FieldVisitAct[]> {
     const { data } = await api.get(`${BASE}/`, { params });
-    return Array.isArray(data) ? data : (data?.results ?? []);
+    return Array.isArray(data) ? data : data?.results ?? [];
   },
 
   async retrieve(id: string): Promise<FieldVisitAct> {

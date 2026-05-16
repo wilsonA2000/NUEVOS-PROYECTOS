@@ -62,7 +62,9 @@ const STATUS_COLOR: Record<
 };
 
 const AdminFieldVisitActs: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<'' | FieldVisitActStatus>('');
+  const [statusFilter, setStatusFilter] = useState<'' | FieldVisitActStatus>(
+    '',
+  );
 
   const params = useMemo(
     () => (statusFilter ? { status: statusFilter } : undefined),
@@ -131,10 +133,8 @@ const AdminFieldVisitActs: React.FC = () => {
 
       {chainQuery.isSuccess && !chainQuery.data.ok && (
         <Alert severity='error' sx={{ mb: 2 }}>
-          Detectamos inconsistencias en la cadena de actas. Revisá las primeras
-          {' '}
-          {chainQuery.data.errors.length} entradas con código:
-          {' '}
+          Detectamos inconsistencias en la cadena de actas. Revisá las primeras{' '}
+          {chainQuery.data.errors.length} entradas con código:{' '}
           {chainQuery.data.errors
             .slice(0, 5)
             .map(e => `${e.act_number}:${e.code}`)

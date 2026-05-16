@@ -163,7 +163,9 @@ const ScoreBar: React.FC<{ digital: number; visit: number }> = ({
 
 const AdminVerihomeIdScoring: React.FC = () => {
   const [verdict, setVerdict] = useState<'' | FinalVerdict>('');
-  const [statusFilter, setStatusFilter] = useState<'' | FieldVisitActStatus>('');
+  const [statusFilter, setStatusFilter] = useState<'' | FieldVisitActStatus>(
+    '',
+  );
   const [minScore, setMinScore] = useState<string>('');
   const [maxScore, setMaxScore] = useState<string>('');
   const [agentId, setAgentId] = useState<string>('');
@@ -172,7 +174,7 @@ const AdminVerihomeIdScoring: React.FC = () => {
     queryKey: ['verification-agents-list'],
     queryFn: async () => {
       const { data } = await api.get('/verification/agents/');
-      const list = Array.isArray(data) ? data : (data?.results ?? []);
+      const list = Array.isArray(data) ? data : data?.results ?? [];
       return list.map((a: Record<string, unknown>) => ({
         id: String(a.id),
         agent_code: String(a.agent_code ?? ''),
@@ -489,9 +491,7 @@ const AdminVerihomeIdScoring: React.FC = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      {row.block_number !== null
-                        ? `#${row.block_number}`
-                        : '—'}
+                      {row.block_number !== null ? `#${row.block_number}` : '—'}
                     </TableCell>
                   </TableRow>
                 ))}

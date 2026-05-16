@@ -43,20 +43,17 @@ const VERDICT_COPY: Record<
   aprobado: {
     severity: 'success',
     title: 'Verificación digital aprobada',
-    body:
-      'Tu información digital cumple los mínimos. Pronto te contactaremos para programar la visita en campo del agente VeriHome.',
+    body: 'Tu información digital cumple los mínimos. Pronto te contactaremos para programar la visita en campo del agente VeriHome.',
   },
   observado: {
     severity: 'warning',
     title: 'Verificación digital con observaciones',
-    body:
-      'Tu identidad digital quedó marcada para revisión manual. Un agente verificará los puntos pendientes en la visita en campo.',
+    body: 'Tu identidad digital quedó marcada para revisión manual. Un agente verificará los puntos pendientes en la visita en campo.',
   },
   rechazado: {
     severity: 'error',
     title: 'Verificación digital no superada',
-    body:
-      'No pudimos validar suficientes puntos digitalmente. Si crees que es un error, contáctanos para revisar tu caso.',
+    body: 'No pudimos validar suficientes puntos digitalmente. Si crees que es un error, contáctanos para revisar tu caso.',
   },
 };
 
@@ -91,21 +88,24 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
     };
   }, []);
 
-  const handleComplete = useCallback(async (result: VeriHomeIDDigitalResult) => {
-    setScreen({ kind: 'submitting' });
-    try {
-      const data = await submitOnboarding(result);
-      setScreen({ kind: 'done', data });
-    } catch (err) {
-      setScreen({
-        kind: 'error',
-        message:
-          err instanceof Error
-            ? err.message
-            : 'Hubo un error enviando tu verificación. Intenta nuevamente.',
-      });
-    }
-  }, []);
+  const handleComplete = useCallback(
+    async (result: VeriHomeIDDigitalResult) => {
+      setScreen({ kind: 'submitting' });
+      try {
+        const data = await submitOnboarding(result);
+        setScreen({ kind: 'done', data });
+      } catch (err) {
+        setScreen({
+          kind: 'error',
+          message:
+            err instanceof Error
+              ? err.message
+              : 'Hubo un error enviando tu verificación. Intenta nuevamente.',
+        });
+      }
+    },
+    [],
+  );
 
   const handleCancel = useCallback(() => {
     navigate('/app/dashboard');
@@ -135,10 +135,7 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
         )}
 
         {screen.kind === 'flow' && (
-          <VeriHomeIDFlow
-            onComplete={handleComplete}
-            onCancel={handleCancel}
-          />
+          <VeriHomeIDFlow onComplete={handleComplete} onCancel={handleCancel} />
         )}
 
         {screen.kind === 'submitting' && (
@@ -153,7 +150,9 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
         {screen.kind === 'done' && (
           <Paper sx={{ p: 3 }}>
             <Stack spacing={2}>
-              <Alert severity={VERDICT_COPY[screen.data.digital_verdict].severity}>
+              <Alert
+                severity={VERDICT_COPY[screen.data.digital_verdict].severity}
+              >
                 <Typography variant='subtitle1'>
                   {VERDICT_COPY[screen.data.digital_verdict].title}
                 </Typography>
@@ -164,7 +163,9 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
               <Typography variant='body2' color='text.secondary'>
                 Score parcial digital:{' '}
                 <strong>
-                  {(parseFloat(screen.data.digital_score_total) * 100).toFixed(0)}
+                  {(parseFloat(screen.data.digital_score_total) * 100).toFixed(
+                    0,
+                  )}
                   /50
                 </strong>
               </Typography>
@@ -173,7 +174,10 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
                 {new Date(screen.data.created_at).toLocaleString('es-CO')}
               </Typography>
               <Stack direction='row' spacing={2}>
-                <Button variant='contained' onClick={() => navigate('/app/dashboard')}>
+                <Button
+                  variant='contained'
+                  onClick={() => navigate('/app/dashboard')}
+                >
                   Volver al dashboard
                 </Button>
                 {screen.data.digital_verdict === 'rechazado' && (

@@ -24,7 +24,9 @@ from contracts.biometric_providers import FaceAnalysis
 from contracts.biometric_service import BiometricAuthenticationService
 
 
-def _make_service_with_mock_provider() -> tuple[BiometricAuthenticationService, MagicMock]:
+def _make_service_with_mock_provider() -> (
+    tuple[BiometricAuthenticationService, MagicMock]
+):
     mock_provider = MagicMock()
     mock_provider.name = "mock"
     service = BiometricAuthenticationService(facial_provider=mock_provider)
@@ -70,9 +72,7 @@ class CompareFacesTests(SimpleTestCase):
 
         score = service._compare_faces("base64_source", "base64_target")
 
-        provider.compare_faces.assert_called_once_with(
-            "base64_source", "base64_target"
-        )
+        provider.compare_faces.assert_called_once_with("base64_source", "base64_target")
         self.assertAlmostEqual(score, 0.93)
 
     def test_returns_zero_when_source_missing(self):
@@ -123,9 +123,7 @@ class ReadImageAsBase64Tests(SimpleTestCase):
                 return raw_bytes
 
         encoded = service._read_image_as_base64(_FakeFile())
-        self.assertEqual(
-            encoded, base64.b64encode(raw_bytes).decode("ascii")
-        )
+        self.assertEqual(encoded, base64.b64encode(raw_bytes).decode("ascii"))
 
     def test_returns_none_when_open_raises(self):
         service, _ = _make_service_with_mock_provider()

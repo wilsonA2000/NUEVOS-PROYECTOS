@@ -63,14 +63,54 @@ const SCORE_FIELDS: Array<{
   helper: string;
   max: number;
 }> = [
-  { key: 'cedula_real', label: 'Cédula auténtica', helper: 'Verificación física', max: 0.1 },
-  { key: 'observacion_visual', label: 'Observación visual', helper: 'Comportamiento normal', max: 0.05 },
-  { key: 'recibo_publico', label: 'Recibo público', helper: 'A nombre del verificado', max: 0.05 },
-  { key: 'comprobante_laboral', label: 'Comprobante laboral', helper: 'Carta o extracto', max: 0.05 },
-  { key: 'email_otp', label: 'Email verificado', helper: 'OTP confirmado', max: 0.05 },
-  { key: 'telefono_otp', label: 'Teléfono verificado', helper: 'SMS OTP', max: 0.05 },
-  { key: 'cruces_oficiales', label: 'Cruces oficiales', helper: 'ADRES/RUAF/RUNT/etc.', max: 0.1 },
-  { key: 'inmueble_existe', label: 'Inmueble existe', helper: 'Sólo arrendadores', max: 0.05 },
+  {
+    key: 'cedula_real',
+    label: 'Cédula auténtica',
+    helper: 'Verificación física',
+    max: 0.1,
+  },
+  {
+    key: 'observacion_visual',
+    label: 'Observación visual',
+    helper: 'Comportamiento normal',
+    max: 0.05,
+  },
+  {
+    key: 'recibo_publico',
+    label: 'Recibo público',
+    helper: 'A nombre del verificado',
+    max: 0.05,
+  },
+  {
+    key: 'comprobante_laboral',
+    label: 'Comprobante laboral',
+    helper: 'Carta o extracto',
+    max: 0.05,
+  },
+  {
+    key: 'email_otp',
+    label: 'Email verificado',
+    helper: 'OTP confirmado',
+    max: 0.05,
+  },
+  {
+    key: 'telefono_otp',
+    label: 'Teléfono verificado',
+    helper: 'SMS OTP',
+    max: 0.05,
+  },
+  {
+    key: 'cruces_oficiales',
+    label: 'Cruces oficiales',
+    helper: 'ADRES/RUAF/RUNT/etc.',
+    max: 0.1,
+  },
+  {
+    key: 'inmueble_existe',
+    label: 'Inmueble existe',
+    helper: 'Sólo arrendadores',
+    max: 0.05,
+  },
 ];
 
 const RISK_FLAG_OPTIONS = [
@@ -180,7 +220,6 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
     if (!open || activeStep !== 1) {
       stopCamera();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, activeStep]);
 
   // Cleanup al desmontar
@@ -361,7 +400,8 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
     }
   };
 
-  const handleNext = () => setActiveStep(s => Math.min(s + 1, STEPS.length - 1));
+  const handleNext = () =>
+    setActiveStep(s => Math.min(s + 1, STEPS.length - 1));
   const handleBack = () => setActiveStep(s => Math.max(s - 1, 0));
 
   return (
@@ -373,10 +413,18 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
       data-testid='agent-complete-visit-wizard'
     >
       <DialogTitle>
-        <Stack direction='row' alignItems='center' justifyContent='space-between'>
+        <Stack
+          direction='row'
+          alignItems='center'
+          justifyContent='space-between'
+        >
           <Box>
             Completar visita {visit?.visit_number}
-            <Typography variant='caption' display='block' color='text.secondary'>
+            <Typography
+              variant='caption'
+              display='block'
+              color='text.secondary'
+            >
               {visit?.target_user_name || visit?.target_user_email}
             </Typography>
           </Box>
@@ -425,7 +473,8 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
                   Lat: {gps.lat} · Lng: {gps.lng}
                 </Typography>
                 <Typography variant='caption' color='text.secondary'>
-                  Precisión: ~{gps.accuracy_m} m · {new Date(gps.taken_at).toLocaleString()}
+                  Precisión: ~{gps.accuracy_m} m ·{' '}
+                  {new Date(gps.taken_at).toLocaleString()}
                 </Typography>
                 <Box mt={1}>
                   <a
@@ -574,7 +623,11 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
                       >
                         <Typography
                           variant='caption'
-                          sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          sx={{
+                            flex: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
                         >
                           {p.caption}
                         </Typography>
@@ -598,8 +651,8 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
         {activeStep === 2 && (
           <Box data-testid='wizard-step-observations'>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-              Describí los hallazgos de la visita (mínimo 10 caracteres).
-              Marcá las banderas de riesgo que correspondan.
+              Describí los hallazgos de la visita (mínimo 10 caracteres). Marcá
+              las banderas de riesgo que correspondan.
             </Typography>
             <TextField
               fullWidth
@@ -744,13 +797,24 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
                 {observations || '—'}
               </Typography>
               {riskFlags.length > 0 && (
-                <Stack direction='row' spacing={0.5} flexWrap='wrap' useFlexGap mt={1}>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  flexWrap='wrap'
+                  useFlexGap
+                  mt={1}
+                >
                   {riskFlags.map(f => (
                     <Chip key={f} label={f} color='error' size='small' />
                   ))}
                 </Stack>
               )}
-              <Typography variant='caption' color='text.secondary' display='block' mt={1}>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                display='block'
+                mt={1}
+              >
                 Veredicto: <b>{passed ? 'APROBADA' : 'FALLIDA'}</b>
               </Typography>
             </Paper>
@@ -763,8 +827,8 @@ const AgentCompleteVisitWizard: React.FC<Props> = ({
 
             {!visit?.field_request_id && (
               <Alert severity='warning' sx={{ mt: 2 }}>
-                Esta visita no tiene VeriHome ID onboarding asociado. No se creará
-                el acta; sólo se cerrará la visita con tus notas.
+                Esta visita no tiene VeriHome ID onboarding asociado. No se
+                creará el acta; sólo se cerrará la visita con tus notas.
               </Alert>
             )}
 

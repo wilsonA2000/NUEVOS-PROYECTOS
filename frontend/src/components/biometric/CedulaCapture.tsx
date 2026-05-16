@@ -130,7 +130,11 @@ function detectDocumentBounds(
   return bestRect;
 }
 
-function rectsAreStable(a: OpenCVRect, b: OpenCVRect, tolerancePx = 18): boolean {
+function rectsAreStable(
+  a: OpenCVRect,
+  b: OpenCVRect,
+  tolerancePx = 18,
+): boolean {
   return (
     Math.abs(a.x - b.x) <= tolerancePx &&
     Math.abs(a.y - b.y) <= tolerancePx &&
@@ -281,7 +285,6 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
       const cornerSize = 28;
       ctx.setLineDash([]);
       ctx.lineWidth = 6;
-      ctx.strokeStyle = ctx.strokeStyle;
       const corners: Array<[number, number, number, number]> = [
         [skeletonX, skeletonY, 1, 1],
         [skeletonX + targetW, skeletonY, -1, 1],

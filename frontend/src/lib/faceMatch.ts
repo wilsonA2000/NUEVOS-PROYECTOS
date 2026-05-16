@@ -28,7 +28,8 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('No se pudo cargar imagen para matching'));
+    img.onerror = () =>
+      reject(new Error('No se pudo cargar imagen para matching'));
     img.src = src;
   });
 }

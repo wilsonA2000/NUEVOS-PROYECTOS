@@ -85,7 +85,9 @@ describe('computeVerihomeIdScore', () => {
       },
     });
     expect(score.matchFacial).toBe(0);
-    expect(score.observaciones.some(o => o.includes('Match facial'))).toBe(true);
+    expect(score.observaciones.some(o => o.includes('Match facial'))).toBe(
+      true,
+    );
   });
 
   it('detecta nombre con baja coincidencia', () => {

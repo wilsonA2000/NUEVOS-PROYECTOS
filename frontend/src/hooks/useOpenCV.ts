@@ -53,7 +53,10 @@ export interface OpenCVModule {
     ksize: { width: number; height: number },
     sigmaX: number,
   ) => void;
-  Size: new (width: number, height: number) => { width: number; height: number };
+  Size: new (
+    width: number,
+    height: number,
+  ) => { width: number; height: number };
 }
 
 export interface OpenCVMat {
@@ -99,7 +102,9 @@ function loadOpenCV(): Promise<OpenCVModule> {
 
     script.onload = () => {
       const checkReady = () => {
-        const cv = window.cv as { Mat?: unknown; onRuntimeInitialized?: () => void } | undefined;
+        const cv = window.cv as
+          | { Mat?: unknown; onRuntimeInitialized?: () => void }
+          | undefined;
         if (cv && cv.Mat) {
           resolve(window.cv as OpenCVModule);
           return;
@@ -113,7 +118,8 @@ function loadOpenCV(): Promise<OpenCVModule> {
       checkReady();
     };
 
-    script.onerror = () => reject(new Error('No se pudo cargar OpenCV.js desde CDN'));
+    script.onerror = () =>
+      reject(new Error('No se pudo cargar OpenCV.js desde CDN'));
     document.head.appendChild(script);
   });
 
@@ -128,7 +134,9 @@ export interface UseOpenCVResult {
 
 export function useOpenCV(): UseOpenCVResult {
   const [cv, setCv] = useState<OpenCVModule | null>(
-    typeof window !== 'undefined' && window.cv && (window.cv as { Mat?: unknown }).Mat
+    typeof window !== 'undefined' &&
+      window.cv &&
+      (window.cv as { Mat?: unknown }).Mat
       ? (window.cv as OpenCVModule)
       : null,
   );

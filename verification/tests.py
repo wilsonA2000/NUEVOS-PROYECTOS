@@ -5,7 +5,7 @@ and API endpoints (agents, visits, reports).
 """
 
 from datetime import timedelta
-from django.test import TestCase
+from django.test import TestCase, override_settings as _override_settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -664,25 +664,41 @@ class HashChainTests(TestCase):
 
     def setUp(self):
         self.user1 = User.objects.create_user(
-            email="u1@t.com", password="x", first_name="U", last_name="1",
+            email="u1@t.com",
+            password="x",
+            first_name="U",
+            last_name="1",
             user_type="tenant",
         )
         self.user2 = User.objects.create_user(
-            email="u2@t.com", password="x", first_name="U", last_name="2",
+            email="u2@t.com",
+            password="x",
+            first_name="U",
+            last_name="2",
             user_type="tenant",
         )
         self.user3 = User.objects.create_user(
-            email="u3@t.com", password="x", first_name="U", last_name="3",
+            email="u3@t.com",
+            password="x",
+            first_name="U",
+            last_name="3",
             user_type="tenant",
         )
         self.lawyer = User.objects.create_user(
-            email="lawyer@t.com", password="x", first_name="W", last_name="A",
-            user_type="landlord", is_staff=True,
+            email="lawyer@t.com",
+            password="x",
+            first_name="W",
+            last_name="A",
+            user_type="landlord",
+            is_staff=True,
         )
         agent_user = User.objects.create_user(
-            email="agent_chain@t.com", password="x",
-            first_name="Ag", last_name="Ent",
-            user_type="landlord", is_staff=True,
+            email="agent_chain@t.com",
+            password="x",
+            first_name="Ag",
+            last_name="Ent",
+            user_type="landlord",
+            is_staff=True,
         )
         self.agent = VerificationAgent.objects.create(user=agent_user)
 
@@ -765,24 +781,35 @@ class FieldVisitActAPITests(APITestCase):
         from django.test import override_settings  # noqa: F401
 
         self.lawyer = User.objects.create_user(
-            email=self.lawyer_email, password="x",
-            first_name="Wilson", last_name="A",
-            user_type="landlord", is_staff=True,
+            email=self.lawyer_email,
+            password="x",
+            first_name="Wilson",
+            last_name="A",
+            user_type="landlord",
+            is_staff=True,
         )
         self.staff = User.objects.create_user(
-            email="staff-api@test.com", password="x",
-            first_name="Staff", last_name="X",
-            user_type="landlord", is_staff=True,
+            email="staff-api@test.com",
+            password="x",
+            first_name="Staff",
+            last_name="X",
+            user_type="landlord",
+            is_staff=True,
         )
         agent_user = User.objects.create_user(
-            email="agent-api@test.com", password="x",
-            first_name="Ag", last_name="Ent",
-            user_type="landlord", is_staff=True,
+            email="agent-api@test.com",
+            password="x",
+            first_name="Ag",
+            last_name="Ent",
+            user_type="landlord",
+            is_staff=True,
         )
         self.agent = VerificationAgent.objects.create(user=agent_user)
         self.target = User.objects.create_user(
-            email="target-api@test.com", password="x",
-            first_name="Tar", last_name="Get",
+            email="target-api@test.com",
+            password="x",
+            first_name="Tar",
+            last_name="Get",
             user_type="tenant",
         )
         self.field_request = FieldVisitRequest.objects.create(
@@ -982,8 +1009,10 @@ class VerihomeIDStatusEndpointTests(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            email="status@test.com", password="x",
-            first_name="St", last_name="At",
+            email="status@test.com",
+            password="x",
+            first_name="St",
+            last_name="At",
             user_type="tenant",
         )
         self.url = "/api/v1/verification/onboarding/status/"
@@ -1025,22 +1054,23 @@ class VerihomeIDStatusEndpointTests(APITestCase):
         self.assertEqual(response.data["blocking_actions"], [])
 
 
-from django.test import override_settings as _override_settings
-
-
 @_override_settings(VERIHOME_ID_ENFORCEMENT=True)
 class VerihomeIDEnforcementTests(APITestCase):
     """`VerihomeIDRequired` bloquea acciones críticas hasta verificación."""
 
     def setUp(self):
         self.unverified = User.objects.create_user(
-            email="unverif@test.com", password="x",
-            first_name="Un", last_name="V",
+            email="unverif@test.com",
+            password="x",
+            first_name="Un",
+            last_name="V",
             user_type="tenant",
         )
         self.verified = User.objects.create_user(
-            email="verif@test.com", password="x",
-            first_name="Ve", last_name="R",
+            email="verif@test.com",
+            password="x",
+            first_name="Ve",
+            last_name="R",
             user_type="tenant",
         )
         self.verified.is_verified = True
@@ -1050,8 +1080,10 @@ class VerihomeIDEnforcementTests(APITestCase):
         from properties.models import Property
 
         landlord = User.objects.create_user(
-            email="ll@test.com", password="x",
-            first_name="L", last_name="L",
+            email="ll@test.com",
+            password="x",
+            first_name="L",
+            last_name="L",
             user_type="landlord",
             is_verified=True,
         )
@@ -1105,13 +1137,19 @@ class CompositeScoreTests(TestCase):
         from decimal import Decimal
 
         self.user = User.objects.create_user(
-            email="score@t.com", password="x", first_name="S", last_name="C",
+            email="score@t.com",
+            password="x",
+            first_name="S",
+            last_name="C",
             user_type="tenant",
         )
         agent_user = User.objects.create_user(
-            email="agscore@t.com", password="x",
-            first_name="A", last_name="G",
-            user_type="landlord", is_staff=True,
+            email="agscore@t.com",
+            password="x",
+            first_name="A",
+            last_name="G",
+            user_type="landlord",
+            is_staff=True,
         )
         self.agent = VerificationAgent.objects.create(user=agent_user)
         self.field_request = FieldVisitRequest.objects.create(
@@ -1168,14 +1206,20 @@ class ScoringEndpointTests(APITestCase):
         from verification.models import FieldVisitAct
 
         self.staff = User.objects.create_user(
-            email="staffscore@t.com", password="x",
-            first_name="St", last_name="ff",
-            user_type="landlord", is_staff=True,
+            email="staffscore@t.com",
+            password="x",
+            first_name="St",
+            last_name="ff",
+            user_type="landlord",
+            is_staff=True,
         )
         agent_user = User.objects.create_user(
-            email="agscoreapi@t.com", password="x",
-            first_name="A", last_name="G",
-            user_type="landlord", is_staff=True,
+            email="agscoreapi@t.com",
+            password="x",
+            first_name="A",
+            last_name="G",
+            user_type="landlord",
+            is_staff=True,
         )
         agent = VerificationAgent.objects.create(user=agent_user)
         self.acts = []
@@ -1187,8 +1231,10 @@ class ScoringEndpointTests(APITestCase):
             ]
         ):
             user = User.objects.create_user(
-                email=f"u{idx}@t.com", password="x",
-                first_name=f"U{idx}", last_name="X",
+                email=f"u{idx}@t.com",
+                password="x",
+                first_name=f"U{idx}",
+                last_name="X",
                 user_type="tenant",
             )
             fr = FieldVisitRequest.objects.create(
@@ -1238,15 +1284,11 @@ class ScoringEndpointTests(APITestCase):
             "/api/v1/verification/acts/scoring/?verdict=aprobado"
         )
         self.assertEqual(response.data["summary"]["total"], 1)
-        self.assertEqual(
-            response.data["results"][0]["final_verdict"], "aprobado"
-        )
+        self.assertEqual(response.data["results"][0]["final_verdict"], "aprobado")
 
     def test_scoring_filter_min_score(self):
         self.client.force_authenticate(user=self.staff)
-        response = self.client.get(
-            "/api/v1/verification/acts/scoring/?min_score=0.55"
-        )
+        response = self.client.get("/api/v1/verification/acts/scoring/?min_score=0.55")
         self.assertEqual(response.data["summary"]["total"], 2)
 
 
@@ -1258,19 +1300,27 @@ class VisitScoreEndpointTests(APITestCase):
         from verification.models import FieldVisitAct
 
         self.staff = User.objects.create_user(
-            email="vstaff@t.com", password="x",
-            first_name="V", last_name="St",
-            user_type="landlord", is_staff=True,
+            email="vstaff@t.com",
+            password="x",
+            first_name="V",
+            last_name="St",
+            user_type="landlord",
+            is_staff=True,
         )
         agent_user = User.objects.create_user(
-            email="vagent@t.com", password="x",
-            first_name="A", last_name="G",
-            user_type="landlord", is_staff=True,
+            email="vagent@t.com",
+            password="x",
+            first_name="A",
+            last_name="G",
+            user_type="landlord",
+            is_staff=True,
         )
         agent = VerificationAgent.objects.create(user=agent_user)
         self.user = User.objects.create_user(
-            email="vuser@t.com", password="x",
-            first_name="U", last_name="S",
+            email="vuser@t.com",
+            password="x",
+            first_name="U",
+            last_name="S",
             user_type="tenant",
         )
         fr = FieldVisitRequest.objects.create(
@@ -1351,17 +1401,26 @@ class AutoAssignAgentsCommandTests(TestCase):
         from decimal import Decimal
 
         self.user1 = User.objects.create_user(
-            email="aa1@t.com", password="x", first_name="A", last_name="A1",
+            email="aa1@t.com",
+            password="x",
+            first_name="A",
+            last_name="A1",
             user_type="tenant",
         )
         self.user2 = User.objects.create_user(
-            email="aa2@t.com", password="x", first_name="A", last_name="A2",
+            email="aa2@t.com",
+            password="x",
+            first_name="A",
+            last_name="A2",
             user_type="tenant",
         )
         agent_user = User.objects.create_user(
-            email="aagent@t.com", password="x",
-            first_name="Ag", last_name="Ent",
-            user_type="landlord", is_staff=True,
+            email="aagent@t.com",
+            password="x",
+            first_name="Ag",
+            last_name="Ent",
+            user_type="landlord",
+            is_staff=True,
         )
         self.agent = VerificationAgent.objects.create(user=agent_user)
 

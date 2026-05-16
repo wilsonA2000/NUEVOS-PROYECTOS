@@ -215,9 +215,7 @@ class FieldVisitRequestSerializer(serializers.ModelSerializer):
     selfie_url = serializers.SerializerMethodField(read_only=True)
 
     user_email = serializers.EmailField(source="user.email", read_only=True)
-    user_full_name = serializers.CharField(
-        source="user.get_full_name", read_only=True
-    )
+    user_full_name = serializers.CharField(source="user.get_full_name", read_only=True)
 
     class Meta:
         model = FieldVisitRequest
@@ -332,9 +330,7 @@ class FieldVisitActSerializer(serializers.ModelSerializer):
     field_request = serializers.PrimaryKeyRelatedField(
         queryset=FieldVisitRequest.objects.all()
     )
-    visit = serializers.PrimaryKeyRelatedField(
-        queryset=VerificationVisit.objects.all()
-    )
+    visit = serializers.PrimaryKeyRelatedField(queryset=VerificationVisit.objects.all())
     visit_number = serializers.CharField(source="visit.visit_number", read_only=True)
     target_user_email = serializers.EmailField(
         source="field_request.user.email", read_only=True

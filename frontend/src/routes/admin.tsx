@@ -122,10 +122,7 @@ const AdminRoutes: React.FC = () => {
 
           {/* Actas VeriHome ID (C11) */}
           <Route path='visitas' element={<AdminFieldVisitActs />} />
-          <Route
-            path='visitas/:actId'
-            element={<AdminFieldVisitActDetail />}
-          />
+          <Route path='visitas/:actId' element={<AdminFieldVisitActDetail />} />
 
           {/* Scoring VeriHome ID (C12) */}
           <Route

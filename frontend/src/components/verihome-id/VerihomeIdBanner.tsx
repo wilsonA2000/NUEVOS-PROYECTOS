@@ -75,8 +75,7 @@ const VerihomeIdBanner: React.FC = () => {
         </Typography>
         {data.blocking_actions.length > 0 && (
           <Typography variant='caption' color='text.secondary'>
-            Acciones bloqueadas:
-            {' '}
+            Acciones bloqueadas:{' '}
             {data.blocking_actions
               .map(a =>
                 a === 'create_property'

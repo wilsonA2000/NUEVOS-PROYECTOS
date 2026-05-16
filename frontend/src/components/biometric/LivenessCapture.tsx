@@ -115,7 +115,8 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [holdProgress, setHoldProgress] = useState(0);
-  const [currentDirection, setCurrentDirection] = useState<HeadDirection>('center');
+  const [currentDirection, setCurrentDirection] =
+    useState<HeadDirection>('center');
   const [completed, setCompleted] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
 
@@ -378,10 +379,12 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
     <Paper sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Box>
-          <Typography variant='h6'>Verificación de identidad — Liveness</Typography>
+          <Typography variant='h6'>
+            Verificación de identidad — Liveness
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Sigue las instrucciones en pantalla. Mantén el rostro dentro
-            del óvalo.
+            Sigue las instrucciones en pantalla. Mantén el rostro dentro del
+            óvalo.
           </Typography>
         </Box>
 

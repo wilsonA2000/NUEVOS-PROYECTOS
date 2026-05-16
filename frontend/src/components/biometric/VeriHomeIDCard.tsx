@@ -92,9 +92,7 @@ const VeriHomeIDCard: React.FC = () => {
         const data = await getMyOnboarding();
         if (cancelled) return;
         setScreen(
-          data
-            ? { kind: 'has-onboarding', data }
-            : { kind: 'no-onboarding' },
+          data ? { kind: 'has-onboarding', data } : { kind: 'no-onboarding' },
         );
       } catch (err) {
         if (cancelled) return;
@@ -207,7 +205,8 @@ const VeriHomeIDCard: React.FC = () => {
             <Typography variant='caption' color='text.secondary'>
               Score parcial digital: <strong>{scorePoints} / 50 puntos</strong>
               {' · '}
-              Registrado el {new Date(data.created_at).toLocaleDateString('es-CO')}
+              Registrado el{' '}
+              {new Date(data.created_at).toLocaleDateString('es-CO')}
             </Typography>
           </Box>
         </Stack>

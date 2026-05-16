@@ -21,14 +21,8 @@ export interface ParsedColombianID {
 const EXPLICIT_TYPE_KEYWORDS: Array<readonly [string, readonly string[]]> = [
   ['pasaporte', ['PASAPORTE', 'PASSPORT']],
   ['tarjeta_identidad', ['TARJETA DE IDENTIDAD']],
-  [
-    'cedula_extranjeria',
-    ['CEDULA DE EXTRANJERIA', 'CÉDULA DE EXTRANJERÍA'],
-  ],
-  [
-    'cedula_ciudadania',
-    ['CEDULA DE CIUDADANIA', 'CÉDULA DE CIUDADANÍA'],
-  ],
+  ['cedula_extranjeria', ['CEDULA DE EXTRANJERIA', 'CÉDULA DE EXTRANJERÍA']],
+  ['cedula_ciudadania', ['CEDULA DE CIUDADANIA', 'CÉDULA DE CIUDADANÍA']],
 ];
 
 const FALLBACK_CEDULA_KEYWORDS = [
@@ -148,7 +142,11 @@ function extractDates(text: string): DateMatch[] {
   while ((m = DATE_RE.exec(text)) !== null) {
     const [, dayStr, monthStr, yearStr] = m;
     if (!dayStr || !monthStr || !yearStr) continue;
-    const iso = isoDate(parseInt(yearStr, 10), parseInt(monthStr, 10), parseInt(dayStr, 10));
+    const iso = isoDate(
+      parseInt(yearStr, 10),
+      parseInt(monthStr, 10),
+      parseInt(dayStr, 10),
+    );
     if (iso) results.push({ date: iso, position: m.index });
   }
 

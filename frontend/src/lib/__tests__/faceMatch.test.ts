@@ -60,7 +60,11 @@ describe('compareFaceImages', () => {
       targetDescriptor: desc,
       distance: 0.3,
     });
-    const result = await compareFaceImages(faceapi, FAKE_DATA_URL, FAKE_DATA_URL);
+    const result = await compareFaceImages(
+      faceapi,
+      FAKE_DATA_URL,
+      FAKE_DATA_URL,
+    );
     expect(result.isMatch).toBe(true);
     expect(result.distance).toBe(0.3);
     expect(result.similarity).toBeGreaterThan(0.4);
@@ -73,7 +77,11 @@ describe('compareFaceImages', () => {
       targetDescriptor: desc,
       distance: 0.8,
     });
-    const result = await compareFaceImages(faceapi, FAKE_DATA_URL, FAKE_DATA_URL);
+    const result = await compareFaceImages(
+      faceapi,
+      FAKE_DATA_URL,
+      FAKE_DATA_URL,
+    );
     expect(result.isMatch).toBe(false);
     expect(result.similarity).toBe(0);
   });
@@ -84,7 +92,11 @@ describe('compareFaceImages', () => {
       sourceDescriptor: null,
       targetDescriptor: desc,
     });
-    const result = await compareFaceImages(faceapi, FAKE_DATA_URL, FAKE_DATA_URL);
+    const result = await compareFaceImages(
+      faceapi,
+      FAKE_DATA_URL,
+      FAKE_DATA_URL,
+    );
     expect(result.isMatch).toBe(false);
     expect(result.sourceDetected).toBe(false);
     expect(result.targetDetected).toBe(true);
@@ -95,7 +107,11 @@ describe('compareFaceImages', () => {
       sourceDescriptor: null,
       targetDescriptor: null,
     });
-    const result = await compareFaceImages(faceapi, FAKE_DATA_URL, FAKE_DATA_URL);
+    const result = await compareFaceImages(
+      faceapi,
+      FAKE_DATA_URL,
+      FAKE_DATA_URL,
+    );
     expect(result.isMatch).toBe(false);
     expect(result.sourceDetected).toBe(false);
     expect(result.targetDetected).toBe(false);

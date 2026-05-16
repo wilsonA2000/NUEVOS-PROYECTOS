@@ -42,10 +42,13 @@ export interface FaceDetection {
 export interface FaceDetectionWithLandmarks {
   detection: FaceDetection;
   landmarks: FaceLandmarks;
-  alignedRect?: { box: { x: number; y: number; width: number; height: number } };
+  alignedRect?: {
+    box: { x: number; y: number; width: number; height: number };
+  };
 }
 
-export interface FaceDetectionWithDescriptor extends FaceDetectionWithLandmarks {
+export interface FaceDetectionWithDescriptor
+  extends FaceDetectionWithLandmarks {
   descriptor: Float32Array;
 }
 
@@ -64,7 +67,9 @@ export interface FaceApiModule {
     options?: unknown,
   ) => {
     withFaceLandmarks: () => {
-      withFaceDescriptor: () => Promise<FaceDetectionWithDescriptor | undefined>;
+      withFaceDescriptor: () => Promise<
+        FaceDetectionWithDescriptor | undefined
+      >;
       run: () => Promise<FaceDetectionWithLandmarks | undefined>;
     };
     run: () => Promise<FaceDetection | undefined>;

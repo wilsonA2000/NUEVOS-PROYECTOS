@@ -319,6 +319,3 @@ Cada chunk = 0.5 a 1 sesión Claude.
 
 **Última actualización**: 2026-04-25 · **Próxima revisión**: tras
 respuestas peticiones (15 días hábiles).
-
-
-

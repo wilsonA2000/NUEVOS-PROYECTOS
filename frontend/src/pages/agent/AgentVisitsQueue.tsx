@@ -180,8 +180,8 @@ const AgentVisitsQueue: React.FC = () => {
         </Box>
       ) : visitsQuery.isError ? (
         <Alert severity='error'>
-          No se pudieron cargar tus visitas. Verificá que tu cuenta tenga
-          perfil de agente VeriHome.
+          No se pudieron cargar tus visitas. Verificá que tu cuenta tenga perfil
+          de agente VeriHome.
         </Alert>
       ) : !visitsQuery.data || visitsQuery.data.length === 0 ? (
         <Paper variant='outlined' sx={{ p: 4, textAlign: 'center' }}>
@@ -237,8 +237,7 @@ const AgentVisitsQueue: React.FC = () => {
                       Programada
                     </Typography>
                     <Typography variant='body2'>
-                      {visit.scheduled_date || '—'}{' '}
-                      {visit.scheduled_time || ''}
+                      {visit.scheduled_date || '—'} {visit.scheduled_time || ''}
                     </Typography>
                   </Box>
                 </CardContent>
@@ -301,9 +300,7 @@ const AgentVisitsQueue: React.FC = () => {
 
       <Dialog
         open={completeDialog.open}
-        onClose={() =>
-          setCompleteDialog(s => ({ ...s, open: false }))
-        }
+        onClose={() => setCompleteDialog(s => ({ ...s, open: false }))}
         maxWidth='sm'
         fullWidth
       >
@@ -314,8 +311,9 @@ const AgentVisitsQueue: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            Confirmá los hallazgos de la visita {completeDialog.visit?.visit_number}.
-            Una vez completada el agente no podrá modificar este registro.
+            Confirmá los hallazgos de la visita{' '}
+            {completeDialog.visit?.visit_number}. Una vez completada el agente
+            no podrá modificar este registro.
           </DialogContentText>
           <TextField
             fullWidth
@@ -330,9 +328,7 @@ const AgentVisitsQueue: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() =>
-              setCompleteDialog(s => ({ ...s, open: false }))
-            }
+            onClick={() => setCompleteDialog(s => ({ ...s, open: false }))}
           >
             Cancelar
           </Button>
