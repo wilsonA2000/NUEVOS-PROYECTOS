@@ -198,7 +198,7 @@ class Command(BaseCommand):
         self.stdout.write("Creando métricas iniciales...")
 
         metrics_created = 0
-        today = timezone.now().date()
+        today = timezone.localdate()
 
         initial_metrics = [
             {"metric_type": "system_startup", "count": 1},

@@ -215,8 +215,8 @@ def create_contracts(properties, tenant):
         property=properties[0],
         secondary_party=tenant,  # Arrendatario
         primary_party=properties[0].landlord,  # Arrendador
-        start_date=timezone.now().date(),
-        end_date=timezone.now().date() + timedelta(days=365),
+        start_date=timezone.localdate(),
+        end_date=timezone.localdate() + timedelta(days=365),
         monthly_rent=properties[0].rent_price,
         security_deposit=properties[0].rent_price * 2,
         status="active",
@@ -297,9 +297,9 @@ def create_payments(contract, tenant):
         title="Factura de renta mensual",
         subtotal=contract.monthly_rent,
         total_amount=contract.monthly_rent,
-        due_date=timezone.now().date() + timedelta(days=5),
+        due_date=timezone.localdate() + timedelta(days=5),
         status="paid",
-        paid_date=timezone.now().date(),
+        paid_date=timezone.localdate(),
     )
 
     print(f"✓ Creada factura: {invoice.invoice_number}")

@@ -25,7 +25,7 @@ def get_upcoming_payments(days_ahead=5):
     Returns:
         QuerySet de Transaction pendientes con vencimiento próximo.
     """
-    today = timezone.now().date()
+    today = timezone.localdate()
     future_date = today + timedelta(days=days_ahead)
 
     return (
@@ -46,7 +46,7 @@ def get_overdue_payments():
     Returns:
         QuerySet de Transaction vencidas y no pagadas.
     """
-    today = timezone.now().date()
+    today = timezone.localdate()
 
     return (
         Transaction.objects.filter(
@@ -236,7 +236,7 @@ def process_all_reminders():
     Returns:
         dict con contadores de recordatorios enviados por tipo.
     """
-    today = timezone.now().date()
+    today = timezone.localdate()
     stats = {
         "upcoming": 0,
         "due_today": 0,
@@ -421,7 +421,7 @@ def escalate_severely_overdue():
     Returns:
         dict con contadores de escalamientos realizados.
     """
-    today = timezone.now().date()
+    today = timezone.localdate()
     cutoff_date = today - timedelta(days=15)
 
     severely_overdue = Transaction.objects.filter(

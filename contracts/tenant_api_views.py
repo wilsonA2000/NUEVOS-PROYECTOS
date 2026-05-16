@@ -995,8 +995,8 @@ class TenantDashboardView(viewsets.GenericViewSet):
 
         # Próximos vencimientos
         upcoming_expirations = active_contracts.filter(
-            end_date__lte=timezone.now().date() + timedelta(days=60),
-            end_date__gte=timezone.now().date(),
+            end_date__lte=timezone.localdate() + timedelta(days=60),
+            end_date__gte=timezone.localdate(),
         )
 
         return Response(

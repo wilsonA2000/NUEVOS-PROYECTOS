@@ -533,7 +533,7 @@ class Invoice(models.Model):
 
     def is_overdue(self):
         """Verifica si la factura está vencida."""
-        return self.due_date < timezone.now().date() and self.status not in [
+        return self.due_date < timezone.localdate() and self.status not in [
             "paid",
             "cancelled",
         ]
@@ -542,7 +542,7 @@ class Invoice(models.Model):
         """Calcula los días de vencimiento."""
         if not self.is_overdue():
             return 0
-        return (timezone.now().date() - self.due_date).days
+        return (timezone.localdate() - self.due_date).days
 
 
 class InvoiceItem(models.Model):
@@ -728,7 +728,7 @@ class PaymentInstallment(models.Model):
 
     def is_overdue(self):
         """Verifica si la cuota está vencida."""
-        return self.due_date < timezone.now().date() and self.status == "pending"
+        return self.due_date < timezone.localdate() and self.status == "pending"
 
     def get_total_amount_due(self):
         """Obtiene el monto total adeudado incluyendo recargos."""

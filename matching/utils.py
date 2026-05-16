@@ -373,7 +373,7 @@ def generate_match_analytics(date=None):
     """Genera analíticas diarias del sistema de matching."""
 
     if not date:
-        date = timezone.now().date()
+        date = timezone.localdate()
 
     return MatchAnalytics.calculate_daily_analytics(date)
 
@@ -411,7 +411,7 @@ def auto_apply_matches(tenant):
                     tenant_message=f"Hola, estoy muy interesado en su propiedad '{property.title}'. Me parece perfecta para mis necesidades. Me gustaría agendar una visita cuando sea conveniente para usted.",
                     monthly_income=getattr(tenant, "monthly_income", None),
                     employment_type=getattr(tenant, "employment_type", ""),
-                    preferred_move_in_date=timezone.now().date()
+                    preferred_move_in_date=timezone.localdate()
                     + timezone.timedelta(days=30),
                     number_of_occupants=1,
                     priority="high",

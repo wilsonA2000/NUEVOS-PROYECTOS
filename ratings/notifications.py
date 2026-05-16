@@ -592,7 +592,7 @@ class RatingNotificationScheduler:
             context = {
                 "user_name": user.get_full_name(),
                 "week_start": week_ago.date(),
-                "week_end": timezone.now().date(),
+                "week_end": timezone.localdate(),
                 "total_ratings": recent_ratings.count(),
                 "weekly_average": round(weekly_avg, 2) if weekly_avg else 0,
                 "ratings": recent_ratings.order_by("-created_at")[

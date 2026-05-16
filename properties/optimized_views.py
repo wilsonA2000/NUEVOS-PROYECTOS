@@ -301,7 +301,7 @@ class OptimizedPropertyViewSet(
         """
         if request.user.is_authenticated:
             # Use get_or_create to avoid duplicate views within same day
-            today = timezone.now().date()
+            today = timezone.localdate()
             view, created = PropertyView.objects.get_or_create(
                 property=property_obj,
                 user=request.user,

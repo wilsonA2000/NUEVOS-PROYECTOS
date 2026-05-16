@@ -217,7 +217,7 @@ def create_contract_ready_for_signing(landlord, tenant, prop, match_request):
     from contracts.models import Contract
     from dateutil.relativedelta import relativedelta
 
-    start_date = timezone.now().date() + timedelta(days=7)
+    start_date = timezone.localdate() + timedelta(days=7)
     end_date = start_date + relativedelta(months=12)
 
     contract = Contract.objects.create(
@@ -436,7 +436,7 @@ def create_field_visit_act_draft(field_request, agent_profile, tenant):
         agent=agent_profile,
         visit_address="Calle 34 #27-18",
         visit_city="Bucaramanga",
-        scheduled_date=timezone.now().date(),
+        scheduled_date=timezone.localdate(),
         scheduled_time="10:00",
         started_at=timezone.now(),
     )
@@ -1027,7 +1027,7 @@ def main():
             status="pending",
             visit_address="Calle 34 #27-18",
             visit_city="Bucaramanga",
-            scheduled_date=timezone.now().date() + timedelta(days=3),
+            scheduled_date=timezone.localdate() + timedelta(days=3),
             scheduled_time="10:00",
         )
         # visit_number se genera en save, asegurar que esté

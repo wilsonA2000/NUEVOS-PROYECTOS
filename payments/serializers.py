@@ -337,14 +337,14 @@ if EscrowReleaseRule:
             """Verifica si la regla está activa."""
             from django.utils import timezone
 
-            return obj.trigger_date >= timezone.now().date() and obj.is_enabled
+            return obj.trigger_date >= timezone.localdate() and obj.is_enabled
 
         def get_days_until_trigger(self, obj):
             """Calcula días hasta que se active la regla."""
             from django.utils import timezone
 
             if obj.trigger_date:
-                delta = obj.trigger_date - timezone.now().date()
+                delta = obj.trigger_date - timezone.localdate()
                 return delta.days if delta.days >= 0 else 0
             return None
 

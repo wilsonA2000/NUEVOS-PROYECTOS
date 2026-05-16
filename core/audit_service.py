@@ -517,7 +517,7 @@ class AuditService:
     def _update_activity_metrics(self, action_type: str, success: bool):
         """Actualiza métricas de actividad."""
         try:
-            today = timezone.now().date()
+            today = timezone.localdate()
 
             # Métrica de actividad general
             SystemMetrics.objects.update_or_create(

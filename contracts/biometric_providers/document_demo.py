@@ -18,7 +18,7 @@ class DemoDocumentProvider(DocumentProvider):
     name = "demo"
 
     def analyze_document(self, image_data: str, document_type: str) -> DocumentAnalysis:
-        today = timezone.now().date()
+        today = timezone.localdate()
         analysis = DocumentAnalysis(
             document_detected=True,
             quality_score=0.88,
@@ -42,7 +42,7 @@ class DemoDocumentProvider(DocumentProvider):
 
     @staticmethod
     def _fill_validation(analysis: DocumentAnalysis, expected_type: str) -> None:
-        today = timezone.now().date()
+        today = timezone.localdate()
         analysis.document_number_valid = bool(
             analysis.document_number and len(analysis.document_number) >= 8
         )

@@ -302,7 +302,7 @@ class MessagingStatsAPIView(APIView):
         # Mensajes enviados hoy
         from django.utils import timezone
 
-        today = timezone.now().date()
+        today = timezone.localdate()
         messages_today = Message.objects.filter(
             sender=user, sent_at__date=today
         ).count()

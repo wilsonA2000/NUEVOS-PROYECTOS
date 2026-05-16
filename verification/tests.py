@@ -83,7 +83,7 @@ class VerificationAgentModelTests(TestCase):
             target_user=target,
             visit_address="Calle 1",
             status="scheduled",
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
         )
         self.assertEqual(agent.current_week_visits, 1)
 
@@ -321,7 +321,7 @@ class VerificationVisitAPITests(APITestCase):
             target_user=self.regular_user,
             visit_address="Calle 50 #10-30",
             status="pending",
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
         )
 
     def test_assign_agent_to_visit(self):
@@ -635,7 +635,7 @@ def _build_sealed_act(
         agent=agent,
         target_user=user,
         visit_address="Calle 1 #2-3",
-        scheduled_date=timezone.now().date(),
+        scheduled_date=timezone.localdate(),
     )
     act = FieldVisitAct(
         field_request=field_request,
@@ -799,7 +799,7 @@ class FieldVisitActAPITests(APITestCase):
             agent=self.agent,
             target_user=self.target,
             visit_address="Cr 1 #1-1",
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
             status="scheduled",
         )
 
@@ -1128,7 +1128,7 @@ class CompositeScoreTests(TestCase):
             agent=self.agent,
             target_user=self.user,
             visit_address="Cr 1",
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
         )
 
     def _build_act(self, visit_score):
@@ -1205,7 +1205,7 @@ class ScoringEndpointTests(APITestCase):
                 agent=agent,
                 target_user=user,
                 visit_address="Cr 1",
-                scheduled_date=timezone.now().date(),
+                scheduled_date=timezone.localdate(),
             )
             self.acts.append(
                 FieldVisitAct.objects.create(
@@ -1287,7 +1287,7 @@ class VisitScoreEndpointTests(APITestCase):
             agent=agent,
             target_user=self.user,
             visit_address="Cr 1",
-            scheduled_date=timezone.now().date(),
+            scheduled_date=timezone.localdate(),
         )
         self.act = FieldVisitAct.objects.create(
             field_request=fr,

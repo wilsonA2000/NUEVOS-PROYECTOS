@@ -163,7 +163,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         upcoming_payments = Transaction.objects.filter(
             payer=user,
             status="pending",
-            due_date__lte=timezone.now().date() + timedelta(days=7),
+            due_date__lte=timezone.localdate() + timedelta(days=7),
         )
 
         return {

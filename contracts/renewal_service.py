@@ -325,7 +325,7 @@ class RenewalAlertService:
         if source.end_date:
             new_start = source.end_date + timedelta(days=1)
         else:
-            new_start = timezone.now().date()
+            new_start = timezone.localdate()
 
         if duration_months:
             new_end = new_start + relativedelta(months=duration_months)

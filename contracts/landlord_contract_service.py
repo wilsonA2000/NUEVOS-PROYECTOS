@@ -649,7 +649,7 @@ class LandlordContractService:
             contract.current_state = "PUBLISHED"
             contract.published = True
             contract.published_at = timezone.now()
-            contract.start_date = timezone.now().date()
+            contract.start_date = timezone.localdate()
 
             # Calcular fecha de finalización basada en duración
             if contract.contract_duration_months:

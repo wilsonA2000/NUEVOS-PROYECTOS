@@ -566,7 +566,7 @@ def generate_payment_order_receipt(order):
     elements.append(
         Paragraph(
             f"Generado automáticamente por VeriHome el "
-            f"{_format_simple_date(timezone.now().date())}. "
+            f"{_format_simple_date(timezone.localdate())}. "
             f"Este recibo tiene validez auditable; consérvelo para sus registros.",
             ParagraphStyle(
                 "POFooter",

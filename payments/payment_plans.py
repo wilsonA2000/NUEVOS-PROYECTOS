@@ -269,13 +269,13 @@ class PaymentPlanInstallment(models.Model):
         """Verificar si la cuota está vencida."""
         if self.status == "paid":
             return False
-        return timezone.now().date() > self.due_date
+        return timezone.localdate() > self.due_date
 
     @transaction.atomic
     def mark_as_paid(self, transaction):
         """Marcar cuota como pagada."""
         self.status = "paid"
-        self.paid_date = timezone.now().date()
+        self.paid_date = timezone.localdate()
         self.amount_paid = self.amount
         self.payment_transaction = transaction
         self.save()

@@ -424,7 +424,7 @@ class InvoiceModelTests(TestCase):
             due_date=date.today() - timedelta(days=days_past),
             status="sent",
         )
-        # days_overdue usa timezone.now().date() que puede diferir de date.today()
+        # days_overdue usa timezone.localdate() que puede diferir de date.today()
         # por timezone; aceptamos +/- 1 dia de margen
         self.assertGreaterEqual(inv.days_overdue(), days_past)
         self.assertLessEqual(inv.days_overdue(), days_past + 1)

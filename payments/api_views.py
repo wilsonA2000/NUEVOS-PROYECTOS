@@ -1086,7 +1086,7 @@ class PayInvoiceAPIView(APIView):
 
             # Aquí se procesaría el pago real
             invoice.status = "paid"
-            invoice.paid_date = timezone.now().date()
+            invoice.paid_date = timezone.localdate()
             invoice.save()
 
             return Response({"detail": "Factura pagada correctamente"})

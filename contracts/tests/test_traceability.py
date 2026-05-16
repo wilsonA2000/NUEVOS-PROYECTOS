@@ -109,8 +109,8 @@ class FullTraceabilityTests(TestCase):
             secondary_party=self.tenant,
             monthly_rent=Decimal("1000000"),
             security_deposit=Decimal("1000000"),
-            start_date=timezone.now().date(),
-            end_date=timezone.now().date() + timezone.timedelta(days=365),
+            start_date=timezone.localdate(),
+            end_date=timezone.localdate() + timezone.timedelta(days=365),
         )
         rating = Rating.objects.create(
             reviewer=self.tenant,

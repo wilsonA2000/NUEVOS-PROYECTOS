@@ -542,7 +542,7 @@ class ExpiringContractsAPIView(generics.ListAPIView):
         from django.utils import timezone
         from datetime import timedelta
 
-        future_date = timezone.now().date() + timedelta(days=30)
+        future_date = timezone.localdate() + timedelta(days=30)
         user = self.request.user
 
         return (
@@ -599,7 +599,7 @@ class ContractStatsAPIView(APIView):
         from django.utils import timezone
         from datetime import timedelta
 
-        future_date = timezone.now().date() + timedelta(days=30)
+        future_date = timezone.localdate() + timedelta(days=30)
         expiring_soon = user_contracts.filter(
             end_date__lte=future_date, status="active"
         ).count()
@@ -852,7 +852,7 @@ class DigitalSignatureAPIView(APIView):
         """Actualiza el estado del contrato después de la firma."""
         if contract.is_fully_signed():
             contract.status = "fully_signed"
-            contract.signed_date = timezone.now().date()
+            contract.signed_date = timezone.localdate()
         else:
             contract.status = "partially_signed"
 
@@ -3168,13 +3168,13 @@ www.verihome.com | soporte@verihome.com
                         "start_date": getattr(
                             match_request, "preferred_move_in_date", None
                         )
-                        or (timezone.now().date() + timedelta(days=30)),
+                        or (timezone.localdate() + timedelta(days=30)),
                         "end_date": (
                             getattr(match_request, "preferred_move_in_date", None)
-                            or (timezone.now().date() + timedelta(days=30))
+                            or (timezone.localdate() + timedelta(days=30))
                         )
                         + timedelta(days=365),
-                        "today": timezone.now().date(),
+                        "today": timezone.localdate(),
                         "contract_year": timezone.now().year,
                         # ===== DATOS DEL CONTRATO =====
                         "contract_number": f"VH-{timezone.now().year}-{str(uuid.uuid4().hex[:6]).upper()}",
@@ -3231,10 +3231,10 @@ www.verihome.com | soporte@verihome.com
                         start_date=getattr(
                             match_request, "preferred_move_in_date", None
                         )
-                        or (timezone.now().date() + timedelta(days=30)),
+                        or (timezone.localdate() + timedelta(days=30)),
                         end_date=(
                             getattr(match_request, "preferred_move_in_date", None)
-                            or (timezone.now().date() + timedelta(days=30))
+                            or (timezone.localdate() + timedelta(days=30))
                         )
                         + timedelta(days=365),
                         # Información financiera básica de la propiedad

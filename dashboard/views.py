@@ -649,7 +649,7 @@ class DashboardChartsView(APIView):
 
     def get_income_chart_data(self, user, days=30):
         """Datos para el gráfico de ingresos."""
-        end_date = timezone.now().date()
+        end_date = timezone.localdate()
         start_date = end_date - timedelta(days=days)
 
         data = []

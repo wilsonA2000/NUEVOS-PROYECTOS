@@ -234,7 +234,7 @@ class MatchRequest(models.Model):
             return
 
         months = self.lease_duration_months or 12
-        start = self.preferred_move_in_date or timezone.now().date()
+        start = self.preferred_move_in_date or timezone.localdate()
         end = start + timedelta(days=30 * months)
         monthly_rent = self.property.rent_price
 
@@ -526,7 +526,7 @@ class MatchRequest(models.Model):
 
         # Calcular fechas del contrato
         start_date = self.preferred_move_in_date or (
-            timezone.now().date() + timezone.timedelta(days=7)
+            timezone.localdate() + timezone.timedelta(days=7)
         )
         end_date = start_date + relativedelta(months=self.lease_duration_months)
 
@@ -914,7 +914,7 @@ class MatchAnalytics(models.Model):
     def calculate_daily_analytics(cls, date=None):
         """Calcula las analíticas para un día específico."""
         if not date:
-            date = timezone.now().date()
+            date = timezone.localdate()
 
         requests = MatchRequest.objects.filter(created_at__date=date)
 

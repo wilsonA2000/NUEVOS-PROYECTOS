@@ -122,7 +122,7 @@ class Command(BaseCommand):
         warning_days = [30, 15, 7, 1]
 
         for days in warning_days:
-            target_date = timezone.now().date() + timedelta(days=days)
+            target_date = timezone.localdate() + timedelta(days=days)
 
             contracts = Contract.objects.filter(
                 end_date=target_date, status="active"
@@ -236,7 +236,7 @@ class Command(BaseCommand):
         notification_count = 0
 
         # Contratos que pueden renovarse y están próximos a expirar
-        renewal_notice_date = timezone.now().date() + timedelta(days=60)
+        renewal_notice_date = timezone.localdate() + timedelta(days=60)
 
         contracts = Contract.objects.filter(
             is_renewable=True, status="active", end_date__lte=renewal_notice_date
@@ -250,7 +250,7 @@ class Command(BaseCommand):
         contracts = contracts.exclude(id__in=contracts_with_renewals)
 
         for contract in contracts:
-            days_until_expiry = (contract.end_date - timezone.now().date()).days
+            days_until_expiry = (contract.end_date - timezone.localdate()).days
 
             if verbose:
                 self.stdout.write(

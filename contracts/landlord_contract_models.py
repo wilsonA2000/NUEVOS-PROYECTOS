@@ -1415,13 +1415,13 @@ class LandlordContractGuarantee(models.Model):
         """Verifica si la garantía ha vencido."""
         if not self.expiry_date:
             return False
-        return timezone.now().date() > self.expiry_date
+        return timezone.localdate() > self.expiry_date
 
     def days_until_expiry(self) -> int:
         """Calcula los días hasta el vencimiento."""
         if not self.expiry_date or self.is_expired():
             return 0
-        return (self.expiry_date - timezone.now().date()).days
+        return (self.expiry_date - timezone.localdate()).days
 
     def get_amount_display(self) -> str:
         """Obtiene el monto formateado para mostrar."""
@@ -1451,7 +1451,7 @@ class LandlordContractGuarantee(models.Model):
         self.status = "ACTIVE"
         self.is_active = True
         if not self.effective_date:
-            self.effective_date = timezone.now().date()
+            self.effective_date = timezone.localdate()
         self.save(update_fields=["status", "is_active", "effective_date"])
 
 

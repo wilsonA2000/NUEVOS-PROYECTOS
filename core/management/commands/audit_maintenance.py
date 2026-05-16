@@ -220,7 +220,7 @@ class Command(BaseCommand):
 
         # Actualizar métricas del sistema
         if not dry_run:
-            today = timezone.now().date()
+            today = timezone.localdate()
 
             # Crear/actualizar métrica de mantenimiento
             SystemMetrics.objects.update_or_create(

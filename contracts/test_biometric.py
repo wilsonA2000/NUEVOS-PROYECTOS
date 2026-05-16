@@ -82,7 +82,7 @@ class BiometricAuthenticationServiceTests(TestCase):
             status="ready_for_authentication",
             contract_type="rental",
             rental_amount=1000000,
-            start_date=timezone.now().date(),
+            start_date=timezone.localdate(),
             end_date=(timezone.now() + timedelta(days=365)).date(),
         )
 

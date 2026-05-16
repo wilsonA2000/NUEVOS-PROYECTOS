@@ -387,13 +387,13 @@ class Contract(models.Model):
 
     def is_expired(self):
         """Verifica si el contrato ha expirado."""
-        return self.end_date < timezone.now().date()
+        return self.end_date < timezone.localdate()
 
     def days_until_expiry(self):
         """Calcula los días hasta el vencimiento."""
         if self.is_expired():
             return 0
-        return (self.end_date - timezone.now().date()).days
+        return (self.end_date - timezone.localdate()).days
 
     def get_signatories(self):
         """Obtiene todos los firmantes del contrato."""
@@ -450,7 +450,7 @@ class Contract(models.Model):
         """Verifica si el contrato puede pasar a estado 'en_ejecucion'."""
         return (
             self.status in ["active", "fully_signed"]
-            and self.start_date <= timezone.now().date()
+            and self.start_date <= timezone.localdate()
             and not self.is_expired()
         )
 
@@ -490,7 +490,7 @@ class Contract(models.Model):
             return 0
 
         total_days = (self.end_date - self.start_date).days
-        elapsed_days = (timezone.now().date() - self.start_date).days
+        elapsed_days = (timezone.localdate() - self.start_date).days
 
         if total_days <= 0:
             return 100

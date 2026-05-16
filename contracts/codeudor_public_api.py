@@ -253,7 +253,7 @@ class CodeudorBiometricStartView(APIView):
                     secondary_party=landlord_contract.tenant,
                     title=landlord_contract.title,
                     content="Contrato generado automáticamente para autenticación biométrica",
-                    start_date=landlord_contract.start_date or timezone.now().date(),
+                    start_date=landlord_contract.start_date or timezone.localdate(),
                     end_date=landlord_contract.end_date
                     or (timezone.now() + timezone.timedelta(days=365)).date(),
                     status="guarantor_biometric",

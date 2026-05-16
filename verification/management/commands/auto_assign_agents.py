@@ -99,7 +99,7 @@ class Command(BaseCommand):
                     target_user=request_obj.user,
                     visit_address="Por confirmar con el verificado",
                     visit_city="Bucaramanga",
-                    scheduled_date=timezone.now().date(),
+                    scheduled_date=timezone.localdate(),
                     status="scheduled",
                 )
                 request_obj.scheduled_visit = visit

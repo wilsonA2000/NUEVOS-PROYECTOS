@@ -218,7 +218,7 @@ class CandidateEvaluationService:
         if not self.resume or not self.resume.start_date:
             return 0
 
-        end_date = self.resume.end_date or timezone.now().date()
+        end_date = self.resume.end_date or timezone.localdate()
         duration = (end_date.year - self.resume.start_date.year) * 12
         duration += end_date.month - self.resume.start_date.month
 

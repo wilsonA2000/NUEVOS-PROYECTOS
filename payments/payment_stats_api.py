@@ -78,7 +78,7 @@ class PaymentStatsAPIView(APIView):
 
         try:
             # Calculate date range
-            end_date = timezone.now().date()
+            end_date = timezone.localdate()
             start_date = self._calculate_start_date(end_date, date_range)
 
             # Get user transactions
@@ -860,7 +860,7 @@ class SystemPaymentStatsAPIView(APIView):
             return Response(cached_stats)
 
         try:
-            end_date = timezone.now().date()
+            end_date = timezone.localdate()
             start_date = self._calculate_start_date(end_date, date_range)
 
             # System-wide transaction stats

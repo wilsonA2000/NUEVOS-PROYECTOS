@@ -680,7 +680,7 @@ class ServiceAPITests(APITestCase):
             service_provider=sp,
             plan=plan,
             status="active",
-            start_date=timezone.now().date(),
+            start_date=timezone.localdate(),
             end_date=(timezone.now() + timedelta(days=30)).date(),
         )
         self.client.force_authenticate(user=sp)
@@ -721,7 +721,7 @@ class ServiceAPITests(APITestCase):
             service_provider=sp,
             plan=plan,
             status="active",
-            start_date=timezone.now().date(),
+            start_date=timezone.localdate(),
             end_date=(timezone.now() + timedelta(days=30)).date(),
             services_published=1,  # cupo ya consumido
         )

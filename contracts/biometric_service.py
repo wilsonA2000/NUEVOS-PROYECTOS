@@ -887,7 +887,7 @@ class BiometricAuthenticationService:
         self, ocr_results: Dict, document_type: str
     ) -> Dict[str, Any]:
         """Valida los campos extraídos contra el tipo esperado."""
-        today = timezone.now().date()
+        today = timezone.localdate()
         number = str(ocr_results.get("document_number") or "")
         expiry = ocr_results.get("expiry_date")
         detected = ocr_results.get("detected_type") or ""

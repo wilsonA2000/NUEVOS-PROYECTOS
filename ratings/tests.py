@@ -50,8 +50,8 @@ def _make_contract(landlord, tenant, **kwargs):
         "contract_number": f"TEST-{uuid.uuid4().hex[:8].upper()}",
         "title": "Contrato de prueba",
         "content": "Contenido del contrato de prueba.",
-        "start_date": timezone.now().date(),
-        "end_date": timezone.now().date() + timedelta(days=365),
+        "start_date": timezone.localdate(),
+        "end_date": timezone.localdate() + timedelta(days=365),
         "status": "active",
     }
     defaults.update(kwargs)
