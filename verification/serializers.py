@@ -100,6 +100,9 @@ class VerificationVisitSerializer(serializers.ModelSerializer):
     )
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     has_report = serializers.SerializerMethodField()
+    field_request_id = serializers.SerializerMethodField()
+    has_act = serializers.SerializerMethodField()
+    act_id = serializers.SerializerMethodField()
 
     class Meta:
         model = VerificationVisit
@@ -128,6 +131,9 @@ class VerificationVisitSerializer(serializers.ModelSerializer):
             "cancellation_reason",
             "verification_passed",
             "has_report",
+            "field_request_id",
+            "has_act",
+            "act_id",
             "created_at",
             "updated_at",
         ]
@@ -141,6 +147,19 @@ class VerificationVisitSerializer(serializers.ModelSerializer):
 
     def get_has_report(self, obj):
         return hasattr(obj, "report") and obj.report is not None
+
+    def get_field_request_id(self, obj):
+        """ID de la solicitud VeriHome ID asociada (si existe), para
+        permitir al wizard del agente crear el FieldVisitAct."""
+        req = getattr(obj, "field_visit_request", None)
+        return str(req.id) if req else None
+
+    def get_has_act(self, obj):
+        return hasattr(obj, "act") and obj.act is not None
+
+    def get_act_id(self, obj):
+        act = getattr(obj, "act", None)
+        return str(act.id) if act else None
 
 
 class VerificationReportSerializer(serializers.ModelSerializer):

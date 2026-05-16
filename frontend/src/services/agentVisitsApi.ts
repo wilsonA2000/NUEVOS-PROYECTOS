@@ -38,6 +38,9 @@ export interface VerificationVisit {
   cancellation_reason: string;
   verification_passed: boolean | null;
   has_report: boolean;
+  field_request_id: string | null;
+  has_act: boolean;
+  act_id: string | null;
   created_at: string;
   updated_at: string;
 }

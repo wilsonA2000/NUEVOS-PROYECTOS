@@ -46,6 +46,7 @@ import {
   VerificationVisitStatus,
   agentVisitsApi,
 } from '../../services/agentVisitsApi';
+import AgentCompleteVisitWizard from '../../components/agent/AgentCompleteVisitWizard';
 
 const STATUS_OPTIONS: {
   value: '' | VerificationVisitStatus;
@@ -82,6 +83,10 @@ const AgentVisitsQueue: React.FC = () => {
     notes: string;
     passed: boolean;
   }>({ open: false, visit: null, notes: '', passed: true });
+  const [wizard, setWizard] = useState<{
+    open: boolean;
+    visit: VerificationVisit | null;
+  }>({ open: false, visit: null });
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     severity: 'success' | 'error';
@@ -256,16 +261,10 @@ const AgentVisitsQueue: React.FC = () => {
                         startIcon={<DoneIcon />}
                         variant='contained'
                         color='success'
-                        onClick={() =>
-                          setCompleteDialog({
-                            open: true,
-                            visit,
-                            notes: '',
-                            passed: true,
-                          })
-                        }
+                        onClick={() => setWizard({ open: true, visit })}
+                        data-testid={`agent-visit-complete-${visit.visit_number}`}
                       >
-                        Completar
+                        Completar visita
                       </Button>
                       <Button
                         size='small'
@@ -358,6 +357,28 @@ const AgentVisitsQueue: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AgentCompleteVisitWizard
+        open={wizard.open}
+        visit={wizard.visit}
+        onClose={() => setWizard({ open: false, visit: null })}
+        onCompleted={() => {
+          setWizard({ open: false, visit: null });
+          setSnackbar({
+            open: true,
+            severity: 'success',
+            message: 'Visita completada y acta creada en borrador.',
+          });
+          queryClient.invalidateQueries({ queryKey: ['agent-visits'] });
+        }}
+        onError={message =>
+          setSnackbar({
+            open: true,
+            severity: 'error',
+            message: message || 'No se pudo cerrar la visita.',
+          })
+        }
+      />
 
       <Snackbar
         open={snackbar.open}
