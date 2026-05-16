@@ -53,15 +53,31 @@ async function globalSetup(): Promise<void> {
 
   // Ejecutar seed. Usa venv_ubuntu si existe.
   const projectRoot = path.resolve(__dirname, '..', '..');
-  // Permitir override explícito vía env. Probar venvs comunes en orden
-  // (3.10 legacy primero, 3.12 nuevo después) y caer a python3 si nada existe.
+  // Verifica que cada candidato pueda importar django; salta los rotos.
   const candidates = [
     process.env.PLAYWRIGHT_SEED_PYTHON,
     path.join(projectRoot, 'venv_ubuntu', 'bin', 'python'),
     path.join(projectRoot, 'venv_py312', 'bin', 'python'),
     path.join(projectRoot, 'venv', 'bin', 'python'),
+    'python3',
   ].filter(Boolean) as string[];
-  const pythonBin = candidates.find(p => p && fs.existsSync(p)) || 'python3';
+  let pythonBin: string | null = null;
+  for (const bin of candidates) {
+    try {
+      if (bin !== 'python3' && !fs.existsSync(bin)) continue;
+      execSync(`"${bin}" -c "import django"`, { stdio: 'pipe', timeout: 10_000 });
+      pythonBin = bin;
+      break;
+    } catch {
+      // próximo
+    }
+  }
+  if (!pythonBin) {
+    throw new Error(
+      '[globalSetup] No se encontró intérprete Python con django. ' +
+        'Configurá PLAYWRIGHT_SEED_PYTHON o reparalos venv.',
+    );
+  }
   const seedScript = path.join(
     projectRoot,
     'scripts',

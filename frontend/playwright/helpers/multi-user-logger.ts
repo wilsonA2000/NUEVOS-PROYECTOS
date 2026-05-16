@@ -185,19 +185,55 @@ export async function apiPost(
 }
 
 /**
- * Invoca el seed Python con el modo dado y devuelve el JSON final.
- * Resolución del intérprete: PLAYWRIGHT_SEED_PYTHON > venv_ubuntu >
- * venv_py312 > venv > python3.
+ * Resuelve el intérprete Python para correr scripts de seed.
+ *
+ * Orden de prioridad:
+ *   1. PLAYWRIGHT_SEED_PYTHON (override explícito).
+ *   2. venv_ubuntu (legacy, Python 3.10).
+ *   3. venv_py312 (Python 3.12).
+ *   4. venv (alternativo).
+ *   5. python3 del sistema.
+ *
+ * Para cada candidato verifica que (a) el binario existe y (b) puede
+ * importar django — un symlink roto o un venv con deps faltantes se
+ * salta automáticamente. Cachea el resultado para no re-verificar.
  */
-export function runSeed(mode: string): Record<string, string> {
-  const projectRoot = path.resolve(__dirname, '..', '..', '..');
+let _cachedSeedPython: string | null = null;
+
+function resolveSeedPython(projectRoot: string): string {
+  if (_cachedSeedPython) return _cachedSeedPython;
   const candidates = [
     process.env.PLAYWRIGHT_SEED_PYTHON,
     path.join(projectRoot, 'venv_ubuntu', 'bin', 'python'),
     path.join(projectRoot, 'venv_py312', 'bin', 'python'),
     path.join(projectRoot, 'venv', 'bin', 'python'),
+    'python3',
   ].filter(Boolean) as string[];
-  const pythonBin = candidates.find(p => p && fs.existsSync(p)) || 'python3';
+  for (const bin of candidates) {
+    try {
+      if (bin !== 'python3' && !fs.existsSync(bin)) continue;
+      execSync(`"${bin}" -c "import django; import sys; sys.exit(0)"`, {
+        stdio: 'pipe',
+        timeout: 10_000,
+      });
+      _cachedSeedPython = bin;
+      return bin;
+    } catch {
+      // próximo candidato
+    }
+  }
+  throw new Error(
+    'No se encontró un intérprete Python con django instalado. ' +
+      'Configurá PLAYWRIGHT_SEED_PYTHON o asegurate de tener venv_ubuntu/venv_py312/venv operativo.',
+  );
+}
+
+/**
+ * Invoca el seed Python con el modo dado y devuelve el JSON final.
+ */
+export function runSeed(mode: string): Record<string, string> {
+  const projectRoot = path.resolve(__dirname, '..', '..', '..');
+  const pythonBin = resolveSeedPython(projectRoot);
   const seedScript = path.join(projectRoot, 'scripts', 'testing', 'seed_e2e_multiuser.py');
   const stdout = execSync(`"${pythonBin}" "${seedScript}" ${mode}`, {
     cwd: projectRoot,
