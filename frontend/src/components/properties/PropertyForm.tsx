@@ -587,25 +587,32 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     [searchWithNominatim, searchWithMapbox],
   );
 
-  // Inicializar Mapbox
+  // Inicializar Mapbox (silenciosamente skip si no hay token — CI / dev sin Mapbox)
   useEffect(() => {
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current!,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [DEFAULT_LNG, DEFAULT_LAT], // Coordenadas por defecto desde .env
-      zoom: DEFAULT_ZOOM,
-    });
-    marker.current = new mapboxgl.Marker({ draggable: true })
-      .setLngLat([DEFAULT_LNG, DEFAULT_LAT]) // Coordenadas por defecto desde .env
-      .addTo(map.current);
-    map.current.on('click', e => {
-      marker.current!.setLngLat(e.lngLat);
-      setLocationCaptured(false);
-    });
-    marker.current.on('dragend', () => {
-      setLocationCaptured(false);
-    });
+    if (!MAPBOX_TOKEN || !mapContainer.current) return;
+    try {
+      mapboxgl.accessToken = MAPBOX_TOKEN;
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [DEFAULT_LNG, DEFAULT_LAT],
+        zoom: DEFAULT_ZOOM,
+      });
+      marker.current = new mapboxgl.Marker({ draggable: true })
+        .setLngLat([DEFAULT_LNG, DEFAULT_LAT])
+        .addTo(map.current);
+      map.current.on('click', e => {
+        marker.current!.setLngLat(e.lngLat);
+        setLocationCaptured(false);
+      });
+      marker.current.on('dragend', () => {
+        setLocationCaptured(false);
+      });
+    } catch (err) {
+      // Mapbox falló (token inválido, sin red, etc): seguimos sin mapa.
+      // eslint-disable-next-line no-console
+      console.warn('[PropertyForm] Mapbox no disponible:', err);
+    }
     return () => map.current?.remove();
   }, []);
 
