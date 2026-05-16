@@ -186,12 +186,18 @@ export async function apiPost(
 
 /**
  * Invoca el seed Python con el modo dado y devuelve el JSON final.
- * Usa venv_ubuntu si existe.
+ * Resolución del intérprete: PLAYWRIGHT_SEED_PYTHON > venv_ubuntu >
+ * venv_py312 > venv > python3.
  */
 export function runSeed(mode: string): Record<string, string> {
   const projectRoot = path.resolve(__dirname, '..', '..', '..');
-  const venvPython = path.join(projectRoot, 'venv_ubuntu', 'bin', 'python');
-  const pythonBin = fs.existsSync(venvPython) ? venvPython : 'python3';
+  const candidates = [
+    process.env.PLAYWRIGHT_SEED_PYTHON,
+    path.join(projectRoot, 'venv_ubuntu', 'bin', 'python'),
+    path.join(projectRoot, 'venv_py312', 'bin', 'python'),
+    path.join(projectRoot, 'venv', 'bin', 'python'),
+  ].filter(Boolean) as string[];
+  const pythonBin = candidates.find(p => p && fs.existsSync(p)) || 'python3';
   const seedScript = path.join(projectRoot, 'scripts', 'testing', 'seed_e2e_multiuser.py');
   const stdout = execSync(`"${pythonBin}" "${seedScript}" ${mode}`, {
     cwd: projectRoot,

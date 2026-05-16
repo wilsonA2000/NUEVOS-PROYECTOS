@@ -53,9 +53,15 @@ async function globalSetup(): Promise<void> {
 
   // Ejecutar seed. Usa venv_ubuntu si existe.
   const projectRoot = path.resolve(__dirname, '..', '..');
-  const venvPython = path.join(projectRoot, 'venv_ubuntu', 'bin', 'python');
-  const fallbackPython = 'python3';
-  const pythonBin = fs.existsSync(venvPython) ? venvPython : fallbackPython;
+  // Permitir override explícito vía env. Probar venvs comunes en orden
+  // (3.10 legacy primero, 3.12 nuevo después) y caer a python3 si nada existe.
+  const candidates = [
+    process.env.PLAYWRIGHT_SEED_PYTHON,
+    path.join(projectRoot, 'venv_ubuntu', 'bin', 'python'),
+    path.join(projectRoot, 'venv_py312', 'bin', 'python'),
+    path.join(projectRoot, 'venv', 'bin', 'python'),
+  ].filter(Boolean) as string[];
+  const pythonBin = candidates.find(p => p && fs.existsSync(p)) || 'python3';
   const seedScript = path.join(
     projectRoot,
     'scripts',
