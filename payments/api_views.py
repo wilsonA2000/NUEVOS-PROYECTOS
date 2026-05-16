@@ -1495,8 +1495,8 @@ class ProcessRentPaymentAPIView(APIView):
                 status="completed", processed_at=timezone.now()
             )
 
-            # Actualizar última fecha de pago
-            schedule.last_payment_date = timezone.now().date()
+            # Actualizar última fecha de pago (TZ proyecto)
+            schedule.last_payment_date = timezone.localdate()
             schedule.save()
 
             # Crear actividad de pago

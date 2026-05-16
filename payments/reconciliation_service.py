@@ -50,8 +50,8 @@ def _reconcile_rent_payment(transaction):
             logger.info(f"No RentPaymentSchedule found for contract {contract.id}")
             return False
 
-        # Actualizar fecha de último pago
-        schedule.last_payment_date = timezone.now().date()
+        # Actualizar fecha de último pago (TZ proyecto, no UTC)
+        schedule.last_payment_date = timezone.localdate()
         schedule.save(update_fields=["last_payment_date", "updated_at"])
 
         # Marcar la siguiente PaymentOrder pendiente del schedule como pagada

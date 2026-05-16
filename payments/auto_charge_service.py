@@ -25,7 +25,7 @@ def process_auto_charges():
     """
     from .models import RentPaymentSchedule, Transaction
 
-    today = timezone.now().date()
+    today = timezone.localdate()
     processed = 0
     failed = 0
 
