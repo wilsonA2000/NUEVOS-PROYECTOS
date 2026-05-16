@@ -117,12 +117,19 @@ test.describe('F1 · C4 · Banner + Gate wait_visit', () => {
     await page.click('button[type="submit"]');
     await page.waitForURL('**/app/**', { timeout: 30000 });
 
+    // Pre-armar la espera de la response del endpoint status antes del goto,
+    // para no perdernos la request si Vite tarda en optimizar deps (CI runner).
+    const statusResponsePromise = page.waitForResponse(
+      r => r.url().includes('/verification/onboarding/status/') && r.status() === 200,
+      { timeout: 30000 },
+    );
+
     await page.goto('/app/properties/new');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000); // dejar que el form monte y el hook resuelva
+    await statusResponsePromise; // garantiza que el hook ya tiene data
 
     const gate = page.getByTestId('vhid-gate-create_property');
-    await expect(gate).toBeVisible({ timeout: 15000 });
+    await expect(gate).toBeVisible({ timeout: 20000 });
     await expect(gate).toHaveAttribute('data-vhid-blocked', 'true');
     await expect(gate).toHaveAttribute('data-vhid-next-step', 'wait_visit');
 
