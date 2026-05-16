@@ -529,13 +529,9 @@ class FieldVisitActViewSet(viewsets.ModelViewSet):
             status="draft",
         )
 
-    def update(self, request, *args, **kwargs):
-        return Response(
-            {"detail": "Use PATCH para editar el borrador."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
     def partial_update(self, request, *args, **kwargs):
+        # PUT está bloqueado vía http_method_names (DRF devuelve 405).
+        # Aquí restringimos PATCH a actas en estado draft.
         instance = self.get_object()
         if instance.status != "draft":
             return Response(
