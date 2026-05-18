@@ -14,11 +14,16 @@ export default defineConfig({
     // PWA Support
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['images/**/*', 'placeholder-property.jpg', 'placeholder-property.svg'],
+      includeAssets: [
+        'images/**/*',
+        'placeholder-property.jpg',
+        'placeholder-property.svg',
+      ],
       manifest: {
         name: 'VeriHome - Plataforma Inmobiliaria',
         short_name: 'VeriHome',
-        description: 'Plataforma integral para conectar arrendadores, arrendatarios y prestadores de servicios inmobiliarios en Colombia',
+        description:
+          'Plataforma integral para conectar arrendadores, arrendatarios y prestadores de servicios inmobiliarios en Colombia',
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
@@ -175,13 +180,17 @@ export default defineConfig({
     minify: 'terser',
     sourcemap: process.env.NODE_ENV === 'development',
     // Increase chunk size limit for better optimization
-    chunkSizeWarningLimit: 1000,
+    // mapbox-gl pesa ~1.5MB y vive en su propio chunk lazy (cargado
+    // sólo en /properties/new y /properties/:id/edit). Subimos el
+    // umbral para no spamear warnings — todos los demás chunks
+    // están bajo 500 kB tras el split de vendor.
+    chunkSizeWarningLimit: 1600,
     rollupOptions: {
       // External dependencies que no deben bundlearse
       external: [],
       output: {
         // Optimized manual chunks para mejor code splitting
-        manualChunks: (id) => {
+        manualChunks: id => {
           // Vendor chunks más granulares
           if (id.includes('node_modules')) {
             // React ecosystem
@@ -194,9 +203,41 @@ export default defineConfig({
               return 'router';
             }
 
-            // Material UI ecosystem
+            // Material UI iconos (set enorme, raramente usado en su
+            // totalidad) — separado para que el chunk core de MUI no
+            // se infle a más de 1MB.
+            if (id.includes('@mui/icons-material')) {
+              return 'mui-icons';
+            }
+
+            // @mui/x-* (DataGrid, DatePickers) son pesados y opt-in.
+            if (id.includes('@mui/x-')) {
+              return 'mui-x';
+            }
+
+            // Material UI core + emotion
             if (id.includes('@mui') || id.includes('@emotion')) {
               return 'mui';
+            }
+
+            // Sentry SDK (>500KB).
+            if (id.includes('@sentry')) {
+              return 'sentry';
+            }
+
+            // Pasarelas de pago (cargadas on-demand).
+            if (id.includes('@stripe') || id.includes('@paypal')) {
+              return 'payments-vendor';
+            }
+
+            // i18n stack.
+            if (id.includes('i18next') || id.includes('react-i18next')) {
+              return 'i18n';
+            }
+
+            // Drag & drop.
+            if (id.includes('@hello-pangea/dnd')) {
+              return 'dnd';
             }
 
             // TanStack Query
@@ -205,22 +246,41 @@ export default defineConfig({
             }
 
             // Charts libraries
-            if (id.includes('chart.js') || id.includes('recharts') || id.includes('react-chartjs')) {
+            if (
+              id.includes('chart.js') ||
+              id.includes('recharts') ||
+              id.includes('react-chartjs')
+            ) {
               return 'charts';
             }
 
-            // Maps libraries
-            if (id.includes('mapbox') || id.includes('leaflet')) {
+            // Mapbox (>700KB minified) — chunk dedicado para que
+            // páginas sin mapa no lo descarguen.
+            if (id.includes('mapbox-gl') || id.includes('@mapbox')) {
+              return 'mapbox';
+            }
+
+            // Otros mapas
+            if (id.includes('leaflet')) {
               return 'maps';
             }
 
             // Form libraries
-            if (id.includes('react-hook-form') || id.includes('yup') || id.includes('formik')) {
+            if (
+              id.includes('react-hook-form') ||
+              id.includes('yup') ||
+              id.includes('formik')
+            ) {
               return 'forms';
             }
 
             // Utility libraries
-            if (id.includes('axios') || id.includes('date-fns') || id.includes('lodash') || id.includes('xlsx')) {
+            if (
+              id.includes('axios') ||
+              id.includes('date-fns') ||
+              id.includes('lodash') ||
+              id.includes('xlsx')
+            ) {
               return 'utils';
             }
 
@@ -238,23 +298,38 @@ export default defineConfig({
             return 'auth';
           }
 
-          if (id.includes('/src/pages/properties/') || id.includes('/src/components/properties/')) {
+          if (
+            id.includes('/src/pages/properties/') ||
+            id.includes('/src/components/properties/')
+          ) {
             return 'properties';
           }
 
-          if (id.includes('/src/pages/contracts/') || id.includes('/src/components/contracts/')) {
+          if (
+            id.includes('/src/pages/contracts/') ||
+            id.includes('/src/components/contracts/')
+          ) {
             return 'contracts';
           }
 
-          if (id.includes('/src/pages/payments/') || id.includes('/src/components/payments/')) {
+          if (
+            id.includes('/src/pages/payments/') ||
+            id.includes('/src/components/payments/')
+          ) {
             return 'payments';
           }
 
-          if (id.includes('/src/pages/messages/') || id.includes('/src/components/messages/')) {
+          if (
+            id.includes('/src/pages/messages/') ||
+            id.includes('/src/components/messages/')
+          ) {
             return 'messages';
           }
 
-          if (id.includes('/src/pages/dashboard/') || id.includes('/src/components/dashboard/')) {
+          if (
+            id.includes('/src/pages/dashboard/') ||
+            id.includes('/src/components/dashboard/')
+          ) {
             return 'dashboard';
           }
 
@@ -274,14 +349,22 @@ export default defineConfig({
             return 'utils-app';
           }
         },
-        chunkFileNames: (chunkInfo) => {
+        chunkFileNames: chunkInfo => {
+          // Para chunks nombrados via manualChunks (mui, mui-icons, vendor, …)
+          // priorizar el nombre lógico — facilita debugging y análisis.
+          if (chunkInfo.name && !chunkInfo.name.startsWith('chunk')) {
+            return `js/${chunkInfo.name}-[hash].js`;
+          }
           const facadeModuleId = chunkInfo.facadeModuleId
-            ? chunkInfo.facadeModuleId.split('/').pop()?.replace(/\.\w+$/, '')
+            ? chunkInfo.facadeModuleId
+                .split('/')
+                .pop()
+                ?.replace(/\.\w+$/, '')
             : 'chunk';
           return `js/${facadeModuleId}-[hash].js`;
         },
         entryFileNames: 'js/[name]-[hash].js',
-        assetFileNames: (assetInfo) => {
+        assetFileNames: assetInfo => {
           const name = assetInfo.name || '';
           let extType = name.split('.').pop();
 
@@ -343,7 +426,11 @@ export default defineConfig({
             console.log('Sending Request to the Target:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            console.log(
+              'Received Response from the Target:',
+              proxyRes.statusCode,
+              req.url,
+            );
           });
         },
       },
