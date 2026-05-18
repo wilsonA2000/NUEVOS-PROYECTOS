@@ -444,9 +444,7 @@ class ActivityLogViewSet(viewsets.ModelViewSet):
         """
         try:
             data = request.data
-            logs_data = (
-                data.get("logs", []) if isinstance(data, dict) else data or []
-            )
+            logs_data = data.get("logs", []) if isinstance(data, dict) else data or []
             if not isinstance(logs_data, list):
                 return Response(
                     {"detail": "Field `logs` must be a list."},
