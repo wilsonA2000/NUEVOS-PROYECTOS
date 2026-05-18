@@ -666,3 +666,63 @@ class FieldVisitAct(models.Model):
         if self.field_request_id:
             self.recompute_score()
         super().save(*args, **kwargs)
+
+
+class EmailVerificationOTP(models.Model):
+    """
+    OTP de 6 dígitos enviado por email para validar que el solicitante
+    controla la cuenta declarada. Cuenta como sub-puntaje `email_otp`
+    del breakdown de visita (+0.05) cuando se consume exitosamente.
+
+    Vida útil del código: 10 minutos. Rate limit: 1 request por minuto
+    y máximo 3 solicitudes activas por usuario.
+    """
+
+    OTP_VALIDITY_MINUTES = 10
+    OTP_MIN_INTERVAL_SECONDS = 60
+    OTP_MAX_ACTIVE_PER_USER = 3
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="email_otps",
+        verbose_name="Usuario",
+    )
+    email = models.EmailField("Email donde se envió el código")
+    code_hash = models.CharField("Hash SHA-256 del código", max_length=64)
+    expires_at = models.DateTimeField("Vence")
+    consumed_at = models.DateTimeField("Consumido", null=True, blank=True)
+    attempts = models.PositiveSmallIntegerField("Intentos fallidos", default=0)
+    ip_address = models.GenericIPAddressField("IP solicitante", null=True, blank=True)
+    created_at = models.DateTimeField("Creado", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "OTP Email"
+        verbose_name_plural = "OTPs Email"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"OTP {self.email} ({'consumed' if self.consumed_at else 'pending'})"
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at
+
+    @property
+    def is_consumed(self) -> bool:
+        return self.consumed_at is not None
+
+    @property
+    def is_active(self) -> bool:
+        return not self.is_consumed and not self.is_expired
+
+    @staticmethod
+    def hash_code(code: str) -> str:
+        import hashlib
+
+        return hashlib.sha256(code.encode("utf-8")).hexdigest()

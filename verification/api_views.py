@@ -951,3 +951,197 @@ def _client_ip_from_request(request):
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
+
+
+class EmailOtpRateThrottle(UserRateThrottle):
+    """Limita request/verify de OTP email a 10/hora por usuario."""
+
+    rate = "10/hour"
+    scope = "email_otp"
+
+
+class EmailOtpViewSet(viewsets.GenericViewSet):
+    """
+    C10 · Verificación email vía OTP de 6 dígitos.
+
+    Endpoints:
+      - POST /verification/email-otp/request/  → genera + envía código.
+      - POST /verification/email-otp/verify/   → valida código y marca
+        el sub-puntaje `email_otp` (+0.05) en el acta draft del usuario.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [EmailOtpRateThrottle]
+
+    def _bump_visit_score(self, user, key: str, value):
+        """
+        Si el usuario tiene una FieldVisitAct en draft, suma `value` al
+        sub-puntaje `key` (clamp a 0.05). Best-effort; sin lock.
+        """
+        from decimal import Decimal as _D
+
+        from .models import FieldVisitAct
+
+        act = (
+            FieldVisitAct.objects.filter(
+                field_request__user=user, status="draft"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not act:
+            return None
+        breakdown = dict(act.visit_score_breakdown or {})
+        current = _D(str(breakdown.get(key, 0)))
+        breakdown[key] = float(min(_D("0.05"), current + _D(str(value))))
+        act.visit_score_breakdown = breakdown
+        total = sum(_D(str(v)) for v in breakdown.values())
+        act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
+        act.save()
+        return act
+
+    @action(detail=False, methods=["post"], url_path="request")
+    def request_otp(self, request):
+        """Genera código de 6 dígitos y lo envía al email del usuario."""
+        import secrets
+
+        from .models import EmailVerificationOTP
+
+        user = request.user
+        if not user.email:
+            return Response(
+                {"detail": "Tu cuenta no tiene email registrado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        now = timezone.now()
+        # Anti-spam: 1 request por minuto.
+        recent = (
+            EmailVerificationOTP.objects.filter(user=user, created_at__gte=now)
+            .order_by("-created_at")
+            .first()
+        )
+        last = (
+            EmailVerificationOTP.objects.filter(user=user)
+            .order_by("-created_at")
+            .first()
+        )
+        if (
+            last
+            and (now - last.created_at).total_seconds()
+            < EmailVerificationOTP.OTP_MIN_INTERVAL_SECONDS
+        ):
+            wait = int(
+                EmailVerificationOTP.OTP_MIN_INTERVAL_SECONDS
+                - (now - last.created_at).total_seconds()
+            )
+            return Response(
+                {
+                    "detail": f"Esperá {wait} segundos antes de pedir otro código.",
+                    "retry_after_seconds": wait,
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        _ = recent  # noqa: F841 (reservado por si querés expandir)
+
+        # Invalidar OTPs activos previos
+        EmailVerificationOTP.objects.filter(
+            user=user, consumed_at__isnull=True, expires_at__gt=now
+        ).update(expires_at=now)
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires_at = now + timezone.timedelta(
+            minutes=EmailVerificationOTP.OTP_VALIDITY_MINUTES
+        )
+        EmailVerificationOTP.objects.create(
+            user=user,
+            email=user.email,
+            code_hash=EmailVerificationOTP.hash_code(code),
+            expires_at=expires_at,
+            ip_address=_client_ip_from_request(request),
+        )
+
+        try:
+            send_mail(
+                subject="[VeriHome] Tu código de verificación",
+                message=(
+                    f"Hola {user.get_full_name() or user.email},\n\n"
+                    f"Tu código de verificación VeriHome ID es: {code}\n\n"
+                    f"Vence en {EmailVerificationOTP.OTP_VALIDITY_MINUTES} minutos.\n"
+                    "Si no solicitaste este código, ignorá este mensaje.\n\n"
+                    "Equipo VeriHome"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        return Response(
+            {
+                "message": "Código enviado a tu email.",
+                "expires_at": expires_at.isoformat(),
+                "validity_minutes": EmailVerificationOTP.OTP_VALIDITY_MINUTES,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="verify")
+    def verify_otp(self, request):
+        """Valida el código y otorga sub-puntaje email_otp."""
+        from .models import EmailVerificationOTP
+
+        user = request.user
+        code = str(request.data.get("code") or "").strip()
+        if not code.isdigit() or len(code) != 6:
+            return Response(
+                {"detail": "El código debe ser 6 dígitos numéricos."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        now = timezone.now()
+        otp = (
+            EmailVerificationOTP.objects.filter(
+                user=user, consumed_at__isnull=True, expires_at__gt=now
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not otp:
+            return Response(
+                {"detail": "No hay código activo. Solicitá uno nuevo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if otp.code_hash != EmailVerificationOTP.hash_code(code):
+            otp.attempts += 1
+            update_fields = ["attempts"]
+            # 5 intentos fallidos invalidan el OTP.
+            if otp.attempts >= 5:
+                otp.expires_at = now
+                update_fields.append("expires_at")
+            otp.save(update_fields=update_fields)
+            return Response(
+                {
+                    "detail": "Código incorrecto.",
+                    "attempts": otp.attempts,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        otp.consumed_at = now
+        otp.save(update_fields=["consumed_at"])
+
+        # Bonus en el acta draft si existe.
+        act = self._bump_visit_score(user, key="email_otp", value="0.05")
+        return Response(
+            {
+                "message": "Email verificado.",
+                "email_otp_score": 0.05,
+                "act_id": str(act.id) if act else None,
+                "visit_score_total": str(act.visit_score_total) if act else None,
+                "final_verdict": act.final_verdict if act else None,
+            },
+            status=status.HTTP_200_OK,
+        )

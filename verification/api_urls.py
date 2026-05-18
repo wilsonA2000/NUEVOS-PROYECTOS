@@ -22,6 +22,11 @@ router.register(
     api_views.FieldVisitActViewSet,
     basename="verihome-id-act",
 )
+router.register(
+    r"email-otp",
+    api_views.EmailOtpViewSet,
+    basename="verihome-id-email-otp",
+)
 
 urlpatterns = [
     path("", include(router.urls)),

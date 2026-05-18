@@ -1478,3 +1478,148 @@ class AutoAssignAgentsCommandTests(TestCase):
         call_command("auto_assign_agents")
         self.req1.refresh_from_db()
         self.assertIsNone(self.req1.scheduled_visit_id)
+
+
+class EmailOtpAPITests(APITestCase):
+    """C10 · OTP por email para sub-puntaje email_otp."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            email="otpuser@test.com",
+            password="otp123",
+            user_type="tenant",
+            first_name="Otp",
+            last_name="User",
+        )
+
+    def setUp(self):
+        from django.core import mail
+        from django.core.cache import cache
+
+        # Limpiar throttle cache de DRF entre tests para evitar 429 cruzado.
+        cache.clear()
+        mail.outbox = []
+        self.client.force_authenticate(user=self.user)
+
+    def test_request_otp_envia_email_y_persiste(self):
+        from django.core import mail
+
+        from verification.models import EmailVerificationOTP
+
+        mail.outbox.clear()
+        resp = self.client.post("/api/v1/verification/email-otp/request/")
+        self.assertEqual(resp.status_code, 200, resp.json())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("VeriHome", mail.outbox[0].subject)
+        self.assertEqual(mail.outbox[0].to, [self.user.email])
+        # Código de 6 dígitos en el cuerpo
+        import re
+
+        match = re.search(r"\b\d{6}\b", mail.outbox[0].body)
+        self.assertIsNotNone(match, mail.outbox[0].body)
+        # Y se guardó el hash
+        otp = EmailVerificationOTP.objects.filter(user=self.user).first()
+        self.assertIsNotNone(otp)
+        self.assertNotEqual(otp.code_hash, match.group(0))
+
+    def test_request_otp_rate_limit_1_por_minuto(self):
+        resp1 = self.client.post("/api/v1/verification/email-otp/request/")
+        self.assertEqual(resp1.status_code, 200)
+        resp2 = self.client.post("/api/v1/verification/email-otp/request/")
+        self.assertEqual(resp2.status_code, 429)
+        self.assertIn("retry_after_seconds", resp2.json())
+
+    def test_verify_otp_valido_marca_consumed(self):
+        from django.core import mail
+
+        from verification.models import EmailVerificationOTP
+
+        mail.outbox.clear()
+        self.client.post("/api/v1/verification/email-otp/request/")
+        import re
+
+        code = re.search(r"\b\d{6}\b", mail.outbox[0].body).group(0)
+        resp = self.client.post(
+            "/api/v1/verification/email-otp/verify/", {"code": code}, format="json"
+        )
+        self.assertEqual(resp.status_code, 200, resp.json())
+        otp = EmailVerificationOTP.objects.filter(user=self.user).first()
+        self.assertIsNotNone(otp.consumed_at)
+
+    def test_verify_otp_invalido_incrementa_attempts(self):
+        from verification.models import EmailVerificationOTP
+
+        self.client.post("/api/v1/verification/email-otp/request/")
+        resp = self.client.post(
+            "/api/v1/verification/email-otp/verify/",
+            {"code": "000000"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        otp = EmailVerificationOTP.objects.filter(user=self.user).first()
+        self.assertEqual(otp.attempts, 1)
+
+    def test_verify_otp_formato_invalido_400(self):
+        for bad in ("abc", "12345", "12345abc"):
+            resp = self.client.post(
+                "/api/v1/verification/email-otp/verify/",
+                {"code": bad},
+                format="json",
+            )
+            self.assertEqual(resp.status_code, 400, f"code={bad}")
+
+    def test_verify_sin_otp_activo_400(self):
+        resp = self.client.post(
+            "/api/v1/verification/email-otp/verify/",
+            {"code": "123456"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("código activo", resp.json()["detail"].lower())
+
+    def test_verify_marca_sub_puntaje_email_otp_en_acta(self):
+        """Si el usuario tiene FieldVisitAct draft, +0.05 en email_otp."""
+        from decimal import Decimal as _D
+
+        from django.core import mail
+
+        from verification.models import (
+            FieldVisitAct,
+            FieldVisitRequest,
+            VerificationVisit,
+        )
+
+        fr = FieldVisitRequest.objects.create(
+            user=self.user,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="123",
+            full_name_declared=self.user.get_full_name(),
+            digital_score={"observaciones": []},
+            digital_score_total=_D("0.450"),
+            digital_verdict="aprobado",
+        )
+        visit = VerificationVisit.objects.create(
+            visit_type="tenant",
+            target_user=self.user,
+            status="in_progress",
+            visit_address="Calle 1",
+            visit_city="Bucaramanga",
+        )
+        act = FieldVisitAct.objects.create(
+            field_request=fr, visit=visit, status="draft"
+        )
+
+        mail.outbox.clear()
+        self.client.post("/api/v1/verification/email-otp/request/")
+        import re
+
+        code = re.search(r"\b\d{6}\b", mail.outbox[0].body).group(0)
+        resp = self.client.post(
+            "/api/v1/verification/email-otp/verify/", {"code": code}, format="json"
+        )
+        self.assertEqual(resp.status_code, 200, resp.json())
+        act.refresh_from_db()
+        self.assertAlmostEqual(
+            float(act.visit_score_breakdown.get("email_otp", 0)), 0.05, places=3
+        )
