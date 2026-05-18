@@ -983,9 +983,7 @@ class EmailOtpViewSet(viewsets.GenericViewSet):
         from .models import FieldVisitAct
 
         act = (
-            FieldVisitAct.objects.filter(
-                field_request__user=user, status="draft"
-            )
+            FieldVisitAct.objects.filter(field_request__user=user, status="draft")
             .order_by("-created_at")
             .first()
         )

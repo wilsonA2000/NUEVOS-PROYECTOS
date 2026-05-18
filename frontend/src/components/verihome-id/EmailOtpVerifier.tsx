@@ -64,7 +64,12 @@ const EmailOtpVerifier: React.FC<Props> = ({ email, onVerified }) => {
       setSecondsLeft(res.validity_minutes * 60);
       setResendIn(60);
     } catch (err: unknown) {
-      const e = err as { response?: { status?: number; data?: { detail?: string; retry_after_seconds?: number } } };
+      const e = err as {
+        response?: {
+          status?: number;
+          data?: { detail?: string; retry_after_seconds?: number };
+        };
+      };
       if (e?.response?.status === 429) {
         setResendIn(e.response.data?.retry_after_seconds ?? 60);
         setError(
@@ -91,12 +96,12 @@ const EmailOtpVerifier: React.FC<Props> = ({ email, onVerified }) => {
       setPhase('verified');
       onVerified?.(res.email_otp_score);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string; attempts?: number } } };
+      const e = err as {
+        response?: { data?: { detail?: string; attempts?: number } };
+      };
       const detail = e?.response?.data?.detail || 'Código inválido.';
       const attempts = e?.response?.data?.attempts;
-      setError(
-        attempts ? `${detail} (intento ${attempts}/5)` : detail,
-      );
+      setError(attempts ? `${detail} (intento ${attempts}/5)` : detail);
     } finally {
       setBusy(false);
     }
@@ -138,7 +143,12 @@ const EmailOtpVerifier: React.FC<Props> = ({ email, onVerified }) => {
           Verificación de email
         </Typography>
       </Stack>
-      <Typography variant='caption' color='text.secondary' display='block' sx={{ mb: 2 }}>
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        display='block'
+        sx={{ mb: 2 }}
+      >
         Te enviaremos un código de 6 dígitos a <b>{email}</b>. Suma 0.05 al
         sub-puntaje email_otp del scoring VeriHome ID.
       </Typography>
@@ -166,8 +176,14 @@ const EmailOtpVerifier: React.FC<Props> = ({ email, onVerified }) => {
           <TextField
             label='Código de 6 dígitos'
             value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            inputProps={{ inputMode: 'numeric', maxLength: 6, 'data-testid': 'email-otp-code-input' }}
+            onChange={e =>
+              setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+            }
+            inputProps={{
+              inputMode: 'numeric',
+              maxLength: 6,
+              'data-testid': 'email-otp-code-input',
+            }}
             fullWidth
           />
           <Stack direction='row' spacing={1.5}>
@@ -176,7 +192,9 @@ const EmailOtpVerifier: React.FC<Props> = ({ email, onVerified }) => {
               color='success'
               onClick={handleVerify}
               disabled={busy || code.length !== 6 || secondsLeft === 0}
-              startIcon={busy ? <CircularProgress size={16} /> : <MarkEmailReadIcon />}
+              startIcon={
+                busy ? <CircularProgress size={16} /> : <MarkEmailReadIcon />
+              }
               data-testid='email-otp-verify'
             >
               Verificar
