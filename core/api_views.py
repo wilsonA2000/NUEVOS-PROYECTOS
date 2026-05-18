@@ -435,26 +435,47 @@ class ActivityLogViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def bulk(self, request):
-        """Endpoint para crear múltiples logs de actividad en lote."""
+        """Crea múltiples logs de actividad en lote.
+
+        Acepta payload `{"logs": [...]}` o un array directo `[...]`. Si la
+        lista está vacía responde 200 (no es error — la app puede hacer
+        flush sin items pendientes). Items que fallen validación se omiten
+        silenciosamente; los exitosos se persisten.
+        """
         try:
-            logs_data = request.data.get("logs", [])
+            data = request.data
+            logs_data = (
+                data.get("logs", []) if isinstance(data, dict) else data or []
+            )
+            if not isinstance(logs_data, list):
+                return Response(
+                    {"detail": "Field `logs` must be a list."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             if not logs_data:
                 return Response(
-                    {"message": "No logs provided"}, status=status.HTTP_400_BAD_REQUEST
+                    {"message": "No logs provided", "count": 0},
+                    status=status.HTTP_200_OK,
                 )
 
             created_logs = []
+            skipped = 0
             for log_data in logs_data:
-                # Agregar el usuario actual a cada log
+                if not isinstance(log_data, dict):
+                    skipped += 1
+                    continue
                 log_data["user"] = request.user.id
                 serializer = ActivityLogSerializer(data=log_data)
                 if serializer.is_valid():
                     created_logs.append(serializer.save())
+                else:
+                    skipped += 1
 
             return Response(
                 {
                     "message": f"Created {len(created_logs)} activity logs",
                     "count": len(created_logs),
+                    "skipped": skipped,
                 },
                 status=status.HTTP_201_CREATED,
             )

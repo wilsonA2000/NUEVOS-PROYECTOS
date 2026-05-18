@@ -547,10 +547,28 @@ class LoggingService {
     }
 
     const logsToSend = this.pendingLogs.splice(0, this.batchSize);
+    if (logsToSend.length === 0) return;
+
+    // Mapear LogEntry (estructura interna) al shape del ActivityLogSerializer
+    // del backend: action_type (slug corto) + description (<=300 chars) + details.
+    const payload = logsToSend.map(e => ({
+      action_type: `${e.level}.${e.category}`.toLowerCase().slice(0, 50),
+      description: (e.message || '').slice(0, 300),
+      details: {
+        timestamp: e.timestamp,
+        sessionId: e.sessionId,
+        userId: e.userId,
+        component: e.component,
+        url: e.url,
+        userAgent: e.userAgent,
+        ...e.details,
+        ...e.metadata,
+      },
+    }));
 
     try {
       await api.post('/core/activity-logs/bulk/', {
-        logs: logsToSend,
+        logs: payload,
         sessionId: this.sessionId,
       });
 

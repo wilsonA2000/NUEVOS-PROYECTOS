@@ -36,8 +36,9 @@ class ActivityLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityLog
-        fields = ["id", "action_type", "description", "created_at"]
+        fields = ["id", "user", "action_type", "description", "details", "created_at"]
         read_only_fields = ["id", "created_at"]
+        extra_kwargs = {"user": {"required": False, "allow_null": True}}
 
 
 class SystemAlertSerializer(serializers.ModelSerializer):
