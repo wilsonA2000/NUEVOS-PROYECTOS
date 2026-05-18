@@ -504,6 +504,10 @@ class Invoice(models.Model):
         "Archivo PDF", upload_to="invoices/", null=True, blank=True
     )
 
+    # Notas y metadatos auxiliares (usados por integración DIAN)
+    notes = models.TextField("Notas", blank=True)
+    metadata = models.JSONField("Metadatos", default=dict, blank=True)
+
     # Metadatos
     viewed_at = models.DateTimeField("Fecha de visualización", null=True, blank=True)
     sent_at = models.DateTimeField("Fecha de envío", null=True, blank=True)

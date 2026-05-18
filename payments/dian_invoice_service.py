@@ -112,18 +112,29 @@ def create_dian_invoice_from_transaction(transaction):
     issuer = transaction.payee or None
     recipient = transaction.payer or None
 
+    today = timezone.localdate()
+    invoice_type = (
+        "rent" if transaction.transaction_type == "rent_payment" else "commission"
+    )
+    title = (
+        "Canon de arrendamiento"
+        if invoice_type == "rent"
+        else f"{transaction.get_transaction_type_display()}"
+    )
     invoice = Invoice.objects.create(
         invoice_number=invoice_number,
-        invoice_type="rent"
-        if transaction.transaction_type == "rent_payment"
-        else "commission",
+        invoice_type=invoice_type,
         issuer=issuer,
         recipient=recipient,
+        title=title,
         subtotal=transaction.amount,
-        tax_rate=Decimal("0"),  # Arrendamiento residencial exento de IVA en Colombia
-        tax_amount=Decimal("0"),
+        tax_amount=Decimal("0"),  # Arrendamiento residencial exento de IVA en CO
         total_amount=transaction.amount,
         status="sent",
+        issue_date=today,
+        due_date=today,  # facturada y vencida hoy (pago ya completado)
+        transaction=transaction,
+        contract=transaction.contract if transaction.contract_id else None,
         notes=f"Factura generada automáticamente. Ref: {transaction.id}",
         metadata={
             "dian_format": "UBL_2.1",
