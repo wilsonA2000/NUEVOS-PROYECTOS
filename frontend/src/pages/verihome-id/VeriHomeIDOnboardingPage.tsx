@@ -23,6 +23,7 @@ import {
 import VeriHomeIDFlow, {
   type VeriHomeIDDigitalResult,
 } from '../../components/biometric/VeriHomeIDFlow';
+import EmailOtpVerifier from '../../components/verihome-id/EmailOtpVerifier';
 import {
   getMyOnboarding,
   submitOnboarding,
@@ -173,6 +174,14 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
                 Registrado el{' '}
                 {new Date(screen.data.created_at).toLocaleString('es-CO')}
               </Typography>
+
+              {/* C10 · Verificación email vía OTP — suma sub-puntaje a la
+                  visita en campo. Solo visible si la verificación no fue
+                  rechazada (en rechazo no hay acta donde aplicar bonus). */}
+              {screen.data.digital_verdict !== 'rechazado' && (
+                <EmailOtpVerifier email={screen.data.user_email} />
+              )}
+
               <Stack direction='row' spacing={2}>
                 <Button
                   variant='contained'
