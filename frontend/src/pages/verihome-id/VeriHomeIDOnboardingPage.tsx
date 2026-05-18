@@ -24,6 +24,7 @@ import VeriHomeIDFlow, {
   type VeriHomeIDDigitalResult,
 } from '../../components/biometric/VeriHomeIDFlow';
 import EmailOtpVerifier from '../../components/verihome-id/EmailOtpVerifier';
+import PublicReceiptUploader from '../../components/verihome-id/PublicReceiptUploader';
 import {
   getMyOnboarding,
   submitOnboarding,
@@ -180,6 +181,12 @@ const VeriHomeIDOnboardingPage: React.FC = () => {
                   rechazada (en rechazo no hay acta donde aplicar bonus). */}
               {screen.data.digital_verdict !== 'rechazado' && (
                 <EmailOtpVerifier email={screen.data.user_email} />
+              )}
+
+              {/* C10b · Recibo público (luz/agua/gas) — suma sub-puntaje si
+                  fecha <60 días y la dirección coincide con la registrada. */}
+              {screen.data.digital_verdict !== 'rechazado' && (
+                <PublicReceiptUploader />
               )}
 
               <Stack direction='row' spacing={2}>

@@ -4,6 +4,7 @@ Covers models (VerificationAgent, VerificationVisit, VerificationReport)
 and API endpoints (agents, visits, reports).
 """
 
+import tempfile as _tempfile
 from datetime import timedelta
 from django.test import TestCase, override_settings as _override_settings
 from django.utils import timezone
@@ -20,6 +21,8 @@ from .models import (
 )
 
 User = get_user_model()
+
+_PUBLIC_RECEIPT_MEDIA = _tempfile.mkdtemp(prefix="vhid_receipts_test_")
 
 
 class VerificationAgentModelTests(TestCase):
@@ -1623,3 +1626,202 @@ class EmailOtpAPITests(APITestCase):
         self.assertAlmostEqual(
             float(act.visit_score_breakdown.get("email_otp", 0)), 0.05, places=3
         )
+
+
+def _fake_receipt_image(name: str = "recibo.png"):
+    """PNG 1×1 transparente como SimpleUploadedFile para multipart tests."""
+    import base64
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    png_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    return SimpleUploadedFile(name, base64.b64decode(png_b64), content_type="image/png")
+
+
+@_override_settings(MEDIA_ROOT=_PUBLIC_RECEIPT_MEDIA)
+class PublicReceiptAPITests(APITestCase):
+    """C10b · upload de recibo público para sub-puntaje public_receipt."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            email="receipt@test.com",
+            password="rcpt123",
+            user_type="tenant",
+            first_name="Recibo",
+            last_name="User",
+            current_address="Calle 45 # 23-12 Bucaramanga",
+        )
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        self.client.force_authenticate(user=self.user)
+
+    def _create_draft_act(self):
+        from decimal import Decimal as _D
+
+        from verification.models import (
+            FieldVisitAct,
+            FieldVisitRequest,
+            VerificationVisit,
+        )
+
+        fr = FieldVisitRequest.objects.create(
+            user=self.user,
+            document_type_declared="cedula_ciudadania",
+            document_number_declared="123",
+            full_name_declared=self.user.get_full_name(),
+            digital_score={"observaciones": []},
+            digital_score_total=_D("0.450"),
+            digital_verdict="aprobado",
+        )
+        visit = VerificationVisit.objects.create(
+            visit_type="tenant",
+            target_user=self.user,
+            status="in_progress",
+            visit_address="Calle 1",
+            visit_city="Bucaramanga",
+        )
+        return FieldVisitAct.objects.create(
+            field_request=fr, visit=visit, status="draft"
+        )
+
+    def _payload(self, **overrides):
+        today = timezone.localdate()
+        base = {
+            "image": _fake_receipt_image(),
+            "receipt_type": "electricity",
+            "declared_address": "Calle 45 # 23-12 Bucaramanga",
+            "issue_date": today.isoformat(),
+            "declared_amount": "85000.00",
+            "ocr_text": "ESSA · Cuenta 12345 · Calle 45 # 23-12",
+        }
+        base.update(overrides)
+        return base
+
+    def test_upload_aceptado_persiste_y_suma_score(self):
+        from verification.models import PublicReceipt
+
+        act = self._create_draft_act()
+        resp = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, 201, resp.content)
+        body = resp.json()
+        self.assertEqual(body["status"], "accepted")
+        self.assertIsNone(body["rejection_reason"])
+        self.assertGreaterEqual(float(body["address_match_score"]), 0.6)
+        receipt = PublicReceipt.objects.filter(user=self.user).first()
+        self.assertIsNotNone(receipt)
+        self.assertEqual(receipt.status, "accepted")
+        act.refresh_from_db()
+        self.assertAlmostEqual(
+            float(act.visit_score_breakdown.get("public_receipt", 0)),
+            0.05,
+            places=3,
+        )
+
+    def test_upload_fecha_vencida_rechazado_sin_bonus(self):
+        from datetime import timedelta
+
+        from verification.models import PublicReceipt
+
+        act = self._create_draft_act()
+        old = (timezone.localdate() - timedelta(days=90)).isoformat()
+        resp = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(issue_date=old),
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        self.assertEqual(body["status"], "rejected")
+        self.assertEqual(body["rejection_reason"], "receipt_too_old")
+        self.assertEqual(float(body["public_receipt_score"]), 0.0)
+        # Se persiste igual para auditoría
+        self.assertTrue(
+            PublicReceipt.objects.filter(user=self.user, status="rejected").exists()
+        )
+        act.refresh_from_db()
+        self.assertEqual(act.visit_score_breakdown.get("public_receipt", 0), 0)
+
+    def test_upload_direccion_no_match_rechazado(self):
+        act = self._create_draft_act()
+        resp = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(declared_address="Av Insurgentes 999 Ciudad de México"),
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        self.assertEqual(body["status"], "rejected")
+        self.assertEqual(body["rejection_reason"], "address_mismatch")
+        act.refresh_from_db()
+        self.assertEqual(act.visit_score_breakdown.get("public_receipt", 0), 0)
+
+    def test_upload_rate_limit_1_por_minuto(self):
+        resp1 = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertIn(resp1.status_code, (200, 201), resp1.content)
+        resp2 = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertEqual(resp2.status_code, 429, resp2.content)
+        self.assertIn("retry_after_seconds", resp2.json())
+
+    def test_upload_idempotente_no_acumula(self):
+        """Segundo upload aceptado tras el anti-spam mantiene 0.05 (cap)."""
+        from datetime import timedelta
+
+        from verification.models import PublicReceipt
+
+        act = self._create_draft_act()
+        first = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertEqual(first.status_code, 201, first.content)
+        # Simulamos el paso de tiempo retrocediendo created_at del primer upload.
+        PublicReceipt.objects.filter(user=self.user).update(
+            created_at=timezone.now() - timedelta(minutes=5)
+        )
+        second = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertEqual(second.status_code, 201, second.content)
+        act.refresh_from_db()
+        self.assertAlmostEqual(
+            float(act.visit_score_breakdown.get("public_receipt", 0)),
+            0.05,
+            places=3,
+        )
+
+    def test_upload_sin_imagen_400(self):
+        payload = self._payload()
+        payload.pop("image")
+        resp = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            payload,
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, 400, resp.content)
+
+    def test_upload_tipo_invalido_400(self):
+        resp = self.client.post(
+            "/api/v1/verification/receipts/upload/",
+            self._payload(receipt_type="netflix"),
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, 400, resp.content)

@@ -4,6 +4,7 @@ API Views para el módulo de Verificación Presencial de VeriHome.
 
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from django.utils import timezone
@@ -281,7 +282,7 @@ class VerificationVisitViewSet(viewsets.ModelViewSet):
         log_activity(
             request,
             action_type="verification.visit_complete",
-            description=f'Visita {visit.visit_number} completada: {"aprobada" if visit.verification_passed else "rechazada"}',
+            description=f"Visita {visit.visit_number} completada: {'aprobada' if visit.verification_passed else 'rechazada'}",
             target_object=visit,
             details={
                 "visit_number": visit.visit_number,
@@ -1142,4 +1143,255 @@ class EmailOtpViewSet(viewsets.GenericViewSet):
                 "final_verdict": act.final_verdict if act else None,
             },
             status=status.HTTP_200_OK,
+        )
+
+
+class PublicReceiptRateThrottle(UserRateThrottle):
+    """Limita upload de recibos a 10/hora por usuario."""
+
+    rate = "10/hour"
+    scope = "public_receipt"
+
+
+def _normalize_address(value: str) -> set[str]:
+    """
+    Normaliza una dirección colombiana para comparación por tokens.
+
+    Pasa a minúsculas, elimina acentos, expande abreviaciones comunes
+    (cl→calle, cr/cra/kr→carrera, av→avenida) y deja solo tokens
+    alfanuméricos relevantes (>=2 caracteres).
+    """
+    import re
+    import unicodedata
+
+    if not value:
+        return set()
+    text = unicodedata.normalize("NFD", str(value))
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s#-]", " ", text)
+    abbrev = {
+        "cl": "calle",
+        "cll": "calle",
+        "cra": "carrera",
+        "cr": "carrera",
+        "kr": "carrera",
+        "k": "carrera",
+        "av": "avenida",
+        "avda": "avenida",
+        "trv": "transversal",
+        "tv": "transversal",
+        "dg": "diagonal",
+        "diag": "diagonal",
+        "no": "",
+        "n": "",
+        "nro": "",
+    }
+    tokens = []
+    for raw in text.split():
+        raw = raw.strip("#-")
+        if not raw:
+            continue
+        tokens.append(abbrev.get(raw, raw))
+    return {t for t in tokens if len(t) >= 2}
+
+
+def _address_match_score(declared: str, reference: str):
+    """
+    Calcula similitud Jaccard entre dos direcciones tokenizadas y
+    normalizadas. Retorna `Decimal` con 3 decimales en [0, 1].
+    """
+    from decimal import Decimal as _D
+
+    a = _normalize_address(declared)
+    b = _normalize_address(reference)
+    if not a or not b:
+        return _D("0.000")
+    inter = len(a & b)
+    union = len(a | b)
+    if union == 0:
+        return _D("0.000")
+    return (_D(inter) / _D(union)).quantize(_D("0.001"))
+
+
+class PublicReceiptViewSet(viewsets.GenericViewSet):
+    """
+    C10b · Sube recibo público (luz/agua/gas) para validar dirección.
+
+    Endpoint:
+      - POST /verification/receipts/upload/ (multipart)
+        Campos: image (file), receipt_type, declared_address,
+        issue_date (YYYY-MM-DD), declared_amount? (decimal), ocr_text?
+
+    Reglas:
+      - Fecha emisión <60 días respecto a `timezone.localdate()`.
+      - Token-Jaccard(declared_address, user.current_address) >= 0.6.
+      - Cumple ambas → +0.05 al sub-puntaje `public_receipt` del acta
+        draft del usuario (idempotente: si ya está acreditado, sólo
+        responde con el acta sin acumular).
+      - Cualquier upload (aceptado o rechazado) queda persistido para
+        auditoría en visita presencial.
+      - Anti-spam: 1 upload por minuto + throttle DRF 10/hora.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [PublicReceiptRateThrottle]
+
+    def _bump_visit_score(self, user, key: str, value):
+        """
+        Suma idempotente al sub-puntaje `key` del acta draft del usuario.
+        Idempotente: si ya está en el techo (0.05) no acumula. Best-effort,
+        sin lock. Devuelve la act actualizada o `None` si no hay draft.
+        """
+        from decimal import Decimal as _D
+
+        from .models import FieldVisitAct
+
+        act = (
+            FieldVisitAct.objects.filter(field_request__user=user, status="draft")
+            .order_by("-created_at")
+            .first()
+        )
+        if not act:
+            return None
+        breakdown = dict(act.visit_score_breakdown or {})
+        current = _D(str(breakdown.get(key, 0)))
+        cap = _D("0.05")
+        breakdown[key] = float(min(cap, current + _D(str(value))))
+        act.visit_score_breakdown = breakdown
+        total = sum(_D(str(v)) for v in breakdown.values())
+        act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
+        act.save()
+        return act
+
+    @action(detail=False, methods=["post"], url_path="upload")
+    def upload(self, request):
+        """Recibe el recibo, valida fecha + dirección, persiste y acredita."""
+        from datetime import date as _date
+        from decimal import Decimal as _D, InvalidOperation
+
+        from .models import PublicReceipt
+
+        user = request.user
+        data = request.data
+        image = request.FILES.get("image")
+        receipt_type = (data.get("receipt_type") or "").strip().lower()
+        declared_address = (data.get("declared_address") or "").strip()
+        issue_date_raw = (data.get("issue_date") or "").strip()
+        declared_amount_raw = (data.get("declared_amount") or "").strip()
+        ocr_text = (data.get("ocr_text") or "").strip()
+
+        valid_types = {choice[0] for choice in PublicReceipt.RECEIPT_TYPE_CHOICES}
+        if receipt_type not in valid_types:
+            return Response(
+                {
+                    "detail": (
+                        "Tipo de recibo inválido. Usá "
+                        f"{', '.join(sorted(valid_types))}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not image:
+            return Response(
+                {"detail": "Adjuntá la imagen del recibo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not declared_address:
+            return Response(
+                {"detail": "Indicá la dirección que figura en el recibo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            issue_date = _date.fromisoformat(issue_date_raw)
+        except ValueError:
+            return Response(
+                {"detail": "La fecha de emisión debe ser YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        declared_amount = None
+        if declared_amount_raw:
+            try:
+                declared_amount = _D(declared_amount_raw)
+            except InvalidOperation:
+                return Response(
+                    {"detail": "El monto declarado no es un número válido."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Anti-spam: 1 upload por minuto.
+        now = timezone.now()
+        last = PublicReceipt.objects.filter(user=user).order_by("-created_at").first()
+        if (
+            last
+            and (now - last.created_at).total_seconds()
+            < PublicReceipt.MIN_INTERVAL_SECONDS
+        ):
+            wait = int(
+                PublicReceipt.MIN_INTERVAL_SECONDS
+                - (now - last.created_at).total_seconds()
+            )
+            return Response(
+                {
+                    "detail": (f"Esperá {wait} segundos antes de subir otro recibo."),
+                    "retry_after_seconds": wait,
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        today = timezone.localdate()
+        age_days = (today - issue_date).days
+        match_score = _address_match_score(
+            declared_address, getattr(user, "current_address", "") or ""
+        )
+
+        if age_days < 0:
+            verdict_status = "rejected"
+            rejection_reason = "issue_date_in_future"
+        elif age_days > PublicReceipt.MAX_AGE_DAYS:
+            verdict_status = "rejected"
+            rejection_reason = "receipt_too_old"
+        elif match_score < PublicReceipt.ADDRESS_MATCH_THRESHOLD:
+            verdict_status = "rejected"
+            rejection_reason = "address_mismatch"
+        else:
+            verdict_status = "accepted"
+            rejection_reason = ""
+
+        receipt = PublicReceipt.objects.create(
+            user=user,
+            image=image,
+            receipt_type=receipt_type,
+            ocr_text=ocr_text[:8000],
+            declared_amount=declared_amount,
+            declared_address=declared_address,
+            issue_date=issue_date,
+            address_match_score=match_score,
+            status=verdict_status,
+            rejection_reason=rejection_reason,
+            ip_address=_client_ip_from_request(request),
+        )
+
+        act = None
+        if verdict_status == "accepted":
+            act = self._bump_visit_score(user, key="public_receipt", value="0.05")
+
+        return Response(
+            {
+                "id": str(receipt.id),
+                "status": verdict_status,
+                "rejection_reason": rejection_reason or None,
+                "address_match_score": str(match_score),
+                "public_receipt_score": 0.05 if verdict_status == "accepted" else 0.0,
+                "act_id": str(act.id) if act else None,
+                "visit_score_total": str(act.visit_score_total) if act else None,
+                "final_verdict": act.final_verdict if act else None,
+            },
+            status=(
+                status.HTTP_201_CREATED
+                if verdict_status == "accepted"
+                else status.HTTP_200_OK
+            ),
         )

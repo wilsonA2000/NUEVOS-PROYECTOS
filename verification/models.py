@@ -726,3 +726,96 @@ class EmailVerificationOTP(models.Model):
         import hashlib
 
         return hashlib.sha256(code.encode("utf-8")).hexdigest()
+
+
+def _public_receipt_upload_path(instance, filename: str) -> str:
+    return f"verihome_id/receipts/{instance.user_id}/{instance.id}/{filename}"
+
+
+class PublicReceipt(models.Model):
+    """
+    C10b · Recibo público (luz, agua, gas) subido por el solicitante.
+
+    Suma +0.05 al sub-puntaje `public_receipt` del breakdown del acta
+    draft si la fecha de emisión es <60 días y la dirección declarada
+    matchea con `user.current_address` por encima del umbral
+    `ADDRESS_MATCH_THRESHOLD`. El OCR se hace en el cliente con
+    Tesseract.js — el backend valida fecha + dirección sobre el texto
+    declarado y guarda la imagen como evidencia para la visita.
+    """
+
+    MAX_AGE_DAYS = 60
+    ADDRESS_MATCH_THRESHOLD = Decimal("0.6")
+    MIN_INTERVAL_SECONDS = 60
+
+    RECEIPT_TYPE_CHOICES = [
+        ("electricity", "Energía"),
+        ("water", "Acueducto"),
+        ("gas", "Gas"),
+    ]
+
+    STATUS_CHOICES = [
+        ("accepted", "Aceptado"),
+        ("rejected", "Rechazado"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="public_receipts",
+        verbose_name="Usuario",
+    )
+    image = models.ImageField(
+        "Imagen del recibo",
+        upload_to=_public_receipt_upload_path,
+        max_length=255,
+    )
+    receipt_type = models.CharField(
+        "Tipo de recibo",
+        max_length=20,
+        choices=RECEIPT_TYPE_CHOICES,
+    )
+    ocr_text = models.TextField("Texto OCR (cliente)", blank=True)
+    declared_amount = models.DecimalField(
+        "Monto declarado",
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    declared_address = models.TextField("Dirección declarada", blank=True)
+    issue_date = models.DateField("Fecha emisión")
+    address_match_score = models.DecimalField(
+        "Similitud dirección",
+        max_digits=4,
+        decimal_places=3,
+        default=Decimal("0.000"),
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
+    )
+    status = models.CharField(
+        "Estado",
+        max_length=20,
+        choices=STATUS_CHOICES,
+    )
+    rejection_reason = models.CharField(
+        "Motivo rechazo",
+        max_length=100,
+        blank=True,
+    )
+    ip_address = models.GenericIPAddressField("IP solicitante", null=True, blank=True)
+    created_at = models.DateTimeField("Creado", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Recibo público VeriHome ID"
+        verbose_name_plural = "Recibos públicos VeriHome ID"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"Recibo {self.get_receipt_type_display()} {self.user_id} ({self.status})"
+        )
