@@ -9,7 +9,11 @@
  *   - Tomar screenshots numerados
  *   - Verificar estado del backend via API directa
  */
-import { Page, APIRequestContext, request as apiRequest } from '@playwright/test';
+import {
+  Page,
+  APIRequestContext,
+  request as apiRequest,
+} from '@playwright/test';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -52,7 +56,7 @@ export function attachLoggers(page: Page, actor: Actor, ctx: RunContext): void {
   const requestsPath = path.join(ctx.runDir, `${actor}-requests.jsonl`);
   const responsesPath = path.join(ctx.runDir, `${actor}-responses.jsonl`);
 
-  page.on('console', (msg) => {
+  page.on('console', msg => {
     appendJsonl(consolePath, {
       ts: new Date().toISOString(),
       type: msg.type(),
@@ -61,7 +65,7 @@ export function attachLoggers(page: Page, actor: Actor, ctx: RunContext): void {
     });
   });
 
-  page.on('pageerror', (err) => {
+  page.on('pageerror', err => {
     appendJsonl(consolePath, {
       ts: new Date().toISOString(),
       type: 'pageerror',
@@ -70,7 +74,7 @@ export function attachLoggers(page: Page, actor: Actor, ctx: RunContext): void {
     });
   });
 
-  page.on('request', (req) => {
+  page.on('request', req => {
     const url = req.url();
     // Solo capturar llamadas a nuestra API (no assets estaticos)
     if (!url.includes('/api/')) return;
@@ -82,7 +86,7 @@ export function attachLoggers(page: Page, actor: Actor, ctx: RunContext): void {
     });
   });
 
-  page.on('response', async (res) => {
+  page.on('response', async res => {
     const url = res.url();
     if (!url.includes('/api/')) return;
     let bodyPreview: string | null = null;
@@ -119,7 +123,9 @@ export function logStep(
   // Tambien a consola para feedback inmediato
   const icon = status === 'ok' ? 'OK' : status === 'fail' ? 'FAIL' : '...';
   // eslint-disable-next-line no-console
-  console.log(`[${icon}] ${actor} :: ${step}${notes ? ' ' + JSON.stringify(notes) : ''}`);
+  console.log(
+    `[${icon}] ${actor} :: ${step}${notes ? ' ' + JSON.stringify(notes) : ''}`,
+  );
 }
 
 export async function snap(
@@ -132,7 +138,7 @@ export async function snap(
   const n = String(ctx.stepCounter.value).padStart(2, '0');
   const safeLabel = label.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
   const file = path.join(ctx.screenshotsDir, `${n}-${actor}-${safeLabel}.png`);
-  await page.screenshot({ path: file, fullPage: false }).catch((err) => {
+  await page.screenshot({ path: file, fullPage: false }).catch(err => {
     // eslint-disable-next-line no-console
     console.warn(`[snap] failed for ${actor}/${label}:`, err.message);
   });
@@ -170,6 +176,39 @@ export async function apiPost(
   try {
     const resp = await req.post(`${API_BASE}${endpoint}`, {
       data,
+      timeout: 30000,
+    });
+    let body: unknown = null;
+    try {
+      body = await resp.json();
+    } catch {
+      body = await resp.text();
+    }
+    return { ok: resp.ok(), status: resp.status(), body };
+  } finally {
+    await req.dispose();
+  }
+}
+
+/**
+ * Variante multipart de `apiPost` para endpoints que reciben archivos
+ * (`image`, `pdf`, etc.). Cada valor del objeto `fields` puede ser un
+ * string o un Buffer con `{ name, mimeType }`.
+ */
+export async function apiPostMultipart(
+  accessToken: string,
+  endpoint: string,
+  fields: Record<
+    string,
+    string | { name: string; mimeType: string; buffer: Buffer }
+  >,
+): Promise<{ ok: boolean; status: number; body: unknown }> {
+  const headers: Record<string, string> = {};
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  const req = await apiRequest.newContext({ extraHTTPHeaders: headers });
+  try {
+    const resp = await req.post(`${API_BASE}${endpoint}`, {
+      multipart: fields,
       timeout: 30000,
     });
     let body: unknown = null;
@@ -234,7 +273,12 @@ function resolveSeedPython(projectRoot: string): string {
 export function runSeed(mode: string): Record<string, string> {
   const projectRoot = path.resolve(__dirname, '..', '..', '..');
   const pythonBin = resolveSeedPython(projectRoot);
-  const seedScript = path.join(projectRoot, 'scripts', 'testing', 'seed_e2e_multiuser.py');
+  const seedScript = path.join(
+    projectRoot,
+    'scripts',
+    'testing',
+    'seed_e2e_multiuser.py',
+  );
   const stdout = execSync(`"${pythonBin}" "${seedScript}" ${mode}`, {
     cwd: projectRoot,
     encoding: 'utf8',

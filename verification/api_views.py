@@ -1077,14 +1077,16 @@ class EmailOtpViewSet(viewsets.GenericViewSet):
         except Exception:
             pass
 
-        return Response(
-            {
-                "message": "Código enviado a tu email.",
-                "expires_at": expires_at.isoformat(),
-                "validity_minutes": EmailVerificationOTP.OTP_VALIDITY_MINUTES,
-            },
-            status=status.HTTP_200_OK,
-        )
+        payload = {
+            "message": "Código enviado a tu email.",
+            "expires_at": expires_at.isoformat(),
+            "validity_minutes": EmailVerificationOTP.OTP_VALIDITY_MINUTES,
+        }
+        # Solo en desarrollo / tests E2E exponemos el código en la respuesta
+        # para que Playwright pueda continuar sin acceso al mail.outbox.
+        if settings.DEBUG:
+            payload["debug_code"] = code
+        return Response(payload, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="verify")
     def verify_otp(self, request):

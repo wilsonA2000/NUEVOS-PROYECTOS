@@ -527,7 +527,7 @@ def setup_full_ecosystem(
             property_type="apartment",
             listing_type="rent",
             status="available",
-            address=f"Calle {len(extra_ids)+10} #20-{len(extra_ids)+5}",
+            address=f"Calle {len(extra_ids) + 10} #20-{len(extra_ids) + 5}",
             city=city,
             state=state,
             country="Colombia",
@@ -754,12 +754,22 @@ def main():
     if mode == "vhid_act_in_progress":
         # F1·C5 — agente con visita asignada y FieldVisitAct draft listo
         # para que el agente cargue 8 sub-scores via VisitScoreEditor.
+        # También sirve para C8/C8b: el acta draft es donde se acreditan
+        # los sub-puntajes email_otp y public_receipt.
         prop = ensure_property(landlord)
         result["property_id"] = str(prop.id)
         reset_field_visit_data(tenant)
+        # `public_receipt` matchea contra tenant.current_address — setear
+        # un valor determinista para que C8b pueda enviar una dirección
+        # equivalente y el Jaccard supere el umbral 0.6.
+        tenant_address = "Calle 45 # 23-12 Bucaramanga"
+        tenant.current_address = tenant_address
+        update_fields = ["current_address"]
         if tenant.is_verified:
             tenant.is_verified = False
-            tenant.save(update_fields=["is_verified"])
+            update_fields.append("is_verified")
+        tenant.save(update_fields=update_fields)
+        result["tenant_current_address"] = tenant_address
         agent_profile = ensure_verification_agent_profile(verification_agent)
         fr = create_field_visit_request_wait_visit(tenant)
         visit, act = create_field_visit_act_draft(fr, agent_profile, tenant)
