@@ -29,6 +29,7 @@ const __dirname_c8 = path.dirname(__filename_c8);
 
 interface SeedResult {
   tenant_email: string;
+  admin_email: string;
   password: string;
   act_id: string;
   [k: string]: unknown;
@@ -39,6 +40,7 @@ test.describe.configure({ mode: 'serial' });
 test.describe('C10 · C8 · Email OTP verification', () => {
   let seed: SeedResult;
   let tenantToken: string;
+  let adminToken: string;
   const ctx = createRunContext(
     path.resolve(__dirname_c8, '..', '..', 'e2e-logs', 'fase-c8'),
   );
@@ -46,9 +48,15 @@ test.describe('C10 · C8 · Email OTP verification', () => {
   test.beforeAll(async () => {
     seed = runSeed('vhid_act_in_progress') as unknown as SeedResult;
     logStep(ctx, 'system', 'seed', 'ok', { act_id: seed.act_id });
-    const auth = await getAuthToken(seed.tenant_email, seed.password);
-    expect(auth, 'tenant login fallo').not.toBeNull();
-    tenantToken = auth!.access;
+    const tenantAuth = await getAuthToken(seed.tenant_email, seed.password);
+    expect(tenantAuth, 'tenant login fallo').not.toBeNull();
+    tenantToken = tenantAuth!.access;
+    // `/verification/acts/{id}/` requiere IsStaffOrAssignedAgent — el
+    // tenant no puede leerla, así que para verificar el breakdown
+    // usamos un token de admin.
+    const adminAuth = await getAuthToken(seed.admin_email, seed.password);
+    expect(adminAuth, 'admin login fallo').not.toBeNull();
+    adminToken = adminAuth!.access;
   });
 
   test('API: request OTP expone debug_code y verify acredita +0.05', async () => {
@@ -78,7 +86,7 @@ test.describe('C10 · C8 · Email OTP verification', () => {
 
     // El acta debe reflejar el sub-puntaje en el breakdown.
     const actResp = await apiGet(
-      tenantToken,
+      adminToken,
       `/verification/acts/${seed.act_id}/`,
     );
     expect(actResp.status).toBe(200);

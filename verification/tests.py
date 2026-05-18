@@ -1640,7 +1640,7 @@ def _fake_receipt_image(name: str = "recibo.png"):
 
 @_override_settings(MEDIA_ROOT=_PUBLIC_RECEIPT_MEDIA)
 class PublicReceiptAPITests(APITestCase):
-    """C10b · upload de recibo público para sub-puntaje public_receipt."""
+    """C10b · upload de recibo público para sub-puntaje recibo_publico."""
 
     @classmethod
     def setUpTestData(cls):
@@ -1720,7 +1720,7 @@ class PublicReceiptAPITests(APITestCase):
         self.assertEqual(receipt.status, "accepted")
         act.refresh_from_db()
         self.assertAlmostEqual(
-            float(act.visit_score_breakdown.get("public_receipt", 0)),
+            float(act.visit_score_breakdown.get("recibo_publico", 0)),
             0.05,
             places=3,
         )
@@ -1747,7 +1747,7 @@ class PublicReceiptAPITests(APITestCase):
             PublicReceipt.objects.filter(user=self.user, status="rejected").exists()
         )
         act.refresh_from_db()
-        self.assertEqual(act.visit_score_breakdown.get("public_receipt", 0), 0)
+        self.assertEqual(act.visit_score_breakdown.get("recibo_publico", 0), 0)
 
     def test_upload_direccion_no_match_rechazado(self):
         act = self._create_draft_act()
@@ -1761,7 +1761,7 @@ class PublicReceiptAPITests(APITestCase):
         self.assertEqual(body["status"], "rejected")
         self.assertEqual(body["rejection_reason"], "address_mismatch")
         act.refresh_from_db()
-        self.assertEqual(act.visit_score_breakdown.get("public_receipt", 0), 0)
+        self.assertEqual(act.visit_score_breakdown.get("recibo_publico", 0), 0)
 
     def test_upload_rate_limit_1_por_minuto(self):
         resp1 = self.client.post(
@@ -1803,7 +1803,7 @@ class PublicReceiptAPITests(APITestCase):
         self.assertEqual(second.status_code, 201, second.content)
         act.refresh_from_db()
         self.assertAlmostEqual(
-            float(act.visit_score_breakdown.get("public_receipt", 0)),
+            float(act.visit_score_breakdown.get("recibo_publico", 0)),
             0.05,
             places=3,
         )

@@ -30,6 +30,7 @@ const __dirname_c9 = path.dirname(__filename_c9);
 
 interface SeedResult {
   tenant_email: string;
+  admin_email: string;
   password: string;
   act_id: string;
   tenant_current_address: string;
@@ -57,6 +58,7 @@ test.describe.configure({ mode: 'serial' });
 test.describe('C10b · C9 · Public receipt upload', () => {
   let seed: SeedResult;
   let tenantToken: string;
+  let adminToken: string;
   const ctx = createRunContext(
     path.resolve(__dirname_c9, '..', '..', 'e2e-logs', 'fase-c9'),
   );
@@ -71,9 +73,13 @@ test.describe('C10b · C9 · Public receipt upload', () => {
       act_id: seed.act_id,
       address: seed.tenant_current_address,
     });
-    const auth = await getAuthToken(seed.tenant_email, seed.password);
-    expect(auth, 'tenant login fallo').not.toBeNull();
-    tenantToken = auth!.access;
+    const tenantAuth = await getAuthToken(seed.tenant_email, seed.password);
+    expect(tenantAuth, 'tenant login fallo').not.toBeNull();
+    tenantToken = tenantAuth!.access;
+    // `/verification/acts/{id}/` requiere IsStaffOrAssignedAgent.
+    const adminAuth = await getAuthToken(seed.admin_email, seed.password);
+    expect(adminAuth, 'admin login fallo').not.toBeNull();
+    adminToken = adminAuth!.access;
   });
 
   test('API: upload con dirección matching y fecha reciente acredita +0.05', async () => {
@@ -100,21 +106,21 @@ test.describe('C10b · C9 · Public receipt upload', () => {
       match: body.address_match_score,
     });
 
-    // Verificar breakdown del acta
+    // Verificar breakdown del acta (canonical key español: `recibo_publico`).
     const actResp = await apiGet(
-      tenantToken,
+      adminToken,
       `/verification/acts/${seed.act_id}/`,
     );
     expect(actResp.status).toBe(200);
     const breakdown = (
       actResp.body as { visit_score_breakdown?: Record<string, number> }
     ).visit_score_breakdown;
-    expect(breakdown?.public_receipt, JSON.stringify(breakdown)).toBeCloseTo(
+    expect(breakdown?.recibo_publico, JSON.stringify(breakdown)).toBeCloseTo(
       0.05,
       3,
     );
     logStep(ctx, 'tenant', 'breakdown-updated', 'ok', {
-      public_receipt: breakdown?.public_receipt,
+      recibo_publico: breakdown?.recibo_publico,
     });
   });
 

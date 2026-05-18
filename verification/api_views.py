@@ -1228,7 +1228,7 @@ class PublicReceiptViewSet(viewsets.GenericViewSet):
     Reglas:
       - Fecha emisión <60 días respecto a `timezone.localdate()`.
       - Token-Jaccard(declared_address, user.current_address) >= 0.6.
-      - Cumple ambas → +0.05 al sub-puntaje `public_receipt` del acta
+      - Cumple ambas → +0.05 al sub-puntaje `recibo_publico` del acta
         draft del usuario (idempotente: si ya está acreditado, sólo
         responde con el acta sin acumular).
       - Cualquier upload (aceptado o rechazado) queda persistido para
@@ -1378,7 +1378,7 @@ class PublicReceiptViewSet(viewsets.GenericViewSet):
 
         act = None
         if verdict_status == "accepted":
-            act = self._bump_visit_score(user, key="public_receipt", value="0.05")
+            act = self._bump_visit_score(user, key="recibo_publico", value="0.05")
 
         return Response(
             {
