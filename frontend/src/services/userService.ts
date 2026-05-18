@@ -10,76 +10,48 @@ import {
 export const userService = {
   // Perfil público
   async updateProfile(data: UpdateProfileDto): Promise<User> {
-    try {
-      const response = await api.patch<User>('/users/profile/', data);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.patch<User>('/users/profile/', data);
+    return response.data;
   },
 
   async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const response = await api.post<{ avatar_url: string }>(
-        '/users/avatar/',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
-      );
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const response = await api.post<{ avatar_url: string }>(
+      '/users/avatar/',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    );
+    return response.data;
   },
 
   // Hoja de vida
   async getResume(): Promise<UserResume> {
-    try {
-      const response = await api.get<UserResume>('/users/resume/');
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.get<UserResume>('/users/resume/');
+    return response.data;
   },
 
   async updateResume(data: UpdateResumeDto): Promise<UserResume> {
-    try {
-      const response = await api.put<UserResume>('/users/resume/', data);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.put<UserResume>('/users/resume/', data);
+    return response.data;
   },
 
   async createResume(data: UpdateResumeDto): Promise<UserResume> {
-    try {
-      const response = await api.post<UserResume>('/users/resume/', data);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.post<UserResume>('/users/resume/', data);
+    return response.data;
   },
 
   // Ajustes
   async getSettings(): Promise<UserSettings> {
-    try {
-      const response = await api.get<UserSettings>('/users/settings/');
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.get<UserSettings>('/users/settings/');
+    return response.data;
   },
 
   async updateSettings(data: Partial<UserSettings>): Promise<UserSettings> {
-    try {
-      const response = await api.put<UserSettings>('/users/settings/', data);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.put<UserSettings>('/users/settings/', data);
+    return response.data;
   },
 
   // Verificación de código de entrevista
@@ -87,15 +59,11 @@ export const userService = {
     code: string,
     email: string,
   ): Promise<{ valid: boolean; message?: string }> {
-    try {
-      const response = await api.post('/users/verify-interview-code/', {
-        code,
-        email,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.post('/users/verify-interview-code/', {
+      code,
+      email,
+    });
+    return response.data;
   },
 
   // Registro con código de entrevista
@@ -108,11 +76,7 @@ export const userService = {
     phone_number: string;
     interview_code: string;
   }): Promise<User> {
-    try {
-      const response = await api.post<User>('/users/register/', data);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    const response = await api.post<User>('/users/register/', data);
+    return response.data;
   },
 };

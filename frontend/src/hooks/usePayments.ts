@@ -14,13 +14,9 @@ export const usePayments = () => {
   } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getTransactions();
+      const result = await paymentService.getTransactions();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -31,13 +27,9 @@ export const usePayments = () => {
   const { data: paymentMethods } = useQuery({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getPaymentMethods();
+      const result = await paymentService.getPaymentMethods();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -48,13 +40,9 @@ export const usePayments = () => {
   const { data: invoices } = useQuery({
     queryKey: ['invoices'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getInvoices();
+      const result = await paymentService.getInvoices();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -65,13 +53,9 @@ export const usePayments = () => {
   const { data: escrowAccounts } = useQuery({
     queryKey: ['escrowAccounts'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getEscrowAccounts();
+      const result = await paymentService.getEscrowAccounts();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -82,13 +66,9 @@ export const usePayments = () => {
   const { data: paymentPlans } = useQuery({
     queryKey: ['paymentPlans'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getPaymentPlans();
+      const result = await paymentService.getPaymentPlans();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -99,13 +79,9 @@ export const usePayments = () => {
   const { data: installments } = useQuery({
     queryKey: ['installments'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getInstallments();
+      const result = await paymentService.getInstallments();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -116,13 +92,9 @@ export const usePayments = () => {
   const { data: balance } = useQuery({
     queryKey: ['balance'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getBalance();
+      const result = await paymentService.getBalance();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,
@@ -133,13 +105,9 @@ export const usePayments = () => {
   const { data: dashboardStats } = useQuery({
     queryKey: ['payment-dashboard-stats'],
     queryFn: async () => {
-      try {
-        const result = await paymentService.getPaymentDashboardStats();
+      const result = await paymentService.getPaymentDashboardStats();
 
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
+      return result;
     },
     enabled: isAuthenticated,
     retry: 2,

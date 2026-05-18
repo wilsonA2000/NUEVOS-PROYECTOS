@@ -10,13 +10,9 @@ export const propertyService = {
   getProperties: async (
     filters?: PropertySearchFilters,
   ): Promise<Property[]> => {
-    try {
-      const response = await api.get('/properties/', { params: filters });
+    const response = await api.get('/properties/', { params: filters });
 
-      return response.data.results || response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    return response.data.results || response.data;
   },
 
   getProperty: async (id: string): Promise<Property> => {
@@ -27,46 +23,38 @@ export const propertyService = {
   createProperty: async (
     data: CreatePropertyDto | FormData,
   ): Promise<Property> => {
-    try {
-      const response = await api.post(
-        '/properties/',
-        data,
-        data instanceof FormData
-          ? {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          : undefined,
-      );
+    const response = await api.post(
+      '/properties/',
+      data,
+      data instanceof FormData
+        ? {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        : undefined,
+    );
 
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    return response.data;
   },
 
   updateProperty: async (
     id: string,
     data: UpdatePropertyDto | FormData,
   ): Promise<Property> => {
-    try {
-      const response = await api.put(
-        `/properties/${id}/`,
-        data,
-        data instanceof FormData
-          ? {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          : undefined,
-      );
+    const response = await api.put(
+      `/properties/${id}/`,
+      data,
+      data instanceof FormData
+        ? {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        : undefined,
+    );
 
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    return response.data;
   },
 
   deleteProperty: async (id: string): Promise<void> => {
@@ -116,15 +104,11 @@ export const propertyService = {
     propertyId: string,
     data: any,
   ): Promise<{ message: string }> => {
-    try {
-      const response = await api.post(
-        `/properties/${propertyId}/contact-landlord/`,
-        data,
-      );
+    const response = await api.post(
+      `/properties/${propertyId}/contact-landlord/`,
+      data,
+    );
 
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
+    return response.data;
   },
 };
