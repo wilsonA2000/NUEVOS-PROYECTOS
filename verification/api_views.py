@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
+from django.db import transaction
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
@@ -975,28 +976,26 @@ class EmailOtpViewSet(viewsets.GenericViewSet):
     throttle_classes = [EmailOtpRateThrottle]
 
     def _bump_visit_score(self, user, key: str, value):
-        """
-        Si el usuario tiene una FieldVisitAct en draft, suma `value` al
-        sub-puntaje `key` (clamp a 0.05). Best-effort; sin lock.
-        """
         from decimal import Decimal as _D
 
         from .models import FieldVisitAct
 
-        act = (
-            FieldVisitAct.objects.filter(field_request__user=user, status="draft")
-            .order_by("-created_at")
-            .first()
-        )
-        if not act:
-            return None
-        breakdown = dict(act.visit_score_breakdown or {})
-        current = _D(str(breakdown.get(key, 0)))
-        breakdown[key] = float(min(_D("0.05"), current + _D(str(value))))
-        act.visit_score_breakdown = breakdown
-        total = sum(_D(str(v)) for v in breakdown.values())
-        act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
-        act.save()
+        with transaction.atomic():
+            act = (
+                FieldVisitAct.objects.select_for_update()
+                .filter(field_request__user=user, status="draft")
+                .order_by("-created_at")
+                .first()
+            )
+            if not act:
+                return None
+            breakdown = dict(act.visit_score_breakdown or {})
+            current = _D(str(breakdown.get(key, 0)))
+            breakdown[key] = float(min(_D("0.05"), current + _D(str(value))))
+            act.visit_score_breakdown = breakdown
+            total = sum(_D(str(v)) for v in breakdown.values())
+            act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
+            act.save()
         return act
 
     @action(detail=False, methods=["post"], url_path="request")
@@ -1241,30 +1240,27 @@ class PublicReceiptViewSet(viewsets.GenericViewSet):
     throttle_classes = [PublicReceiptRateThrottle]
 
     def _bump_visit_score(self, user, key: str, value):
-        """
-        Suma idempotente al sub-puntaje `key` del acta draft del usuario.
-        Idempotente: si ya está en el techo (0.05) no acumula. Best-effort,
-        sin lock. Devuelve la act actualizada o `None` si no hay draft.
-        """
         from decimal import Decimal as _D
 
         from .models import FieldVisitAct
 
-        act = (
-            FieldVisitAct.objects.filter(field_request__user=user, status="draft")
-            .order_by("-created_at")
-            .first()
-        )
-        if not act:
-            return None
-        breakdown = dict(act.visit_score_breakdown or {})
-        current = _D(str(breakdown.get(key, 0)))
-        cap = _D("0.05")
-        breakdown[key] = float(min(cap, current + _D(str(value))))
-        act.visit_score_breakdown = breakdown
-        total = sum(_D(str(v)) for v in breakdown.values())
-        act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
-        act.save()
+        with transaction.atomic():
+            act = (
+                FieldVisitAct.objects.select_for_update()
+                .filter(field_request__user=user, status="draft")
+                .order_by("-created_at")
+                .first()
+            )
+            if not act:
+                return None
+            breakdown = dict(act.visit_score_breakdown or {})
+            current = _D(str(breakdown.get(key, 0)))
+            cap = _D("0.05")
+            breakdown[key] = float(min(cap, current + _D(str(value))))
+            act.visit_score_breakdown = breakdown
+            total = sum(_D(str(v)) for v in breakdown.values())
+            act.visit_score_total = min(_D("0.5"), total).quantize(_D("0.001"))
+            act.save()
         return act
 
     @action(detail=False, methods=["post"], url_path="upload")

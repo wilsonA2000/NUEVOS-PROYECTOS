@@ -272,7 +272,7 @@ const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
               fontStyle: 'italic',
             }}
           >
-            "{userStatus.customMessage}"
+            &quot;{userStatus.customMessage}&quot;
           </Typography>
         )}
 
@@ -359,7 +359,7 @@ const UserStatusIndicator: React.FC<UserStatusIndicatorProps> = ({
           color='inherit'
           sx={{ fontStyle: 'italic' }}
         >
-          "{userStatus.customMessage}"
+          &quot;{userStatus.customMessage}&quot;
         </Typography>
       )}
       <Typography variant='caption' color='inherit'>

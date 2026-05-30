@@ -30,27 +30,14 @@ const CACHE_STRATEGIES = {
 
 // Cache global para queries
 const queryCache = new QueryCache({
-  onError: (error, query) => {
-    if (error instanceof Error) {
-    }
-  },
-  onSuccess: (data, query) => {
-    // Log successful queries in development
-    if (process.env.NODE_ENV === 'development') {
-    }
-  },
+  onError: () => {},
+  onSuccess: () => {},
 });
 
 // Cache global para mutations
 const mutationCache = new MutationCache({
-  onError: (error, mutation) => {
-    if (error instanceof Error) {
-    }
-  },
-  onSuccess: (data, mutation) => {
-    if (process.env.NODE_ENV === 'development') {
-    }
-  },
+  onError: () => {},
+  onSuccess: () => {},
 });
 
 export const queryClient = new QueryClient({

@@ -94,7 +94,7 @@ const validationSchema = Yup.object({
     .required('Número de documento es requerido'),
 
   phone: Yup.string()
-    .matches(/^[0-9\s\-\+\(\)]+$/, 'Formato de teléfono inválido')
+    .matches(/^[0-9\s\-()+]+$/, 'Formato de teléfono inválido')
     .min(10, 'Teléfono debe tener al menos 10 dígitos')
     .required('Teléfono es requerido'),
 
@@ -128,7 +128,7 @@ const validationSchema = Yup.object({
     .required('Contacto de emergencia es requerido'),
 
   emergency_phone: Yup.string()
-    .matches(/^[0-9\s\-\+\(\)]+$/, 'Formato de teléfono inválido')
+    .matches(/^[0-9\s\-()+]+$/, 'Formato de teléfono inválido')
     .required('Teléfono de emergencia es requerido'),
 
   emergency_relationship: Yup.string()
@@ -146,7 +146,7 @@ const validationSchema = Yup.object({
           .min(2, 'Especifica la relación')
           .required('Relación requerida'),
         phone: Yup.string()
-          .matches(/^[0-9\s\-\+\(\)]+$/, 'Teléfono inválido')
+          .matches(/^[0-9\s\-()+]+$/, 'Teléfono inválido')
           .required('Teléfono requerido'),
         years_known: Yup.number()
           .min(1, 'Mínimo 1 año')
@@ -164,7 +164,7 @@ const validationSchema = Yup.object({
           .min(3, 'Nombre de institución inválido')
           .required('Institución requerida'),
         phone: Yup.string()
-          .matches(/^[0-9\s\-\+\(\)]+$/, 'Teléfono inválido')
+          .matches(/^[0-9\s\-()+]+$/, 'Teléfono inválido')
           .required('Teléfono requerido'),
         relationship_duration_months: Yup.number()
           .min(1, 'Mínimo 1 mes')

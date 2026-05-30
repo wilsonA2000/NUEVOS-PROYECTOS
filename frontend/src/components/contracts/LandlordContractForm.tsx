@@ -317,8 +317,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         (p: any) => p.id === specificProperty.id,
       )
     ) {
-      if (process.env.NODE_ENV === 'development') {
-      }
       combinedProperties = [specificProperty, ...combinedProperties];
     }
 
@@ -384,17 +382,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
     });
 
     // Only log summary once when there are significant changes
-    if (
-      shouldLogDebug &&
-      filteredProperties.length === 0 &&
-      combinedProperties.length > 0
-    ) {
-    }
-
-    // Si no hay propiedades después del filtro, mostrar advertencia
-    if (filteredProperties.length === 0 && combinedProperties.length > 0) {
-    }
-
     return filteredProperties;
   }, [allProperties, specificProperty, user]);
 
@@ -702,7 +689,6 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
         internet_included:
           selectedProperty.utilities_included?.includes('internet') || false,
       }));
-    } else {
     }
   };
 
@@ -1064,10 +1050,9 @@ export const LandlordContractForm: React.FC<LandlordContractFormProps> = ({
           );
 
           if (workflowResponse.ok) {
-            const workflowResult = await workflowResponse.json();
-          } else {
+            await workflowResponse.json();
           }
-        } catch (error) {}
+        } catch (_) {}
       }
 
       // ========================================================================
@@ -1976,10 +1961,6 @@ _____________________________
             }
           }
 
-          // NOTA: Validación de documentos de garantía removida
-          // Los documentos ahora son subidos por el arrendatario en la etapa 2 del workflow
-          if ((guaranteeData.guarantee_type as string) !== 'none') {
-          }
         }
         break;
 
@@ -2303,10 +2284,7 @@ _____________________________
                           );
 
                           setMatchingCandidates(eligibleRequests);
-
-                          if (eligibleRequests.length === 0) {
-                          }
-                        } catch (error) {
+                        } catch (_) {
                         } finally {
                           setLoadingCandidates(false);
                         }
@@ -5026,8 +5004,8 @@ _____________________________
             <Typography variant='body2'>
               Puede editar el contenido del contrato directamente aquí. Los
               cambios se aplicarán al momento de crear el contrato. Este
-              borrador se generará oficialmente una vez que haga clic en "Crear
-              Contrato".
+              borrador se generará oficialmente una vez que haga clic en &quot;Crear
+              Contrato&quot;.
             </Typography>
           </Alert>
 

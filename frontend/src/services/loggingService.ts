@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Servicio centralizado de logging y auditoría para VeriHome
  * Se integra con el performanceMonitor existente y proporciona logging estructurado

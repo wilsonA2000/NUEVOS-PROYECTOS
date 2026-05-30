@@ -31,11 +31,11 @@ const FALLBACK_CEDULA_KEYWORDS = [
 ];
 
 const CEDULA_NUMBER_RE = /\b[1-9]\d{5,9}\b/g;
-const CE_NUMBER_RE = /\bCE[\s\-]*?(\d{6,7})\b/i;
+const CE_NUMBER_RE = /\bCE[\s-]*?(\d{6,7})\b/i;
 const DATE_RE =
-  /\b(0?[1-9]|[12]\d|3[01])[\/\-\s](0?[1-9]|1[0-2])[\/\-\s]((?:19|20)\d{2})\b/g;
+  /\b(0?[1-9]|[12]\d|3[01])[/\-\s](0?[1-9]|1[0-2])[/\-\s]((?:19|20)\d{2})\b/g;
 const DATE_SPANISH_MONTH_RE =
-  /\b(0?[1-9]|[12]\d|3[01])[\s\-\/]+(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)[A-Z]*[\s\-\/]+((?:19|20)\d{2})\b/gi;
+  /\b(0?[1-9]|[12]\d|3[01])[\s\-/]+(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)[A-Z]*[\s\-/]+((?:19|20)\d{2})\b/gi;
 
 const SPANISH_MONTHS: Record<string, number> = {
   ENE: 1,

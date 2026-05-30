@@ -13,14 +13,7 @@ export const useMessages = () => {
     error,
   } = useQuery({
     queryKey: ['messages'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getMessages();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getMessages(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,
@@ -29,14 +22,7 @@ export const useMessages = () => {
   // Hilos/conversaciones
   const { data: threads } = useQuery({
     queryKey: ['message-threads'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getThreads();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getThreads(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,
@@ -45,14 +31,7 @@ export const useMessages = () => {
   // Carpetas
   const { data: folders } = useQuery({
     queryKey: ['message-folders'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getFolders();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getFolders(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,
@@ -61,14 +40,7 @@ export const useMessages = () => {
   // Plantillas
   const { data: templates } = useQuery({
     queryKey: ['message-templates'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getTemplates();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getTemplates(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,
@@ -77,14 +49,7 @@ export const useMessages = () => {
   // Conversaciones
   const { data: conversations } = useQuery({
     queryKey: ['message-conversations'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getConversations();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getConversations(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,
@@ -111,14 +76,7 @@ export const useMessages = () => {
   // Estadísticas
   const { data: messagingStats } = useQuery({
     queryKey: ['messaging-stats'],
-    queryFn: async () => {
-      try {
-        const result = await messageService.getMessagingStats();
-        return result;
-      } catch (error: any) {
-        throw error;
-      }
-    },
+    queryFn: () => messageService.getMessagingStats(),
     retry: 2,
     retryDelay: 1000,
     enabled: isAuthenticated,

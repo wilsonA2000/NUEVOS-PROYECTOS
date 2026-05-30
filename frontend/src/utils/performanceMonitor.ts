@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Performance monitoring utilities for VeriHome
  * Tracks component loading times, API response times, and user interactions
