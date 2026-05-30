@@ -120,7 +120,11 @@ const Profile: React.FC = () => {
     ];
 
     const completedFields = allFields.filter(field => {
-      const value = data[field];
+      // Los campos de la hoja de vida vienen anidados en data.resume
+      const value =
+        data[field] !== undefined && data[field] !== null
+          ? data[field]
+          : data.resume?.[field];
       return (
         value !== null && value !== '' && value !== undefined && value !== 0
       );

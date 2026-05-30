@@ -268,8 +268,21 @@ class ProfileView(APIView):
 
     def get(self, request):
         """Obtener el perfil del usuario actual."""
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
+        from .models import UserResume
+
+        data = UserProfileSerializer(request.user).data
+        try:
+            resume = UserResume.objects.get(user=request.user)
+            data = dict(data)
+            data["resume"] = {
+                "education_level": resume.education_level or "",
+                "emergency_contact_name": resume.emergency_contact_name or "",
+                "emergency_contact_phone": resume.emergency_contact_phone or "",
+            }
+        except UserResume.DoesNotExist:
+            data = dict(data)
+            data["resume"] = {}
+        return Response(data)
 
     def put(self, request):
         """Actualizar el perfil del usuario actual."""
@@ -1735,7 +1748,7 @@ class ForgotPasswordView(APIView):
             # Enviar email
             subject = "Restablecer contraseña - VeriHome"
             message = f"""
-            Hola {user.first_name or 'Usuario'},
+            Hola {user.first_name or "Usuario"},
 
             Has solicitado restablecer tu contraseña en VeriHome.
 

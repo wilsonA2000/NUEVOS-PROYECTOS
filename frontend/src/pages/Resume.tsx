@@ -98,6 +98,20 @@ const Resume: React.FC = () => {
       const response = await api.get('/users/resume/');
       const resumeData = response.data;
 
+      // Calcular completitud con los mismos 10 campos obligatorios que usa ResumeEdit
+      const requiredApiFields = [
+        'date_of_birth', 'nationality', 'education_level', 'current_employer',
+        'current_position', 'monthly_salary', 'emergency_contact_name',
+        'emergency_contact_phone', 'reference1_name', 'reference1_phone',
+      ];
+      const completedCount = requiredApiFields.filter(f => {
+        const v = resumeData[f];
+        return v !== null && v !== undefined && v !== '' && v !== 0;
+      }).length;
+      const calculatedCompletion = Math.round(
+        (completedCount / requiredApiFields.length) * 100,
+      );
+
       // Mapear los datos de la API al formato del componente
       const mappedResume: ResumeData = {
         id: resumeData.id || 'new',
@@ -139,8 +153,8 @@ const Resume: React.FC = () => {
         evictionDetails: resumeData.eviction_details || '',
         criminalRecord: resumeData.criminal_record || false,
         criminalRecordDetails: resumeData.criminal_record_details || '',
-        completionPercentage: resumeData.verification_score || 0,
-        verificationScore: resumeData.verification_score || 0,
+        completionPercentage: calculatedCompletion,
+        verificationScore: Math.round(calculatedCompletion * 0.9),
         documentCounts: {
           pending: 2, // Estos podrían calcularse de los documentos reales
           verified: 3,
