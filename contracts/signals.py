@@ -214,8 +214,17 @@ def generate_payment_schedule_on_activation(sender, instance, created, **kwargs)
 
 
 def _months_between(start, end):
-    """Cantidad de meses entre dos fechas (incluyendo el último)."""
-    return max(1, (end.year - start.year) * 12 + (end.month - start.month) + 1)
+    """Cantidad de cánones mensuales entre start y end.
+
+    Cuenta los vencimientos (mismo día del mes que start) que caen
+    dentro del rango. El +1 solo aplica si el día de vencimiento del
+    último mes alcanza a caer antes o en end — un contrato de 12 meses
+    (2026-06-12 → 2027-06-07) genera 12 cuotas, no 13 (D24).
+    """
+    months = (end.year - start.year) * 12 + (end.month - start.month)
+    if end.day >= start.day:
+        months += 1
+    return max(1, months)
 
 
 def _add_months(d, months):

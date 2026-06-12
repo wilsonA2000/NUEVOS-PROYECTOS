@@ -375,9 +375,14 @@ class Contract(models.Model):
                     LandlordControlledContract as _LCC,
                 )
 
-                _LCC.objects.filter(id=self.id).update(
-                    current_state=_lcc_state_map[self.status]
-                )
+                # save() de instancia y NO queryset.update(): el update
+                # salta los signals de transición del LCC, y al pasar a
+                # ACTIVE el cronograma de pagos jamás se generaba (D23) —
+                # el contrato quedaba activo con 0 órdenes de canon.
+                _lcc = _LCC.objects.filter(id=self.id).first()
+                if _lcc and _lcc.current_state != _lcc_state_map[self.status]:
+                    _lcc.current_state = _lcc_state_map[self.status]
+                    _lcc.save(update_fields=["current_state"])
             except Exception as e:
                 import logging
 

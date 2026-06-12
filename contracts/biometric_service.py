@@ -1250,9 +1250,12 @@ Tu participación es esencial para activar el contrato de arrendamiento.
         try:
             from matching.models import MatchRequest
 
-            # Obtener el MatchRequest asociado
+            # Obtener el MatchRequest asociado — filtrar también por
+            # tenant: con varios matches sobre la misma propiedad el
+            # filtro por property sola tomaba uno arbitrario (D26).
             match_request = MatchRequest.objects.filter(
                 property=contract.property,
+                tenant=contract.secondary_party,
             ).first()
 
             if not match_request:
@@ -1668,9 +1671,9 @@ def recompute_workflow_status(contract):
         lcc = LandlordControlledContract.objects.filter(id=contract.id).first()
         if lcc:
             if new_workflow == "all_biometrics_completed":
+                # Solo current_state: is_active/activation_date no son
+                # campos del modelo LCC (eran atributos fantasma).
                 lcc.current_state = "ACTIVE"
-                lcc.is_active = True
-                lcc.activation_date = timezone.now()
             elif new_workflow == "pending_landlord_biometric":
                 lcc.current_state = "LANDLORD_AUTHENTICATION"
             elif new_workflow == "pending_guarantor_biometric":
