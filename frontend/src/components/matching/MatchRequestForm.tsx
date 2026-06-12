@@ -253,9 +253,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
-                          <PersonIcon
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <PersonIcon sx={{ color: 'text.secondary' }} />
                         </InputAdornment>
                       ),
                     }}
@@ -436,9 +434,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
-                          <MoneyIcon
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <MoneyIcon sx={{ color: 'text.secondary' }} />
                         </InputAdornment>
                       ),
                     }}
@@ -812,9 +808,7 @@ Puedes incluir:
                           position='start'
                           sx={{ alignSelf: 'flex-start', mt: 1 }}
                         >
-                          <DescriptionIcon
-                            sx={{ color: 'text.secondary' }}
-                          />
+                          <DescriptionIcon sx={{ color: 'text.secondary' }} />
                         </InputAdornment>
                       ),
                     }}
@@ -948,16 +942,10 @@ Puedes incluir:
           <Typography variant='h5' sx={{ mb: 1, fontWeight: 600 }}>
             Solicitud de Match
           </Typography>
-          <Typography
-            variant='body1'
-            sx={{ color: 'text.secondary' }}
-          >
+          <Typography variant='body1' sx={{ color: 'text.secondary' }}>
             Envía tu solicitud para: <strong>{property.title}</strong>
           </Typography>
-          <Typography
-            variant='body2'
-            sx={{ color: 'text.secondary' }}
-          >
+          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
             {property.city}, {property.state} •{' '}
             {formatCurrency(property.rent_price)}/mes
           </Typography>

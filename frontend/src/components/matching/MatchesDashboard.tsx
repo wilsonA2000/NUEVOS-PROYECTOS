@@ -430,14 +430,30 @@ const MatchesDashboard: React.FC = () => {
           {/* Para tenants: solicitud aceptada → redirigir a Contratos para gestionar el proceso */}
           {request.status === 'accepted' && isTenant && (
             <Box sx={{ mt: 2 }}>
-              <Stack direction='row' alignItems='center' spacing={1} sx={{ mb: 1.5 }}>
+              <Stack
+                direction='row'
+                alignItems='center'
+                spacing={1}
+                sx={{ mb: 1.5 }}
+              >
                 <CheckCircle color='success' fontSize='small' />
-                <Typography variant='body2' color='success.dark' fontWeight={600}>
+                <Typography
+                  variant='body2'
+                  color='success.dark'
+                  fontWeight={600}
+                >
                   ¡Solicitud Aceptada! — Gestiona el proceso desde Contratos
                 </Typography>
               </Stack>
               {request.workflow_stage && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mb: 1.5,
+                  }}
+                >
                   {[1, 2, 3, 4, 5].map(step => (
                     <Box
                       key={step}
@@ -445,11 +461,18 @@ const MatchesDashboard: React.FC = () => {
                         width: 12,
                         height: 12,
                         borderRadius: '50%',
-                        bgcolor: (request.workflow_stage ?? 0) >= step ? 'primary.main' : 'grey.300',
+                        bgcolor:
+                          (request.workflow_stage ?? 0) >= step
+                            ? 'primary.main'
+                            : 'grey.300',
                       }}
                     />
                   ))}
-                  <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ ml: 1 }}
+                  >
                     Etapa {request.workflow_stage}/5
                   </Typography>
                 </Box>

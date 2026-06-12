@@ -1960,7 +1960,6 @@ _____________________________
               );
             }
           }
-
         }
         break;
 
@@ -5004,8 +5003,8 @@ _____________________________
             <Typography variant='body2'>
               Puede editar el contenido del contrato directamente aquí. Los
               cambios se aplicarán al momento de crear el contrato. Este
-              borrador se generará oficialmente una vez que haga clic en &quot;Crear
-              Contrato&quot;.
+              borrador se generará oficialmente una vez que haga clic en
+              &quot;Crear Contrato&quot;.
             </Typography>
           </Alert>
 

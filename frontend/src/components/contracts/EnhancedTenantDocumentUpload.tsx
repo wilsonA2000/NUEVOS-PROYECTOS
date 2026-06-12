@@ -65,7 +65,6 @@ import { vhColors } from '../../theme/tokens';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
-
 // ============================================================================
 // ENHANCED TYPES & INTERFACES
 // ============================================================================
@@ -195,7 +194,8 @@ const EnhancedDocumentItem: React.FC<{
         }
       },
       accept: { 'application/pdf': ['.pdf'] },
-      disabled: isUploading || (document.uploaded && document.status === 'approved'),
+      disabled:
+        isUploading || (document.uploaded && document.status === 'approved'),
       multiple: false,
     });
 
@@ -210,15 +210,25 @@ const EnhancedDocumentItem: React.FC<{
             mb: 2,
             p: 2.5,
             border: '2px dashed',
-            borderColor: isDragActive ? 'primary.main' : document.required ? 'warning.light' : 'grey.300',
+            borderColor: isDragActive
+              ? 'primary.main'
+              : document.required
+                ? 'warning.light'
+                : 'grey.300',
             borderRadius: 2,
             cursor: isUploading ? 'not-allowed' : 'pointer',
-            bgcolor: isDragActive ? 'primary.50' : document.required ? 'warning.50' : 'grey.50',
+            bgcolor: isDragActive
+              ? 'primary.50'
+              : document.required
+                ? 'warning.50'
+                : 'grey.50',
             display: 'flex',
             alignItems: 'center',
             gap: 2,
             transition: 'all 0.2s ease',
-            '&:hover': !isUploading ? { borderColor: 'primary.main', bgcolor: 'action.hover' } : {},
+            '&:hover': !isUploading
+              ? { borderColor: 'primary.main', bgcolor: 'action.hover' }
+              : {},
           }}
         >
           <input {...getInputProps()} />
@@ -227,7 +237,11 @@ const EnhancedDocumentItem: React.FC<{
               width: 48,
               height: 48,
               borderRadius: 1.5,
-              bgcolor: isDragActive ? 'primary.100' : document.required ? 'warning.100' : 'grey.200',
+              bgcolor: isDragActive
+                ? 'primary.100'
+                : document.required
+                  ? 'warning.100'
+                  : 'grey.200',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -238,21 +252,45 @@ const EnhancedDocumentItem: React.FC<{
               <AccessTimeIcon sx={{ color: 'text.secondary' }} />
             ) : (
               <CloudUploadIcon
-                sx={{ color: isDragActive ? 'primary.main' : document.required ? 'warning.dark' : 'text.disabled' }}
+                sx={{
+                  color: isDragActive
+                    ? 'primary.main'
+                    : document.required
+                      ? 'warning.dark'
+                      : 'text.disabled',
+                }}
               />
             )}
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction='row' alignItems='center' spacing={1} flexWrap='wrap'>
-              <Typography variant='subtitle2' fontWeight={600} color='text.primary'>
+            <Stack
+              direction='row'
+              alignItems='center'
+              spacing={1}
+              flexWrap='wrap'
+            >
+              <Typography
+                variant='subtitle2'
+                fontWeight={600}
+                color='text.primary'
+              >
                 {document.display_name}
               </Typography>
               {document.required && (
-                <Chip label='Requerido' size='small' color='error' variant='filled' sx={{ height: 20, fontSize: '0.65rem' }} />
+                <Chip
+                  label='Requerido'
+                  size='small'
+                  color='error'
+                  variant='filled'
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
               )}
             </Stack>
             <Typography variant='caption' color='text.secondary'>
-              {isDragActive ? '¡Suelta el PDF aquí!' : document.description || 'Arrastra un PDF o haz clic para seleccionar'}
+              {isDragActive
+                ? '¡Suelta el PDF aquí!'
+                : document.description ||
+                  'Arrastra un PDF o haz clic para seleccionar'}
             </Typography>
           </Box>
           <Button
@@ -277,23 +315,37 @@ const EnhancedDocumentItem: React.FC<{
         sx={{
           mb: 1.5,
           border: '1px solid',
-          borderColor: isApproved ? 'success.light' : document.status === 'rejected' ? 'error.light' : document.status === 'requires_correction' ? 'info.light' : 'divider',
-          bgcolor: isApproved ? 'success.50' : document.status === 'rejected' ? 'error.50' : 'background.paper',
+          borderColor: isApproved
+            ? 'success.light'
+            : document.status === 'rejected'
+              ? 'error.light'
+              : document.status === 'requires_correction'
+                ? 'info.light'
+                : 'divider',
+          bgcolor: isApproved
+            ? 'success.50'
+            : document.status === 'rejected'
+              ? 'error.50'
+              : 'background.paper',
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}
+        >
           {/* Status icon */}
           <Box
             sx={{
               width: 36,
               height: 36,
               borderRadius: 1,
-              bgcolor:
-                isApproved ? 'success.100'
-                : document.status === 'rejected' ? 'error.100'
-                : document.status === 'requires_correction' ? 'info.100'
-                : 'warning.100',
+              bgcolor: isApproved
+                ? 'success.100'
+                : document.status === 'rejected'
+                  ? 'error.100'
+                  : document.status === 'requires_correction'
+                    ? 'info.100'
+                    : 'warning.100',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -305,8 +357,18 @@ const EnhancedDocumentItem: React.FC<{
 
           {/* Document info */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction='row' alignItems='center' spacing={1} flexWrap='wrap'>
-              <Typography variant='body2' fontWeight={600} color='text.primary' noWrap>
+            <Stack
+              direction='row'
+              alignItems='center'
+              spacing={1}
+              flexWrap='wrap'
+            >
+              <Typography
+                variant='body2'
+                fontWeight={600}
+                color='text.primary'
+                noWrap
+              >
                 {document.display_name}
               </Typography>
               <Chip
@@ -317,12 +379,20 @@ const EnhancedDocumentItem: React.FC<{
                 sx={{ height: 20, fontSize: '0.65rem' }}
               />
               {document.required && (
-                <Chip label='Req.' size='small' color='error' variant='outlined' sx={{ height: 20, fontSize: '0.65rem' }} />
+                <Chip
+                  label='Req.'
+                  size='small'
+                  color='error'
+                  variant='outlined'
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
               )}
             </Stack>
             <Typography variant='caption' color='text.secondary'>
               {document.original_filename || 'Documento subido'}
-              {document.file_size ? ` · ${formatFileSize(document.file_size)}` : ''}
+              {document.file_size
+                ? ` · ${formatFileSize(document.file_size)}`
+                : ''}
               {document.uploaded_at
                 ? ` · ${format(new Date(document.uploaded_at), 'dd/MM/yyyy', { locale: es })}`
                 : ''}
@@ -332,9 +402,15 @@ const EnhancedDocumentItem: React.FC<{
                 severity={document.status === 'rejected' ? 'error' : 'info'}
                 sx={{ mt: 1, py: 0.5, '& .MuiAlert-message': { py: 0.5 } }}
               >
-                <Typography variant='caption'>{document.review_notes}</Typography>
+                <Typography variant='caption'>
+                  {document.review_notes}
+                </Typography>
                 {document.reviewed_by && (
-                  <Typography variant='caption' display='block' sx={{ opacity: 0.8 }}>
+                  <Typography
+                    variant='caption'
+                    display='block'
+                    sx={{ opacity: 0.8 }}
+                  >
                     — {document.reviewed_by.full_name}
                   </Typography>
                 )}
@@ -345,13 +421,27 @@ const EnhancedDocumentItem: React.FC<{
           {/* Actions */}
           <Stack direction='row' spacing={0.5} flexShrink={0}>
             <Tooltip title='Ver documento' arrow>
-              <IconButton size='small' color='primary' onClick={e => { e.stopPropagation(); onPreview(document); }}>
+              <IconButton
+                size='small'
+                color='primary'
+                onClick={e => {
+                  e.stopPropagation();
+                  onPreview(document);
+                }}
+              >
                 <VisibilityIcon fontSize='small' />
               </IconButton>
             </Tooltip>
             {canDelete && !isApproved && (
               <Tooltip title='Eliminar' arrow>
-                <IconButton size='small' color='error' onClick={e => { e.stopPropagation(); onDelete(document.id ?? ''); }}>
+                <IconButton
+                  size='small'
+                  color='error'
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDelete(document.id ?? '');
+                  }}
+                >
                   <DeleteIcon fontSize='small' />
                 </IconButton>
               </Tooltip>
@@ -385,16 +475,57 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({
     stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
 
   const statItems = [
-    { label: 'Total', value: stats.total, color: 'text.primary', bgColor: 'grey.50', borderColor: 'divider' },
-    { label: 'Pendientes', value: stats.pending, color: 'warning.dark', bgColor: 'warning.50', borderColor: 'warning.200' },
-    { label: 'Aprobados', value: stats.approved, color: 'success.dark', bgColor: 'success.50', borderColor: 'success.200' },
-    { label: 'Por revisar', value: stats.rejected + stats.requires_correction, color: 'error.dark', bgColor: 'error.50', borderColor: 'error.200' },
+    {
+      label: 'Total',
+      value: stats.total,
+      color: 'text.primary',
+      bgColor: 'grey.50',
+      borderColor: 'divider',
+    },
+    {
+      label: 'Pendientes',
+      value: stats.pending,
+      color: 'warning.dark',
+      bgColor: 'warning.50',
+      borderColor: 'warning.200',
+    },
+    {
+      label: 'Aprobados',
+      value: stats.approved,
+      color: 'success.dark',
+      bgColor: 'success.50',
+      borderColor: 'success.200',
+    },
+    {
+      label: 'Por revisar',
+      value: stats.rejected + stats.requires_correction,
+      color: 'error.dark',
+      bgColor: 'error.50',
+      borderColor: 'error.200',
+    },
   ];
 
   return (
-    <Card elevation={0} sx={{ mb: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+    <Card
+      elevation={0}
+      sx={{
+        mb: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        overflow: 'hidden',
+      }}
+    >
       {/* Header strip con color VeriHome */}
-      <Box sx={{ bgcolor: '#2d4264', px: 2.5, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          bgcolor: '#2d4264',
+          px: 2.5,
+          py: 1.5,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Stack direction='row' alignItems='center' spacing={1}>
           <DashboardIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
           <Typography variant='subtitle2' fontWeight={600} color='white'>
@@ -405,7 +536,10 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({
           label={`${progressPercentage}% completado`}
           size='small'
           sx={{
-            bgcolor: progressPercentage === 100 ? 'success.light' : 'rgba(255,255,255,0.2)',
+            bgcolor:
+              progressPercentage === 100
+                ? 'success.light'
+                : 'rgba(255,255,255,0.2)',
             color: 'white',
             fontWeight: 600,
             fontSize: '0.7rem',
@@ -417,16 +551,31 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({
         <Grid container spacing={1.5} sx={{ mb: 2 }}>
           {statItems.map(({ label, value, color, bgColor }) => (
             <Grid item xs={6} sm={3} key={label}>
-              <Box sx={{
-                textAlign: 'center',
-                p: 1.5,
-                bgcolor: bgColor,
-                borderRadius: 1.5,
-                border: '1px solid',
-                borderColor: 'divider',
-              }}>
-                <Typography variant='h4' fontWeight={700} color={color} lineHeight={1}>{value}</Typography>
-                <Typography variant='caption' color='text.secondary' sx={{ mt: 0.5, display: 'block' }}>{label}</Typography>
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  p: 1.5,
+                  bgcolor: bgColor,
+                  borderRadius: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Typography
+                  variant='h4'
+                  fontWeight={700}
+                  color={color}
+                  lineHeight={1}
+                >
+                  {value}
+                </Typography>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ mt: 0.5, display: 'block' }}
+                >
+                  {label}
+                </Typography>
               </Box>
             </Grid>
           ))}
@@ -434,8 +583,16 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({
 
         <Box>
           <Stack direction='row' justifyContent='space-between' mb={0.5}>
-            <Typography variant='caption' color='text.secondary'>Progreso de aprobación</Typography>
-            <Typography variant='caption' fontWeight={600} color={progressPercentage === 100 ? 'success.main' : 'text.secondary'}>
+            <Typography variant='caption' color='text.secondary'>
+              Progreso de aprobación
+            </Typography>
+            <Typography
+              variant='caption'
+              fontWeight={600}
+              color={
+                progressPercentage === 100 ? 'success.main' : 'text.secondary'
+              }
+            >
               {stats.approved}/{stats.total}
             </Typography>
           </Stack>
@@ -800,11 +957,28 @@ const EnhancedTenantDocumentUpload: React.FC<
       )}
 
       {/* Compact header with toggle */}
-      <Box sx={{ px: 3, pt: 2.5, pb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}>
+      <Box
+        sx={{
+          px: 3,
+          pt: 2.5,
+          pb: 1.5,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          mb: 2,
+        }}
+      >
         <Typography variant='body2' color='text.secondary'>
           {stats.approved}/{stats.total} documentos aprobados
         </Typography>
-        <ToggleButtonGroup value={viewMode} exclusive onChange={(_e, newMode) => newMode && setViewMode(newMode)} size='small'>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={(_e, newMode) => newMode && setViewMode(newMode)}
+          size='small'
+        >
           <ToggleButton value='sections' sx={{ px: 1.5 }}>
             <FolderIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} /> Secciones
           </ToggleButton>
@@ -817,294 +991,511 @@ const EnhancedTenantDocumentUpload: React.FC<
       {/* Document Sections */}
       {viewMode === 'sections' ? (
         <Box sx={{ px: 3, pb: 3 }}>
-        <Stack spacing={3}>
-          {/* Tomador Documents */}
-          <Fade in timeout={1000}>
-            <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
-              <Accordion
-                defaultExpanded
+          <Stack spacing={3}>
+            {/* Tomador Documents */}
+            <Fade in timeout={1000}>
+              <Card
+                elevation={0}
                 sx={{
-                  background: 'transparent',
-                  boxShadow: 'none',
-                  '&:before': { display: 'none' },
-                  '& .MuiAccordionDetails-root': { padding: '20px' },
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  overflow: 'hidden',
                 }}
               >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />}
+                <Accordion
+                  defaultExpanded
                   sx={{
-                    bgcolor: '#2d4264',
-                    '&:hover': { filter: 'brightness(0.88)' },
-                    '&.Mui-expanded': { filter: 'brightness(0.85)' },
-                    '& .MuiAccordionSummary-content': { my: 1 },
+                    background: 'transparent',
+                    boxShadow: 'none',
+                    '&:before': { display: 'none' },
+                    '& .MuiAccordionDetails-root': { padding: '20px' },
                   }}
                 >
-                  <Stack direction='row' alignItems='center' spacing={2} sx={{ width: '100%', mr: 1 }}>
-                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 36, height: 36 }}>
-                      <PersonIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant='subtitle1' fontWeight={600} color='white'>Documentos del Tomador</Typography>
-                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>
-                        {checklist.tomador_documents.filter(d => d.uploaded).length}/{checklist.tomador_documents.length} subidos
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={`${checklist.tomador_documents.filter(d => d.status === 'approved').length} aprobados`}
-                      size='small'
-                      sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }}
-                    />
-                  </Stack>
-                </AccordionSummary>
-                <AccordionDetails>
-                  {checklist.tomador_documents.map(doc => (
-                    <EnhancedDocumentItem
-                      key={doc.type}
-                      document={doc}
-                      onFileSelect={handleFileSelect}
-                      onDelete={id => {
-                        setDocumentToDelete(id);
-                        setDeleteConfirmOpen(true);
-                      }}
-                      onPreview={handlePreview}
-                      isUploading={uploadingDocuments.has(doc.type)}
-                      canDelete={!isLandlord}
-                    />
-                  ))}
-                </AccordionDetails>
-              </Accordion>
-            </Card>
-          </Fade>
-
-          {/* Codeudor Documents */}
-          <Fade in timeout={1200}>
-            <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
-              <Accordion
-                sx={{
-                  background: 'transparent',
-                  boxShadow: 'none',
-                  '&:before': { display: 'none' },
-                  '& .MuiAccordionDetails-root': { padding: '20px' },
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />}
-                  sx={{
-                    bgcolor: '#5c3d1a',
-                    '&:hover': { filter: 'brightness(0.88)' },
-                    '&.Mui-expanded': { filter: 'brightness(0.85)' },
-                    '& .MuiAccordionSummary-content': { my: 1 },
-                  }}
-                >
-                  <Stack direction='row' alignItems='center' spacing={2} sx={{ width: '100%', mr: 1 }}>
-                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 36, height: 36 }}>
-                      <PeopleIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant='subtitle1' fontWeight={600} color='white'>Documentos del Codeudor</Typography>
-                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.85)' }}>
-                        {checklist.codeudor_documents.filter(d => d.uploaded).length}/{checklist.codeudor_documents.length} subidos
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={`${checklist.codeudor_documents.filter(d => d.status === 'approved').length} aprobados`}
-                      size='small'
-                      sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }}
-                    />
-                  </Stack>
-                </AccordionSummary>
-                <AccordionDetails>
-                  {checklist.codeudor_documents.map(doc => (
-                    <EnhancedDocumentItem
-                      key={doc.type}
-                      document={doc}
-                      onFileSelect={handleFileSelect}
-                      onDelete={id => {
-                        setDocumentToDelete(id);
-                        setDeleteConfirmOpen(true);
-                      }}
-                      onPreview={handlePreview}
-                      isUploading={uploadingDocuments.has(doc.type)}
-                      canDelete={!isLandlord}
-                    />
-                  ))}
-                </AccordionDetails>
-              </Accordion>
-            </Card>
-          </Fade>
-
-          {/* Otros Documentos Section */}
-          <Fade in timeout={1400}>
-            <Card elevation={0} sx={{ border: '1px dashed', borderColor: 'primary.light', overflow: 'hidden' }}>
-              <AccordionSummary
-                component='div'
-                sx={{ cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', py: 0.5 }}>
-                  <Avatar sx={{ bgcolor: 'info.main', width: 40, height: 40 }}>
-                    <NoteAddIcon sx={{ fontSize: '1.1rem' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Stack direction='row' alignItems='center' spacing={1}>
-                      <Typography variant='subtitle1' fontWeight={600} color='text.primary'>
-                        Documentos Adicionales
-                      </Typography>
-                      <Chip label='Opcional' size='small' color='info' variant='outlined' />
-                      {checklist.otros_documents?.length > 0 && (
-                        <Chip
-                          label={`${checklist.otros_documents.length} subido${checklist.otros_documents.length !== 1 ? 's' : ''}`}
-                          size='small'
-                          color='success'
-                          variant='outlined'
+                  <AccordionSummary
+                    expandIcon={
+                      <ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />
+                    }
+                    sx={{
+                      bgcolor: '#2d4264',
+                      '&:hover': { filter: 'brightness(0.88)' },
+                      '&.Mui-expanded': { filter: 'brightness(0.85)' },
+                      '& .MuiAccordionSummary-content': { my: 1 },
+                    }}
+                  >
+                    <Stack
+                      direction='row'
+                      alignItems='center'
+                      spacing={2}
+                      sx={{ width: '100%', mr: 1 }}
+                    >
+                      <Avatar
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          width: 36,
+                          height: 36,
+                        }}
+                      >
+                        <PersonIcon
+                          sx={{ color: 'white', fontSize: '1.1rem' }}
                         />
-                      )}
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant='subtitle1'
+                          fontWeight={600}
+                          color='white'
+                        >
+                          Documentos del Tomador
+                        </Typography>
+                        <Typography
+                          variant='caption'
+                          sx={{ color: 'rgba(255,255,255,0.75)' }}
+                        >
+                          {
+                            checklist.tomador_documents.filter(d => d.uploaded)
+                              .length
+                          }
+                          /{checklist.tomador_documents.length} subidos
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={`${checklist.tomador_documents.filter(d => d.status === 'approved').length} aprobados`}
+                        size='small'
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.15)',
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '0.7rem',
+                        }}
+                      />
                     </Stack>
-                    <Typography variant='caption' color='text.secondary'>
-                      Cartas de recomendación, referencias comerciales, certificados adicionales
-                    </Typography>
-                  </Box>
-                </Box>
-              </AccordionSummary>
-
-              <Box sx={{ px: 3, pb: 3 }}>
-                {/* Documentos ya subidos */}
-                {checklist.otros_documents?.length > 0 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Alert severity='success' sx={{ mb: 2 }}>
-                      <Typography variant='body2' fontWeight={600}>
-                        {checklist.otros_documents.length} documento{checklist.otros_documents.length !== 1 ? 's' : ''} personalizado{checklist.otros_documents.length !== 1 ? 's' : ''} subido{checklist.otros_documents.length !== 1 ? 's' : ''}
-                      </Typography>
-                      <Typography variant='caption'>Puedes agregar más con el botón de abajo</Typography>
-                    </Alert>
-                    {checklist.otros_documents.map((doc, index) => (
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {checklist.tomador_documents.map(doc => (
                       <EnhancedDocumentItem
-                        key={doc.id || doc.type || `otros_${index}`}
+                        key={doc.type}
                         document={doc}
                         onFileSelect={handleFileSelect}
-                        onDelete={id => { setDocumentToDelete(id); setDeleteConfirmOpen(true); }}
+                        onDelete={id => {
+                          setDocumentToDelete(id);
+                          setDeleteConfirmOpen(true);
+                        }}
                         onPreview={handlePreview}
                         isUploading={uploadingDocuments.has(doc.type)}
                         canDelete={!isLandlord}
                       />
                     ))}
-                  </Box>
-                )}
+                  </AccordionDetails>
+                </Accordion>
+              </Card>
+            </Fade>
 
-                {(!checklist.otros_documents || checklist.otros_documents.length === 0) && (
-                  <Alert severity='info' sx={{ mb: 2 }}>
-                    <Typography variant='body2' fontWeight={600}>Sin documentos adicionales</Typography>
-                    <Typography variant='caption'>Haz clic en el botón para agregar tu primer documento personalizado</Typography>
-                  </Alert>
-                )}
-
-                <input
-                  type='file'
-                  accept='.pdf'
-                  style={{ display: 'none' }}
-                  id='other-document-upload'
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) { handleFileSelect(file, 'otros'); e.target.value = ''; }
+            {/* Codeudor Documents */}
+            <Fade in timeout={1200}>
+              <Card
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <Accordion
+                  sx={{
+                    background: 'transparent',
+                    boxShadow: 'none',
+                    '&:before': { display: 'none' },
+                    '& .MuiAccordionDetails-root': { padding: '20px' },
                   }}
-                />
-                <label htmlFor='other-document-upload' style={{ width: '100%', display: 'block' }}>
-                  <Button
-                    component='span'
-                    variant='outlined'
-                    color='primary'
-                    fullWidth
-                    startIcon={<NoteAddIcon />}
-                    sx={{ py: 1.5, fontWeight: 600 }}
+                >
+                  <AccordionSummary
+                    expandIcon={
+                      <ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />
+                    }
+                    sx={{
+                      bgcolor: '#5c3d1a',
+                      '&:hover': { filter: 'brightness(0.88)' },
+                      '&.Mui-expanded': { filter: 'brightness(0.85)' },
+                      '& .MuiAccordionSummary-content': { my: 1 },
+                    }}
                   >
-                    {checklist.otros_documents?.length > 0 ? 'Agregar otro documento' : 'Subir documento personalizado'}
-                  </Button>
-                </label>
-              </Box>
-            </Card>
-          </Fade>
-        </Stack>
+                    <Stack
+                      direction='row'
+                      alignItems='center'
+                      spacing={2}
+                      sx={{ width: '100%', mr: 1 }}
+                    >
+                      <Avatar
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          width: 36,
+                          height: 36,
+                        }}
+                      >
+                        <PeopleIcon
+                          sx={{ color: 'white', fontSize: '1.1rem' }}
+                        />
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant='subtitle1'
+                          fontWeight={600}
+                          color='white'
+                        >
+                          Documentos del Codeudor
+                        </Typography>
+                        <Typography
+                          variant='caption'
+                          sx={{ color: 'rgba(255,255,255,0.85)' }}
+                        >
+                          {
+                            checklist.codeudor_documents.filter(d => d.uploaded)
+                              .length
+                          }
+                          /{checklist.codeudor_documents.length} subidos
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={`${checklist.codeudor_documents.filter(d => d.status === 'approved').length} aprobados`}
+                        size='small'
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.15)',
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '0.7rem',
+                        }}
+                      />
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {checklist.codeudor_documents.map(doc => (
+                      <EnhancedDocumentItem
+                        key={doc.type}
+                        document={doc}
+                        onFileSelect={handleFileSelect}
+                        onDelete={id => {
+                          setDocumentToDelete(id);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        onPreview={handlePreview}
+                        isUploading={uploadingDocuments.has(doc.type)}
+                        canDelete={!isLandlord}
+                      />
+                    ))}
+                  </AccordionDetails>
+                </Accordion>
+              </Card>
+            </Fade>
+
+            {/* Otros Documentos Section */}
+            <Fade in timeout={1400}>
+              <Card
+                elevation={0}
+                sx={{
+                  border: '1px dashed',
+                  borderColor: 'primary.light',
+                  overflow: 'hidden',
+                }}
+              >
+                <AccordionSummary
+                  component='div'
+                  sx={{
+                    cursor: 'default',
+                    '&:hover': { bgcolor: 'transparent' },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      width: '100%',
+                      py: 0.5,
+                    }}
+                  >
+                    <Avatar
+                      sx={{ bgcolor: 'info.main', width: 40, height: 40 }}
+                    >
+                      <NoteAddIcon sx={{ fontSize: '1.1rem' }} />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Stack direction='row' alignItems='center' spacing={1}>
+                        <Typography
+                          variant='subtitle1'
+                          fontWeight={600}
+                          color='text.primary'
+                        >
+                          Documentos Adicionales
+                        </Typography>
+                        <Chip
+                          label='Opcional'
+                          size='small'
+                          color='info'
+                          variant='outlined'
+                        />
+                        {checklist.otros_documents?.length > 0 && (
+                          <Chip
+                            label={`${checklist.otros_documents.length} subido${checklist.otros_documents.length !== 1 ? 's' : ''}`}
+                            size='small'
+                            color='success'
+                            variant='outlined'
+                          />
+                        )}
+                      </Stack>
+                      <Typography variant='caption' color='text.secondary'>
+                        Cartas de recomendación, referencias comerciales,
+                        certificados adicionales
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+
+                <Box sx={{ px: 3, pb: 3 }}>
+                  {/* Documentos ya subidos */}
+                  {checklist.otros_documents?.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Alert severity='success' sx={{ mb: 2 }}>
+                        <Typography variant='body2' fontWeight={600}>
+                          {checklist.otros_documents.length} documento
+                          {checklist.otros_documents.length !== 1
+                            ? 's'
+                            : ''}{' '}
+                          personalizado
+                          {checklist.otros_documents.length !== 1
+                            ? 's'
+                            : ''}{' '}
+                          subido
+                          {checklist.otros_documents.length !== 1 ? 's' : ''}
+                        </Typography>
+                        <Typography variant='caption'>
+                          Puedes agregar más con el botón de abajo
+                        </Typography>
+                      </Alert>
+                      {checklist.otros_documents.map((doc, index) => (
+                        <EnhancedDocumentItem
+                          key={doc.id || doc.type || `otros_${index}`}
+                          document={doc}
+                          onFileSelect={handleFileSelect}
+                          onDelete={id => {
+                            setDocumentToDelete(id);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          onPreview={handlePreview}
+                          isUploading={uploadingDocuments.has(doc.type)}
+                          canDelete={!isLandlord}
+                        />
+                      ))}
+                    </Box>
+                  )}
+
+                  {(!checklist.otros_documents ||
+                    checklist.otros_documents.length === 0) && (
+                    <Alert severity='info' sx={{ mb: 2 }}>
+                      <Typography variant='body2' fontWeight={600}>
+                        Sin documentos adicionales
+                      </Typography>
+                      <Typography variant='caption'>
+                        Haz clic en el botón para agregar tu primer documento
+                        personalizado
+                      </Typography>
+                    </Alert>
+                  )}
+
+                  <input
+                    type='file'
+                    accept='.pdf'
+                    style={{ display: 'none' }}
+                    id='other-document-upload'
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileSelect(file, 'otros');
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor='other-document-upload'
+                    style={{ width: '100%', display: 'block' }}
+                  >
+                    <Button
+                      component='span'
+                      variant='outlined'
+                      color='primary'
+                      fullWidth
+                      startIcon={<NoteAddIcon />}
+                      sx={{ py: 1.5, fontWeight: 600 }}
+                    >
+                      {checklist.otros_documents?.length > 0
+                        ? 'Agregar otro documento'
+                        : 'Subir documento personalizado'}
+                    </Button>
+                  </label>
+                </Box>
+              </Card>
+            </Fade>
+          </Stack>
         </Box>
       ) : (
         // Category View
         <Box sx={{ px: 3, pb: 3 }}>
-        <Grid container spacing={3}>
-          {Object.entries(categorizedDocuments).map(
-            ([category, documents], index) => {
-              const catConfig: Record<string, { color: 'primary' | 'warning' | 'success' | 'info'; label: string; icon: React.ReactNode }> = {
-                TOMADOR: { color: 'primary', label: 'Documentos del Tomador', icon: <PersonIcon /> },
-                CODEUDOR: { color: 'warning', label: 'Documentos del Codeudor', icon: <PeopleIcon /> },
-                GARANTIA: { color: 'success', label: 'Garantías', icon: <FolderIcon /> },
-                OTROS: { color: 'info', label: 'Otros Documentos', icon: <NoteAddIcon /> },
-              };
-              const cfg = catConfig[category] ?? catConfig['OTROS']!;
+          <Grid container spacing={3}>
+            {Object.entries(categorizedDocuments).map(
+              ([category, documents], index) => {
+                const catConfig: Record<
+                  string,
+                  {
+                    color: 'primary' | 'warning' | 'success' | 'info';
+                    label: string;
+                    icon: React.ReactNode;
+                  }
+                > = {
+                  TOMADOR: {
+                    color: 'primary',
+                    label: 'Documentos del Tomador',
+                    icon: <PersonIcon />,
+                  },
+                  CODEUDOR: {
+                    color: 'warning',
+                    label: 'Documentos del Codeudor',
+                    icon: <PeopleIcon />,
+                  },
+                  GARANTIA: {
+                    color: 'success',
+                    label: 'Garantías',
+                    icon: <FolderIcon />,
+                  },
+                  OTROS: {
+                    color: 'info',
+                    label: 'Otros Documentos',
+                    icon: <NoteAddIcon />,
+                  },
+                };
+                const cfg = catConfig[category] ?? catConfig['OTROS']!;
 
-              return (
-                <Grid item xs={12} lg={6} key={category}>
-                  <Fade in timeout={800 + index * 200}>
-                    <Card elevation={0} sx={{ height: '100%', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-                      {/* Category header strip */}
-                      <Box sx={{ bgcolor: `${cfg.color}.main`, px: 2.5, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Stack direction='row' alignItems='center' spacing={1.5}>
-                          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 32, height: 32 }}>
-                            {React.cloneElement(cfg.icon as React.ReactElement, { sx: { fontSize: '1rem', color: 'white' } })}
-                          </Avatar>
-                          <Box>
-                            <Typography variant='subtitle2' fontWeight={600} color='white'>{cfg.label}</Typography>
-                            <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                              {documents.length} documento{documents.length !== 1 ? 's' : ''}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                        <Badge badgeContent={documents.filter(d => d.uploaded).length} max={99} color='default'>
-                          <FolderIcon sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.4rem' }} />
-                        </Badge>
-                      </Box>
-
-                      <CardContent sx={{ pt: 2 }}>
-
+                return (
+                  <Grid item xs={12} lg={6} key={category}>
+                    <Fade in timeout={800 + index * 200}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          height: '100%',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {/* Category header strip */}
                         <Box
-                          sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}
+                          sx={{
+                            bgcolor: `${cfg.color}.main`,
+                            px: 2.5,
+                            py: 1.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
                         >
-                          {documents.map(doc => (
-                            <EnhancedDocumentItem
-                              key={doc.type}
-                              document={doc}
-                              onFileSelect={handleFileSelect}
-                              onDelete={id => {
-                                setDocumentToDelete(id);
-                                setDeleteConfirmOpen(true);
+                          <Stack
+                            direction='row'
+                            alignItems='center'
+                            spacing={1.5}
+                          >
+                            <Avatar
+                              sx={{
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                width: 32,
+                                height: 32,
                               }}
-                              onPreview={handlePreview}
-                              isUploading={uploadingDocuments.has(doc.type)}
-                              canDelete={!isLandlord}
+                            >
+                              {React.cloneElement(
+                                cfg.icon as React.ReactElement,
+                                { sx: { fontSize: '1rem', color: 'white' } },
+                              )}
+                            </Avatar>
+                            <Box>
+                              <Typography
+                                variant='subtitle2'
+                                fontWeight={600}
+                                color='white'
+                              >
+                                {cfg.label}
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                sx={{ color: 'rgba(255,255,255,0.8)' }}
+                              >
+                                {documents.length} documento
+                                {documents.length !== 1 ? 's' : ''}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                          <Badge
+                            badgeContent={
+                              documents.filter(d => d.uploaded).length
+                            }
+                            max={99}
+                            color='default'
+                          >
+                            <FolderIcon
+                              sx={{
+                                color: 'rgba(255,255,255,0.8)',
+                                fontSize: '1.4rem',
+                              }}
                             />
-                          ))}
+                          </Badge>
                         </Box>
 
-                        {documents.length === 0 && (
+                        <CardContent sx={{ pt: 2 }}>
                           <Box
                             sx={{
-                              textAlign: 'center',
-                              py: 4,
-                              color: 'text.secondary',
+                              maxHeight: '600px',
+                              overflowY: 'auto',
+                              pr: 1,
                             }}
                           >
-                            <Typography
-                              variant='body2'
-                              sx={{ fontStyle: 'italic' }}
-                            >
-                              No hay documentos en esta categoría
-                            </Typography>
+                            {documents.map(doc => (
+                              <EnhancedDocumentItem
+                                key={doc.type}
+                                document={doc}
+                                onFileSelect={handleFileSelect}
+                                onDelete={id => {
+                                  setDocumentToDelete(id);
+                                  setDeleteConfirmOpen(true);
+                                }}
+                                onPreview={handlePreview}
+                                isUploading={uploadingDocuments.has(doc.type)}
+                                canDelete={!isLandlord}
+                              />
+                            ))}
                           </Box>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Fade>
-                </Grid>
-              );
-            },
-          )}
-        </Grid>
+
+                          {documents.length === 0 && (
+                            <Box
+                              sx={{
+                                textAlign: 'center',
+                                py: 4,
+                                color: 'text.secondary',
+                              }}
+                            >
+                              <Typography
+                                variant='body2'
+                                sx={{ fontStyle: 'italic' }}
+                              >
+                                No hay documentos en esta categoría
+                              </Typography>
+                            </Box>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Fade>
+                  </Grid>
+                );
+              },
+            )}
+          </Grid>
         </Box>
       )}
 
@@ -1121,7 +1512,16 @@ const EnhancedTenantDocumentUpload: React.FC<
         fullWidth
       >
         {/* Header VeriHome branded */}
-        <Box sx={{ bgcolor: '#2d4264', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          sx={{
+            bgcolor: '#2d4264',
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
           <CloudUploadIcon sx={{ color: 'white' }} />
           <Typography variant='h6' fontWeight={600} color='white'>
             {isOtherDocument ? 'Documento Personalizado' : 'Confirmar Subida'}
@@ -1130,13 +1530,34 @@ const EnhancedTenantDocumentUpload: React.FC<
 
         <DialogContent sx={{ pt: 2.5 }}>
           {uploadFile && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, mb: 2.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                p: 2,
+                mb: 2.5,
+                bgcolor: 'grey.50',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.5,
+              }}
+            >
               <PdfIcon color='error' />
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant='body2' fontWeight={600} noWrap>{uploadFile.name}</Typography>
-                <Typography variant='caption' color='text.secondary'>{(uploadFile.size / 1024).toFixed(1)} KB · PDF</Typography>
+                <Typography variant='body2' fontWeight={600} noWrap>
+                  {uploadFile.name}
+                </Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  {(uploadFile.size / 1024).toFixed(1)} KB · PDF
+                </Typography>
               </Box>
-              <Chip label='Listo' size='small' color='success' variant='outlined' />
+              <Chip
+                label='Listo'
+                size='small'
+                color='success'
+                variant='outlined'
+              />
             </Box>
           )}
 
@@ -1182,7 +1603,10 @@ const EnhancedTenantDocumentUpload: React.FC<
           <Button
             variant='contained'
             onClick={handleUpload}
-            disabled={isOtherDocument && (!otherDocumentName.trim() || !otherDocumentDescription.trim())}
+            disabled={
+              isOtherDocument &&
+              (!otherDocumentName.trim() || !otherDocumentDescription.trim())
+            }
             startIcon={<CloudUploadIcon />}
           >
             Subir Documento
@@ -1197,26 +1621,61 @@ const EnhancedTenantDocumentUpload: React.FC<
         maxWidth='xs'
         fullWidth
       >
-        <Box sx={{ bgcolor: 'error.main', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          sx={{
+            bgcolor: 'error.main',
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
           <WarningIcon sx={{ color: 'white' }} />
-          <Typography variant='h6' fontWeight={600} color='white'>Eliminar documento</Typography>
+          <Typography variant='h6' fontWeight={600} color='white'>
+            Eliminar documento
+          </Typography>
         </Box>
 
         <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
-          <Avatar sx={{ bgcolor: 'error.50', width: 56, height: 56, mx: 'auto', mb: 2, border: '2px solid', borderColor: 'error.light' }}>
+          <Avatar
+            sx={{
+              bgcolor: 'error.50',
+              width: 56,
+              height: 56,
+              mx: 'auto',
+              mb: 2,
+              border: '2px solid',
+              borderColor: 'error.light',
+            }}
+          >
             <DeleteIcon color='error' />
           </Avatar>
-          <Typography variant='body1' fontWeight={600} gutterBottom>¿Confirmar eliminación?</Typography>
+          <Typography variant='body1' fontWeight={600} gutterBottom>
+            ¿Confirmar eliminación?
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Esta acción no se puede deshacer. El archivo se eliminará permanentemente.
+            Esta acción no se puede deshacer. El archivo se eliminará
+            permanentemente.
           </Typography>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1.5, justifyContent: 'center' }}>
-          <Button onClick={() => setDeleteConfirmOpen(false)} variant='outlined' color='inherit'>
+        <DialogActions
+          sx={{ px: 3, pb: 2.5, gap: 1.5, justifyContent: 'center' }}
+        >
+          <Button
+            onClick={() => setDeleteConfirmOpen(false)}
+            variant='outlined'
+            color='inherit'
+          >
             Cancelar
           </Button>
-          <Button variant='contained' color='error' onClick={handleDeleteConfirm} startIcon={<DeleteIcon />}>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={handleDeleteConfirm}
+            startIcon={<DeleteIcon />}
+          >
             Eliminar
           </Button>
         </DialogActions>
@@ -1231,20 +1690,50 @@ const EnhancedTenantDocumentUpload: React.FC<
         PaperProps={{ sx: { height: '90vh' } }}
       >
         {/* Header VeriHome branded */}
-        <Box sx={{ bgcolor: '#1e2d40', px: 3, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box
+          sx={{
+            bgcolor: '#1e2d40',
+            px: 3,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Stack direction='row' alignItems='center' spacing={1.5}>
             <PdfIcon sx={{ color: 'white', fontSize: '1.4rem' }} />
             <Box>
-              <Typography variant='subtitle2' fontWeight={600} color='white'>Vista Previa del Documento</Typography>
-              <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>{previewDocument?.display_name}</Typography>
+              <Typography variant='subtitle2' fontWeight={600} color='white'>
+                Vista Previa del Documento
+              </Typography>
+              <Typography
+                variant='caption'
+                sx={{ color: 'rgba(255,255,255,0.75)' }}
+              >
+                {previewDocument?.display_name}
+              </Typography>
             </Box>
           </Stack>
-          <IconButton onClick={() => setPreviewModalOpen(false)} size='small' sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+          <IconButton
+            onClick={() => setPreviewModalOpen(false)}
+            size='small'
+            sx={{
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <DialogContent sx={{ height: 'calc(90vh - 60px)', p: 0, overflow: 'hidden', bgcolor: 'grey.100' }}>
+        <DialogContent
+          sx={{
+            height: 'calc(90vh - 60px)',
+            p: 0,
+            overflow: 'hidden',
+            bgcolor: 'grey.100',
+          }}
+        >
           {previewDocument?.file_url ? (
             <iframe
               src={
@@ -1258,13 +1747,28 @@ const EnhancedTenantDocumentUpload: React.FC<
               title='Document Preview'
             />
           ) : (
-            <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Stack alignItems='center' spacing={2} sx={{ textAlign: 'center', p: 4 }}>
+            <Box
+              sx={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Stack
+                alignItems='center'
+                spacing={2}
+                sx={{ textAlign: 'center', p: 4 }}
+              >
                 <Avatar sx={{ bgcolor: 'error.light', width: 64, height: 64 }}>
                   <ErrorIcon color='error' sx={{ fontSize: '2rem' }} />
                 </Avatar>
-                <Typography variant='h6' fontWeight={600}>Vista previa no disponible</Typography>
-                <Typography variant='body2' color='text.secondary'>No se puede mostrar este documento en este momento.</Typography>
+                <Typography variant='h6' fontWeight={600}>
+                  Vista previa no disponible
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  No se puede mostrar este documento en este momento.
+                </Typography>
               </Stack>
             </Box>
           )}

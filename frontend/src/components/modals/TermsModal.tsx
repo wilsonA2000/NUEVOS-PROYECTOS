@@ -130,9 +130,10 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose, onAccept }) => {
         </Typography>
         <Typography variant='body2' paragraph>
           Estos términos constituyen un acuerdo legal entre usted y VeriHome,
-          S.A. de C.V. (en adelante, &quot;VeriHome&quot;, &quot;nosotros&quot; o &quot;la plataforma&quot;).
-          Al registrarse, acceder o utilizar nuestros servicios, usted confirma
-          que ha leído, entendido y aceptado estos términos en su totalidad.
+          S.A. de C.V. (en adelante, &quot;VeriHome&quot;, &quot;nosotros&quot;
+          o &quot;la plataforma&quot;). Al registrarse, acceder o utilizar
+          nuestros servicios, usted confirma que ha leído, entendido y aceptado
+          estos términos en su totalidad.
         </Typography>
 
         <Divider sx={{ my: 3 }} />

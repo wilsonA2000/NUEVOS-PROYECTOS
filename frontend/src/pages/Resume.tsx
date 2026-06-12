@@ -100,9 +100,16 @@ const Resume: React.FC = () => {
 
       // Calcular completitud con los mismos 10 campos obligatorios que usa ResumeEdit
       const requiredApiFields = [
-        'date_of_birth', 'nationality', 'education_level', 'current_employer',
-        'current_position', 'monthly_salary', 'emergency_contact_name',
-        'emergency_contact_phone', 'reference1_name', 'reference1_phone',
+        'date_of_birth',
+        'nationality',
+        'education_level',
+        'current_employer',
+        'current_position',
+        'monthly_salary',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'reference1_name',
+        'reference1_phone',
       ];
       const completedCount = requiredApiFields.filter(f => {
         const v = resumeData[f];

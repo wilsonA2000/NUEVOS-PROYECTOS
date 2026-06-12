@@ -783,7 +783,11 @@ class ContractPDFGenerator:
         _prop_city = ""
         if hasattr(contract, "property") and contract.property:
             _prop_city = getattr(contract.property, "city", "") or ""
-        if not _prop_city and hasattr(contract, "property_data") and contract.property_data:
+        if (
+            not _prop_city
+            and hasattr(contract, "property_data")
+            and contract.property_data
+        ):
             _prop_city = contract.property_data.get("property_city", "")
         _signing_city = _prop_city or "Bucaramanga"
         story.append(
@@ -1054,7 +1058,8 @@ class ContractPDFGenerator:
         if tenant_data:
             # Combinar documento con lugar y fecha de expedición si están disponibles
             doc_type_display = self._get_document_type_display(
-                tenant_data.get("document_type_display") or tenant_data.get("document_type", "CC")
+                tenant_data.get("document_type_display")
+                or tenant_data.get("document_type", "CC")
             )
             tenant_doc_info = (
                 f"{doc_type_display} {tenant_data.get('document_number', '')}"
@@ -1279,7 +1284,9 @@ class ContractPDFGenerator:
             [
                 "Depósito de Garantía",
                 self._format_currency(contract_terms.get("security_deposit", 0)),
-                "Sin depósito" if self._to_num(contract_terms.get('security_deposit', 0)) == 0 else f"{self._to_num(contract_terms.get('security_deposit', 0)) / max(self._to_num(contract_terms.get('monthly_rent', 1)), 1):.1f} meses de canon",
+                "Sin depósito"
+                if self._to_num(contract_terms.get("security_deposit", 0)) == 0
+                else f"{self._to_num(contract_terms.get('security_deposit', 0)) / max(self._to_num(contract_terms.get('monthly_rent', 1)), 1):.1f} meses de canon",
             ],
             [
                 "Día Límite de Pago",
@@ -2155,7 +2162,11 @@ class ContractPDFGenerator:
         _signing_city2 = ""
         if hasattr(contract, "property") and contract.property:
             _signing_city2 = getattr(contract.property, "city", "") or ""
-        if not _signing_city2 and hasattr(contract, "property_data") and contract.property_data:
+        if (
+            not _signing_city2
+            and hasattr(contract, "property_data")
+            and contract.property_data
+        ):
             _signing_city2 = contract.property_data.get("property_city", "")
         _signing_city2 = _signing_city2 or "Bucaramanga"
         acceptance_text = f"""En constancia de conformidad y aceptación de todas las cláusulas
@@ -2279,7 +2290,6 @@ class ContractPDFGenerator:
     def _build_verification_section_professional(self, contract):
         """Construir sección profesional de verificación"""
         verification_elements = []
-
 
         # Título de la sección
         verification_elements.append(
@@ -2471,14 +2481,22 @@ class ContractPDFGenerator:
 
         # Valores por defecto profesionales para campos vacíos
         raw_name = data.get("full_name") or ""
-        full_name = " ".join(w.capitalize() for w in raw_name.split()) if raw_name else "No registrado"
+        full_name = (
+            " ".join(w.capitalize() for w in raw_name.split())
+            if raw_name
+            else "No registrado"
+        )
         auth_date = ""
         if data.get("authentication_date"):
             auth_date = data["authentication_date"]
         else:
             bio = self._get_biometric_auth_data(contract, "landlord")
             if bio.get("completed_at"):
-                auth_date = bio["completed_at"].strftime("%d/%m/%Y %H:%M") if hasattr(bio["completed_at"], "strftime") else str(bio["completed_at"])[:16]
+                auth_date = (
+                    bio["completed_at"].strftime("%d/%m/%Y %H:%M")
+                    if hasattr(bio["completed_at"], "strftime")
+                    else str(bio["completed_at"])[:16]
+                )
             if bio.get("document_number") and not data.get("document_number"):
                 data["document_number"] = bio["document_number"]
             if bio.get("document_type") and not data.get("document_type"):
@@ -2569,14 +2587,22 @@ class ContractPDFGenerator:
         # Valores por defecto profesionales para campos vacíos
         # Incluye campos del nuevo formulario de arrendatario
         raw_tenant_name = data.get("full_name") or ""
-        full_tenant_name = " ".join(w.capitalize() for w in raw_tenant_name.split()) if raw_tenant_name else "No asignado"
+        full_tenant_name = (
+            " ".join(w.capitalize() for w in raw_tenant_name.split())
+            if raw_tenant_name
+            else "No asignado"
+        )
         tenant_auth_date = ""
         if data.get("authentication_date"):
             tenant_auth_date = data["authentication_date"]
         else:
             tenant_bio = self._get_biometric_auth_data(contract, "tenant")
             if tenant_bio.get("completed_at"):
-                tenant_auth_date = tenant_bio["completed_at"].strftime("%d/%m/%Y %H:%M") if hasattr(tenant_bio["completed_at"], "strftime") else str(tenant_bio["completed_at"])[:16]
+                tenant_auth_date = (
+                    tenant_bio["completed_at"].strftime("%d/%m/%Y %H:%M")
+                    if hasattr(tenant_bio["completed_at"], "strftime")
+                    else str(tenant_bio["completed_at"])[:16]
+                )
             if tenant_bio.get("document_number") and not data.get("document_number"):
                 data["document_number"] = tenant_bio["document_number"]
             if tenant_bio.get("document_type") and not data.get("document_type"):
@@ -2660,14 +2686,20 @@ class ContractPDFGenerator:
                 "type": data.get(
                     "property_type_display", data.get("property_type", "")
                 ),
-                "area": str(int(float(data.get("property_area", 0)))) if data.get("property_area") else "",
+                "area": str(int(float(data.get("property_area", 0))))
+                if data.get("property_area")
+                else "",
                 "area_formatted": data.get(
                     "area_formatted",
-                    f"{int(float(data.get('property_area', 0)))} m²" if data.get("property_area") else ""
+                    f"{int(float(data.get('property_area', 0)))} m²"
+                    if data.get("property_area")
+                    else "",
                 ),
                 "stratum": str(data.get("property_stratum", "")),
                 "rooms": str(data.get("property_bedrooms", "")),
-                "bathrooms": str(int(float(data.get("property_bathrooms", 0)))) if data.get("property_bathrooms") else "",
+                "bathrooms": str(int(float(data.get("property_bathrooms", 0))))
+                if data.get("property_bathrooms")
+                else "",
                 "parking_spaces": str(data.get("property_parking_spaces", "")),
                 "amenities": data.get("property_amenities", ""),
                 "description": data.get("property_description", ""),
@@ -2684,12 +2716,16 @@ class ContractPDFGenerator:
             return {
                 "address": prop.address if prop else "",
                 "type": prop.get_property_type_display() if prop else "",
-                "area": str(int(float(prop.total_area))) if prop and prop.total_area else "",
+                "area": str(int(float(prop.total_area)))
+                if prop and prop.total_area
+                else "",
                 "stratum": str(getattr(prop, "stratum", ""))
                 if prop
                 else "",  # stratum might not exist
                 "rooms": str(prop.bedrooms) if prop and prop.bedrooms else "",
-                "bathrooms": str(int(float(prop.bathrooms))) if prop and prop.bathrooms else "",
+                "bathrooms": str(int(float(prop.bathrooms)))
+                if prop and prop.bathrooms
+                else "",
                 "parking_spaces": str(prop.parking_spaces)
                 if prop and prop.parking_spaces
                 else "",
@@ -2717,7 +2753,7 @@ class ContractPDFGenerator:
                 # Duración del contrato
                 "contract_duration_months": contract_terms_data.get(
                     "contract_duration_months",
-                    contract_terms_data.get("duration_months", 12)
+                    contract_terms_data.get("duration_months", 12),
                 ),
                 "start_date": contract_terms_data.get("start_date", ""),
                 "end_date": contract_terms_data.get("end_date", ""),
@@ -3564,12 +3600,12 @@ class ContractPDFGenerator:
         try:
             # Formato colombiano: "1.500.000" (puntos como miles) o "1.500,00" (coma decimal)
             s = str(value).strip()
-            if ',' in s and s.rfind(',') > s.rfind('.'):
+            if "," in s and s.rfind(",") > s.rfind("."):
                 # "1.500,00" → quitar puntos, reemplazar coma con punto
-                return float(s.replace('.', '').replace(',', '.'))
+                return float(s.replace(".", "").replace(",", "."))
             else:
                 # "1.500.000" → quitar puntos
-                return float(s.replace('.', '').replace(',', ''))
+                return float(s.replace(".", "").replace(",", ""))
         except (ValueError, TypeError):
             return float(default)
 
@@ -3620,9 +3656,13 @@ class ContractPDFGenerator:
 
             # Determinar el usuario según el tipo de parte
             if party_type == "landlord":
-                user = getattr(contract, "primary_party", None) or getattr(contract, "landlord", None)
+                user = getattr(contract, "primary_party", None) or getattr(
+                    contract, "landlord", None
+                )
             else:
-                user = getattr(contract, "secondary_party", None) or getattr(contract, "tenant", None)
+                user = getattr(contract, "secondary_party", None) or getattr(
+                    contract, "tenant", None
+                )
 
             if not user:
                 return {}

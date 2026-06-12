@@ -134,7 +134,9 @@ const TenantContractsDashboard: React.FC = () => {
     string,
     unknown
   > | null>(null);
-  const [docUploadProcessId, setDocUploadProcessId] = useState<string | null>(null);
+  const [docUploadProcessId, setDocUploadProcessId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     loadTenantContracts();
@@ -723,7 +725,8 @@ const TenantContractsDashboard: React.FC = () => {
               Procesos Pre-Contractuales Activos ({workflowProcesses.length})
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-              Solicitudes aceptadas en curso — el contrato nace al completar la autenticación biométrica
+              Solicitudes aceptadas en curso — el contrato nace al completar la
+              autenticación biométrica
             </Typography>
             {workflowProcesses.map(process => (
               <Card key={process.id} sx={{ mb: 2 }}>
@@ -1084,8 +1087,12 @@ const TenantContractsDashboard: React.FC = () => {
                               size='large'
                               startIcon={<SecurityIcon />}
                               onClick={() => {
-                                const contractId = process.workflow_data?.contract_created?.contract_id;
-                                navigate(`/app/contracts/${contractId}/authenticate`);
+                                const contractId =
+                                  process.workflow_data?.contract_created
+                                    ?.contract_id;
+                                navigate(
+                                  `/app/contracts/${contractId}/authenticate`,
+                                );
                               }}
                               sx={{ mb: 1, py: 1.5 }}
                             >
@@ -1346,7 +1353,8 @@ const TenantContractsDashboard: React.FC = () => {
                                 color='success.main'
                               >
                                 <strong>Aprobado:</strong>{' '}
-                                {process.workflow_data.contract_created.tenant_approved_at
+                                {process.workflow_data.contract_created
+                                  .tenant_approved_at
                                   ? new Date(
                                       process.workflow_data.contract_created.tenant_approved_at,
                                     ).toLocaleDateString()
@@ -1805,19 +1813,48 @@ const TenantContractsDashboard: React.FC = () => {
         PaperProps={{ sx: { maxHeight: '90vh', overflow: 'hidden' } }}
       >
         {/* Branded header VeriHome */}
-        <Box sx={{ bgcolor: '#2d4264', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box
+          sx={{
+            bgcolor: '#2d4264',
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Stack direction='row' alignItems='center' spacing={2}>
-            <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1.5, p: 1, display: 'flex' }}>
+            <Box
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.15)',
+                borderRadius: 1.5,
+                p: 1,
+                display: 'flex',
+              }}
+            >
               <DescriptionIcon sx={{ color: 'white', fontSize: '1.4rem' }} />
             </Box>
             <Box>
-              <Typography variant='h6' fontWeight={700} color='white'>Gestión Documental</Typography>
-              <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>
-                Sube y gestiona los documentos requeridos para el proceso de arrendamiento
+              <Typography variant='h6' fontWeight={700} color='white'>
+                Gestión Documental
+              </Typography>
+              <Typography
+                variant='caption'
+                sx={{ color: 'rgba(255,255,255,0.75)' }}
+              >
+                Sube y gestiona los documentos requeridos para el proceso de
+                arrendamiento
               </Typography>
             </Box>
           </Stack>
-          <IconButton onClick={() => setDocUploadProcessId(null)} size='small' sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}>
+          <IconButton
+            onClick={() => setDocUploadProcessId(null)}
+            size='small'
+            sx={{
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' },
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -1829,7 +1866,9 @@ const TenantContractsDashboard: React.FC = () => {
               onDocumentUploaded={() => {
                 loadTenantContracts();
               }}
-              matchRequestData={workflowProcesses.find(p => p.id === docUploadProcessId)}
+              matchRequestData={workflowProcesses.find(
+                p => p.id === docUploadProcessId,
+              )}
               guaranteeType='none'
               codeudorName=''
             />
