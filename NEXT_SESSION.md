@@ -9,10 +9,12 @@ ahí. Este archivo solo dice dónde quedamos.
 
 ## Estado actual
 
-- **Fase 0 completada**: working tree limpio, 4 commits, push pendiente
-  de verificación CI.
+- **Fase 0 COMPLETADA** (2026-06-12): 7 commits, working tree limpio,
+  **CI 9/9 verde** (run 27392746738 — llevaba rojo desde el 30-may).
 - Baseline verificado: backend **971/971 OK** (+3 skip) · tsc 0 errores ·
   build 42s · Jest **813/813** (ya no cuelga — era bug de WSL).
+- Seguridad: **pip-audit 40 vulns → 0** (Django 4.2.30, allauth 65,
+  Pillow 12, weasyprint eliminado).
 - Puerto backend estandarizado: **8000** (proxy Vite corregido).
 
 ## Próximo paso

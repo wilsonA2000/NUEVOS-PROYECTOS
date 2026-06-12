@@ -32,21 +32,33 @@ Hay ~2.300 líneas sin commitear desde el 31 de mayo + la limpieza
 staged del 11 de junio. Nada se puede probar con confianza sobre un
 working tree sucio.
 
-- [ ] 0.1 Correr suite backend completa (`python manage.py test`) y anotar baseline.
-- [ ] 0.2 Correr `npx tsc --noEmit` + `npm run build` + `npm test` en frontend
-  (el cuelgue histórico de Jest era de WSL; ahora en Ubuntu nativo probablemente
-  funciona — documentar el resultado como baseline).
-- [ ] 0.3 Commit 1: limpieza staged (backend/, src/, tests Cypress muertos, sub_tasks).
-  Incluir: borrar `frontend/playwright/tests/debug-biometric.spec.ts` (untracked,
-  herramienta de debug desechable, excluida del testMatch de e2e-real) y
-  `deployment/nginx/nginx.prod.conf` (plantilla obsoleta con placeholders —
-  la config buena es `nginx/nginx.prod.conf`, que es la que usa el compose).
-- [ ] 0.4 Commit 2: fixes backend (pdf_generator 12 fixes + biometric_service).
-- [ ] 0.5 Commit 3: refactor frontend (EnhancedTenantDocumentUpload, MatchesDashboard, etc.).
-- [ ] 0.6 Push a main y verificar CI.
-- [ ] 0.7 Archivar `NEXT_SESSION.md` en `docs/history/` y dejar uno nuevo de ~20 líneas apuntando a este plan.
+- [x] 0.1 ✅ 2026-06-11 — Suite backend: **971/971 OK + 3 skipped** (231s).
+- [x] 0.2 ✅ 2026-06-11 — tsc 0 errores · build 42s (PWA 88 entries) · Jest
+  **813/813** (el cuelgue era de WSL; en Ubuntu nativo corre en 29s).
+  Nota: hubo que reinstalar `node_modules` (se perdió en la migración).
+- [x] 0.3 ✅ 2026-06-11 — Commit `3436f92` (limpieza + debug spec +
+  plantilla nginx obsoleta + scripts cypress→playwright en package.json).
+- [x] 0.4 ✅ 2026-06-11 — Commit `cb46a69` (12 fixes PDF + biometric_service).
+- [x] 0.5 ✅ 2026-06-11 — Commit `692b8e3` (refactor frontend −2.226 líneas;
+  incluye fix del test TenantContractsDashboard con MemoryRouter y proxy
+  Vite corregido 8001→8000).
+- [x] 0.6 ✅ 2026-06-12 — Push + arreglo de los 3 jobs rojos de CI:
+  - lint-check: pre-commit hooks aplicados → commit `adceb2f` (style).
+  - security-scan: **pip-audit 40 vulns → 0** → commit `750169f`
+    (Django 4.2.30, allauth 0.57→65.14.1 con migración de API/settings,
+    Pillow 12, cryptography 46.0.7, weasyprint eliminado por no usarse,
+    pins Twisted/pyopenssl). Suite re-validada 971/971.
+  - test-frontend: los 6 errores ESLint de comillas quedaron resueltos
+    por el formateo de `adceb2f`.
+  - test-e2e-playwright: flake de timezone en `fase-c9` (runner UTC vs
+    server America/Bogota: `issue_date` de "hoy" UTC caía en el futuro
+    entre 7pm y medianoche Colombia) → fix `f828161` (daysAgo(2)).
+  - **Run final 27392746738: 9/9 jobs verdes** (incluido deploy). ✅
+- [x] 0.7 ✅ 2026-06-11 — `NEXT_SESSION.md` archivado en
+  `docs/history/NEXT_SESSION_hasta_2026-04-21.md`; nuevo slim apunta aquí.
 
-**Criterio de salida**: `git status` limpio · CI verde · baseline de tests documentado.
+**Criterio de salida**: `git status` limpio ✅ · **CI 9/9 verde** ✅ ·
+baseline documentado ✅. **FASE 0 COMPLETADA 2026-06-12.**
 
 ---
 
