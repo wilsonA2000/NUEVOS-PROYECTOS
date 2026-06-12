@@ -9,13 +9,36 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 
+def _is_postgres(engine: str) -> bool:
+    """Acepta 'postgresql', 'postgres' y 'django.db.backends.postgresql'.
+
+    El docker-compose pasa el path completo de Django; el .env.example usa
+    'postgresql'. Antes solo se reconocía == 'postgresql' y el compose
+    caía a SQLite en silencio (Fase 3).
+    """
+    return "postgres" in (engine or "").lower()
+
+
+def _db_var(name: str, default: str = "") -> str:
+    """Lee DATABASE_<name> y, si no está, DB_<name>.
+
+    El compose y el .env.example usan DATABASE_NAME/USER/PASSWORD/HOST,
+    pero este módulo leía DB_NAME/USER/... → en producción tomaba los
+    defaults (host 'localhost') y nunca conectaba a Postgres (Fase 3).
+    """
+    val = config(f"DATABASE_{name}", default=None)
+    if val is None or val == "":
+        val = config(f"DB_{name}", default=default)
+    return val
+
+
 def get_database_config():
     """
     Get database configuration based on environment
     """
     database_engine = config("DATABASE_ENGINE", default="sqlite")
 
-    if database_engine == "postgresql":
+    if _is_postgres(database_engine):
         return get_postgresql_config()
     else:
         return get_sqlite_config()
@@ -39,11 +62,11 @@ def get_postgresql_config():
     return {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": config("DB_NAME", default="verihome_db"),
-            "USER": config("DB_USER", default="verihome_user"),
-            "PASSWORD": config("DB_PASSWORD", default=""),
-            "HOST": config("DB_HOST", default="localhost"),
-            "PORT": config("DB_PORT", default="5432"),
+            "NAME": _db_var("NAME", default="verihome_db"),
+            "USER": _db_var("USER", default="verihome_user"),
+            "PASSWORD": _db_var("PASSWORD", default=""),
+            "HOST": _db_var("HOST", default="localhost"),
+            "PORT": _db_var("PORT", default="5432"),
             "OPTIONS": {
                 "client_encoding": "UTF8",
             },
@@ -57,7 +80,7 @@ def get_test_database_config():
     """Test database configuration"""
     database_engine = config("DATABASE_ENGINE", default="sqlite")
 
-    if database_engine == "postgresql":
+    if _is_postgres(database_engine):
         config_dict = get_postgresql_config()
         # Use separate test database
         config_dict["default"]["NAME"] = config(
@@ -83,13 +106,12 @@ def validate_database_config():
     """Validate database configuration"""
     database_engine = config("DATABASE_ENGINE", default="sqlite")
 
-    if database_engine == "postgresql":
-        required_vars = ["DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST"]
+    if _is_postgres(database_engine):
+        # Acepta DATABASE_* o DB_* (ver _db_var).
         missing_vars = []
-
-        for var in required_vars:
-            if not config(var, default=""):
-                missing_vars.append(var)
+        for var in ["NAME", "USER", "PASSWORD", "HOST"]:
+            if not _db_var(var):
+                missing_vars.append(f"DATABASE_{var}")
 
         if missing_vars:
             raise ValueError(

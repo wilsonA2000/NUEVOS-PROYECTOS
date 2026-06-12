@@ -168,7 +168,9 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - static_volume:/usr/share/nginx/html/static:ro
       - media_volume:/usr/share/nginx/html/media:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro
+      # El build de Vite vive en staticfiles/frontend (outDir), NO en
+      # frontend/dist (path viejo que dejaba nginx sirviendo un dir vacío).
+      - ./staticfiles/frontend:/usr/share/nginx/html:ro
     depends_on:
       - backend
       - daphne

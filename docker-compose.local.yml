@@ -1,0 +1,158 @@
+# docker-compose para el ENSAYO LOCAL de producción (Fase 3).
+# Levanta el MISMO stack que producción (PG + Redis + gunicorn + Daphne +
+# Celery worker/beat + nginx) pero sobre HTTP en localhost, sin SSL y con
+# cookies no-seguras (un login por HTTP requiere SESSION_COOKIE_SECURE=False).
+#
+# Uso:
+#   docker compose -f docker-compose.local.yml --env-file .env.localprod up -d --build
+#   open http://localhost/
+#
+# NO es para producción: ahí va docker-compose.prod.yml con HTTPS.
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: verihome_db_local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    networks:
+      - verihome_local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: verihome_redis_local
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data_local:/data
+    networks:
+      - verihome_local
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_backend_local
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn verihome.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
+    env_file: .env.localprod
+    environment:
+      - DATABASE_HOST=db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+    volumes:
+      - static_volume_local:/app/staticfiles
+      - media_volume_local:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - verihome_local
+
+  daphne:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_daphne_local
+    restart: unless-stopped
+    command: daphne -b 0.0.0.0 -p 8001 verihome.asgi:application
+    env_file: .env.localprod
+    environment:
+      - DATABASE_HOST=db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - verihome_local
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_celery_worker_local
+    restart: unless-stopped
+    command: celery -A verihome worker -l info --concurrency=2
+    env_file: .env.localprod
+    environment:
+      - DATABASE_HOST=db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - verihome_local
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: verihome_celery_beat_local
+    restart: unless-stopped
+    command: celery -A verihome beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file: .env.localprod
+    environment:
+      - DATABASE_HOST=db
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - verihome_local
+
+  nginx:
+    image: nginx:alpine
+    container_name: verihome_nginx_local
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+      - static_volume_local:/usr/share/nginx/html/static:ro
+      - media_volume_local:/usr/share/nginx/html/media:ro
+      # El build de Vite (outDir = staticfiles/frontend) servido en la raíz.
+      - ./staticfiles/frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - daphne
+    networks:
+      - verihome_local
+
+volumes:
+  postgres_data_local:
+  redis_data_local:
+  static_volume_local:
+  media_volume_local:
+
+networks:
+  verihome_local:
+    driver: bridge
