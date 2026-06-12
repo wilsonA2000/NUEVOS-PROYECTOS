@@ -1563,8 +1563,9 @@ Tu participación es esencial para activar el contrato de arrendamiento.
             if hasattr(landlord_contract, "add_workflow_event"):
                 landlord_contract.add_workflow_event(
                     event_type="DOCUMENTS_LOCKED_POST_BIOMETRIC",
-                    user=user,
-                    details={
+                    description=f"{documents_count} documentos bloqueados permanentemente tras biometría completa",
+                    performed_by=user,
+                    metadata={
                         "documents_locked": documents_count,
                         "lock_reason": "biometric_complete",
                         "locked_at": timezone.now().isoformat(),

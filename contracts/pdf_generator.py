@@ -780,9 +780,15 @@ class ContractPDFGenerator:
             )
         )
 
+        _prop_city = ""
+        if hasattr(contract, "property") and contract.property:
+            _prop_city = getattr(contract.property, "city", "") or ""
+        if not _prop_city and hasattr(contract, "property_data") and contract.property_data:
+            _prop_city = contract.property_data.get("property_city", "")
+        _signing_city = _prop_city or "Bucaramanga"
         story.append(
             Paragraph(
-                f"Bogotá D.C., {formato_fecha_es(contract.created_at)}",
+                f"{_signing_city}, {formato_fecha_es(contract.created_at)}",
                 self.styles["ContractNormal"],
             )
         )
@@ -857,9 +863,16 @@ class ContractPDFGenerator:
             ],
             [
                 "Estado:",
-                "ACTIVO"
-                if getattr(contract, "status", "") == "ACTIVE"
-                else "PENDIENTE",
+                {
+                    "active": "ACTIVO",
+                    "ACTIVE": "ACTIVO",
+                    "pending_authentication": "EN AUTENTICACIÓN",
+                    "pending_landlord_biometric": "EN AUTENTICACIÓN",
+                    "pending_tenant_biometric": "EN AUTENTICACIÓN",
+                    "all_biometrics_completed": "AUTENTICADO",
+                    "draft": "BORRADOR",
+                    "signed": "FIRMADO",
+                }.get(getattr(contract, "status", ""), "VIGENTE"),
             ],
         ]
 
@@ -995,7 +1008,7 @@ class ContractPDFGenerator:
         story.append(Paragraph("EL ARRENDADOR", self.styles["ContractSubtitle"]))
 
         # Combinar documento con lugar y fecha de expedición si están disponibles
-        doc_info = f"{landlord_data.get('document_type', 'CC')} {landlord_data.get('document_number', '')}"
+        doc_info = f"{self._get_document_type_display(landlord_data.get('document_type', 'CC'))} {landlord_data.get('document_number', '')}"
         expedition_info = []
         if landlord_data.get("document_expedition_place"):
             expedition_info.append(
@@ -1040,9 +1053,9 @@ class ContractPDFGenerator:
 
         if tenant_data:
             # Combinar documento con lugar y fecha de expedición si están disponibles
-            doc_type_display = tenant_data.get(
-                "document_type_display"
-            ) or tenant_data.get("document_type", "CC")
+            doc_type_display = self._get_document_type_display(
+                tenant_data.get("document_type_display") or tenant_data.get("document_type", "CC")
+            )
             tenant_doc_info = (
                 f"{doc_type_display} {tenant_data.get('document_number', '')}"
             )
@@ -1170,13 +1183,13 @@ class ContractPDFGenerator:
             ["Tipo de Inmueble:", property_data.get("type", "No especificado")],
             [
                 "Área Total:",
-                f"{property_data.get('area', '')} m²"
+                f"{int(float(property_data.get('area', 0)))} m²"
                 if property_data.get("area")
                 else "No especificada",
             ],
             [
                 "Estrato Socioeconómico:",
-                property_data.get("stratum", "No especificado"),
+                property_data.get("stratum") or "No especificado",
             ],
             ["Número de Habitaciones:", property_data.get("rooms", "No especificado")],
             ["Número de Baños:", property_data.get("bathrooms", "No especificado")],
@@ -1266,7 +1279,7 @@ class ContractPDFGenerator:
             [
                 "Depósito de Garantía",
                 self._format_currency(contract_terms.get("security_deposit", 0)),
-                f"{contract_terms.get('security_deposit', 0) / contract_terms.get('monthly_rent', 1):.1f} meses de canon",
+                "Sin depósito" if self._to_num(contract_terms.get('security_deposit', 0)) == 0 else f"{self._to_num(contract_terms.get('security_deposit', 0)) / max(self._to_num(contract_terms.get('monthly_rent', 1)), 1):.1f} meses de canon",
             ],
             [
                 "Día Límite de Pago",
@@ -1390,7 +1403,7 @@ class ContractPDFGenerator:
                 "content": f"""EL ARRENDATARIO entrega en este acto a EL ARRENDADOR, a título de depósito
                 de garantía, la suma de {self._number_to_words(contract_terms.get('security_deposit', 0))}
                 ({self._format_currency(contract_terms.get('security_deposit', 0))} pesos m/cte), equivalente
-                a {contract_terms.get('security_deposit', 0) / max(contract_terms.get('monthly_rent', 1), 1):.1f}
+                a {self._to_num(contract_terms.get('security_deposit', 0)) / max(self._to_num(contract_terms.get('monthly_rent', 1)), 1):.1f}
                 mes(es) de canon. El depósito garantiza el cumplimiento de las obligaciones del contrato,
                 incluyendo cánones insolutos, servicios públicos pendientes y daños al inmueble no imputables
                 al uso normal. PARÁGRAFO PRIMERO: El depósito no podrá imputarse como canon de arrendamiento
@@ -2139,8 +2152,14 @@ class ContractPDFGenerator:
         tenant_data = self._get_tenant_data(contract)
 
         # Texto de aceptación
+        _signing_city2 = ""
+        if hasattr(contract, "property") and contract.property:
+            _signing_city2 = getattr(contract.property, "city", "") or ""
+        if not _signing_city2 and hasattr(contract, "property_data") and contract.property_data:
+            _signing_city2 = contract.property_data.get("property_city", "")
+        _signing_city2 = _signing_city2 or "Bucaramanga"
         acceptance_text = f"""En constancia de conformidad y aceptación de todas las cláusulas
-        anteriores, las partes suscriben el presente contrato en la ciudad de Bogotá D.C.,
+        anteriores, las partes suscriben el presente contrato en la ciudad de {_signing_city2},
         el día {formato_fecha_es(contract.created_at)}."""
 
         story.append(Paragraph(acceptance_text, self.styles["ContractNormal"]))
@@ -2176,10 +2195,10 @@ class ContractPDFGenerator:
                 else "[NOMBRE ARRENDATARIO]",
             ],
             [
-                f"{landlord_data.get('document_type', 'CC')} {landlord_data.get('document_number', '[NÚMERO]')}",
-                f"{tenant_data.get('document_type', 'CC')} {tenant_data.get('document_number', '[NÚMERO]')}"
+                f"{self._get_document_type_display(landlord_data.get('document_type', 'CC'))} {landlord_data.get('document_number', 'No registrado')}",
+                f"{self._get_document_type_display(tenant_data.get('document_type', 'CC'))} {tenant_data.get('document_number', 'No registrado')}"
                 if tenant_data
-                else "CC [NÚMERO]",
+                else "Cédula de Ciudadanía No registrado",
             ],
             [f"Autenticado: {landlord_auth_date}", f"Autenticado: {tenant_auth_date}"],
         ]
@@ -2258,11 +2277,9 @@ class ContractPDFGenerator:
         return story
 
     def _build_verification_section_professional(self, contract):
-        """Construir sección profesional de verificación - Página aislada propia"""
+        """Construir sección profesional de verificación"""
         verification_elements = []
 
-        # Verificación siempre en página propia
-        verification_elements.append(PageBreak())
 
         # Título de la sección
         verification_elements.append(
@@ -2329,8 +2346,7 @@ class ContractPDFGenerator:
         verification_elements.append(Spacer(1, 0.1 * inch))
 
         footer_text = """<b>WILSON ARGUELLO - ABOGADOS CONSULTORES INMOBILIARIOS</b><br/>
-        Tarjeta Profesional: [NÚMERO] - Consejo Superior de la Judicatura<br/>
-        Bogotá D.C., Colombia<br/><br/>
+        Abogado - Consejo Superior de la Judicatura - Colombia<br/><br/>
         Este documento ha sido generado electrónicamente por VeriHome y tiene plena validez
         legal según la Ley 527 de 1999 sobre firma digital y comercio electrónico."""
 
@@ -2454,13 +2470,27 @@ class ContractPDFGenerator:
                 ) or biometric_data.get("document_number", "")
 
         # Valores por defecto profesionales para campos vacíos
+        raw_name = data.get("full_name") or ""
+        full_name = " ".join(w.capitalize() for w in raw_name.split()) if raw_name else "No registrado"
+        auth_date = ""
+        if data.get("authentication_date"):
+            auth_date = data["authentication_date"]
+        else:
+            bio = self._get_biometric_auth_data(contract, "landlord")
+            if bio.get("completed_at"):
+                auth_date = bio["completed_at"].strftime("%d/%m/%Y %H:%M") if hasattr(bio["completed_at"], "strftime") else str(bio["completed_at"])[:16]
+            if bio.get("document_number") and not data.get("document_number"):
+                data["document_number"] = bio["document_number"]
+            if bio.get("document_type") and not data.get("document_type"):
+                data["document_type"] = bio["document_type"]
         return {
-            "full_name": data.get("full_name") or "[ARRENDADOR - Nombre por definir]",
-            "email": data.get("email") or "[email@ejemplo.com]",
-            "phone": data.get("phone") or "[Teléfono por definir]",
+            "full_name": full_name,
+            "email": data.get("email") or "No registrado",
+            "phone": data.get("phone") or "No registrado",
             "document_type": data.get("document_type") or "Cédula de Ciudadanía",
-            "document_number": data.get("document_number") or "[Documento por definir]",
-            "address": data.get("address") or "[Dirección por definir]",
+            "document_number": data.get("document_number") or "No registrado",
+            "address": data.get("address") or "No registrada",
+            "authentication_date": auth_date,
         }
 
     def _get_tenant_data(self, contract):
@@ -2538,11 +2568,24 @@ class ContractPDFGenerator:
 
         # Valores por defecto profesionales para campos vacíos
         # Incluye campos del nuevo formulario de arrendatario
+        raw_tenant_name = data.get("full_name") or ""
+        full_tenant_name = " ".join(w.capitalize() for w in raw_tenant_name.split()) if raw_tenant_name else "No asignado"
+        tenant_auth_date = ""
+        if data.get("authentication_date"):
+            tenant_auth_date = data["authentication_date"]
+        else:
+            tenant_bio = self._get_biometric_auth_data(contract, "tenant")
+            if tenant_bio.get("completed_at"):
+                tenant_auth_date = tenant_bio["completed_at"].strftime("%d/%m/%Y %H:%M") if hasattr(tenant_bio["completed_at"], "strftime") else str(tenant_bio["completed_at"])[:16]
+            if tenant_bio.get("document_number") and not data.get("document_number"):
+                data["document_number"] = tenant_bio["document_number"]
+            if tenant_bio.get("document_type") and not data.get("document_type"):
+                data["document_type"] = tenant_bio["document_type"]
         return {
             # Datos personales básicos
-            "full_name": data.get("full_name") or "Pendiente de asignación",
-            "email": data.get("email") or "Pendiente",
-            "phone": data.get("phone") or "Pendiente",
+            "full_name": full_tenant_name,
+            "email": data.get("email") or "No registrado",
+            "phone": data.get("phone") or "No registrado",
             "document_type": data.get("document_type") or "CC",
             "document_type_display": data.get("document_type_display")
             or self._get_document_type_display(data.get("document_type", "CC")),
@@ -2571,16 +2614,22 @@ class ContractPDFGenerator:
             or "",
             # Otros campos
             "marital_status": data.get("marital_status") or "Pendiente",
+            "authentication_date": tenant_auth_date,
         }
 
     def _get_document_type_display(self, doc_type):
         """Obtener nombre legible del tipo de documento"""
         doc_types = {
             "CC": "Cédula de Ciudadanía",
+            "cedula_ciudadania": "Cédula de Ciudadanía",
             "CE": "Cédula de Extranjería",
+            "cedula_extranjeria": "Cédula de Extranjería",
             "NIT": "NIT",
+            "nit": "NIT",
             "PP": "Pasaporte",
+            "pasaporte": "Pasaporte",
             "TI": "Tarjeta de Identidad",
+            "tarjeta_identidad": "Tarjeta de Identidad",
         }
         return doc_types.get(doc_type, "Cédula de Ciudadanía")
 
@@ -2611,13 +2660,14 @@ class ContractPDFGenerator:
                 "type": data.get(
                     "property_type_display", data.get("property_type", "")
                 ),
-                "area": str(data.get("property_area", "")),
+                "area": str(int(float(data.get("property_area", 0)))) if data.get("property_area") else "",
                 "area_formatted": data.get(
-                    "area_formatted", f"{data.get('property_area', '')} m²"
+                    "area_formatted",
+                    f"{int(float(data.get('property_area', 0)))} m²" if data.get("property_area") else ""
                 ),
                 "stratum": str(data.get("property_stratum", "")),
                 "rooms": str(data.get("property_bedrooms", "")),
-                "bathrooms": str(data.get("property_bathrooms", "")),
+                "bathrooms": str(int(float(data.get("property_bathrooms", 0)))) if data.get("property_bathrooms") else "",
                 "parking_spaces": str(data.get("property_parking_spaces", "")),
                 "amenities": data.get("property_amenities", ""),
                 "description": data.get("property_description", ""),
@@ -2634,12 +2684,12 @@ class ContractPDFGenerator:
             return {
                 "address": prop.address if prop else "",
                 "type": prop.get_property_type_display() if prop else "",
-                "area": str(prop.total_area) if prop and prop.total_area else "",
+                "area": str(int(float(prop.total_area))) if prop and prop.total_area else "",
                 "stratum": str(getattr(prop, "stratum", ""))
                 if prop
                 else "",  # stratum might not exist
                 "rooms": str(prop.bedrooms) if prop and prop.bedrooms else "",
-                "bathrooms": str(prop.bathrooms) if prop and prop.bathrooms else "",
+                "bathrooms": str(int(float(prop.bathrooms))) if prop and prop.bathrooms else "",
                 "parking_spaces": str(prop.parking_spaces)
                 if prop and prop.parking_spaces
                 else "",
@@ -2666,7 +2716,8 @@ class ContractPDFGenerator:
                 ),
                 # Duración del contrato
                 "contract_duration_months": contract_terms_data.get(
-                    "contract_duration_months", 12
+                    "contract_duration_months",
+                    contract_terms_data.get("duration_months", 12)
                 ),
                 "start_date": contract_terms_data.get("start_date", ""),
                 "end_date": contract_terms_data.get("end_date", ""),
@@ -3500,9 +3551,35 @@ class ContractPDFGenerator:
             print(f"Error generando QR grande: {e}")
             return None
 
+    def _to_num(self, value, default=0):
+        """Convierte un valor (posiblemente string) a float, devuelve default si falla."""
+        if isinstance(value, (int, float)):
+            return float(value)
+        try:
+            s = str(value).strip()
+            # Intento directo primero (cubre "1500000.00", "1500000", etc.)
+            return float(s)
+        except ValueError:
+            pass
+        try:
+            # Formato colombiano: "1.500.000" (puntos como miles) o "1.500,00" (coma decimal)
+            s = str(value).strip()
+            if ',' in s and s.rfind(',') > s.rfind('.'):
+                # "1.500,00" → quitar puntos, reemplazar coma con punto
+                return float(s.replace('.', '').replace(',', '.'))
+            else:
+                # "1.500.000" → quitar puntos
+                return float(s.replace('.', '').replace(',', ''))
+        except (ValueError, TypeError):
+            return float(default)
+
     def _format_currency(self, amount):
         """Formatear moneda colombiana"""
-        return f"${amount:,.0f} COP"
+        try:
+            numeric = self._to_num(amount)
+            return f"${numeric:,.0f} COP"
+        except (ValueError, TypeError):
+            return f"${amount} COP"
 
     def _add_page_number(self, canvas, doc):
         """Agregar número de página (método legacy para compatibilidad)"""
@@ -3539,20 +3616,37 @@ class ContractPDFGenerator:
     def _get_biometric_auth_data(self, contract, party_type):
         """Obtener datos de autenticación biométrica para completar información faltante"""
         try:
-            # Intentar obtener datos de BiometricAuthentication si existe
-            from contracts.models import BiometricAuthentication
+            from contracts.models import BiometricAuthentication, Contract
 
+            # Determinar el usuario según el tipo de parte
             if party_type == "landlord":
-                auth = BiometricAuthentication.objects.filter(
-                    contract=contract, user_type="landlord"
-                ).first()
+                user = getattr(contract, "primary_party", None) or getattr(contract, "landlord", None)
             else:
-                auth = BiometricAuthentication.objects.filter(
-                    contract=contract, user_type="tenant"
-                ).first()
+                user = getattr(contract, "secondary_party", None) or getattr(contract, "tenant", None)
 
-            if auth and hasattr(auth, "document_data"):
-                return auth.document_data
+            if not user:
+                return {}
+
+            # BiometricAuthentication.contract apunta a Contract (legacy).
+            # Si recibimos un LandlordControlledContract (mismo UUID), resolvemos al Contract.
+            contract_for_query = contract
+            if not isinstance(contract, Contract):
+                try:
+                    contract_for_query = Contract.objects.get(pk=contract.pk)
+                except Contract.DoesNotExist:
+                    contract_for_query = contract
+
+            auth = BiometricAuthentication.objects.filter(
+                contract=contract_for_query, user=user, status="completed"
+            ).first()
+
+            if auth:
+                raw_doc_type = auth.document_type or "CC"
+                return {
+                    "document_type": self._get_document_type_display(raw_doc_type),
+                    "document_number": auth.document_number or "",
+                    "completed_at": auth.completed_at,
+                }
         except Exception:
             pass
         return {}
