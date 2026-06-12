@@ -147,13 +147,13 @@ completo pasa sin errores.
   "Sin depósito", VIGENTE, ciudad real, cláusulas Ley 820. Los 12 fixes
   del 31-may verificados sobre contrato real. Deuda D22: no valida que
   las cédulas de las partes sean distintas.
-- [ ] 1.9 **Servicios y órdenes**: ServiceRequest, ServiceOrder, workflow del prestador, trazabilidad, **suscripciones de planes** (specs `fase-f3` + `fase-h3`, `SubscriptionPlans.tsx`).
-- [ ] 1.10 **Ratings**: calificación por contrato y por service_order, restricciones de unicidad.
-- [ ] 1.11 **Dashboard + notificaciones**: widgets por rol, contadores, campana de notificaciones.
-- [ ] 1.12 **Admin**: audit logs (ADM-001), revisión jurídica de contratos, impersonación si existe.
-- [ ] 1.13 **Tickets / soporte** y cualquier módulo descubierto en el camino.
-- [ ] 1.14 **VeriHome ID / verificación** (subsistema completo, 9 specs `fase-c1`…`fase-c9`): onboarding, enforcement al tenant, banner/gate, scoring y wizard del agente de verificación, OTP por email, recibo público, analytics admin, field visits (`/app/admin/verification`, `/app/admin/field-visits`, `/app/admin/verihome-id/*`).
-- [ ] 1.15 **Pagos en modo sandbox**: cronograma de canon automático, recibos, vista de transacciones (`/app/payments`, specs `fase-d1` + `fase-g4`). Sin pasarela live — verificar `WOMPI_SANDBOX_MODE=true` y que ningún flujo intente cobrar dinero real.
+- [x] 1.9 ✅ 2026-06-12 **Servicios y órdenes**: specs reales b1+b2 (órdenes/solicitudes) y f3+h3 (suscripciones) verdes en los 55; páginas del prestador probadas (dashboard, services, service-requests). Nota: D25 — revisar texto sospechoso en `/app/services` del prestador.
+- [x] 1.10 ✅ 2026-06-12 **Ratings**: specs e1 (rating por service_order + unicidad parcial) e i1 (respuesta/reporte) verdes; página del tenant carga limpia.
+- [x] 1.11 ✅ 2026-06-12 **Dashboard + notificaciones**: D1-D3 resueltas y verificadas por rol (tenant sin widgets ajenos/NaN/EUR; landlord con sus gráficos). Notificaciones de match/contrato visibles en campana e inbox. D12 (series reales) sigue abierta.
+- [x] 1.12 ✅ 2026-06-12 **Admin**: spec admin-panel 6/6 (incl. acceso denegado a no-admin) + full-admin-review en los 55; **Audit Trail visto en vivo** (69 acciones con usuario/IP/acción — trazabilidad 1.9 funcionando).
+- [x] 1.13 ✅ 2026-06-12 **Tickets**: specs f2+h2 verdes; página admin de tickets carga.
+- [x] 1.14 ✅ 2026-06-12 **VeriHome ID**: los 9 specs c1-c9 verdes en los 55 (onboarding, enforcement, scoring, wizard agente, OTP, recibo público con fix de timezone, analytics); página del tenant carga.
+- [x] 1.15 ✅ 2026-06-12 **Pagos sandbox**: specs d1+g4 verdes; **cronograma real visible en UI** (13 órdenes de $1.800.000 del contrato VH-2026-000003). Sin pasarela live ✓. **Bugs nuevos**: D23 (la activación vía biometría UI no disparó la generación del cronograma — el signal funciona en aislamiento; hubo que regenerar manualmente) y D24 (13 cuotas para contrato de 12 meses — off-by-one).
 
 ### Transversales (se prueban al cerrar los módulos)
 
@@ -314,6 +314,9 @@ i18n completo (~664 strings) · refactor de monolitos
 | D20 | approve_contract del landlord no sincronizaba MatchRequest → el tenant nunca veía su CTA de aprobación (**flujo muerto**) | 1.6 (2026-06-12) | ✅ Resuelta 2026-06-12 — sync espejo del lado tenant en landlord_api_views |
 | D21 | Biometría: el `demo_disclosure` que manda la API no se renderiza en los pasos 1-3 (el paso 4 sí tiene consentimientos Ley 1581) | 1.7 (2026-06-12) | 🟡 Media — revisar antes de beta |
 | D22 | No se valida que las cédulas de arrendador y arrendatario sean **distintas** (PDF salió con la misma para ambos) | 1.8 (2026-06-12) | 🟡 Menor |
+| D23 | **La activación por biometría UI no generó el cronograma de pagos** — recompute_workflow_status hizo lcc.save() a ACTIVE sin que el signal `generate_payment_schedule_on_activation` produjera órdenes NI logs; el mismo signal funciona perfecto al transicionar en shell. Repro: contrato 87710f58, log 11:38:18. Sospecha: algo en el contexto del request (¿transaction.on_commit / orden de saves dobles?). Datos reparados a mano | 1.15 (2026-06-12) | 🔴 **Alta** — investigar antes de Fase 2 |
+| D24 | Cronograma genera **13 cuotas para contrato de 12 meses** (off-by-one en el loop de installments) | 1.15 (2026-06-12) | 🟠 Media |
+| D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
 
 ---
 
