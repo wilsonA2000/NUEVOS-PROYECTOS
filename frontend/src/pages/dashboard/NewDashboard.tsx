@@ -292,12 +292,13 @@ const NewDashboard: React.FC = () => {
       );
       setStats(response.data);
     } catch (error) {
-      // Only use mock data in development mode
       if (import.meta.env.DEV) {
+        // En dev sin backend, mock para poder trabajar la UI.
         setStats(getMockData());
       } else {
-        // In production, show error to user
-        setStats(getMockData()); // Temporary fallback
+        // En producción jamás mostrar datos inventados.
+        console.error('Dashboard stats no disponibles:', error);
+        setStats(null);
       }
     } finally {
       setLoading(false);
@@ -544,10 +545,10 @@ const NewDashboard: React.FC = () => {
       datasets: [
         {
           label: 'Ingresos',
-          data: Array.from(
-            { length: 30 },
-            () => Math.floor(Math.random() * 10000) + 3000,
-          ),
+          // El endpoint /dashboard/stats/ aún no expone series
+          // temporales (deuda D12) — ceros honestos en vez de
+          // Math.random(), que pintaba un negocio inexistente.
+          data: Array.from({ length: 30 }, () => 0),
           borderColor: theme.palette.primary.main,
           backgroundColor: alpha(theme.palette.primary.main, 0.1),
           fill: true,
@@ -555,10 +556,7 @@ const NewDashboard: React.FC = () => {
         },
         {
           label: 'Gastos',
-          data: Array.from(
-            { length: 30 },
-            () => Math.floor(Math.random() * 5000) + 1000,
-          ),
+          data: Array.from({ length: 30 }, () => 0),
           borderColor: theme.palette.error.main,
           backgroundColor: alpha(theme.palette.error.main, 0.1),
           fill: true,
@@ -767,199 +765,202 @@ const NewDashboard: React.FC = () => {
         </Grid>
       )}
 
-      {/* Charts Row - Mobile Responsive */}
-      {isMobile ? (
-        /* Mobile: Accordion Layout */
-        <Box mb={{ xs: 3, md: 4 }}>
-          <Accordion
-            expanded={expandedCharts.income || false}
-            onChange={() => toggleChartExpansion('income')}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{
-                backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                '&.Mui-expanded': {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                },
-              }}
+      {/* Charts Row (Flujo de Caja + Ocupación) — métricas de negocio
+          del arrendador; tenant y prestador tienen su propio dashboard
+          en getRoleDashboard() y su payload de stats no trae
+          occupied/monthlyIncome (mostraba NaN%). */}
+      {user?.user_type === 'landlord' &&
+        (isMobile ? (
+          /* Mobile: Accordion Layout */
+          <Box mb={{ xs: 3, md: 4 }}>
+            <Accordion
+              expanded={expandedCharts.income || false}
+              onChange={() => toggleChartExpansion('income')}
             >
-              <Box
-                display='flex'
-                justifyContent='space-between'
-                alignItems='center'
-                sx={{ width: '100%', mr: 2 }}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                  '&.Mui-expanded': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  },
+                }}
               >
-                <Typography
-                  variant='h6'
-                  fontWeight='bold'
-                  sx={{ fontSize: '1rem' }}
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  alignItems='center'
+                  sx={{ width: '100%', mr: 2 }}
                 >
-                  Flujo de Caja
-                </Typography>
-                <IconButton
-                  size='small'
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleChartExpand('income');
-                  }}
-                  sx={{ p: 0.5 }}
-                >
-                  <FullscreenIcon fontSize='small' />
-                </IconButton>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 0 }}>
-              <Box sx={{ p: 2, height: 280 }}>
-                {loading ? (
-                  <Skeleton variant='rectangular' height='100%' />
-                ) : (
-                  <Line
-                    data={getIncomeChart()}
-                    options={{
-                      ...chartOptions,
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        ...chartOptions.scales,
-                        x: {
-                          ...chartOptions.scales.x,
-                          ticks: {
-                            maxRotation: 45,
-                            minRotation: 0,
-                            font: {
-                              size: 10,
-                            },
-                          },
-                        },
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion
-            expanded={expandedCharts.occupancy || false}
-            onChange={() => toggleChartExpansion('occupancy')}
-            sx={{ mt: 1 }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{
-                backgroundColor: alpha(theme.palette.success.main, 0.04),
-                '&.Mui-expanded': {
-                  backgroundColor: alpha(theme.palette.success.main, 0.08),
-                },
-              }}
-            >
-              <Box
-                display='flex'
-                justifyContent='space-between'
-                alignItems='center'
-                sx={{ width: '100%', mr: 2 }}
-              >
-                <Typography
-                  variant='h6'
-                  fontWeight='bold'
-                  sx={{ fontSize: '1rem' }}
-                >
-                  Ocupación
-                </Typography>
-                <Box display='flex' alignItems='center' gap={1}>
                   <Typography
                     variant='h6'
                     fontWeight='bold'
-                    color='primary'
-                    sx={{ fontSize: '1.1rem' }}
+                    sx={{ fontSize: '1rem' }}
                   >
-                    {stats && stats.properties && stats.properties.total > 0
-                      ? `${Math.round((stats.properties.occupied / stats.properties.total) * 100)}%`
-                      : '0%'}
+                    Flujo de Caja
                   </Typography>
                   <IconButton
                     size='small'
                     onClick={e => {
                       e.stopPropagation();
-                      handleChartExpand('occupancy');
+                      handleChartExpand('income');
                     }}
                     sx={{ p: 0.5 }}
                   >
                     <FullscreenIcon fontSize='small' />
                   </IconButton>
                 </Box>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 0 }}>
-              <Box
-                sx={{
-                  p: 2,
-                  height: 280,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {loading ? (
-                  <Skeleton variant='circular' width={200} height={200} />
-                ) : (
-                  <Doughnut
-                    data={getOccupancyChart()}
-                    options={{
-                      ...chartOptions,
-                      cutout: '65%',
-                      plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                          position: 'bottom',
-                          labels: {
-                            boxWidth: 12,
-                            padding: 15,
-                            font: {
-                              size: 11,
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <Box sx={{ p: 2, height: 280 }}>
+                  {loading ? (
+                    <Skeleton variant='rectangular' height='100%' />
+                  ) : (
+                    <Line
+                      data={getIncomeChart()}
+                      options={{
+                        ...chartOptions,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                          ...chartOptions.scales,
+                          x: {
+                            ...chartOptions.scales.x,
+                            ticks: {
+                              maxRotation: 45,
+                              minRotation: 0,
+                              font: {
+                                size: 10,
+                              },
                             },
                           },
                         },
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
-      ) : (
-        // Desktop: Grid Layout
-        <Grid container spacing={3} mb={4}>
-          <Grid item xs={12} lg={8}>
-            <Paper sx={{ p: 3, height: 400 }}>
-              <Box
-                display='flex'
-                justifyContent='space-between'
-                alignItems='center'
-                mb={2}
+                      }}
+                    />
+                  )}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion
+              expanded={expandedCharts.occupancy || false}
+              onChange={() => toggleChartExpansion('occupancy')}
+              sx={{ mt: 1 }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: alpha(theme.palette.success.main, 0.04),
+                  '&.Mui-expanded': {
+                    backgroundColor: alpha(theme.palette.success.main, 0.08),
+                  },
+                }}
               >
-                <Typography variant='h6' fontWeight='bold'>
-                  Flujo de Caja
-                </Typography>
-                <IconButton
-                  size='small'
-                  onClick={() => handleChartExpand('income')}
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  alignItems='center'
+                  sx={{ width: '100%', mr: 2 }}
                 >
-                  <FullscreenIcon />
-                </IconButton>
-              </Box>
-              <Box height={320}>
-                {loading ? (
-                  <Skeleton variant='rectangular' height='100%' />
-                ) : (
-                  <Line data={getIncomeChart()} options={chartOptions} />
-                )}
-              </Box>
-            </Paper>
-          </Grid>
-          {user?.user_type !== 'service_provider' && (
+                  <Typography
+                    variant='h6'
+                    fontWeight='bold'
+                    sx={{ fontSize: '1rem' }}
+                  >
+                    Ocupación
+                  </Typography>
+                  <Box display='flex' alignItems='center' gap={1}>
+                    <Typography
+                      variant='h6'
+                      fontWeight='bold'
+                      color='primary'
+                      sx={{ fontSize: '1.1rem' }}
+                    >
+                      {stats && stats.properties && stats.properties.total > 0
+                        ? `${Math.round(((stats.properties.occupied || 0) / stats.properties.total) * 100)}%`
+                        : '0%'}
+                    </Typography>
+                    <IconButton
+                      size='small'
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleChartExpand('occupancy');
+                      }}
+                      sx={{ p: 0.5 }}
+                    >
+                      <FullscreenIcon fontSize='small' />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    height: 280,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {loading ? (
+                    <Skeleton variant='circular' width={200} height={200} />
+                  ) : (
+                    <Doughnut
+                      data={getOccupancyChart()}
+                      options={{
+                        ...chartOptions,
+                        cutout: '65%',
+                        plugins: {
+                          ...chartOptions.plugins,
+                          legend: {
+                            position: 'bottom',
+                            labels: {
+                              boxWidth: 12,
+                              padding: 15,
+                              font: {
+                                size: 11,
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          </Box>
+        ) : (
+          // Desktop: Grid Layout
+          <Grid container spacing={3} mb={4}>
+            <Grid item xs={12} lg={8}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  alignItems='center'
+                  mb={2}
+                >
+                  <Typography variant='h6' fontWeight='bold'>
+                    Flujo de Caja
+                  </Typography>
+                  <IconButton
+                    size='small'
+                    onClick={() => handleChartExpand('income')}
+                  >
+                    <FullscreenIcon />
+                  </IconButton>
+                </Box>
+                <Box height={320}>
+                  {loading ? (
+                    <Skeleton variant='rectangular' height='100%' />
+                  ) : (
+                    <Line data={getIncomeChart()} options={chartOptions} />
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
             <Grid item xs={12} lg={4}>
               <Paper sx={{ p: 3, height: 400 }}>
                 <Box
@@ -974,7 +975,7 @@ const NewDashboard: React.FC = () => {
                   <Box display='flex' alignItems='center' gap={1}>
                     <Typography variant='h4' fontWeight='bold' color='primary'>
                       {stats && stats.properties && stats.properties.total > 0
-                        ? `${Math.round((stats.properties.occupied / stats.properties.total) * 100)}%`
+                        ? `${Math.round(((stats.properties.occupied || 0) / stats.properties.total) * 100)}%`
                         : '0%'}
                     </Typography>
                     <IconButton
@@ -1011,9 +1012,8 @@ const NewDashboard: React.FC = () => {
                 </Box>
               </Paper>
             </Grid>
-          )}
-        </Grid>
-      )}
+          </Grid>
+        ))}
 
       {/* Activity and Stats Row - Mobile Responsive */}
       <Grid
@@ -1610,7 +1610,7 @@ const NewDashboard: React.FC = () => {
                       </Typography>
                       <Typography variant='body2' color='text.secondary'>
                         {stats && stats.properties && stats.properties.total > 0
-                          ? `${Math.round((stats.properties.occupied / stats.properties.total) * 100)}%`
+                          ? `${Math.round(((stats.properties.occupied || 0) / stats.properties.total) * 100)}%`
                           : '0%'}{' '}
                         del total
                       </Typography>

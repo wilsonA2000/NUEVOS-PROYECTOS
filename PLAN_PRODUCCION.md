@@ -106,7 +106,10 @@ completo pasa sin errores.
   - **Bugs anotados para 1.11 (dashboard)**: "Pagos del mes 0,00 €"
     (moneda EUR en vez de COP) · "Ocupación NaN%" sin datos · gráfico
     "Flujo de Caja" muestra datos fake para usuario nuevo sin contratos.
-- [ ] 1.2 **Perfil + hoja de vida**: edición de perfil, avatar, completitud, resume del tenant, visibilidad entre roles.
+- [x] 1.2 ✅ 2026-06-12 **Perfil + hoja de vida**:
+  - Spec `fase-l1` 1/1 real (GET/PATCH profile, avatar 400 sin file, resume CRUD, landlord ve resume del tenant, prestador 403).
+  - UI real: perfil muestra los datos del registro, edición persiste tras reload (PATCH 200); resume: estado vacío limpio → crear → llenar → guardar → completitud 10%→90% persistente. Salarios en COP ✓.
+  - Visual desktop+móvil OK. Deuda nueva: D11 (4 GETs repetidos a `onboarding/me` por carga de página).
 - [ ] 1.3 **Propiedades**: CRUD completo, subida de imágenes, búsqueda y filtros, mapa (Mapbox), vista pública vs autenticada.
 - [ ] 1.4 **Matching**: solicitud de match, aceptar/rechazar, dashboard de matches, estados del workflow, notificaciones generadas.
 - [ ] 1.5 **Mensajería**: threads, envío/recepción, tiempo real por WebSocket (requiere Daphne), contextos (match/contrato/orden).
@@ -251,6 +254,25 @@ Recién aquí se gasta dinero. Decisiones pendientes:
 Pagos live (Wompi/Bold) · DIAN XAdES · liveness P0.4b si quedó fuera ·
 i18n completo (~664 strings) · refactor de monolitos
 (`contracts/api_views.py` 4200 líneas, `pdf_generator.py` 3679 líneas).
+
+---
+
+## Registro de deuda técnica (consolidado — se actualiza al encontrar/resolver)
+
+| # | Deuda | Encontrada | Estado |
+|---|-------|-----------|--------|
+| D1 | Dashboard: "Pagos del mes" muestra **EUR (€)** en vez de COP | 1.1 (2026-06-12) | ✅ Resuelta 2026-06-12 — `formatCurrency` → es-CO/COP sin decimales |
+| D2 | Dashboard: "Ocupación **NaN%**" cuando no hay datos | 1.1 (2026-06-12) | ✅ Resuelta 2026-06-12 — causa raíz: widgets de arrendador (Ocupación/Flujo de Caja) se mostraban a tenants cuyo payload no trae `occupied`; gateados a landlord + fallback `\|\| 0` |
+| D3 | Dashboard: gráfico "Flujo de Caja" muestra **datos fake** para usuario sin contratos | 1.1 (2026-06-12) | ✅ Resuelta 2026-06-12 — `Math.random()` reemplazado por ceros honestos; fallback mock eliminado en producción (solo DEV) |
+| D4 | Confirm-email dispara el POST **dos veces** (StrictMode/doble efecto); endpoint idempotente, sin daño, pero es ruido | 1.1 (2026-06-12) | 🟡 Menor |
+| D5 | `.env` local contiene GITHUB_TOKEN y password Gmail (no trackeados, pero revisar en limpieza de secretos) | 1.1 (2026-06-12) | 🔴 Abierta → 2.5 |
+| D6 | ESLint no cubre `playwright/` (parserOptions.project) y prettier estaba inconsistente en ~48 specs | 1.1 (2026-06-12) | 🟡 Menor → 2.x |
+| D7 | `check_contract_sync --fix` no implementado (report-only) | Auditoría 2026-06-11 | 🔴 Abierta → 2.6 |
+| D8 | 3 modelos de contrato comparten UUID sin constraint | Auditoría 2026-06-11 | 🔴 Abierta → 2.6 |
+| D9 | Fallbacks Redis/Channels/PG degradan en silencio | Auditoría 2026-06-11 | 🔴 Abierta → 2.2 |
+| D10 | Monolitos: `contracts/api_views.py` ~4200 líneas, `pdf_generator.py` ~3700 | Histórico | ⏸️ Post-launch (Fase 5) |
+| D11 | `/app/profile` dispara **4 GETs idénticos** a `verification/onboarding/me/` en cada carga (re-render/StrictMode sin dedupe) | 1.2 (2026-06-12) | 🟡 Menor |
+| D12 | `/dashboard/stats/` no expone **series temporales** (ingresos/gastos por día) — el gráfico Flujo de Caja del landlord queda en ceros hasta tener endpoint real | D3 (2026-06-12) | 🔴 Abierta → 1.11 o Fase 5 |
 
 ---
 
