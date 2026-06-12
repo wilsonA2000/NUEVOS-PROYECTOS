@@ -35,7 +35,7 @@ async function loginViaLocalStorage(
   await page.evaluate(async () => {
     if ('serviceWorker' in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map((r) => r.unregister()));
+      await Promise.all(regs.map(r => r.unregister()));
     }
   });
   await page.evaluate(
@@ -47,7 +47,9 @@ async function loginViaLocalStorage(
   );
 }
 
-test('Fase H3 · service_provider ve planes y se suscribe desde UI', async ({ browser }) => {
+test('Fase H3 · service_provider ve planes y se suscribe desde UI', async ({
+  browser,
+}) => {
   test.setTimeout(180_000);
   const ctx = createRunContext(REPORT_DIR);
   // Seed crea plan "Plan E2E básico" + ya subscribe al provider.
@@ -55,32 +57,47 @@ test('Fase H3 · service_provider ve planes y se suscribe desde UI', async ({ br
   const seed = runSeed('service_order_ready');
   logStep(ctx, 'system', 'seed', 'ok', { plan_id: seed.subscription_plan_id });
 
-  const providerAuth = await getAuthToken(seed.service_provider_email, seed.password);
+  const providerAuth = await getAuthToken(
+    seed.service_provider_email,
+    seed.password,
+  );
   expect(providerAuth).toBeTruthy();
 
   // Cancelar la suscripción activa que dejó el seed, para que UI
   // muestre "suscribirse" en vez de "cancelar".
-  await fetch('http://localhost:8000/api/v1/services/subscriptions/cancel/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${providerAuth!.access}`,
+  await fetch(
+    `${process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000'}/api/v1/services/subscriptions/cancel/`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${providerAuth!.access}`,
+      },
+      body: JSON.stringify({ reason: 'Preparación H3' }),
     },
-    body: JSON.stringify({ reason: 'Preparación H3' }),
-  }).catch(() => null);
+  ).catch(() => null);
   logStep(ctx, 'system', 'pre-cancel', 'ok');
 
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+  });
   const page = await context.newPage();
   attachLoggers(page, 'service_provider', ctx);
-  await loginViaLocalStorage(context, page, providerAuth!.access, providerAuth!.refresh);
+  await loginViaLocalStorage(
+    context,
+    page,
+    providerAuth!.access,
+    providerAuth!.refresh,
+  );
 
   logStep(ctx, 'service_provider', 'goto-subscriptions', 'start');
   await page.goto('/app/subscriptions', { waitUntil: 'networkidle' });
   await snap(page, ctx, 'service_provider', 'subscriptions-landing');
 
   // Esperar a que aparezca al menos un plan (el seed creó "Plan E2E básico").
-  await expect(page.getByText(/Plan E2E básico/i)).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText(/Plan E2E básico/i)).toBeVisible({
+    timeout: 20000,
+  });
   logStep(ctx, 'service_provider', 'plans-visible', 'ok');
 
   // Click en el botón "Suscribirse" del primer plan.
@@ -91,15 +108,20 @@ test('Fase H3 · service_provider ve planes y se suscribe desde UI', async ({ br
   await snap(page, ctx, 'service_provider', 'post-subscribe');
 
   // Confirmar en dialog si aparece.
-  const confirm = page.getByRole('button', { name: /confirmar|aceptar|suscribir/i });
-  const hasConfirm = await confirm.first().isVisible().catch(() => false);
+  const confirm = page.getByRole('button', {
+    name: /confirmar|aceptar|suscribir/i,
+  });
+  const hasConfirm = await confirm
+    .first()
+    .isVisible()
+    .catch(() => false);
   if (hasConfirm) {
     await confirm.first().click();
   }
 
   // La UI debe mostrar ahora el plan como activo/current.
-  await expect(
-    page.getByText(/trial|activ/i).first(),
-  ).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/trial|activ/i).first()).toBeVisible({
+    timeout: 15000,
+  });
   logStep(ctx, 'service_provider', 'active-badge-visible', 'ok');
 });

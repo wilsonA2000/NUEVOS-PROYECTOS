@@ -37,7 +37,7 @@ export async function mockAllAPIs(
   user = MOCK_USER_LANDLORD,
   extraHandlers: RouteHandler[] = [],
 ) {
-  await page.route(/localhost:8000/, async (route) => {
+  await page.route(/localhost:8000|\/api\/v1\//, async route => {
     const url = route.request().url();
     const method = route.request().method();
 
@@ -63,15 +63,21 @@ export async function mockAllAPIs(
       ];
 
       const isValid = validCreds.some(
-        (c) => c.email === postData.email && c.password === postData.password,
+        c => c.email === postData.email && c.password === postData.password,
       );
 
       await route.fulfill({
         status: isValid ? 200 : 401,
         contentType: 'application/json',
         body: isValid
-          ? JSON.stringify({ access: 'fake-access-token', refresh: 'fake-refresh-token' })
-          : JSON.stringify({ detail: 'Credenciales inválidas. Por favor verifique su email y contraseña.' }),
+          ? JSON.stringify({
+              access: 'fake-access-token',
+              refresh: 'fake-refresh-token',
+            })
+          : JSON.stringify({
+              detail:
+                'Credenciales inválidas. Por favor verifique su email y contraseña.',
+            }),
       });
       return;
     }
@@ -112,11 +118,39 @@ export async function mockAllAPIs(
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          properties: { total: 3, occupied: 1, available: 2, maintenance: 0, trend: 5 },
-          finances: { monthlyIncome: 5000000, monthlyExpenses: 1000000, pendingPayments: 0, profit: 4000000, trend: 3 },
-          contracts: { active: 2, expiringSoon: 0, pending: 1, total: 3, trend: 0 },
-          users: { tenants: 2, landlords: 1, serviceProviders: 1, newThisMonth: 0, trend: 0 },
-          ratings: { average: 4.5, total: 10, distribution: { 1: 0, 2: 0, 3: 1, 4: 3, 5: 6 } },
+          properties: {
+            total: 3,
+            occupied: 1,
+            available: 2,
+            maintenance: 0,
+            trend: 5,
+          },
+          finances: {
+            monthlyIncome: 5000000,
+            monthlyExpenses: 1000000,
+            pendingPayments: 0,
+            profit: 4000000,
+            trend: 3,
+          },
+          contracts: {
+            active: 2,
+            expiringSoon: 0,
+            pending: 1,
+            total: 3,
+            trend: 0,
+          },
+          users: {
+            tenants: 2,
+            landlords: 1,
+            serviceProviders: 1,
+            newThisMonth: 0,
+            trend: 0,
+          },
+          ratings: {
+            average: 4.5,
+            total: 10,
+            distribution: { 1: 0, 2: 0, 3: 1, 4: 3, 5: 6 },
+          },
           activities: [],
         }),
       });
@@ -228,14 +262,21 @@ export function propertyHandlers(): RouteHandler[] {
       let filtered = [...MOCK_PROPERTIES];
       if (search) {
         filtered = filtered.filter(
-          (p) => p.title.toLowerCase().includes(search.toLowerCase()) || p.address.toLowerCase().includes(search.toLowerCase()),
+          p =>
+            p.title.toLowerCase().includes(search.toLowerCase()) ||
+            p.address.toLowerCase().includes(search.toLowerCase()),
         );
       }
 
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ results: filtered, count: filtered.length, next: null, previous: null }),
+        body: JSON.stringify({
+          results: filtered,
+          count: filtered.length,
+          next: null,
+          previous: null,
+        }),
       });
       return true;
     },
@@ -246,8 +287,17 @@ export const MOCK_CONTRACTS = [
   {
     id: 'contract-001',
     title: 'Contrato Apartamento Chapinero',
-    property: { id: 'prop-001', title: 'Apartamento en Chapinero', address: 'Calle 72 #10-45' },
-    tenant: { id: 2, first_name: 'Leidy', last_name: 'Tenant', email: 'tenant@verihome.com' },
+    property: {
+      id: 'prop-001',
+      title: 'Apartamento en Chapinero',
+      address: 'Calle 72 #10-45',
+    },
+    tenant: {
+      id: 2,
+      first_name: 'Leidy',
+      last_name: 'Tenant',
+      email: 'tenant@verihome.com',
+    },
     landlord: { id: 1, first_name: 'Admin', last_name: 'VeriHome' },
     status: 'active',
     start_date: '2025-10-01',
@@ -262,7 +312,11 @@ export const MOCK_CONTRACTS = [
   {
     id: 'contract-002',
     title: 'Contrato Casa Usaquen',
-    property: { id: 'prop-002', title: 'Casa en Usaquen', address: 'Carrera 7 #120-30' },
+    property: {
+      id: 'prop-002',
+      title: 'Casa en Usaquen',
+      address: 'Carrera 7 #120-30',
+    },
     tenant: null,
     landlord: { id: 1, first_name: 'Admin', last_name: 'VeriHome' },
     status: 'draft',
@@ -280,7 +334,8 @@ export const MOCK_CONTRACTS = [
 export function contractHandlers(): RouteHandler[] {
   return [
     async (url, route) => {
-      if (!url.includes('/contracts') && !url.includes('/landlord/contracts')) return false;
+      if (!url.includes('/contracts') && !url.includes('/landlord/contracts'))
+        return false;
       const method = route.request().method();
 
       // Biometric: start-authentication
@@ -292,7 +347,13 @@ export function contractHandlers(): RouteHandler[] {
             authentication_id: 'bio-auth-001',
             status: 'started',
             message: 'Autenticacion biometrica iniciada correctamente.',
-            steps: ['face_capture', 'document_verification', 'combined_capture', 'voice_recording', 'digital_signature'],
+            steps: [
+              'face_capture',
+              'document_verification',
+              'combined_capture',
+              'voice_recording',
+              'digital_signature',
+            ],
             current_step: 'face_capture',
             expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
           }),
@@ -305,7 +366,12 @@ export function contractHandlers(): RouteHandler[] {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ status: 'pending', current_step: 'face_capture', completed_steps: [], confidence_scores: {} }),
+          body: JSON.stringify({
+            status: 'pending',
+            current_step: 'face_capture',
+            completed_steps: [],
+            confidence_scores: {},
+          }),
         });
         return true;
       }
@@ -325,7 +391,11 @@ export function contractHandlers(): RouteHandler[] {
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify({ id: 'contract-new-001', status: 'draft', ...MOCK_CONTRACTS[1] }),
+          body: JSON.stringify({
+            id: 'contract-new-001',
+            status: 'draft',
+            ...MOCK_CONTRACTS[1],
+          }),
         });
         return true;
       }
@@ -334,7 +404,12 @@ export function contractHandlers(): RouteHandler[] {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ results: MOCK_CONTRACTS, count: MOCK_CONTRACTS.length, next: null, previous: null }),
+        body: JSON.stringify({
+          results: MOCK_CONTRACTS,
+          count: MOCK_CONTRACTS.length,
+          next: null,
+          previous: null,
+        }),
       });
       return true;
     },
@@ -346,7 +421,11 @@ export const MOCK_MAINTENANCE = [
     id: 'maint-001',
     title: 'Fuga de agua en el bano',
     description: 'Hay una fuga de agua en el lavamanos',
-    property: { id: 'prop-001', title: 'Apartamento en Chapinero', address: 'Calle 72 #10-45' },
+    property: {
+      id: 'prop-001',
+      title: 'Apartamento en Chapinero',
+      address: 'Calle 72 #10-45',
+    },
     tenant: { id: 2, first_name: 'Leidy', last_name: 'Tenant' },
     status: 'pending',
     priority: 'high',
@@ -357,7 +436,11 @@ export const MOCK_MAINTENANCE = [
     id: 'maint-002',
     title: 'Aire acondicionado no funciona',
     description: 'El AC no enciende',
-    property: { id: 'prop-001', title: 'Apartamento en Chapinero', address: 'Calle 72 #10-45' },
+    property: {
+      id: 'prop-001',
+      title: 'Apartamento en Chapinero',
+      address: 'Calle 72 #10-45',
+    },
     tenant: { id: 2, first_name: 'Leidy', last_name: 'Tenant' },
     status: 'in_progress',
     priority: 'medium',
@@ -376,7 +459,11 @@ export function maintenanceHandlers(): RouteHandler[] {
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify({ id: 'maint-new-001', title: 'Nueva solicitud', status: 'pending' }),
+          body: JSON.stringify({
+            id: 'maint-new-001',
+            title: 'Nueva solicitud',
+            status: 'pending',
+          }),
         });
         return true;
       }
@@ -393,7 +480,12 @@ export function maintenanceHandlers(): RouteHandler[] {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ results: MOCK_MAINTENANCE, count: MOCK_MAINTENANCE.length, next: null, previous: null }),
+        body: JSON.stringify({
+          results: MOCK_MAINTENANCE,
+          count: MOCK_MAINTENANCE.length,
+          next: null,
+          previous: null,
+        }),
       });
       return true;
     },

@@ -18,8 +18,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function httpPing(url: string, timeoutMs = 15000): Promise<boolean> {
-  return new Promise((resolve) => {
-    const req = http.get(url, (res) => {
+  return new Promise(resolve => {
+    const req = http.get(url, res => {
       // Cualquier respuesta (incluso 401/404) indica que el servidor esta vivo
       resolve((res.statusCode ?? 0) > 0);
       res.resume();
@@ -47,8 +47,11 @@ async function assertServerUp(url: string, name: string): Promise<void> {
 async function globalSetup(): Promise<void> {
   // eslint-disable-next-line no-console
   console.log('[globalSetup] Verificando servidores...');
-  await assertServerUp('http://localhost:8000/api/v1/', 'backend Django');
-  const frontendUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5174';
+  const backendUrl =
+    process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000';
+  await assertServerUp(backendUrl + '/api/v1/', 'backend Django');
+  const frontendUrl =
+    process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5174';
   await assertServerUp(frontendUrl + '/', 'frontend Vite');
 
   // Ejecutar seed. Usa venv_ubuntu si existe.
@@ -65,7 +68,10 @@ async function globalSetup(): Promise<void> {
   for (const bin of candidates) {
     try {
       if (bin !== 'python3' && !fs.existsSync(bin)) continue;
-      execSync(`"${bin}" -c "import django"`, { stdio: 'pipe', timeout: 10_000 });
+      execSync(`"${bin}" -c "import django"`, {
+        stdio: 'pipe',
+        timeout: 10_000,
+      });
       pythonBin = bin;
       break;
     } catch {

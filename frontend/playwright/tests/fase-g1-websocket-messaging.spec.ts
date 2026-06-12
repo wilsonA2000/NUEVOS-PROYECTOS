@@ -34,7 +34,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPORT_DIR = path.resolve(__dirname, '..', '..', 'e2e-logs', 'fase-g');
 
-const WS_BASE = (process.env.WS_BASE_URL || 'ws://localhost:8000').replace(/\/$/, '');
+const WS_BASE = (process.env.WS_BASE_URL || 'ws://localhost:8000').replace(
+  /\/$/,
+  '',
+);
 
 test.describe.configure({ mode: 'serial' });
 
@@ -52,10 +55,10 @@ function openAuthenticatedWs(url: string, token: string) {
   const ws = new WebSocket(`${url}?token=${encodeURIComponent(token)}`, {
     origin: 'http://localhost',
     headers: {
-      Host: 'localhost:8000',
+      Host: new URL(WS_BASE.replace(/^ws/, 'http')).host,
     },
   });
-  ws.on('message', (raw) => {
+  ws.on('message', raw => {
     try {
       messages.push(JSON.parse(raw.toString()));
     } catch {
@@ -64,14 +67,14 @@ function openAuthenticatedWs(url: string, token: string) {
   });
   const open = new Promise<void>((resolve, reject) => {
     ws.once('open', () => resolve());
-    ws.once('error', (err) => reject(err));
+    ws.once('error', err => reject(err));
     setTimeout(() => reject(new Error('ws open timeout')), 10000);
   });
 
   async function waitFor(predicate: (m: any) => boolean, timeoutMs = 8000) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      const match = messages.find((m) => {
+      const match = messages.find(m => {
         try {
           return predicate(m);
         } catch {
@@ -79,7 +82,7 @@ function openAuthenticatedWs(url: string, token: string) {
         }
       });
       if (match) return match;
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise(r => setTimeout(r, 150));
     }
     throw new Error(
       `WS waitFor timeout. Mensajes recibidos: ${JSON.stringify(messages)}`,

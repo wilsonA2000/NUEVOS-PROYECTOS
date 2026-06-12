@@ -32,7 +32,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPORT_DIR = path.resolve(__dirname, '..', '..', 'e2e-logs', 'fase-l');
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = `${process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000'}/api/v1`;
 
 async function apiPatch(
   accessToken: string,
@@ -99,7 +99,10 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
 
   const landlordTokens = await getAuthToken(seed.landlord_email, seed.password);
   const tenantTokens = await getAuthToken(seed.tenant_email, seed.password);
-  const spTokens = await getAuthToken(seed.service_provider_email, seed.password);
+  const spTokens = await getAuthToken(
+    seed.service_provider_email,
+    seed.password,
+  );
   expect(landlordTokens, 'landlord login').toBeTruthy();
   expect(tenantTokens, 'tenant login').toBeTruthy();
   expect(spTokens, 'service_provider login').toBeTruthy();
@@ -112,7 +115,10 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
 
   // --- B. Profile: landlord GET → 200 con email + user_type ---
   logStep(ctx, 'landlord', 'profile-get', 'start');
-  const landlordProfile = await apiGet(landlordTokens!.access, '/users/profile/');
+  const landlordProfile = await apiGet(
+    landlordTokens!.access,
+    '/users/profile/',
+  );
   logStep(ctx, 'landlord', 'profile-get', landlordProfile.ok ? 'ok' : 'fail', {
     status: landlordProfile.status,
   });
@@ -131,7 +137,9 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
     status: patchResp.status,
   });
   expect(patchResp.status).toBe(200);
-  expect((patchResp.body as Record<string, unknown>).phone_number).toBe(newPhone);
+  expect((patchResp.body as Record<string, unknown>).phone_number).toBe(
+    newPhone,
+  );
 
   const reGet = await apiGet(landlordTokens!.access, '/users/profile/');
   expect(reGet.status).toBe(200);
@@ -144,12 +152,20 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
     status: tenantProfile.status,
   });
   expect(tenantProfile.status).toBe(200);
-  expect((tenantProfile.body as Record<string, unknown>).email).toBe(seed.tenant_email);
+  expect((tenantProfile.body as Record<string, unknown>).email).toBe(
+    seed.tenant_email,
+  );
 
   // --- E. Avatar: POST sin archivo → 400 ---
   logStep(ctx, 'landlord', 'avatar-no-file', 'start');
-  const avatarNoFile = await apiPost(landlordTokens!.access, '/users/avatar/', {});
-  logStep(ctx, 'landlord', 'avatar-no-file', 'ok', { status: avatarNoFile.status });
+  const avatarNoFile = await apiPost(
+    landlordTokens!.access,
+    '/users/avatar/',
+    {},
+  );
+  logStep(ctx, 'landlord', 'avatar-no-file', 'ok', {
+    status: avatarNoFile.status,
+  });
   expect(avatarNoFile.status).toBe(400);
 
   // --- F. Resume tenant: GET puede ser 200 (ya existe) o 404 (no existe) ---
@@ -183,11 +199,15 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
     status: put.status,
   });
   expect([200, 201]).toContain(put.status);
-  expect((put.body as Record<string, unknown>).current_employer).toBe(newEmployer);
+  expect((put.body as Record<string, unknown>).current_employer).toBe(
+    newEmployer,
+  );
 
   const reResume = await apiGet(tenantTokens!.access, '/users/resume/');
   expect(reResume.status).toBe(200);
-  expect((reResume.body as Record<string, unknown>).current_employer).toBe(newEmployer);
+  expect((reResume.body as Record<string, unknown>).current_employer).toBe(
+    newEmployer,
+  );
 
   // --- I. Resume publico: landlord puede ver resume del tenant → 200 ---
   logStep(ctx, 'landlord', 'resume-public-landlord', 'start');
@@ -195,9 +215,15 @@ test('Fase L1 · profile GET/PATCH + avatar validation + resume CRUD y permisos'
     landlordTokens!.access,
     `/users/${seed.tenant_id}/resume/`,
   );
-  logStep(ctx, 'landlord', 'resume-public-landlord', landlordView.ok ? 'ok' : 'fail', {
-    status: landlordView.status,
-  });
+  logStep(
+    ctx,
+    'landlord',
+    'resume-public-landlord',
+    landlordView.ok ? 'ok' : 'fail',
+    {
+      status: landlordView.status,
+    },
+  );
   expect(landlordView.status).toBe(200);
 
   // --- J. Resume publico: service_provider → 403 ---

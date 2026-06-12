@@ -27,12 +27,19 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPORT_DIR = path.resolve(__dirname, '..', '..', 'e2e-logs', 'fase-g');
-const FIXTURE = path.resolve(__dirname, '..', 'fixtures', 'sample-property.jpg');
-const API_BASE = 'http://localhost:8000/api/v1';
+const FIXTURE = path.resolve(
+  __dirname,
+  '..',
+  'fixtures',
+  'sample-property.jpg',
+);
+const API_BASE = `${process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000'}/api/v1`;
 
 test.describe.configure({ mode: 'serial' });
 
-test('Fase G2 · landlord sube imagen real de propiedad', async ({ request }) => {
+test('Fase G2 · landlord sube imagen real de propiedad', async ({
+  request,
+}) => {
   const ctx = createRunContext(REPORT_DIR);
   const seed = runSeed('property_ready');
   logStep(ctx, 'system', 'seed', 'ok', { property_id: seed.property_id });
@@ -45,22 +52,25 @@ test('Fase G2 · landlord sube imagen real de propiedad', async ({ request }) =>
 
   logStep(ctx, 'landlord', 'upload-image', 'start');
   const buffer = fs.readFileSync(FIXTURE);
-  const uploadResp = await request.post(`${API_BASE}/properties/property-images/`, {
-    headers: {
-      Authorization: `Bearer ${landlordToken}`,
-    },
-    multipart: {
-      property: seed.property_id,
-      caption: 'E2E fixture',
-      is_main: 'true',
-      order: '0',
-      image: {
-        name: 'sample-property.jpg',
-        mimeType: 'image/jpeg',
-        buffer,
+  const uploadResp = await request.post(
+    `${API_BASE}/properties/property-images/`,
+    {
+      headers: {
+        Authorization: `Bearer ${landlordToken}`,
+      },
+      multipart: {
+        property: seed.property_id,
+        caption: 'E2E fixture',
+        is_main: 'true',
+        order: '0',
+        image: {
+          name: 'sample-property.jpg',
+          mimeType: 'image/jpeg',
+          buffer,
+        },
       },
     },
-  });
+  );
 
   const status = uploadResp.status();
   const bodyText = await uploadResp.text();
@@ -68,7 +78,10 @@ test('Fase G2 · landlord sube imagen real de propiedad', async ({ request }) =>
     status,
     body_preview: bodyText.slice(0, 200),
   });
-  expect(uploadResp.ok(), `upload 2xx (${status}) body=${bodyText.slice(0, 200)}`).toBe(true);
+  expect(
+    uploadResp.ok(),
+    `upload 2xx (${status}) body=${bodyText.slice(0, 200)}`,
+  ).toBe(true);
 
   const created = JSON.parse(bodyText);
   expect(created.property).toBe(seed.property_id);

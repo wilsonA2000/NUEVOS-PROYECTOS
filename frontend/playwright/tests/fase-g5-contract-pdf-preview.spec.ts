@@ -31,7 +31,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPORT_DIR = path.resolve(__dirname, '..', '..', 'e2e-logs', 'fase-g');
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = `${process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000'}/api/v1`;
 
 async function fetchPdf(
   accessToken: string,
@@ -41,9 +41,12 @@ async function fetchPdf(
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   const req = await apiRequest.newContext({ extraHTTPHeaders: headers });
   try {
-    const resp = await req.get(`${API_BASE}/contracts/${contractId}/preview-pdf/`, {
-      timeout: 30000,
-    });
+    const resp = await req.get(
+      `${API_BASE}/contracts/${contractId}/preview-pdf/`,
+      {
+        timeout: 30000,
+      },
+    );
     const body = await resp.body();
     return {
       status: resp.status(),
@@ -72,7 +75,10 @@ test('Fase G5 · preview-pdf devuelve %PDF- válido >10KB para landlord y tenant
 
   const landlordTokens = await getAuthToken(seed.landlord_email, seed.password);
   const tenantTokens = await getAuthToken(seed.tenant_email, seed.password);
-  const spTokens = await getAuthToken(seed.service_provider_email, seed.password);
+  const spTokens = await getAuthToken(
+    seed.service_provider_email,
+    seed.password,
+  );
   expect(landlordTokens, 'landlord login').toBeTruthy();
   expect(tenantTokens, 'tenant login').toBeTruthy();
   expect(spTokens, 'service_provider login').toBeTruthy();
@@ -80,11 +86,17 @@ test('Fase G5 · preview-pdf devuelve %PDF- válido >10KB para landlord y tenant
   // --- Landlord: debe recibir PDF válido ---
   logStep(ctx, 'landlord', 'preview-pdf', 'start');
   const landlordResp = await fetchPdf(landlordTokens!.access, contractId);
-  logStep(ctx, 'landlord', 'preview-pdf', landlordResp.status === 200 ? 'ok' : 'fail', {
-    status: landlordResp.status,
-    contentType: landlordResp.contentType,
-    size: landlordResp.body.length,
-  });
+  logStep(
+    ctx,
+    'landlord',
+    'preview-pdf',
+    landlordResp.status === 200 ? 'ok' : 'fail',
+    {
+      status: landlordResp.status,
+      contentType: landlordResp.contentType,
+      size: landlordResp.body.length,
+    },
+  );
   expect(landlordResp.status).toBe(200);
   expect(landlordResp.contentType).toContain('application/pdf');
   expect(landlordResp.body.slice(0, 5).toString('ascii')).toBe('%PDF-');
@@ -93,10 +105,16 @@ test('Fase G5 · preview-pdf devuelve %PDF- válido >10KB para landlord y tenant
   // --- Tenant: también ve la vista previa ---
   logStep(ctx, 'tenant', 'preview-pdf', 'start');
   const tenantResp = await fetchPdf(tenantTokens!.access, contractId);
-  logStep(ctx, 'tenant', 'preview-pdf', tenantResp.status === 200 ? 'ok' : 'fail', {
-    status: tenantResp.status,
-    size: tenantResp.body.length,
-  });
+  logStep(
+    ctx,
+    'tenant',
+    'preview-pdf',
+    tenantResp.status === 200 ? 'ok' : 'fail',
+    {
+      status: tenantResp.status,
+      size: tenantResp.body.length,
+    },
+  );
   expect(tenantResp.status).toBe(200);
   expect(tenantResp.contentType).toContain('application/pdf');
   expect(tenantResp.body.slice(0, 5).toString('ascii')).toBe('%PDF-');
@@ -105,12 +123,16 @@ test('Fase G5 · preview-pdf devuelve %PDF- válido >10KB para landlord y tenant
   // --- Sin autenticación: 401 ---
   logStep(ctx, 'system', 'preview-pdf-no-auth', 'start');
   const anonResp = await fetchPdf('', contractId);
-  logStep(ctx, 'system', 'preview-pdf-no-auth', 'ok', { status: anonResp.status });
+  logStep(ctx, 'system', 'preview-pdf-no-auth', 'ok', {
+    status: anonResp.status,
+  });
   expect(anonResp.status).toBe(401);
 
   // --- Usuario no-parte: 403 ---
   logStep(ctx, 'service_provider', 'preview-pdf-forbidden', 'start');
   const spResp = await fetchPdf(spTokens!.access, contractId);
-  logStep(ctx, 'service_provider', 'preview-pdf-forbidden', 'ok', { status: spResp.status });
+  logStep(ctx, 'service_provider', 'preview-pdf-forbidden', 'ok', {
+    status: spResp.status,
+  });
   expect(spResp.status).toBe(403);
 });

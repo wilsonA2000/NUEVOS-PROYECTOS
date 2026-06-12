@@ -37,7 +37,7 @@ export interface RunContext {
   stepCounter: { value: number };
 }
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = `${process.env.PLAYWRIGHT_BACKEND_URL || 'http://localhost:8000'}/api/v1`;
 
 export function createRunContext(baseDir: string): RunContext {
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
