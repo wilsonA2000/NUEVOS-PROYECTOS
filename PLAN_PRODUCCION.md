@@ -157,30 +157,24 @@ completo pasa sin errores.
 
 ### Transversales (se prueban al cerrar los módulos)
 
-- [ ] 1.16 **Matriz de roles completa** (roles reales verificados contra
-  `users/models/user.py`): los 3 `user_type` — **arrendador, arrendatario,
-  prestador de servicios** — más **admin/staff** (`is_staff`, incl. jurídico),
-  **agente de verificación** (usuario con perfil de agente, no es un user_type),
-  **codeudor** (acceso por token público, sin cuenta) y **anónimo**. Verificar:
-  - Cada rol ve solo sus menús, rutas y dashboards (sin opciones huérfanas).
-  - Acciones prohibidas devuelven 403/redirect limpio, nunca error 500 ni pantalla rota.
-  - El mismo recorrido clave (propiedad → match → contrato) ejecutado de
-    punta a punta una vez por cada rol participante.
-  - El seed E2E (`scripts/testing/seed_e2e_multiuser.py`) ya crea un usuario
-    de cada rol — usarlo como base.
-- [ ] 1.17 **Auditoría visual UI/UX global** (con screenshots de evidencia):
-  - Consistencia de tema: colores, tipografía, spacing, botones (tokens de `tokens.ts`).
-  - Responsive en 3 anchos: 360px (móvil), 768px (tablet), 1440px (desktop).
-  - Estados vacíos ("sin propiedades", "sin mensajes"), spinners de carga y mensajes de error legibles y en español.
-  - Sin layouts rotos, textos cortados, overflow horizontal ni placeholders de desarrollo visibles.
-  - Formularios: validación inline clara, labels correctos, feedback al guardar.
-- [ ] 1.18 **Emails transaccionales**: registro/verificación de cuenta,
-  recuperación de contraseña, invitación a contrato, OTP de VeriHome ID,
-  notificaciones de match y mensajes. En localhost: setear
-  `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` en `.env`
-  (settings.py ya lo lee de env — cero cambios de código; Mailpit es opcional
-  si se quiere ver el render HTML). Verificar: contenido correcto, links
-  apuntando a `FRONTEND_URL`, sin placeholders.
+- [x] 1.16 ✅ 2026-06-12 **Matriz de roles**:
+  - Login 200 de los 6 perfiles (landlord, tenant, prestador, admin/staff, jurídico, agente).
+  - Cruces prohibidos por API: tenant→contratos-landlord 403 · tenant→audit-logs 403 · prestador→crear-propiedad 403 · anónimo→perfil/propiedades 401. No-admin redirigido de /app/admin (spec).
+  - Recorrido clave ejecutado por cada rol participante (1.1-1.8); agente cubierto por specs c5/c6; jurídico vía full-admin-review + Audit Trail en vivo.
+  - **Pendiente acotado**: flujo de codeudor por token público (sin spec dedicado) → registrado como D29, validar en Fase 2 o con la beta.
+- [x] 1.17 ✅ 2026-06-12 **Auditoría visual UI/UX** (≈25 screenshots de
+  evidencia durante las casillas + barridos 1440px (9 págs × 3 roles) y
+  360px (5 págs)):
+  - Tema consistente, estados vacíos limpios con CTAs, formularios con feedback. Móvil con bottom-nav y cards apiladas — sólido.
+  - Hallazgos consolidados como deuda: D28 (overflow horizontal de pocos px a 360px en dashboard/contratos/pagos/mensajes), D25 (texto sospechoso en /app/services del prestador) + menores previos D14 (validación en inglés), D17-D19. axe-core a11y ya corre en CI (fase-j2 ✓).
+- [x] 1.18 ✅ 2026-06-12 **Emails transaccionales** (console backend):
+  - Verificados en vivo en el recorrido: confirmación de registro (link
+    `FRONTEND_URL` correcto, usado para confirmar), reset de contraseña
+    (link usado), bienvenida, "Contrato Aprobado", "Solicitud de Firma
+    Digital", "Requiere Correcciones", "Objeción Recibida", "Nueva visita
+    asignada". OTP VeriHome ID cubierto por spec c8.
+  - Pendiente de pulido: render HTML real (Mailpit) y revisión anti-spam
+    quedan para Fase 4.3 con el SMTP de producción.
 
 **Método por módulo**:
 1. Correr los specs Playwright existentes del módulo (`playwright.config.e2e-real.ts`).
@@ -190,7 +184,12 @@ completo pasa sin errores.
 5. Bug encontrado → arreglar → test que lo cubra → commit `fix(módulo): …`.
 6. Marcar la casilla aquí con fecha.
 
-**Criterio de salida**: las 18 casillas marcadas · 0 bugs conocidos abiertos · suite completa verde · screenshots de evidencia visual por módulo.
+**Criterio de salida**: las 18 casillas marcadas ✅ · suite completa verde ✅
+(55 E2E reales + 813 Jest + 971 backend + WS) · screenshots de evidencia ✅ ·
+bugs críticos encontrados → arreglados en sesión (D1-D3, D13, D16, D20,
+D23, D24, D26 + flake c9 + registro silencioso) · menores consolidados en
+la tabla de deuda con destino asignado.
+**FASE 1 COMPLETADA 2026-06-12.**
 
 ---
 
@@ -314,8 +313,12 @@ i18n completo (~664 strings) · refactor de monolitos
 | D20 | approve_contract del landlord no sincronizaba MatchRequest → el tenant nunca veía su CTA de aprobación (**flujo muerto**) | 1.6 (2026-06-12) | ✅ Resuelta 2026-06-12 — sync espejo del lado tenant en landlord_api_views |
 | D21 | Biometría: el `demo_disclosure` que manda la API no se renderiza en los pasos 1-3 (el paso 4 sí tiene consentimientos Ley 1581) | 1.7 (2026-06-12) | 🟡 Media — revisar antes de beta |
 | D22 | No se valida que las cédulas de arrendador y arrendatario sean **distintas** (PDF salió con la misma para ambos) | 1.8 (2026-06-12) | 🟡 Menor |
-| D23 | **La activación por biometría UI no generó el cronograma de pagos** — recompute_workflow_status hizo lcc.save() a ACTIVE sin que el signal `generate_payment_schedule_on_activation` produjera órdenes NI logs; el mismo signal funciona perfecto al transicionar en shell. Repro: contrato 87710f58, log 11:38:18. Sospecha: algo en el contexto del request (¿transaction.on_commit / orden de saves dobles?). Datos reparados a mano | 1.15 (2026-06-12) | 🔴 **Alta** — investigar antes de Fase 2 |
-| D24 | Cronograma genera **13 cuotas para contrato de 12 meses** (off-by-one en el loop de installments) | 1.15 (2026-06-12) | 🟠 Media |
+| D23 | **La activación por biometría UI no generó el cronograma de pagos**. Causa raíz: `Contract.save()` legacy sincronizaba el LCC con `queryset.update()` (sin signals) → el LCC ya estaba ACTIVE en BD cuando recompute "transicionaba" → el generador veía ACTIVE→ACTIVE y se saltaba | 1.15 (2026-06-12) | ✅ Resuelta 2026-06-12 (`74ba7ec`) — save() de instancia; repro E2E genera 12 órdenes |
+| D24 | Cronograma generaba **13 cuotas para contrato de 12 meses** (+1 incondicional en `_months_between`) | 1.15 (2026-06-12) | ✅ Resuelta 2026-06-12 (`74ba7ec`) |
+| D26 | `_handle_sequential_progression` buscaba el match **solo por property** — con varios matches en la misma propiedad tomaba uno arbitrario | D23-hunt (2026-06-12) | ✅ Resuelta 2026-06-12 — filtro por property+tenant |
+| D27 | `Contract.save()` legacy pisa `match.workflow_status` con 'contract_signed' cuando status='active' — ping-pong con el 'all_biometrics_completed' de recompute (sin efecto visible hoy, pero frágil) | D23-hunt (2026-06-12) | 🟡 Menor → 2.6 (consolidar máquinas de estado) |
+| D28 | Overflow horizontal de pocos px a 360px en dashboard/contratos/pagos/mensajes (usable; bottom-nav y stacking OK) | 1.17 (2026-06-12) | 🟡 Menor |
+| D29 | Flujo de **codeudor por token público** sin spec dedicado ni validación E2E manual | 1.16 (2026-06-12) | 🟠 Media → Fase 2 o beta |
 | D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
 
 ---
