@@ -258,11 +258,34 @@ Probar el stack de producción **sin comprar nada**: levantar
   logs de cada servicio, reiniciar servicios, restaurar backup, qué revisar
   si la app no responde. Para el dueño a las 11pm sin Claude en la sesión.
 
-### Estado 2026-06-12 (parcial — bloqueado por falta de Docker en la máquina)
+### Estado 2026-06-12 (preparado; ejecución pendiente de instalar Docker)
 
-**Docker NO está instalado** → el ensayo fiel del compose (PG+Redis+
-gunicorn+Daphne+nginx en contenedores) queda BLOQUEADO hasta instalarlo
-(decisión del dueño: `sudo apt install docker.io docker-compose-plugin`).
+**Para instalar Docker** (Ubuntu 24.04, requiere sudo del dueño):
+```bash
+sudo apt update && sudo apt install -y docker.io docker-compose-v2 && sudo usermod -aG docker $USER
+```
+Luego reabrir terminal (o `newgrp docker`) para que aplique el grupo.
+
+**Para correr el ensayo** (ya preparado, archivos creados):
+```bash
+docker compose -f docker-compose.local.yml --env-file .env.localprod up -d --build
+curl http://localhost/api/v1/   # backend vía nginx
+xdg-open http://localhost/       # frontend
+docker compose -f docker-compose.local.yml --env-file .env.localprod down
+```
+
+**2 BUGS CRÍTICOS ya encontrados (el deploy real habría fallado) y
+ARREGLADOS** antes siquiera de correr el contenedor, solo leyendo el
+compose contra el código (`d8b6427`):
+- **D-BD**: `database_config.py` leía `DB_*` pero compose/`.env.example`
+  pasan `DATABASE_*` → producción usaba HOST=localhost y NUNCA conectaba
+  a Postgres. + engine `django.db.backends.postgresql` caía a SQLite.
+  RESUELTO (`_db_var`/`_is_postgres`).
+- **D-frontend**: nginx montaba `./frontend/dist` (outDir viejo) → servía
+  un dir vacío. RESUELTO → `./staticfiles/frontend`.
+
+Archivos de ensayo creados: `docker-compose.local.yml`,
+`nginx/nginx.local.conf`, `.env.localprod` (gitignored).
 
 Validado SIN infra:
 - [x] 3.1 (parcial) — `Dockerfile.prod` y `docker-compose.prod.yml`
@@ -355,7 +378,10 @@ i18n completo (~664 strings) · refactor de monolitos
 | D33 | Registro con `fail_silently=False`: un hipo del SMTP de Gmail bloquea TODOS los registros con 500 | 2.9 (2026-06-12) | 🟠 Media — considerar cola/reintento en Fase 4 |
 | D34 | `GuaranteeDocumentUpload.tsx` huérfano (sin imports vivos) con upload SIMULADO (`Math.random()` éxito/fallo) — código muerto a borrar | 2.4 (2026-06-12) | 🟡 Menor (limpieza) |
 | D35 | `Dockerfile.prod` usa Python 3.11 (local 3.12) y corre collectstatic en build-time (frágil con hardening 2.2) — verificar al ensayar el compose | 3.1 (2026-06-12) | 🟠 Media → al instalar Docker |
-| D36 | **BLOQUEANTE Fase 3**: Docker no instalado en la máquina → ensayo del compose pendiente | 3 (2026-06-12) | 🔴 Requiere acción del dueño |
+| D36 | **BLOQUEANTE Fase 3**: Docker no instalado → ensayo del compose pendiente. Todo preparado (compose.local + nginx.local + .env.localprod) | 3 (2026-06-12) | 🔴 Requiere `apt install` del dueño |
+| D-BD | **CRÍTICO**: database_config leía DB_* pero compose pasa DATABASE_* → prod nunca conectaba a Postgres (HOST=localhost). + engine path completo caía a SQLite | 3 (2026-06-12) | ✅ Resuelta 2026-06-12 (`d8b6427`) |
+| D-FE | docker-compose.prod: nginx montaba ./frontend/dist (outDir viejo) → dir vacío | 3 (2026-06-12) | ✅ Resuelta 2026-06-12 (`d8b6427`) |
+| D37 | docker-compose.prod pasa solo un SUBCONJUNTO de env al backend (faltan EMAIL_*, SENTRY_DSN, MAPBOX, SECURE_*) → en prod usarían defaults; debería usar `env_file` (como el compose.local) | 3 (2026-06-12) | 🟠 Media → antes del go-live (Fase 4) |
 | D25 | `/app/services` autenticado renderiza la **landing pública de marketing** (con navbar "Iniciar Sesión/Registrarse") embebida dentro del layout de la app — doble navbar, confuso para un usuario logueado. (No era NaN: falso positivo de la heurística) | 1.9 (2026-06-12) | 🟠 Media — el prestador debería ver su panel de servicios, no la landing |
 | D34 | (resuelta) GuaranteeDocumentUpload.tsx borrado | 2.4 (2026-06-12) | ✅ Resuelta 2026-06-12 (`197ad00`) |
 | D19 | (resuelta) status crudo en dashboard tenant | 1.6 | ✅ Resuelta 2026-06-12 (`197ad00`) — mapa workflowStatusLabel |
