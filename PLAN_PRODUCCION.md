@@ -331,7 +331,7 @@ i18n completo (~664 strings) · refactor de monolitos
 | D8 | 3 modelos de contrato comparten UUID sin constraint | Auditoría 2026-06-11 | 🔴 Abierta → 2.6 |
 | D9 | Fallbacks Redis/Channels/PG degradan en silencio | Auditoría 2026-06-11 | 🔴 Abierta → 2.2 |
 | D10 | Monolitos: `contracts/api_views.py` ~4200 líneas, `pdf_generator.py` ~3700 | Histórico | ⏸️ Post-launch (Fase 5) |
-| D11 | `/app/profile` dispara **4 GETs idénticos** a `verification/onboarding/me/` en cada carga (re-render/StrictMode sin dedupe) | 1.2 (2026-06-12) | 🟡 Menor |
+| D11 | `/app/profile` dispara 4 GETs a `onboarding/me`. Diagnóstico: StrictMode duplica (**solo en dev** → en prod son 2) × 2 consumidores independientes (banner + VeriHomeIDCard). Fix limpio = React Query/context compartido (refactor, requiere decisión) | 1.2 (2026-06-12) | 🟡 Menor (en prod solo 2 GETs) |
 | D12 | `/dashboard/stats/` no expone **series temporales** (ingresos/gastos por día) — el gráfico Flujo de Caja del landlord queda en ceros hasta tener endpoint real | D3 (2026-06-12) | 🔴 Abierta → 1.11 o Fase 5 |
 | D13 | PropertyForm: dirección tecleada a mano no llegaba a `formData.address` → 400 | 1.3 (2026-06-12) | ✅ Resuelta 2026-06-12 — setValue en onChange |
 | D14 | PropertyForm usa validación nativa del browser → tooltips "Please fill out this field" **en inglés** | 1.3 (2026-06-12) | 🟡 Menor → 1.17 auditoría visual |
@@ -356,7 +356,9 @@ i18n completo (~664 strings) · refactor de monolitos
 | D34 | `GuaranteeDocumentUpload.tsx` huérfano (sin imports vivos) con upload SIMULADO (`Math.random()` éxito/fallo) — código muerto a borrar | 2.4 (2026-06-12) | 🟡 Menor (limpieza) |
 | D35 | `Dockerfile.prod` usa Python 3.11 (local 3.12) y corre collectstatic en build-time (frágil con hardening 2.2) — verificar al ensayar el compose | 3.1 (2026-06-12) | 🟠 Media → al instalar Docker |
 | D36 | **BLOQUEANTE Fase 3**: Docker no instalado en la máquina → ensayo del compose pendiente | 3 (2026-06-12) | 🔴 Requiere acción del dueño |
-| D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
+| D25 | `/app/services` autenticado renderiza la **landing pública de marketing** (con navbar "Iniciar Sesión/Registrarse") embebida dentro del layout de la app — doble navbar, confuso para un usuario logueado. (No era NaN: falso positivo de la heurística) | 1.9 (2026-06-12) | 🟠 Media — el prestador debería ver su panel de servicios, no la landing |
+| D34 | (resuelta) GuaranteeDocumentUpload.tsx borrado | 2.4 (2026-06-12) | ✅ Resuelta 2026-06-12 (`197ad00`) |
+| D19 | (resuelta) status crudo en dashboard tenant | 1.6 | ✅ Resuelta 2026-06-12 (`197ad00`) — mapa workflowStatusLabel |
 
 ---
 

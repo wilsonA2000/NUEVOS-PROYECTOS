@@ -1076,7 +1076,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
               {error}
             </Alert>
           )}
-          <form onSubmit={handleSubmit(onFormSubmit)}>
+          {/* noValidate: la validación nativa del browser muestra
+              tooltips en inglés ("Please fill out this field") y se
+              dispara antes que react-hook-form. RHF (con sus helperText
+              en español) + la validación del backend cubren todo (D14). */}
+          <form onSubmit={handleSubmit(onFormSubmit)} noValidate>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Tooltip
