@@ -1215,6 +1215,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                     value={addressInput}
                     onChange={e => {
                       setAddressInput(e.target.value);
+                      // Sin esto, la dirección tecleada a mano nunca
+                      // llegaba a formData.address (solo se seteaba al
+                      // elegir sugerencia o capturar en el mapa) y el
+                      // backend respondía 400 con el campo lleno.
+                      setValue('address', e.target.value);
                       setLocationCaptured(false);
                     }}
                     fullWidth

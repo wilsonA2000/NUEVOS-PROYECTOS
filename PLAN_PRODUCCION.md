@@ -110,7 +110,11 @@ completo pasa sin errores.
   - Spec `fase-l1` 1/1 real (GET/PATCH profile, avatar 400 sin file, resume CRUD, landlord ve resume del tenant, prestador 403).
   - UI real: perfil muestra los datos del registro, edición persiste tras reload (PATCH 200); resume: estado vacío limpio → crear → llenar → guardar → completitud 10%→90% persistente. Salarios en COP ✓.
   - Visual desktop+móvil OK. Deuda nueva: D11 (4 GETs repetidos a `onboarding/me` por carga de página).
-- [ ] 1.3 **Propiedades**: CRUD completo, subida de imágenes, búsqueda y filtros, mapa (Mapbox), vista pública vs autenticada.
+- [x] 1.3 ✅ 2026-06-12 **Propiedades**:
+  - Specs: properties 4/4 (UI) · fase-g2 imagen real · fase-i2 búsqueda real (en los 55 E2E).
+  - UI real: creación completa con imagen → 201 + modal de éxito profesional; propiedad verificada por API (status available, $1.800.000 COP, imagen 1). Autocomplete de direcciones (Nominatim/Mapbox) funcionando.
+  - **Bug D13 ARREGLADO**: la dirección tecleada a mano nunca llegaba a `formData.address` (solo se seteaba al elegir sugerencia o capturar en mapa) → backend 400 con el campo lleno. Fix: sync `setValue('address')` en onChange.
+  - Deudas nuevas: D14 (validación nativa muestra "Please fill out this field" en inglés), D15 (`lot_area` obligatorio incluso para apartamentos).
 - [ ] 1.4 **Matching**: solicitud de match, aceptar/rechazar, dashboard de matches, estados del workflow, notificaciones generadas.
 - [ ] 1.5 **Mensajería**: threads, envío/recepción, tiempo real por WebSocket (requiere Daphne), contextos (match/contrato/orden).
 - [ ] 1.6 **Contratos LCC — workflow completo**: crear borrador → invitar tenant → datos tenant → objeciones → negociación → revisión jurídica admin → aprobación → listo para biometría. Incluye `check_contract_sync` y el **flujo de codeudor por token público** (`/codeudor-auth/:token`).
@@ -273,6 +277,9 @@ i18n completo (~664 strings) · refactor de monolitos
 | D10 | Monolitos: `contracts/api_views.py` ~4200 líneas, `pdf_generator.py` ~3700 | Histórico | ⏸️ Post-launch (Fase 5) |
 | D11 | `/app/profile` dispara **4 GETs idénticos** a `verification/onboarding/me/` en cada carga (re-render/StrictMode sin dedupe) | 1.2 (2026-06-12) | 🟡 Menor |
 | D12 | `/dashboard/stats/` no expone **series temporales** (ingresos/gastos por día) — el gráfico Flujo de Caja del landlord queda en ceros hasta tener endpoint real | D3 (2026-06-12) | 🔴 Abierta → 1.11 o Fase 5 |
+| D13 | PropertyForm: dirección tecleada a mano no llegaba a `formData.address` → 400 | 1.3 (2026-06-12) | ✅ Resuelta 2026-06-12 — setValue en onChange |
+| D14 | PropertyForm usa validación nativa del browser → tooltips "Please fill out this field" **en inglés** | 1.3 (2026-06-12) | 🟡 Menor → 1.17 auditoría visual |
+| D15 | PropertyForm exige `lot_area` (área de lote) **incluso para apartamentos** | 1.3 (2026-06-12) | 🟡 Menor |
 
 ---
 
