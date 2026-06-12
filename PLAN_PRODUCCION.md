@@ -319,6 +319,7 @@ i18n completo (~664 strings) · refactor de monolitos
 | D27 | `Contract.save()` legacy pisa `match.workflow_status` con 'contract_signed' cuando status='active' — ping-pong con el 'all_biometrics_completed' de recompute (sin efecto visible hoy, pero frágil) | D23-hunt (2026-06-12) | 🟡 Menor → 2.6 (consolidar máquinas de estado) |
 | D28 | Overflow horizontal de pocos px a 360px en dashboard/contratos/pagos/mensajes (usable; bottom-nav y stacking OK) | 1.17 (2026-06-12) | 🟡 Menor |
 | D29 | Flujo de **codeudor por token público** sin spec dedicado ni validación E2E manual | 1.16 (2026-06-12) | 🟠 Media → Fase 2 o beta |
+| D30 | WebSocket en CI: el mensaje no propaga al receptor en el runner (spec g1 verde en local con daphne-runserver; skip condicional `process.env.CI`). Tuning ASGI/channel-layer del workflow: 2-3 sesiones | CI (2026-06-12) | 🟠 Media → Fase 5 (local + prod-local Fase 3 lo cubren) |
 | D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
 
 ---

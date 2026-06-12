@@ -92,10 +92,15 @@ function openAuthenticatedWs(url: string, token: string) {
   return { ws, messages, open, waitFor };
 }
 
-// TODO(CI): flake WS en CI — el mensaje no llega al receptor en ventana de
-// timeout (Mensajes recibidos: []). En local funciona. Sospecha: channel-layer
-// Redis en CI tarda en propagar o Daphne no está sirviendo ws:// en runserver.
-// Re-habilitar cuando se fije el arranque ASGI o se migre a daphne en CI.
+// Skip SOLO en CI (D30): el mensaje no propaga al receptor en el runner
+// ("Mensajes recibidos: []") — tuning de infra ASGI/channel-layer en CI
+// pendiente (2-3 sesiones, ver PLAN_PRODUCCION deuda D30). En LOCAL el
+// spec corre y pasa (validado 2026-06-12 con daphne-runserver, 3.8s):
+// no perder esa cobertura volviendo al skip incondicional.
+test.skip(
+  !!process.env.CI,
+  'WS en CI requiere tuning de infra (D30) — verde en local',
+);
 test('Fase G1 · WebSocket entrega mensaje en tiempo real al destinatario', async () => {
   const ctx = createRunContext(REPORT_DIR);
   const seed = runSeed('contract_active');
