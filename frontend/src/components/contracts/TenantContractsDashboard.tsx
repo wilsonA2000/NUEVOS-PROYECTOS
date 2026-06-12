@@ -320,6 +320,25 @@ const TenantContractsDashboard: React.FC = () => {
     return actions;
   };
 
+  // Etiqueta legible del workflow_status del match (D19): el fallback
+  // mostraba el valor crudo ("documents_approved") al arrendatario.
+  const WORKFLOW_STATUS_LABELS: Record<string, string> = {
+    visit_pending: 'Visita pendiente',
+    visit_scheduled: 'Visita programada',
+    documents_pending: 'Documentos pendientes',
+    documents_approved: 'Documentos aprobados',
+    contract_pending_tenant_approval: 'Esperando tu aprobación',
+    contract_approved_by_tenant: 'Aprobado por ti',
+    pending_tenant_biometric: 'Tu autenticación biométrica',
+    pending_guarantor_biometric: 'Autenticación del codeudor',
+    pending_landlord_biometric: 'Autenticación del arrendador',
+    all_biometrics_completed: 'Contrato activo',
+    contract_signed: 'Contrato firmado',
+  };
+  const workflowStatusLabel = (status?: string): string =>
+    (status && WORKFLOW_STATUS_LABELS[status]) ||
+    (status ? status.replace(/_/g, ' ') : 'En proceso');
+
   // Obtener el progreso del contrato como porcentaje
   const getContractProgress = (
     contract: LandlordControlledContractData,
@@ -858,7 +877,9 @@ const TenantContractsDashboard: React.FC = () => {
                           </>
                         ) : (
                           <Chip
-                            label={`Etapa ${process.workflow_stage}: ${process.status}`}
+                            label={`Etapa ${process.workflow_stage}: ${workflowStatusLabel(
+                              process.workflow_status || process.status,
+                            )}`}
                             color='primary'
                             variant='outlined'
                             sx={{ mb: 1 }}
