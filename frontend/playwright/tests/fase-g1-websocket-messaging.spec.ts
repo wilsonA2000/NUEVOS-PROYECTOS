@@ -96,7 +96,7 @@ function openAuthenticatedWs(url: string, token: string) {
 // timeout (Mensajes recibidos: []). En local funciona. Sospecha: channel-layer
 // Redis en CI tarda en propagar o Daphne no está sirviendo ws:// en runserver.
 // Re-habilitar cuando se fije el arranque ASGI o se migre a daphne en CI.
-test.skip('Fase G1 · WebSocket entrega mensaje en tiempo real al destinatario', async () => {
+test('Fase G1 · WebSocket entrega mensaje en tiempo real al destinatario', async () => {
   const ctx = createRunContext(REPORT_DIR);
   const seed = runSeed('contract_active');
   logStep(ctx, 'system', 'seed', 'ok', { lcc_id: seed.lcc_id });

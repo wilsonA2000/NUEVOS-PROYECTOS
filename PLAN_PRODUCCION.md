@@ -121,7 +121,11 @@ completo pasa sin errores.
   - **Bug D16 ARREGLADO**: fecha de mudanza opcional vacía viajaba como `''` → 400 del DateField; ahora los opcionales vacíos se omiten del payload.
   - Deuda nueva: D17 (contadores de Solicitudes quedan stale tras aceptar; la lista sí se refresca).
   - El match aceptado queda como insumo para el recorrido de contratos (1.6).
-- [ ] 1.5 **Mensajería**: threads, envío/recepción, tiempo real por WebSocket (requiere Daphne), contextos (match/contrato/orden).
+- [x] 1.5 ✅ 2026-06-12 **Mensajería**:
+  - **WebSocket en tiempo real VERDE**: spec `fase-g1` des-skippeado y pasando — mensaje por API → entrega instantánea `new_message` al destinatario conectado (runserver ya sirve WS: daphne primero en INSTALLED_APPS).
+  - Threads por contexto: `fase-e2` 1/1 (en los 55 E2E).
+  - UI: inbox carga y muestra el mensaje automático de aceptación del match (integración matching→mensajería ✓, con código y compatibilidad).
+  - Deuda nueva: D18 (mensaje de sistema renderiza "Sin asunto / De: Usuario / Fecha desconocida" y el contador de no-leídos no cuadra con el badge "Nuevo").
 - [ ] 1.6 **Contratos LCC — workflow completo**: crear borrador → invitar tenant → datos tenant → objeciones → negociación → revisión jurídica admin → aprobación → listo para biometría. Incluye `check_contract_sync` y el **flujo de codeudor por token público** (`/codeudor-auth/:token`).
 - [ ] 1.7 **Biometría 5 pasos**: cámara facial, documento (OCR), combinado, voz, firma. En modo demo provider (sin AWS) y verificación del disclosure Ley 1581.
 - [ ] 1.8 **PDF del contrato**: generación, contenido correcto (los 12 fixes del 31-may), preview, descarga por ambas partes, permisos.
@@ -287,6 +291,7 @@ i18n completo (~664 strings) · refactor de monolitos
 | D15 | PropertyForm exige `lot_area` (área de lote) **incluso para apartamentos** | 1.3 (2026-06-12) | 🟡 Menor |
 | D16 | MatchRequestForm: fecha opcional vacía viajaba como `''` → 400 | 1.4 (2026-06-12) | ✅ Resuelta 2026-06-12 — opcionales vacíos se omiten del payload |
 | D17 | Contadores de Solicitudes (Pendientes/Aceptadas) no se refrescan tras aceptar — la lista sí | 1.4 (2026-06-12) | 🟡 Menor |
+| D18 | Inbox: mensajes de sistema muestran "Sin asunto / De: Usuario / Fecha desconocida"; contador no-leídos (0) desincronizado del badge "Nuevo" | 1.5 (2026-06-12) | 🟡 Menor |
 
 ---
 
