@@ -36,7 +36,6 @@ from .serializers import (
 from rest_framework.decorators import api_view, permission_classes
 from django.core.mail import send_mail
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils import timezone
@@ -1045,10 +1044,6 @@ class SimpleRegistrationView(APIView):
                     f"📧 EmailAddress creada: {email_address}, Primary: {email_address.primary}, Verified: {email_address.verified}"
                 )
 
-                # Verificar imports antes de llamar la función
-                print(
-                    f"🔍 send_email_confirmation import exitoso: {send_email_confirmation}"
-                )
                 print(f"🔍 User ID: {user.id}, Email: {user.email}")
                 print(f"🔍 Request object: {request}")
 
@@ -1189,7 +1184,7 @@ class UserRegistrationView(APIView):
                         defaults={"primary": True, "verified": False},
                     )
                     try:
-                        send_email_confirmation(request, user, signup=True)
+                        email_address.send_confirmation(request, signup=True)
                         print(f"✅ Email de confirmación enviado a {user.email}")
                     except Exception as e:
                         print(f"❌ Error enviando email de confirmación: {e}")
@@ -1546,7 +1541,7 @@ class ResendEmailConfirmationView(APIView):
                 )
 
             # Enviar nuevo email de confirmación
-            send_email_confirmation(request, user, signup=True)
+            email_address.send_confirmation(request, signup=True)
 
             return Response(
                 {

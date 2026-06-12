@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 from django.test import RequestFactory
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -47,7 +46,7 @@ class Command(BaseCommand):
 
             # Enviar email de confirmación
             try:
-                send_email_confirmation(request, user, signup=True)
+                email_address.send_confirmation(request, signup=True)
                 self.stdout.write(
                     self.style.SUCCESS(
                         "[OK] Email de confirmación reenviado exitosamente"
