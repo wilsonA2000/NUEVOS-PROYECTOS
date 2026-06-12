@@ -115,7 +115,12 @@ completo pasa sin errores.
   - UI real: creación completa con imagen → 201 + modal de éxito profesional; propiedad verificada por API (status available, $1.800.000 COP, imagen 1). Autocomplete de direcciones (Nominatim/Mapbox) funcionando.
   - **Bug D13 ARREGLADO**: la dirección tecleada a mano nunca llegaba a `formData.address` (solo se seteaba al elegir sugerencia o capturar en mapa) → backend 400 con el campo lleno. Fix: sync `setValue('address')` en onChange.
   - Deudas nuevas: D14 (validación nativa muestra "Please fill out this field" en inglés), D15 (`lot_area` obligatorio incluso para apartamentos).
-- [ ] 1.4 **Matching**: solicitud de match, aceptar/rechazar, dashboard de matches, estados del workflow, notificaciones generadas.
+- [x] 1.4 ✅ 2026-06-12 **Matching** — flujo núcleo del marketplace validado E2E real por UI:
+  - Tenant: detalle de propiedad → "Enviar Solicitud" → wizard 4 pasos (personal/financiera/preferencias/mensaje) → POST 201.
+  - Landlord: Solicitudes → ve la solicitud con datos del tenant → Aceptar → 200 `match_code MT-MNWDGC5U`, status accepted.
+  - **Bug D16 ARREGLADO**: fecha de mudanza opcional vacía viajaba como `''` → 400 del DateField; ahora los opcionales vacíos se omiten del payload.
+  - Deuda nueva: D17 (contadores de Solicitudes quedan stale tras aceptar; la lista sí se refresca).
+  - El match aceptado queda como insumo para el recorrido de contratos (1.6).
 - [ ] 1.5 **Mensajería**: threads, envío/recepción, tiempo real por WebSocket (requiere Daphne), contextos (match/contrato/orden).
 - [ ] 1.6 **Contratos LCC — workflow completo**: crear borrador → invitar tenant → datos tenant → objeciones → negociación → revisión jurídica admin → aprobación → listo para biometría. Incluye `check_contract_sync` y el **flujo de codeudor por token público** (`/codeudor-auth/:token`).
 - [ ] 1.7 **Biometría 5 pasos**: cámara facial, documento (OCR), combinado, voz, firma. En modo demo provider (sin AWS) y verificación del disclosure Ley 1581.
@@ -280,6 +285,8 @@ i18n completo (~664 strings) · refactor de monolitos
 | D13 | PropertyForm: dirección tecleada a mano no llegaba a `formData.address` → 400 | 1.3 (2026-06-12) | ✅ Resuelta 2026-06-12 — setValue en onChange |
 | D14 | PropertyForm usa validación nativa del browser → tooltips "Please fill out this field" **en inglés** | 1.3 (2026-06-12) | 🟡 Menor → 1.17 auditoría visual |
 | D15 | PropertyForm exige `lot_area` (área de lote) **incluso para apartamentos** | 1.3 (2026-06-12) | 🟡 Menor |
+| D16 | MatchRequestForm: fecha opcional vacía viajaba como `''` → 400 | 1.4 (2026-06-12) | ✅ Resuelta 2026-06-12 — opcionales vacíos se omiten del payload |
+| D17 | Contadores de Solicitudes (Pendientes/Aceptadas) no se refrescan tras aceptar — la lista sí | 1.4 (2026-06-12) | 🟡 Menor |
 
 ---
 

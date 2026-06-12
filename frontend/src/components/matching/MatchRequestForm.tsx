@@ -202,7 +202,16 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
 
   const onFormSubmit = async (data: MatchRequestFormData) => {
     try {
-      await onSubmit(data);
+      // Los campos opcionales vacíos no deben viajar como '' — el
+      // backend rechaza '' en DateField ("Fecha con formato erróneo")
+      // aunque el campo sea opcional.
+      const payload = { ...data };
+      (
+        ['preferred_move_in_date', 'tenant_phone', 'tenant_email'] as const
+      ).forEach(k => {
+        if (payload[k] === '') delete payload[k];
+      });
+      await onSubmit(payload);
       setSubmitStatus({
         type: 'success',
         message:
