@@ -80,9 +80,32 @@ completo pasa sin errores.
   `scripts/testing/seed_e2e_multiuser.py` (crea landlord, tenant, codeudor,
   admin, prestador y agente de verificación).
 
+> **Nota de entorno (2026-06-12)**: en la máquina del dueño los puertos
+> 8000 y 5173 están ocupados permanentemente por otro proyecto (Tutelas
+> Manager). VeriHome local corre con backend **8001** y Vite **5174**:
+> `python manage.py runserver 0.0.0.0:8001` ·
+> `VITE_BACKEND_URL=http://127.0.0.1:8001 npx vite --port 5174 --strictPort`
+> y Playwright con `PLAYWRIGHT_BASE_URL=http://localhost:5174`
+> `PLAYWRIGHT_BACKEND_URL=http://localhost:8001`. CI sigue en 8000/5174.
+
 ### Orden de validación (viaje de usuario)
 
-- [ ] 1.1 **Autenticación**: registro landlord/tenant/service_provider, verificación email, login, refresh token, logout, recuperación de contraseña, permisos por rol.
+- [x] 1.1 ✅ 2026-06-12 **Autenticación** — validación completa:
+  - Specs UI 24/24 (auth + navigation + public-pages) contra app real.
+  - Recorrido real E2E: registro con código de entrevista → email de
+    confirmación (console backend) → confirmación → login → dashboard →
+    logout → forgot password → reset → login con contraseña nueva.
+  - Login verificado para los 5 roles sembrados (200 todos).
+  - Visual desktop + móvil (Pixel 5): login, registro, forgot, dashboard.
+  - **Bug encontrado y ARREGLADO**: el submit del registro fallaba en
+    silencio total — campos `required` dentro de acordeones colapsados
+    no son focusables y la validación nativa cancelaba el submit sin
+    mostrar nada. Fix: `noValidate` en el form (la validación JS con
+    mensajes ya existía pero nunca corría) + scroll automático al Alert
+    de error (se renderiza arriba y el botón está abajo).
+  - **Bugs anotados para 1.11 (dashboard)**: "Pagos del mes 0,00 €"
+    (moneda EUR en vez de COP) · "Ocupación NaN%" sin datos · gráfico
+    "Flujo de Caja" muestra datos fake para usuario nuevo sin contratos.
 - [ ] 1.2 **Perfil + hoja de vida**: edición de perfil, avatar, completitud, resume del tenant, visibilidad entre roles.
 - [ ] 1.3 **Propiedades**: CRUD completo, subida de imágenes, búsqueda y filtros, mapa (Mapbox), vista pública vs autenticada.
 - [ ] 1.4 **Matching**: solicitud de match, aceptar/rechazar, dashboard de matches, estados del workflow, notificaciones generadas.

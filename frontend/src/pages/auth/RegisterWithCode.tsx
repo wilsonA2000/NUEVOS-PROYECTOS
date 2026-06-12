@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Card,
@@ -145,6 +145,18 @@ export const RegisterWithCode: React.FC = () => {
 
   // Estados generales
   const [error, setError] = useState<string>('');
+  const errorAlertRef = useRef<HTMLDivElement | null>(null);
+
+  // El Alert de error vive arriba del formulario; quien pulsa "Crear
+  // cuenta" está al fondo y no lo ve — scrollearlo a la vista.
+  useEffect(() => {
+    if (error) {
+      errorAlertRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [error]);
   const [isLoading, setIsLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -725,9 +737,13 @@ export const RegisterWithCode: React.FC = () => {
           </Card>
 
           {/* Formulario de registro */}
-          <form onSubmit={handleSubmit}>
+          {/* noValidate: los campos required dentro de acordeones
+              colapsados no son focusables y la validación nativa
+              cancela el submit en silencio. La validación real (con
+              mensajes) vive en handleSubmit. */}
+          <form onSubmit={handleSubmit} noValidate>
             {error && (
-              <Alert severity='error' sx={{ mb: 3 }}>
+              <Alert ref={errorAlertRef} severity='error' sx={{ mb: 3 }}>
                 {error}
               </Alert>
             )}
