@@ -258,6 +258,35 @@ Probar el stack de producción **sin comprar nada**: levantar
   logs de cada servicio, reiniciar servicios, restaurar backup, qué revisar
   si la app no responde. Para el dueño a las 11pm sin Claude en la sesión.
 
+### Estado 2026-06-12 (parcial — bloqueado por falta de Docker en la máquina)
+
+**Docker NO está instalado** → el ensayo fiel del compose (PG+Redis+
+gunicorn+Daphne+nginx en contenedores) queda BLOQUEADO hasta instalarlo
+(decisión del dueño: `sudo apt install docker.io docker-compose-plugin`).
+
+Validado SIN infra:
+- [x] 3.1 (parcial) — `Dockerfile.prod` y `docker-compose.prod.yml`
+  revisados; `docker-entrypoint.sh` sólido (espera BD/Redis, migra,
+  collectstatic, superuser). **Hallazgos D35**: usa Python **3.11**
+  (local es 3.12; verificar deps actualizadas Pillow12/cryptography46
+  compilan) y `collectstatic` en build-time del Dockerfile ahora falla
+  sin config de BD por el hardening 2.2 (lo salva `|| true`, pero el
+  entrypoint lo re-ejecuta bien).
+- [x] 3.2 ✅ **Migrate desde cero validado**: `makemigrations --check`
+  → "No changes", sin conflictos ni leaf múltiples; la suite (971 tests)
+  crea BD virgen y aplica TODAS las migraciones en cada run. El camino
+  "producción nace vacía" está cubierto. Seed prod = `init_verihome.sh`
+  + `seed_subscription_plans` (NO el seed E2E).
+- [x] 3.5 (parcial) — Checklist de seguridad: cookies/SSL/HSTS/CSRF
+  correctamente gateados por `DEBUG` en settings (prod = default seguro).
+- [x] 3.7 ✅ **`docs/RUNBOOK.md`** escrito (arranque, logs, troubleshooting,
+  backups, rollback).
+- [x] Build de producción del frontend OK (88 entradas PWA → `staticfiles/frontend/`).
+
+Pendiente (requiere Docker o PG/Redis local):
+- [ ] 3.1 levantar el compose · 3.3 smoke E2E contra stack prod ·
+  3.4 WS/Celery/backup en contenedor · 3.6 drill backup/restore.
+
 **Criterio de salida**: la app corre completa en modo producción local y el smoke E2E pasa. **En este punto la app está lista — lo único que falta es dónde ponerla.**
 
 ---
@@ -325,6 +354,8 @@ i18n completo (~664 strings) · refactor de monolitos
 | D32 | Login revela "email no existe" vs "password incorrecto" (**user enumeration**) — el front usa `error_type:user_not_found` para sugerir registro | 2.8 (2026-06-12) | 🟠 Media — DECISIÓN DEL DUEÑO (seguridad vs UX; mitigado por registro-por-invitación) |
 | D33 | Registro con `fail_silently=False`: un hipo del SMTP de Gmail bloquea TODOS los registros con 500 | 2.9 (2026-06-12) | 🟠 Media — considerar cola/reintento en Fase 4 |
 | D34 | `GuaranteeDocumentUpload.tsx` huérfano (sin imports vivos) con upload SIMULADO (`Math.random()` éxito/fallo) — código muerto a borrar | 2.4 (2026-06-12) | 🟡 Menor (limpieza) |
+| D35 | `Dockerfile.prod` usa Python 3.11 (local 3.12) y corre collectstatic en build-time (frágil con hardening 2.2) — verificar al ensayar el compose | 3.1 (2026-06-12) | 🟠 Media → al instalar Docker |
+| D36 | **BLOQUEANTE Fase 3**: Docker no instalado en la máquina → ensayo del compose pendiente | 3 (2026-06-12) | 🔴 Requiere acción del dueño |
 | D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
 
 ---
