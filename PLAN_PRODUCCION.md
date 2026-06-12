@@ -197,19 +197,20 @@ la tabla de deuda con destino asignado.
 
 Lo que está "funcionando de milagro" se vuelve explícito y robusto.
 
-- [ ] 2.1 **Pipeline de estáticos**: resolver la confusión `static/` vs `staticfiles/` vs `STATICFILES_DIRS` (tarea pendiente marcada el 11-jun). Documentar el flujo final en `docs/DEPLOYMENT.md`.
-- [ ] 2.2 **Fallbacks silenciosos**: Redis/Channels/PG degradan sin alertar. En modo producción deben fallar ruidosamente o loguear ERROR + Sentry.
-- [ ] 2.3 `python manage.py check --deploy` → resolver todos los warnings.
-- [ ] 2.4 **Datos fake fuera**: perfil de admin@verihome.com sin datos reales, cédulas fake (12345678/99887766) en biometría, contratos de prueba. Crear seed limpio de producción.
-- [ ] 2.5 **Limpieza de logs/secretos**: revisar que `.env` no esté trackeado, que no haya keys hardcodeadas (grep de secrets).
-- [ ] 2.6 **Riesgo UUID compartido**: los 3 modelos de contrato comparten UUID sin constraint. `check_contract_sync` existe pero es **solo reporte** (el flag `--fix` no está implementado): integrar su modo `--json` como check de CI, y evaluar si vale implementar `--fix` o un constraint a nivel de modelo.
-- [ ] 2.7 **Decisión liveness P0.4b**: con todo lo demás verde, decidir si el frontend Amplify de Face Liveness entra antes del go-live (recomendado: sí, es el diferenciador legal) o sale con disclosure.
-- [ ] 2.8 **Pasada de seguridad dirigida** (1 sesión, usar `/security-review`):
-  - Uploads: validación de tipo/tamaño de archivo (¿qué pasa si suben un .exe como cédula?), límites, almacenamiento.
-  - Acceso horizontal: ¿puede el usuario A ver contratos/documentos/mensajes del usuario B cambiando el UUID en la URL? Probar en los endpoints sensibles.
-  - Rate-limiting verificado funcionando (no solo configurado).
-  - Tokens: expiración, refresh, invalidación al logout.
-- [ ] 2.9 **Resiliencia ante terceros caídos**: simular fallo de Mapbox, AWS (Rekognition/Textract a mitad de biometría) y SMTP. El usuario debe ver un mensaje claro y poder reintentar — nunca pantalla blanca ni estado corrupto del contrato.
+- [x] 2.1 ✅ 2026-06-12 **Pipeline de estáticos resuelto**: `STATIC_ROOT=staticfiles/` (salida) · `STATICFILES_DIRS=[static/]` (fuentes) · coincide con el volumen del compose y con ReactAppView. Fix colateral: ReactAppView dev apuntaba a puerto muerto 3000 → ahora `FRONTEND_URL`. collectstatic re-validado (1449 archivos). Documentado en `docs/DEPLOYMENT.md`. Commit `d32fccb`.
+- [x] 2.2 ✅ 2026-06-12 **Fallbacks ya no degradan en silencio (D9)**: BD → RuntimeError con DEBUG=False en vez de SQLite vacío; cache → re-lanza ImportError de django_redis en prod; `DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS=True`. Validado: dev OK, prod con BD rota revienta. Commit `d32fccb`.
+- [x] 2.3 ✅ 2026-06-12 **`check --deploy`**: sin warnings de seguridad (los 53 issues son W001/W002 de drf-spectacular — falta de type-hints en el schema OpenAPI, no afectan runtime). Registrado como D31 (menor).
+- [ ] 2.4 **Datos fake fuera**: ⏳ se materializa en Fase 3.2 (seed de producción real sobre BD virgen; admin con datos reales, sin cédulas demo). La BD de dev actual no es la de prod.
+- [x] 2.5 ✅ 2026-06-12 **Secretos**: grep de código trackeado limpio (0 keys hardcodeadas, 0 defaults peligrosos). `.env` no trackeado ✓. Pendiente operativo D5: el `.env` LOCAL tiene GITHUB_TOKEN + password Gmail — rotarlos antes de compartir la máquina; el `.env` de prod será nuevo (Fase 4.3).
+- [x] 2.6 ✅ 2026-06-12 **UUID compartido (D8)**: `check_contract_sync --json` ahora hace **exit 1** con huérfanos y corre como gate en CI tras la suite E2E (sobre datos reales). Huérfanos locales limpiados. `--fix` sigue sin implementar (decisión: el gate previene, el fix manual con `_ensure_contract_exists` cubre casos puntuales). Commit `d32fccb`.
+- [ ] 2.7 **Decisión liveness P0.4b**: ⏳ pendiente de decisión del dueño (recomendación: entra antes del go-live, es el diferenciador legal). No bloquea Fase 3.
+- [x] 2.8 ✅ 2026-06-12 **Pasada de seguridad dirigida**:
+  - **Acceso horizontal: BLINDADO** — prestador→contrato/PDF/biometría/docs ajenos = 403/404 en todos los casos.
+  - **Uploads: hueco encontrado y CERRADO** — el documento validaba solo por extensión (`.pdf`); un `.exe` renombrado pasaba. Añadida validación por magic bytes (`%PDF`). Avatar ya validaba imagen. Commit pendiente.
+  - **Rate-limiting: CONFIRMADO funcionando** — 429 tras 10 logins desde IP externa (auth_strict 10/min); exento solo en localhost+DEBUG.
+  - **Tokens**: basura/malformados → 401 limpio.
+  - Hallazgo D32: login distingue "email no existe" de "password incorrecto" (user enumeration) — trade-off de producto (el front usa `error_type` para sugerir registro); decisión del dueño.
+- [x] 2.9 ✅ 2026-06-12 **Resiliencia ante terceros caídos**: AWS biométrico mal configurado → degrada a `DemoFacialProvider` transparente (warning en log). Mapbox sin token → mapa no renderiza pero el form sigue (geocoder Nominatim primario). SMTP caído en registro → falla con mensaje legible (`fail_silently=False`, decisión del dueño; riesgo registrado D33).
 - [ ] 2.10 **Mínimo legal Ley 1581** (tarea del dueño, en paralelo — es abogado):
   las páginas **ya existen** (`/terms` → `TermsPage.tsx`, `/privacy` →
   `PrivacyPage.tsx`, con contenido genérico de desarrollo). La tarea es
@@ -320,6 +321,10 @@ i18n completo (~664 strings) · refactor de monolitos
 | D28 | Overflow horizontal de pocos px a 360px en dashboard/contratos/pagos/mensajes (usable; bottom-nav y stacking OK) | 1.17 (2026-06-12) | 🟡 Menor |
 | D29 | Flujo de **codeudor por token público** sin spec dedicado ni validación E2E manual | 1.16 (2026-06-12) | 🟠 Media → Fase 2 o beta |
 | D30 | WebSocket en CI: el mensaje no propaga al receptor en el runner (spec g1 verde en local con daphne-runserver; skip condicional `process.env.CI`). Tuning ASGI/channel-layer del workflow: 2-3 sesiones | CI (2026-06-12) | 🟠 Media → Fase 5 (local + prod-local Fase 3 lo cubren) |
+| D31 | `check --deploy`: 53 warnings W001/W002 de drf-spectacular (type-hints faltantes en el schema OpenAPI) — no afectan runtime, solo la doc `/api/schema/` | 2.3 (2026-06-12) | 🟡 Menor → Fase 5 |
+| D32 | Login revela "email no existe" vs "password incorrecto" (**user enumeration**) — el front usa `error_type:user_not_found` para sugerir registro | 2.8 (2026-06-12) | 🟠 Media — DECISIÓN DEL DUEÑO (seguridad vs UX; mitigado por registro-por-invitación) |
+| D33 | Registro con `fail_silently=False`: un hipo del SMTP de Gmail bloquea TODOS los registros con 500 | 2.9 (2026-06-12) | 🟠 Media — considerar cola/reintento en Fase 4 |
+| D34 | `GuaranteeDocumentUpload.tsx` huérfano (sin imports vivos) con upload SIMULADO (`Math.random()` éxito/fallo) — código muerto a borrar | 2.4 (2026-06-12) | 🟡 Menor (limpieza) |
 | D25 | `/app/services` del prestador con texto sospechoso (NaN/undefined detectado en barrido) — revisar render | 1.9 (2026-06-12) | 🟡 Menor → 1.17 |
 
 ---

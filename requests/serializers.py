@@ -429,13 +429,22 @@ class TenantDocumentUploadSerializer(serializers.ModelSerializer):
         ]
 
     def validate_document_file(self, value):
-        """Validar que solo se suban archivos PDF."""
+        """Validar que solo se suban PDFs reales (no por extensión)."""
         if not value.name.lower().endswith(".pdf"):
             raise serializers.ValidationError("Solo se permiten archivos PDF.")
 
         # Validar tamaño máximo (10MB)
         if value.size > 10 * 1024 * 1024:
             raise serializers.ValidationError("El archivo no puede ser mayor a 10MB.")
+
+        # Validación por contenido (magic bytes), no solo por extensión:
+        # un .exe renombrado a .pdf pasaba el check anterior (Fase 2.8).
+        header = value.read(5)
+        value.seek(0)
+        if header[:4] != b"%PDF":
+            raise serializers.ValidationError(
+                "El archivo no es un PDF válido (contenido no coincide con la extensión)."
+            )
 
         return value
 
