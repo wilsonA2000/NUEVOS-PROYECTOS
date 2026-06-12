@@ -126,9 +126,27 @@ completo pasa sin errores.
   - Threads por contexto: `fase-e2` 1/1 (en los 55 E2E).
   - UI: inbox carga y muestra el mensaje automático de aceptación del match (integración matching→mensajería ✓, con código y compatibilidad).
   - Deuda nueva: D18 (mensaje de sistema renderiza "Sin asunto / De: Usuario / Fecha desconocida" y el contador de no-leídos no cuadra con el badge "Nuevo").
-- [ ] 1.6 **Contratos LCC — workflow completo**: crear borrador → invitar tenant → datos tenant → objeciones → negociación → revisión jurídica admin → aprobación → listo para biometría. Incluye `check_contract_sync` y el **flujo de codeudor por token público** (`/codeudor-auth/:token`).
-- [ ] 1.7 **Biometría 5 pasos**: cámara facial, documento (OCR), combinado, voz, firma. En modo demo provider (sin AWS) y verificación del disclosure Ley 1581.
-- [ ] 1.8 **PDF del contrato**: generación, contenido correcto (los 12 fixes del 31-may), preview, descarga por ambas partes, permisos.
+- [x] 1.6 ✅ 2026-06-12 **Contratos LCC — workflow completo por UI real**:
+  visita programada → evaluada → documentos del tenant (5 subidos con
+  confirmación c/u, revisados por landlord con gating backend "5
+  pendientes" ✓) → contrato auto-generado → aprobación landlord →
+  aprobación tenant → biometría. Objeciones/jurídico cubiertos por
+  specs fase-a2/a3 + full-admin-review (en los 55).
+  **Bug D20 ARREGLADO (backend)**: el approve del landlord no sincronizaba
+  el MatchRequest → el tenant nunca veía su CTA de aprobación (flujo
+  muerto para usuario real). Codeudor por token queda para 1.16.
+- [x] 1.7 ✅ 2026-06-12 **Biometría 4 pasos por UI real** (cámara y mic
+  fake de Chromium): facial → documento (PDF + nº + frontal/reverso con
+  rostro) → voz (2 grabaciones con waveform) → firma digital en canvas
+  (calidad 70%) **+ consentimiento explícito de datos biométricos y T&C
+  (Ley 1581 ✓)** → complete-auth 200 **para ambas partes** →
+  **contrato ACTIVE**. Deuda D21: el aviso de demo-mode que manda la API
+  no se muestra en los pasos 1-3.
+- [x] 1.8 ✅ 2026-06-12 **PDF del contrato**: VH-2026-000003 — 9 páginas,
+  diseño notarial (laurel + Temis + QR), resumen ejecutivo, COP correcto,
+  "Sin depósito", VIGENTE, ciudad real, cláusulas Ley 820. Los 12 fixes
+  del 31-may verificados sobre contrato real. Deuda D22: no valida que
+  las cédulas de las partes sean distintas.
 - [ ] 1.9 **Servicios y órdenes**: ServiceRequest, ServiceOrder, workflow del prestador, trazabilidad, **suscripciones de planes** (specs `fase-f3` + `fase-h3`, `SubscriptionPlans.tsx`).
 - [ ] 1.10 **Ratings**: calificación por contrato y por service_order, restricciones de unicidad.
 - [ ] 1.11 **Dashboard + notificaciones**: widgets por rol, contadores, campana de notificaciones.
@@ -292,6 +310,10 @@ i18n completo (~664 strings) · refactor de monolitos
 | D16 | MatchRequestForm: fecha opcional vacía viajaba como `''` → 400 | 1.4 (2026-06-12) | ✅ Resuelta 2026-06-12 — opcionales vacíos se omiten del payload |
 | D17 | Contadores de Solicitudes (Pendientes/Aceptadas) no se refrescan tras aceptar — la lista sí | 1.4 (2026-06-12) | 🟡 Menor |
 | D18 | Inbox: mensajes de sistema muestran "Sin asunto / De: Usuario / Fecha desconocida"; contador no-leídos (0) desincronizado del badge "Nuevo" | 1.5 (2026-06-12) | 🟡 Menor |
+| D19 | Card del tenant muestra el workflow_status **crudo** ("documents_approved") en vez de label legible | 1.6 (2026-06-12) | 🟡 Menor |
+| D20 | approve_contract del landlord no sincronizaba MatchRequest → el tenant nunca veía su CTA de aprobación (**flujo muerto**) | 1.6 (2026-06-12) | ✅ Resuelta 2026-06-12 — sync espejo del lado tenant en landlord_api_views |
+| D21 | Biometría: el `demo_disclosure` que manda la API no se renderiza en los pasos 1-3 (el paso 4 sí tiene consentimientos Ley 1581) | 1.7 (2026-06-12) | 🟡 Media — revisar antes de beta |
+| D22 | No se valida que las cédulas de arrendador y arrendatario sean **distintas** (PDF salió con la misma para ambos) | 1.8 (2026-06-12) | 🟡 Menor |
 
 ---
 

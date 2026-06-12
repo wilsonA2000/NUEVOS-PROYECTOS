@@ -472,6 +472,39 @@ class LandlordContractViewSet(viewsets.ModelViewSet):
                 logger.warning(f"⚠️ Error synchronizing Contract OLD: {e}")
                 # No fallar el proceso principal si hay error en la sincronización
 
+            # Sincronizar workflow del MatchRequest: tras la aprobación del
+            # arrendador es turno del arrendatario. Sin esto el match queda
+            # en documents_approved y la UI del tenant (que renderiza su CTA
+            # según match.workflow_status) nunca muestra "aprobar contrato".
+            # Espejo de la sincronización que ya hace tenant_api_views.
+            try:
+                from matching.models import MatchRequest
+
+                match_request = MatchRequest.objects.filter(
+                    tenant=updated_contract.tenant,
+                    property=updated_contract.property,
+                ).first()
+                if match_request and match_request.workflow_status not in (
+                    "pending_tenant_biometric",
+                    "contract_approved_by_tenant",
+                ):
+                    match_request.workflow_stage = 3
+                    match_request.workflow_status = "contract_pending_tenant_approval"
+                    contract_created = match_request.workflow_data.setdefault(
+                        "contract_created",
+                        {
+                            "contract_id": str(updated_contract.id),
+                            "contract_number": updated_contract.contract_number,
+                        },
+                    )
+                    contract_created["landlord_approved"] = True
+                    match_request.save()
+                    logger.info(
+                        f"✅ MatchRequest {match_request.match_code} → contract_pending_tenant_approval"
+                    )
+            except Exception as e:
+                logger.warning(f"⚠️ Error sincronizando MatchRequest: {e}")
+
             return Response(
                 LandlordControlledContractDetailSerializer(updated_contract).data,
                 status=status.HTTP_200_OK,
