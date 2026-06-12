@@ -43,10 +43,6 @@ const FAKE_PNG = Buffer.from(
   'base64',
 );
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function daysAgo(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
@@ -90,7 +86,10 @@ test.describe('C10b · C9 · Public receipt upload', () => {
         image: { name: 'recibo.png', mimeType: 'image/png', buffer: FAKE_PNG },
         receipt_type: 'electricity',
         declared_address: seed.tenant_current_address,
-        issue_date: today(),
+        // daysAgo(2) y no "hoy": el runner usa fecha UTC y el server corre
+        // en America/Bogota (UTC-5) — entre 00:00 y 05:00 UTC "hoy" UTC es
+        // mañana en Colombia y el backend rechaza por issue_date_in_future.
+        issue_date: daysAgo(2),
         declared_amount: '85000.00',
         ocr_text: 'ESSA · Calle 45 # 23-12 · Total $85.000',
       },
