@@ -1,8 +1,11 @@
 """Factory para seleccionar el proveedor facial activo.
 
-Hoy sólo expone `demo` (scores simulados). El provider Truora Identity
-se integrará en fase TR-3 — cubrirá face + document + liveness en un
-único flujo, así que no se mantienen wrappers AWS-específicos aquí.
+Proveedores disponibles:
+- `demo`: scores simulados (default en dev/CI).
+- `local`: sistema propio con OpenCV + dlib/face_recognition (2.7).
+  Se importa de forma perezosa: si las libs nativas no están
+  instaladas, se loggea el error y se cae a demo en vez de romper
+  el arranque de Django.
 """
 
 from __future__ import annotations
@@ -18,7 +21,8 @@ from .demo import DemoFacialProvider
 logger = logging.getLogger(__name__)
 
 _PROVIDER_DEMO = "demo"
-_VALID_PROVIDERS = {_PROVIDER_DEMO}
+_PROVIDER_LOCAL = "local"
+_VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_LOCAL}
 
 
 def _resolve_provider_name() -> str:
@@ -39,5 +43,16 @@ def get_facial_provider() -> FacialProvider:
     Para invalidar la cache (tests, cambio de setting runtime) llamar
     `get_facial_provider.cache_clear()`.
     """
-    _resolve_provider_name()
+    name = _resolve_provider_name()
+    if name == _PROVIDER_LOCAL:
+        try:
+            from .local import LocalFacialProvider
+
+            return LocalFacialProvider()
+        except ImportError as exc:
+            logger.error(
+                "BIOMETRIC_FACIAL_PROVIDER=local pero faltan dependencias "
+                "(opencv/face_recognition): %s — usando demo",
+                exc,
+            )
     return DemoFacialProvider()

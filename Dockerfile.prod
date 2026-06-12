@@ -11,8 +11,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install system dependencies
+# cmake + g++ + make: dlib (face_recognition) compila desde fuente
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
+    make \
+    cmake \
     postgresql-client \
     libpq-dev \
     python3-dev \

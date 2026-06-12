@@ -87,6 +87,11 @@ cerberus==1.3.5
 # Archivos CSV y Excel
 openpyxl==3.1.2
 
+# Biometría facial local (2.7) — dlib compila desde fuente: necesita
+# cmake + g++ + make (ver Dockerfile.prod)
+opencv-python-headless==4.10.0.84
+face_recognition==1.3.0
+
 # Generación de PDFs
 reportlab==4.0.7
 qrcode==7.4.2
