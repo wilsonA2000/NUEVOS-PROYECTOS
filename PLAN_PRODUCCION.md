@@ -338,7 +338,7 @@ i18n completo (~664 strings) · refactor de monolitos
 | D15 | PropertyForm exige `lot_area` (área de lote) **incluso para apartamentos** | 1.3 (2026-06-12) | 🟡 Menor |
 | D16 | MatchRequestForm: fecha opcional vacía viajaba como `''` → 400 | 1.4 (2026-06-12) | ✅ Resuelta 2026-06-12 — opcionales vacíos se omiten del payload |
 | D17 | Contadores de Solicitudes (Pendientes/Aceptadas) no se refrescan tras aceptar — la lista sí | 1.4 (2026-06-12) | 🟡 Menor |
-| D18 | Inbox: mensajes de sistema muestran "Sin asunto / De: Usuario / Fecha desconocida"; contador no-leídos (0) desincronizado del badge "Nuevo" | 1.5 (2026-06-12) | 🟡 Menor |
+| D18 | Inbox lista **mensajes individuales** (no threads) → "Sin asunto" porque el modelo `Message` no tiene subject (el `MessageThread` SÍ lo tiene = "Match Aceptado - …"). "De: Usuario / Fecha desconocida" = mapeos serializer↔render rotos. Fix = alinear el render del inbox con los campos reales (frontend, no one-liner) | 1.5 (2026-06-12) | 🟡 Menor |
 | D19 | Card del tenant muestra el workflow_status **crudo** ("documents_approved") en vez de label legible | 1.6 (2026-06-12) | 🟡 Menor |
 | D20 | approve_contract del landlord no sincronizaba MatchRequest → el tenant nunca veía su CTA de aprobación (**flujo muerto**) | 1.6 (2026-06-12) | ✅ Resuelta 2026-06-12 — sync espejo del lado tenant en landlord_api_views |
 | D21 | Biometría: el `demo_disclosure` que manda la API no se renderiza en los pasos 1-3 (el paso 4 sí tiene consentimientos Ley 1581) | 1.7 (2026-06-12) | 🟡 Media — revisar antes de beta |
