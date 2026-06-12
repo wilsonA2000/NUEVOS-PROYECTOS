@@ -6,6 +6,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { MemoryRouter } from 'react-router-dom';
 
 // Mock useAuth hook
 const mockUser = {
@@ -83,9 +84,13 @@ import TenantContractsDashboard from '../TenantContractsDashboard';
 const renderComponent = () => {
   return render(
     React.createElement(
-      ThemeProvider,
-      { theme },
-      React.createElement(TenantContractsDashboard),
+      MemoryRouter,
+      null,
+      React.createElement(
+        ThemeProvider,
+        { theme },
+        React.createElement(TenantContractsDashboard),
+      ),
     ),
   );
 };

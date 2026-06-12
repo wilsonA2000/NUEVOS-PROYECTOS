@@ -184,6 +184,9 @@ const Profile: React.FC = () => {
     // Marketing
     source: 'direct',
     marketing_consent: false,
+
+    // Hoja de vida (anidado para que calculateCompletionPercentage lo lea)
+    resume: {} as Record<string, string>,
   });
 
   useEffect(() => {
@@ -233,6 +236,7 @@ const Profile: React.FC = () => {
         move_in_date: userData.move_in_date || '',
         source: userData.source || 'direct',
         marketing_consent: userData.marketing_consent || false,
+        resume: userData.resume || {},
       };
 
       setFormData(profileData);

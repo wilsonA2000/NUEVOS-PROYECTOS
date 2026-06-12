@@ -146,6 +146,12 @@ const ResetPassword = lazy(() =>
 const TenantInvitationLanding = lazy(
   () => import('../pages/contracts/TenantInvitationLanding'),
 );
+const BiometricAuthenticationPage = lazy(
+  () => import('../pages/contracts/BiometricAuthenticationPage'),
+);
+const DigitalSignaturePage = lazy(
+  () => import('../pages/contracts/DigitalSignaturePage'),
+);
 
 // Página pública de autenticación de codeudor (SIN login requerido)
 const CodeudorAuthPage = lazy(() => import('../pages/public/CodeudorAuthPage'));
@@ -523,6 +529,22 @@ export const AppRoutes: React.FC = () => {
               <LazyRoute type='form'>
                 <ContractForm />
               </LazyRoute>
+            }
+          />
+          <Route
+            path=':id/authenticate'
+            element={
+              <React.Suspense fallback={null}>
+                <BiometricAuthenticationPage />
+              </React.Suspense>
+            }
+          />
+          <Route
+            path=':id/sign'
+            element={
+              <React.Suspense fallback={null}>
+                <DigitalSignaturePage />
+              </React.Suspense>
             }
           />
         </Route>

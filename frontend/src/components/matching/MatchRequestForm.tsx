@@ -254,7 +254,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       startAdornment: (
                         <InputAdornment position='start'>
                           <PersonIcon
-                            sx={{ color: 'var(--color-text-secondary)' }}
+                            sx={{ color: 'text.secondary' }}
                           />
                         </InputAdornment>
                       ),
@@ -437,7 +437,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       startAdornment: (
                         <InputAdornment position='start'>
                           <MoneyIcon
-                            sx={{ color: 'var(--color-text-secondary)' }}
+                            sx={{ color: 'text.secondary' }}
                           />
                         </InputAdornment>
                       ),
@@ -495,8 +495,8 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       : 'warning'
                   }
                   sx={{
-                    backgroundColor: 'var(--color-background)',
-                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'background.paper',
+                    border: '1px solid',
                   }}
                 >
                   <Typography variant='body2' sx={{ fontWeight: 500, mb: 1 }}>
@@ -682,18 +682,18 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                           sx={{
                             backgroundColor:
                               field.value === option.value
-                                ? 'var(--color-primary)'
+                                ? 'primary.main'
                                 : 'transparent',
                             color:
                               field.value === option.value
                                 ? 'white'
-                                : 'var(--color-text-primary)',
-                            borderColor: 'var(--color-border)',
+                                : 'text.primary',
+                            borderColor: 'divider',
                             '&:hover': {
                               backgroundColor:
                                 field.value === option.value
-                                  ? 'var(--color-primary-dark)'
-                                  : 'var(--color-background)',
+                                  ? 'primary.dark'
+                                  : 'background.paper',
                             },
                           }}
                         />
@@ -701,7 +701,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                     </Stack>
                     <Typography
                       variant='body2'
-                      sx={{ mt: 1, color: 'var(--color-text-secondary)' }}
+                      sx={{ mt: 1, color: 'text.secondary' }}
                     >
                       {
                         priorityOptions.find(p => p.value === field.value)
@@ -720,8 +720,8 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                   !property.pets_allowed && watchHasPets ? 'warning' : 'info'
                 }
                 sx={{
-                  backgroundColor: 'var(--color-background)',
-                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
                 }}
               >
                 <Typography variant='body2' sx={{ fontWeight: 500, mb: 1 }}>
@@ -733,7 +733,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 0.5,
-                      color: 'var(--color-warning)',
+                      color: 'warning.main',
                     }}
                   >
                     <WarningAmberIcon sx={{ fontSize: 16 }} />
@@ -748,7 +748,7 @@ const MatchRequestForm: React.FC<MatchRequestFormProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 0.5,
-                      color: 'var(--color-success)',
+                      color: 'success.main',
                     }}
                   >
                     <CheckIcon sx={{ fontSize: 16 }} />
@@ -813,7 +813,7 @@ Puedes incluir:
                           sx={{ alignSelf: 'flex-start', mt: 1 }}
                         >
                           <DescriptionIcon
-                            sx={{ color: 'var(--color-text-secondary)' }}
+                            sx={{ color: 'text.secondary' }}
                           />
                         </InputAdornment>
                       ),
@@ -832,8 +832,8 @@ Puedes incluir:
               <Alert
                 severity='info'
                 sx={{
-                  backgroundColor: 'var(--color-background)',
-                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
                 }}
               >
                 <Typography
@@ -950,13 +950,13 @@ Puedes incluir:
           </Typography>
           <Typography
             variant='body1'
-            sx={{ color: 'var(--color-text-secondary)' }}
+            sx={{ color: 'text.secondary' }}
           >
             Envía tu solicitud para: <strong>{property.title}</strong>
           </Typography>
           <Typography
             variant='body2'
-            sx={{ color: 'var(--color-text-secondary)' }}
+            sx={{ color: 'text.secondary' }}
           >
             {property.city}, {property.state} •{' '}
             {formatCurrency(property.rent_price)}/mes
@@ -971,7 +971,7 @@ Puedes incluir:
                 optional={
                   <Typography
                     variant='caption'
-                    sx={{ color: 'var(--color-text-secondary)' }}
+                    sx={{ color: 'text.secondary' }}
                   >
                     {step.description}
                   </Typography>
@@ -1012,10 +1012,10 @@ Puedes incluir:
                   onClick={handleStepBack}
                   disabled={isSubmitting}
                   sx={{
-                    borderColor: 'var(--color-border)',
-                    color: 'var(--color-text-secondary)',
+                    borderColor: 'divider',
+                    color: 'text.secondary',
                     '&:hover': {
-                      borderColor: 'var(--color-primary)',
+                      borderColor: 'primary.main',
                       backgroundColor: 'transparent',
                     },
                   }}
@@ -1031,11 +1031,11 @@ Puedes incluir:
                 onClick={onCancel}
                 disabled={isSubmitting}
                 sx={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)',
+                  borderColor: 'divider',
+                  color: 'text.secondary',
                   '&:hover': {
-                    borderColor: 'var(--color-error)',
-                    color: 'var(--color-error)',
+                    borderColor: 'error.main',
+                    color: 'error.main',
                   },
                 }}
               >
@@ -1049,9 +1049,9 @@ Puedes incluir:
                   onClick={handleStepNext}
                   disabled={isSubmitting}
                   sx={{
-                    backgroundColor: 'var(--color-primary)',
+                    backgroundColor: 'primary.main',
                     '&:hover': {
-                      backgroundColor: 'var(--color-primary-dark)',
+                      backgroundColor: 'primary.dark',
                     },
                   }}
                 >
@@ -1071,9 +1071,9 @@ Puedes incluir:
                     }
                     disabled={isSubmitting}
                     sx={{
-                      backgroundColor: 'var(--color-primary)',
+                      backgroundColor: 'primary.main',
                       '&:hover': {
-                        backgroundColor: 'var(--color-primary-dark)',
+                        backgroundColor: 'primary.dark',
                       },
                     }}
                   >

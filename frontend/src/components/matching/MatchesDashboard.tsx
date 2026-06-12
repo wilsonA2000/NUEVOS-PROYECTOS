@@ -427,378 +427,42 @@ const MatchesDashboard: React.FC = () => {
             </Stack>
           )}
 
-          {/* Para tenants: mostrar el estado del proceso contractual y de la visita */}
+          {/* Para tenants: solicitud aceptada → redirigir a Contratos para gestionar el proceso */}
           {request.status === 'accepted' && isTenant && (
             <Box sx={{ mt: 2 }}>
-              {/* Estado de Solicitud Aceptada */}
-              <Box
-                sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1, mb: 2 }}
-              >
-                <Stack direction='row' alignItems='center' spacing={1}>
-                  <CheckCircle color='success' />
-                  <Typography
-                    variant='body2'
-                    color='success.dark'
-                    fontWeight={600}
-                  >
-                    ¡Solicitud Aceptada!
-                  </Typography>
-                </Stack>
-                <Typography variant='caption' color='text.secondary'>
-                  Tu solicitud ha sido aprobada por el arrendador.
+              <Stack direction='row' alignItems='center' spacing={1} sx={{ mb: 1.5 }}>
+                <CheckCircle color='success' fontSize='small' />
+                <Typography variant='body2' color='success.dark' fontWeight={600}>
+                  ¡Solicitud Aceptada! — Gestiona el proceso desde Contratos
                 </Typography>
-              </Box>
-
-              {/* Mostrar información del workflow si existe - MEJORADO */}
+              </Stack>
               {request.workflow_stage && (
-                <Box sx={{ mb: 2 }}>
-                  {/* Mini Stepper */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      mb: 1,
-                    }}
-                  >
-                    {[1, 2, 3, 4, 5].map(step => (
-                      <Box
-                        key={step}
-                        sx={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: '50%',
-                          bgcolor:
-                            (request.workflow_stage ?? 0) >= step
-                              ? 'primary.main'
-                              : 'grey.300',
-                          border:
-                            (request.workflow_stage ?? 0) === step
-                              ? '2px solid'
-                              : 'none',
-                          borderColor: 'primary.dark',
-                        }}
-                      />
-                    ))}
-                    <Typography variant='body2' fontWeight={600} sx={{ ml: 1 }}>
-                      Etapa {request.workflow_stage}/5 (
-                      {Math.round((request.workflow_stage / 5) * 100)}%)
-                    </Typography>
-                  </Box>
-
-                  {/* Descripción de la etapa actual */}
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      bgcolor:
-                        request.workflow_stage === 1
-                          ? 'info.50'
-                          : request.workflow_stage === 2
-                            ? 'warning.50'
-                            : request.workflow_stage === 3
-                              ? 'primary.50'
-                              : request.workflow_stage === 4
-                                ? 'secondary.50'
-                                : 'success.50',
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor:
-                        request.workflow_stage === 1
-                          ? 'info.200'
-                          : request.workflow_stage === 2
-                            ? 'warning.200'
-                            : request.workflow_stage === 3
-                              ? 'primary.200'
-                              : request.workflow_stage === 4
-                                ? 'secondary.200'
-                                : 'success.200',
-                    }}
-                  >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
+                  {[1, 2, 3, 4, 5].map(step => (
                     <Box
+                      key={step}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 0.5,
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        bgcolor: (request.workflow_stage ?? 0) >= step ? 'primary.main' : 'grey.300',
                       }}
-                    >
-                      {request.workflow_stage === 1 && (
-                        <Home fontSize='small' color='action' />
-                      )}
-                      {request.workflow_stage === 2 && (
-                        <DocumentIcon fontSize='small' color='action' />
-                      )}
-                      {request.workflow_stage === 3 && (
-                        <EditIcon fontSize='small' color='action' />
-                      )}
-                      {request.workflow_stage === 4 && (
-                        <FingerprintIcon fontSize='small' color='action' />
-                      )}
-                      {request.workflow_stage === 5 && (
-                        <VpnKeyIcon fontSize='small' color='action' />
-                      )}
-                      <Typography variant='body2' fontWeight={600}>
-                        {request.workflow_stage === 1 &&
-                          'Programación de Visita'}
-                        {request.workflow_stage === 2 &&
-                          'Revisión de Documentos'}
-                        {request.workflow_stage === 3 &&
-                          'Creación del Contrato'}
-                        {request.workflow_stage === 4 &&
-                          'Autenticación Biométrica'}
-                        {request.workflow_stage === 5 && 'Proceso Completado'}
-                      </Typography>
-                    </Box>
-
-                    <Typography variant='caption' color='text.secondary'>
-                      {request.workflow_stage === 1 &&
-                        (isTenant
-                          ? 'El arrendador coordinará la visita a la propiedad contigo.'
-                          : 'Coordina la visita a la propiedad con el candidato.')}
-                      {request.workflow_stage === 2 &&
-                        (isTenant
-                          ? 'Debes subir los documentos requeridos para continuar.'
-                          : 'El candidato está subiendo documentos para revisión.')}
-                      {request.workflow_stage === 3 &&
-                        (isTenant
-                          ? 'Los documentos fueron aprobados. Se está creando el contrato.'
-                          : 'Documentos aprobados. Puedes crear el contrato de arrendamiento.')}
-                      {request.workflow_stage === 4 &&
-                        (isTenant
-                          ? 'Realiza la verificación biométrica para firmar el contrato.'
-                          : 'El candidato completará la verificación biométrica.')}
-                      {request.workflow_stage === 5 &&
-                        '¡Felicitaciones! Proceso completado exitosamente.'}
-                    </Typography>
-
-                    {/* Información específica de visita */}
-                    {request.workflow_stage === 1 &&
-                      request.workflow_data?.visit_scheduled && (
-                        <Box
-                          sx={{
-                            mt: 1,
-                            p: 1,
-                            bgcolor: 'white',
-                            borderRadius: 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            flexWrap: 'wrap',
-                          }}
-                        >
-                          <Schedule fontSize='inherit' color='action' />
-                          <Typography variant='caption' fontWeight={600}>
-                            Visita:{' '}
-                            {new Date(
-                              request.workflow_data.visit_scheduled.date,
-                            ).toLocaleDateString('es-CO')}{' '}
-                            a las {request.workflow_data.visit_scheduled.time}
-                          </Typography>
-                          {request.workflow_data.visit_scheduled.completed && (
-                            <StatusChip
-                              kind='success'
-                              label='Visita completada'
-                              icon={<TaskAltIcon fontSize='small' />}
-                              sx={{ ml: 'auto' }}
-                            />
-                          )}
-                        </Box>
-                      )}
-
-                    {/* Acciones específicas por etapa */}
-                    {request.workflow_stage === 2 && isTenant && (
-                      <Box sx={{ mt: 1 }}>
-                        <StatusChip
-                          kind='pending'
-                          label='Acción requerida: subir documentos'
-                          icon={<BoltIcon fontSize='small' />}
-                        />
-                      </Box>
-                    )}
-
-                    {request.workflow_stage === 3 && !isTenant && (
-                      <Box sx={{ mt: 1 }}>
-                        <StatusChip
-                          kind='inProgress'
-                          label='Puedes crear el contrato desde Contratos'
-                          icon={<BoltIcon fontSize='small' />}
-                        />
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* Mostrar visita programada solo si existe y no está en etapa 2+ (visita completada) */}
-                  {request.workflow_data?.visit_scheduled &&
-                    request.workflow_stage < 2 && (
-                      <Alert
-                        severity='info'
-                        icon={<EventAvailableIcon />}
-                        sx={{ mt: 1 }}
-                      >
-                        <Typography variant='body2' fontWeight={600}>
-                          Visita Programada
-                        </Typography>
-                        <Typography variant='caption'>
-                          Fecha:{' '}
-                          {new Date(
-                            request.workflow_data.visit_scheduled.date,
-                          ).toLocaleDateString()}{' '}
-                          a las {request.workflow_data.visit_scheduled.time}
-                        </Typography>
-                        {request.workflow_data.visit_scheduled.notes && (
-                          <Typography
-                            variant='caption'
-                            display='block'
-                            sx={{ mt: 0.5 }}
-                          >
-                            Notas: {request.workflow_data.visit_scheduled.notes}
-                          </Typography>
-                        )}
-                      </Alert>
-                    )}
-
-                  {/* Mostrar confirmación de visita completada en etapa 2+ */}
-                  {request.workflow_data?.visit_scheduled?.completed &&
-                    request.workflow_stage >= 2 && (
-                      <Alert
-                        severity='success'
-                        icon={<TaskAltIcon />}
-                        sx={{ mt: 1 }}
-                      >
-                        <Typography variant='body2' fontWeight={600}>
-                          Visita Completada
-                        </Typography>
-                        <Typography variant='caption'>
-                          La visita a la propiedad ha sido completada
-                          exitosamente.
-                        </Typography>
-                      </Alert>
-                    )}
-
-                  {/* Indicador de progreso del workflow */}
-                  <LinearProgress
-                    variant='determinate'
-                    value={(request.workflow_stage || 0) * 20}
-                    sx={{ mt: 1, height: 8, borderRadius: 1 }}
-                  />
+                    />
+                  ))}
+                  <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
+                    Etapa {request.workflow_stage}/5
+                  </Typography>
                 </Box>
               )}
-
-              {/* Mostrar componente de subida de documentos si está en etapa 2 y es tenant */}
-              {isTenant &&
-                request.status === 'accepted' &&
-                request.workflow_stage === 2 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert
-                      severity='warning'
-                      icon={<DocumentIcon />}
-                      sx={{ mb: 2 }}
-                    >
-                      <Typography variant='body2' fontWeight={600}>
-                        Acción Requerida: Subir Documentos
-                      </Typography>
-                      <Typography variant='caption'>
-                        Para continuar con el proceso, necesitas subir los
-                        documentos requeridos.
-                      </Typography>
-                    </Alert>
-                    <Box data-documents-section>
-                      <EnhancedTenantDocumentUpload
-                        processId={request.id}
-                        onDocumentUploaded={() => {
-                          // Refrescar los datos cuando se suba un documento
-                          refetchMatchRequests();
-                        }}
-                        matchRequestData={request}
-                        guaranteeType={
-                          request.workflow_data?.guarantee_type ||
-                          request.workflow_data?.guarantees?.guarantee_type ||
-                          'none'
-                        }
-                        codeudorName={
-                          request.workflow_data?.guarantees
-                            ?.codeudor_full_name ||
-                          request.workflow_data?.codeudor_full_name ||
-                          ''
-                        }
-                      />
-                    </Box>
-                  </Box>
-                )}
-
-              {/* Vista para el arrendador cuando el tenant está subiendo documentos */}
-              {!isTenant &&
-                request.status === 'accepted' &&
-                request.workflow_stage === 2 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert
-                      severity='info'
-                      icon={<DocumentIcon />}
-                      sx={{ mb: 2 }}
-                    >
-                      <Typography variant='body2' fontWeight={600}>
-                        Arrendatario Subiendo Documentos
-                      </Typography>
-                      <Typography variant='caption'>
-                        El arrendatario está en proceso de subir los documentos
-                        requeridos. Podrás ver el progreso aquí.
-                      </Typography>
-                    </Alert>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Schedule fontSize='small' color='disabled' />
-                      <Typography
-                        variant='body2'
-                        color='text.secondary'
-                        sx={{ fontStyle: 'italic' }}
-                      >
-                        Esperando documentos del arrendatario...
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
-
-              {/* Mostrar información de documentos aprobados para arrendatarios en etapa 3 */}
-              {isTenant &&
-                request.status === 'accepted' &&
-                request.workflow_stage === 3 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert
-                      severity='success'
-                      icon={<TaskAltIcon />}
-                      sx={{ mb: 2 }}
-                    >
-                      <Typography variant='body2' fontWeight={600}>
-                        Documentos Aprobados
-                      </Typography>
-                      <Typography variant='caption'>
-                        ¡Excelente! Todos tus documentos han sido revisados y
-                        aprobados por el arrendador. El proceso ha avanzado a la
-                        creación del contrato.
-                      </Typography>
-                    </Alert>
-                    <Alert severity='info' icon={<EditIcon />} sx={{ mb: 2 }}>
-                      <Typography variant='body2' fontWeight={600}>
-                        Etapa 3: Creación del Contrato
-                      </Typography>
-                      <Typography variant='caption'>
-                        El arrendador está creando el borrador del contrato. Te
-                        notificaremos cuando esté listo para tu revisión.
-                      </Typography>
-                    </Alert>
-                  </Box>
-                )}
-
-              {/* Información adicional para el arrendatario */}
-              {!request.workflow_stage || request.workflow_stage < 2 ? (
-                <Typography
-                  variant='caption'
-                  color='text.secondary'
-                  sx={{ mt: 1, display: 'block' }}
-                >
-                  El arrendador está coordinando los siguientes pasos del
-                  proceso.
-                </Typography>
-              ) : null}
+              <Button
+                variant='contained'
+                size='small'
+                startIcon={<Assignment />}
+                onClick={() => navigate('/app/contracts')}
+                color='primary'
+              >
+                Ver proceso completo →
+              </Button>
             </Box>
           )}
 

@@ -22,14 +22,11 @@ import {
   Grid,
   Fade,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   ToggleButton,
   ToggleButtonGroup,
-  Slide,
 } from '@mui/material';
-import { styled, keyframes, useTheme } from '@mui/material/styles';
 import {
   ExpandMore as ExpandMoreIcon,
   Folder as FolderIcon,
@@ -49,7 +46,6 @@ import {
   Category as CategoryIcon,
   PictureAsPdf as PdfIcon,
   Refresh as RefreshIcon,
-  AutoAwesome as AutoAwesomeIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
   HighlightOff as HighlightOffIcon,
   HelpOutline as HelpOutlineIcon,
@@ -69,136 +65,6 @@ import { vhColors } from '../../theme/tokens';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
-// ============================================================================
-// MODERN ANIMATIONS & STYLED COMPONENTS
-// ============================================================================
-
-const float = keyframes`
- 0%, 100% { transform: translateY(0px); }
- 50% { transform: translateY(-6px); }
-`;
-
-const pulse = keyframes`
- 0%, 100% { opacity: 1; }
- 50% { opacity: 0.7; }
-`;
-
-const shimmer = keyframes`
- 0% { background-position: -200px 0; }
- 100% { background-position: calc(200px + 100%) 0; }
-`;
-
-const glow = (color: string) => keyframes`
- 0%, 100% { box-shadow: 0 0 5px ${color}4D; }
- 50% { box-shadow: 0 0 20px ${color}99, 0 0 30px ${color}66; }
-`;
-
-/**
- * Componentes styled refactorizados para usar tokens del tema (VIS-3, 2026-04-14).
- * Antes: colores #667eea/#764ba2 hardcoded + shadows rgba arbitrarias.
- * Ahora: primary.main/secondary.main + vh.shadows/vh.radius.
- */
-const GradientCard = styled(Card)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}1A 0%, ${theme.palette.secondary.main}1A 100%)`,
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: theme.shape.borderRadius * 2.5,
-  boxShadow:
-    '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '2px',
-    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 50%, ${theme.palette.primary.main} 100%)`,
-    backgroundSize: '200% 100%',
-    animation: `${shimmer} 2s infinite linear`,
-  },
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow:
-      '0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06)',
-    animation: `${glow(theme.palette.primary.main)} 2s infinite`,
-  },
-}));
-
-const StatCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  textAlign: 'center',
-  background: theme.palette.background.paper,
-  backdropFilter: 'blur(10px)',
-  borderRadius: theme.shape.borderRadius * 2,
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow:
-    '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow:
-      '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
-  },
-}));
-
-const FloatingActionButton = styled(Button)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-  borderRadius: 999,
-  padding: '12px 32px',
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '0.95rem',
-  color: theme.palette.primary.contrastText,
-  boxShadow: `0 4px 16px ${theme.palette.primary.main}55`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background:
-      'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-    transition: 'left 0.5s',
-  },
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: `0 8px 24px ${theme.palette.primary.main}77`,
-    '&::before': { left: '100%' },
-  },
-  '&:active': {
-    transform: 'translateY(0px)',
-  },
-}));
-
-const ModernIconButton = styled(IconButton)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 1.5,
-  padding: '12px',
-  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${theme.palette.divider}`,
-  '&:hover': {
-    transform: 'scale(1.1)',
-    boxShadow:
-      '0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04)',
-  },
-}));
-
-const PulseAvatar = styled(Avatar)(() => ({
-  animation: `${pulse} 2s infinite`,
-  boxShadow:
-    '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
-  '&:hover': {
-    animation: 'none',
-    transform: 'scale(1.1)',
-  },
-}));
 
 // ============================================================================
 // ENHANCED TYPES & INTERFACES
@@ -267,19 +133,14 @@ const getStatusColor = (status: string): string => {
   return colors[status as keyof typeof colors] || 'default';
 };
 
-// Gradients derivados del tema MUI (reemplaza hex hardcoded).
-const getStatusGradient = (status: string, theme: any): string => {
-  const p = theme.palette;
+const getStatusAccentColor = (status: string): string => {
   const map: Record<string, string> = {
-    pending: `linear-gradient(135deg, ${p.warning.main} 0%, ${p.warning.dark} 100%)`,
-    approved: `linear-gradient(135deg, ${p.success.main} 0%, ${p.success.dark} 100%)`,
-    rejected: `linear-gradient(135deg, ${p.error.main} 0%, ${p.error.dark} 100%)`,
-    requires_correction: `linear-gradient(135deg, ${p.info.main} 0%, ${p.info.dark} 100%)`,
+    pending: 'warning.main',
+    approved: 'success.main',
+    rejected: 'error.main',
+    requires_correction: 'info.main',
   };
-  return (
-    map[status] ||
-    `linear-gradient(135deg, ${p.grey[500]} 0%, ${p.grey[700]} 100%)`
-  );
+  return map[status] || 'grey.400';
 };
 
 const getStatusIcon = (status: string) => {
@@ -327,472 +188,188 @@ const EnhancedDocumentItem: React.FC<{
   canDelete: boolean;
 }> = React.memo(
   ({ document, onFileSelect, onDelete, onPreview, isUploading, canDelete }) => {
-    const theme = useTheme();
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop: acceptedFiles => {
         if (acceptedFiles.length > 0) {
           onFileSelect(acceptedFiles[0]!, document.type);
         }
       },
-      accept: {
-        'application/pdf': ['.pdf'],
-      },
-      disabled:
-        isUploading || (document.uploaded && document.status === 'approved'),
+      accept: { 'application/pdf': ['.pdf'] },
+      disabled: isUploading || (document.uploaded && document.status === 'approved'),
       multiple: false,
     });
 
-    const borderColor = useMemo(() => {
-      if (isDragActive) return 'primary.main';
-      if (document.status === 'approved') return 'success.main';
-      if (document.status === 'rejected') return 'error.main';
-      if (document.status === 'requires_correction') return 'info.main';
-      if (document.required && !document.uploaded) return 'warning.main';
-      return 'grey.300';
-    }, [isDragActive, document]);
+    const isApproved = document.status === 'approved';
 
-    const backgroundColor = useMemo(() => {
-      if (document.status === 'approved') return 'success.50';
-      if (document.status === 'rejected') return 'error.50';
-      if (document.status === 'requires_correction') return 'info.50';
-      if (isDragActive) return 'action.hover';
-      return 'background.paper';
-    }, [isDragActive, document]);
-
-    return (
-      <Slide direction='up' in timeout={600 + Math.random() * 200}>
-        <GradientCard
+    // ── EMPTY STATE: Prominent dropzone ──
+    if (!document.uploaded) {
+      return (
+        <Box
+          {...getRootProps()}
           sx={{
-            p: 3,
-            mb: 3,
-            cursor: document.status === 'approved' ? 'default' : 'pointer',
-            position: 'relative',
-            minHeight: '160px',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              background: getStatusGradient(document.status, theme),
-              borderRadius: '20px 20px 0 0',
-            },
-            ...(document.status === 'approved' && {
-              background:
-                'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)',
-              '&::after': {
-                background: 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)',
-              },
-            }),
-            ...(document.status === 'rejected' && {
-              background:
-                'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
-              '&::after': {
-                background: 'linear-gradient(135deg, #F44336 0%, #EF5350 100%)',
-              },
-            }),
-            ...(document.status === 'requires_correction' && {
-              background:
-                'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%)',
-              '&::after': {
-                background: 'linear-gradient(135deg, #2196F3 0%, #42A5F5 100%)',
-              },
-            }),
-            ...(isDragActive && {
-              background:
-                'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-              transform: 'scale(1.02)',
-              '&::after': {
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              },
-            }),
+            mb: 2,
+            p: 2.5,
+            border: '2px dashed',
+            borderColor: isDragActive ? 'primary.main' : document.required ? 'warning.light' : 'grey.300',
+            borderRadius: 2,
+            cursor: isUploading ? 'not-allowed' : 'pointer',
+            bgcolor: isDragActive ? 'primary.50' : document.required ? 'warning.50' : 'grey.50',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            transition: 'all 0.2s ease',
+            '&:hover': !isUploading ? { borderColor: 'primary.main', bgcolor: 'action.hover' } : {},
           }}
         >
-          <Box {...(document.status !== 'approved' ? getRootProps() : {})}>
-            <input {...getInputProps()} />
-
-            <Grid container spacing={2} alignItems='center'>
-              {/* Status Icon */}
-              <Grid item>
-                <PulseAvatar
-                  sx={{
-                    background: getStatusGradient(document.status, theme),
-                    width: 64,
-                    height: 64,
-                    border: '3px solid rgba(255, 255, 255, 0.9)',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-                    animation:
-                      document.status === 'pending'
-                        ? `${float} 3s infinite ease-in-out`
-                        : 'none',
-                  }}
-                >
-                  {getStatusIcon(document.status)}
-                </PulseAvatar>
-              </Grid>
-
-              {/* Document Info */}
-              <Grid item xs>
-                <Stack spacing={0.5}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Typography
-                      variant='h6'
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: '1.1rem',
-                        color: 'text.primary',
-                        background:
-                          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      }}
-                    >
-                      {document.display_name}
-                    </Typography>
-                    {document.required && (
-                      <Chip
-                        label='REQUERIDO'
-                        size='small'
-                        sx={{
-                          background:
-                            'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-                          color: 'white',
-                          fontWeight: 600,
-                          fontSize: '0.7rem',
-                          height: 24,
-                          borderRadius: '12px',
-                          boxShadow: '0 2px 8px rgba(244, 67, 54, 0.3)',
-                          border: 'none',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                    )}
-                    {document.category && (
-                      <Chip
-                        icon={
-                          <CategoryIcon sx={{ color: 'white !important' }} />
-                        }
-                        label={document.category}
-                        size='small'
-                        sx={{
-                          background:
-                            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: 'white',
-                          fontWeight: 600,
-                          fontSize: '0.7rem',
-                          height: 24,
-                          borderRadius: '12px',
-                          boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                          border: 'none',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                          },
-                        }}
-                      />
-                    )}
-                  </Box>
-
-                  <Typography variant='body2' color='text.secondary'>
-                    {document.description}
-                  </Typography>
-
-                  {/* Status Chip with Details */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      flexWrap: 'wrap',
-                      mt: 1,
-                    }}
-                  >
-                    <Chip
-                      icon={getStatusIcon(document.status)}
-                      label={getStatusLabel(document.status)}
-                      size='medium'
-                      sx={{
-                        background: getStatusGradient(document.status, theme),
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        height: 32,
-                        borderRadius: '16px',
-                        boxShadow: '0 3px 12px rgba(0, 0, 0, 0.2)',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        backdropFilter: 'blur(10px)',
-                        '&:hover': {
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 5px 16px rgba(0, 0, 0, 0.25)',
-                        },
-                      }}
-                    />
-
-                    {document.uploaded_at && (
-                      <Chip
-                        icon={
-                          <AccessTimeIcon
-                            sx={{
-                              color: 'rgba(255, 255, 255, 0.8) !important',
-                            }}
-                          />
-                        }
-                        label={`Subido: ${format(new Date(document.uploaded_at), 'dd/MM/yyyy HH:mm', { locale: es })}`}
-                        size='small'
-                        sx={{
-                          background: 'rgba(0, 0, 0, 0.6)',
-                          color: 'white',
-                          fontSize: '0.7rem',
-                          height: 26,
-                          borderRadius: '13px',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                        }}
-                      />
-                    )}
-
-                    {document.file_size && (
-                      <Chip
-                        label={formatFileSize(document.file_size)}
-                        size='small'
-                        sx={{
-                          background: 'rgba(102, 126, 234, 0.7)',
-                          color: 'white',
-                          fontSize: '0.7rem',
-                          height: 26,
-                          borderRadius: '13px',
-                          fontWeight: 500,
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                        }}
-                      />
-                    )}
-                  </Box>
-
-                  {/* Review Notes */}
-                  {document.review_notes && (
-                    <Fade in timeout={800}>
-                      <Alert
-                        severity={
-                          document.status === 'rejected' ? 'error' : 'info'
-                        }
-                        icon={<InfoIcon />}
-                        sx={{
-                          mt: 2,
-                          borderRadius: '12px',
-                          background:
-                            document.status === 'rejected'
-                              ? 'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.05) 100%)'
-                              : 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.05) 100%)',
-                          border: `1px solid ${document.status === 'rejected' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(33, 150, 243, 0.3)'}`,
-                          backdropFilter: 'blur(10px)',
-                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                        }}
-                      >
-                        <Typography
-                          variant='body2'
-                          sx={{ fontWeight: 600, mb: 1 }}
-                        >
-                          Notas del revisor:
-                        </Typography>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            background: 'rgba(255, 255, 255, 0.7)',
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          {document.review_notes}
-                        </Typography>
-                        {document.reviewed_by && (
-                          <Typography
-                            variant='caption'
-                            sx={{
-                              mt: 1,
-                              display: 'block',
-                              opacity: 0.8,
-                              fontWeight: 500,
-                            }}
-                          >
-                            Revisado por {document.reviewed_by.full_name} ·{' '}
-                            {document.reviewed_at &&
-                              format(
-                                new Date(document.reviewed_at),
-                                'dd/MM/yyyy HH:mm',
-                                { locale: es },
-                              )}
-                          </Typography>
-                        )}
-                      </Alert>
-                    </Fade>
-                  )}
-
-                  {/* Upload Instructions */}
-                  {!document.uploaded && (
-                    <Fade in timeout={1000}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          mt: 2,
-                          p: 2,
-                          background:
-                            'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                          borderRadius: '12px',
-                          border: '2px dashed rgba(102, 126, 234, 0.3)',
-                          backdropFilter: 'blur(5px)',
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          ...(isDragActive && {
-                            borderColor: '#667eea',
-                            background:
-                              'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-                            transform: 'scale(1.02)',
-                          }),
-                        }}
-                      >
-                        <CloudUploadIcon
-                          sx={{
-                            color: isDragActive ? '#667eea' : 'text.secondary',
-                            fontSize: '1.5rem',
-                          }}
-                        />
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: isDragActive ? '#667eea' : 'text.secondary',
-                            fontWeight: isDragActive ? 600 : 400,
-                            fontSize: '0.9rem',
-                          }}
-                        >
-                          {isDragActive
-                            ? ' ¡Suelta el archivo aquí!'
-                            : ' Arrastra un PDF o haz clic para seleccionar'}
-                        </Typography>
-                      </Box>
-                    </Fade>
-                  )}
-                </Stack>
-              </Grid>
-
-              {/* Action Buttons */}
-              <Grid item>
-                <Stack direction='row' spacing={1.5}>
-                  {document.uploaded && (
-                    <>
-                      <Tooltip title=' Ver documento' arrow>
-                        <ModernIconButton
-                          onClick={e => {
-                            e.stopPropagation();
-                            onPreview(document);
-                          }}
-                          sx={{
-                            background:
-                              'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-                            color: 'white',
-                            '&:hover': {
-                              background:
-                                'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
-                              boxShadow: '0 8px 25px rgba(33, 150, 243, 0.4)',
-                            },
-                          }}
-                        >
-                          <VisibilityIcon />
-                        </ModernIconButton>
-                      </Tooltip>
-
-                      {canDelete && document.status !== 'approved' && (
-                        <Tooltip title=' Eliminar documento' arrow>
-                          <ModernIconButton
-                            onClick={e => {
-                              e.stopPropagation();
-                              onDelete(document.id ?? '');
-                            }}
-                            sx={{
-                              background:
-                                'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-                              color: 'white',
-                              '&:hover': {
-                                background:
-                                  'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
-                                boxShadow: '0 8px 25px rgba(244, 67, 54, 0.4)',
-                              },
-                            }}
-                          >
-                            <DeleteIcon />
-                          </ModernIconButton>
-                        </Tooltip>
-                      )}
-
-                      {document.status === 'requires_correction' && (
-                        <Tooltip title=' Reemplazar documento' arrow>
-                          <ModernIconButton
-                            sx={{
-                              background:
-                                'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-                              color: 'white',
-                              animation: `${pulse} 2s infinite`,
-                              '&:hover': {
-                                background:
-                                  'linear-gradient(135deg, #F57C00 0%, #EF6C00 100%)',
-                                boxShadow: '0 8px 25px rgba(255, 152, 0, 0.4)',
-                                animation: 'none',
-                              },
-                            }}
-                          >
-                            <SwapHorizIcon />
-                          </ModernIconButton>
-                        </Tooltip>
-                      )}
-                    </>
-                  )}
-                </Stack>
-              </Grid>
-            </Grid>
-
-            {/* Upload Progress */}
-            {isUploading && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: '6px',
-                  borderRadius: '0 0 20px 20px',
-                  overflow: 'hidden',
-                  background: 'rgba(255, 255, 255, 0.3)',
-                }}
-              >
-                <LinearProgress
-                  sx={{
-                    height: '100%',
-                    background: 'transparent',
-                    '& .MuiLinearProgress-bar': {
-                      background:
-                        'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
-                      backgroundSize: '200% 100%',
-                      animation: `${shimmer} 1.5s infinite linear`,
-                    },
-                  }}
-                />
-              </Box>
+          <input {...getInputProps()} />
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 1.5,
+              bgcolor: isDragActive ? 'primary.100' : document.required ? 'warning.100' : 'grey.200',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {isUploading ? (
+              <AccessTimeIcon sx={{ color: 'text.secondary' }} />
+            ) : (
+              <CloudUploadIcon
+                sx={{ color: isDragActive ? 'primary.main' : document.required ? 'warning.dark' : 'text.disabled' }}
+              />
             )}
           </Box>
-        </GradientCard>
-      </Slide>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction='row' alignItems='center' spacing={1} flexWrap='wrap'>
+              <Typography variant='subtitle2' fontWeight={600} color='text.primary'>
+                {document.display_name}
+              </Typography>
+              {document.required && (
+                <Chip label='Requerido' size='small' color='error' variant='filled' sx={{ height: 20, fontSize: '0.65rem' }} />
+              )}
+            </Stack>
+            <Typography variant='caption' color='text.secondary'>
+              {isDragActive ? '¡Suelta el PDF aquí!' : document.description || 'Arrastra un PDF o haz clic para seleccionar'}
+            </Typography>
+          </Box>
+          <Button
+            variant='outlined'
+            size='small'
+            color={document.required ? 'warning' : 'primary'}
+            startIcon={<UploadFileIcon />}
+            disabled={isUploading}
+            sx={{ flexShrink: 0, fontWeight: 600 }}
+            onClick={e => e.stopPropagation()}
+          >
+            {isUploading ? 'Subiendo...' : 'Subir PDF'}
+          </Button>
+        </Box>
+      );
+    }
+
+    // ── UPLOADED STATE: Compact info row ──
+    return (
+      <Card
+        elevation={0}
+        sx={{
+          mb: 1.5,
+          border: '1px solid',
+          borderColor: isApproved ? 'success.light' : document.status === 'rejected' ? 'error.light' : document.status === 'requires_correction' ? 'info.light' : 'divider',
+          bgcolor: isApproved ? 'success.50' : document.status === 'rejected' ? 'error.50' : 'background.paper',
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Status icon */}
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 1,
+              bgcolor:
+                isApproved ? 'success.100'
+                : document.status === 'rejected' ? 'error.100'
+                : document.status === 'requires_correction' ? 'info.100'
+                : 'warning.100',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {getStatusIcon(document.status)}
+          </Box>
+
+          {/* Document info */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction='row' alignItems='center' spacing={1} flexWrap='wrap'>
+              <Typography variant='body2' fontWeight={600} color='text.primary' noWrap>
+                {document.display_name}
+              </Typography>
+              <Chip
+                label={getStatusLabel(document.status)}
+                size='small'
+                color={getStatusColor(document.status) as any}
+                variant='filled'
+                sx={{ height: 20, fontSize: '0.65rem' }}
+              />
+              {document.required && (
+                <Chip label='Req.' size='small' color='error' variant='outlined' sx={{ height: 20, fontSize: '0.65rem' }} />
+              )}
+            </Stack>
+            <Typography variant='caption' color='text.secondary'>
+              {document.original_filename || 'Documento subido'}
+              {document.file_size ? ` · ${formatFileSize(document.file_size)}` : ''}
+              {document.uploaded_at
+                ? ` · ${format(new Date(document.uploaded_at), 'dd/MM/yyyy', { locale: es })}`
+                : ''}
+            </Typography>
+            {document.review_notes && (
+              <Alert
+                severity={document.status === 'rejected' ? 'error' : 'info'}
+                sx={{ mt: 1, py: 0.5, '& .MuiAlert-message': { py: 0.5 } }}
+              >
+                <Typography variant='caption'>{document.review_notes}</Typography>
+                {document.reviewed_by && (
+                  <Typography variant='caption' display='block' sx={{ opacity: 0.8 }}>
+                    — {document.reviewed_by.full_name}
+                  </Typography>
+                )}
+              </Alert>
+            )}
+          </Box>
+
+          {/* Actions */}
+          <Stack direction='row' spacing={0.5} flexShrink={0}>
+            <Tooltip title='Ver documento' arrow>
+              <IconButton size='small' color='primary' onClick={e => { e.stopPropagation(); onPreview(document); }}>
+                <VisibilityIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+            {canDelete && !isApproved && (
+              <Tooltip title='Eliminar' arrow>
+                <IconButton size='small' color='error' onClick={e => { e.stopPropagation(); onDelete(document.id ?? ''); }}>
+                  <DeleteIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            )}
+            {document.status === 'requires_correction' && (
+              <Tooltip title='Reemplazar' arrow>
+                <Box {...getRootProps()}>
+                  <input {...getInputProps()} />
+                  <IconButton size='small' color='warning'>
+                    <SwapHorizIcon fontSize='small' />
+                  </IconButton>
+                </Box>
+              </Tooltip>
+            )}
+          </Stack>
+        </Box>
+        {isUploading && <LinearProgress />}
+      </Card>
     );
   },
 );
@@ -807,246 +384,70 @@ const DocumentStatsDashboard: React.FC<{ stats: DocumentStats }> = ({
   const progressPercentage =
     stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
 
+  const statItems = [
+    { label: 'Total', value: stats.total, color: 'text.primary', bgColor: 'grey.50', borderColor: 'divider' },
+    { label: 'Pendientes', value: stats.pending, color: 'warning.dark', bgColor: 'warning.50', borderColor: 'warning.200' },
+    { label: 'Aprobados', value: stats.approved, color: 'success.dark', bgColor: 'success.50', borderColor: 'success.200' },
+    { label: 'Por revisar', value: stats.rejected + stats.requires_correction, color: 'error.dark', bgColor: 'error.50', borderColor: 'error.200' },
+  ];
+
   return (
-    <Fade in timeout={800}>
-      <GradientCard
-        sx={{
-          mb: 4,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          },
-        }}
-      >
-        <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 3,
-            }}
-          >
-            <Typography
-              variant='h5'
-              sx={{
-                color: 'white',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-              }}
-            >
-              <DashboardIcon sx={{ fontSize: '2rem' }} />
-              Panel de Control Documental
+    <Card elevation={0} sx={{ mb: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      {/* Header strip con color VeriHome */}
+      <Box sx={{ bgcolor: '#2d4264', px: 2.5, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Stack direction='row' alignItems='center' spacing={1}>
+          <DashboardIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
+          <Typography variant='subtitle2' fontWeight={600} color='white'>
+            Resumen de documentos
+          </Typography>
+        </Stack>
+        <Chip
+          label={`${progressPercentage}% completado`}
+          size='small'
+          sx={{
+            bgcolor: progressPercentage === 100 ? 'success.light' : 'rgba(255,255,255,0.2)',
+            color: 'white',
+            fontWeight: 600,
+            fontSize: '0.7rem',
+          }}
+        />
+      </Box>
+
+      <CardContent sx={{ pt: 2 }}>
+        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+          {statItems.map(({ label, value, color, bgColor }) => (
+            <Grid item xs={6} sm={3} key={label}>
+              <Box sx={{
+                textAlign: 'center',
+                p: 1.5,
+                bgcolor: bgColor,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+              }}>
+                <Typography variant='h4' fontWeight={700} color={color} lineHeight={1}>{value}</Typography>
+                <Typography variant='caption' color='text.secondary' sx={{ mt: 0.5, display: 'block' }}>{label}</Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+
+        <Box>
+          <Stack direction='row' justifyContent='space-between' mb={0.5}>
+            <Typography variant='caption' color='text.secondary'>Progreso de aprobación</Typography>
+            <Typography variant='caption' fontWeight={600} color={progressPercentage === 100 ? 'success.main' : 'text.secondary'}>
+              {stats.approved}/{stats.total}
             </Typography>
-
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                background: 'rgba(255, 255, 255, 0.2)',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
-              <Typography variant='h6' sx={{ color: 'white', fontWeight: 600 }}>
-                {progressPercentage}%
-              </Typography>
-              <Typography
-                variant='body2'
-                sx={{ color: 'rgba(255, 255, 255, 0.8)' }}
-              >
-                Completado
-              </Typography>
-            </Box>
-          </Box>
-
-          <Grid container spacing={3}>
-            <Grid item xs={6} sm={3}>
-              <StatCard
-                elevation={0}
-                sx={{
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    transform: 'translateY(-4px) scale(1.05)',
-                    boxShadow: '0 12px 40px rgba(102, 126, 234, 0.3)',
-                  },
-                }}
-              >
-                <Typography
-                  variant='h3'
-                  sx={{
-                    fontWeight: 800,
-                    background:
-                      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 1,
-                  }}
-                >
-                  {stats.total}
-                </Typography>
-                <Typography
-                  variant='body1'
-                  color='text.secondary'
-                  sx={{ fontWeight: 600 }}
-                >
-                  Total
-                </Typography>
-              </StatCard>
-            </Grid>
-
-            <Grid item xs={6} sm={3}>
-              <StatCard
-                elevation={0}
-                sx={{
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    transform: 'translateY(-4px) scale(1.05)',
-                    boxShadow: '0 12px 40px rgba(255, 152, 0, 0.3)',
-                  },
-                }}
-              >
-                <Typography
-                  variant='h3'
-                  sx={{
-                    fontWeight: 800,
-                    color: '#FF9800',
-                    mb: 1,
-                  }}
-                >
-                  {stats.pending}
-                </Typography>
-                <Typography
-                  variant='body1'
-                  color='text.secondary'
-                  sx={{ fontWeight: 600 }}
-                >
-                  ⏳ Pendientes
-                </Typography>
-              </StatCard>
-            </Grid>
-
-            <Grid item xs={6} sm={3}>
-              <StatCard
-                elevation={0}
-                sx={{
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    transform: 'translateY(-4px) scale(1.05)',
-                    boxShadow: '0 12px 40px rgba(76, 175, 80, 0.3)',
-                  },
-                }}
-              >
-                <Typography
-                  variant='h3'
-                  sx={{
-                    fontWeight: 800,
-                    color: '#4CAF50',
-                    mb: 1,
-                  }}
-                >
-                  {stats.approved}
-                </Typography>
-                <Typography
-                  variant='body1'
-                  color='text.secondary'
-                  sx={{ fontWeight: 600 }}
-                >
-                  Aprobados
-                </Typography>
-              </StatCard>
-            </Grid>
-
-            <Grid item xs={6} sm={3}>
-              <StatCard
-                elevation={0}
-                sx={{
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    transform: 'translateY(-4px) scale(1.05)',
-                    boxShadow: '0 12px 40px rgba(244, 67, 54, 0.3)',
-                  },
-                }}
-              >
-                <Typography
-                  variant='h3'
-                  sx={{
-                    fontWeight: 800,
-                    color: '#F44336',
-                    mb: 1,
-                  }}
-                >
-                  {stats.rejected + stats.requires_correction}
-                </Typography>
-                <Typography
-                  variant='body1'
-                  color='text.secondary'
-                  sx={{ fontWeight: 600 }}
-                >
-                  Revisar
-                </Typography>
-              </StatCard>
-            </Grid>
-          </Grid>
-
-          {/* Progress Bar */}
-          <Box sx={{ mt: 3 }}>
-            <Typography
-              variant='body2'
-              sx={{ color: 'rgba(255, 255, 255, 0.9)', mb: 1, fontWeight: 500 }}
-            >
-              Progreso general: {stats.approved} de {stats.total} documentos
-              aprobados
-            </Typography>
-            <Box
-              sx={{
-                height: 8,
-                borderRadius: 4,
-                background: 'rgba(255, 255, 255, 0.2)',
-                overflow: 'hidden',
-              }}
-            >
-              <Box
-                sx={{
-                  height: '100%',
-                  width: `${progressPercentage}%`,
-                  background:
-                    'linear-gradient(90deg, #4CAF50 0%, #81C784 100%)',
-                  borderRadius: 4,
-                  transition: 'width 1s ease-in-out',
-                  position: 'relative',
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background:
-                      'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
-                    animation: `${shimmer} 2s infinite linear`,
-                  },
-                }}
-              />
-            </Box>
-          </Box>
-        </CardContent>
-      </GradientCard>
-    </Fade>
+          </Stack>
+          <LinearProgress
+            variant='determinate'
+            value={progressPercentage}
+            color={progressPercentage === 100 ? 'success' : 'primary'}
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -1391,211 +792,69 @@ const EnhancedTenantDocumentUpload: React.FC<
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-      {/* Header with Title and View Toggle */}
-      <Box sx={{ mb: 4 }}>
-        <Slide direction='down' in timeout={600}>
-          <GradientCard
-            sx={{
-              mb: 4,
-              background:
-                'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.15)',
-            }}
-          >
-            <CardContent>
-              <Stack
-                direction={{ xs: 'column', md: 'row' }}
-                justifyContent='space-between'
-                alignItems={{ xs: 'start', md: 'center' }}
-                spacing={2}
-              >
-                <Box>
-                  <Typography
-                    variant='h3'
-                    sx={{
-                      fontWeight: 800,
-                      background:
-                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      mb: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                    }}
-                  >
-                    <AutoAwesomeIcon
-                      sx={{ color: '#667eea', fontSize: '2.5rem' }}
-                    />
-                    Gestión Inteligente de Documentos
-                  </Typography>
-                  <Typography
-                    variant='subtitle1'
-                    color='text.secondary'
-                    sx={{ fontWeight: 500 }}
-                  >
-                    Sube, revisa y gestiona todos tus documentos de forma
-                    centralizada
-                  </Typography>
-                </Box>
+    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      {isLandlord && (
+        <Box sx={{ px: 3, pt: 2.5 }}>
+          <DocumentStatsDashboard stats={stats} />
+        </Box>
+      )}
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    alignItems: 'end',
-                  }}
-                >
-                  <ToggleButtonGroup
-                    value={viewMode}
-                    exclusive
-                    onChange={(e, newMode) => newMode && setViewMode(newMode)}
-                    size='medium'
-                    sx={{
-                      '& .MuiToggleButton-root': {
-                        borderRadius: '12px',
-                        border: '2px solid rgba(102, 126, 234, 0.2)',
-                        color: '#667eea',
-                        fontWeight: 600,
-                        padding: '8px 20px',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': {
-                          background:
-                            'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                          borderColor: '#667eea',
-                          transform: 'translateY(-2px)',
-                        },
-                        '&.Mui-selected': {
-                          background:
-                            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: 'white',
-                          borderColor: '#667eea',
-                          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                          '&:hover': {
-                            background:
-                              'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                          },
-                        },
-                      },
-                    }}
-                  >
-                    <ToggleButton value='sections'>
-                      <FolderIcon sx={{ mr: 1 }} /> Por Sección
-                    </ToggleButton>
-                    <ToggleButton value='categories'>
-                      <CategoryIcon sx={{ mr: 1 }} /> Por Categoría
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                </Box>
-              </Stack>
-            </CardContent>
-          </GradientCard>
-        </Slide>
-
-        {/* Stats Dashboard */}
-        {isLandlord && <DocumentStatsDashboard stats={stats} />}
+      {/* Compact header with toggle */}
+      <Box sx={{ px: 3, pt: 2.5, pb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}>
+        <Typography variant='body2' color='text.secondary'>
+          {stats.approved}/{stats.total} documentos aprobados
+        </Typography>
+        <ToggleButtonGroup value={viewMode} exclusive onChange={(_e, newMode) => newMode && setViewMode(newMode)} size='small'>
+          <ToggleButton value='sections' sx={{ px: 1.5 }}>
+            <FolderIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} /> Secciones
+          </ToggleButton>
+          <ToggleButton value='categories' sx={{ px: 1.5 }}>
+            <CategoryIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} /> Categorías
+          </ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
       {/* Document Sections */}
       {viewMode === 'sections' ? (
+        <Box sx={{ px: 3, pb: 3 }}>
         <Stack spacing={3}>
           {/* Tomador Documents */}
           <Fade in timeout={1000}>
-            <GradientCard>
+            <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
               <Accordion
                 defaultExpanded
                 sx={{
                   background: 'transparent',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  '& .MuiAccordionSummary-root': {
-                    background:
-                      'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                    borderRadius: '16px',
-                    minHeight: 64,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      background:
-                        'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
-                      transform: 'translateY(-2px)',
-                    },
-                  },
-                  '& .MuiAccordionDetails-root': {
-                    padding: '24px',
-                  },
+                  '& .MuiAccordionDetails-root': { padding: '20px' },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={
-                    <ExpandMoreIcon
-                      sx={{ color: '#667eea', fontSize: '1.5rem' }}
-                    />
-                  }
+                  expandIcon={<ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />}
+                  sx={{
+                    bgcolor: '#2d4264',
+                    '&:hover': { filter: 'brightness(0.88)' },
+                    '&.Mui-expanded': { filter: 'brightness(0.85)' },
+                    '& .MuiAccordionSummary-content': { my: 1 },
+                  }}
                 >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      width: '100%',
-                    }}
-                  >
-                    <PulseAvatar
-                      sx={{
-                        background:
-                          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        width: 48,
-                        height: 48,
-                      }}
-                    >
-                      <PersonIcon sx={{ color: 'white' }} />
-                    </PulseAvatar>
+                  <Stack direction='row' alignItems='center' spacing={2} sx={{ width: '100%', mr: 1 }}>
+                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 36, height: 36 }}>
+                      <PersonIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
+                    </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography
-                        variant='h6'
-                        sx={{
-                          fontWeight: 700,
-                          color: '#667eea',
-                          fontSize: '1.3rem',
-                        }}
-                      >
-                        Documentos del Tomador (Inquilino)
-                      </Typography>
-                      <Typography variant='body2' color='text.secondary'>
-                        Documentos personales e información del inquilino
-                        principal
+                      <Typography variant='subtitle1' fontWeight={600} color='white'>Documentos del Tomador</Typography>
+                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>
+                        {checklist.tomador_documents.filter(d => d.uploaded).length}/{checklist.tomador_documents.length} subidos
                       </Typography>
                     </Box>
-                    <Badge
-                      badgeContent={
-                        checklist.tomador_documents.filter(d => d.uploaded)
-                          .length
-                      }
-                      max={99}
-                      sx={{
-                        '& .MuiBadge-badge': {
-                          background:
-                            'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
-                          color: 'white',
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
-                          minWidth: '24px',
-                          height: '24px',
-                          borderRadius: '12px',
-                          boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
-                        },
-                      }}
-                    >
-                      <FolderIcon
-                        sx={{ color: '#667eea', fontSize: '1.8rem' }}
-                      />
-                    </Badge>
-                  </Box>
+                    <Chip
+                      label={`${checklist.tomador_documents.filter(d => d.status === 'approved').length} aprobados`}
+                      size='small'
+                      sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }}
+                    />
+                  </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
                   {checklist.tomador_documents.map(doc => (
@@ -1614,98 +873,45 @@ const EnhancedTenantDocumentUpload: React.FC<
                   ))}
                 </AccordionDetails>
               </Accordion>
-            </GradientCard>
+            </Card>
           </Fade>
 
           {/* Codeudor Documents */}
           <Fade in timeout={1200}>
-            <GradientCard>
+            <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
               <Accordion
                 sx={{
                   background: 'transparent',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  '& .MuiAccordionSummary-root': {
-                    background:
-                      'linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(245, 124, 0, 0.1) 100%)',
-                    borderRadius: '16px',
-                    minHeight: 64,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      background:
-                        'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(245, 124, 0, 0.15) 100%)',
-                      transform: 'translateY(-2px)',
-                    },
-                  },
-                  '& .MuiAccordionDetails-root': {
-                    padding: '24px',
-                  },
+                  '& .MuiAccordionDetails-root': { padding: '20px' },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={
-                    <ExpandMoreIcon
-                      sx={{ color: '#FF9800', fontSize: '1.5rem' }}
-                    />
-                  }
+                  expandIcon={<ExpandMoreIcon sx={{ color: 'rgba(255,255,255,0.8)' }} />}
+                  sx={{
+                    bgcolor: '#5c3d1a',
+                    '&:hover': { filter: 'brightness(0.88)' },
+                    '&.Mui-expanded': { filter: 'brightness(0.85)' },
+                    '& .MuiAccordionSummary-content': { my: 1 },
+                  }}
                 >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      width: '100%',
-                    }}
-                  >
-                    <PulseAvatar
-                      sx={t => ({
-                        background: `linear-gradient(135deg, ${t.palette.warning.main} 0%, ${t.palette.warning.dark} 100%)`,
-                        width: 48,
-                        height: 48,
-                      })}
-                    >
-                      <PeopleIcon />
-                    </PulseAvatar>
+                  <Stack direction='row' alignItems='center' spacing={2} sx={{ width: '100%', mr: 1 }}>
+                    <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 36, height: 36 }}>
+                      <PeopleIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
+                    </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography
-                        variant='h6'
-                        sx={{
-                          fontWeight: 700,
-                          color: '#FF9800',
-                          fontSize: '1.3rem',
-                        }}
-                      >
-                        Documentos del Codeudor
-                      </Typography>
-                      <Typography variant='body2' color='text.secondary'>
-                        Documentos del garante o codeudor solidario
+                      <Typography variant='subtitle1' fontWeight={600} color='white'>Documentos del Codeudor</Typography>
+                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.85)' }}>
+                        {checklist.codeudor_documents.filter(d => d.uploaded).length}/{checklist.codeudor_documents.length} subidos
                       </Typography>
                     </Box>
-                    <Badge
-                      badgeContent={
-                        checklist.codeudor_documents.filter(d => d.uploaded)
-                          .length
-                      }
-                      max={99}
-                      sx={{
-                        '& .MuiBadge-badge': {
-                          background:
-                            'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-                          color: 'white',
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
-                          minWidth: '24px',
-                          height: '24px',
-                          borderRadius: '12px',
-                          boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
-                        },
-                      }}
-                    >
-                      <FolderIcon
-                        sx={{ color: '#FF9800', fontSize: '1.8rem' }}
-                      />
-                    </Badge>
-                  </Box>
+                    <Chip
+                      label={`${checklist.codeudor_documents.filter(d => d.status === 'approved').length} aprobados`}
+                      size='small'
+                      sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }}
+                    />
+                  </Stack>
                 </AccordionSummary>
                 <AccordionDetails>
                   {checklist.codeudor_documents.map(doc => (
@@ -1724,181 +930,73 @@ const EnhancedTenantDocumentUpload: React.FC<
                   ))}
                 </AccordionDetails>
               </Accordion>
-            </GradientCard>
+            </Card>
           </Fade>
 
-          {/* Otros Documentos Section - MEJORADO CON LISTA DE DOCUMENTOS */}
+          {/* Otros Documentos Section */}
           <Fade in timeout={1400}>
-            <GradientCard
-              sx={{
-                border: '3px dashed rgba(33, 150, 243, 0.3)',
-                background:
-                  'linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(3, 169, 244, 0.08) 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background:
-                    'linear-gradient(90deg, #2196F3 0%, #03A9F4 50%, #2196F3 100%)',
-                  backgroundSize: '200% 100%',
-                  animation: `${shimmer} 3s infinite linear`,
-                },
-              }}
-            >
-              <CardContent sx={{ pt: 4 }}>
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}
-                >
-                  <PulseAvatar
-                    sx={{
-                      background:
-                        'linear-gradient(135deg, #2196F3 0%, #03A9F4 100%)',
-                      width: 56,
-                      height: 56,
-                      animation: `${float} 4s infinite ease-in-out`,
-                    }}
-                  >
-                    <NoteAddIcon sx={{ color: 'white', fontSize: '1.5rem' }} />
-                  </PulseAvatar>
+            <Card elevation={0} sx={{ border: '1px dashed', borderColor: 'primary.light', overflow: 'hidden' }}>
+              <AccordionSummary
+                component='div'
+                sx={{ cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', py: 0.5 }}>
+                  <Avatar sx={{ bgcolor: 'info.main', width: 40, height: 40 }}>
+                    <NoteAddIcon sx={{ fontSize: '1.1rem' }} />
+                  </Avatar>
                   <Box sx={{ flex: 1 }}>
-                    <Typography
-                      variant='h6'
-                      sx={{
-                        color: '#2196F3',
-                        fontWeight: 700,
-                        fontSize: '1.3rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      Otros Documentos (Personalizables)
-                      <Chip
-                        label=' Opcional'
-                        size='small'
-                        sx={{
-                          background:
-                            'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)',
-                          color: 'white',
-                          fontWeight: 600,
-                          borderRadius: '12px',
-                          boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
-                        }}
-                      />
-                      {checklist.otros_documents &&
-                        checklist.otros_documents.length > 0 && (
-                          <Chip
-                            label={`${checklist.otros_documents.length} documento${checklist.otros_documents.length !== 1 ? 's' : ''} subido${checklist.otros_documents.length !== 1 ? 's' : ''}`}
-                            size='small'
-                            sx={{
-                              background:
-                                'linear-gradient(135deg, #2196F3 0%, #03A9F4 100%)',
-                              color: 'white',
-                              fontWeight: 600,
-                              borderRadius: '12px',
-                              boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
-                            }}
-                          />
-                        )}
-                    </Typography>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      sx={{ fontWeight: 500, mt: 0.5 }}
-                    >
-                      Sube documentos adicionales que consideres importantes
-                      para fortalecer tu solicitud
+                    <Stack direction='row' alignItems='center' spacing={1}>
+                      <Typography variant='subtitle1' fontWeight={600} color='text.primary'>
+                        Documentos Adicionales
+                      </Typography>
+                      <Chip label='Opcional' size='small' color='info' variant='outlined' />
+                      {checklist.otros_documents?.length > 0 && (
+                        <Chip
+                          label={`${checklist.otros_documents.length} subido${checklist.otros_documents.length !== 1 ? 's' : ''}`}
+                          size='small'
+                          color='success'
+                          variant='outlined'
+                        />
+                      )}
+                    </Stack>
+                    <Typography variant='caption' color='text.secondary'>
+                      Cartas de recomendación, referencias comerciales, certificados adicionales
                     </Typography>
                   </Box>
                 </Box>
+              </AccordionSummary>
 
-                {/* Show existing otros documents */}
-                {checklist.otros_documents &&
-                  checklist.otros_documents.length > 0 && (
-                    <Box sx={{ mb: 3 }}>
-                      <Alert
-                        severity='success'
-                        sx={{
-                          mb: 2,
-                          borderRadius: '12px',
-                          background:
-                            'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)',
-                          border: '2px solid rgba(76, 175, 80, 0.3)',
-                        }}
-                      >
-                        <Typography
-                          variant='subtitle2'
-                          sx={{
-                            color: '#4CAF50',
-                            fontWeight: 600,
-                            mb: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          Documentos Personalizados Subidos (
-                          {checklist.otros_documents.length})
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Puedes seguir agregando más documentos con el botón de
-                          abajo
-                        </Typography>
-                      </Alert>
-                      {checklist.otros_documents.map((doc, index) => (
-                        <Box
-                          key={doc.id || doc.type || `otros_${index}`}
-                          sx={{ mb: 2 }}
-                        >
-                          <EnhancedDocumentItem
-                            document={doc}
-                            onFileSelect={handleFileSelect}
-                            onDelete={id => {
-                              setDocumentToDelete(id);
-                              setDeleteConfirmOpen(true);
-                            }}
-                            onPreview={handlePreview}
-                            isUploading={uploadingDocuments.has(doc.type)}
-                            canDelete={!isLandlord}
-                          />
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
+              <Box sx={{ px: 3, pb: 3 }}>
+                {/* Documentos ya subidos */}
+                {checklist.otros_documents?.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Alert severity='success' sx={{ mb: 2 }}>
+                      <Typography variant='body2' fontWeight={600}>
+                        {checklist.otros_documents.length} documento{checklist.otros_documents.length !== 1 ? 's' : ''} personalizado{checklist.otros_documents.length !== 1 ? 's' : ''} subido{checklist.otros_documents.length !== 1 ? 's' : ''}
+                      </Typography>
+                      <Typography variant='caption'>Puedes agregar más con el botón de abajo</Typography>
+                    </Alert>
+                    {checklist.otros_documents.map((doc, index) => (
+                      <EnhancedDocumentItem
+                        key={doc.id || doc.type || `otros_${index}`}
+                        document={doc}
+                        onFileSelect={handleFileSelect}
+                        onDelete={id => { setDocumentToDelete(id); setDeleteConfirmOpen(true); }}
+                        onPreview={handlePreview}
+                        isUploading={uploadingDocuments.has(doc.type)}
+                        canDelete={!isLandlord}
+                      />
+                    ))}
+                  </Box>
+                )}
 
-                {/* Empty state when no documents */}
-                {(!checklist.otros_documents ||
-                  checklist.otros_documents.length === 0) && (
-                  <Alert
-                    severity='info'
-                    sx={{
-                      mb: 3,
-                      borderRadius: '12px',
-                      background:
-                        'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%)',
-                      border: '2px dashed rgba(33, 150, 243, 0.3)',
-                    }}
-                  >
-                    <Typography
-                      variant='body2'
-                      sx={{ fontWeight: 600, mb: 0.5 }}
-                    >
-                      Aún no has subido documentos personalizados
-                    </Typography>
-                    <Typography variant='caption' color='text.secondary'>
-                      Haz clic en el botón de abajo para agregar tu primer
-                      documento personalizado
-                    </Typography>
+                {(!checklist.otros_documents || checklist.otros_documents.length === 0) && (
+                  <Alert severity='info' sx={{ mb: 2 }}>
+                    <Typography variant='body2' fontWeight={600}>Sin documentos adicionales</Typography>
+                    <Typography variant='caption'>Haz clic en el botón para agregar tu primer documento personalizado</Typography>
                   </Alert>
                 )}
 
-                {/* Add new custom document button - MÁS VISIBLE */}
                 <input
                   type='file'
                   accept='.pdf'
@@ -1906,188 +1004,63 @@ const EnhancedTenantDocumentUpload: React.FC<
                   id='other-document-upload'
                   onChange={e => {
                     const file = e.target.files?.[0];
-                    if (file) {
-                      handleFileSelect(file, 'otros');
-                      // Reset input para permitir seleccionar el mismo archivo de nuevo
-                      e.target.value = '';
-                    }
+                    if (file) { handleFileSelect(file, 'otros'); e.target.value = ''; }
                   }}
                 />
-                <label
-                  htmlFor='other-document-upload'
-                  style={{ width: '100%', display: 'block' }}
-                >
+                <label htmlFor='other-document-upload' style={{ width: '100%', display: 'block' }}>
                   <Button
                     component='span'
+                    variant='outlined'
+                    color='primary'
                     fullWidth
-                    startIcon={
-                      checklist.otros_documents &&
-                      checklist.otros_documents.length > 0 ? (
-                        <NoteAddIcon />
-                      ) : (
-                        <CloudUploadIcon />
-                      )
-                    }
-                    sx={{
-                      background:
-                        'linear-gradient(135deg, #2196F3 0%, #03A9F4 100%)',
-                      borderRadius: '16px',
-                      padding: '16px 24px',
-                      fontSize: '1.05rem',
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      border: '2px dashed rgba(33, 150, 243, 0.5)',
-                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
-                      '&:hover': {
-                        border: '2px solid #2196F3',
-                        transform: 'translateY(-4px) scale(1.02)',
-                        boxShadow: '0 12px 40px rgba(33, 150, 243, 0.5)',
-                        background:
-                          'linear-gradient(135deg, #1976D2 0%, #0288D1 100%)',
-                      },
-                    }}
+                    startIcon={<NoteAddIcon />}
+                    sx={{ py: 1.5, fontWeight: 600 }}
                   >
-                    {checklist.otros_documents &&
-                    checklist.otros_documents.length > 0
-                      ? ' Subir Otro Documento Personalizado'
-                      : ' Subir Documento Personalizado'}
+                    {checklist.otros_documents?.length > 0 ? 'Agregar otro documento' : 'Subir documento personalizado'}
                   </Button>
                 </label>
-
-                <Typography
-                  variant='caption'
-                  sx={{
-                    display: 'block',
-                    textAlign: 'center',
-                    mt: 2,
-                    color: 'text.secondary',
-                    fontStyle: 'italic',
-                    px: 2,
-                  }}
-                >
-                  Tip: Puedes subir cartas de recomendación, referencias
-                  comerciales, certificados adicionales, constancias laborales,
-                  etc.
-                </Typography>
-              </CardContent>
-            </GradientCard>
+              </Box>
+            </Card>
           </Fade>
         </Stack>
+        </Box>
       ) : (
         // Category View
-        <Grid container spacing={4}>
+        <Box sx={{ px: 3, pb: 3 }}>
+        <Grid container spacing={3}>
           {Object.entries(categorizedDocuments).map(
             ([category, documents], index) => {
-              const categoryColors = {
-                TOMADOR: {
-                  primary: '#667eea',
-                  secondary: '#764ba2',
-                  emoji: '',
-                },
-                CODEUDOR: {
-                  primary: '#FF9800',
-                  secondary: '#F57C00',
-                  emoji: '',
-                },
-                GARANTIA: {
-                  primary: '#4CAF50',
-                  secondary: '#388E3C',
-                  emoji: '',
-                },
-                OTROS: { primary: '#2196F3', secondary: '#1976D2', emoji: '' },
+              const catConfig: Record<string, { color: 'primary' | 'warning' | 'success' | 'info'; label: string; icon: React.ReactNode }> = {
+                TOMADOR: { color: 'primary', label: 'Documentos del Tomador', icon: <PersonIcon /> },
+                CODEUDOR: { color: 'warning', label: 'Documentos del Codeudor', icon: <PeopleIcon /> },
+                GARANTIA: { color: 'success', label: 'Garantías', icon: <FolderIcon /> },
+                OTROS: { color: 'info', label: 'Otros Documentos', icon: <NoteAddIcon /> },
               };
-              const colors =
-                categoryColors[category as keyof typeof categoryColors] ||
-                categoryColors['OTROS'];
+              const cfg = catConfig[category] ?? catConfig['OTROS']!;
 
               return (
                 <Grid item xs={12} lg={6} key={category}>
                   <Fade in timeout={800 + index * 200}>
-                    <GradientCard
-                      sx={{
-                        height: '100%',
-                        background: `linear-gradient(135deg, rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.05) 0%, rgba(${colors.secondary === '#764ba2' ? '118, 75, 162' : colors.secondary === '#F57C00' ? '245, 124, 0' : colors.secondary === '#388E3C' ? '56, 142, 60' : '25, 118, 210'}, 0.05) 100%)`,
-                        border: `2px solid rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.2)`,
-                        position: 'relative',
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: '4px',
-                          background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
-                          borderRadius: '20px 20px 0 0',
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ pt: 3 }}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2,
-                            mb: 3,
-                            pb: 2,
-                            borderBottom: `2px solid rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.1)`,
-                          }}
-                        >
-                          <PulseAvatar
-                            sx={{
-                              background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
-                              width: 48,
-                              height: 48,
-                            }}
-                          >
-                            <Typography variant='h6' sx={{ color: 'white' }}>
-                              {colors.emoji}
-                            </Typography>
-                          </PulseAvatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography
-                              variant='h6'
-                              sx={{
-                                fontWeight: 700,
-                                color: colors.primary,
-                                fontSize: '1.2rem',
-                              }}
-                            >
-                              {colors.emoji} {category}
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              color='text.secondary'
-                              sx={{ fontWeight: 500 }}
-                            >
-                              {documents.length} documento
-                              {documents.length !== 1 ? 's' : ''} en esta
-                              categoría
+                    <Card elevation={0} sx={{ height: '100%', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+                      {/* Category header strip */}
+                      <Box sx={{ bgcolor: `${cfg.color}.main`, px: 2.5, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Stack direction='row' alignItems='center' spacing={1.5}>
+                          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 32, height: 32 }}>
+                            {React.cloneElement(cfg.icon as React.ReactElement, { sx: { fontSize: '1rem', color: 'white' } })}
+                          </Avatar>
+                          <Box>
+                            <Typography variant='subtitle2' fontWeight={600} color='white'>{cfg.label}</Typography>
+                            <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                              {documents.length} documento{documents.length !== 1 ? 's' : ''}
                             </Typography>
                           </Box>
-                          <Badge
-                            badgeContent={
-                              documents.filter(d => d.uploaded).length
-                            }
-                            max={99}
-                            sx={{
-                              '& .MuiBadge-badge': {
-                                background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '0.8rem',
-                                minWidth: '22px',
-                                height: '22px',
-                                borderRadius: '11px',
-                                boxShadow: `0 2px 8px rgba(${colors.primary === '#667eea' ? '102, 126, 234' : colors.primary === '#FF9800' ? '255, 152, 0' : colors.primary === '#4CAF50' ? '76, 175, 80' : '33, 150, 243'}, 0.4)`,
-                              },
-                            }}
-                          >
-                            <CategoryIcon
-                              sx={{ color: colors.primary, fontSize: '1.5rem' }}
-                            />
-                          </Badge>
-                        </Box>
+                        </Stack>
+                        <Badge badgeContent={documents.filter(d => d.uploaded).length} max={99} color='default'>
+                          <FolderIcon sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.4rem' }} />
+                        </Badge>
+                      </Box>
+
+                      <CardContent sx={{ pt: 2 }}>
 
                         <Box
                           sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}
@@ -2125,13 +1098,14 @@ const EnhancedTenantDocumentUpload: React.FC<
                           </Box>
                         )}
                       </CardContent>
-                    </GradientCard>
+                    </Card>
                   </Fade>
                 </Grid>
               );
             },
           )}
         </Grid>
+        </Box>
       )}
 
       {/* Upload Modal */}
@@ -2145,135 +1119,54 @@ const EnhancedTenantDocumentUpload: React.FC<
         }}
         maxWidth='sm'
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            background:
-              'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 20px 60px rgba(102, 126, 234, 0.3)',
-          },
-        }}
       >
-        <DialogTitle
-          sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            borderRadius: '20px 20px 0 0',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            },
-          }}
-        >
-          <Box
-            sx={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1.5,
-            }}
-          >
-            <CloudUploadIcon sx={{ fontSize: '1.8rem' }} />
-            <Typography variant='h6' sx={{ fontWeight: 700 }}>
-              {isOtherDocument
-                ? ' Subir Documento Personalizado'
-                : ' Confirmar Subida'}
-            </Typography>
-          </Box>
-        </DialogTitle>
+        {/* Header VeriHome branded */}
+        <Box sx={{ bgcolor: '#2d4264', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <CloudUploadIcon sx={{ color: 'white' }} />
+          <Typography variant='h6' fontWeight={600} color='white'>
+            {isOtherDocument ? 'Documento Personalizado' : 'Confirmar Subida'}
+          </Typography>
+        </Box>
 
-        <DialogContent sx={{ p: 3 }}>
-          <GradientCard
-            sx={{
-              mb: 3,
-              background:
-                'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)',
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <PdfIcon sx={{ color: '#F44336', fontSize: '2rem' }} />
-                <Box>
-                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                    Archivo seleccionado:
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    sx={{ color: '#667eea', fontWeight: 600 }}
-                  >
-                    {uploadFile?.name}
-                  </Typography>
-                </Box>
+        <DialogContent sx={{ pt: 2.5 }}>
+          {uploadFile && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, mb: 2.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+              <PdfIcon color='error' />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant='body2' fontWeight={600} noWrap>{uploadFile.name}</Typography>
+                <Typography variant='caption' color='text.secondary'>{(uploadFile.size / 1024).toFixed(1)} KB · PDF</Typography>
               </Box>
-            </CardContent>
-          </GradientCard>
+              <Chip label='Listo' size='small' color='success' variant='outlined' />
+            </Box>
+          )}
 
-          {/* Additional fields for otros documents */}
           {isOtherDocument && (
-            <Stack spacing={3}>
+            <Stack spacing={2.5}>
               <TextField
                 fullWidth
-                label=' Nombre del documento'
+                label='Nombre del documento'
                 placeholder='Ej: Referencia comercial, Carta de recomendación...'
                 value={otherDocumentName}
                 onChange={e => setOtherDocumentName(e.target.value)}
                 required
-                helperText='Escribe un nombre descriptivo para este documento'
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#667eea',
-                      borderWidth: '2px',
-                    },
-                  },
-                }}
+                helperText='Nombre descriptivo para identificar este documento'
               />
-
               <TextField
                 fullWidth
-                label=' Descripción del documento'
+                label='Descripción'
                 placeholder='Describe brevemente qué tipo de documento estás subiendo...'
                 value={otherDocumentDescription}
                 onChange={e => setOtherDocumentDescription(e.target.value)}
                 multiline
                 rows={3}
                 required
-                helperText='Explica para qué sirve este documento en el proceso'
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#667eea',
-                      borderWidth: '2px',
-                    },
-                  },
-                }}
+                helperText='Para qué sirve este documento en el proceso'
               />
             </Stack>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, gap: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1.5 }}>
           <Button
             onClick={() => {
               setUploadModalOpen(false);
@@ -2281,35 +1174,19 @@ const EnhancedTenantDocumentUpload: React.FC<
               setOtherDocumentDescription('');
               setIsOtherDocument(false);
             }}
-            sx={{
-              borderRadius: '12px',
-              padding: '10px 24px',
-              fontWeight: 600,
-              color: '#666',
-              border: '2px solid #ddd',
-              '&:hover': {
-                border: '2px solid #667eea',
-                background: 'rgba(102, 126, 234, 0.1)',
-              },
-            }}
+            variant='outlined'
+            color='inherit'
           >
             Cancelar
           </Button>
-          <FloatingActionButton
+          <Button
+            variant='contained'
             onClick={handleUpload}
-            disabled={
-              isOtherDocument &&
-              (!otherDocumentName.trim() || !otherDocumentDescription.trim())
-            }
+            disabled={isOtherDocument && (!otherDocumentName.trim() || !otherDocumentDescription.trim())}
             startIcon={<CloudUploadIcon />}
-            sx={{
-              padding: '10px 24px',
-              borderRadius: '12px',
-              minWidth: '160px',
-            }}
           >
             Subir Documento
-          </FloatingActionButton>
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -2317,132 +1194,31 @@ const EnhancedTenantDocumentUpload: React.FC<
       <Dialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            background:
-              'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(244, 67, 54, 0.3)',
-            boxShadow: '0 20px 60px rgba(244, 67, 54, 0.2)',
-            maxWidth: '400px',
-          },
-        }}
+        maxWidth='xs'
+        fullWidth
       >
-        <DialogTitle
-          sx={{
-            background: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-            color: 'white',
-            borderRadius: '20px 20px 0 0',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            },
-          }}
-        >
-          <Box
-            sx={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1.5,
-            }}
-          >
-            <WarningIcon sx={{ fontSize: '1.8rem' }} />
-            <Typography variant='h6' sx={{ fontWeight: 700 }}>
-              Confirmar Eliminación
-            </Typography>
-          </Box>
-        </DialogTitle>
+        <Box sx={{ bgcolor: 'error.main', px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <WarningIcon sx={{ color: 'white' }} />
+          <Typography variant='h6' fontWeight={600} color='white'>Eliminar documento</Typography>
+        </Box>
 
-        <DialogContent sx={{ p: 3, textAlign: 'center' }}>
-          <GradientCard
-            sx={{
-              background:
-                'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
-              border: '2px solid rgba(244, 67, 54, 0.2)',
-              mb: 2,
-            }}
-          >
-            <CardContent>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2,
-                }}
-              >
-                <PulseAvatar
-                  sx={{
-                    background:
-                      'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-                    width: 64,
-                    height: 64,
-                    animation: `${pulse} 2s infinite`,
-                  }}
-                >
-                  <DeleteIcon sx={{ color: 'white', fontSize: '2rem' }} />
-                </PulseAvatar>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 600, color: '#F44336' }}
-                >
-                  ¿Estás seguro de que deseas eliminar este documento?
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  Esta acción no se puede deshacer y el archivo se eliminará
-                  permanentemente.
-                </Typography>
-              </Box>
-            </CardContent>
-          </GradientCard>
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <Avatar sx={{ bgcolor: 'error.50', width: 56, height: 56, mx: 'auto', mb: 2, border: '2px solid', borderColor: 'error.light' }}>
+            <DeleteIcon color='error' />
+          </Avatar>
+          <Typography variant='body1' fontWeight={600} gutterBottom>¿Confirmar eliminación?</Typography>
+          <Typography variant='body2' color='text.secondary'>
+            Esta acción no se puede deshacer. El archivo se eliminará permanentemente.
+          </Typography>
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, gap: 2, justifyContent: 'center' }}>
-          <Button
-            onClick={() => setDeleteConfirmOpen(false)}
-            sx={{
-              borderRadius: '12px',
-              padding: '10px 24px',
-              fontWeight: 600,
-              color: '#666',
-              border: '2px solid #ddd',
-              minWidth: '120px',
-              '&:hover': {
-                border: '2px solid #667eea',
-                background: 'rgba(102, 126, 234, 0.1)',
-              },
-            }}
-          >
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1.5, justifyContent: 'center' }}>
+          <Button onClick={() => setDeleteConfirmOpen(false)} variant='outlined' color='inherit'>
             Cancelar
           </Button>
-          <FloatingActionButton
-            onClick={handleDeleteConfirm}
-            startIcon={<DeleteIcon />}
-            sx={{
-              background: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
-              padding: '10px 24px',
-              borderRadius: '12px',
-              minWidth: '120px',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
-              },
-            }}
-          >
+          <Button variant='contained' color='error' onClick={handleDeleteConfirm} startIcon={<DeleteIcon />}>
             Eliminar
-          </FloatingActionButton>
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -2452,166 +1228,44 @@ const EnhancedTenantDocumentUpload: React.FC<
         onClose={() => setPreviewModalOpen(false)}
         maxWidth='xl'
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            background:
-              'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 25px 80px rgba(0, 0, 0, 0.15)',
-            height: '90vh',
-          },
-        }}
+        PaperProps={{ sx: { height: '90vh' } }}
       >
-        <DialogTitle
-          sx={{
-            background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-            color: 'white',
-            borderRadius: '20px 20px 0 0',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            },
-          }}
-        >
-          <Stack
-            direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            sx={{ position: 'relative', zIndex: 1 }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <PdfIcon sx={{ fontSize: '1.8rem' }} />
-              <Box>
-                <Typography variant='h6' sx={{ fontWeight: 700 }}>
-                  Vista Previa del Documento
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ opacity: 0.9, fontWeight: 500 }}
-                >
-                  {previewDocument?.display_name}
-                </Typography>
-              </Box>
+        {/* Header VeriHome branded */}
+        <Box sx={{ bgcolor: '#1e2d40', px: 3, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Stack direction='row' alignItems='center' spacing={1.5}>
+            <PdfIcon sx={{ color: 'white', fontSize: '1.4rem' }} />
+            <Box>
+              <Typography variant='subtitle2' fontWeight={600} color='white'>Vista Previa del Documento</Typography>
+              <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>{previewDocument?.display_name}</Typography>
             </Box>
-            <ModernIconButton
-              onClick={() => setPreviewModalOpen(false)}
-              sx={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.3)',
-                  transform: 'scale(1.1)',
-                },
-              }}
-            >
-              <CloseIcon />
-            </ModernIconButton>
           </Stack>
-        </DialogTitle>
+          <IconButton onClick={() => setPreviewModalOpen(false)} size='small' sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
-        <DialogContent
-          sx={{
-            height: 'calc(90vh - 120px)',
-            p: 0,
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
+        <DialogContent sx={{ height: 'calc(90vh - 60px)', p: 0, overflow: 'hidden', bgcolor: 'grey.100' }}>
           {previewDocument?.file_url ? (
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                position: 'relative',
-                background: 'grey.100',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <iframe
-                src={
-                  previewDocument.file_url.startsWith('http')
-                    ? previewDocument.file_url
-                    : `${API_BASE_URL.replace('/api/v1', '')}${previewDocument.file_url}`
-                }
-                width='100%'
-                height='100%'
-                style={{
-                  border: 'none',
-                  borderRadius: '0 0 20px 20px',
-                  background: 'white',
-                }}
-                title='Document Preview'
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 20,
-                  right: 20,
-                  background: 'rgba(0, 0, 0, 0.7)',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  backdropFilter: 'blur(10px)',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                }}
-              >
-                Documento PDF
-              </Box>
-            </Box>
+            <iframe
+              src={
+                previewDocument.file_url.startsWith('http')
+                  ? previewDocument.file_url
+                  : `${API_BASE_URL.replace('/api/v1', '')}${previewDocument.file_url}`
+              }
+              width='100%'
+              height='100%'
+              style={{ border: 'none', display: 'block' }}
+              title='Document Preview'
+            />
           ) : (
-            <Box
-              sx={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background:
-                  'linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
-              }}
-            >
-              <GradientCard
-                sx={{
-                  background:
-                    'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%)',
-                  maxWidth: '400px',
-                  textAlign: 'center',
-                }}
-              >
-                <CardContent>
-                  <PulseAvatar
-                    sx={{
-                      background:
-                        'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-                      width: 80,
-                      height: 80,
-                      mx: 'auto',
-                      mb: 2,
-                    }}
-                  >
-                    <ErrorIcon sx={{ color: 'white', fontSize: '2.5rem' }} />
-                  </PulseAvatar>
-                  <Typography variant='h6' sx={{ fontWeight: 600, mb: 1 }}>
-                    Vista previa no disponible
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    No se puede mostrar la vista previa de este documento en
-                    este momento.
-                  </Typography>
-                </CardContent>
-              </GradientCard>
+            <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Stack alignItems='center' spacing={2} sx={{ textAlign: 'center', p: 4 }}>
+                <Avatar sx={{ bgcolor: 'error.light', width: 64, height: 64 }}>
+                  <ErrorIcon color='error' sx={{ fontSize: '2rem' }} />
+                </Avatar>
+                <Typography variant='h6' fontWeight={600}>Vista previa no disponible</Typography>
+                <Typography variant='body2' color='text.secondary'>No se puede mostrar este documento en este momento.</Typography>
+              </Stack>
             </Box>
           )}
         </DialogContent>

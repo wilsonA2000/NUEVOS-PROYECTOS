@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -35,6 +36,8 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
+  Stack,
+  IconButton,
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -64,6 +67,7 @@ import {
   Lightbulb as LightbulbIcon,
   Campaign as CampaignIcon,
   Chat as ChatIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -81,6 +85,7 @@ import TenantContractReview from './TenantContractReview';
 import ModificationRequestModal from './ModificationRequestModal';
 import { viewContractPDF } from '../../utils/contractPdfUtils';
 import api from '../../services/api';
+import EnhancedTenantDocumentUpload from './EnhancedTenantDocumentUpload';
 
 interface TenantAction {
   id: string;
@@ -93,6 +98,7 @@ interface TenantAction {
 }
 
 const TenantContractsDashboard: React.FC = () => {
+  const navigate = useNavigate();
   // Estados principales
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState<LandlordControlledContractData[]>(
@@ -128,6 +134,7 @@ const TenantContractsDashboard: React.FC = () => {
     string,
     unknown
   > | null>(null);
+  const [docUploadProcessId, setDocUploadProcessId] = useState<string | null>(null);
 
   useEffect(() => {
     loadTenantContracts();
@@ -713,10 +720,10 @@ const TenantContractsDashboard: React.FC = () => {
               sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
             >
               <HomeIcon sx={{ mr: 1, color: 'primary.main' }} />
-              Procesos Activos ({workflowProcesses.length})
+              Procesos Pre-Contractuales Activos ({workflowProcesses.length})
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-              Tus procesos de arrendamiento en curso con PDF profesional
+              Solicitudes aceptadas en curso — el contrato nace al completar la autenticación biométrica
             </Typography>
             {workflowProcesses.map(process => (
               <Card key={process.id} sx={{ mb: 2 }}>
@@ -809,6 +816,43 @@ const TenantContractsDashboard: React.FC = () => {
                               sx={{ mb: 1 }}
                             />
                           </>
+                        ) : process.status === 'visit_pending' ||
+                          process.workflow_status === 'visit_pending' ? (
+                          <>
+                            <Alert severity='info' sx={{ mb: 2 }}>
+                              <AlertTitle>Visita a la Propiedad</AlertTitle>
+                              <Typography variant='body2'>
+                                Tu solicitud fue aceptada. El arrendador
+                                coordinará una visita a la propiedad. Te
+                                notificaremos cuando esté programada.
+                              </Typography>
+                            </Alert>
+                            <Chip
+                              label='Etapa 1: Visita Pendiente'
+                              color='info'
+                              variant='filled'
+                              icon={<InfoIcon />}
+                              sx={{ mb: 1 }}
+                            />
+                          </>
+                        ) : process.status === 'documents_pending' ||
+                          process.workflow_status === 'documents_pending' ? (
+                          <>
+                            <Alert severity='warning' sx={{ mb: 2 }}>
+                              <AlertTitle>Documentos Requeridos</AlertTitle>
+                              <Typography variant='body2'>
+                                La visita fue completada. Por favor sube los
+                                documentos solicitados para avanzar al contrato.
+                              </Typography>
+                            </Alert>
+                            <Chip
+                              label='Etapa 2: Documentos Pendientes'
+                              color='warning'
+                              variant='filled'
+                              icon={<DocumentIcon />}
+                              sx={{ mb: 1 }}
+                            />
+                          </>
                         ) : (
                           <Chip
                             label={`Etapa ${process.workflow_stage}: ${process.status}`}
@@ -881,9 +925,11 @@ const TenantContractsDashboard: React.FC = () => {
                             <Typography
                               variant='caption'
                               color={
-                                process.workflow_stage >= 4
-                                  ? 'warning.main'
-                                  : 'text.disabled'
+                                process.workflow_stage >= 5
+                                  ? 'success.main'
+                                  : process.workflow_stage >= 4
+                                    ? 'warning.main'
+                                    : 'text.disabled'
                               }
                             >
                               Etapa 4: Autenticación biométrica
@@ -912,6 +958,47 @@ const TenantContractsDashboard: React.FC = () => {
                         }}
                       >
                         {/* Acciones según el estado */}
+
+                        {/* Etapa 1: Visita pendiente */}
+                        {(process.status === 'visit_pending' ||
+                          process.workflow_status === 'visit_pending') && (
+                          <Alert severity='info'>
+                            <Typography variant='subtitle2' fontWeight='bold'>
+                              Visita pendiente
+                            </Typography>
+                            <Typography variant='body2' sx={{ mt: 0.5 }}>
+                              El arrendador coordinará contigo la visita a la
+                              propiedad. Te notificaremos cuando esté lista.
+                            </Typography>
+                          </Alert>
+                        )}
+
+                        {/* Etapa 2: Documentos pendientes */}
+                        {(process.status === 'documents_pending' ||
+                          process.workflow_status === 'documents_pending') && (
+                          <>
+                            <Alert severity='warning' sx={{ mb: 1 }}>
+                              <Typography variant='subtitle2' fontWeight='bold'>
+                                ¡Acción requerida!
+                              </Typography>
+                              <Typography variant='body2' sx={{ mt: 0.5 }}>
+                                La visita fue completada. Sube los documentos
+                                solicitados para avanzar al contrato.
+                              </Typography>
+                            </Alert>
+                            <Button
+                              variant='contained'
+                              color='warning'
+                              size='large'
+                              startIcon={<DocumentIcon />}
+                              fullWidth
+                              onClick={() => setDocUploadProcessId(process.id)}
+                            >
+                              Subir Documentos
+                            </Button>
+                          </>
+                        )}
+
                         {(process.status === 'biometric_pending' ||
                           process.status ===
                             'pending_biometric_authentication' ||
@@ -997,8 +1084,8 @@ const TenantContractsDashboard: React.FC = () => {
                               size='large'
                               startIcon={<SecurityIcon />}
                               onClick={() => {
-                                // Navegar a autenticación biométrica
-                                window.location.href = `/app/contracts/${process.workflow_data?.contract_created?.contract_id}/authenticate`;
+                                const contractId = process.workflow_data?.contract_created?.contract_id;
+                                navigate(`/app/contracts/${contractId}/authenticate`);
                               }}
                               sx={{ mb: 1, py: 1.5 }}
                             >
@@ -1245,9 +1332,11 @@ const TenantContractsDashboard: React.FC = () => {
                               gutterBottom
                             >
                               <strong>Creado:</strong>{' '}
-                              {new Date(
-                                process.workflow_data.contract_created.created_at,
-                              ).toLocaleDateString()}
+                              {process.workflow_data.contract_created.created_at
+                                ? new Date(
+                                    process.workflow_data.contract_created.created_at,
+                                  ).toLocaleDateString()
+                                : 'No disponible'}
                             </Typography>
                             {process.workflow_data.contract_created
                               .tenant_approved && (
@@ -1257,9 +1346,11 @@ const TenantContractsDashboard: React.FC = () => {
                                 color='success.main'
                               >
                                 <strong>Aprobado:</strong>{' '}
-                                {new Date(
-                                  process.workflow_data.contract_created.tenant_approved_at,
-                                ).toLocaleDateString()}
+                                {process.workflow_data.contract_created.tenant_approved_at
+                                  ? new Date(
+                                      process.workflow_data.contract_created.tenant_approved_at,
+                                    ).toLocaleDateString()
+                                  : ''}
                               </Typography>
                             )}
                           </Box>
@@ -1704,6 +1795,47 @@ const TenantContractsDashboard: React.FC = () => {
           }}
         />
       )}
+
+      {/* Modal: Subir Documentos (etapa 2) */}
+      <Dialog
+        open={!!docUploadProcessId}
+        onClose={() => setDocUploadProcessId(null)}
+        maxWidth='lg'
+        fullWidth
+        PaperProps={{ sx: { maxHeight: '90vh', overflow: 'hidden' } }}
+      >
+        {/* Branded header VeriHome */}
+        <Box sx={{ bgcolor: '#2d4264', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Stack direction='row' alignItems='center' spacing={2}>
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1.5, p: 1, display: 'flex' }}>
+              <DescriptionIcon sx={{ color: 'white', fontSize: '1.4rem' }} />
+            </Box>
+            <Box>
+              <Typography variant='h6' fontWeight={700} color='white'>Gestión Documental</Typography>
+              <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.75)' }}>
+                Sube y gestiona los documentos requeridos para el proceso de arrendamiento
+              </Typography>
+            </Box>
+          </Stack>
+          <IconButton onClick={() => setDocUploadProcessId(null)} size='small' sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent sx={{ p: 0, overflowY: 'auto' }}>
+          {docUploadProcessId && (
+            <EnhancedTenantDocumentUpload
+              processId={docUploadProcessId}
+              onDocumentUploaded={() => {
+                loadTenantContracts();
+              }}
+              matchRequestData={workflowProcesses.find(p => p.id === docUploadProcessId)}
+              guaranteeType='none'
+              codeudorName=''
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };

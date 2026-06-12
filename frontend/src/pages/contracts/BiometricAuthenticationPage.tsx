@@ -22,6 +22,7 @@ const BiometricAuthenticationPage: React.FC = () => {
   const { contracts } = useContracts();
   const [workflowContract, setWorkflowContract] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [turnValidation, setTurnValidation] = useState<{
     canProceed: boolean;
