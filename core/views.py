@@ -488,10 +488,17 @@ class ReactAppView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         if settings.DEBUG:
-            # En desarrollo, redirigir al servidor de Vite
+            # En desarrollo, redirigir al servidor de Vite (configurable:
+            # en la máquina del dueño Vite corre en 5174 porque otro
+            # proyecto ocupa 5173; el viejo hardcode 3000 era un puerto
+            # muerto).
+            from django.conf import settings as dj_settings
             from django.http import HttpResponseRedirect
 
-            return HttpResponseRedirect("http://localhost:3000" + request.path)
+            vite_url = getattr(
+                dj_settings, "FRONTEND_URL", "http://localhost:5173"
+            ).rstrip("/")
+            return HttpResponseRedirect(vite_url + request.path)
         else:
             # En producción, servir el archivo index.html del build
             try:

@@ -60,8 +60,13 @@ class Command(BaseCommand):
             "contract_without_lcc": contract_without_lcc,
         }
 
+        has_issues = bool(lcc_without_contract or contract_without_lcc)
+
         if options.get("json"):
             self.stdout.write(json.dumps(report, indent=2))
+            # Exit 1 con huérfanos para que sirva como gate en CI (D8).
+            if has_issues:
+                raise SystemExit(1)
             return
 
         style = self.style
@@ -105,3 +110,6 @@ class Command(BaseCommand):
                     "desde un shell para casos puntuales."
                 )
             )
+
+        # Exit 1 con huérfanos para que sirva como gate en CI (D8).
+        raise SystemExit(1)

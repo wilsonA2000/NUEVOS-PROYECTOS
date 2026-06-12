@@ -487,6 +487,12 @@ jobs:
       working-directory: ./frontend
       run: npx playwright test --config=playwright.config.e2e-real.ts
 
+    # Fase 2.6 (D8): los 3 modelos de contrato comparten UUID sin
+    # constraint de BD — este check corre sobre los datos REALES que
+    # dejó la suite E2E y falla si hay LCC/Contract huérfanos.
+    - name: Check Contract ↔ LCC sync (D8)
+      run: python manage.py check_contract_sync --json
+
     - name: Upload Playwright report on failure
       uses: actions/upload-artifact@v4
       if: always()

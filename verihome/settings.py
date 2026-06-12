@@ -135,8 +135,14 @@ try:
     validate_database_config()
     DATABASES = get_database_config()
 except Exception as e:
+    # Fallback a SQLite SOLO en desarrollo. En producción una BD mal
+    # configurada debe tumbar el arranque, no degradar en silencio a
+    # un SQLite vacío dentro del contenedor (Fase 2.2 / deuda D9).
+    if not config("DEBUG", default=False, cast=bool):
+        raise RuntimeError(
+            f"Configuración de base de datos inválida con DEBUG=False: {e}"
+        ) from e
     print(f"Database configuration error: {e}")
-    # Fallback to SQLite for development
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -191,11 +197,18 @@ LOCALE_PATHS = [
     BASE_DIR / "locale",
 ]
 
-# Configuración de archivos estáticos
+# Configuración de archivos estáticos — pipeline (Fase 2.1):
+#   static/      = FUENTES propias del proyecto (images/ para PDF y emails)
+#   staticfiles/ = SALIDA: collectstatic (admin, DRF, static/) + el build
+#                  de Vite (outDir ../staticfiles/frontend)
+# Coincide con docker-compose.prod (volumen /app/staticfiles → nginx) y
+# con ReactAppView, que sirve STATIC_ROOT/frontend/index.html en prod.
+# Orden de deploy: collectstatic primero, `npm run build` después (así
+# ni un --clear accidental se lleva el build del frontend).
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    BASE_DIR / "static" / "frontend",  # Frontend React build
+    BASE_DIR / "static",
 ]
 
 # Configuración de archivos multimedia
@@ -400,6 +413,11 @@ VERIHOME_SETTINGS = {
 REDIS_URL = config("REDIS_URL", default="redis://localhost:6379")
 
 # Sistema de caching con Redis y fallback local
+# Con IGNORE_EXCEPTIONS=True un Redis caído en runtime degrada el cache
+# a no-op; que al menos quede en los logs (y por ende en Sentry) en vez
+# de pasar 100% en silencio (Fase 2.2 / D9).
+DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
+
 try:
     # Intentar configurar Redis
     CACHES = {
@@ -481,7 +499,11 @@ try:
             print("Usando cache local como fallback - Redis no disponible")
 
 except ImportError:
-    # Si django_redis no está disponible, usar cache local
+    # Si django_redis no está disponible, usar cache local — SOLO en
+    # desarrollo: en producción un deploy sin django_redis debe fallar
+    # al arrancar, no degradar a LocMem por-worker (Fase 2.2 / D9).
+    if not DEBUG:
+        raise
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

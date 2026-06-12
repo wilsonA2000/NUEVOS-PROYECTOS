@@ -41,8 +41,14 @@ class ContractSyncCommandTests(TestCase):
         )
 
     def _run(self):
+        # El comando hace exit 1 como gate de CI cuando hay huérfanos
+        # (D8); el JSON se escribe igual antes de salir. Capturamos el
+        # SystemExit para poder asertar sobre el reporte en ambos casos.
         buf = StringIO()
-        call_command("check_contract_sync", "--json", stdout=buf)
+        try:
+            call_command("check_contract_sync", "--json", stdout=buf)
+        except SystemExit:
+            pass
         return json.loads(buf.getvalue())
 
     def test_all_in_sync_empty(self):

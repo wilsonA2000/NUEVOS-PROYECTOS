@@ -43,11 +43,24 @@ VITE_DEFAULT_ZOOM=6
 
 ## Comandos de deploy
 
-### Static files
+### Static files — pipeline (resuelto Fase 2.1, 2026-06-12)
+
+```
+static/      → FUENTES propias (images/ usadas por PDF y emails)
+staticfiles/ → SALIDA servida en producción:
+               · collectstatic (admin, DRF, ckeditor, static/)
+               · build de Vite (outDir = ../staticfiles/frontend)
+```
+
+`STATIC_ROOT = staticfiles/` — coincide con el volumen
+`static_volume:/app/staticfiles` del docker-compose.prod (nginx sirve
+`/static/` desde ahí) y con `ReactAppView`, que en producción sirve
+`STATIC_ROOT/frontend/index.html`.
 
 ```bash
+# ORDEN IMPORTANTE: collectstatic primero, build después
+# (un --clear accidental no se lleva el build del frontend)
 python manage.py collectstatic --noinput
-# Frontend builds a: static/frontend/
 cd frontend && npm run build
 ```
 
