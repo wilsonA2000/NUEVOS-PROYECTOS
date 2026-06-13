@@ -35,7 +35,10 @@ services:
     networks:
       - verihome_network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      # Con --requirepass, "redis-cli ping" sin -a devuelve NOAUTH y el
+      # healthcheck nunca pasa → el backend (depends_on service_healthy)
+      # no arrancaría. Igual que el compose.local.
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,10 +50,9 @@ services:
       dockerfile: Dockerfile.prod
     container_name: verihome_backend_prod
     restart: always
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn verihome.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
+    # Sin command: el entrypoint hace migrate + collectstatic + superuser
+    # + gunicorn. SOLO el backend migra (los demás servicios pasan su
+    # command y el entrypoint se salta el setup).
     environment:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY}
@@ -60,7 +62,7 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - WOMPI_PUBLIC_KEY=${WOMPI_PUBLIC_KEY}
@@ -97,7 +99,7 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
     ports:
       - "8001:8001"
     depends_on:
@@ -166,8 +168,10 @@ services:
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
-      - static_volume:/usr/share/nginx/html/static:ro
-      - media_volume:/usr/share/nginx/html/media:ro
+      # static/media van en /srv — NO anidados bajo el bind read-only de
+      # la SPA (docker no puede crear mountpoints dentro de un mount ro).
+      - static_volume:/srv/static:ro
+      - media_volume:/srv/media:ro
       # El build de Vite vive en staticfiles/frontend (outDir), NO en
       # frontend/dist (path viejo que dejaba nginx sirviendo un dir vacío).
       - ./staticfiles/frontend:/usr/share/nginx/html:ro

@@ -338,6 +338,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5174",
     "http://10.5.219.151:5173",  # IP adicional para desarrollo
 ]
+# Producción/ensayo: orígenes adicionales por env (coma-separados).
+CSRF_TRUSTED_ORIGINS += config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="",
+    cast=lambda v: [s.strip() for s in v.split(",") if s.strip()],
+)
 
 # Excluir rutas de API del CSRF
 CSRF_EXEMPT_URLS = [
@@ -597,39 +603,10 @@ CELERY_BEAT_SCHEDULE = {
 # Campo de clave primaria por defecto
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Configuración de Django Channels para WebSocket
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [REDIS_URL + "/4"],  # Usar base de datos 4 para channels
-            "capacity": 1500,
-            "expiry": 60,
-            "group_expiry": 86400,  # 24 horas
-            "symmetric_encryption_keys": [SECRET_KEY],
-        },
-    },
-}
-
-# Fallback para desarrollo sin Redis
-if DEBUG:
-    try:
-        import redis
-
-        r = redis.from_url(REDIS_URL)
-        r.ping()
-    except ImportError:
-        # Redis no está instalado
-        CHANNEL_LAYERS = {
-            "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
-        }
-        print("Usando InMemoryChannelLayer - Redis no instalado")
-    except Exception as e:
-        # Redis está instalado pero no se puede conectar
-        CHANNEL_LAYERS = {
-            "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
-        }
-        print(f"Usando InMemoryChannelLayer - Redis no disponible: {e}")
+# Django Channels (CHANNEL_LAYERS) se configura más abajo, en el bloque
+# único con probe de Redis (~L780). Antes había aquí una primera
+# definición que ese bloque sobreescribía siempre → código muerto que
+# confundía el origen del host de Redis. Eliminada.
 
 # Modelo de usuario personalizado
 AUTH_USER_MODEL = "users.User"
@@ -806,7 +783,10 @@ try:
             "default": {
                 "BACKEND": "channels_redis.core.RedisChannelLayer",
                 "CONFIG": {
-                    "hosts": [("127.0.0.1", 6379)],
+                    # DB 4 para channels; usar REDIS_URL (NO hardcodear
+                    # localhost — rompía el WS en cualquier deploy con
+                    # Redis remoto, visto en el ensayo de Fase 3).
+                    "hosts": [f"{REDIS_URL}/4"],
                     "capacity": 1500,  # Máximo número de mensajes en cola
                     "expiry": 60,  # TTL en segundos
                     "group_expiry": 86400,  # TTL para grupos (24 horas)
@@ -894,46 +874,25 @@ STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 # =============================================================================
 
 if not DEBUG:
-    # HTTPS y SSL Settings
-    SECURE_HSTS_SECONDS = 31536000  # 1 año
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-
-    # Cookies Security
-    SESSION_COOKIE_SECURE = True
+    # Endurecimiento FIJO de producción. OJO: SSL-redirect, HSTS,
+    # cookies-secure, CORS_ALLOWED_ORIGINS y EMAIL_BACKEND se configuran
+    # por env más arriba — este bloque NO debe re-hardcodearlos (lo
+    # hacía, y pisaba el ensayo local de Fase 3 y cualquier deploy con
+    # TLS terminado en el proxy).
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-
-    CSRF_COOKIE_SECURE = True
     CSRF_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SAMESITE = "Lax"
 
-    # Content Security
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
-    # En producción mantener seguridad estricta
-    X_FRAME_OPTIONS = "DENY"
+    # SAMEORIGIN (no DENY): el visor de documentos enmarca /media/ del
+    # mismo origen, igual que en desarrollo.
+    X_FRAME_OPTIONS = "SAMEORIGIN"
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
-
-    # Additional Security Headers
     SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
-    # CORS para producción más restrictivo
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS = [
-        "https://verihome.com",
-        "https://www.verihome.com",
-        "https://app.verihome.com",
-    ]
-
-    # Email backend para producción
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_USE_TLS = True
-
-else:
-    # Configuraciones de desarrollo más permisivas (actuales)
-    pass
 # Frontend URL for invitation emails
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 

@@ -1,4 +1,12 @@
 #!/bin/bash
+# Entrypoint de producción.
+#
+# - SIN argumentos (servicio backend): setup completo — migraciones,
+#   collectstatic, superuser — y arranca Gunicorn.
+# - CON argumentos (daphne, celery worker/beat): espera BD/Redis y
+#   ejecuta el comando del compose tal cual. NO migra: si todos los
+#   contenedores migran a la vez sobre una BD virgen se pisan
+#   ("column already exists", visto en el ensayo de Fase 3).
 set -e
 
 echo "=========================================="
@@ -32,6 +40,13 @@ except:
     print('  Redis no disponible - usando fallback a memoria local.')
 " 2>/dev/null || echo "  Redis no disponible - continuando con fallback."
 
+# Servicios secundarios: ejecutar su comando sin tocar la BD.
+if [ $# -gt 0 ]; then
+    echo "[3/3] Ejecutando comando del servicio: $*"
+    echo "=========================================="
+    exec "$@"
+fi
+
 # Ejecutar migraciones
 echo "[3/6] Ejecutando migraciones..."
 python manage.py migrate --noinput
@@ -49,14 +64,22 @@ import django, os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'verihome.settings')
 django.setup()
 from django.contrib.auth import get_user_model
+from allauth.account.models import EmailAddress
 User = get_user_model()
 email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@verihome.com')
-if not User.objects.filter(email=email).exists():
+user = User.objects.filter(email=email).first()
+if user is None:
     password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
-    User.objects.create_superuser(email=email, password=password)
+    user = User.objects.create_superuser(email=email, password=password)
     print(f'  Superusuario {email} creado.')
 else:
     print(f'  Superusuario {email} ya existe.')
+# El login exige EmailAddress de allauth verificado; sin esto el admin
+# de una instalación desde cero no puede entrar (visto en Fase 3).
+EmailAddress.objects.update_or_create(
+    user=user, email=email,
+    defaults={'primary': True, 'verified': True},
+)
 "
 
 # Iniciar servidor

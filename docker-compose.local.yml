@@ -49,14 +49,13 @@ services:
       dockerfile: Dockerfile.prod
     container_name: verihome_backend_local
     restart: unless-stopped
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py collectstatic --noinput &&
-             gunicorn verihome.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
+    # Sin command: el entrypoint hace migrate + collectstatic + superuser
+    # + gunicorn. SOLO el backend migra (los demás servicios pasan su
+    # command y el entrypoint se salta el setup).
     env_file: .env.localprod
     environment:
       - DATABASE_HOST=db
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     volumes:
       - static_volume_local:/app/staticfiles
@@ -79,7 +78,7 @@ services:
     env_file: .env.localprod
     environment:
       - DATABASE_HOST=db
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
     depends_on:
       db:
         condition: service_healthy
@@ -98,7 +97,7 @@ services:
     env_file: .env.localprod
     environment:
       - DATABASE_HOST=db
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
@@ -119,7 +118,7 @@ services:
     env_file: .env.localprod
     environment:
       - DATABASE_HOST=db
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
       db:
@@ -137,8 +136,10 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
-      - static_volume_local:/usr/share/nginx/html/static:ro
-      - media_volume_local:/usr/share/nginx/html/media:ro
+      # static/media van en /srv — NO anidados bajo el bind read-only de
+      # la SPA (docker no puede crear mountpoints dentro de un mount ro).
+      - static_volume_local:/srv/static:ro
+      - media_volume_local:/srv/media:ro
       # El build de Vite (outDir = staticfiles/frontend) servido en la raíz.
       - ./staticfiles/frontend:/usr/share/nginx/html:ro
     depends_on:

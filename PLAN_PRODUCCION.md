@@ -203,7 +203,7 @@ Lo que está "funcionando de milagro" se vuelve explícito y robusto.
 - [ ] 2.4 **Datos fake fuera**: ⏳ se materializa en Fase 3.2 (seed de producción real sobre BD virgen; admin con datos reales, sin cédulas demo). La BD de dev actual no es la de prod.
 - [x] 2.5 ✅ 2026-06-12 **Secretos**: grep de código trackeado limpio (0 keys hardcodeadas, 0 defaults peligrosos). `.env` no trackeado ✓. Pendiente operativo D5: el `.env` LOCAL tiene GITHUB_TOKEN + password Gmail — rotarlos antes de compartir la máquina; el `.env` de prod será nuevo (Fase 4.3).
 - [x] 2.6 ✅ 2026-06-12 **UUID compartido (D8)**: `check_contract_sync --json` ahora hace **exit 1** con huérfanos y corre como gate en CI tras la suite E2E (sobre datos reales). Huérfanos locales limpiados. `--fix` sigue sin implementar (decisión: el gate previene, el fix manual con `_ensure_contract_exists` cubre casos puntuales). Commit `d32fccb`.
-- [ ] 2.7 **Decisión liveness P0.4b**: ⏳ pendiente de decisión del dueño (recomendación: entra antes del go-live, es el diferenciador legal). No bloquea Fase 3.
+- [x] 2.7 ✅ 2026-06-12 **Sistema facial PROPIO** (decisión del dueño: nada de demos ni SaaS — reconocimiento en servidor propio, mejor para Ley 1581): `LocalFacialProvider` (`contracts/biometric_providers/local.py`) con dlib/face_recognition (detección HOG + embeddings 128-d + comparación selfie-vs-cédula real) y OpenCV (calidad: nitidez Laplaciana/brillo/tamaño). Liveness **heurístico v1** (nitidez/textura/color — anti-foto-borrosa y anti-pantalla básico; NO anti-deepfake). Validado con datos reales: misma persona 0.80, impostor 0.26, frame fake de Playwright rechazado. Factory con fallback a demo si faltan libs (CI). Dockerfile.prod compila dlib (cmake/g++). Commit `c6a8e4c`. **Mejora futura (D38)**: liveness por challenge (parpadeo/giro) con video multi-frame.
 - [x] 2.8 ✅ 2026-06-12 **Pasada de seguridad dirigida**:
   - **Acceso horizontal: BLINDADO** — prestador→contrato/PDF/biometría/docs ajenos = 403/404 en todos los casos.
   - **Uploads: hueco encontrado y CERRADO** — el documento validaba solo por extensión (`.pdf`); un `.exe` renombrado pasaba. Añadida validación por magic bytes (`%PDF`). Avatar ya validaba imagen. Commit pendiente.
@@ -229,31 +229,60 @@ Lo que está "funcionando de milagro" se vuelve explícito y robusto.
 Probar el stack de producción **sin comprar nada**: levantar
 `docker-compose.prod.yml` en esta misma máquina.
 
-- [ ] 3.1 Construir `Dockerfile.prod` y levantar el compose completo local
-  (PG + Redis + gunicorn:8000 + Daphne:8001 + Celery worker/beat + nginx,
-  con `nginx/nginx.prod.conf` — la única config tras borrar la plantilla
-  obsoleta en Fase 0). **Atención**: `Dockerfile.prod` solo construye el
-  backend Python — validar explícitamente cómo llega el build de Vite al
-  volumen `static` que sirve nginx (conecta con la confusión de estáticos
-  de 2.1; el frontend tiene su propio `frontend/Dockerfile`).
-- [ ] 3.2 **Instalación desde cero**: `migrate` contra una **BD virgen** (no
-  una copia de la de dev — producción nacerá vacía y ese camino nunca se
-  ha probado: migraciones que dependen de datos o de orden entre apps
-  fallan justo aquí). Luego `collectstatic` + seed de producción real:
-  `scripts/init_verihome.sh` (superuser + site domain) +
-  `python manage.py seed_subscription_plans`. **El seed E2E
-  (`seed_e2e_multiuser.py`) es SOLO de testing — jamás en producción.**
-- [ ] 3.3 Smoke test E2E completo contra el stack prod-local (el viaje de la Fase 1 condensado: registro → propiedad → match → mensaje → contrato → biometría → PDF).
-- [ ] 3.4 Verificar WebSockets vía Daphne/nginx, tareas Celery (emails,
-  expiraciones, `check_admin_review_sla`, `check_biometric_expiration`) y el
-  **backup automático diario** que Celery beat ya programa (`backup-database`
-  en settings): el script usa `BACKUP_DIR=/backups` hardcodeado — confirmar
-  que esa ruta existe en el contenedor y que el backup se genera de verdad.
-- [ ] 3.5 Checklist de seguridad de `docs/DEPLOYMENT.md` aplicado al compose (DEBUG=False, cookies seguras, CORS, rate-limiting).
-- [ ] 3.6 **Drill de backup/restore**: hacer backup contra el stack prod-local,
-  destruir el contenedor de BD, restaurar con `scripts/restore_database.sh`
-  y verificar que la app funciona con los datos restaurados. **Un backup
-  nunca restaurado no es un backup.**
+- [x] 3.1 ✅ 2026-06-12 Stack completo construido y levantado (variante
+  `docker-compose.local.yml` + `nginx.local.conf`, HTTP sin SSL). El build
+  de Vite llega vía bind `./staticfiles/frontend` → raíz de nginx. **2 bugs
+  de deploy cazados por el ensayo** (ambos existían también en
+  `docker-compose.prod.yml` y habrían tumbado producción):
+  1. nginx no arrancaba: los volúmenes static/media iban anidados DENTRO
+     del bind read-only de la SPA → docker no puede crear los mountpoints.
+     Fix: van en `/srv/static` y `/srv/media` (compose + nginx conf, local
+     y prod).
+  2. `docker-entrypoint.sh` ignoraba `"$@"` y hacía `exec gunicorn`
+     SIEMPRE → daphne y celery worker/beat en realidad corrían gunicorn
+     (sin WebSockets ni tareas asíncronas), y los 4 contenedores migraban
+     a la vez sobre la BD virgen pisándose ("column budget_range already
+     exists"). Fix: con argumentos el entrypoint espera BD/Redis y ejecuta
+     el comando del servicio; solo el backend (sin command) migra +
+     collectstatic + superuser + gunicorn.
+- [x] 3.2 ✅ 2026-06-12 **Instalación desde cero sobre BD virgen**: el
+  Postgres del contenedor nace vacío; `migrate` corrió limpio (156
+  migraciones, 0 pendientes). Seed de producción aplicado: superuser +
+  `create_interview_codes` (comando NUEVO — no existía, ver 2.7-adyacente)
+  + `seed_subscription_plans` (3 planes) + site domain `localhost`. **Esto
+  cierra 2.4**: BD sin cédulas demo ni datos fake. **Bug cazado**: el login
+  exige `EmailAddress` de allauth verificado, pero el superuser del
+  entrypoint no creaba ninguno → admin de instalación nueva NO podía entrar.
+  Fix en `docker-entrypoint.sh` (crea EmailAddress verified=True).
+- [x] 3.3 ✅ 2026-06-12 **Smoke test** contra el stack prod-local: SPA carga
+  (título VeriHome), login admin 200 (JWT), `/api/v1/users/auth/me/`,
+  `/properties/`, `/contracts/contracts/`, `/matching/requests/`,
+  subscription-plans y `/admin/` todos 200. WebSocket: handshake **101
+  Switching Protocols + WSCONNECT** autenticado por `?token=`. (Viaje UI
+  completo registro→PDF lo valida el dueño en navegador.)
+- [x] 3.4 ✅ 2026-06-12 **WS + Celery + backup**. **Bug CRÍTICO cazado**
+  (habría roto WS en producción real): `settings.py` tenía DOS bloques
+  `CHANNEL_LAYERS`; el segundo sobreescribía al primero y **hardcodeaba
+  `hosts: [("127.0.0.1", 6379)]`**, ignorando `REDIS_URL` → el channel
+  layer nunca encontraba Redis remoto. Fix: usa `f"{REDIS_URL}/4"` y se
+  borró el bloque muerto. **2º bug**: `REDIS_URL` en los compose traía
+  sufijo `/1` y settings le añade su propio `/N` → URLs `…/1/4`
+  malformadas; quitado el `/1`. Celery worker/beat conectados a Redis y
+  `ready`. Backup diario: ver 3.6.
+- [x] 3.5 ✅ 2026-06-12 **Checklist de seguridad**. **Bug cazado**: un
+  bloque `if not DEBUG:` tardío en settings RE-HARDCODEABA
+  SSL-redirect/HSTS/cookies-secure/CORS/EMAIL pisando los valores por env
+  → el ensayo HTTP local hacía 301→https y cualquier deploy con TLS
+  terminado en proxy se rompía. Fix: el env manda (SECURE_SSL_REDIRECT,
+  SESSION/CSRF_COOKIE_SECURE, CORS_ALLOWED_ORIGINS, EMAIL_BACKEND);
+  `CSRF_TRUSTED_ORIGINS` ahora también admite extras por env. Verificado:
+  DEBUG=False + envs del ensayo → cookies/SSL no-seguras, rate-limiting
+  activo (429 a los 10 logins/min).
+- [x] 3.6 ✅ 2026-06-12 **Drill de backup/restore EJECUTADO**: `pg_dump`
+  custom-format gzip (90K) → TRUNCATE/DELETE de users+codes+plans
+  (verificado 0/0/0) → `pg_restore --clean --if-exists` → vuelta exacta al
+  baseline (1 user / 10 codes / 3 plans) + login 200 post-restore. **Un
+  backup restaurado de verdad.** Gaps anotados (D39, D40).
 - [ ] 3.7 **Runbook de operación** (`docs/RUNBOOK.md`, 1 página): cómo ver
   logs de cada servicio, reiniciar servicios, restaurar backup, qué revisar
   si la app no responde. Para el dueño a las 11pm sin Claude en la sesión.
@@ -378,13 +407,16 @@ i18n completo (~664 strings) · refactor de monolitos
 | D33 | Registro con `fail_silently=False`: un hipo del SMTP de Gmail bloquea TODOS los registros con 500 | 2.9 (2026-06-12) | 🟠 Media — considerar cola/reintento en Fase 4 |
 | D34 | `GuaranteeDocumentUpload.tsx` huérfano (sin imports vivos) con upload SIMULADO (`Math.random()` éxito/fallo) — código muerto a borrar | 2.4 (2026-06-12) | 🟡 Menor (limpieza) |
 | D35 | `Dockerfile.prod` usa Python 3.11 (local 3.12) y corre collectstatic en build-time (frágil con hardening 2.2) — verificar al ensayar el compose | 3.1 (2026-06-12) | 🟠 Media → al instalar Docker |
-| D36 | **BLOQUEANTE Fase 3**: Docker no instalado → ensayo del compose pendiente. Todo preparado (compose.local + nginx.local + .env.localprod) | 3 (2026-06-12) | 🔴 Requiere `apt install` del dueño |
+| D36 | (resuelta) Docker instalado y ensayo Fase 3 ejecutado completo | 3 (2026-06-12) | ✅ Resuelta 2026-06-12 — stack levantado, smoke + drill OK |
 | D-BD | **CRÍTICO**: database_config leía DB_* pero compose pasa DATABASE_* → prod nunca conectaba a Postgres (HOST=localhost). + engine path completo caía a SQLite | 3 (2026-06-12) | ✅ Resuelta 2026-06-12 (`d8b6427`) |
 | D-FE | docker-compose.prod: nginx montaba ./frontend/dist (outDir viejo) → dir vacío | 3 (2026-06-12) | ✅ Resuelta 2026-06-12 (`d8b6427`) |
-| D37 | docker-compose.prod pasa solo un SUBCONJUNTO de env al backend (faltan EMAIL_*, SENTRY_DSN, MAPBOX, SECURE_*) → en prod usarían defaults; debería usar `env_file` (como el compose.local) | 3 (2026-06-12) | 🟠 Media → antes del go-live (Fase 4) |
+| D37 | `docker-compose.prod` tiene varios problemas para go-live: (a) pasa solo un SUBCONJUNTO de env al backend (faltan EMAIL_*, SENTRY_DSN, MAPBOX, SECURE_*, CSRF/CORS) → usarían defaults; debería usar `env_file`; (b) expone `5432:5432` y `6379:6379` al host (Postgres/Redis públicos — quitar en prod); (c) `daphne` no recibe `BIOMETRIC_*` ni varios env del backend | 3 (2026-06-12) | 🟠 Media → antes del go-live (Fase 4). El healthcheck de Redis sin `-a` (habría impedido el arranque) ya se corrigió 2026-06-12 |
 | D25 | `/app/services` autenticado renderiza la **landing pública de marketing** (con navbar "Iniciar Sesión/Registrarse") embebida dentro del layout de la app — doble navbar, confuso para un usuario logueado. (No era NaN: falso positivo de la heurística) | 1.9 (2026-06-12) | 🟠 Media — el prestador debería ver su panel de servicios, no la landing |
 | D34 | (resuelta) GuaranteeDocumentUpload.tsx borrado | 2.4 (2026-06-12) | ✅ Resuelta 2026-06-12 (`197ad00`) |
 | D19 | (resuelta) status crudo en dashboard tenant | 1.6 | ✅ Resuelta 2026-06-12 (`197ad00`) — mapa workflowStatusLabel |
+| D38 | **Liveness por challenge** (parpadeo/giro de cabeza) con video multi-frame para el sistema facial propio — el liveness heurístico v1 actual NO es anti-deepfake. Mejora del diferenciador legal | 2.7 (2026-06-12) | 🟠 Media → antes del go-live o post-MVP (decisión dueño) |
+| D39 | **Scripts backup/restore vs deploy en contenedor**: `scripts/backup_database.sh` y `restore_database.sh` leen `.env` (no `.env.localprod`) y `BACKUP_DIR=/backups` (no montado en el compose); el drill se hizo con pg_dump/pg_restore directos. Además la tarea Celery `core.tasks.backup_database` usa `dumpdata` JSON a `BASE_DIR/backups` — MECANISMO DISTINTO al de los scripts. Reconciliar: un solo método, ruta montada como volumen, `.env` o DATABASE_* disponibles | 3.4/3.6 (2026-06-12) | 🟠 Media → antes del go-live (Fase 4) |
+| D40 | `pg_dump` del cliente (Debian del Dockerfile) es más nuevo que el server PG15 → emite `transaction_timeout` que PG15 rechaza (benigno, restore OK). Alinear versión cliente/servidor de Postgres en prod | 3.6 (2026-06-12) | 🟡 Menor → Fase 4 |
 
 ---
 
