@@ -1,3 +1,13 @@
+# Virtualenvs — NUNCA copiar al contexto (D35). venv_ubuntu pesa ~6 GB y es
+# de Python 3.12; la imagen corre el python del sistema, así que copiarlo
+# inflaba la imagen y hacía que `chmod -R /app` tardara ~17 min en el build.
+venv_ubuntu/
+venv/
+.venv/
+env/
+ENV/
+*/venv_ubuntu/
+
 # Python
 __pycache__/
 *.py[cod]

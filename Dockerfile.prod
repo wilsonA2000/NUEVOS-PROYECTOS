@@ -1,5 +1,6 @@
 # Dockerfile for VeriHome Production Backend
-FROM python:3.11-slim
+# Python 3.12 para paridad con el entorno local (antes 3.11 → D35).
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -34,14 +35,18 @@ RUN pip install --upgrade pip && \
 # Copy project
 COPY . .
 
-# Collect static files (will be overridden by command in docker-compose)
-RUN python manage.py collectstatic --noinput || true
+# NOTA: collectstatic NO se corre en build-time. Con el hardening 2.2
+# (DEBUG=False sin BD → RuntimeError) fallaba siempre y se salvaba con
+# `|| true`, así que no aportaba nada. El entrypoint lo ejecuta al arrancar,
+# cuando ya hay BD y env.
 
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/media /app/logs
 
-# Set permissions
-RUN chmod -R 755 /app && chmod +x /app/docker-entrypoint.sh
+# Permisos: solo el entrypoint y los scripts necesitan +x. Antes era
+# `chmod -R 755 /app`, que recorría todo el árbol (incluido el venv de 6 GB
+# que se colaba sin .dockerignore) y tardaba ~17 min (D35).
+RUN chmod +x /app/docker-entrypoint.sh /app/scripts/*.sh
 
 # Expose ports
 EXPOSE 8000 8001
