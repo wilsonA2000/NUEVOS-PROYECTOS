@@ -10,7 +10,8 @@ import {
   Button,
   TextField,
   InputAdornment,
-  CircularProgress,
+  Skeleton,
+  Stack,
   Alert,
 } from '@mui/material';
 import {
@@ -79,14 +80,43 @@ export const MessageList: React.FC = () => {
   });
 
   if (isLoading) {
+    // Skeletons en vez de spinner: mejor velocidad percibida y menos salto
+    // de layout al cargar las conversaciones.
     return (
-      <Box
-        display='flex'
-        justifyContent='center'
-        alignItems='center'
-        minHeight='200px'
-      >
-        <CircularProgress />
+      <Box>
+        <Skeleton
+          variant='text'
+          width={180}
+          height={44}
+          sx={{ mb: 3 }}
+        />
+        <Skeleton
+          variant='rounded'
+          height={48}
+          sx={{ mb: 3, borderRadius: 2 }}
+        />
+        <Stack spacing={2}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Box
+              key={i}
+              sx={{
+                display: 'flex',
+                gap: 2,
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
+              <Skeleton variant='circular' width={40} height={40} />
+              <Box sx={{ flex: 1 }}>
+                <Skeleton variant='text' width='40%' height={24} />
+                <Skeleton variant='text' width='25%' />
+                <Skeleton variant='text' width='90%' />
+              </Box>
+            </Box>
+          ))}
+        </Stack>
       </Box>
     );
   }
