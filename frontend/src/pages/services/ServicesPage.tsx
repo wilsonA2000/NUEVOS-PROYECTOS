@@ -16,13 +16,10 @@ import {
   Add as AddIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
-// import { useUser } from '../../hooks/useUser';
-
-// MOCK TEMPORAL para evitar error de compilación
-const useUser = () => ({ user: null as { role: string } | null });
+import { useAuth } from '../../hooks/useAuth';
 
 const ServicesPage: React.FC = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const theme = useTheme();
 
   // Datos de ejemplo para servicios
@@ -93,7 +90,7 @@ const ServicesPage: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 1 }}>
-          {user?.role === 'service_provider'
+          {user?.user_type === 'service_provider'
             ? 'Mis Servicios'
             : 'Servicios Disponibles'}
         </Typography>
@@ -101,13 +98,13 @@ const ServicesPage: React.FC = () => {
           variant='body1'
           sx={{ color: theme.palette.text.secondary }}
         >
-          {user?.role === 'service_provider'
+          {user?.user_type === 'service_provider'
             ? 'Gestiona tus servicios y solicitudes de clientes'
             : 'Encuentra profesionales para tus necesidades'}
         </Typography>
       </Box>
 
-      {user?.role === 'service_provider' && (
+      {user?.user_type === 'service_provider' && (
         <Box sx={{ mb: 4 }}>
           <Button variant='contained' startIcon={<AddIcon />} sx={{ mb: 2 }}>
             Agregar Nuevo Servicio
@@ -199,7 +196,7 @@ const ServicesPage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  {user?.role === 'tenant' ? (
+                  {user?.user_type === 'tenant' ? (
                     <Button
                       variant='contained'
                       fullWidth

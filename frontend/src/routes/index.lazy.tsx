@@ -681,12 +681,13 @@ export const AppRoutes: React.FC = () => {
             </LazyRoute>
           }
         />
-        {/* Services Routes */}
+        {/* Services Routes — panel in-app (NO la landing pública de marketing,
+            que se queda solo en la ruta pública /services). D25. */}
         <Route
           path='services'
           element={
             <LazyRoute>
-              <ServicesOverviewPage />
+              <ServicesPage />
             </LazyRoute>
           }
         />
