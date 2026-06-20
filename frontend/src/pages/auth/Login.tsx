@@ -204,30 +204,32 @@ export const Login: React.FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        width: '100vw',
+        width: '100%',
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: 'background.default',
         p: 2,
         overflow: 'hidden',
+        // Atmósfera de marca: navy profundo con mesh índigo radial. Da
+        // profundidad aunque la imagen de fondo no cargue.
+        background:
+          'radial-gradient(1200px 600px at 15% 10%, rgba(99,102,241,0.35), transparent 60%),' +
+          'radial-gradient(1000px 700px at 85% 90%, rgba(67,56,202,0.35), transparent 55%),' +
+          'linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%)',
       }}
     >
-      {/* Fondo de imagen traslúcida */}
+      {/* Imagen sutil sobre el gradiente (multiply para integrarse) */}
       <Box
         sx={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
+          inset: 0,
           zIndex: 0,
-          backgroundImage: 'url(/staticfiles/images/hero-property-1.jpg)', // Cambia la ruta si lo deseas
+          backgroundImage: 'url(/staticfiles/images/hero-property-1.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: 0.45,
-          filter: 'blur(1px)',
+          opacity: 0.18,
+          mixBlendMode: 'overlay',
         }}
       />
       {/* Cuadro de login */}
