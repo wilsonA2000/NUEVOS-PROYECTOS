@@ -12,8 +12,8 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # SIN ports: Postgres solo accesible dentro de la red de compose.
+    # Nunca exponer 5432 al host en producción.
     networks:
       - verihome_network
     healthcheck:
@@ -30,8 +30,8 @@ services:
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data_prod:/data
-    ports:
-      - "6379:6379"
+    # SIN ports: Redis solo accesible dentro de la red de compose.
+    # Nunca exponer 6379 al host en producción.
     networks:
       - verihome_network
     healthcheck:
@@ -53,27 +53,23 @@ services:
     # Sin command: el entrypoint hace migrate + collectstatic + superuser
     # + gunicorn. SOLO el backend migra (los demás servicios pasan su
     # command y el entrypoint se salta el setup).
+    # Todo el entorno (EMAIL_*, SENTRY_DSN, MAPBOX, SECURE_*, CSRF/CORS,
+    # BIOMETRIC_*, WOMPI_*, etc.) viene del .env.prod completo. Antes se
+    # listaban a mano y faltaba la mitad → settings caía a defaults (D37).
+    env_file: .env.prod
     environment:
+      # DEBUG nunca se activa en prod, pase lo que pase en el .env.
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      # Hostnames internos de la red de compose (pisan los del .env).
       - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      # Sin sufijo /N: settings le añade /4 (channels), /2 (cache)…; un /1
+      # aquí produciría rutas tipo …/1/4 (bug de Fase 3, ver compose.local).
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - WOMPI_PUBLIC_KEY=${WOMPI_PUBLIC_KEY}
-      - WOMPI_PRIVATE_KEY=${WOMPI_PRIVATE_KEY}
-      - WOMPI_EVENTS_SECRET=${WOMPI_EVENTS_SECRET}
-      - WOMPI_SANDBOX_MODE=${WOMPI_SANDBOX_MODE}
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    # SIN ports: gunicorn solo se alcanza por nginx dentro de la red.
     depends_on:
       db:
         condition: service_healthy
@@ -90,18 +86,14 @@ services:
     container_name: verihome_daphne_prod
     restart: always
     command: daphne -b 0.0.0.0 -p 8001 verihome.asgi:application
+    # env_file completo: daphne también necesita BIOMETRIC_* y el resto
+    # (antes solo recibía DB/Redis → settings incompletos en el WS).
+    env_file: .env.prod
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=db
-      - DATABASE_PORT=5432
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-    ports:
-      - "8001:8001"
+    # SIN ports: daphne solo se alcanza por nginx dentro de la red.
     depends_on:
       - db
       - redis
@@ -116,15 +108,11 @@ services:
     container_name: verihome_celery_worker_prod
     restart: always
     command: celery -A verihome worker -l info --concurrency=4
+    env_file: .env.prod
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
@@ -141,15 +129,11 @@ services:
     container_name: verihome_celery_beat_prod
     restart: always
     command: celery -A verihome beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file: .env.prod
     environment:
       - DEBUG=False
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
       - db

@@ -50,6 +50,8 @@ frontend/dist/
 .env.test.local
 .env.production.local
 .env.production.example
+.env.prod
+.env.localprod
 *.env
 
 # IDE
