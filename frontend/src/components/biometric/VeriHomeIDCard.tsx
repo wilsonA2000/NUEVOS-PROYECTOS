@@ -10,8 +10,9 @@
  * tenga sentido mostrar el estado de verificación del user.
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Box,
@@ -83,32 +84,35 @@ const VERDICT_META: Record<
 
 const VeriHomeIDCard: React.FC = () => {
   const navigate = useNavigate();
-  const [screen, setScreen] = useState<ScreenState>({ kind: 'loading' });
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await getMyOnboarding();
-        if (cancelled) return;
-        setScreen(
-          data ? { kind: 'has-onboarding', data } : { kind: 'no-onboarding' },
-        );
-      } catch (err) {
-        if (cancelled) return;
-        setScreen({
+  // React Query en vez de un useEffect manual: dedupe (incl. el doble-invoke
+  // de StrictMode) + caché compartida con staleTime. Antes cada montaje de la
+  // card disparaba su propio GET a /onboarding/me/ (D11).
+  const {
+    data: onboarding,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['verihome-id-onboarding-me'],
+    queryFn: getMyOnboarding,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const screen: ScreenState = isLoading
+    ? { kind: 'loading' }
+    : isError
+      ? {
           kind: 'error',
           message:
-            err instanceof Error
-              ? err.message
+            error instanceof Error
+              ? error.message
               : 'No se pudo cargar el estado de verificación.',
-        });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+        }
+      : onboarding
+        ? { kind: 'has-onboarding', data: onboarding }
+        : { kind: 'no-onboarding' };
 
   const goToOnboarding = () => navigate('/app/verihome-id/onboarding');
 
