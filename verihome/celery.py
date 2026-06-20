@@ -57,45 +57,10 @@ def debug_task(self):
     return "Celery está funcionando correctamente!"
 
 
-# Configuración del planificador de tareas
-app.conf.beat_schedule = {
-    # Limpieza de sesiones expiradas cada hora
-    "cleanup-expired-sessions": {
-        "task": "core.tasks.cleanup_expired_sessions",
-        "schedule": 3600.0,  # 1 hora
-    },
-    # Procesamiento de notificaciones pendientes cada 5 minutos
-    "process-pending-notifications": {
-        "task": "notifications.tasks.process_pending_notifications",
-        "schedule": 300.0,  # 5 minutos
-    },
-    # Backup de base de datos diario a las 2:00 AM
-    "daily-database-backup": {
-        "task": "core.tasks.backup_database",
-        "schedule": 86400.0,  # 24 horas
-        "options": {"expires": 3600},
-    },
-    # Limpieza de archivos temporales cada 6 horas
-    "cleanup-temp-files": {
-        "task": "core.tasks.cleanup_temp_files",
-        "schedule": 21600.0,  # 6 horas
-    },
-    # Procesamiento de contratos expirados diariamente
-    "process-expired-contracts": {
-        "task": "contracts.tasks.process_expired_contracts",
-        "schedule": 86400.0,  # 24 horas
-    },
-    # Envío de recordatorios de pagos cada 12 horas
-    "send-payment-reminders": {
-        "task": "payments.tasks.send_payment_reminders",
-        "schedule": 43200.0,  # 12 horas
-    },
-    # Actualización de estadísticas cada hora
-    "update-platform-statistics": {
-        "task": "core.tasks.update_platform_statistics",
-        "schedule": 3600.0,  # 1 hora
-    },
-}
+# El beat schedule vive ÚNICAMENTE en settings.CELERY_BEAT_SCHEDULE (se carga
+# vía config_from_object arriba). NO redefinirlo aquí: antes este bloque pisaba
+# al de settings (asignación, no merge) y dejaba sin agendar tareas reales
+# además de agendar tareas inexistentes (D41).
 
 # Configuración de logging para Celery
 app.conf.worker_log_format = "[%(asctime)s: %(levelname)s/%(processName)s] %(message)s"

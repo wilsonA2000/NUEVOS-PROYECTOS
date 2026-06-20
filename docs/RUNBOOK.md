@@ -75,6 +75,27 @@ restaurado no es un backup. El script `restore_database.sh` restaura en
 una BD temporal `${DB}_restore_<ts>` y solo hace swap si la verificación
 de tablas pasa, así que es seguro de ensayar.
 
+## Tareas programadas (Celery beat)
+
+El schedule vive en **`settings.CELERY_BEAT_SCHEDULE`** (única fuente). El
+beat corre con `DatabaseScheduler` (django_celery_beat): sincroniza ese
+schedule a la BD **solo al arrancar** y **no borra** entradas que quites.
+
+- **Primer deploy (BD virgen)**: se instala limpio, nada que hacer.
+- **Si cambias el schedule en un deploy existente** (renombras/quitas una
+  tarea): las entradas viejas quedan huérfanas en la BD y el beat seguiría
+  intentando despacharlas. Purgar las que ya no están en settings:
+
+```bash
+docker compose -f docker-compose.prod.yml exec backend python manage.py shell -c "
+from django.conf import settings
+from django_celery_beat.models import PeriodicTask
+validas = set(settings.CELERY_BEAT_SCHEDULE) | {'celery.backend_cleanup'}
+PeriodicTask.objects.exclude(name__in=validas).delete()
+"
+docker compose -f docker-compose.prod.yml restart celery_beat
+```
+
 ## Rollback de un deploy
 
 ```bash

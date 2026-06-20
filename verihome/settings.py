@@ -564,39 +564,58 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutos
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 
-# Configuración de tareas programadas de Celery
+# Configuración de tareas programadas de Celery.
+# ÚNICA fuente del beat schedule (D41): se carga vía
+# `app.config_from_object("django.conf:settings", namespace="CELERY")`.
+# NO duplicar en verihome/celery.py — antes existían dos definiciones y la de
+# celery.py pisaba esta, dejando sin agendar tareas de negocio reales y
+# agendando 3 tareas FANTASMA (process_pending_notifications,
+# process_expired_contracts, send_payment_reminders) que no existen.
+# Solo se listan tareas que están definidas como @shared_task.
 CELERY_BEAT_SCHEDULE = {
+    # --- core ---
     "cleanup-expired-sessions": {
         "task": "core.tasks.cleanup_expired_sessions",
         "schedule": 3600.0,  # cada hora
     },
-    "process-notifications": {
-        "task": "notifications.tasks.process_pending_notifications",
-        "schedule": 300.0,  # cada 5 minutos
+    "cleanup-temp-files": {
+        "task": "core.tasks.cleanup_temp_files",
+        "schedule": 21600.0,  # cada 6 horas
+    },
+    "update-platform-statistics": {
+        "task": "core.tasks.update_platform_statistics",
+        "schedule": 3600.0,  # cada hora
     },
     "backup-database": {
         "task": "core.tasks.backup_database",
-        "schedule": 86400.0,  # diario
+        "schedule": crontab(hour=3, minute=0),  # diario 3:00 AM
+        "options": {"expires": 3600},
     },
+    # --- contracts ---
     "check-contract-renewals": {
         "task": "contracts.tasks.check_contract_renewals",
-        "schedule": 86400.0,  # diario
-    },
-    "check-payment-reminders": {
-        "task": "payments.tasks.check_payment_reminders",
-        "schedule": crontab(hour=8, minute=0),  # Diario a las 8:00 AM
-    },
-    "escalate-overdue-payments": {
-        "task": "payments.tasks.escalate_overdue_payments",
-        "schedule": crontab(hour=9, minute=0, day_of_week=1),  # Lunes a las 9:00 AM
+        "schedule": crontab(hour=7, minute=0),  # diario 7:00 AM
     },
     "check-admin-review-sla": {
         "task": "contracts.tasks.check_admin_review_sla",
-        "schedule": crontab(hour=8, minute=30),  # Diario a las 8:30 AM
+        "schedule": crontab(hour=8, minute=30),  # diario 8:30 AM
     },
     "check-biometric-expiration": {
         "task": "contracts.tasks.check_biometric_expiration",
         "schedule": 3600.0,  # cada hora
+    },
+    # --- payments ---
+    "process-auto-rent-charges": {
+        "task": "payments.tasks.process_auto_rent_charges",
+        "schedule": crontab(hour=6, minute=0),  # diario 6:00 AM
+    },
+    "check-payment-reminders": {
+        "task": "payments.tasks.check_payment_reminders",
+        "schedule": crontab(hour=8, minute=0),  # diario 8:00 AM
+    },
+    "escalate-overdue-payments": {
+        "task": "payments.tasks.escalate_overdue_payments",
+        "schedule": crontab(hour=9, minute=0, day_of_week=1),  # lunes 9:00 AM
     },
 }
 
