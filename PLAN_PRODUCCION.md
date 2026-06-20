@@ -283,7 +283,7 @@ Probar el stack de producción **sin comprar nada**: levantar
   (verificado 0/0/0) → `pg_restore --clean --if-exists` → vuelta exacta al
   baseline (1 user / 10 codes / 3 plans) + login 200 post-restore. **Un
   backup restaurado de verdad.** Gaps anotados (D39, D40).
-- [ ] 3.7 **Runbook de operación** (`docs/RUNBOOK.md`, 1 página): cómo ver
+- [x] 3.7 ✅ **Runbook de operación** (`docs/RUNBOOK.md`, 1 página): cómo ver
   logs de cada servicio, reiniciar servicios, restaurar backup, qué revisar
   si la app no responde. Para el dueño a las 11pm sin Claude en la sesión.
 
