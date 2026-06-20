@@ -1038,88 +1038,49 @@ class SimpleRegistrationView(APIView):
                     defaults={"primary": True, "verified": False},
                 )
 
-                # Enviar email de confirmación con debugging exhaustivo
-                print(f"🚀 INICIANDO send_email_confirmation para {user.email}")
-                print(
-                    f"📧 EmailAddress creada: {email_address}, Primary: {email_address.primary}, Verified: {email_address.verified}"
+                # Crear el EmailConfirmation y ENCOLAR el envío del email (D33).
+                # El SMTP va por Celery: un hipo del correo NO debe tumbar el
+                # registro con 500. Si el broker no está disponible, el usuario
+                # queda creado y puede reenviar desde /auth/resend-confirmation/.
+                import logging
+
+                from allauth.account.models import EmailConfirmation
+                from django.utils.crypto import get_random_string
+
+                logger = logging.getLogger(__name__)
+
+                confirmation_key = get_random_string(64).lower()
+                email_confirmation = EmailConfirmation.objects.create(
+                    email_address=email_address,
+                    key=confirmation_key,
+                    sent=None,  # la tarea lo marca como enviado al despachar
                 )
 
-                print(f"🔍 User ID: {user.id}, Email: {user.email}")
-                print(f"🔍 Request object: {request}")
+                from users.tasks import send_confirmation_email
 
-                try:
-                    print("🔄 Llamando send_email_confirmation...")
+                # Encolar SOLO tras el commit (estamos dentro de
+                # transaction.atomic): si el worker corriera antes del commit no
+                # encontraría el EmailConfirmation recién creado.
+                ec_id = email_confirmation.id
+                user_email = user.email
 
-                    # SOLUCIÓN: Crear manualmente el EmailConfirmation porque send_email_confirmation no lo está haciendo
-                    from allauth.account.models import EmailConfirmation
-                    from django.utils.crypto import get_random_string
-
-                    # Crear el EmailConfirmation manualmente
-                    print("🔧 Creando EmailConfirmation manualmente...")
-                    confirmation_key = get_random_string(64).lower()
-                    email_confirmation = EmailConfirmation.objects.create(
-                        email_address=email_address,
-                        key=confirmation_key,
-                        sent=None,  # Se marcará como enviado después
-                    )
-                    print(
-                        f"✅ EmailConfirmation creado manualmente: {confirmation_key}"
-                    )
-
-                    # Ahora llamar al adaptador para enviar el email
-                    from django.conf import settings
-
-                    adapter = settings.ACCOUNT_ADAPTER
-                    from django.utils.module_loading import import_string
-
-                    adapter_class = import_string(adapter)
-                    adapter_instance = adapter_class()
-
-                    print("📧 Enviando email con adaptador personalizado...")
-                    adapter_instance.send_confirmation_mail(
-                        request, email_confirmation, signup=True
-                    )
-
-                    # Marcar como enviado
-                    from django.utils import timezone
-
-                    email_confirmation.sent = timezone.now()
-                    email_confirmation.save()
-
-                    print("✅ Email de confirmación enviado correctamente")
-                    print(f"🔑 Key creada: {confirmation_key}")
-
-                    # Verificar que se creó correctamente
-                    confirmations = EmailConfirmation.objects.filter(
-                        email_address__user=user
-                    )
-                    print(
-                        f"📧 EmailConfirmations en base de datos: {confirmations.count()}"
-                    )
-                    for conf in confirmations:
-                        print(
-                            f"🔑 Key: {conf.key}, Created: {conf.created}, Sent: {conf.sent}"
+                def _enqueue_confirmation():
+                    try:
+                        send_confirmation_email.delay(ec_id)
+                        logger.info(
+                            "Email de confirmación encolado para %s", user_email
+                        )
+                    except Exception as exc:
+                        # El broker (Redis) no respondió: el usuario ya está
+                        # creado, no abortamos. Puede reenviar el correo luego.
+                        logger.error(
+                            "No se pudo encolar el email de confirmación para %s: "
+                            "%s (usuario creado; reenviar en /auth/resend-confirmation/)",
+                            user_email,
+                            exc,
                         )
 
-                except Exception as e:
-                    print(f"❌ ERROR CRÍTICO enviando email de confirmación: {e}")
-                    print(f"❌ Tipo de error: {type(e).__name__}")
-                    print(f"❌ Error args: {e.args}")
-                    import traceback
-
-                    print("❌ Stack trace completo:")
-                    traceback.print_exc()
-
-                    # IMPORTANTE: Fallar el registro si el email no se puede enviar
-                    return Response(
-                        {
-                            "error": f"Error enviando email de confirmación: {str(e)}",
-                            "user_created": True,
-                            "user_id": str(user.id),
-                            "email_error": True,
-                        },
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+                transaction.on_commit(_enqueue_confirmation)
 
                 return Response(
                     {

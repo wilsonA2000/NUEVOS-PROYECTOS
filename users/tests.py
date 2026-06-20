@@ -377,15 +377,9 @@ class UserAPITests(APITestCase):
         response = self.client.post(
             f"{self.BASE_URL}auth/register/", data, format="json"
         )
-        # The view returns 201 on success or 500 if email sending fails (test env)
-        self.assertIn(
-            response.status_code,
-            [
-                status.HTTP_201_CREATED,
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-            ],
-        )
-        # User should exist regardless of email sending outcome
+        # D33: el email va por Celery (transaction.on_commit), así que el
+        # registro YA NO depende del SMTP → siempre 201, nunca 500 por correo.
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(email="newuser@verihome.co").exists())
 
     def test_register_user_password_mismatch(self):
@@ -536,3 +530,77 @@ class UserAPITests(APITestCase):
         self._make_auth_user()
         response = self.client.get(f"{self.BASE_URL}dashboard/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+# ===========================================================================
+# D33 — Email de confirmación desacoplado del request (Celery)
+# ===========================================================================
+from unittest import mock  # noqa: E402
+from allauth.account.models import EmailAddress, EmailConfirmation  # noqa: E402
+
+
+class D33ConfirmationEmailTests(APITestCase):
+    """El registro no debe fallar (500) si el envío del email falla (D33)."""
+
+    BASE_URL = "/api/v1/users/"
+
+    REG_DATA = {
+        "email": "d33user@verihome.co",
+        "password": "StrongPass123!",
+        "password2": "StrongPass123!",
+        "first_name": "D33",
+        "last_name": "User",
+        "user_type": "tenant",
+    }
+
+    def test_registro_201_aunque_falle_el_encolado(self):
+        """Si el broker no responde al encolar, el alta igual devuelve 201."""
+        with mock.patch(
+            "users.tasks.send_confirmation_email.delay",
+            side_effect=Exception("broker caído"),
+        ):
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    f"{self.BASE_URL}auth/register/", self.REG_DATA, format="json"
+                )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(email="d33user@verihome.co").exists())
+
+    def test_registro_encola_el_email_tras_commit(self):
+        """En el camino feliz se encola send_confirmation_email una vez."""
+        with mock.patch("users.tasks.send_confirmation_email.delay") as m_delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    f"{self.BASE_URL}auth/register/", self.REG_DATA, format="json"
+                )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        m_delay.assert_called_once()
+
+    def test_task_envia_y_marca_sent(self):
+        """La tarea llama al adapter y marca el EmailConfirmation como enviado."""
+        from users.tasks import send_confirmation_email
+
+        user = User.objects.create_user(
+            email="task@verihome.co", password="x", user_type="tenant"
+        )
+        ea = EmailAddress.objects.create(
+            user=user, email=user.email, primary=True, verified=False
+        )
+        ec = EmailConfirmation.objects.create(email_address=ea, key="k" * 20)
+
+        with mock.patch(
+            "users.adapters.VeriHomeAccountAdapter.send_confirmation_mail"
+        ) as m_send:
+            result = send_confirmation_email.apply(args=[ec.id]).get()
+
+        m_send.assert_called_once()
+        ec.refresh_from_db()
+        self.assertIsNotNone(ec.sent)
+        self.assertEqual(result, "sent")
+
+    def test_task_skip_si_no_existe(self):
+        """Si el EmailConfirmation ya no existe, la tarea no revienta."""
+        from users.tasks import send_confirmation_email
+
+        result = send_confirmation_email.apply(args=[999999]).get()
+        self.assertIn("skip", result)

@@ -2,10 +2,14 @@
 Adaptador personalizado para django-allauth en VeriHome.
 """
 
+import logging
+
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.models import EmailAddress
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger("users")
 
 
 class VeriHomeAccountAdapter(DefaultAccountAdapter):
@@ -92,29 +96,28 @@ class VeriHomeAccountAdapter(DefaultAccountAdapter):
             else:
                 email_template = "account/email/email_confirmation"
 
-            print(
-                f"📧 Enviando email de confirmación a: {emailconfirmation.email_address.email}"
+            logger.info(
+                "Enviando email de confirmación a %s (url=%s)",
+                emailconfirmation.email_address.email,
+                activate_url,
             )
-            print(f"🔗 URL de confirmación: {activate_url}")
-
-            # Enviar el email
             self.send_mail(email_template, emailconfirmation.email_address.email, ctx)
-            print("✅ Email enviado exitosamente vía adaptador personalizado")
 
         except Exception as e:
-            print(f"❌ Error en send_confirmation_mail: {e}")
-            import traceback
-
-            traceback.print_exc()
-            # Re-lanzar la excepción para que se maneje arriba
+            # Se relanza para que la tarea Celery (send_confirmation_email)
+            # lo registre y reintente.
+            logger.error("Error en send_confirmation_mail: %s", e, exc_info=True)
             raise
 
     def get_email_confirmation_url(self, request, emailconfirmation):
-        """Obtener URL de confirmación de email."""
-        # Construir URL del frontend React
-        frontend_url = "http://localhost:5173"
-        confirmation_path = f"/confirm-email/{emailconfirmation.key}"
-        return f"{frontend_url}{confirmation_path}"
+        """URL de confirmación apuntando al frontend React.
+
+        Usa settings.FRONTEND_URL (antes estaba hardcodeado a localhost:5173,
+        lo que rompía el link de confirmación en producción).
+        """
+        from django.conf import settings
+
+        return f"{settings.FRONTEND_URL}/confirm-email/{emailconfirmation.key}"
 
 
 # Funciones auxiliares removidas para evitar recursión
