@@ -138,6 +138,17 @@ const MatchesDashboard: React.FC = () => {
   const isLandlord = user?.user_type === 'landlord';
   const isTenant = user?.user_type === 'tenant';
 
+  // Contadores derivados del MISMO array que alimentan las listas (D17). Antes
+  // los chips usaban el query separado `statistics`, que no se invalidaba al
+  // aceptar/rechazar → quedaban desfasados respecto a las listas. Calcularlos
+  // aquí los mantiene siempre sincronizados (refetchMatchRequests los refresca).
+  const myRequests = isLandlord ? receivedRequests : sentRequests;
+  const totalCount = myRequests.length;
+  const pendingCount = myRequests.filter(r =>
+    ['pending', 'viewed'].includes(r.status),
+  ).length;
+  const acceptedCount = myRequests.filter(r => r.status === 'accepted').length;
+
   // 🔥 DEBUG - Ver qué datos llegan
   // Memoize processed data to prevent unnecessary re-renders
   const memoizedData = useMemo(
@@ -614,7 +625,7 @@ const MatchesDashboard: React.FC = () => {
           <Grid item xs={12} sm={6} md={4}>
             {renderStatCard(
               isLandlord ? 'Solicitudes Recibidas' : 'Solicitudes Enviadas',
-              statistics?.total_received || statistics?.total_sent || 0,
+              totalCount,
               <Assignment />,
               vhColors.accentBlue,
             )}
@@ -622,7 +633,7 @@ const MatchesDashboard: React.FC = () => {
           <Grid item xs={12} sm={6} md={4}>
             {renderStatCard(
               'Pendientes',
-              statistics?.pending || 0,
+              pendingCount,
               <Schedule />,
               vhColors.warning,
             )}
@@ -630,7 +641,7 @@ const MatchesDashboard: React.FC = () => {
           <Grid item xs={12} sm={6} md={4}>
             {renderStatCard(
               'Aceptadas',
-              statistics?.accepted || 0,
+              acceptedCount,
               <CheckCircle />,
               vhColors.success,
             )}
