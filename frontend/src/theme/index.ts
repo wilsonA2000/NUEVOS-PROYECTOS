@@ -1,5 +1,16 @@
 import { createTheme } from '@mui/material/styles';
 
+// Fuente display para títulos (cargada en index.html). Da carácter a los
+// encabezados sin alterar las métricas del cuerpo (Inter).
+const displayFont = [
+  '"Plus Jakarta Sans"',
+  'Inter',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  '"Segoe UI"',
+  'sans-serif',
+].join(',');
+
 const theme = createTheme({
   palette: {
     mode: 'light',
@@ -66,36 +77,42 @@ const theme = createTheme({
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     h2: {
       fontSize: '1.875rem',
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     h3: {
       fontSize: '1.5rem',
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     h4: {
       fontSize: '1.25rem',
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     h5: {
       fontSize: '1.125rem',
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     h6: {
       fontSize: '1rem',
       fontWeight: 600,
       lineHeight: 1.2,
       letterSpacing: '-0.025em',
+      fontFamily: displayFont,
     },
     subtitle1: {
       fontSize: '1rem',
@@ -146,7 +163,7 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           background: '#ffffff',
-          border: '1px solid #e0e0e0',
+          border: '1px solid #e2e8f0',
           boxShadow:
             '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
           '&:hover': {
@@ -161,40 +178,58 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           background: '#ffffff',
-          border: '1px solid #e0e0e0',
+          border: '1px solid #e2e8f0',
           boxShadow:
             '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12)',
         },
       },
     },
     MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '8px 16px',
+          padding: '8px 18px',
           fontWeight: 600,
           textTransform: 'none',
           boxShadow: 'none',
-          '&:hover': {
-            boxShadow:
-              '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+          transition:
+            'transform .15s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease',
+          // Foco accesible (antes no había anillo de foco visible).
+          '&.Mui-focusVisible': {
+            outline: '2px solid rgba(37, 99, 235, 0.5)',
+            outlineOffset: 2,
           },
         },
+        // Las sombras/elevación SOLO en contained (antes un text button
+        // también recibía drop-shadow en hover, lo cual se veía raro).
         contained: {
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.12)',
+          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.12)',
           '&:hover': {
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.16)',
+            boxShadow: '0 6px 16px -4px rgba(37, 99, 235, 0.45)',
             transform: 'translateY(-1px)',
-            transition: 'all 0.2s ease-in-out',
+          },
+          '&:active': {
+            transform: 'translateY(0)',
+            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.12)',
           },
         },
         outlined: {
-          borderColor: '#bdbdbd',
+          borderColor: '#cbd5e1',
           background: '#ffffff',
           '&:hover': {
-            borderColor: '#1976d2',
-            background: '#f5f5f5',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
+            borderColor: '#2563eb',
+            background: 'rgba(37, 99, 235, 0.04)',
+          },
+          '&:active': {
+            background: 'rgba(37, 99, 235, 0.08)',
+          },
+        },
+        text: {
+          '&:hover': {
+            background: 'rgba(37, 99, 235, 0.06)',
           },
         },
       },
