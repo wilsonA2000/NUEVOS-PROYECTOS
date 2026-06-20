@@ -13,10 +13,15 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  ForumOutlined,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
 import { useAuth } from '../../hooks/useAuth';
+import EmptyState from '../common/EmptyState';
 
 /**
  * Bandeja de entrada: lista HILOS (MessageThread), no mensajes sueltos.
@@ -131,13 +136,30 @@ export const MessageList: React.FC = () => {
       </Box>
 
       {filteredThreads.length === 0 ? (
-        <Box textAlign='center' py={4}>
-          <Typography variant='h6' color='text.secondary'>
-            {searchTerm
+        <EmptyState
+          icon={<ForumOutlined />}
+          title={
+            searchTerm
               ? 'No se encontraron conversaciones'
-              : 'No hay conversaciones'}
-          </Typography>
-        </Box>
+              : 'Aún no tienes conversaciones'
+          }
+          message={
+            searchTerm
+              ? 'Prueba con otros términos de búsqueda.'
+              : 'Cuando inicies o recibas un mensaje, aparecerá aquí.'
+          }
+          action={
+            !searchTerm ? (
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/app/messages/new')}
+              >
+                Nuevo Mensaje
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <Grid container spacing={2}>
           {filteredThreads.map((thread: any) => {
