@@ -5,7 +5,7 @@ Este módulo contiene endpoints que NO requieren autenticación JWT,
 permitiendo a los codeudores completar su verificación biométrica
 a través de un link único enviado por email.
 
-Flujo:
+Flujo (todos bajo el prefijo /api/v1/contracts/):
 1. Arrendador invita codeudor → POST /landlord/contracts/{id}/invite_codeudor/
 2. Codeudor recibe email con link
 3. Codeudor accede al link → GET /public/codeudor/validate/{token}/
