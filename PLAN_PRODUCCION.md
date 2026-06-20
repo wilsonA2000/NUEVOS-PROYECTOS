@@ -379,9 +379,9 @@ i18n completo (~664 strings) · refactor de monolitos
 | D4 | Confirm-email dispara el POST **dos veces** (StrictMode/doble efecto); endpoint idempotente, sin daño, pero es ruido | 1.1 (2026-06-12) | 🟡 Menor |
 | D5 | `.env` local contiene GITHUB_TOKEN y password Gmail (no trackeados, pero revisar en limpieza de secretos) | 1.1 (2026-06-12) | 🔴 Abierta → 2.5 |
 | D6 | ESLint no cubre `playwright/` (parserOptions.project) y prettier estaba inconsistente en ~48 specs | 1.1 (2026-06-12) | 🟡 Menor → 2.x |
-| D7 | `check_contract_sync --fix` no implementado (report-only) | Auditoría 2026-06-11 | 🔴 Abierta → 2.6 |
-| D8 | 3 modelos de contrato comparten UUID sin constraint | Auditoría 2026-06-11 | 🔴 Abierta → 2.6 |
-| D9 | Fallbacks Redis/Channels/PG degradan en silencio | Auditoría 2026-06-11 | 🔴 Abierta → 2.2 |
+| D7 | `check_contract_sync --fix` no implementado (report-only) | Auditoría 2026-06-11 | ⏸️ Decidido 2026-06-12 (2.6): no se implementa — el gate en CI previene huérfanos y el fix manual con `_ensure_contract_exists` cubre casos puntuales |
+| D8 | 3 modelos de contrato comparten UUID sin constraint | Auditoría 2026-06-11 | ✅ Resuelta 2026-06-12 (2.6) — `check_contract_sync --json` hace exit 1 con huérfanos y corre como gate en CI; huérfanos limpiados |
+| D9 | Fallbacks Redis/Channels/PG degradan en silencio | Auditoría 2026-06-11 | ✅ Resuelta 2026-06-12 (2.2) — con DEBUG=False: BD→RuntimeError (no SQLite vacío), cache→re-lanza ImportError de django_redis |
 | D10 | Monolitos: `contracts/api_views.py` ~4200 líneas, `pdf_generator.py` ~3700 | Histórico | ⏸️ Post-launch (Fase 5) |
 | D11 | `/app/profile` dispara 4 GETs a `onboarding/me`. Diagnóstico: StrictMode duplica (**solo en dev** → en prod son 2) × 2 consumidores independientes (banner + VeriHomeIDCard). Fix limpio = React Query/context compartido (refactor, requiere decisión) | 1.2 (2026-06-12) | 🟡 Menor (en prod solo 2 GETs) |
 | D12 | `/dashboard/stats/` no expone **series temporales** (ingresos/gastos por día) — el gráfico Flujo de Caja del landlord queda en ceros hasta tener endpoint real | D3 (2026-06-12) | 🔴 Abierta → 1.11 o Fase 5 |
