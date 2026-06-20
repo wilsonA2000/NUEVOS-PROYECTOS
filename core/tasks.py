@@ -3,9 +3,9 @@ Tareas asíncronas de Celery para el módulo core de VeriHome.
 """
 
 import os
+import subprocess
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.core.management import call_command
 from django.contrib.sessions.models import Session
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -37,55 +37,35 @@ def cleanup_expired_sessions():
 
 @shared_task
 def backup_database():
-    """Crea un backup de la base de datos."""
+    """Crea un backup de la base de datos.
+
+    Delega en ``scripts/backup_database.sh`` (pg_dump formato custom + gzip)
+    para que exista UN solo método de backup en todo el sistema: el mismo
+    artefacto ``.sql.gz`` que produce el backup manual y que sabe restaurar
+    ``scripts/restore_database.sh`` (D39). Antes esta tarea usaba ``dumpdata``
+    JSON, un formato que el script de restore NO puede leer.
+
+    El directorio de salida lo controla ``BACKUP_DIR`` (env, default
+    ``/backups``, montado como volumen en los contenedores).
+    """
     try:
-        logger.info("Iniciando backup de base de datos")
+        logger.info("Iniciando backup de base de datos (pg_dump)")
+        script = os.path.join(settings.BASE_DIR, "scripts", "backup_database.sh")
+        result = subprocess.run(
+            ["bash", script],
+            cwd=settings.BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        logger.info("Backup completado:\n%s", result.stdout.strip())
+        return "Backup de base de datos creado con pg_dump"
 
-        # Crear directorio de backups si no existe
-        backup_dir = os.path.join(settings.BASE_DIR, "backups")
-        os.makedirs(backup_dir, exist_ok=True)
-
-        # Generar nombre del archivo de backup
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_file = f"verihome_backup_{timestamp}.json"
-        backup_path = os.path.join(backup_dir, backup_file)
-
-        # Crear backup usando dumpdata de Django
-        with open(backup_path, "w") as f:
-            call_command(
-                "dumpdata",
-                "--natural-foreign",
-                "--natural-primary",
-                "--exclude=contenttypes",
-                "--exclude=auth.permission",
-                "--exclude=sessions.session",
-                "--exclude=core.auditlog",
-                stdout=f,
-            )
-
-        # Verificar que el archivo se creó correctamente
-        if os.path.exists(backup_path):
-            file_size = os.path.getsize(backup_path)
-            logger.info(
-                f"Backup creado exitosamente: {backup_file} ({file_size} bytes)"
-            )
-
-            # Limpiar backups antiguos (mantener últimos 7 días)
-            cutoff_date = datetime.now() - timedelta(days=7)
-            for filename in os.listdir(backup_dir):
-                if filename.startswith("verihome_backup_") and filename.endswith(
-                    ".json"
-                ):
-                    file_path = os.path.join(backup_dir, filename)
-                    file_time = datetime.fromtimestamp(os.path.getctime(file_path))
-                    if file_time < cutoff_date:
-                        os.remove(file_path)
-                        logger.info(f"Backup antiguo eliminado: {filename}")
-
-            return f"Backup creado: {backup_file}"
-        else:
-            raise Exception("El archivo de backup no se creó correctamente")
-
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Error en backup_database.sh (rc=%s): %s", e.returncode, e.stderr
+        )
+        raise
     except Exception as e:
         logger.error(f"Error al crear backup de base de datos: {str(e)}")
         raise

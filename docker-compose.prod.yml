@@ -69,6 +69,8 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      # Backups manuales (runbook: exec backend bash scripts/backup_database.sh)
+      - backup_volume:/backups
     # SIN ports: gunicorn solo se alcanza por nginx dentro de la red.
     depends_on:
       db:
@@ -115,6 +117,10 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+    volumes:
+      # La tarea Celery core.tasks.backup_database corre AQUÍ (worker) y
+      # escribe el .sql.gz en /backups (mismo volumen que el backend).
+      - backup_volume:/backups
     depends_on:
       - db
       - redis
@@ -173,6 +179,10 @@ volumes:
   static_volume:
     driver: local
   media_volume:
+    driver: local
+  # Backups de BD (.sql.gz de pg_dump). Lo escriben backend (manual) y
+  # celery_worker (tarea diaria); lo lee restore_database.sh. D39.
+  backup_volume:
     driver: local
 
 networks:

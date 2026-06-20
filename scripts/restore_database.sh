@@ -5,8 +5,9 @@
 
 set -e
 
-# Configuración
-BACKUP_DIR="/backups"
+# Configuración. BACKUP_DIR se puede sobreescribir por env (mismo volumen que
+# usa backup_database.sh; default /backups).
+BACKUP_DIR="${BACKUP_DIR:-/backups}"
 
 # Colores para output
 GREEN='\033[0;32m'

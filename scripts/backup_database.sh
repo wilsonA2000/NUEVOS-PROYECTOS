@@ -5,8 +5,10 @@
 
 set -e
 
-# Configuración
-BACKUP_DIR="/backups"
+# Configuración. BACKUP_DIR se puede sobreescribir por env (volumen montado
+# en los contenedores; default /backups). Mismo valor que restore_database.sh
+# y que la tarea Celery core.tasks.backup_database (D39: un solo método).
+BACKUP_DIR="${BACKUP_DIR:-/backups}"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="verihome_backup_${DATE}.sql"
 COMPRESSED_FILE="verihome_backup_${DATE}.sql.gz"
