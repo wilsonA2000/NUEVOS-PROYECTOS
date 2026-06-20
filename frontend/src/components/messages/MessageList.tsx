@@ -5,9 +5,6 @@ import {
   CardContent,
   Grid,
   Typography,
-  IconButton,
-  Menu,
-  MenuItem,
   Chip,
   Avatar,
   Button,
@@ -16,69 +13,65 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import {
-  MoreVert as MoreVertIcon,
-  Add as AddIcon,
-  Search as SearchIcon,
-  Reply as ReplyIcon,
-} from '@mui/icons-material';
+import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
+import { useAuth } from '../../hooks/useAuth';
 
+/**
+ * Bandeja de entrada: lista HILOS (MessageThread), no mensajes sueltos.
+ *
+ * Antes iteraba `messages` (modelo Message, que NO tiene `subject` ni
+ * `createdAt`) → mostraba "Sin asunto / De: Usuario / Fecha desconocida"
+ * (D18). Ahora usa los hilos, que sí traen subject, participantes,
+ * last_message y last_message_at.
+ */
 export const MessageList: React.FC = () => {
   const navigate = useNavigate();
-  const { messages, unreadCount, isLoading, error, deleteMessage, markAsRead } =
-    useMessages();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedMessage, setSelectedMessage] = React.useState<any>(null);
+  const { threads, unreadCount, isLoading, error } = useMessages();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>,
-    message: any,
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedMessage(message);
+  const threadsArray: any[] = Array.isArray(threads)
+    ? threads
+    : (threads as any)?.results || [];
+
+  const participantName = (p: any): string =>
+    [p?.first_name, p?.last_name].filter(Boolean).join(' ') ||
+    p?.email ||
+    'Usuario';
+
+  // Nombre(s) del/los participante(s) distinto(s) al usuario actual.
+  const otherParticipants = (thread: any): string => {
+    const parts: any[] = Array.isArray(thread?.participants)
+      ? thread.participants
+      : [];
+    const others = parts.filter(
+      (p: any) => !user || String(p?.id) !== String((user as any).id),
+    );
+    const list = (others.length ? others : parts).map(participantName);
+    return list.length ? list.join(', ') : 'Sin participantes';
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedMessage(null);
+  const threadDate = (thread: any): string => {
+    const raw =
+      thread?.last_message_at ||
+      thread?.last_message?.sent_at ||
+      thread?.created_at;
+    return raw ? new Date(raw).toLocaleString() : 'Sin fecha';
   };
 
-  const handleView = () => {
-    if (selectedMessage) {
-      navigate(`/app/messages/${selectedMessage.id}`);
-      if (!selectedMessage.isRead) {
-        markAsRead.mutate(selectedMessage.id);
-      }
-    }
-    handleMenuClose();
-  };
-
-  const handleReply = () => {
-    if (selectedMessage) {
-      navigate(`/app/messages/reply?replyTo=${selectedMessage.id}`);
-    }
-    handleMenuClose();
-  };
-
-  const handleDelete = async () => {
-    if (selectedMessage) {
-      await deleteMessage.mutateAsync(selectedMessage.id);
-    }
-    handleMenuClose();
-  };
-
-  // Asegurar que messages sea un array (handle paginated response)
-  const messagesArray = Array.isArray(messages)
-    ? messages
-    : (messages as any)?.results || [];
-  const filteredMessages = messagesArray.filter(
-    (message: any) =>
-      message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      message.content?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredThreads = threadsArray.filter((thread: any) => {
+    const haystack = [
+      thread?.subject,
+      thread?.last_message?.content,
+      otherParticipants(thread),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(searchTerm.toLowerCase());
+  });
 
   if (isLoading) {
     return (
@@ -124,7 +117,7 @@ export const MessageList: React.FC = () => {
       <Box mb={3}>
         <TextField
           fullWidth
-          placeholder='Buscar mensajes...'
+          placeholder='Buscar conversaciones...'
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           InputProps={{
@@ -137,110 +130,83 @@ export const MessageList: React.FC = () => {
         />
       </Box>
 
-      {filteredMessages.length === 0 ? (
+      {filteredThreads.length === 0 ? (
         <Box textAlign='center' py={4}>
           <Typography variant='h6' color='text.secondary'>
-            {searchTerm ? 'No se encontraron mensajes' : 'No hay mensajes'}
+            {searchTerm
+              ? 'No se encontraron conversaciones'
+              : 'No hay conversaciones'}
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {filteredMessages.map((message: any) => (
-            <Grid item xs={12} key={message.id}>
-              <Card
-                sx={{
-                  bgcolor: message.isRead ? 'background.paper' : 'action.hover',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
-                }}
-                onClick={() => handleView()}
-              >
-                <CardContent>
-                  <Box
-                    display='flex'
-                    justifyContent='space-between'
-                    alignItems='flex-start'
-                  >
-                    <Box display='flex' alignItems='center' gap={2} flex={1}>
-                      <Avatar>
-                        {(message as any).sender?.name?.[0] ||
-                          message.senderId?.[0] ||
-                          'U'}
-                      </Avatar>
-                      <Box flex={1}>
-                        <Typography variant='h6' component='div'>
-                          {message.subject || 'Sin asunto'}
-                        </Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          De:{' '}
-                          {(message as any).sender?.name ||
-                            message.senderId ||
-                            'Usuario'}
-                        </Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          Para:{' '}
-                          {(message as any).recipient?.name ||
-                            message.recipientId ||
-                            'Usuario'}
-                        </Typography>
+        <Grid container spacing={2}>
+          {filteredThreads.map((thread: any) => {
+            const isUnread = thread?.last_message
+              ? !thread.last_message.is_read
+              : false;
+            return (
+              <Grid item xs={12} key={thread.id}>
+                <Card
+                  sx={{
+                    bgcolor: isUnread ? 'action.hover' : 'background.paper',
+                    cursor: 'pointer',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                  onClick={() => navigate(`/app/messages/${thread.id}`)}
+                >
+                  <CardContent>
+                    <Box
+                      display='flex'
+                      justifyContent='space-between'
+                      alignItems='flex-start'
+                    >
+                      <Box display='flex' alignItems='center' gap={2} flex={1}>
+                        <Avatar>
+                          {otherParticipants(thread)?.[0]?.toUpperCase() || 'U'}
+                        </Avatar>
+                        <Box flex={1}>
+                          <Typography variant='h6' component='div'>
+                            {thread.subject || '(Sin asunto)'}
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            {otherParticipants(thread)}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                    <Box display='flex' alignItems='center' gap={1}>
-                      {!message.isRead && (
+                      {isUnread && (
                         <Chip label='Nuevo' color='primary' size='small' />
                       )}
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleMenuOpen(e, message);
+                    </Box>
+                    {thread.last_message?.content && (
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        sx={{
+                          mt: 1,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
                         }}
                       >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    color='text.secondary'
-                    sx={{
-                      mt: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                    }}
-                  >
-                    {message.content || 'Sin contenido'}
-                  </Typography>
-                  <Typography
-                    variant='caption'
-                    color='text.secondary'
-                    sx={{ mt: 1, display: 'block' }}
-                  >
-                    {message.createdAt
-                      ? new Date(message.createdAt).toLocaleString()
-                      : 'Fecha desconocida'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                        {thread.last_message.content}
+                      </Typography>
+                    )}
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      sx={{ mt: 1, display: 'block' }}
+                    >
+                      {threadDate(thread)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       )}
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleView}>Ver Mensaje</MenuItem>
-        <MenuItem onClick={handleReply}>Responder</MenuItem>
-        <MenuItem onClick={handleDelete}>Eliminar</MenuItem>
-      </Menu>
     </Box>
   );
 };
