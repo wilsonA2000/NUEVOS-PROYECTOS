@@ -542,6 +542,13 @@ const Layout: React.FC = () => {
           mt: { xs: 7, sm: 8 },
           mb: { xs: isMobile ? 8 : 0, md: 0 }, // Space for bottom navigation on mobile
           minHeight: '100vh',
+          // D28: este Box es flex-child (flexGrow). Sin minWidth:0 un hijo
+          // ancho (Grid con márgenes negativos, tablas) lo empuja por encima
+          // del viewport → scroll horizontal de pocos px a 360px. minWidth:0
+          // le deja encogerse; overflowX hidden corta cualquier resto.
+          minWidth: 0,
+          maxWidth: '100%',
+          overflowX: 'hidden',
         }}
       >
         <Outlet />
