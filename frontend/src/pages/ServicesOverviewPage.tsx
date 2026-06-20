@@ -93,7 +93,7 @@ const StepCards: React.FC<{
               justifyContent: 'center',
               mx: 'auto',
               mb: 2,
-              boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+              boxShadow: '0 4px 14px rgba(67,56,202,0.3)',
             }}
           >
             {s.icon}
@@ -264,7 +264,7 @@ const ServicesOverviewPage: React.FC = () => {
       {/* HERO */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+          background: 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
           color: 'white',
           pt: 14,
           pb: 8,
@@ -864,7 +864,7 @@ const ServicesOverviewPage: React.FC = () => {
       {/* CTA FINAL */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+          background: 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
           py: { xs: 6, md: 8 },
         }}
       >

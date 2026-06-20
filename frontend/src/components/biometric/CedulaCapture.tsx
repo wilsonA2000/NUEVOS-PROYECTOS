@@ -301,7 +301,7 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
 
       if (rect) {
         ctx.lineWidth = 3;
-        ctx.strokeStyle = progress > 0.95 ? '#10b981' : '#3b82f6';
+        ctx.strokeStyle = progress > 0.95 ? '#10b981' : '#6366f1';
         ctx.setLineDash([]);
         ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
       }

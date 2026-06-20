@@ -15,9 +15,9 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2563eb', // Professional Blue
-      light: '#3b82f6',
-      dark: '#1e40af',
+      main: '#4338ca', // Brand Indigo (premium)
+      light: '#6366f1',
+      dark: '#3730a3',
       contrastText: '#ffffff',
     },
     secondary: {
@@ -199,7 +199,7 @@ const theme = createTheme({
             'transform .15s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease',
           // Foco accesible (antes no había anillo de foco visible).
           '&.Mui-focusVisible': {
-            outline: '2px solid rgba(37, 99, 235, 0.5)',
+            outline: '2px solid rgba(67, 56, 202, 0.5)',
             outlineOffset: 2,
           },
         },
@@ -208,7 +208,7 @@ const theme = createTheme({
         contained: {
           boxShadow: '0 1px 2px rgba(15, 23, 42, 0.12)',
           '&:hover': {
-            boxShadow: '0 6px 16px -4px rgba(37, 99, 235, 0.45)',
+            boxShadow: '0 6px 16px -4px rgba(67, 56, 202, 0.45)',
             transform: 'translateY(-1px)',
           },
           '&:active': {
@@ -220,16 +220,16 @@ const theme = createTheme({
           borderColor: '#cbd5e1',
           background: '#ffffff',
           '&:hover': {
-            borderColor: '#2563eb',
-            background: 'rgba(37, 99, 235, 0.04)',
+            borderColor: '#4338ca',
+            background: 'rgba(67, 56, 202, 0.04)',
           },
           '&:active': {
-            background: 'rgba(37, 99, 235, 0.08)',
+            background: 'rgba(67, 56, 202, 0.08)',
           },
         },
         text: {
           '&:hover': {
-            background: 'rgba(37, 99, 235, 0.06)',
+            background: 'rgba(67, 56, 202, 0.06)',
           },
         },
       },
@@ -283,12 +283,13 @@ const theme = createTheme({
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
           },
           '&.Mui-selected': {
-            backgroundColor: 'rgba(79, 195, 247, 0.2)',
-            color: '#4fc3f7',
-            borderLeft: '3px solid #4fc3f7',
+            // Acento de marca (índigo claro) sobre el sidebar navy.
+            backgroundColor: 'rgba(99, 102, 241, 0.22)',
+            color: '#a5b4fc',
+            borderLeft: '3px solid #6366f1',
             fontWeight: 600,
             '&:hover': {
-              backgroundColor: 'rgba(79, 195, 247, 0.3)',
+              backgroundColor: 'rgba(99, 102, 241, 0.32)',
             },
           },
         },
@@ -337,7 +338,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '&:hover': {
-            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+            backgroundColor: 'rgba(67, 56, 202, 0.08)',
           },
         },
       },
@@ -345,7 +346,7 @@ const theme = createTheme({
     MuiBadge: {
       styleOverrides: {
         badge: {
-          background: 'rgba(37, 99, 235, 0.8)',
+          background: 'rgba(67, 56, 202, 0.8)',
           color: '#ffffff',
         },
       },

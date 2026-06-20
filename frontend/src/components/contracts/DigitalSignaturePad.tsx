@@ -115,7 +115,7 @@ const DigitalSignaturePad: React.FC<DigitalSignaturePadProps> = ({
   const CANVAS_WIDTH = isMobile ? 350 : 500;
   const CANVAS_HEIGHT = isMobile ? 200 : 250;
   const STROKE_WIDTH = 2;
-  const STROKE_COLOR = '#2563eb';
+  const STROKE_COLOR = '#4338ca';
 
   // Inicializar canvas
   const initializeCanvas = useCallback(() => {

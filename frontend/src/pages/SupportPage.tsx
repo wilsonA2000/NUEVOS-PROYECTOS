@@ -389,7 +389,7 @@ const SupportPage: React.FC = () => {
       <Fade in timeout={800}>
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+            background: 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
             color: 'white',
             pt: 12,
             pb: 8,

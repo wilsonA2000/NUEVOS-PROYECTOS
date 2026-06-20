@@ -24,7 +24,7 @@ const ScrollToTopButton: React.FC = () => {
           bgcolor: 'primary.main',
           color: 'white',
           zIndex: 1200,
-          boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
+          boxShadow: '0 4px 14px rgba(67,56,202,0.4)',
           '&:hover': { bgcolor: 'primary.dark' },
         }}
       >

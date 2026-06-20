@@ -316,7 +316,7 @@ const LandingPage: React.FC = () => {
                         justifyContent: 'center',
                         mx: 'auto',
                         mb: 3,
-                        boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                        boxShadow: '0 4px 14px rgba(67, 56, 202, 0.3)',
                       }}
                     >
                       {step.icon}

@@ -38,7 +38,7 @@ const LandingFooter: React.FC = () => {
                   width: 40,
                   height: 40,
                   background:
-                    'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    'linear-gradient(135deg, #6366f1 0%, #1d4ed8 100%)',
                   borderRadius: 2,
                   display: 'flex',
                   alignItems: 'center',

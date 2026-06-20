@@ -55,7 +55,7 @@ const LandingNavbar: React.FC = () => {
               sx={{
                 width: 40,
                 height: 40,
-                background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+                background: 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
                 borderRadius: 2,
                 display: 'flex',
                 alignItems: 'center',
@@ -79,7 +79,7 @@ const LandingNavbar: React.FC = () => {
               variant='h5'
               sx={{
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #2563eb, #1e40af)',
+                background: 'linear-gradient(135deg, #4338ca, #3730a3)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -173,7 +173,7 @@ const LandingNavbar: React.FC = () => {
               to='/register'
               variant='contained'
               sx={{
-                background: 'linear-gradient(135deg, #2563eb, #1e40af)',
+                background: 'linear-gradient(135deg, #4338ca, #3730a3)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #1d4ed8, #1e3a8a)',
                 },
