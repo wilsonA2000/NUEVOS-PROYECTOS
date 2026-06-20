@@ -36,3 +36,25 @@ const StatusChip: React.FC<StatusChipProps> = ({ kind, sx, ...rest }) => {
 };
 
 export default StatusChip;
+
+// ---------------------------------------------------------------------------
+// Resolvers de estado CRUDO → chip (D13). Una sola fuente para que los
+// componentes no repitan mapeos status→color/label ad-hoc.
+// ---------------------------------------------------------------------------
+
+const MATCH_STATUS: Record<string, { kind: StageKind; label: string }> = {
+  pending: { kind: 'pending', label: 'Pendiente' },
+  viewed: { kind: 'inProgress', label: 'Vista' },
+  accepted: { kind: 'success', label: 'Aceptada' },
+  rejected: { kind: 'error', label: 'Rechazada' },
+  cancelled: { kind: 'neutral', label: 'Cancelada' },
+  expired: { kind: 'neutral', label: 'Expirada' },
+};
+
+/** Chip para el estado de una solicitud de match (status crudo del backend). */
+export const MatchStatusChip: React.FC<
+  { status: string } & Omit<StatusChipProps, 'kind' | 'label'>
+> = ({ status, ...rest }) => {
+  const m = MATCH_STATUS[status] ?? { kind: 'neutral' as StageKind, label: status };
+  return <StatusChip kind={m.kind} label={m.label} {...rest} />;
+};

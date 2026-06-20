@@ -47,7 +47,7 @@ import {
   Bolt as BoltIcon,
   TaskAlt as TaskAltIcon,
 } from '@mui/icons-material';
-import StatusChip from '../common/StatusChip';
+import { MatchStatusChip } from '../common/StatusChip';
 import { vhColors } from '../../theme/tokens';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -97,8 +97,6 @@ const MatchesDashboard: React.FC = () => {
     error,
 
     refetchMatchRequests,
-    getStatusColor,
-    getStatusText,
     getPriorityColor,
     getPriorityText,
     formatCurrency,
@@ -354,11 +352,8 @@ const MatchesDashboard: React.FC = () => {
               </Typography>
 
               <Stack direction='row' spacing={1} sx={{ mb: 1 }}>
-                <Chip
-                  label={getStatusText(request.status)}
-                  color={getStatusColor(request.status) as any}
-                  size='small'
-                />
+                <MatchStatusChip status={request.status} />
+                {/* chip de estado unificado (D13) en vez de color sólido */}
                 <Chip
                   label={getPriorityText(request.priority)}
                   color={getPriorityColor(request.priority) as any}
