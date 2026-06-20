@@ -16,6 +16,9 @@ import {
   useMediaQuery,
   Stack,
   Fade,
+  Checkbox,
+  FormControlLabel,
+  Divider,
 } from '@mui/material';
 import {
   CameraAlt,
@@ -25,6 +28,7 @@ import {
   ArrowBack,
   Security,
   Close,
+  PrivacyTip,
 } from '@mui/icons-material';
 
 import EnhancedFaceCapture from './EnhancedFaceCapture';
@@ -66,6 +70,11 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ley 1581/2012: consentimiento informado ANTES de capturar datos
+  // biométricos (sensibles). Sin esto el disclosure no aparecía en los pasos
+  // de captura 1-3 (D21). El texto definitivo lo afina el área legal (2.10).
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   const [steps, setSteps] = useState<StepConfig[]>([
     {
@@ -290,6 +299,108 @@ const ProfessionalBiometricFlow: React.FC<ProfessionalBiometricFlowProps> = ({
     'voice_recording',
     'digital_signature',
   ].includes(currentStepData.id);
+
+  // Pantalla de consentimiento informado (Ley 1581/2012). Se muestra ANTES
+  // de cualquier captura biométrica y cubre los pasos 1-3 (rostro, documento,
+  // voz) y 4 (firma). D21.
+  if (!consentAccepted) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: 'grey.50',
+          overflow: 'auto',
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 760,
+            mx: 'auto',
+            width: '100%',
+            p: { xs: 2, md: 4 },
+          }}
+        >
+          <Box display='flex' alignItems='center' gap={1.5} mb={2}>
+            <PrivacyTip color='primary' />
+            <Typography variant='h5' fontWeight={700}>
+              Autorización para el tratamiento de datos biométricos
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Typography variant='body2' color='text.secondary' paragraph>
+            En cumplimiento de la <strong>Ley 1581 de 2012</strong> y el
+            Decreto 1377 de 2013 (Habeas Data), VeriHome como responsable del
+            tratamiento le informa que para autenticar su identidad y dar
+            validez jurídica a la firma de este contrato se recolectarán y
+            tratarán <strong>datos personales sensibles de carácter biométrico</strong>:
+          </Typography>
+          <Box component='ul' sx={{ pl: 3, mb: 2, color: 'text.secondary' }}>
+            <li>
+              <Typography variant='body2'>
+                Imagen facial (foto de su rostro).
+              </Typography>
+            </li>
+            <li>
+              <Typography variant='body2'>
+                Imagen de su documento de identidad y selfie de verificación.
+              </Typography>
+            </li>
+            <li>
+              <Typography variant='body2'>
+                Grabación de voz de la frase de verificación.
+              </Typography>
+            </li>
+            <li>
+              <Typography variant='body2'>Firma digital manuscrita.</Typography>
+            </li>
+          </Box>
+          <Typography variant='body2' color='text.secondary' paragraph>
+            <strong>Finalidad:</strong> verificar su identidad de forma
+            inequívoca y conformar la prueba de consentimiento del contrato.
+            Los datos se almacenan cifrados y no se comparten con terceros sin
+            su autorización, salvo requerimiento legal. El suministro de datos
+            biométricos es <strong>voluntario</strong>; usted puede ejercer sus
+            derechos de acceso, rectificación, actualización y supresión
+            escribiendo a VeriHome.
+          </Typography>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={consentChecked}
+                onChange={e => setConsentChecked(e.target.checked)}
+                color='primary'
+              />
+            }
+            label={
+              <Typography variant='body2'>
+                He leído y <strong>autorizo de manera libre, previa, expresa e
+                informada</strong> el tratamiento de mis datos biométricos para
+                los fines aquí descritos.
+              </Typography>
+            }
+            sx={{ alignItems: 'flex-start', mb: 3 }}
+          />
+
+          <Stack direction='row' spacing={2} justifyContent='flex-end'>
+            <Button variant='outlined' onClick={onCancel} startIcon={<Close />}>
+              Cancelar
+            </Button>
+            <Button
+              variant='contained'
+              startIcon={<Security />}
+              disabled={!consentChecked}
+              onClick={() => setConsentAccepted(true)}
+            >
+              Autorizo y comenzar verificación
+            </Button>
+          </Stack>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
