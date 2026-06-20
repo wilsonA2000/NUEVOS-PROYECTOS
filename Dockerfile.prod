@@ -1,6 +1,9 @@
 # Dockerfile for VeriHome Production Backend
 # Python 3.12 para paridad con el entorno local (antes 3.11 → D35).
-FROM python:3.12-slim
+# Fijado a bookworm (Debian 12) a propósito (D40): su postgresql-client es la
+# v15, que coincide con el server PG15. El tag `-slim` a secas saltó a Debian
+# 13 (trixie) y traía pg_dump 17 → dump/restore con skew de versión.
+FROM python:3.12-slim-bookworm
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
