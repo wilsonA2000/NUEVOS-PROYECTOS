@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMessages } from '../../hooks/useMessages';
 import { useAuth } from '../../hooks/useAuth';
 import EmptyState from '../common/EmptyState';
+import { cardSx } from '../../theme/tokens';
 
 /**
  * Bandeja de entrada: lista HILOS (MessageThread), no mensajes sueltos.
@@ -201,8 +202,7 @@ export const MessageList: React.FC = () => {
                 <Card
                   sx={{
                     bgcolor: isUnread ? 'action.hover' : 'background.paper',
-                    cursor: 'pointer',
-                    '&:hover': { bgcolor: 'action.hover' },
+                    ...cardSx.interactive,
                   }}
                   onClick={() => navigate(`/app/messages/${thread.id}`)}
                 >

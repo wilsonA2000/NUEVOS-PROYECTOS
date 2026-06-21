@@ -97,6 +97,29 @@ export const vhColors = {
   divider: p.divider,
 } as const;
 
+/**
+ * Estilos `sx` reutilizables para tarjetas. Evitan repetir hover/acento en
+ * cada lista.
+ *
+ *   <Card sx={cardSx.interactive} onClick={...}>      // clicable con hover lift
+ *   <Card sx={{ ...cardSx.featured }}>                // destacada (acento)
+ */
+export const cardSx = {
+  interactive: {
+    cursor: 'pointer',
+    transition: vh.transitions.hover,
+    '&:hover': {
+      transform: 'translateY(-3px)',
+      boxShadow: vh.shadows.elevated,
+      borderColor: `${p.primary.main}55`,
+    },
+  },
+  featured: {
+    borderLeft: `4px solid ${p.primary.main}`,
+    background: `linear-gradient(180deg, ${p.primary.main}0A 0%, ${p.background.paper} 42%)`,
+  },
+} as const;
+
 export type StageKind =
   | 'pending'
   | 'inProgress'

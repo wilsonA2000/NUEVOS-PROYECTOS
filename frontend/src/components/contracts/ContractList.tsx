@@ -31,6 +31,7 @@ import { ContractStatusChip } from '../common/StatusChip';
 import PageHeader from '../common/PageHeader';
 import CardGridSkeleton from '../common/CardGridSkeleton';
 import EmptyState from '../common/EmptyState';
+import { cardSx } from '../../theme/tokens';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
@@ -175,7 +176,13 @@ export const ContractList: React.FC = () => {
         {finalContracts.map(contract => (
           <Grid item xs={12} sm={6} md={4} key={contract.id}>
             <Card
-              sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                // Acento de marca para el contrato activo (destacado). D12/D21.
+                ...(contract.status === 'active' ? cardSx.featured : {}),
+              }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
                 <Box
