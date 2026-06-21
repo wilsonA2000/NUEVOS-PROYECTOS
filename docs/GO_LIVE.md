@@ -93,6 +93,15 @@ docker compose -f docker-compose.prod.yml exec backend bash scripts/init_verihom
 
 ## 8. Verificación post-deploy (smoke)
 
+> ⚠️ **CRÍTICO — verificar el build EN NAVEGADOR, no solo que compile.**
+> Un `npm run build` exitoso y los tests Jest NO garantizan que el bundle
+> corra: un chunking mal configurado puede dar pantalla en blanco (pasó:
+> dependencias circulares entre chunks, arreglado en vite.config). Cargar la
+> URL en un navegador real y confirmar que la app monta es OBLIGATORIO.
+> Hay un smoke headless reutilizable: `node frontend/scripts/smoke-screenshots.mjs`
+> (ajusta `BASE_URL`), que captura login + dashboard y reporta errores de consola.
+
+
 - [ ] `curl https://verihome.com/api/v1/core/health/` → 200 `healthy`.
 - [ ] Login admin → 200.
 - [ ] Registro de prueba → 201 y **llega el email** de confirmación (SMTP real).
