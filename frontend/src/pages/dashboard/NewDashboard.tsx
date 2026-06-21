@@ -834,6 +834,7 @@ const NewDashboard: React.FC = () => {
                   </Typography>
                   <IconButton
                     size='small'
+                    aria-label='Expandir gráfico de ingresos'
                     onClick={e => {
                       e.stopPropagation();
                       handleChartExpand('income');
@@ -916,6 +917,7 @@ const NewDashboard: React.FC = () => {
                     </Typography>
                     <IconButton
                       size='small'
+                      aria-label='Expandir gráfico de ocupación'
                       onClick={e => {
                         e.stopPropagation();
                         handleChartExpand('occupancy');
@@ -1504,6 +1506,7 @@ const NewDashboard: React.FC = () => {
                 </Typography>
                 <IconButton
                   size='small'
+                  aria-label='Expandir gráfico de calificaciones'
                   onClick={() => handleChartExpand('ratings')}
                 >
                   <FullscreenIcon />
@@ -1513,7 +1516,11 @@ const NewDashboard: React.FC = () => {
                 {loading ? (
                   <Skeleton variant='rectangular' height='100%' />
                 ) : (
-                  <Bar data={getRatingsChart()} options={chartOptions} />
+                  <Bar
+                    aria-label='Gráfico de calificaciones'
+                    data={getRatingsChart()}
+                    options={chartOptions}
+                  />
                 )}
               </Box>
             </Paper>
@@ -1561,6 +1568,7 @@ const NewDashboard: React.FC = () => {
           </Typography>
           <IconButton
             onClick={handleChartClose}
+            aria-label='Cerrar gráfico ampliado'
             size='small'
             sx={{
               bgcolor: alpha(theme.palette.error.main, 0.1),
@@ -1575,6 +1583,7 @@ const NewDashboard: React.FC = () => {
           <Box sx={{ height: { xs: 'calc(100vh - 200px)', md: '500px' } }}>
             {selectedChart === 'income' && (
               <Line
+                aria-label='Gráfico de flujo de caja'
                 data={getIncomeChart()}
                 options={{
                   ...chartOptions,
@@ -1614,6 +1623,7 @@ const NewDashboard: React.FC = () => {
                   }}
                 >
                   <Doughnut
+                    aria-label='Gráfico de ocupación de propiedades'
                     data={getOccupancyChart()}
                     options={{
                       ...chartOptions,
@@ -1680,6 +1690,7 @@ const NewDashboard: React.FC = () => {
             )}
             {selectedChart === 'ratings' && (
               <Bar
+                aria-label='Gráfico de calificaciones'
                 data={getRatingsChart()}
                 options={{
                   ...chartOptions,

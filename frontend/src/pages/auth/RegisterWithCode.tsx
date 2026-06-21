@@ -860,8 +860,12 @@ export const RegisterWithCode: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel>Tipo de Usuario</InputLabel>
+                      <InputLabel id='reg-user-type-label'>
+                        Tipo de Usuario
+                      </InputLabel>
                       <Select
+                        labelId='reg-user-type-label'
+                        id='user_type'
                         name='user_type'
                         value={formData.user_type}
                         onChange={handleSelectChange}
