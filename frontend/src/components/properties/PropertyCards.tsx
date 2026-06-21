@@ -29,6 +29,7 @@ import {
 import { Property } from '../../types/property';
 import { User } from '../../types/user';
 import PropertyImage from '../common/PropertyImage';
+import { vh } from '../../theme/tokens';
 
 interface PropertyCardsProps {
   properties: Property[];
@@ -119,10 +120,12 @@ const PropertyCards: React.FC<PropertyCardsProps> = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'all 0.2s ease-in-out',
+                transition: vh.transitions.hover,
+                // `elevation` no es una prop CSS válida dentro de sx: el hover
+                // solo movía la card sin sombra. Ahora usa la sombra del token.
                 '&:hover': {
-                  elevation: 4,
-                  transform: 'translateY(-2px)',
+                  transform: 'translateY(-3px)',
+                  boxShadow: vh.shadows.elevated,
                 },
               }}
             >
