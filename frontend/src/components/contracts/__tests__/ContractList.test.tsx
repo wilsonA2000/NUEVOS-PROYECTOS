@@ -157,11 +157,12 @@ describe('ContractList', () => {
     expect(screen.getByTestId('tenant-dashboard')).toBeInTheDocument();
   });
 
-  it('should show loading spinner when contracts are loading', () => {
+  it('should show loading skeletons when contracts are loading', () => {
     mockUseContracts.isLoading = true;
-    renderComponent();
+    const { container } = renderComponent();
 
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    // El spinner se reemplazó por CardGridSkeleton (skeletons de tarjeta).
+    expect(container.querySelector('.MuiSkeleton-root')).toBeTruthy();
   });
 
   it('should display error message when loading fails', () => {
@@ -178,7 +179,7 @@ describe('ContractList', () => {
     renderComponent();
 
     expect(
-      screen.getByText(/No tienes contratos activos o finalizados/i),
+      screen.getByText(/Aún no tienes contratos/i),
     ).toBeInTheDocument();
   });
 
