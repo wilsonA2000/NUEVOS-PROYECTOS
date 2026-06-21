@@ -80,6 +80,7 @@ import {
 } from '../../types/landlordContract';
 import { Contract } from '../../types/contract';
 import { useAuth } from '../../hooks/useAuth';
+import { ContractStatusChip } from '../common/StatusChip';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import TenantContractReview from './TenantContractReview';
 import ModificationRequestModal from './ModificationRequestModal';
@@ -400,46 +401,8 @@ const TenantContractsDashboard: React.FC = () => {
   };
 
   // Obtener el color del estado
-  const getStateColor = (
-    state: ContractWorkflowState,
-  ): 'success' | 'warning' | 'error' | 'info' | 'default' => {
-    switch (state) {
-      case 'PUBLISHED':
-        return 'success';
-      case 'FULLY_SIGNED':
-        return 'success';
-      case 'READY_TO_SIGN':
-        return 'info';
-      case 'OBJECTIONS_PENDING':
-        return 'error';
-      case 'TENANT_REVIEWING':
-      case 'LANDLORD_REVIEWING':
-      case 'BOTH_REVIEWING':
-        return 'warning';
-      case 'TENANT_INVITED':
-        return 'info';
-      default:
-        return 'default';
-    }
-  };
-
-  // Obtener texto amigable del estado
-  const getStateText = (state: ContractWorkflowState): string => {
-    const stateTexts = {
-      TENANT_INVITED: 'Invitación Pendiente',
-      TENANT_REVIEWING: 'Revisando Contrato',
-      LANDLORD_REVIEWING: 'Arrendador Revisando',
-      OBJECTIONS_PENDING: 'Objeciones Pendientes',
-      BOTH_REVIEWING: 'Revisión Conjunta',
-      READY_TO_SIGN: 'Listo para Firmar',
-      FULLY_SIGNED: 'Contrato Firmado',
-      PUBLISHED: 'Contrato Activo',
-      EXPIRED: 'Expirado',
-      TERMINATED: 'Terminado',
-      CANCELLED: 'Cancelado',
-    };
-    return stateTexts[state as keyof typeof stateTexts] || state;
-  };
+  // Estado del contrato → chip unificado (ContractStatusChip + statusMaps).
+  // Antes había getStateColor/getStateText locales; ahora la fuente es única.
 
   // Renderizar tarjeta de contrato
   const renderContractCard = (contract: LandlordControlledContractData) => {
@@ -478,10 +441,8 @@ const TenantContractsDashboard: React.FC = () => {
                 </Avatar>
                 {contract.property_address}
               </Typography>
-              <Chip
-                label={getStateText(contract.current_state)}
-                color={getStateColor(contract.current_state)}
-                size='small'
+              <ContractStatusChip
+                status={contract.current_state}
                 sx={{ mr: 1 }}
               />
               {pendingActions.some(a => a.urgent) && (

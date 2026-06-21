@@ -30,6 +30,19 @@ export const CONTRACT_STATE_KIND: Record<string, StageKind> = {
   pending_authentication: 'inProgress',
   pending_tenant_biometric: 'inProgress',
   pending_landlord_biometric: 'inProgress',
+  // Estados del workflow LCC en MAYÚSCULAS (current_state del dashboard del
+  // arrendatario / candidatos). Conviven con los slugs en minúscula.
+  TENANT_INVITED: 'inProgress',
+  TENANT_REVIEWING: 'pending',
+  LANDLORD_REVIEWING: 'pending',
+  BOTH_REVIEWING: 'pending',
+  OBJECTIONS_PENDING: 'error',
+  READY_TO_SIGN: 'inProgress',
+  FULLY_SIGNED: 'success',
+  PUBLISHED: 'success',
+  EXPIRED: 'error',
+  TERMINATED: 'error',
+  CANCELLED: 'error',
 };
 
 export const contractStateKind = (status?: string): StageKind =>
@@ -86,6 +99,18 @@ export const CONTRACT_STATE_LABEL: Record<string, string> = {
   pending_authentication: 'Autenticación en curso',
   pending_tenant_biometric: 'Esperando arrendatario',
   pending_landlord_biometric: 'Esperando arrendador',
+  // Workflow LCC (MAYÚSCULAS).
+  TENANT_INVITED: 'Invitación Pendiente',
+  TENANT_REVIEWING: 'Revisando Contrato',
+  LANDLORD_REVIEWING: 'Arrendador Revisando',
+  BOTH_REVIEWING: 'Revisión Conjunta',
+  OBJECTIONS_PENDING: 'Objeciones Pendientes',
+  READY_TO_SIGN: 'Listo para Firmar',
+  FULLY_SIGNED: 'Contrato Firmado',
+  PUBLISHED: 'Contrato Activo',
+  EXPIRED: 'Expirado',
+  TERMINATED: 'Terminado',
+  CANCELLED: 'Cancelado',
 };
 
 export const contractStateLabel = (status?: string): string =>
