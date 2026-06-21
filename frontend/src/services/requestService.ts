@@ -205,7 +205,11 @@ export interface RequestActionData {
 }
 
 class RequestService {
-  private baseUrl = '/requests';
+  // El router DRF de la app `requests` se monta bajo `api/`
+  // (requests/urls.py: path("api/", include(router.urls))). Sin este segmento
+  // TODOS los endpoints (base/services/maintenance/contracts/...) daban 404 y
+  // las páginas de Solicitudes/Mantenimiento nunca cargaban datos.
+  private baseUrl = '/requests/api';
 
   // Base Requests
   async getMyRequests() {

@@ -48,7 +48,14 @@ export const useAdminNotifications = (): UseAdminNotificationsReturn => {
     const token = localStorage.getItem('access_token');
     if (!token) return;
 
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:8000/ws/notifications/?token=${token}`;
+    // Same-origin (a través de nginx). Antes hardcodeaba `:8000`, el puerto
+    // del backend que NO se expone en producción -> el WS de admin nunca
+    // conectaba. `window.location.host` lleva el puerto correcto (80/443) o
+    // ninguno; VITE_WS_URL permite override en dev (npm run dev).
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsBase =
+      import.meta.env.VITE_WS_URL || `${proto}//${window.location.host}`;
+    const wsUrl = `${wsBase}/ws/notifications/?token=${token}`;
 
     try {
       const ws = new WebSocket(wsUrl);
