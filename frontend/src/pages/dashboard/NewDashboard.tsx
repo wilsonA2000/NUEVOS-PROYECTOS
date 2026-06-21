@@ -850,6 +850,7 @@ const NewDashboard: React.FC = () => {
                     <Skeleton variant='rectangular' height='100%' />
                   ) : (
                     <Line
+                      aria-label='Gráfico de flujo de caja'
                       data={getIncomeChart()}
                       options={{
                         ...chartOptions,
@@ -940,6 +941,7 @@ const NewDashboard: React.FC = () => {
                     <Skeleton variant='circular' width={200} height={200} />
                   ) : (
                     <Doughnut
+                      aria-label='Gráfico de ocupación de propiedades'
                       data={getOccupancyChart()}
                       options={{
                         ...chartOptions,
@@ -990,7 +992,11 @@ const NewDashboard: React.FC = () => {
                   {loading ? (
                     <Skeleton variant='rectangular' height='100%' />
                   ) : (
-                    <Line data={getIncomeChart()} options={chartOptions} />
+                    <Line
+                      aria-label='Gráfico de flujo de caja'
+                      data={getIncomeChart()}
+                      options={chartOptions}
+                    />
                   )}
                 </Box>
               </Paper>
@@ -1031,6 +1037,7 @@ const NewDashboard: React.FC = () => {
                     <Skeleton variant='circular' width={250} height={250} />
                   ) : (
                     <Doughnut
+                      aria-label='Gráfico de ocupación de propiedades'
                       data={getOccupancyChart()}
                       options={{
                         ...chartOptions,
@@ -1457,6 +1464,7 @@ const NewDashboard: React.FC = () => {
                     <Skeleton variant='rectangular' height='100%' />
                   ) : (
                     <Bar
+                      aria-label='Gráfico de calificaciones'
                       data={getRatingsChart()}
                       options={{
                         ...chartOptions,

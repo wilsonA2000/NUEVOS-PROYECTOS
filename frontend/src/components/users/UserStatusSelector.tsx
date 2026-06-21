@@ -97,6 +97,17 @@ export const UserStatusSelector: React.FC<UserStatusSelectorProps> = ({
           color={getStatusColor(localStatus) as any}
           size='small'
           variant='outlined'
+          // El verde success.main sobre blanco no llega a AA (~3:1). Texto
+          // verde oscuro para contraste accesible cuando está en línea (a11y).
+          sx={
+            localStatus === 'online'
+              ? {
+                  color: '#0f5132',
+                  borderColor: '#16a34a',
+                  '& .MuiChip-icon': { color: '#16a34a' },
+                }
+              : undefined
+          }
         />
       </Box>
     );

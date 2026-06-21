@@ -204,8 +204,10 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
       {/* Property Type */}
       <Grid item xs={6} md={2}>
         <FormControl fullWidth size='small'>
-          <InputLabel>Tipo</InputLabel>
+          <InputLabel id='filter-tipo-label'>Tipo</InputLabel>
           <Select
+            labelId='filter-tipo-label'
+            id='filter-tipo'
             value={filters.property_type || ''}
             onChange={e => handleFilterChange('property_type', e.target.value)}
             label='Tipo'
@@ -227,8 +229,10 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
       {/* Status */}
       <Grid item xs={6} md={2}>
         <FormControl fullWidth size='small'>
-          <InputLabel>Estado</InputLabel>
+          <InputLabel id='filter-estado-label'>Estado</InputLabel>
           <Select
+            labelId='filter-estado-label'
+            id='filter-estado'
             value={filters.status || ''}
             onChange={e => handleFilterChange('status', e.target.value)}
             label='Estado'
