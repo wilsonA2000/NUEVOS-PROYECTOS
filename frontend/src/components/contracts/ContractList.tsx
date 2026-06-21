@@ -301,17 +301,6 @@ export const ContractList: React.FC = () => {
         ))}
       </Grid>
 
-      {contractsArray.length === 0 && (
-        <Box textAlign='center' py={6}>
-          <Typography variant='h6' color='text.secondary'>
-            No hay contratos disponibles
-          </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-            Crea tu primer contrato haciendo clic en "Nuevo Contrato"
-          </Typography>
-        </Box>
-      )}
-
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

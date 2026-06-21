@@ -202,8 +202,10 @@ describe('ContractList', () => {
     mockUseContracts.contracts = [];
     renderComponent();
 
+    // Estado vacío unificado (se eliminó el "No hay contratos disponibles"
+    // redundante; queda solo el EmptyState).
     expect(
-      screen.getByText(/No hay contratos disponibles/i),
+      screen.getByText(/Aún no tienes contratos/i),
     ).toBeInTheDocument();
   });
 });
