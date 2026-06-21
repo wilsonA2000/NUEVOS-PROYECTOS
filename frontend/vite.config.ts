@@ -193,8 +193,19 @@ export default defineConfig({
         manualChunks: id => {
           // Vendor chunks más granulares
           if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom')) {
+            // React core SOLAMENTE. Antes era `id.includes('react')`, un
+            // match demasiado amplio que capturaba react-router, react-query,
+            // @emotion/react, react-hook-form, etc. en este chunk (por ser la
+            // 1ª condición) -> dependencias circulares entre chunks ->
+            // "Cannot set properties of undefined (setting 'Children')" y
+            // pantalla blanca en producción. Match preciso del runtime React:
+            if (
+              id.includes('/node_modules/react/') ||
+              id.includes('/node_modules/react-dom/') ||
+              id.includes('/node_modules/react-is/') ||
+              id.includes('/node_modules/scheduler/') ||
+              id.includes('/node_modules/use-sync-external-store/')
+            ) {
               return 'react';
             }
 
@@ -293,61 +304,11 @@ export default defineConfig({
             return 'vendor';
           }
 
-          // App code chunks basados en features
-          if (id.includes('/src/pages/auth/')) {
-            return 'auth';
-          }
-
-          if (
-            id.includes('/src/pages/properties/') ||
-            id.includes('/src/components/properties/')
-          ) {
-            return 'properties';
-          }
-
-          if (
-            id.includes('/src/pages/contracts/') ||
-            id.includes('/src/components/contracts/')
-          ) {
-            return 'contracts';
-          }
-
-          if (
-            id.includes('/src/pages/payments/') ||
-            id.includes('/src/components/payments/')
-          ) {
-            return 'payments';
-          }
-
-          if (
-            id.includes('/src/pages/messages/') ||
-            id.includes('/src/components/messages/')
-          ) {
-            return 'messages';
-          }
-
-          if (
-            id.includes('/src/pages/dashboard/') ||
-            id.includes('/src/components/dashboard/')
-          ) {
-            return 'dashboard';
-          }
-
-          if (id.includes('/src/components/ratings/')) {
-            return 'ratings';
-          }
-
-          if (id.includes('/src/services/')) {
-            return 'services';
-          }
-
-          if (id.includes('/src/hooks/')) {
-            return 'hooks';
-          }
-
-          if (id.includes('/src/utils/')) {
-            return 'utils-app';
-          }
+          // Código de app: SIN chunking manual por feature. Los React.lazy()
+          // de las rutas ya hacen code-split por página; el split manual por
+          // feature (services/hooks/components importándose entre sí) creaba
+          // dependencias circulares entre chunks -> "Cannot access 'r' before
+          // initialization" y pantalla blanca. Vite agrupa el resto.
         },
         chunkFileNames: chunkInfo => {
           // Para chunks nombrados via manualChunks (mui, mui-icons, vendor, …)
