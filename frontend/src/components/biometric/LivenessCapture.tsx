@@ -113,6 +113,12 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
 
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  // El stream se guarda en estado para atarlo al <video> de forma reactiva:
+  // el elemento <video> solo se monta cuando apiReady === true (antes hay un
+  // early-return de "Cargando motor de liveness…"), así que asignar srcObject
+  // dentro de startCamera fallaba (videoRef.current === null) → cámara activa
+  // pero sin preview. Ver efecto de attach más abajo.
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [holdProgress, setHoldProgress] = useState(0);
   const [currentDirection, setCurrentDirection] =
@@ -133,12 +139,11 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setCameraReady(true);
-        setCameraError(null);
-      }
+      setCameraError(null);
+      // No asignamos al <video> aquí: puede no estar montado todavía (early
+      // return mientras carga el modelo). El efecto de attach lo hace cuando
+      // el elemento exista.
+      setStream(stream);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Error desconocido de cámara';
@@ -156,6 +161,7 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
+    setStream(null);
     setCameraReady(false);
   }, []);
 
@@ -164,6 +170,28 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
     startTimeRef.current = performance.now();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
+
+  // Attach reactivo: cuando el modelo está listo (el <video> ya montó) y hay
+  // stream, asignamos srcObject y reproducimos. Depende de [stream, apiReady]
+  // para cubrir ambos órdenes (stream llega antes o después de montar el video).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
+    }
+    video
+      .play()
+      .then(() => {
+        setCameraReady(true);
+        setCameraError(null);
+      })
+      .catch(err => {
+        setCameraError(
+          err instanceof Error ? err.message : 'No se pudo iniciar la cámara',
+        );
+      });
+  }, [stream, apiReady]);
 
   const captureSelfie = useCallback((): string | null => {
     const video = videoRef.current;
