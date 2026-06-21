@@ -17,6 +17,7 @@ import {
   Star as StarIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import PageHeader from '../../components/common/PageHeader';
 
 const ServicesPage: React.FC = () => {
   const { user } = useAuth();
@@ -86,31 +87,27 @@ const ServicesPage: React.FC = () => {
     }
   };
 
+  const isProvider = user?.user_type === 'service_provider';
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant='h4' sx={{ fontWeight: 'bold', mb: 1 }}>
-          {user?.user_type === 'service_provider'
-            ? 'Mis Servicios'
-            : 'Servicios Disponibles'}
-        </Typography>
-        <Typography
-          variant='body1'
-          sx={{ color: theme.palette.text.secondary }}
-        >
-          {user?.user_type === 'service_provider'
+      <PageHeader
+        overline='Servicios'
+        title={isProvider ? 'Mis Servicios' : 'Servicios Disponibles'}
+        subtitle={
+          isProvider
             ? 'Gestiona tus servicios y solicitudes de clientes'
-            : 'Encuentra profesionales para tus necesidades'}
-        </Typography>
-      </Box>
-
-      {user?.user_type === 'service_provider' && (
-        <Box sx={{ mb: 4 }}>
-          <Button variant='contained' startIcon={<AddIcon />} sx={{ mb: 2 }}>
-            Agregar Nuevo Servicio
-          </Button>
-        </Box>
-      )}
+            : 'Encuentra profesionales para tus necesidades'
+        }
+        icon={<BuildIcon />}
+        actions={
+          isProvider ? (
+            <Button variant='contained' startIcon={<AddIcon />}>
+              Agregar Nuevo Servicio
+            </Button>
+          ) : undefined
+        }
+      />
 
       <Grid container spacing={3}>
         {services.map(service => (

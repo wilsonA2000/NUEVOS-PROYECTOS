@@ -18,6 +18,7 @@ import {
   MoreVert as MoreVertIcon,
   Send as SendIcon, // Reservado para handleSendForReview (Sistema Molecular Admin)
   CheckCircle as CheckCircleIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -27,6 +28,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import { contractService } from '../../services/contractService';
 import TenantContractsDashboard from './TenantContractsDashboard';
 import StatusChip from '../common/StatusChip';
+import PageHeader from '../common/PageHeader';
 import { contractStateKind, contractStateLabel } from '../../utils/statusMaps';
 
 export const ContractList: React.FC = () => {
@@ -147,16 +149,12 @@ export const ContractList: React.FC = () => {
 
   return (
     <Box>
-      <Box
-        display='flex'
-        justifyContent='space-between'
-        alignItems='center'
-        mb={3}
-      >
-        <Typography variant='h4' component='h1'>
-          Contratos
-        </Typography>
-      </Box>
+      <PageHeader
+        overline='Legal'
+        title='Contratos'
+        subtitle='Tus contratos firmados y autenticados biométricamente'
+        icon={<DescriptionIcon />}
+      />
 
       {finalContracts.length === 0 ? (
         <Alert severity='info' sx={{ mb: 3 }}>
