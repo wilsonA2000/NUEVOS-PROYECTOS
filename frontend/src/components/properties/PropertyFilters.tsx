@@ -186,6 +186,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
           placeholder='Buscar propiedades...'
           value={filters.search || ''}
           onChange={e => handleFilterChange('search', e.target.value)}
+          inputProps={{ 'aria-label': 'Buscar propiedades' }}
           InputProps={{
             startAdornment: (
               <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />

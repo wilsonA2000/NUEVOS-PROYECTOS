@@ -712,10 +712,17 @@ const NewDashboard: React.FC = () => {
             >
               Exportar
             </Button>
-            <IconButton onClick={handleRefresh} disabled={refreshing}>
+            <IconButton
+              onClick={handleRefresh}
+              disabled={refreshing}
+              aria-label='Actualizar datos'
+            >
               <RefreshIcon className={refreshing ? 'rotating' : ''} />
             </IconButton>
-            <IconButton onClick={e => setAnchorEl(e.currentTarget)}>
+            <IconButton
+              onClick={e => setAnchorEl(e.currentTarget)}
+              aria-label='Más opciones'
+            >
               <MoreVertIcon />
             </IconButton>
           </Box>
@@ -973,6 +980,7 @@ const NewDashboard: React.FC = () => {
                   </Typography>
                   <IconButton
                     size='small'
+                    aria-label='Expandir gráfico de ingresos'
                     onClick={() => handleChartExpand('income')}
                   >
                     <FullscreenIcon />
@@ -1006,6 +1014,7 @@ const NewDashboard: React.FC = () => {
                     </Typography>
                     <IconButton
                       size='small'
+                      aria-label='Expandir gráfico de ocupación'
                       onClick={() => handleChartExpand('occupancy')}
                     >
                       <FullscreenIcon />
