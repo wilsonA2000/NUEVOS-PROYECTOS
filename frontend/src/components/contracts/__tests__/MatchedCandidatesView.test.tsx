@@ -37,11 +37,6 @@ jest.mock('../ModificationRequestModal', () => ({
   default: () => null,
 }));
 
-jest.mock('../../matching/MatchDocumentUpload', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 jest.mock('../EnhancedTenantDocumentUpload', () => ({
   __esModule: true,
   default: () => null,

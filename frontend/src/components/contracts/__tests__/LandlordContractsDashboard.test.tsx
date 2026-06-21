@@ -55,12 +55,6 @@ jest.mock('../../common/LoadingSpinner', () => ({
     ),
 }));
 
-jest.mock('../TenantInvitationSystem', () => {
-  return function MockInvitationSystem() {
-    return React.createElement('div', { 'data-testid': 'invitation-system' });
-  };
-});
-
 import LandlordContractsDashboard from '../LandlordContractsDashboard';
 
 const theme = createTheme();
