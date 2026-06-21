@@ -30,6 +30,7 @@ import TenantContractsDashboard from './TenantContractsDashboard';
 import { ContractStatusChip } from '../common/StatusChip';
 import PageHeader from '../common/PageHeader';
 import CardGridSkeleton from '../common/CardGridSkeleton';
+import EmptyState from '../common/EmptyState';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
@@ -163,15 +164,11 @@ export const ContractList: React.FC = () => {
       />
 
       {finalContracts.length === 0 ? (
-        <Alert severity='info' sx={{ mb: 3 }}>
-          <Typography variant='body1'>
-            No tienes contratos activos o finalizados.
-          </Typography>
-          <Typography variant='body2' sx={{ mt: 1 }}>
-            Los contratos aparecerán aquí una vez estén completamente firmados y
-            autenticados.
-          </Typography>
-        </Alert>
+        <EmptyState
+          icon={<DescriptionIcon />}
+          title='Aún no tienes contratos'
+          message='Los contratos aparecerán aquí una vez estén completamente firmados y autenticados biométricamente.'
+        />
       ) : null}
 
       <Grid container spacing={3}>
