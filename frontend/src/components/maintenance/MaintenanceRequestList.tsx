@@ -13,6 +13,7 @@ import {
   Button,
   Alert,
   CircularProgress,
+  Skeleton,
   Collapse,
   IconButton,
   Divider,
@@ -230,11 +231,15 @@ const MaintenanceRequestList: React.FC<MaintenanceRequestListProps> = ({
 
   if (loading) {
     return (
-      <Box display='flex' justifyContent='center' alignItems='center' py={6}>
-        <CircularProgress />
-        <Typography variant='body2' color='text.secondary' sx={{ ml: 2 }}>
-          Cargando solicitudes...
-        </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton
+            key={i}
+            variant='rounded'
+            height={88}
+            sx={{ borderRadius: 2 }}
+          />
+        ))}
       </Box>
     );
   }
