@@ -174,6 +174,10 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
 
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  // El <video> solo se monta cuando cvReady === true (antes hay early-return
+  // de "Cargando motor de detección…"), así que el stream se ata de forma
+  // reactiva vía efecto, no dentro de startCamera. Ver efecto de attach abajo.
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [detected, setDetected] = useState(false);
   const [stabilityProgress, setStabilityProgress] = useState(0);
   const [captured, setCaptured] = useState(false);
@@ -191,12 +195,10 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setCameraReady(true);
-        setCameraError(null);
-      }
+      setCameraError(null);
+      // No asignar al <video> aquí: puede no estar montado (early return
+      // mientras carga OpenCV). El efecto de attach lo hace cuando exista.
+      setStream(stream);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Error desconocido de cámara';
@@ -214,6 +216,7 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    setStream(null);
     setCameraReady(false);
   }, []);
 
@@ -221,6 +224,28 @@ const CedulaCapture: React.FC<CedulaCaptureProps> = ({
     startCamera();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
+
+  // Attach reactivo: cuando OpenCV está listo (el <video> ya montó) y hay
+  // stream, asignamos srcObject y reproducimos. Deps [stream, cvReady] cubren
+  // ambos órdenes (stream llega antes o después de montar el video).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
+    }
+    video
+      .play()
+      .then(() => {
+        setCameraReady(true);
+        setCameraError(null);
+      })
+      .catch(err => {
+        setCameraError(
+          err instanceof Error ? err.message : 'No se pudo iniciar la cámara',
+        );
+      });
+  }, [stream, cvReady]);
 
   const captureFrame = useCallback(
     (rect: OpenCVRect, stabilityMs: number) => {
