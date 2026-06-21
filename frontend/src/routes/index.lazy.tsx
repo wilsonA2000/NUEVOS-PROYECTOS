@@ -122,7 +122,6 @@ const SubscriptionPlans = lazy(
 );
 const ContractSigningDemo = lazy(() => import('../pages/ContractSigningDemo'));
 const RequestsPage = lazy(() => import('../pages/requests/RequestsPage'));
-const MessengerMain = lazy(() => import('../pages/messages/MessengerMain'));
 const EmailVerification = lazy(() =>
   import('../pages/auth/EmailVerification').then(m => ({
     default: m.EmailVerification,

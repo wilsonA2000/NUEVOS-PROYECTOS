@@ -145,10 +145,6 @@ export const LazyTenantInvitationLanding = React.lazy(
 export const LazyMessagesMain = React.lazy(
   () => import('../../pages/messages/MessagesMain'),
 );
-export const LazyInbox = React.lazy(() => import('../../pages/messages/Inbox'));
-export const LazyCompose = React.lazy(
-  () => import('../../pages/messages/Compose'),
-);
 // SERVICIOS - Lazy loaded
 export const LazyServicesPage = React.lazy(
   () => import('../../pages/services/ServicesPage'),
@@ -180,8 +176,6 @@ export const TenantInvitationLanding = withLazyLoading(
 );
 
 export const MessagesMain = withLazyLoading(LazyMessagesMain);
-export const Inbox = withLazyLoading(LazyInbox);
-export const Compose = withLazyLoading(LazyCompose);
 export const ServicesPage = withLazyLoading(LazyServicesPage);
 
 // Charts con loading especializado
