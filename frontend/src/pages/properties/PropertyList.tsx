@@ -25,7 +25,6 @@ import {
   useMediaQuery,
   ToggleButton,
   ToggleButtonGroup,
-  Skeleton,
   Fade,
   Paper,
   Tooltip,
@@ -59,6 +58,8 @@ import { ensureArray } from '../../utils/arrayUtils';
 import PropertyFilters from '../../components/properties/PropertyFilters';
 import PropertyCards from '../../components/properties/PropertyCards';
 import PropertyTable from '../../components/properties/PropertyTable';
+import CardGridSkeleton from '../../components/common/CardGridSkeleton';
+import EmptyState from '../../components/common/EmptyState';
 import { usePropertyFilters } from '../../components/properties/hooks/usePropertyFilters';
 import PropertiesErrorBoundary from '../../components/properties/PropertiesErrorBoundary';
 import { usePerformanceTracking } from '../../utils/performanceMonitor';
@@ -725,7 +726,7 @@ const PropertyList: React.FC = () => {
   if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>
-        <Skeleton variant='rectangular' height={400} />
+        <CardGridSkeleton count={6} />
       </Box>
     );
   }
@@ -839,28 +840,26 @@ const PropertyList: React.FC = () => {
         {/* Content with view switching */}
         <Box sx={{ minHeight: 400 }}>
           {propertiesArray.length === 0 ? (
-            <Paper elevation={0} sx={{ p: 8, textAlign: 'center' }}>
-              <LocationIcon
-                sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
-              />
-              <Typography variant='h6' color='text.secondary' gutterBottom>
-                No se encontraron propiedades
-              </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-                {hasActiveFilters
-                  ? 'Intenta ajustar los filtros de búsqueda'
-                  : 'Aún no hay propiedades registradas'}
-              </Typography>
-              {hasActiveFilters && (
-                <Button
-                  variant='outlined'
-                  onClick={clearFilters}
-                  startIcon={<FilterIcon />}
-                >
-                  Limpiar Filtros
-                </Button>
-              )}
-            </Paper>
+            <EmptyState
+              icon={<LocationIcon />}
+              title='No se encontraron propiedades'
+              message={
+                hasActiveFilters
+                  ? 'Intenta ajustar los filtros de búsqueda.'
+                  : 'Aún no hay propiedades registradas.'
+              }
+              action={
+                hasActiveFilters ? (
+                  <Button
+                    variant='outlined'
+                    onClick={clearFilters}
+                    startIcon={<FilterIcon />}
+                  >
+                    Limpiar Filtros
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <Fade in={true} timeout={300}>
               <Box>
