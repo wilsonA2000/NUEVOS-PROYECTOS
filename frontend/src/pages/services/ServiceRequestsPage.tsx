@@ -20,8 +20,11 @@ import {
   Cancel as CancelIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
+  Build as BuildIcon,
 } from '@mui/icons-material';
 import { requestService } from '../../services/requestService';
+import CardGridSkeleton from '../../components/common/CardGridSkeleton';
+import EmptyState from '../../components/common/EmptyState';
 
 interface ServiceRequest {
   id: number | string;
@@ -158,15 +161,8 @@ const ServiceRequestsPage: React.FC = () => {
 
   if (loading && serviceRequests.length === 0) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '50vh',
-        }}
-      >
-        <CircularProgress />
+      <Box sx={{ p: 3 }}>
+        <CardGridSkeleton count={6} />
       </Box>
     );
   }
@@ -406,9 +402,13 @@ const ServiceRequestsPage: React.FC = () => {
       </Grid>
 
       {serviceRequests.length === 0 && !loading && (
-        <Alert severity='info' sx={{ mt: 3 }}>
-          No hay solicitudes de servicio por el momento.
-        </Alert>
+        <Box sx={{ mt: 3 }}>
+          <EmptyState
+            icon={<BuildIcon />}
+            title='Sin solicitudes de servicio'
+            message='No hay solicitudes de servicio por el momento.'
+          />
+        </Box>
       )}
 
       <Snackbar
