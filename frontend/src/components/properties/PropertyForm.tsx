@@ -1595,9 +1595,13 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                               val === '' ? '' : val.replace(/[^0-9.]/g, ''),
                             );
                           }}
-                          required
+                          required={propertyType !== 'apartment'}
                           inputProps={{ minLength: 1, maxLength: 7 }}
-                          helperText='Obligatorio. Solo números.'
+                          helperText={
+                            propertyType === 'apartment'
+                              ? 'Opcional para apartamentos. Solo números.'
+                              : 'Obligatorio. Solo números.'
+                          }
                           id={`propertyform-${field.name}`}
                         />
                       )}
