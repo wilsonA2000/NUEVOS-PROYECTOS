@@ -36,6 +36,7 @@ import PaymentOrderList, {
   PaymentOrderRow,
 } from '../../components/payments/PaymentOrderList';
 import PayOrderModal from '../../components/payments/PayOrderModal';
+import PageHeader from '../../components/common/PageHeader';
 
 interface OrdersSummary {
   total: number;
@@ -196,13 +197,12 @@ const PaymentDashboardPage: React.FC = () => {
 
   return (
     <Container maxWidth='xl' sx={{ py: 4 }}>
-      <Typography variant='h4' sx={{ fontWeight: 700, mb: 1 }}>
-        Centro de pagos
-      </Typography>
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-        Órdenes de pago auditables con consecutivo único. Las cifras se
-        actualizan en tiempo real.
-      </Typography>
+      <PageHeader
+        overline='Finanzas'
+        title='Centro de pagos'
+        subtitle='Órdenes de pago auditables con consecutivo único. Las cifras se actualizan en tiempo real.'
+        icon={<ReceiptIcon />}
+      />
 
       {/* Stats */}
       {summary && (
