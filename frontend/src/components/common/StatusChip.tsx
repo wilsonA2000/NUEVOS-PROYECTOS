@@ -11,6 +11,12 @@
 import React from 'react';
 import { Chip, ChipProps } from '@mui/material';
 import { stageToken, StageKind } from '../../theme/tokens';
+import {
+  matchStatusKind,
+  matchStatusLabel,
+  contractStateKind,
+  contractStateLabel,
+} from '../../utils/statusMaps';
 
 export interface StatusChipProps extends Omit<ChipProps, 'color'> {
   kind: StageKind;
@@ -38,23 +44,29 @@ const StatusChip: React.FC<StatusChipProps> = ({ kind, sx, ...rest }) => {
 export default StatusChip;
 
 // ---------------------------------------------------------------------------
-// Resolvers de estado CRUDO → chip (D13). Una sola fuente para que los
-// componentes no repitan mapeos status→color/label ad-hoc.
+// Resolvers de estado CRUDO → chip (D13). Toman el status del backend y
+// resuelven kind + label desde la fuente canónica (utils/statusMaps), para que
+// los componentes no repitan mapeos status→color/label ad-hoc.
 // ---------------------------------------------------------------------------
-
-const MATCH_STATUS: Record<string, { kind: StageKind; label: string }> = {
-  pending: { kind: 'pending', label: 'Pendiente' },
-  viewed: { kind: 'inProgress', label: 'Vista' },
-  accepted: { kind: 'success', label: 'Aceptada' },
-  rejected: { kind: 'error', label: 'Rechazada' },
-  cancelled: { kind: 'neutral', label: 'Cancelada' },
-  expired: { kind: 'neutral', label: 'Expirada' },
-};
 
 /** Chip para el estado de una solicitud de match (status crudo del backend). */
 export const MatchStatusChip: React.FC<
   { status: string } & Omit<StatusChipProps, 'kind' | 'label'>
-> = ({ status, ...rest }) => {
-  const m = MATCH_STATUS[status] ?? { kind: 'neutral' as StageKind, label: status };
-  return <StatusChip kind={m.kind} label={m.label} {...rest} />;
-};
+> = ({ status, ...rest }) => (
+  <StatusChip
+    kind={matchStatusKind(status)}
+    label={matchStatusLabel(status)}
+    {...rest}
+  />
+);
+
+/** Chip para el estado/etapa de un contrato (current_state o status crudo). */
+export const ContractStatusChip: React.FC<
+  { status?: string } & Omit<StatusChipProps, 'kind' | 'label'>
+> = ({ status, ...rest }) => (
+  <StatusChip
+    kind={contractStateKind(status)}
+    label={contractStateLabel(status)}
+    {...rest}
+  />
+);

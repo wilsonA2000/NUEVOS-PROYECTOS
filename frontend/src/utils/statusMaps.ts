@@ -47,6 +47,18 @@ export const MATCH_STATUS_KIND: Record<string, StageKind> = {
 export const matchStatusKind = (status?: string): StageKind =>
   (status && MATCH_STATUS_KIND[status]) || 'neutral';
 
+export const MATCH_STATUS_LABEL: Record<string, string> = {
+  pending: 'Pendiente',
+  viewed: 'Vista',
+  accepted: 'Aceptada',
+  rejected: 'Rechazada',
+  cancelled: 'Cancelada',
+  expired: 'Expirada',
+};
+
+export const matchStatusLabel = (status?: string): string =>
+  (status && MATCH_STATUS_LABEL[status]) || status || '—';
+
 /**
  * Etiqueta legible en español para estados de contrato.
  * Evita mostrar el slug interno (`pending_tenant_biometric`) al usuario.

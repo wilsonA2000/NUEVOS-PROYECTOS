@@ -27,9 +27,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { contractService } from '../../services/contractService';
 import TenantContractsDashboard from './TenantContractsDashboard';
-import StatusChip from '../common/StatusChip';
+import { ContractStatusChip } from '../common/StatusChip';
 import PageHeader from '../common/PageHeader';
-import { contractStateKind, contractStateLabel } from '../../utils/statusMaps';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
@@ -226,10 +225,7 @@ export const ContractList: React.FC = () => {
                   </Typography>
                 )}
                 <Box sx={{ mt: 2, mb: 2 }}>
-                  <StatusChip
-                    kind={contractStateKind(contract.status)}
-                    label={contractStateLabel(contract.status)}
-                  />
+                  <ContractStatusChip status={contract.status} />
                 </Box>
                 {/* Información del inquilino */}
                 {contract.secondary_party ? (
