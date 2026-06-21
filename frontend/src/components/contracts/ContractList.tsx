@@ -29,6 +29,7 @@ import { contractService } from '../../services/contractService';
 import TenantContractsDashboard from './TenantContractsDashboard';
 import { ContractStatusChip } from '../common/StatusChip';
 import PageHeader from '../common/PageHeader';
+import CardGridSkeleton from '../common/CardGridSkeleton';
 
 export const ContractList: React.FC = () => {
   const navigate = useNavigate();
@@ -115,8 +116,14 @@ export const ContractList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display='flex' justifyContent='center' p={3}>
-        <CircularProgress />
+      <Box>
+        <PageHeader
+          overline='Legal'
+          title='Contratos'
+          subtitle='Tus contratos firmados y autenticados biométricamente'
+          icon={<DescriptionIcon />}
+        />
+        <CardGridSkeleton count={6} />
       </Box>
     );
   }
