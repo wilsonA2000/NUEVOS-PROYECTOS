@@ -90,6 +90,10 @@ export default defineConfig({
       workbox: {
         // Pre-cache app shell
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff,woff2}'],
+        // No precachear opencv.js (~11MB, self-hosted): se carga on-demand solo
+        // en el flujo biométrico VeriHome ID. Precachearlo rompe el build (excede
+        // el límite del service worker) y desperdiciaría cuota offline.
+        globIgnores: ['**/vendor/**'],
         // Runtime caching strategies
         runtimeCaching: [
           {

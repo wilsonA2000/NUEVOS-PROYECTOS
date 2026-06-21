@@ -80,7 +80,16 @@ export interface OpenCVRect {
   height: number;
 }
 
-const CDN_URL = 'https://docs.opencv.org/4.x/opencv.js';
+// opencv.js (oficial 4.13.0, ~11MB, wasm embebido) se sirve SELF-HOSTED desde
+// el mismo origen (public/vendor/opencv.js → nginx). Antes se bajaba de
+// docs.opencv.org/4.x, que: (a) hace 301 a /4.13.0, (b) no tiene edge local y
+// (c) 11MB sin timeout → el usuario quedaba en "Cargando…" infinito. Mismo
+// origen = rápido, sin redirect, funciona offline (crítico para identidad).
+const CDN_URL = '/vendor/opencv.js';
+
+// Si la carga (10 MB + init WASM) no termina en este tiempo, fallamos con error
+// claro en vez de dejar al usuario en un spinner infinito.
+const LOAD_TIMEOUT_MS = 45_000;
 
 function loadOpenCV(): Promise<OpenCVModule> {
   if (typeof window === 'undefined') {
@@ -96,21 +105,46 @@ function loadOpenCV(): Promise<OpenCVModule> {
   }
 
   window.__openCVLoading = new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      // Permitir reintento: si quedó cacheada una promesa rechazada, los
+      // siguientes montajes fallarían para siempre.
+      delete window.__openCVLoading;
+      reject(new Error('OpenCV.js tardó demasiado en cargar (timeout)'));
+    }, LOAD_TIMEOUT_MS);
+
+    const done = (cv: OpenCVModule) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(cv);
+    };
+    const fail = (err: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      delete window.__openCVLoading;
+      reject(err);
+    };
+
     const script = document.createElement('script');
     script.src = CDN_URL;
     script.async = true;
 
     script.onload = () => {
       const checkReady = () => {
+        if (settled) return;
         const cv = window.cv as
           | { Mat?: unknown; onRuntimeInitialized?: () => void }
           | undefined;
         if (cv && cv.Mat) {
-          resolve(window.cv as OpenCVModule);
+          done(window.cv as OpenCVModule);
           return;
         }
         if (cv) {
-          cv.onRuntimeInitialized = () => resolve(window.cv as OpenCVModule);
+          cv.onRuntimeInitialized = () => done(window.cv as OpenCVModule);
           return;
         }
         setTimeout(checkReady, 100);
@@ -119,7 +153,7 @@ function loadOpenCV(): Promise<OpenCVModule> {
     };
 
     script.onerror = () =>
-      reject(new Error('No se pudo cargar OpenCV.js desde CDN'));
+      fail(new Error('No se pudo cargar OpenCV.js desde CDN'));
     document.head.appendChild(script);
   });
 
