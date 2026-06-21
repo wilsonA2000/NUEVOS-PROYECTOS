@@ -22,8 +22,12 @@ import {
   Typography,
   Tooltip,
 } from '@mui/material';
-import { Payment as PayIcon } from '@mui/icons-material';
+import {
+  Payment as PayIcon,
+  ReceiptLong as ReceiptLongIcon,
+} from '@mui/icons-material';
 import StatusChip from '../common/StatusChip';
+import EmptyState from '../common/EmptyState';
 import type { StageKind } from '../../theme/tokens';
 
 export interface PaymentOrderRow {
@@ -104,9 +108,11 @@ const PaymentOrderList: React.FC<PaymentOrderListProps> = ({
 }) => {
   if (!orders || orders.length === 0) {
     return (
-      <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
-        <Typography variant='body1'>{emptyMessage}</Typography>
-      </Box>
+      <EmptyState
+        icon={<ReceiptLongIcon />}
+        title='Sin órdenes de pago'
+        message={emptyMessage}
+      />
     );
   }
 

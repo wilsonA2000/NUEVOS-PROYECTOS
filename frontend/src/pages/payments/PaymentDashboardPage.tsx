@@ -21,7 +21,7 @@ import {
   Tabs,
   Tab,
   Alert,
-  CircularProgress,
+  Skeleton,
   Stack,
 } from '@mui/material';
 import {
@@ -258,8 +258,15 @@ const PaymentDashboardPage: React.FC = () => {
 
       {/* Listado */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress />
+        <Box>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton
+              key={i}
+              variant='rounded'
+              height={56}
+              sx={{ mb: 1, borderRadius: 2 }}
+            />
+          ))}
         </Box>
       ) : error ? (
         <Alert severity='error'>{error}</Alert>
