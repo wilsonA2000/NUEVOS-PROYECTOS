@@ -272,6 +272,7 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
       case 1:
         return (
           <CedulaCapture
+            key='cedula-anverso'
             side='anverso'
             onCapture={handleAnversoCapture}
             onCancel={onCancel}
@@ -281,6 +282,7 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
       case 2:
         return (
           <CedulaCapture
+            key='cedula-reverso'
             side='reverso'
             onCapture={handleReversoCapture}
             onCancel={onCancel}

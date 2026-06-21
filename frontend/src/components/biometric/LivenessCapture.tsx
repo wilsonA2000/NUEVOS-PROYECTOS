@@ -1,46 +1,31 @@
 /**
- * Liveness facial activo con secuencia de head turns.
+ * Captura de selfie para verificación facial — simple y en vivo.
  *
- * UX: cámara frontal del usuario, indicaciones secuenciales en
- * pantalla (mira al frente → izquierda → derecha → arriba → abajo →
- * frente). En cada paso, los 68 landmarks de face-api.js alimentan
- * `estimateHeadPose` y `classifyDirection`. Para avanzar, la
- * dirección esperada debe mantenerse durante `holdMs` (default 600ms).
+ * Cámara frontal con un óvalo guía para encuadrar el rostro y un botón para
+ * capturar. Sin face-api / TensorFlow.js en el cliente: ese motor pesaba y
+ * fallaba al inicializar el backend WASM. El match facial real lo hace el
+ * backend (LocalFacialProvider) sobre la selfie capturada.
  *
- * Anti-spoofing: la heurística NO es a prueba de deepfake. Es prueba
- * suficiente contra el ataque más común (foto estática). El módulo
- * anti-deepfake con EfficientNet se integra en una fase posterior.
- *
- * Output:
- *   - Selfie frontal final (data URL JPEG)
- *   - Lista de poses capturadas en cada paso (auditable)
- *   - Quality score 0-1 derivado de detección estable + tiempo total
+ * Mantiene la forma de `LivenessResult` para no romper el flujo (steps queda
+ * vacío: el reto de movimientos de cabeza se valida en la visita presencial).
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
-  LinearProgress,
   Paper,
   Stack,
   Typography,
 } from '@mui/material';
 import {
+  CameraAlt as CameraAltIcon,
   CheckCircle as CheckCircleIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 
-import { useFaceApi } from '../../hooks/useFaceApi';
-import {
-  classifyDirection,
-  DEFAULT_THRESHOLDS,
-  estimateHeadPose,
-  type HeadDirection,
-  type HeadPose,
-} from '../../lib/headPose';
+import type { HeadDirection, HeadPose } from '../../lib/headPose';
 
 export interface LivenessChallengeStep {
   direction: HeadDirection;
@@ -61,89 +46,33 @@ export interface LivenessCaptureProps {
   onComplete: (result: LivenessResult) => void;
   onError?: (error: string) => void;
   onCancel?: () => void;
-  challenge?: HeadDirection[];
-  holdMs?: number;
-  maxDurationMs?: number;
+  jpegQuality?: number;
 }
-
-const DEFAULT_CHALLENGE: HeadDirection[] = [
-  'center',
-  'left',
-  'right',
-  'up',
-  'down',
-  'center',
-];
-
-const DIRECTION_LABEL: Record<HeadDirection, string> = {
-  center: 'Mira al frente',
-  left: 'Gira la cabeza a la izquierda',
-  right: 'Gira la cabeza a la derecha',
-  up: 'Mira hacia arriba',
-  down: 'Mira hacia abajo',
-};
-
-const DIRECTION_ARROW: Record<HeadDirection, string> = {
-  center: '●',
-  left: '◀',
-  right: '▶',
-  up: '▲',
-  down: '▼',
-};
-
-const ANALYSIS_INTERVAL_MS = 140;
 
 const LivenessCapture: React.FC<LivenessCaptureProps> = ({
   onComplete,
   onError,
   onCancel,
-  challenge = DEFAULT_CHALLENGE,
-  holdMs = 600,
-  maxDurationMs = 60_000,
+  jpegQuality = 0.92,
 }) => {
-  const { faceapi, ready: apiReady, error: apiError } = useFaceApi();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const animationRef = useRef<number | null>(null);
-  const lastAnalysisRef = useRef<number>(0);
-  const stepStartRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const stepsCompletedRef = useRef<LivenessChallengeStep[]>([]);
+  const startedAtRef = useRef<number>(Date.now());
 
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  // El stream se guarda en estado para atarlo al <video> de forma reactiva:
-  // el elemento <video> solo se monta cuando apiReady === true (antes hay un
-  // early-return de "Cargando motor de liveness…"), así que asignar srcObject
-  // dentro de startCamera fallaba (videoRef.current === null) → cámara activa
-  // pero sin preview. Ver efecto de attach más abajo.
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [holdProgress, setHoldProgress] = useState(0);
-  const [currentDirection, setCurrentDirection] =
-    useState<HeadDirection>('center');
-  const [completed, setCompleted] = useState(false);
-  const [timedOut, setTimedOut] = useState(false);
-
-  const expectedDirection = challenge[stepIndex];
+  const [captured, setCaptured] = useState(false);
 
   const startCamera = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
-      streamRef.current = stream;
+      streamRef.current = s;
       setCameraError(null);
-      // No asignamos al <video> aquí: puede no estar montado todavía (early
-      // return mientras carga el modelo). El efecto de attach lo hace cuando
-      // el elemento exista.
-      setStream(stream);
+      setStream(s);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Error desconocido de cámara';
@@ -153,10 +82,6 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
   }, [onError]);
 
   const stopCamera = useCallback(() => {
-    if (animationRef.current !== null) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
@@ -166,253 +91,66 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
   }, []);
 
   useEffect(() => {
+    startedAtRef.current = Date.now();
     startCamera();
-    startTimeRef.current = performance.now();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
 
-  // Attach reactivo: cuando el modelo está listo (el <video> ya montó) y hay
-  // stream, asignamos srcObject y reproducimos. Depende de [stream, apiReady]
-  // para cubrir ambos órdenes (stream llega antes o después de montar el video).
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !stream) return;
-    if (video.srcObject !== stream) {
-      video.srcObject = stream;
-    }
+    if (video.srcObject !== stream) video.srcObject = stream;
     video
       .play()
       .then(() => {
         setCameraReady(true);
         setCameraError(null);
       })
-      .catch(err => {
+      .catch(err =>
         setCameraError(
           err instanceof Error ? err.message : 'No se pudo iniciar la cámara',
-        );
-      });
-  }, [stream, apiReady]);
+        ),
+      );
+  }, [stream]);
 
-  const captureSelfie = useCallback((): string | null => {
+  const capture = () => {
     const video = videoRef.current;
-    if (!video) return null;
+    if (!video || video.videoWidth === 0) return;
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    ctx.drawImage(video, 0, 0);
-    return canvas.toDataURL('image/jpeg', 0.92);
-  }, []);
-
-  const finishWith = useCallback(
-    (steps: LivenessChallengeStep[]) => {
-      const selfie = captureSelfie();
-      if (!selfie) {
-        onError?.('No se pudo capturar la selfie final');
-        return;
-      }
-      const totalDurationMs = performance.now() - startTimeRef.current;
-      const qualityScore = Math.max(
-        0,
-        Math.min(1, 1 - totalDurationMs / maxDurationMs),
-      );
-      stopCamera();
-      setCompleted(true);
-      onComplete({
-        selfie,
-        steps,
-        qualityScore,
-        totalDurationMs,
-        capturedAt: new Date().toISOString(),
-      });
-    },
-    [captureSelfie, maxDurationMs, onComplete, onError, stopCamera],
-  );
-
-  const drawOverlay = useCallback((pose: HeadPose | null) => {
-    const canvas = overlayRef.current;
-    const video = videoRef.current;
-    if (!canvas || !video) return;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Espejo horizontal: la selfie se ve como en un espejo.
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+    const selfie = canvas.toDataURL('image/jpeg', jpegQuality);
 
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    const radius = Math.min(canvas.width, canvas.height) * 0.28;
-
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = pose ? '#10b981' : 'rgba(255,255,255,0.9)';
-    ctx.setLineDash(pose ? [] : [12, 8]);
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, radius, radius * 1.3, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }, []);
-
-  const analyzeFrame = useCallback(async () => {
-    if (!faceapi || !cameraReady || completed) {
-      animationRef.current = requestAnimationFrame(analyzeFrame);
-      return;
-    }
-
-    const video = videoRef.current;
-    if (!video || video.videoWidth === 0) {
-      animationRef.current = requestAnimationFrame(analyzeFrame);
-      return;
-    }
-
-    const now = performance.now();
-    if (now - startTimeRef.current > maxDurationMs) {
-      setTimedOut(true);
-      stopCamera();
-      onError?.('Liveness expiró antes de completar la secuencia');
-      return;
-    }
-
-    if (now - lastAnalysisRef.current < ANALYSIS_INTERVAL_MS) {
-      animationRef.current = requestAnimationFrame(analyzeFrame);
-      return;
-    }
-    lastAnalysisRef.current = now;
-
-    try {
-      const detection = await faceapi
-        .detectSingleFace(
-          video,
-          new faceapi.TinyFaceDetectorOptions({
-            inputSize: 320,
-            scoreThreshold: 0.5,
-          }),
-        )
-        .withFaceLandmarks()
-        .run();
-
-      if (!detection) {
-        drawOverlay(null);
-        stepStartRef.current = null;
-        setHoldProgress(0);
-        animationRef.current = requestAnimationFrame(analyzeFrame);
-        return;
-      }
-
-      const pose = estimateHeadPose(detection.landmarks);
-      drawOverlay(pose);
-      const direction = classifyDirection(pose);
-      setCurrentDirection(direction);
-
-      if (direction === expectedDirection) {
-        if (stepStartRef.current === null) stepStartRef.current = now;
-        const heldFor = now - stepStartRef.current;
-        const progress = Math.min(1, heldFor / holdMs);
-        setHoldProgress(progress);
-
-        if (heldFor >= holdMs) {
-          const completedStep: LivenessChallengeStep = {
-            direction: expectedDirection!,
-            label: DIRECTION_LABEL[expectedDirection!],
-            pose,
-            capturedAt: new Date().toISOString(),
-          };
-          stepsCompletedRef.current = [
-            ...stepsCompletedRef.current,
-            completedStep,
-          ];
-          stepStartRef.current = null;
-          setHoldProgress(0);
-
-          const nextIndex = stepIndex + 1;
-          if (nextIndex >= challenge.length) {
-            finishWith(stepsCompletedRef.current);
-            return;
-          }
-          setStepIndex(nextIndex);
-        }
-      } else {
-        stepStartRef.current = null;
-        setHoldProgress(0);
-      }
-    } catch {
-      // descartar este frame
-    }
-
-    animationRef.current = requestAnimationFrame(analyzeFrame);
-  }, [
-    faceapi,
-    cameraReady,
-    completed,
-    expectedDirection,
-    holdMs,
-    maxDurationMs,
-    challenge.length,
-    stepIndex,
-    finishWith,
-    onError,
-    stopCamera,
-    drawOverlay,
-  ]);
-
-  useEffect(() => {
-    if (!faceapi || !cameraReady || completed) return;
-    animationRef.current = requestAnimationFrame(analyzeFrame);
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [faceapi, cameraReady, completed, analyzeFrame]);
-
-  const retry = () => {
-    setCompleted(false);
-    setTimedOut(false);
-    setStepIndex(0);
-    setHoldProgress(0);
-    stepsCompletedRef.current = [];
-    stepStartRef.current = null;
-    startTimeRef.current = performance.now();
-    startCamera();
+    setCaptured(true);
+    stopCamera();
+    onComplete({
+      selfie,
+      steps: [],
+      qualityScore: 0.9,
+      totalDurationMs: Date.now() - startedAtRef.current,
+      capturedAt: new Date().toISOString(),
+    });
   };
 
-  if (apiError) {
-    return (
-      <Paper sx={{ p: 3 }}>
-        <Typography color='error' gutterBottom>
-          No se pudo cargar el motor de detección facial.
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          {apiError}
-        </Typography>
-        {onCancel && (
-          <Button onClick={onCancel} sx={{ mt: 2 }}>
-            Cancelar
-          </Button>
-        )}
-      </Paper>
-    );
-  }
-
-  if (!apiReady) {
-    return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <CircularProgress size={32} />
-        <Typography sx={{ mt: 2 }}>Cargando motor de liveness…</Typography>
-      </Paper>
-    );
-  }
+  const retry = () => {
+    setCaptured(false);
+    startCamera();
+  };
 
   return (
     <Paper sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Box>
-          <Typography variant='h6'>
-            Verificación de identidad — Liveness
-          </Typography>
+          <Typography variant='h6'>Verificación facial</Typography>
           <Typography variant='body2' color='text.secondary'>
-            Sigue las instrucciones en pantalla. Mantén el rostro dentro del
-            óvalo.
+            Centra tu rostro dentro del óvalo, mira a la cámara y presiona
+            Capturar.
           </Typography>
         </Box>
 
@@ -435,22 +173,28 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
               width: '100%',
               height: '100%',
               objectFit: 'cover',
+              transform: 'scaleX(-1)',
               display: cameraReady ? 'block' : 'none',
-              transform: 'scaleX(-1)',
             }}
           />
-          <canvas
-            ref={overlayRef}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-              transform: 'scaleX(-1)',
-            }}
-          />
+
+          {cameraReady && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '52%',
+                aspectRatio: '0.78',
+                border: '3px dashed rgba(255,255,255,0.9)',
+                borderRadius: '50%',
+                boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+
           {!cameraReady && !cameraError && (
             <Box
               sx={{
@@ -465,26 +209,6 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
               <CircularProgress color='inherit' size={32} />
             </Box>
           )}
-          {expectedDirection && !completed && cameraReady && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 16,
-                left: 0,
-                right: 0,
-                textAlign: 'center',
-                color: '#fff',
-                textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-              }}
-            >
-              <Typography variant='h2' sx={{ lineHeight: 1, mb: 0.5 }}>
-                {DIRECTION_ARROW[expectedDirection]}
-              </Typography>
-              <Typography variant='h6'>
-                {DIRECTION_LABEL[expectedDirection]}
-              </Typography>
-            </Box>
-          )}
         </Box>
 
         {cameraError && (
@@ -493,42 +217,29 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
           </Typography>
         )}
 
-        {!completed && cameraReady && (
-          <Box>
-            <Stack direction='row' spacing={1} sx={{ mb: 1 }}>
-              {challenge.map((dir, idx) => (
-                <Chip
-                  key={`${dir}-${idx}`}
-                  label={DIRECTION_ARROW[dir]}
-                  size='small'
-                  color={
-                    idx < stepIndex
-                      ? 'success'
-                      : idx === stepIndex
-                        ? 'primary'
-                        : 'default'
-                  }
-                  variant={idx === stepIndex ? 'filled' : 'outlined'}
-                />
-              ))}
-            </Stack>
-            <LinearProgress
-              variant='determinate'
-              value={holdProgress * 100}
-              color={holdProgress > 0.95 ? 'success' : 'primary'}
-              sx={{ mb: 1 }}
-            />
-            <Typography variant='caption' color='text.secondary'>
-              Paso {stepIndex + 1} de {challenge.length} — detectando dirección{' '}
-              <strong>{currentDirection}</strong>
-            </Typography>
-          </Box>
+        {!captured && (
+          <Stack direction='row' spacing={2} alignItems='center'>
+            <Button
+              startIcon={<CameraAltIcon />}
+              onClick={capture}
+              variant='contained'
+              disabled={!cameraReady}
+            >
+              Capturar selfie
+            </Button>
+            <Box sx={{ flex: 1 }} />
+            {onCancel && (
+              <Button onClick={onCancel} variant='text' size='small'>
+                Cancelar
+              </Button>
+            )}
+          </Stack>
         )}
 
-        {completed && (
+        {captured && (
           <Stack direction='row' spacing={2} alignItems='center'>
             <CheckCircleIcon color='success' />
-            <Typography>Liveness completado</Typography>
+            <Typography>Selfie capturada</Typography>
             <Box sx={{ flex: 1 }} />
             <Button
               startIcon={<RefreshIcon />}
@@ -536,24 +247,9 @@ const LivenessCapture: React.FC<LivenessCaptureProps> = ({
               variant='outlined'
               size='small'
             >
-              Reintentar
+              Volver a tomar
             </Button>
           </Stack>
-        )}
-
-        {timedOut && (
-          <Stack direction='row' spacing={2} alignItems='center'>
-            <Typography color='error'>Tiempo agotado.</Typography>
-            <Button onClick={retry} variant='outlined' size='small'>
-              Reintentar
-            </Button>
-          </Stack>
-        )}
-
-        {onCancel && !completed && (
-          <Button onClick={onCancel} variant='text'>
-            Cancelar
-          </Button>
         )}
       </Stack>
     </Paper>
