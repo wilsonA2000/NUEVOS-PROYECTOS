@@ -50,6 +50,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { AdminService } from '../../services/adminService';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import PageHeader from '../../components/common/PageHeader';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 /**
@@ -202,16 +203,12 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant='h4' fontWeight='bold' gutterBottom>
-          Dashboard de Administración Legal
-        </Typography>
-        <Typography variant='body1' color='text.secondary'>
-          Bienvenido al panel de control. Aquí puedes revisar y aprobar
-          contratos pendientes.
-        </Typography>
-      </Box>
+      <PageHeader
+        overline='Administración'
+        title='Dashboard de Administración Legal'
+        subtitle='Revisa y aprueba los contratos pendientes desde el panel de control.'
+        icon={<GavelIcon />}
+      />
 
       {/* Alertas urgentes */}
       {stats?.urgent_contracts && stats.urgent_contracts > 0 && (

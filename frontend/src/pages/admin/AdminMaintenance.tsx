@@ -36,9 +36,11 @@ import {
   Storage as StorageIcon,
   Speed as SpeedIcon,
   Memory as MemoryIcon,
+  Build as BuildIcon,
 } from '@mui/icons-material';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import api from '../../services/api';
+import PageHeader from '../../components/common/PageHeader';
 
 interface HealthStatus {
   database: { status: string; latency_ms: number };
@@ -141,12 +143,12 @@ const AdminMaintenance: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant='h4' fontWeight='bold' gutterBottom>
-        Mantenimiento del Sistema
-      </Typography>
-      <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
-        Operaciones de mantenimiento y monitoreo del sistema
-      </Typography>
+      <PageHeader
+        overline='Administración'
+        title='Mantenimiento del Sistema'
+        subtitle='Operaciones de mantenimiento y monitoreo del sistema'
+        icon={<BuildIcon />}
+      />
 
       {result && (
         <Alert
