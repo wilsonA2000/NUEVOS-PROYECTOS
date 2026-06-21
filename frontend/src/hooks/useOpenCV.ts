@@ -134,20 +134,18 @@ function loadOpenCV(): Promise<OpenCVModule> {
     script.async = true;
 
     script.onload = () => {
+      // Polling continuo de cv.Mat (señal de WASM listo). NO dependemos de
+      // cv.onRuntimeInitialized: si se asigna después de que el runtime ya
+      // inicializó, ese callback no dispara en algunos navegadores → cuelgue.
+      // El polling cubre todos los casos; el timeout de arriba corta si falla.
       const checkReady = () => {
         if (settled) return;
-        const cv = window.cv as
-          | { Mat?: unknown; onRuntimeInitialized?: () => void }
-          | undefined;
+        const cv = window.cv as { Mat?: unknown } | undefined;
         if (cv && cv.Mat) {
           done(window.cv as OpenCVModule);
           return;
         }
-        if (cv) {
-          cv.onRuntimeInitialized = () => done(window.cv as OpenCVModule);
-          return;
-        }
-        setTimeout(checkReady, 100);
+        setTimeout(checkReady, 50);
       };
       checkReady();
     };
