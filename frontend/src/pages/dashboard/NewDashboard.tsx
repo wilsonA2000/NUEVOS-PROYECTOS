@@ -641,17 +641,42 @@ const NewDashboard: React.FC = () => {
       <VerihomeIdBanner />
       {/* Header */}
       <Box mb={4}>
-        <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2.5, md: 3.5 },
+            mb: 2,
+            borderRadius: 3,
+            border: 'none',
+            color: '#fff',
+            // Hero atmosférico de marca (mismo lenguaje que el login).
+            background:
+              'radial-gradient(900px 380px at 12% 0%, rgba(99,102,241,0.45), transparent 60%),' +
+              'linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #4338ca 100%)',
+            '& .MuiTypography-root': { color: '#fff' },
+            '& .MuiIconButton-root': { color: '#fff' },
+            '& .MuiButton-outlined': {
+              color: '#fff',
+              borderColor: 'rgba(255,255,255,0.5)',
+              '&:hover': {
+                borderColor: '#fff',
+                background: 'rgba(255,255,255,0.08)',
+              },
+            },
+          }}
         >
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            flexWrap='wrap'
+            gap={2}
+          >
           <Box>
             <Typography variant='h4' fontWeight='bold' gutterBottom>
               Dashboard
             </Typography>
-            <Typography variant='body1' color='textSecondary'>
+            <Typography variant='body1' sx={{ opacity: 0.85 }}>
               Bienvenido, {user?.first_name} -{' '}
               {format(new Date(), "EEEE dd 'de' MMMM", { locale: es })}
             </Typography>
@@ -694,7 +719,8 @@ const NewDashboard: React.FC = () => {
               <MoreVertIcon />
             </IconButton>
           </Box>
-        </Box>
+          </Box>
+        </Paper>
 
         {/* Period Selector */}
         <Box display='flex' gap={1}>
