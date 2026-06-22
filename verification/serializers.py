@@ -1,5 +1,6 @@
 import base64
 import binascii
+import logging
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -15,6 +16,52 @@ from .models import (
 )
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+# Umbral de similitud para considerar que la cédula y la selfie son la misma
+# persona (face_recognition: similitud derivada de distancia euclídea).
+FACE_MATCH_THRESHOLD = 0.55
+
+
+def _server_face_match(anverso_b64, selfie_b64):
+    """Corre el match facial REAL (cédula anverso ↔ selfie) en el servidor con
+    LocalFacialProvider. Devuelve (similarity 0-1, face_match_data). Robusto:
+    si el provider falla o no detecta rostro, similarity = 0 (no rompe el POST).
+    """
+    similarity = 0.0
+    error = None
+    try:
+        from contracts.biometric_providers.factory import get_facial_provider
+
+        if anverso_b64 and selfie_b64:
+            provider = get_facial_provider()
+            similarity = float(provider.compare_faces(anverso_b64, selfie_b64))
+    except Exception as exc:  # noqa: BLE001 - el onboarding no debe caerse por esto
+        error = str(exc)
+        logger.warning("VeriHome ID: match facial server-side falló: %s", exc)
+    return similarity, {
+        "similarity": round(similarity, 4),
+        "threshold": FACE_MATCH_THRESHOLD,
+        "isMatch": similarity >= FACE_MATCH_THRESHOLD,
+        "provider": "server",
+        "error": error,
+    }
+
+
+def _digital_score_server(similarity, has_images, has_declared):
+    """Score digital 0.0–0.5 dominado por el match facial real del servidor.
+    (La visita en campo aporta los otros 0.5.) Simple y autoritativo."""
+    if similarity >= FACE_MATCH_THRESHOLD:
+        match_pts = 0.30 + 0.10 * min(
+            1.0, (similarity - FACE_MATCH_THRESHOLD) / (1 - FACE_MATCH_THRESHOLD)
+        )
+    elif similarity >= 0.45:
+        match_pts = 0.18  # parecido pero por debajo del umbral → observado
+    else:
+        match_pts = 0.0
+    base_pts = (0.08 if has_images else 0.0) + (0.04 if has_declared else 0.0)
+    total = min(0.5, match_pts + base_pts)
+    return Decimal(str(round(total, 3)))
 
 
 def _decode_base64_image(payload, prefix):
@@ -278,8 +325,24 @@ class FieldVisitRequestSerializer(serializers.ModelSerializer):
         reverso_b64 = validated_data.pop("cedula_reverso", None)
         selfie_b64 = validated_data.pop("selfie_liveness_b64", None)
 
-        verdict = _verdict_from_score(validated_data["digital_score_total"])
+        # Verificación AUTORITATIVA en el servidor: el match facial real
+        # (cédula anverso ↔ selfie) lo corre LocalFacialProvider, no el
+        # navegador. El score/veredicto del cliente se ignora (manipulable y
+        # frágil); aquí se recalculan.
+        similarity, face_match_data = _server_face_match(anverso_b64, selfie_b64)
+        score_total = _digital_score_server(
+            similarity,
+            has_images=bool(anverso_b64 and selfie_b64),
+            has_declared=bool(
+                validated_data.get("full_name_declared")
+                and validated_data.get("document_number_declared")
+            ),
+        )
+        verdict = _verdict_from_score(score_total)
         status_value = "rejected" if verdict == "rechazado" else "digital_completed"
+
+        validated_data["digital_score_total"] = score_total
+        validated_data["face_match_data"] = face_match_data
 
         instance = FieldVisitRequest.objects.create(
             user=request.user,

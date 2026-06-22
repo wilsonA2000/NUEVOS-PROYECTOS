@@ -6,6 +6,7 @@ and API endpoints (agents, visits, reports).
 
 import tempfile as _tempfile
 from datetime import timedelta
+from unittest.mock import patch, MagicMock
 from django.test import TestCase, override_settings as _override_settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -512,6 +513,18 @@ class FieldVisitRequestAPITests(APITestCase):
             user_type="landlord",
             is_staff=True,
         )
+        # El veredicto ahora lo decide el match facial SERVER-SIDE
+        # (LocalFacialProvider). Mockeamos el provider para controlar la
+        # similitud y probar los umbrales de forma determinista. Default alto
+        # (= aprobado) salvo que el test lo cambie.
+        self.mock_provider = MagicMock()
+        self.mock_provider.compare_faces.return_value = 0.9
+        patcher = patch(
+            "contracts.biometric_providers.factory.get_facial_provider",
+            return_value=self.mock_provider,
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_onboarding_requires_authentication(self):
         response = self.client.post(
@@ -538,6 +551,7 @@ class FieldVisitRequestAPITests(APITestCase):
 
     def test_onboarding_rechazado_persists_with_status_rejected(self):
         self.client.force_authenticate(user=self.user)
+        self.mock_provider.compare_faces.return_value = 0.1  # sin match → rechazado
         response = self.client.post(
             "/api/v1/verification/onboarding/",
             _onboarding_payload("0.10"),
@@ -549,6 +563,7 @@ class FieldVisitRequestAPITests(APITestCase):
 
     def test_onboarding_observado_verdict_at_threshold(self):
         self.client.force_authenticate(user=self.user)
+        self.mock_provider.compare_faces.return_value = 0.48  # parecido → observado
         response = self.client.post(
             "/api/v1/verification/onboarding/",
             _onboarding_payload("0.30"),

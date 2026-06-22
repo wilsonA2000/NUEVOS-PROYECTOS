@@ -16,7 +16,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   FormControl,
   InputLabel,
@@ -41,7 +40,6 @@ import {
 } from '../../lib/colombianIdParser';
 import { compareFaceImages, type FaceMatchResult } from '../../lib/faceMatch';
 import {
-  classifyDigitalScore,
   computeVerihomeIdScore,
   type VerihomeIdScoreBreakdown,
 } from '../../lib/verihomeIdScore';
@@ -302,69 +300,20 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
           return (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <CircularProgress size={32} />
-              <Typography sx={{ mt: 2 }}>
-                Cruzando información biométrica…
-              </Typography>
+              <Typography sx={{ mt: 2 }}>Preparando envío…</Typography>
             </Box>
           );
         }
 
-        const verdict = classifyDigitalScore(finalScore.total);
+        // El veredicto lo decide el SERVIDOR (match facial real con
+        // LocalFacialProvider). Aquí solo enviamos las capturas; el resultado
+        // se muestra en la pantalla de cierre.
         return (
           <Stack spacing={2}>
-            <Alert severity={verdict.color}>{verdict.message}</Alert>
-            <Box>
-              <Typography variant='h4'>
-                {(finalScore.total * 100).toFixed(0)} / 50
-              </Typography>
-              <Typography variant='caption' color='text.secondary'>
-                Score parcial digital (la visita en campo aporta hasta 50 puntos
-                adicionales)
-              </Typography>
-            </Box>
-
-            <Stack spacing={1}>
-              <Chip
-                label={`OCR completo: ${(finalScore.ocrCompleto * 100).toFixed(0)} pts`}
-                size='small'
-              />
-              <Chip
-                label={`Número coincide: ${(finalScore.numeroCoincide * 100).toFixed(0)} pts`}
-                size='small'
-              />
-              <Chip
-                label={`Nombre coincide: ${(finalScore.nombreCoincide * 100).toFixed(0)} pts`}
-                size='small'
-              />
-              <Chip
-                label={`Tipo coincide: ${(finalScore.tipoCoincide * 100).toFixed(0)} pts`}
-                size='small'
-              />
-              <Chip
-                label={`Liveness: ${(finalScore.livenessSuperado * 100).toFixed(0)} pts`}
-                size='small'
-              />
-              <Chip
-                label={`Match facial: ${(finalScore.matchFacial * 100).toFixed(0)} pts`}
-                size='small'
-              />
-            </Stack>
-
-            {finalScore.observaciones.length > 0 && (
-              <Box>
-                <Typography variant='subtitle2'>Observaciones</Typography>
-                <ul>
-                  {finalScore.observaciones.map((obs, idx) => (
-                    <li key={idx}>
-                      <Typography variant='body2' color='text.secondary'>
-                        {obs}
-                      </Typography>
-                    </li>
-                  ))}
-                </ul>
-              </Box>
-            )}
-
+            <Alert severity='info'>
+              Tus documentos y tu selfie están listos. Al enviar, validamos tu
+              identidad de forma segura en el servidor.
+            </Alert>
             <Stack direction='row' spacing={2}>
               {onCancel && (
                 <Button variant='text' onClick={onCancel}>
@@ -372,14 +321,8 @@ const VeriHomeIDFlow: React.FC<VeriHomeIDFlowProps> = ({
                 </Button>
               )}
               <Box sx={{ flex: 1 }} />
-              <Button
-                variant='contained'
-                onClick={handleSubmit}
-                disabled={verdict.label === 'rechazado'}
-              >
-                {verdict.label === 'rechazado'
-                  ? 'No cumple mínimos'
-                  : 'Continuar a visita en campo'}
+              <Button variant='contained' onClick={handleSubmit}>
+                Enviar verificación
               </Button>
             </Stack>
           </Stack>
