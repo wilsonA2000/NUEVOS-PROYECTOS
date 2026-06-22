@@ -18,7 +18,8 @@ from .document_demo import DemoDocumentProvider
 logger = logging.getLogger(__name__)
 
 _PROVIDER_DEMO = "demo"
-_VALID_PROVIDERS = {_PROVIDER_DEMO}
+_PROVIDER_LOCAL = "local"
+_VALID_PROVIDERS = {_PROVIDER_DEMO, _PROVIDER_LOCAL}
 
 
 def _resolve_provider_name() -> str:
@@ -38,5 +39,10 @@ def _resolve_provider_name() -> str:
 @lru_cache(maxsize=1)
 def get_document_provider() -> DocumentProvider:
     """Devuelve la instancia del DocumentProvider activo (memoizada)."""
-    _resolve_provider_name()
+    name = _resolve_provider_name()
+    if name == _PROVIDER_LOCAL:
+        # Import perezoso: pytesseract/cv2 solo se cargan con el provider real.
+        from .local_document import LocalDocumentProvider
+
+        return LocalDocumentProvider()
     return DemoDocumentProvider()

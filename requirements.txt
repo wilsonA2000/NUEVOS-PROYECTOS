@@ -91,6 +91,9 @@ openpyxl==3.1.2
 # cmake + g++ + make (ver Dockerfile.prod)
 opencv-python-headless==4.10.0.84
 face_recognition==1.3.0
+# OCR de cédula local (LocalDocumentProvider) — requiere binario tesseract-ocr
+# + tesseract-ocr-spa instalados a nivel SO (ver Dockerfile.prod)
+pytesseract==0.3.13
 
 # Generación de PDFs
 reportlab==4.0.7

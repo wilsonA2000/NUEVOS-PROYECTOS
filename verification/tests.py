@@ -526,6 +526,22 @@ class FieldVisitRequestAPITests(APITestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
+        # OCR server-side también se mockea: por defecto el OCR "coincide" con
+        # los datos declarados del payload (número 1234567890, nombre Juan Perez).
+        doc_analysis = MagicMock()
+        doc_analysis.document_number = "1234567890"
+        doc_analysis.full_name = "Juan Perez"
+        doc_analysis.detected_type = "cedula_ciudadania"
+        doc_analysis.ocr_confidence = 1.0
+        self.mock_doc_provider = MagicMock()
+        self.mock_doc_provider.analyze_document.return_value = doc_analysis
+        doc_patcher = patch(
+            "contracts.biometric_providers.document_factory.get_document_provider",
+            return_value=self.mock_doc_provider,
+        )
+        doc_patcher.start()
+        self.addCleanup(doc_patcher.stop)
+
     def test_onboarding_requires_authentication(self):
         response = self.client.post(
             "/api/v1/verification/onboarding/", _onboarding_payload(), format="json"
@@ -571,6 +587,25 @@ class FieldVisitRequestAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["digital_verdict"], "observado")
+
+    def test_onboarding_ocr_mismatch_baja_el_veredicto(self):
+        # Mismo parecido facial intermedio (observado), pero el OCR de la cédula
+        # NO coincide con lo declarado → el veredicto baja a rechazado.
+        self.client.force_authenticate(user=self.user)
+        self.mock_provider.compare_faces.return_value = 0.48
+        otro = MagicMock()
+        otro.document_number = "9999999999"  # no coincide con 1234567890
+        otro.full_name = "Otra Persona"
+        otro.detected_type = "cedula_ciudadania"
+        otro.ocr_confidence = 1.0
+        self.mock_doc_provider.analyze_document.return_value = otro
+        response = self.client.post(
+            "/api/v1/verification/onboarding/",
+            _onboarding_payload("0.30"),
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["digital_verdict"], "rechazado")
 
     def test_me_returns_latest_onboarding(self):
         self.client.force_authenticate(user=self.user)

@@ -48,19 +48,74 @@ def _server_face_match(anverso_b64, selfie_b64):
     }
 
 
-def _digital_score_server(similarity, has_images, has_declared):
-    """Score digital 0.0–0.5 dominado por el match facial real del servidor.
-    (La visita en campo aporta los otros 0.5.) Simple y autoritativo."""
+def _norm_digits(value):
+    return "".join(ch for ch in str(value or "") if ch.isdigit())
+
+
+def _norm_tokens(value):
+    import unicodedata
+
+    text = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode()
+    return {t for t in text.upper().split() if len(t) >= 2}
+
+
+def _server_ocr_crosscheck(anverso_b64, declared_number, declared_name):
+    """OCR REAL del anverso de la cédula (LocalDocumentProvider) y cruce contra
+    los datos declarados. Devuelve (number_match, name_match, ocr_data). Robusto:
+    si el OCR falla, ambos matches = False (no rompe el POST)."""
+    number_match = False
+    name_match = False
+    ocr_data = {"provider": "server", "error": None}
+    try:
+        from contracts.biometric_providers.document_factory import (
+            get_document_provider,
+        )
+
+        if anverso_b64:
+            analysis = get_document_provider().analyze_document(
+                anverso_b64, ""
+            )
+            ocr_number = analysis.document_number
+            ocr_name = analysis.full_name
+            ocr_data.update(
+                {
+                    "document_number": ocr_number,
+                    "full_name": ocr_name,
+                    "detected_type": analysis.detected_type,
+                    "ocr_confidence": analysis.ocr_confidence,
+                }
+            )
+            dn = _norm_digits(declared_number)
+            on = _norm_digits(ocr_number)
+            number_match = bool(dn) and bool(on) and (dn == on or dn in on or on in dn)
+            decl_tokens = _norm_tokens(declared_name)
+            ocr_tokens = _norm_tokens(ocr_name)
+            name_match = len(decl_tokens & ocr_tokens) >= 2
+    except Exception as exc:  # noqa: BLE001 - el onboarding no debe caerse por esto
+        ocr_data["error"] = str(exc)
+        logger.warning("VeriHome ID: OCR server-side falló: %s", exc)
+    ocr_data["numberMatch"] = number_match
+    ocr_data["nameMatch"] = name_match
+    return number_match, name_match, ocr_data
+
+
+def _digital_score_server(
+    similarity, has_images, has_declared, ocr_number_match=False, ocr_name_match=False
+):
+    """Score digital 0.0–0.5 calculado en el servidor a partir de señales REALES:
+    match facial (núcleo) + cruce OCR de la cédula vs lo declarado. La visita en
+    campo aporta los otros 0.5. Simple y autoritativo."""
     if similarity >= FACE_MATCH_THRESHOLD:
-        match_pts = 0.30 + 0.10 * min(
+        match_pts = 0.25 + 0.08 * min(
             1.0, (similarity - FACE_MATCH_THRESHOLD) / (1 - FACE_MATCH_THRESHOLD)
         )
     elif similarity >= 0.45:
-        match_pts = 0.18  # parecido pero por debajo del umbral → observado
+        match_pts = 0.15  # parecido pero por debajo del umbral → observado
     else:
         match_pts = 0.0
-    base_pts = (0.08 if has_images else 0.0) + (0.04 if has_declared else 0.0)
-    total = min(0.5, match_pts + base_pts)
+    ocr_pts = (0.10 if ocr_number_match else 0.0) + (0.05 if ocr_name_match else 0.0)
+    base_pts = (0.03 if has_images else 0.0) + (0.02 if has_declared else 0.0)
+    total = min(0.5, match_pts + ocr_pts + base_pts)
     return Decimal(str(round(total, 3)))
 
 
@@ -330,6 +385,11 @@ class FieldVisitRequestSerializer(serializers.ModelSerializer):
         # navegador. El score/veredicto del cliente se ignora (manipulable y
         # frágil); aquí se recalculan.
         similarity, face_match_data = _server_face_match(anverso_b64, selfie_b64)
+        number_match, name_match, ocr_data = _server_ocr_crosscheck(
+            anverso_b64,
+            validated_data.get("document_number_declared"),
+            validated_data.get("full_name_declared"),
+        )
         score_total = _digital_score_server(
             similarity,
             has_images=bool(anverso_b64 and selfie_b64),
@@ -337,12 +397,15 @@ class FieldVisitRequestSerializer(serializers.ModelSerializer):
                 validated_data.get("full_name_declared")
                 and validated_data.get("document_number_declared")
             ),
+            ocr_number_match=number_match,
+            ocr_name_match=name_match,
         )
         verdict = _verdict_from_score(score_total)
         status_value = "rejected" if verdict == "rechazado" else "digital_completed"
 
         validated_data["digital_score_total"] = score_total
         validated_data["face_match_data"] = face_match_data
+        validated_data["ocr_data"] = ocr_data
 
         instance = FieldVisitRequest.objects.create(
             user=request.user,
