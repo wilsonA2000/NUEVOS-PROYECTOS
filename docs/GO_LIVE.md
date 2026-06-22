@@ -49,10 +49,15 @@ cp .env.prod.example .env.prod
 #  DJANGO_SUPERUSER_EMAIL / _PASSWORD
 #  SENTRY_DSN, MAPBOX_ACCESS_TOKEN, claves de pago según corresponda
 #  LAWYER_FULL_NAME / _CC / _TP_NUMBER / _EMAIL (firmante del contrato)
+#  BIOMETRIC_FACIAL_PROVIDER=local  BIOMETRIC_DOCUMENT_PROVIDER=local
+#    (verificación de identidad REAL: match facial + OCR de cédula server-side.
+#     El binario tesseract-ocr+spa ya viene en la imagen — sin paso manual.)
 ```
 
 `.env.prod` y `.env.localprod` están en `.gitignore`. Verificar que el
-`.env.prod.example` cubre TODAS las variables (auditado 2026-06-20: completo).
+`.env.prod.example` cubre TODAS las variables (auditado 2026-06-22: completo,
+incluye proveedores biométricos `local`). Config del compose prod validada
+(`docker compose -f docker-compose.prod.yml config` → OK).
 
 ## 4. DNS
 
